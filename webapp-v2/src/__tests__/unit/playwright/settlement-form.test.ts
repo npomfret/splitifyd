@@ -8,6 +8,7 @@ import {
     fillFormField,
     TEST_SCENARIOS,
 } from '../infra/test-helpers';
+import { CURRENCY_REPLACEMENTS } from './test-currencies';
 
 /**
  * High-value settlement tests that verify actual user behavior
@@ -19,7 +20,7 @@ const mockGroupData = {
     id: 'test-group',
     name: 'Test Group',
     description: 'A test group for settlements',
-    currency: 'USD',
+    currency: CURRENCY_REPLACEMENTS.USD.acronym,
     members: [
         { uid: 'user1', email: TEST_SCENARIOS.VALID_EMAIL, displayName: 'Test User', joinedAt: new Date().toISOString() },
         { uid: 'user2', email: 'member2@test.com', displayName: 'Alice Smith', joinedAt: new Date().toISOString() },

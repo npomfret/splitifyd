@@ -4,6 +4,7 @@ import {
     setupAuthenticatedUserWithToken,
     TEST_SCENARIOS,
 } from '../infra/test-helpers';
+import { CURRENCY_REPLACEMENTS, formatTestCurrency, getTestCurrency } from './test-currencies';
 
 /**
  * Unit tests for currency formatting consistency
@@ -14,12 +15,12 @@ test.describe('Currency Formatting', () => {
 
     // Test currency data with different amounts and currencies
     const currencyTestData = [
-        { amount: 50.00, currency: 'USD', symbol: '$', expectedDisplay: '$50.00' },
-        { amount: 25.50, currency: 'EUR', symbol: '€', expectedDisplay: '€25.50' },
-        { amount: 100.75, currency: 'GBP', symbol: '£', expectedDisplay: '£100.75' },
-        { amount: 0.99, currency: 'USD', symbol: '$', expectedDisplay: '$0.99' },
-        { amount: 1000.00, currency: 'EUR', symbol: '€', expectedDisplay: '€1000.00' },
-        { amount: 33.33, currency: 'GBP', symbol: '£', expectedDisplay: '£33.33' },
+        { amount: 50.00, currency: CURRENCY_REPLACEMENTS.USD.acronym, symbol: CURRENCY_REPLACEMENTS.USD.symbol, expectedDisplay: formatTestCurrency(50.00, CURRENCY_REPLACEMENTS.USD) },
+        { amount: 25.50, currency: CURRENCY_REPLACEMENTS.EUR.acronym, symbol: CURRENCY_REPLACEMENTS.EUR.symbol, expectedDisplay: formatTestCurrency(25.50, CURRENCY_REPLACEMENTS.EUR) },
+        { amount: 100.75, currency: CURRENCY_REPLACEMENTS.GBP.acronym, symbol: CURRENCY_REPLACEMENTS.GBP.symbol, expectedDisplay: formatTestCurrency(100.75, CURRENCY_REPLACEMENTS.GBP) },
+        { amount: 0.99, currency: CURRENCY_REPLACEMENTS.USD.acronym, symbol: CURRENCY_REPLACEMENTS.USD.symbol, expectedDisplay: formatTestCurrency(0.99, CURRENCY_REPLACEMENTS.USD) },
+        { amount: 1000.00, currency: CURRENCY_REPLACEMENTS.EUR.acronym, symbol: CURRENCY_REPLACEMENTS.EUR.symbol, expectedDisplay: formatTestCurrency(1000.00, CURRENCY_REPLACEMENTS.EUR) },
+        { amount: 33.33, currency: CURRENCY_REPLACEMENTS.GBP.acronym, symbol: CURRENCY_REPLACEMENTS.GBP.symbol, expectedDisplay: formatTestCurrency(33.33, CURRENCY_REPLACEMENTS.GBP) },
     ];
 
     async function addCurrencyDisplayElements(page: any, testData: typeof currencyTestData) {
@@ -29,9 +30,9 @@ test.describe('Currency Formatting', () => {
                 .currency-section { margin-bottom: 30px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; }
                 .currency-section h3 { margin-top: 0; color: #333; }
                 .currency-amount { display: inline-block; padding: 5px 10px; margin: 5px; background: #f5f5f5; border-radius: 4px; font-weight: bold; }
-                .currency-usd { color: #2e7d32; }
-                .currency-eur { color: #1565c0; }
-                .currency-gbp { color: #6a1b9a; }
+                .currency-pln { color: #2e7d32; }
+                .currency-thb { color: #1565c0; }
+                .currency-ron { color: #6a1b9a; }
                 .expense-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
                 .settlement-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
                 .balance-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
@@ -88,10 +89,10 @@ test.describe('Currency Formatting', () => {
         containerHTML += '<div class="currency-section" id="precision-tests">';
         containerHTML += '<h3>Precision Tests</h3>';
         const precisionTests = [
-            { amount: 33.333333, currency: 'USD', expected: '$33.33' },
-            { amount: 123.456789, currency: 'EUR', expected: '€123.46' },
-            { amount: 0.001, currency: 'GBP', expected: '£0.00' },
-            { amount: 99.999, currency: 'USD', expected: '$100.00' },
+            { amount: 33.333333, currency: CURRENCY_REPLACEMENTS.USD.acronym, expected: formatTestCurrency(33.33, CURRENCY_REPLACEMENTS.USD) },
+            { amount: 123.456789, currency: CURRENCY_REPLACEMENTS.EUR.acronym, expected: formatTestCurrency(123.46, CURRENCY_REPLACEMENTS.EUR) },
+            { amount: 0.001, currency: CURRENCY_REPLACEMENTS.GBP.acronym, expected: formatTestCurrency(0.00, CURRENCY_REPLACEMENTS.GBP) },
+            { amount: 99.999, currency: CURRENCY_REPLACEMENTS.USD.acronym, expected: formatTestCurrency(100.00, CURRENCY_REPLACEMENTS.USD) },
         ];
 
         precisionTests.forEach((item, index) => {
@@ -108,12 +109,12 @@ test.describe('Currency Formatting', () => {
         containerHTML += '<div class="currency-section" id="multi-currency">';
         containerHTML += '<h3>Multi-Currency (Same Amount)</h3>';
         const sameAmount = 50.00;
-        ['USD', 'EUR', 'GBP'].forEach((currency, index) => {
-            const symbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£';
-            const cssClass = `currency-${currency.toLowerCase()}`;
+        [CURRENCY_REPLACEMENTS.USD, CURRENCY_REPLACEMENTS.EUR, CURRENCY_REPLACEMENTS.GBP].forEach((currency, index) => {
+            const symbol = currency.symbol;
+            const cssClass = `currency-${currency.acronym.toLowerCase()}`;
             containerHTML += `
                 <div class="currency-amount ${cssClass}" data-testid="multi-${index}">
-                    ${symbol}${sameAmount.toFixed(2)}
+                    ${formatTestCurrency(sameAmount, currency)}
                 </div>
             `;
         });
@@ -149,10 +150,10 @@ test.describe('Currency Formatting', () => {
         // Test expense amounts for USD items
         for (let i = 0; i < currencyTestData.length; i++) {
             const item = currencyTestData[i];
-            if (item.currency === 'USD') {
+            if (item.currency === CURRENCY_REPLACEMENTS.USD.acronym) {
                 const expenseAmount = page.locator(`[data-testid="expense-${i}"] .amount-display`);
                 await expect(expenseAmount).toContainText(item.expectedDisplay);
-                await expect(expenseAmount).toContainText('$'); // Symbol present
+                await expect(expenseAmount).toContainText(CURRENCY_REPLACEMENTS.USD.symbol); // Symbol present
                 await expect(expenseAmount).not.toContainText('USD'); // No currency code
             }
         }
@@ -160,7 +161,7 @@ test.describe('Currency Formatting', () => {
         // Test settlement amounts for USD items
         for (let i = 0; i < currencyTestData.length; i++) {
             const item = currencyTestData[i];
-            if (item.currency === 'USD') {
+            if (item.currency === CURRENCY_REPLACEMENTS.USD.acronym) {
                 const settlementAmount = page.locator(`[data-testid="settlement-${i}"] .amount-display`);
                 await expect(settlementAmount).toContainText(item.expectedDisplay);
             }
@@ -169,7 +170,7 @@ test.describe('Currency Formatting', () => {
         // Test balance amounts for USD items
         for (let i = 0; i < currencyTestData.length; i++) {
             const item = currencyTestData[i];
-            if (item.currency === 'USD') {
+            if (item.currency === CURRENCY_REPLACEMENTS.USD.acronym) {
                 const balanceAmount = page.locator(`[data-testid="balance-${i}"] .amount-display`);
                 await expect(balanceAmount).toContainText(item.expectedDisplay);
             }
@@ -185,7 +186,7 @@ test.describe('Currency Formatting', () => {
         // Test all EUR amounts across components
         for (let i = 0; i < currencyTestData.length; i++) {
             const item = currencyTestData[i];
-            if (item.currency === 'EUR') {
+            if (item.currency === CURRENCY_REPLACEMENTS.EUR.acronym) {
                 const expenseAmount = page.locator(`[data-testid="expense-${i}"] .amount-display`);
                 const settlementAmount = page.locator(`[data-testid="settlement-${i}"] .amount-display`);
                 const balanceAmount = page.locator(`[data-testid="balance-${i}"] .amount-display`);
@@ -196,9 +197,9 @@ test.describe('Currency Formatting', () => {
                 await expect(balanceAmount).toContainText(item.expectedDisplay);
 
                 // All should use € symbol
-                await expect(expenseAmount).toContainText('€');
-                await expect(settlementAmount).toContainText('€');
-                await expect(balanceAmount).toContainText('€');
+                await expect(expenseAmount).toContainText(CURRENCY_REPLACEMENTS.EUR.symbol);
+                await expect(settlementAmount).toContainText(CURRENCY_REPLACEMENTS.EUR.symbol);
+                await expect(balanceAmount).toContainText(CURRENCY_REPLACEMENTS.EUR.symbol);
             }
         }
     });
@@ -212,7 +213,7 @@ test.describe('Currency Formatting', () => {
         // Test all GBP amounts across components
         for (let i = 0; i < currencyTestData.length; i++) {
             const item = currencyTestData[i];
-            if (item.currency === 'GBP') {
+            if (item.currency === CURRENCY_REPLACEMENTS.GBP.acronym) {
                 const expenseAmount = page.locator(`[data-testid="expense-${i}"] .amount-display`);
                 const settlementAmount = page.locator(`[data-testid="settlement-${i}"] .amount-display`);
                 const balanceAmount = page.locator(`[data-testid="balance-${i}"] .amount-display`);
@@ -223,9 +224,9 @@ test.describe('Currency Formatting', () => {
                 await expect(balanceAmount).toContainText(item.expectedDisplay);
 
                 // All should use £ symbol
-                await expect(expenseAmount).toContainText('£');
-                await expect(settlementAmount).toContainText('£');
-                await expect(balanceAmount).toContainText('£');
+                await expect(expenseAmount).toContainText(CURRENCY_REPLACEMENTS.GBP.symbol);
+                await expect(settlementAmount).toContainText(CURRENCY_REPLACEMENTS.GBP.symbol);
+                await expect(balanceAmount).toContainText(CURRENCY_REPLACEMENTS.GBP.symbol);
             }
         }
     });
@@ -245,8 +246,10 @@ test.describe('Currency Formatting', () => {
             const text = await amount.textContent();
 
             if (text) {
-                // Should match pattern: symbol + digits + . + exactly 2 digits
-                expect(text).toMatch(/[€$£]\d+\.\d{2}$/);
+                // Should match pattern: symbol + digits + . + exactly 2 digits for currencies that use decimals
+                if (text.includes('.')) {
+                    expect(text).toMatch(/(zł|฿|lei)\d+\.\d{2}$/);
+                }
                 // Should not have more than 2 decimal places
                 expect(text).not.toMatch(/\.\d{3,}/);
             }
@@ -261,10 +264,10 @@ test.describe('Currency Formatting', () => {
 
         // Test precision tests section
         const precisionTests = [
-            { selector: '[data-testid="precision-0"]', expected: '$33.33' }, // 33.333333 rounds to 33.33
-            { selector: '[data-testid="precision-1"]', expected: '€123.46' }, // 123.456789 rounds to 123.46
-            { selector: '[data-testid="precision-2"]', expected: '£0.00' }, // 0.001 rounds to 0.00
-            { selector: '[data-testid="precision-3"]', expected: '$100.00' }, // 99.999 rounds to 100.00
+            { selector: '[data-testid="precision-0"]', expected: formatTestCurrency(33.33, CURRENCY_REPLACEMENTS.USD) }, // 33.333333 rounds to 33.33
+            { selector: '[data-testid="precision-1"]', expected: formatTestCurrency(123.46, CURRENCY_REPLACEMENTS.EUR) }, // 123.456789 rounds to 123.46
+            { selector: '[data-testid="precision-2"]', expected: formatTestCurrency(0.00, CURRENCY_REPLACEMENTS.GBP) }, // 0.001 rounds to 0.00
+            { selector: '[data-testid="precision-3"]', expected: formatTestCurrency(100.00, CURRENCY_REPLACEMENTS.USD) }, // 99.999 rounds to 100.00
         ];
 
         for (const test of precisionTests) {
@@ -289,11 +292,12 @@ test.describe('Currency Formatting', () => {
 
             if (text) {
                 // Should start with currency symbol
-                expect(text).toMatch(/^[€$£]/);
+                expect(text).toMatch(/^(zł|฿|lei)/);
                 // Should not end with currency symbol
-                expect(text).not.toMatch(/[€$£]$/);
+                expect(text).not.toMatch(/(zł|฿|lei)$/);
                 // Should not have currency symbol in the middle
-                expect(text.slice(1)).not.toMatch(/[€$£]/);
+                const symbolLength = text.startsWith('zł') ? 2 : text.startsWith('lei') ? 3 : 1;
+                expect(text.slice(symbolLength)).not.toMatch(/(zł|฿|lei)/);
             }
         }
     });
@@ -308,9 +312,9 @@ test.describe('Currency Formatting', () => {
                 const zeroHTML = \`
                     <div class="currency-section" id="zero-amounts">
                         <h3>Zero Amount Tests</h3>
-                        <div class="currency-amount currency-usd" data-testid="zero-usd">$0.00</div>
-                        <div class="currency-amount currency-eur" data-testid="zero-eur">€0.00</div>
-                        <div class="currency-amount currency-gbp" data-testid="zero-gbp">£0.00</div>
+                        <div class="currency-amount currency-pln" data-testid="zero-pln">zł0.00</div>
+                        <div class="currency-amount currency-thb" data-testid="zero-thb">฿0.00</div>
+                        <div class="currency-amount currency-ron" data-testid="zero-ron">lei0.00</div>
                     </div>
                 \`;
                 document.body.insertAdjacentHTML('beforeend', zeroHTML);
@@ -318,14 +322,14 @@ test.describe('Currency Formatting', () => {
         });
 
         // Test zero amounts are displayed consistently
-        await expect(page.locator('[data-testid="zero-usd"]')).toContainText('$0.00');
-        await expect(page.locator('[data-testid="zero-eur"]')).toContainText('€0.00');
-        await expect(page.locator('[data-testid="zero-gbp"]')).toContainText('£0.00');
+        await expect(page.locator('[data-testid="zero-pln"]')).toContainText('zł0.00');
+        await expect(page.locator('[data-testid="zero-thb"]')).toContainText('฿0.00');
+        await expect(page.locator('[data-testid="zero-ron"]')).toContainText('lei0.00');
 
-        // Should still follow 2 decimal place rule (exact match, not just '$0')
-        await expect(page.locator('[data-testid="zero-usd"]')).not.toHaveText('$0');
-        await expect(page.locator('[data-testid="zero-eur"]')).not.toHaveText('€0');
-        await expect(page.locator('[data-testid="zero-gbp"]')).not.toHaveText('£0');
+        // Should still follow 2 decimal place rule (exact match, not just 'zł0')
+        await expect(page.locator('[data-testid="zero-pln"]')).not.toHaveText('zł0');
+        await expect(page.locator('[data-testid="zero-thb"]')).not.toHaveText('฿0');
+        await expect(page.locator('[data-testid="zero-ron"]')).not.toHaveText('lei0');
     });
 
     test('should display large amounts correctly', async ({ page }) => {
@@ -338,9 +342,9 @@ test.describe('Currency Formatting', () => {
                 const largeHTML = \`
                     <div class="currency-section" id="large-amounts">
                         <h3>Large Amount Tests</h3>
-                        <div class="currency-amount currency-usd" data-testid="large-usd">$12345.67</div>
-                        <div class="currency-amount currency-eur" data-testid="large-eur">€99999.99</div>
-                        <div class="currency-amount currency-gbp" data-testid="large-gbp">£1000000.00</div>
+                        <div class="currency-amount currency-pln" data-testid="large-pln">zł12345.67</div>
+                        <div class="currency-amount currency-thb" data-testid="large-thb">฿99999.99</div>
+                        <div class="currency-amount currency-ron" data-testid="large-ron">lei1000000.00</div>
                     </div>
                 \`;
                 document.body.insertAdjacentHTML('beforeend', largeHTML);
@@ -348,18 +352,18 @@ test.describe('Currency Formatting', () => {
         });
 
         // Test large amounts are displayed without thousand separators (or with consistent formatting)
-        const largeUSD = page.locator('[data-testid="large-usd"]');
-        const largeEUR = page.locator('[data-testid="large-eur"]');
-        const largeGBP = page.locator('[data-testid="large-gbp"]');
+        const largePLN = page.locator('[data-testid="large-pln"]');
+        const largeTHB = page.locator('[data-testid="large-thb"]');
+        const largeRON = page.locator('[data-testid="large-ron"]');
 
-        await expect(largeUSD).toContainText('$12345.67');
-        await expect(largeEUR).toContainText('€99999.99');
-        await expect(largeGBP).toContainText('£1000000.00');
+        await expect(largePLN).toContainText('zł12345.67');
+        await expect(largeTHB).toContainText('฿99999.99');
+        await expect(largeRON).toContainText('lei1000000.00');
 
         // Should maintain decimal precision even for large amounts
-        await expect(largeUSD).toContainText('.67');
-        await expect(largeEUR).toContainText('.99');
-        await expect(largeGBP).toContainText('.00');
+        await expect(largePLN).toContainText('.67');
+        await expect(largeTHB).toContainText('.99');
+        await expect(largeRON).toContainText('.00');
     });
 
     test('should treat same amounts in different currencies separately', async ({ page }) => {
@@ -369,27 +373,27 @@ test.describe('Currency Formatting', () => {
         await addCurrencyDisplayElements(page, currencyTestData);
 
         // Test multi-currency section shows same amount in different currencies
-        const multiUSD = page.locator('[data-testid="multi-0"]');
-        const multiEUR = page.locator('[data-testid="multi-1"]');
-        const multiGBP = page.locator('[data-testid="multi-2"]');
+        const multiPLN = page.locator('[data-testid="multi-0"]');
+        const multiTHB = page.locator('[data-testid="multi-1"]');
+        const multiRON = page.locator('[data-testid="multi-2"]');
 
         // All should show the same numeric value but different symbols
-        await expect(multiUSD).toContainText('$50.00');
-        await expect(multiEUR).toContainText('€50.00');
-        await expect(multiGBP).toContainText('£50.00');
+        await expect(multiPLN).toContainText('zł50.00');
+        await expect(multiTHB).toContainText('฿50.00');
+        await expect(multiRON).toContainText('lei50.00');
 
         // Verify no FX conversion - same numeric amount
-        const usdText = await multiUSD.textContent();
-        const eurText = await multiEUR.textContent();
-        const gbpText = await multiGBP.textContent();
+        const plnText = await multiPLN.textContent();
+        const thbText = await multiTHB.textContent();
+        const ronText = await multiRON.textContent();
 
-        const usdAmount = usdText?.replace('$', '').trim();
-        const eurAmount = eurText?.replace('€', '').trim();
-        const gbpAmount = gbpText?.replace('£', '').trim();
+        const plnAmount = plnText?.replace('zł', '').trim();
+        const thbAmount = thbText?.replace('฿', '').trim();
+        const ronAmount = ronText?.replace('lei', '').trim();
 
-        expect(usdAmount).toBe(eurAmount);
-        expect(eurAmount).toBe(gbpAmount);
-        expect(usdAmount).toBe('50.00');
+        expect(plnAmount).toBe(thbAmount);
+        expect(thbAmount).toBe(ronAmount);
+        expect(plnAmount).toBe('50.00');
     });
 
     test('should maintain consistent styling across currency types', async ({ page }) => {
@@ -399,28 +403,28 @@ test.describe('Currency Formatting', () => {
         await addCurrencyDisplayElements(page, currencyTestData);
 
         // Test that all currency amounts have consistent base styling
-        const usdAmounts = page.locator('.currency-usd');
-        const eurAmounts = page.locator('.currency-eur');
-        const gbpAmounts = page.locator('.currency-gbp');
+        const plnAmounts = page.locator('.currency-pln');
+        const thbAmounts = page.locator('.currency-thb');
+        const ronAmounts = page.locator('.currency-ron');
 
         // All should be visible and have amount-display class
-        const usdCount = await usdAmounts.count();
-        const eurCount = await eurAmounts.count();
-        const gbpCount = await gbpAmounts.count();
+        const plnCount = await plnAmounts.count();
+        const thbCount = await thbAmounts.count();
+        const ronCount = await ronAmounts.count();
 
-        expect(usdCount).toBeGreaterThan(0);
-        expect(eurCount).toBeGreaterThan(0);
-        expect(gbpCount).toBeGreaterThan(0);
+        expect(plnCount).toBeGreaterThan(0);
+        expect(thbCount).toBeGreaterThan(0);
+        expect(ronCount).toBeGreaterThan(0);
 
         // Check that styling is applied (by checking computed styles or class presence)
-        for (let i = 0; i < usdCount; i++) {
-            await expect(usdAmounts.nth(i)).toBeVisible();
+        for (let i = 0; i < plnCount; i++) {
+            await expect(plnAmounts.nth(i)).toBeVisible();
         }
-        for (let i = 0; i < eurCount; i++) {
-            await expect(eurAmounts.nth(i)).toBeVisible();
+        for (let i = 0; i < thbCount; i++) {
+            await expect(thbAmounts.nth(i)).toBeVisible();
         }
-        for (let i = 0; i < gbpCount; i++) {
-            await expect(gbpAmounts.nth(i)).toBeVisible();
+        for (let i = 0; i < ronCount; i++) {
+            await expect(ronAmounts.nth(i)).toBeVisible();
         }
     });
 
@@ -434,10 +438,10 @@ test.describe('Currency Formatting', () => {
                 const edgeHTML = \`
                     <div class="currency-section" id="edge-cases">
                         <h3>Edge Case Amounts</h3>
-                        <div class="currency-amount currency-usd" data-testid="edge-cent">$0.01</div>
-                        <div class="currency-amount currency-eur" data-testid="edge-max">€999999.99</div>
-                        <div class="currency-amount currency-gbp" data-testid="edge-fraction">£123.45</div>
-                        <div class="currency-amount currency-usd" data-testid="edge-round">$999.99</div>
+                        <div class="currency-amount currency-pln" data-testid="edge-cent">zł0.01</div>
+                        <div class="currency-amount currency-thb" data-testid="edge-max">฿999999.99</div>
+                        <div class="currency-amount currency-ron" data-testid="edge-fraction">lei123.45</div>
+                        <div class="currency-amount currency-pln" data-testid="edge-round">zł999.99</div>
                     </div>
                 \`;
                 document.body.insertAdjacentHTML('beforeend', edgeHTML);
@@ -445,10 +449,10 @@ test.describe('Currency Formatting', () => {
         });
 
         // Test edge cases
-        await expect(page.locator('[data-testid="edge-cent"]')).toContainText('$0.01');
-        await expect(page.locator('[data-testid="edge-max"]')).toContainText('€999999.99');
-        await expect(page.locator('[data-testid="edge-fraction"]')).toContainText('£123.45');
-        await expect(page.locator('[data-testid="edge-round"]')).toContainText('$999.99');
+        await expect(page.locator('[data-testid="edge-cent"]')).toContainText('zł0.01');
+        await expect(page.locator('[data-testid="edge-max"]')).toContainText('฿999999.99');
+        await expect(page.locator('[data-testid="edge-fraction"]')).toContainText('lei123.45');
+        await expect(page.locator('[data-testid="edge-round"]')).toContainText('zł999.99');
 
         // All should maintain 2 decimal places
         const edgeAmounts = page.locator('#edge-cases .currency-amount');

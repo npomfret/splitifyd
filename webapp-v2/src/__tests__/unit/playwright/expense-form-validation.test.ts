@@ -7,6 +7,7 @@ import {
     fillFormField,
     TEST_SCENARIOS,
 } from '../infra/test-helpers';
+import { CURRENCY_REPLACEMENTS } from './test-currencies';
 
 /**
  * Unit tests for expense form validation
@@ -385,7 +386,7 @@ test.describe('Expense Form Validation', () => {
         await expect(page.locator('form')).toBeVisible();
 
         const currencyDropdown = page.locator('select[name*="currency"]');
-        const currencyButtons = page.locator('button:has-text("USD"), button:has-text("EUR"), button:has-text("GBP")');
+        const currencyButtons = page.locator(`button:has-text("${CURRENCY_REPLACEMENTS.USD.acronym}"), button:has-text("${CURRENCY_REPLACEMENTS.EUR.acronym}"), button:has-text("${CURRENCY_REPLACEMENTS.GBP.acronym}")`);
 
         if (await currencyDropdown.isVisible()) {
             // Should have default currency

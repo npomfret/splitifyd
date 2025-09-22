@@ -8,6 +8,7 @@ import {
     testTabOrder,
     TEST_SCENARIOS,
 } from '../infra/test-helpers';
+import { CURRENCY_REPLACEMENTS } from './test-currencies';
 
 /**
  * High-value group detail page tests that verify actual user behavior
@@ -57,7 +58,7 @@ async function mockGroupAPI(page: any, groupId: string, scenario: 'success' | 'n
                         id: groupId,
                         name: 'Test Group',
                         description: 'A test group',
-                        currency: 'USD',
+                        currency: CURRENCY_REPLACEMENTS.USD.acronym,
                         createdBy: 'test-user-id',
                         createdAt: new Date().toISOString(),
                     }),

@@ -87,15 +87,8 @@ export async function waitForStorageUpdate(page: Page, key: string, expectedValu
  * Check if an element is visible and accessible with better error handling
  */
 export async function expectElementVisible(page: Page, selector: string, timeout: number = 10000): Promise<void> {
-    try {
-        const element = page.locator(selector);
-        await expect(element).toBeVisible({ timeout });
-    } catch (error) {
-        // If element not found, wait a bit more and try again
-        await page.waitForTimeout(1000);
-        const element = page.locator(selector);
-        await expect(element).toBeVisible({ timeout: 5000 });
-    }
+    const element = page.locator(selector);
+    await expect(element).toBeVisible({ timeout });
 }
 
 /**

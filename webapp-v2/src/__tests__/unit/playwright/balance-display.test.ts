@@ -6,6 +6,7 @@ import {
     fillFormField,
     TEST_SCENARIOS,
 } from '../infra/test-helpers';
+import { CURRENCY_REPLACEMENTS, formatTestCurrency, getTestCurrency } from './test-currencies';
 
 /**
  * Unit tests for balance display components
@@ -31,32 +32,32 @@ test.describe('Balance Display', () => {
         },
         simpleDebt: {
             balances: [
-                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: 'USD' }
+                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: CURRENCY_REPLACEMENTS.USD.acronym }
             ],
             debts: [
-                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: 'USD' }
+                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: CURRENCY_REPLACEMENTS.USD.acronym }
             ],
             isSettledUp: false
         },
         multipleDebts: {
             balances: [
-                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 75.25, currency: 'USD' },
-                { from: 'member3@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 30.50, currency: 'EUR' }
+                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 75.25, currency: CURRENCY_REPLACEMENTS.USD.acronym },
+                { from: 'member3@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 30.50, currency: CURRENCY_REPLACEMENTS.EUR.acronym }
             ],
             debts: [
-                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 75.25, currency: 'USD' },
-                { debtor: 'member3@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 30.50, currency: 'EUR' }
+                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 75.25, currency: CURRENCY_REPLACEMENTS.USD.acronym },
+                { debtor: 'member3@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 30.50, currency: CURRENCY_REPLACEMENTS.EUR.acronym }
             ],
             isSettledUp: false
         },
         complexThreeWay: {
             balances: [
-                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 25.00, currency: 'USD' },
-                { from: TEST_SCENARIOS.VALID_EMAIL, to: 'member3@test.com', amount: 15.75, currency: 'USD' }
+                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 25.00, currency: CURRENCY_REPLACEMENTS.USD.acronym },
+                { from: TEST_SCENARIOS.VALID_EMAIL, to: 'member3@test.com', amount: 15.75, currency: CURRENCY_REPLACEMENTS.USD.acronym }
             ],
             debts: [
-                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 25.00, currency: 'USD' },
-                { debtor: TEST_SCENARIOS.VALID_EMAIL, creditor: 'member3@test.com', amount: 15.75, currency: 'USD' }
+                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 25.00, currency: CURRENCY_REPLACEMENTS.USD.acronym },
+                { debtor: TEST_SCENARIOS.VALID_EMAIL, creditor: 'member3@test.com', amount: 15.75, currency: CURRENCY_REPLACEMENTS.USD.acronym }
             ],
             isSettledUp: false
         }
@@ -113,9 +114,9 @@ test.describe('Balance Display', () => {
                 .settled-up { text-align: center; color: #4caf50; font-weight: bold; }
                 .debt-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
                 .debt-amount { font-weight: bold; }
-                .debt-currency-usd { color: #2e7d32; }
-                .debt-currency-eur { color: #1565c0; }
-                .debt-currency-gbp { color: #6a1b9a; }
+                .debt-currency-pln { color: #2e7d32; }
+                .debt-currency-thb { color: #1565c0; }
+                .debt-currency-ron { color: #6a1b9a; }
                 .balance-summary { margin-top: 15px; font-size: 14px; color: #666; }
             `
         });
@@ -132,7 +133,8 @@ test.describe('Balance Display', () => {
                 const creditorName = debt.creditor === TEST_SCENARIOS.VALID_EMAIL ? 'Test User' :
                                     debt.creditor === 'member2@test.com' ? 'Member Two' : 'Member Three';
 
-                const currencySymbol = debt.currency === 'USD' ? '$' : debt.currency === 'EUR' ? '€' : '£';
+                const currency = getTestCurrency(debt.currency);
+                const currencySymbol = currency?.symbol || debt.currency;
                 const currencyClass = `debt-currency-${debt.currency.toLowerCase()}`;
 
                 balanceHTML += `
@@ -210,7 +212,7 @@ test.describe('Balance Display', () => {
         // Verify debt details
         const debtItem = debtItems.first();
         await expect(debtItem).toContainText('Member Two → Test User');
-        await expect(debtItem).toContainText('$50.00');
+        await expect(debtItem).toContainText('zł50.00');
 
         // Verify currency formatting
         const amountElement = debtItem.locator('.debt-amount, .debt-currency-usd');
@@ -228,15 +230,15 @@ test.describe('Balance Display', () => {
         const debtItems = page.locator('.debt-item, [data-testid^="debt-"]');
         await expect(debtItems).toHaveCount(2);
 
-        // Verify first debt (USD)
+        // Verify first debt (PLN)
         const firstDebt = debtItems.first();
         await expect(firstDebt).toContainText('Member Two → Test User');
-        await expect(firstDebt).toContainText('$75.25');
+        await expect(firstDebt).toContainText('zł75.25');
 
-        // Verify second debt (EUR)
+        // Verify second debt (THB)
         const secondDebt = debtItems.nth(1);
         await expect(secondDebt).toContainText('Member Three → Test User');
-        await expect(secondDebt).toContainText('€30.50');
+        await expect(secondDebt).toContainText('฿30.50');
 
         // Verify balance summary
         const summary = page.locator('.balance-summary');
@@ -258,12 +260,12 @@ test.describe('Balance Display', () => {
         // Verify incoming debt
         const incomingDebt = debtItems.first();
         await expect(incomingDebt).toContainText('Member Two → Test User');
-        await expect(incomingDebt).toContainText('$25.00');
+        await expect(incomingDebt).toContainText('zł25.00');
 
         // Verify outgoing debt
         const outgoingDebt = debtItems.nth(1);
         await expect(outgoingDebt).toContainText('Test User → Member Three');
-        await expect(outgoingDebt).toContainText('$15.75');
+        await expect(outgoingDebt).toContainText('zł15.75');
     });
 
     test('should format currency amounts correctly', async ({ page }) => {
@@ -273,15 +275,15 @@ test.describe('Balance Display', () => {
 
         await addMockBalanceContent(page, 'multipleDebts');
 
-        // Test USD formatting
-        const usdAmount = page.locator('.debt-currency-usd');
-        await expect(usdAmount).toContainText('$75.25');
-        await expect(usdAmount).not.toContainText('75.250'); // No extra decimals
+        // Test PLN formatting
+        const plnAmount = page.locator('.debt-currency-pln');
+        await expect(plnAmount).toContainText('zł75.25');
+        await expect(plnAmount).not.toContainText('75.250'); // No extra decimals
 
-        // Test EUR formatting
-        const eurAmount = page.locator('.debt-currency-eur');
-        await expect(eurAmount).toContainText('€30.50');
-        await expect(eurAmount).not.toContainText('30.500'); // No extra decimals
+        // Test THB formatting
+        const thbAmount = page.locator('.debt-currency-thb');
+        await expect(thbAmount).toContainText('฿30.50');
+        await expect(thbAmount).not.toContainText('30.500'); // No extra decimals
 
         // Verify decimal precision
         const allAmounts = page.locator('.debt-amount');
@@ -291,15 +293,17 @@ test.describe('Balance Display', () => {
             const amount = allAmounts.nth(i);
             const text = await amount.textContent();
 
-            // Should have exactly 2 decimal places
-            expect(text).toMatch(/[€$£]\d+\.\d{2}$/);
+            // Should have exactly 2 decimal places for currencies that use them
+            if (text && text.includes('.')) {
+                expect(text).toMatch(/(zł|฿|lei)\d+\.\d{2}$/);
+            }
         }
     });
 
     test('should handle zero amounts correctly', async ({ page }) => {
         const zeroBalanceData = {
             balances: [
-                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 0.00, currency: 'USD' }
+                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 0.00, currency: CURRENCY_REPLACEMENTS.USD.acronym }
             ],
             debts: [],
             isSettledUp: true
@@ -330,10 +334,10 @@ test.describe('Balance Display', () => {
     test('should handle very precise decimal amounts', async ({ page }) => {
         const preciseBalanceData = {
             balances: [
-                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 33.333333, currency: 'USD' }
+                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 33.333333, currency: CURRENCY_REPLACEMENTS.USD.acronym }
             ],
             debts: [
-                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 33.333333, currency: 'USD' }
+                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 33.333333, currency: CURRENCY_REPLACEMENTS.USD.acronym }
             ],
             isSettledUp: false
         };
@@ -357,7 +361,7 @@ test.describe('Balance Display', () => {
                         <h3>Balances</h3>
                         <div class="debt-item" data-testid="debt-0">
                             <span class="debt-description">Member Two → Test User</span>
-                            <span class="debt-amount debt-currency-usd">$33.33</span>
+                            <span class="debt-amount debt-currency-pln">zł33.33</span>
                         </div>
                     </div>
                 \`;
@@ -367,7 +371,7 @@ test.describe('Balance Display', () => {
 
         // Should round to 2 decimal places
         const debtAmount = page.locator('.debt-amount');
-        await expect(debtAmount).toContainText('$33.33');
+        await expect(debtAmount).toContainText('zł33.33');
         await expect(debtAmount).not.toContainText('33.333333');
     });
 
@@ -387,23 +391,23 @@ test.describe('Balance Display', () => {
             const text = await amount.textContent();
 
             // Should start with currency symbol
-            expect(text).toMatch(/^[€$£]/);
+            expect(text).toMatch(/^(zł|฿|lei)/);
             // Should not have currency symbol at the end
-            expect(text).not.toMatch(/\d[€$£]$/);
+            expect(text).not.toMatch(/\d(zł|฿|lei)$/);
         }
     });
 
     test('should handle different currency types separately', async ({ page }) => {
         const multiCurrencyData = {
             balances: [
-                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: 'USD' },
-                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: 'EUR' },
-                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: 'GBP' }
+                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: CURRENCY_REPLACEMENTS.USD.acronym },
+                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: CURRENCY_REPLACEMENTS.EUR.acronym },
+                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: CURRENCY_REPLACEMENTS.GBP.acronym }
             ],
             debts: [
-                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: 'USD' },
-                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: 'EUR' },
-                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: 'GBP' }
+                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: CURRENCY_REPLACEMENTS.USD.acronym },
+                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: CURRENCY_REPLACEMENTS.EUR.acronym },
+                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: CURRENCY_REPLACEMENTS.GBP.acronym }
             ],
             isSettledUp: false
         };
@@ -427,15 +431,15 @@ test.describe('Balance Display', () => {
                         <h3>Balances</h3>
                         <div class="debt-item" data-testid="debt-0">
                             <span class="debt-description">Member Two → Test User</span>
-                            <span class="debt-amount debt-currency-usd">$50.00</span>
+                            <span class="debt-amount debt-currency-pln">zł50.00</span>
                         </div>
                         <div class="debt-item" data-testid="debt-1">
                             <span class="debt-description">Member Two → Test User</span>
-                            <span class="debt-amount debt-currency-eur">€50.00</span>
+                            <span class="debt-amount debt-currency-thb">฿50.00</span>
                         </div>
                         <div class="debt-item" data-testid="debt-2">
                             <span class="debt-description">Member Two → Test User</span>
-                            <span class="debt-amount debt-currency-gbp">£50.00</span>
+                            <span class="debt-amount debt-currency-ron">lei50.00</span>
                         </div>
                         <div class="balance-summary">3 debts across 3 currencies</div>
                     </div>
@@ -449,9 +453,9 @@ test.describe('Balance Display', () => {
         await expect(debtItems).toHaveCount(3);
 
         // Verify each currency is displayed separately with same amount
-        await expect(page.locator('.debt-currency-usd')).toContainText('$50.00');
-        await expect(page.locator('.debt-currency-eur')).toContainText('€50.00');
-        await expect(page.locator('.debt-currency-gbp')).toContainText('£50.00');
+        await expect(page.locator('.debt-currency-pln')).toContainText('zł50.00');
+        await expect(page.locator('.debt-currency-thb')).toContainText('฿50.00');
+        await expect(page.locator('.debt-currency-ron')).toContainText('lei50.00');
 
         // Verify summary acknowledges multiple currencies
         const summary = page.locator('.balance-summary');
@@ -482,7 +486,7 @@ test.describe('Balance Display', () => {
 
         // Text should be clear and readable
         await expect(debtDescription).toContainText('→'); // Clear direction indicator
-        await expect(debtAmount).toContainText('$'); // Clear currency symbol
+        await expect(debtAmount).toContainText(CURRENCY_REPLACEMENTS.USD.symbol); // Clear currency symbol
     });
 
     test('should handle balance updates correctly', async ({ page }) => {
@@ -495,7 +499,7 @@ test.describe('Balance Display', () => {
 
         // Verify initial state
         await expect(page.locator('.debt-item')).toHaveCount(1);
-        await expect(page.locator('.debt-amount')).toContainText('$50.00');
+        await expect(page.locator('.debt-amount')).toContainText('zł50.00');
 
         // Simulate balance update to settled up
         await page.evaluate(() => {

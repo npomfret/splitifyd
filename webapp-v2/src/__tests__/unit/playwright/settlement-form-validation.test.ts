@@ -7,6 +7,7 @@ import {
     fillFormField,
     TEST_SCENARIOS,
 } from '../infra/test-helpers';
+import { CURRENCY_REPLACEMENTS, formatTestCurrency } from './test-currencies';
 
 /**
  * Unit tests for settlement form validation
@@ -599,7 +600,7 @@ test.describe('Settlement Form Validation', () => {
         }
 
         if (await currencySelect.isVisible() && await amountInput.isVisible()) {
-            // Test that $50 USD is treated separately from €50 EUR
+            // Test that different currencies are treated separately
             await currencySelect.selectOption('USD');
             await fillFormField(page, amountInput, '50.00');
             await expect(submitButton).toBeEnabled();

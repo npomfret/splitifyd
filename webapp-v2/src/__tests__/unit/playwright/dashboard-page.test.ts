@@ -10,6 +10,7 @@ import {
     testModalKeyboardNavigation,
     TEST_SCENARIOS,
 } from '../infra/test-helpers';
+import { CURRENCY_REPLACEMENTS } from './test-currencies';
 
 // Test data for dashboard scenarios
 const DASHBOARD_TEST_DATA = {
@@ -22,7 +23,7 @@ const DASHBOARD_TEST_DATA = {
             memberCount: 4,
             ownerUid: 'test-user-123',
             balance: 45.50,
-            currency: 'USD',
+            currency: CURRENCY_REPLACEMENTS.USD.acronym,
         },
         {
             id: 'group-2',
@@ -31,7 +32,7 @@ const DASHBOARD_TEST_DATA = {
             memberCount: 3,
             ownerUid: 'test-user-123',
             balance: -12.25,
-            currency: 'USD',
+            currency: CURRENCY_REPLACEMENTS.USD.acronym,
         },
         {
             id: 'group-3',
@@ -40,7 +41,7 @@ const DASHBOARD_TEST_DATA = {
             memberCount: 6,
             ownerUid: 'other-user-456',
             balance: 0,
-            currency: 'USD',
+            currency: CURRENCY_REPLACEMENTS.USD.acronym,
         },
     ],
     USER_DATA: {
@@ -659,7 +660,7 @@ test.describe('DashboardPage - Behavioral Tests', () => {
                 memberCount: Math.floor(Math.random() * 10) + 1,
                 ownerUid: i % 2 === 0 ? DASHBOARD_TEST_DATA.USER_DATA.uid : 'other-user',
                 balance: (Math.random() - 0.5) * 200,
-                currency: 'USD',
+                currency: CURRENCY_REPLACEMENTS.USD.acronym,
             }));
 
             expect(manyGroups.length).toBe(10);
