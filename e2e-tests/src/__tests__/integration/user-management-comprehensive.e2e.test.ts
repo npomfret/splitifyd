@@ -333,15 +333,7 @@ test.describe('Registration & Account Management', () => {
         // Submit the form
         await registerPage.submitForm();
 
-        // The button should become disabled during processing
-        await Promise.race([
-            expect(submitButton).toBeDisabled({ timeout: 1000 }),
-            page.waitForURL(/\/dashboard/, { timeout: 1000 })
-        ]).catch(() => {
-            // It's ok if we miss the disabled state due to instant registration
-        });
-
-        // Eventually should redirect to dashboard
+        // Registration should complete and redirect to dashboard
         await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
 
         // Test 3: Combined instant and delayed registration handling

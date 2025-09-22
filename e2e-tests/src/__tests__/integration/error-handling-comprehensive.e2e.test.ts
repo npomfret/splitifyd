@@ -57,30 +57,16 @@ test.describe('Network & Server Error Handling', () => {
             }
         }).toPass({ timeout: 5000, intervals: [100] });
 
-        // Wait for error state - either error message OR modal still being open with button re-enabled
-        await expect(async () => {
-            const errorMessage = createGroupModal.getErrorMessage().first();
-            const isErrorVisible = await errorMessage.isVisible().catch(() => false);
-
-            // If error message is visible, that's success
-            if (isErrorVisible) {
-                return;
-            }
-
-            // Otherwise, check if modal is still open and button is re-enabled (indicates error state)
-            const isModalOpen = await createGroupModal.isOpen();
-            const submitButton = createGroupModal.getCreateGroupFormButton();
-            const isButtonEnabled = await submitButton.isEnabled().catch(() => false);
-
-            if (isModalOpen && isButtonEnabled) {
-                return; // This indicates error state - modal stayed open and button is re-enabled
-            }
-
-            throw new Error('No error indication found - waiting for error message or modal to stay open with button re-enabled');
-        }).toPass({ timeout: 10000, intervals: [100, 250, 500] });
+        // Wait for error message to appear (this is the expected behavior)
+        const errorMessage = createGroupModal.getErrorMessage().first();
+        await expect(errorMessage).toBeVisible({ timeout: 10000 });
 
         // Verify modal stays open on error
         await expect(createGroupModal.isOpen()).resolves.toBe(true);
+
+        // Verify submit button is re-enabled after error
+        const submitButton = createGroupModal.getCreateGroupFormButton();
+        await expect(submitButton).toBeEnabled({ timeout: 2000 });
 
         // Clean up route
         await page.unroute('**/api/groups');

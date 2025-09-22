@@ -223,7 +223,7 @@ export abstract class BasePage {
                     throw error;
                 }
                 console.warn(`Attempt ${attempt} threw error, retrying:`, error instanceof Error ? error.message : String(error));
-                await this._page.waitForTimeout(500);
+                await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
             }
         }
 

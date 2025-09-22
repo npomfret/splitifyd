@@ -226,14 +226,24 @@ simpleTest.describe('Expense Operations - Comprehensive', () => {
             const yesterdayForExpenseValue = await dateInput.inputValue();
             expect(yesterdayForExpenseValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 
-            // Set custom time
-            const timeButton = expenseFormPage.getTimeButton();
-            if (await timeButton.count() > 0) {
-                await timeButton.click();
-                const timeInput = expenseFormPage.getTimeInput();
-                await timeInput.fill('7:30pm');
-                await expenseFormPage.getExpenseDetailsHeading().click(); // Blur to commit
+            // Set custom time - check if time button is available, if not click clock icon first
+            let timeButton = expenseFormPage.getTimeButton();
+            const timeButtonCount = await timeButton.count();
+
+            if (timeButtonCount === 0) {
+                const clockIcon = expenseFormPage.getClockIcon();
+                const clockIconCount = await clockIcon.count();
+                if (clockIconCount > 0) {
+                    await expenseFormPage.clickClockIcon();
+                }
+                timeButton = expenseFormPage.getTimeButton();
             }
+
+            await expect(timeButton).toBeVisible();
+            await timeButton.click();
+            const timeInput = expenseFormPage.getTimeInput();
+            await timeInput.fill('7:30pm');
+            await expenseFormPage.getExpenseDetailsHeading().click(); // Blur to commit
 
             // Select payer and participants
             await expenseFormPage.selectPayer(await dashboardPage.header.getCurrentUserDisplayName());

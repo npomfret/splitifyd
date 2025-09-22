@@ -244,151 +244,27 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Waits for all specified users to be properly synchronized in the group
+     * Wait for balances section to be ready - replaces deprecated waitForBalancesToLoad and waitForBalanceUpdate
+     * This method waits for the balance section to be visible but doesn't rely on generic loading states.
+     * For specific debt verification, use verifyDebtRelationship() or waitForSettledUpMessage().
      */
-    async waitForUserSynchronization(user1Name: string, ...otherUserNames: string[]): Promise<void> {
-        const allUserNames = [user1Name, ...otherUserNames];
-        const totalUsers = allUserNames.length;
-
-        // Wait for network to be idle first to allow any join operations to complete
-        await this.waitForDomContentLoaded();
-
-        // Primary approach: verify all users are visible in the group (more reliable than member count)
-        for (const userName of allUserNames) {
-            try {
-                await expect(this.page.getByText(userName).first()).toBeVisible({timeout: 5000});
-            } catch (e) {
-                // Capture detailed state for debugging - handle page closure gracefully
-                let visibleMembers: Array<{ name: string; id: string; text: string }> = [];
-                let memberCount: string | null = 'unknown';
-                let pageUrl = 'unknown';
-
-                try {
-                    const memberElements = await this.page.locator('[data-testid="member-item"]').all();
-                    visibleMembers = await Promise.all(
-                        memberElements.map(async (el) => {
-                            const name = await el.getAttribute('data-member-name');
-                            const id = await el.getAttribute('data-member-id');
-                            const innerText = await el.innerText();
-                            return {
-                                name: name || 'Unknown',
-                                id: id || 'no-id',
-                                text: innerText.replace(/\n/g, ' '),
-                            };
-                        }),
-                    );
-
-                    memberCount = await this.page
-                        .locator('[data-testid="member-count"]')
-                        .textContent()
-                        .catch(() => 'count-not-found');
-                    pageUrl = this.page.url();
-                } catch (debugError: any) {
-                    // Page was closed or became inaccessible
-                    console.warn('Could not capture debug info - page may be closed:', debugError.message);
-                    visibleMembers = [{name: 'debug-capture-failed', id: 'unknown', text: 'Page inaccessible'}];
-                }
-
-                // Get browser context info
-                const browserUser = this.userInfo?.email || 'Unknown User';
-                const browserUserId = this.userInfo?.uid || 'unknown-id';
-
-                const context = {
-                    browserContext: {
-                        user: browserUser,
-                        userId: browserUserId,
-                        displayName: await this.header.getCurrentUserDisplayName(),
-                        pageUrl,
-                        viewingAs: `Browser of: ${browserUser} (${browserUserId})`,
-                    },
-                    synchronizationState: {
-                        missingUser: userName,
-                        expectedUsers: allUserNames,
-                        visibleMembers: visibleMembers.map((m) => m.name),
-                        duplicates: visibleMembers.filter((m, i, arr) => arr.findIndex((x) => x.id === m.id) !== i).map((m) => m.name),
-                    },
-                    memberDetails: visibleMembers.map((m, i) => ({
-                        index: i,
-                        name: m.name,
-                        id: m.id,
-                        displayText: m.text,
-                    })),
-                    memberCount,
-                    timestamp: new Date().toISOString(),
-                };
-
-                throw new Error(`User synchronization failed: User "${userName}" not visible after 5 seconds. ${JSON.stringify(context, null, 2)}`);
-            }
-        }
-
-        // Secondary verification: wait for correct member count
-        try {
-            await this.waitForMemberCount(totalUsers, 3000);
-        } catch (e) {
-            const actualCount = await this.page.getByText(/\d+ member/i).textContent();
-            throw new Error(`Member count synchronization failed. Expected: ${totalUsers} members, Found: ${actualCount}`);
-        }
-
-        // Final network idle wait to ensure all updates have propagated
-        await this.waitForDomContentLoaded();
-    }
-
-    /**
-     * @deprecated use waitForPage instead
-     */
-    async waitForBalancesToLoad(groupId: string): Promise<void> {
-        // Assert we're on the correct group page before trying to find balances
+    async waitForBalancesSection(groupId: string): Promise<void> {
+        // Assert we're on the correct group page
         const currentUrl = this.page.url();
         if (!currentUrl.includes(`/groups/${groupId}`)) {
-            throw new Error(`waitForBalancesToLoad called but not on correct group page. Expected: /groups/${groupId}, Got: ${currentUrl}`);
+            throw new Error(`waitForBalancesSection called but not on correct group page. Expected: /groups/${groupId}, Got: ${currentUrl}`);
         }
-
-        // More specific locator to avoid strict mode violation
-        const balancesSection = this.page
-            .locator('.bg-white')
-            .filter({
-                has: this.page.getByRole('heading', {name: 'Balances'}),
-            })
-            .first();
 
         // Wait for balances section to be visible
-        try {
-            await expect(balancesSection).toBeVisible({timeout: 5000});
-        } catch (e) {
-            const pageContent = await this.page.textContent('body');
-            throw new Error(`Balances section failed to load within 8 seconds on group ${groupId}. Page content: ${pageContent?.substring(0, 500)}...`);
-        }
+        const balancesSection = this.getBalancesSection();
+        await expect(balancesSection).toBeVisible({timeout: 3000});
 
-        // Wait for loading to disappear
+        // Wait for any loading text to disappear if present
         try {
-            await expect(balancesSection.getByText('Loading balances...')).not.toBeVisible({timeout: 5000});
+            await expect(balancesSection.getByText('Loading balances...')).not.toBeVisible({timeout: 2000});
         } catch (e) {
             // Loading text might not be present, that's okay
         }
-
-        // Wait for the members section to stop loading
-        // Check if there's a loading spinner in the Members section
-        const membersSection = this.page.locator('text=Members').locator('..');
-        const loadingSpinner = membersSection.locator('.animate-spin, [role="status"]');
-
-        // Wait for spinner to disappear if it exists
-        const spinnerCount = await loadingSpinner.count();
-        if (spinnerCount > 0) {
-            try {
-                await expect(loadingSpinner.first()).not.toBeVisible({timeout: 5000});
-            } catch (e) {
-                throw new Error(`Members section loading spinner did not disappear within 5 seconds on group ${groupId}`);
-            }
-        }
-    }
-
-    async waitForBalanceUpdate(): Promise<void> {
-        // Wait for the balance section to be stable
-        const balanceSection = this.page.getByRole('heading', {name: 'Balances'}).locator('..');
-        await expect(balanceSection).toBeVisible();
-
-        // Wait for network requests to complete
-        await this.waitForDomContentLoaded();
     }
 
     async waitForPage(groupId: string, expectedMemberCount: number) {
@@ -399,7 +275,7 @@ export class GroupDetailPage extends BasePage {
 
         await this.waitForMemberCount(expectedMemberCount);
         await this.sanityCheckPageUrl(this.page.url(), targetGroupUrl);
-        await this.waitForBalancesToLoad(groupId);
+        await this.waitForBalancesSection(groupId);
         await this.sanityCheckPageUrl(this.page.url(), targetGroupUrl);
     }
 
@@ -1229,7 +1105,7 @@ export class GroupDetailPage extends BasePage {
     async ensureNewGroupPageReadyWithOneMember(groupId: string): Promise<void> {
         await this.waitForDomContentLoaded();
         await this.waitForMemberCount(1); // Wait for at least the creator to show
-        await this.waitForBalancesToLoad(groupId);
+        await this.waitForBalancesSection(groupId);
     }
 
     // ========== Member Management Methods ==========
@@ -1268,29 +1144,8 @@ export class GroupDetailPage extends BasePage {
     }
 
     async waitForRedirectAwayFromGroup(groupId: string): Promise<void> {
-        await expect(async () => {
-            const currentUrl = this.page.url();
-
-            // Check if we're already on the dashboard (expected behavior)
-            if (currentUrl.includes('/dashboard')) {
-                return;
-            }
-
-            // Check if we're on any other page away from the group
-            if (!currentUrl.includes(`/groups/${groupId}`)) {
-                return;
-            }
-
-            // If still on group page, wait a moment for redirect to kick in
-            await this.page.waitForTimeout(1000);
-            const newUrl = this.page.url();
-
-            if (newUrl.includes('/dashboard') || !newUrl.includes(`/groups/${groupId}`)) {
-                return;
-            }
-
-            throw new Error(`Expected redirect to dashboard or away from group, but still on: ${newUrl}`);
-        }).toPass({timeout: 2000, intervals: [100, 200]});
+        // Use proper web-first assertion to wait for URL change
+        await expect(this.page).not.toHaveURL(new RegExp(`/groups/${groupId}`), {timeout: 5000});
     }
 
     async clickRemoveMember(memberName: string): Promise<RemoveMemberModalPage> {
