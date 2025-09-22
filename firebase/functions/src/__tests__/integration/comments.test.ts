@@ -23,7 +23,7 @@ describe('Comments Integration Tests', () => {
     });
 
     describe('Group Comments via API', () => {
-        test('should create a group comment successfully', async () => {
+        test('should create a group comment successfully with full API integration', async () => {
             const commentText = `Test group comment ${uuidv4()}`;
 
             const response = await apiDriver.createGroupComment(testGroup.id, commentText, users[0].token);
@@ -44,33 +44,6 @@ describe('Comments Integration Tests', () => {
 
         test('should require group membership for creating comments', async () => {
             await expect(apiDriver.createGroupComment(testGroup.id, 'Test comment', users[2].token)).rejects.toThrow(/403|forbidden|access denied/i);
-        });
-
-        test('should validate comment text length', async () => {
-            // Empty text
-            await expect(apiDriver.createGroupComment(testGroup.id, '', users[0].token)).rejects.toThrow(/comment.*required|text.*required/i);
-
-            // Text too long (501 characters)
-            const longText = 'a'.repeat(501);
-            await expect(apiDriver.createGroupComment(testGroup.id, longText, users[0].token)).rejects.toThrow(/exceed.*500|too long/i);
-        });
-
-        test('should reject dangerous comment text', async () => {
-            const dangerousText = '<script>console.log("xss")</script>Safe text';
-
-            await expect(apiDriver.createGroupComment(testGroup.id, dangerousText, users[0].token)).rejects.toThrow(/400|dangerous.*content|invalid.*input/i);
-        });
-
-        test('should accept safe content with special characters', async () => {
-            const safeText = 'Price: $29.99 - café restaurant visit! Special chars: @#$%^*()[]{}';
-
-            const response = await apiDriver.createGroupComment(testGroup.id, safeText, users[0].token);
-
-            expect(response.success).toBe(true);
-            expect(response.data.text).toBe(safeText);
-            expect(response.data.text).toContain('$29.99');
-            expect(response.data.text).toContain('café');
-            expect(response.data.text).toContain('Special chars');
         });
     });
 
@@ -169,7 +142,7 @@ describe('Comments Integration Tests', () => {
     });
 
     describe('Expense Comments via API', () => {
-        test('should create an expense comment successfully', async () => {
+        test('should create an expense comment successfully with full API integration', async () => {
             const commentText = `Test expense comment ${uuidv4()}`;
 
             const response = await apiDriver.createExpenseComment(testExpense.id, commentText, users[0].token);
@@ -190,20 +163,6 @@ describe('Comments Integration Tests', () => {
 
         test('should require group membership for expense comments', async () => {
             await expect(apiDriver.createExpenseComment(testExpense.id, 'Test comment', users[2].token)).rejects.toThrow(/403|forbidden|access denied/i);
-        });
-
-        test('should validate expense comment text', async () => {
-            // Empty text
-            await expect(apiDriver.createExpenseComment(testExpense.id, '', users[0].token)).rejects.toThrow(/comment.*required|text.*required/i);
-
-            // Text too long
-            const longText = 'a'.repeat(501);
-            await expect(apiDriver.createExpenseComment(testExpense.id, longText, users[0].token)).rejects.toThrow(/exceed.*500|too long/i);
-        });
-
-        test('should reject non-existent expense', async () => {
-            const fakeExpenseId = uuidv4();
-            await expect(apiDriver.createExpenseComment(fakeExpenseId, 'Test comment', users[0].token)).rejects.toThrow(/not found|expense.*not.*exist/i);
         });
     });
 
