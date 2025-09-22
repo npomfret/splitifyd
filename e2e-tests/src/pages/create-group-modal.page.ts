@@ -37,6 +37,12 @@ export class CreateGroupModalPage extends BasePage {
 
         // Fill description input if provided - get fresh locator to avoid DOM detachment issues
         if (description) {
+            // Check if modal is still open before filling description (catches modal disappearing mid-form)
+            const isStillOpen = await this.isOpen();
+            if (!isStillOpen) {
+                throw new Error('Modal disappeared after filling name but before filling description. This suggests a race condition or premature modal closure.');
+            }
+
             const descInput = this.getDescriptionInput();
             await descInput.waitFor({ state: 'visible' });
             await this.fillPreactInput(descInput, description);
@@ -80,6 +86,13 @@ export class CreateGroupModalPage extends BasePage {
         }
 
         await this.fillGroupForm(name, description);
+
+        // Final check before submission to catch any race conditions
+        const isStillOpenBeforeSubmit = await this.isOpen();
+        if (!isStillOpenBeforeSubmit) {
+            throw new Error('Modal disappeared after filling form but before submission. This indicates a timing issue or unexpected modal closure.');
+        }
+
         await this.submitForm();
 
         await this.waitForModalToClose();
