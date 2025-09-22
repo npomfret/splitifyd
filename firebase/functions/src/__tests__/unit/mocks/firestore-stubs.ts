@@ -20,15 +20,19 @@ export class StubFirestoreReader implements IFirestoreReader {
     }
 
     setRawDocument(id: string, data: any) {
-        this.rawDocuments.set(id, {
-            id,
-            exists: !!data,
-            data: () => data,
-            get: (field: string) => data?.[field],
-            ref: { id, path: `policies/${id}` },
-            readTime: Timestamp.now(),
-            isEqual: (other: any) => other?.id === id,
-        });
+        if (data === null) {
+            this.rawDocuments.delete(id);
+        } else {
+            this.rawDocuments.set(id, {
+                id,
+                exists: !!data,
+                data: () => data,
+                get: (field: string) => data?.[field],
+                ref: { id, path: `policies/${id}` },
+                readTime: Timestamp.now(),
+                isEqual: (other: any) => other?.id === id,
+            });
+        }
     }
 
     // Document Read Operations
@@ -279,7 +283,7 @@ export class StubFirestoreWriter implements IFirestoreWriter {
  * Helper functions to create mock data for testing
  */
 export function createMockPolicyDocument(overrides: Partial<PolicyDocument> = {}): PolicyDocument {
-    const defaultHash = 'default-hash-123';
+    const defaultHash = '4205e9e6ac39b586be85ca281f9eb22a12765bac87ca095f7ebfee54083063e3';
     const defaultTimestamp = Timestamp.now();
 
     return {
