@@ -1,4 +1,4 @@
-[
+export default [
   {
     "acronym": "AED",
     "name": "United Arab Emirates Dirham",

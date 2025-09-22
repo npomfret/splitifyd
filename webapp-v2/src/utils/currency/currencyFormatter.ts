@@ -1,4 +1,4 @@
-import { getCurrency, DEFAULT_CURRENCY } from './currencyList';
+import { getCurrency } from './currencyList';
 
 export interface FormatOptions {
     showSymbol?: boolean;
@@ -9,7 +9,8 @@ export interface FormatOptions {
 export const formatCurrency = (amount: number, currencyCode: string, options: FormatOptions = {}): string => {
     const { showSymbol = true, showCode = false, locale = 'en-US' } = options;
 
-    const currency = getCurrency(currencyCode) || getCurrency(DEFAULT_CURRENCY)!;
+    // getCurrency now throws for invalid currencies (fail-fast principle)
+    const currency = getCurrency(currencyCode);
 
     try {
         const formatter = new Intl.NumberFormat(locale, {

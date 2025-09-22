@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isValidCurrency } from '@splitifyd/shared';
 
 /**
  * Common schema fragments for consistent validation patterns across all schemas
@@ -49,11 +50,16 @@ export const DocumentIdSchema = z.object({
 
 /**
  * Currency code validation (ISO 4217)
+ * Now validates against the actual currency definitions from @splitifyd/shared
  */
 export const CurrencyCodeSchema = z
     .string()
     .length(3)
-    .regex(/^[A-Z]{3}$/, 'Must be a valid 3-letter currency code');
+    .regex(/^[A-Z]{3}$/, 'Must be a valid 3-letter currency code')
+    .refine(
+        (code) => isValidCurrency(code),
+        'Must be a valid currency code from the supported currency list'
+    );
 
 /**
  * User ID validation

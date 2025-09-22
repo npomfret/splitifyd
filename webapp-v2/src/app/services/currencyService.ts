@@ -1,4 +1,4 @@
-import { getCurrenciesAsync, getCurrency, isValidCurrency, type Currency } from '@/utils/currency';
+import { CURRENCIES, getCurrency, isValidCurrency, type Currency } from '@/utils/currency';
 import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
 
 export interface GroupedCurrencies {
@@ -19,10 +19,7 @@ export class CurrencyService {
     private readonly MAX_RECENT_CURRENCIES = 5;
     private storage: UserScopedStorage | null = null;
 
-    // Currency data caching
-    private currencies: Currency[] = [];
-    private isLoaded = false;
-    private loadingPromise: Promise<Currency[]> | null = null;
+    // Currency data is now available synchronously from CURRENCIES
 
     private readonly commonCurrencyCodes = ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD'];
 
@@ -56,8 +53,7 @@ export class CurrencyService {
     clearStorage(): void {
         this.storage = null;
         this.recentCurrencies.clear();
-        // Also clear currency cache on logout
-        this.resetCurrencyCache();
+        // No currency cache to clear since currencies are now static
     }
 
     private loadRecentCurrencies(): void {
@@ -118,26 +114,10 @@ export class CurrencyService {
     // New currency data management functionality
 
     /**
-     * Load currencies asynchronously (with caching)
+     * Get all currencies (now synchronous)
      */
-    async loadCurrencies(): Promise<Currency[]> {
-        if (this.isLoaded) {
-            return this.currencies;
-        }
-
-        // If already loading, return the existing promise
-        if (this.loadingPromise) {
-            return this.loadingPromise;
-        }
-
-        this.loadingPromise = getCurrenciesAsync().then((currencies) => {
-            this.currencies = currencies;
-            this.isLoaded = true;
-            this.loadingPromise = null;
-            return currencies;
-        });
-
-        return this.loadingPromise;
+    getCurrencies(): Currency[] {
+        return CURRENCIES as Currency[];
     }
 
     /**
@@ -198,12 +178,4 @@ export class CurrencyService {
         return [...groupedCurrencies.recent, ...groupedCurrencies.common, ...groupedCurrencies.others];
     }
 
-    /**
-     * Reset currency cache only (keep recent currencies)
-     */
-    private resetCurrencyCache(): void {
-        this.currencies = [];
-        this.isLoaded = false;
-        this.loadingPromise = null;
-    }
 }

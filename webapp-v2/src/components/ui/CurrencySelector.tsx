@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, useEffect, useMemo } from 'preact/hooks';
-import { getCurrenciesAsync, getCurrency, COMMON_CURRENCIES, type Currency } from '@/utils/currency';
+import { CURRENCIES, getCurrency, COMMON_CURRENCIES, type Currency } from '@/utils/currency';
 import { useDebounce } from '@/utils/debounce.ts';
 
 interface CurrencySelectorProps {
@@ -28,8 +28,8 @@ export function CurrencySelector({
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
-    const [currencies, setCurrencies] = useState<Currency[]>([]);
-    const [isLoadingCurrencies, setIsLoadingCurrencies] = useState(false);
+    // Currencies are now available synchronously
+    const currencies = CURRENCIES as Currency[];
     const inputRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const inputId = `currency-selector-${Math.random().toString(36).substr(2, 9)}`;
@@ -39,16 +39,7 @@ export function CurrencySelector({
     // Debounce search term to avoid excessive filtering
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-    // Load currencies when dropdown opens
-    useEffect(() => {
-        if (isOpen && currencies.length === 0 && !isLoadingCurrencies) {
-            setIsLoadingCurrencies(true);
-            getCurrenciesAsync().then((loadedCurrencies) => {
-                setCurrencies(loadedCurrencies);
-                setIsLoadingCurrencies(false);
-            });
-        }
-    }, [isOpen, currencies.length, isLoadingCurrencies]);
+    // No need to load currencies - they're available immediately
 
     // Prepare currency list with grouping - use debounced search term
     const { groupedCurrencies, flatList } = useMemo(() => {
@@ -312,12 +303,7 @@ export function CurrencySelector({
                             />
                         </div>
 
-                        {isLoadingCurrencies ? (
-                            <div className="px-3 py-4 text-sm text-gray-500 text-center" aria-live="polite">
-                                <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
-                                <span className="ml-2">Loading currencies...</span>
-                            </div>
-                        ) : flatList.length === 0 ? (
+                        {flatList.length === 0 ? (
                             <div className="px-3 py-2 text-sm text-gray-500" role="status" aria-live="polite">
                                 No currencies found
                             </div>

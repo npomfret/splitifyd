@@ -14,8 +14,6 @@ interface UseCurrencySelectorOptions {
 export function useCurrencySelector({ onCurrencyChange, recentCurrencies = [] }: UseCurrencySelectorOptions) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [currencies, setCurrencies] = useState<Currency[]>([]);
-    const [isLoadingCurrencies, setIsLoadingCurrencies] = useState(false);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -25,16 +23,8 @@ export function useCurrencySelector({ onCurrencyChange, recentCurrencies = [] }:
     const debouncedSearchTerm = useDebounce(searchTerm, 200);
     const currencyService = CurrencyService.getInstance();
 
-    // Load currencies when dropdown opens
-    useEffect(() => {
-        if (isOpen && currencies.length === 0 && !isLoadingCurrencies) {
-            setIsLoadingCurrencies(true);
-            currencyService.loadCurrencies().then((loadedCurrencies) => {
-                setCurrencies(loadedCurrencies);
-                setIsLoadingCurrencies(false);
-            });
-        }
-    }, [isOpen, currencies.length, isLoadingCurrencies, currencyService]);
+    // Currencies are now available synchronously
+    const currencies = currencyService.getCurrencies();
 
     // Filter currencies based on search using service
     const filteredCurrencies = useMemo(() => {
@@ -126,7 +116,6 @@ export function useCurrencySelector({ onCurrencyChange, recentCurrencies = [] }:
         // State
         isOpen,
         searchTerm,
-        isLoadingCurrencies,
         highlightedIndex,
 
         // Data

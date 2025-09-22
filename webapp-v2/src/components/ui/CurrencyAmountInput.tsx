@@ -38,7 +38,6 @@ export function CurrencyAmountInput({
     const {
         isOpen,
         searchTerm,
-        isLoadingCurrencies,
         highlightedIndex,
         filteredCurrencies,
         groupedCurrencies,
@@ -209,12 +208,7 @@ export function CurrencyAmountInput({
 
                         {/* Currency list */}
                         <div className="overflow-auto max-h-64">
-                            {isLoadingCurrencies ? (
-                                <div className="px-3 py-4 text-sm text-gray-500 text-center" aria-live="polite">
-                                    <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
-                                    <span className="ml-2">{t('uiComponents.currencyAmountInput.loading')}</span>
-                                </div>
-                            ) : filteredCurrencies.length === 0 ? (
+                            {filteredCurrencies.length === 0 ? (
                                 <div className="px-3 py-4 text-sm text-gray-500 text-center" role="status">
                                     {t('uiComponents.currencyAmountInput.noCurrencies')}
                                 </div>
