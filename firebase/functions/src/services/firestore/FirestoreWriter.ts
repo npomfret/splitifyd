@@ -17,7 +17,7 @@ import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 import { measureDb } from '../../monitoring/measure';
 
 // Import schemas for validation
-import { UserDocumentSchema, GroupDocumentSchema, ExpenseDocumentSchema, SettlementDocumentSchema, CommentDataSchema } from '../../schemas';
+import { UserDocumentSchema, GroupDocumentSchema, ExpenseDocumentSchema, SettlementDocumentSchema, CommentDataSchema, PolicyDocumentSchema, PolicyDataSchema } from '../../schemas';
 import { UserNotificationDocumentSchema, UserNotificationGroupSchema } from '../../schemas/user-notifications';
 import { validateBeforeWrite, validateUpdate } from '../../schemas/validation-helpers';
 
@@ -87,7 +87,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         documentPath: string,
         updates: Record<string, any>,
         documentId: string,
-        collection: string,
     ): Promise<Record<string, any>> {
         const docRef = this.db.doc(documentPath);
         const docSnapshot = await docRef.get();
@@ -248,7 +247,6 @@ export class FirestoreWriter implements IFirestoreWriter {
                     documentPath,
                     finalUpdates,
                     userId,
-                    FirestoreCollections.USERS,
                 );
 
                 // Validate with graceful FieldValue handling
@@ -366,7 +364,6 @@ export class FirestoreWriter implements IFirestoreWriter {
                     documentPath,
                     finalUpdates,
                     groupId,
-                    FirestoreCollections.GROUPS,
                 );
 
                 // Validate with graceful FieldValue handling
@@ -491,7 +488,6 @@ export class FirestoreWriter implements IFirestoreWriter {
                     documentPath,
                     finalUpdates,
                     expenseId,
-                    FirestoreCollections.EXPENSES,
                 );
 
                 // Validate with graceful FieldValue handling
@@ -612,7 +608,6 @@ export class FirestoreWriter implements IFirestoreWriter {
                     documentPath,
                     finalUpdates,
                     settlementId,
-                    FirestoreCollections.SETTLEMENTS,
                 );
 
                 // Validate with graceful FieldValue handling
@@ -732,7 +727,6 @@ export class FirestoreWriter implements IFirestoreWriter {
                     documentPath,
                     finalUpdates,
                     commentId,
-                    'comments',
                 );
 
                 // Validate with graceful FieldValue handling
@@ -798,12 +792,18 @@ export class FirestoreWriter implements IFirestoreWriter {
     async batchWrite(operations: (batch: WriteBatch) => void): Promise<BatchWriteResult> {
         return measureDb('FirestoreWriter.batchWrite', async () => {
             try {
+                // WARNING: Batch operations cannot be automatically validated
+                logger.warn('Batch write operation started - ensure manual validation of all writes', {
+                    operation: 'batchWrite',
+                    recommendation: 'Validate all document changes before adding to batch'
+                });
+
                 const batch = this.db.batch();
                 operations(batch);
 
                 await batch.commit();
 
-                logger.info('Batch write completed successfully');
+                logger.info('Batch write completed successfully (unvalidated)');
 
                 return {
                     successCount: 1, // We don't know exact count without tracking
@@ -1479,9 +1479,16 @@ export class FirestoreWriter implements IFirestoreWriter {
                     lastModified: FieldValue.serverTimestamp(),
                 };
 
+                // ⚠️ UserNotifications removal validation: SKIPPED due to FieldValue operations
+                logger.warn('⚠️ UserNotifications removal validation: SKIPPED', {
+                    userId,
+                    groupId,
+                    reason: 'Only FieldValue operations (delete, increment, serverTimestamp)',
+                });
+
                 await this.db.doc(`user-notifications/${userId}`).update(updates);
 
-                logger.info('User notification group removed', { userId, groupId });
+                logger.info('User notification group removed (FieldValue operations)', { userId, groupId });
 
                 return {
                     id: userId,
@@ -1585,9 +1592,27 @@ export class FirestoreWriter implements IFirestoreWriter {
                     lastModified: FieldValue.serverTimestamp(),
                 };
 
+                // Always try validation first, handle FieldValue operations gracefully
+                const documentPath = `user-notifications/${userId}`;
+                const mergedData = await this.fetchAndMergeForValidation(
+                    documentPath,
+                    finalUpdates,
+                    userId,
+                );
+
+                // Validate with graceful FieldValue handling
+                const validationResult = this.safeValidateUpdate<CreateUserNotificationDocument>(
+                    UserNotificationDocumentSchema,
+                    mergedData,
+                    'UserNotificationDocument',
+                    userId,
+                    'user-notifications',
+                );
+
                 await this.db.doc(`user-notifications/${userId}`).update(finalUpdates);
 
-                logger.info('User notifications updated', { userId, fields: Object.keys(updates) });
+                const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(validated)';
+                logger.info(`User notifications updated ${logType}`, { userId, fields: Object.keys(updates) });
 
                 return {
                     id: userId,
@@ -1620,9 +1645,33 @@ export class FirestoreWriter implements IFirestoreWriter {
                     lastModified: FieldValue.serverTimestamp(),
                 };
 
+                // Validate the data being set (for non-merge operations or when merge=false)
+                let skipValidation = false;
+                if (!merge) {
+                    // Full document set - validate the entire document
+                    const result = this.safeValidateUpdate<CreateUserNotificationDocument>(
+                        UserNotificationDocumentSchema,
+                        finalData,
+                        'UserNotificationDocument',
+                        userId,
+                        'user-notifications',
+                    );
+                    skipValidation = Boolean(result.skipValidation);
+                } else {
+                    // Merge operation with FieldValue - log as unvalidated but proceed
+                    logger.warn('User notification set with merge=true - validation skipped due to FieldValue operations', {
+                        userId,
+                        operation: 'setUserNotifications',
+                        merge: true,
+                        fields: Object.keys(data),
+                    });
+                    skipValidation = true;
+                }
+
                 await this.db.doc(`user-notifications/${userId}`).set(finalData, { merge: merge || false });
 
-                logger.info('User notifications set', { userId, merge, fields: Object.keys(data) });
+                const logType = skipValidation ? '(merge operation)' : '(validated)';
+                logger.info(`User notifications set ${logType}`, { userId, merge, fields: Object.keys(data) });
 
                 return {
                     id: userId,
@@ -1663,9 +1712,12 @@ export class FirestoreWriter implements IFirestoreWriter {
                     updatedAt: FieldValue.serverTimestamp(),
                 };
 
-                await policyRef.set(finalData);
+                // Validate policy document before writing
+                const validatedData = PolicyDocumentSchema.parse(finalData);
 
-                logger.info('Policy document created', { policyId: policyRef.id });
+                await policyRef.set(validatedData);
+
+                logger.info('Policy document created (validated)', { policyId: policyRef.id });
 
                 return {
                     id: policyRef.id,
@@ -1697,9 +1749,27 @@ export class FirestoreWriter implements IFirestoreWriter {
                     updatedAt: FieldValue.serverTimestamp(),
                 };
 
+                // Always try validation first, handle FieldValue operations gracefully
+                const documentPath = `policies/${policyId}`;
+                const mergedData = await this.fetchAndMergeForValidation(
+                    documentPath,
+                    finalUpdates,
+                    policyId,
+                );
+
+                // Validate with graceful FieldValue handling
+                const validationResult = this.safeValidateUpdate<any>(
+                    PolicyDocumentSchema,
+                    mergedData,
+                    'PolicyDocument',
+                    policyId,
+                    'policies',
+                );
+
                 await this.db.collection('policies').doc(policyId).update(finalUpdates);
 
-                logger.info('Policy document updated', { policyId, fields: Object.keys(updates) });
+                const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(validated)';
+                logger.info(`Policy document updated ${logType}`, { policyId, fields: Object.keys(updates) });
 
                 return {
                     id: policyId,
@@ -1785,6 +1855,13 @@ export class FirestoreWriter implements IFirestoreWriter {
     async addSystemMetrics(metricsData: any): Promise<WriteResult> {
         return measureDb('FirestoreWriter.addSystemMetrics', async () => {
             try {
+                // Log warning for unvalidated system metrics operation
+                logger.warn('System metrics operation - no schema validation available', {
+                    operation: 'addSystemMetrics',
+                    fields: Object.keys(metricsData),
+                    type: metricsData.type,
+                });
+
                 const finalData = {
                     ...metricsData,
                     createdAt: FieldValue.serverTimestamp(),
@@ -1792,7 +1869,7 @@ export class FirestoreWriter implements IFirestoreWriter {
 
                 const docRef = await this.db.collection('system-metrics').add(finalData);
 
-                logger.info('System metrics added', {
+                logger.info('System metrics added (unvalidated)', {
                     docId: docRef.id,
                     type: metricsData.type,
                     fields: Object.keys(metricsData),
@@ -1860,6 +1937,13 @@ export class FirestoreWriter implements IFirestoreWriter {
     async createTestUser(email: string, userData: any): Promise<WriteResult> {
         return measureDb('FirestoreWriter.createTestUser', async () => {
             try {
+                // Log warning for unvalidated test user operation
+                logger.warn('Test user operation - no schema validation available', {
+                    operation: 'createTestUser',
+                    email,
+                    fields: Object.keys(userData),
+                });
+
                 const finalData = {
                     ...userData,
                     createdAt: FieldValue.serverTimestamp(),
@@ -1867,7 +1951,7 @@ export class FirestoreWriter implements IFirestoreWriter {
 
                 await this.db.collection('test-user-pool').doc(email).set(finalData);
 
-                logger.info('Test user created in pool', {
+                logger.info('Test user created in pool (unvalidated)', {
                     email,
                     status: userData.status,
                     fields: Object.keys(userData),
@@ -1898,6 +1982,13 @@ export class FirestoreWriter implements IFirestoreWriter {
     async updateTestUserStatus(email: string, status: string): Promise<WriteResult> {
         return measureDb('FirestoreWriter.updateTestUserStatus', async () => {
             try {
+                // Log warning for unvalidated test user update operation
+                logger.warn('Test user update operation - no schema validation available', {
+                    operation: 'updateTestUserStatus',
+                    email,
+                    status,
+                });
+
                 const updates = {
                     status,
                     lastModified: FieldValue.serverTimestamp(),
