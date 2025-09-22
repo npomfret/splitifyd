@@ -539,7 +539,7 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
                 expect(['input', 'button', 'a'].includes(tagName)).toBeTruthy();
 
                 // If it's the email input, test form interaction
-                const isEmailInput = await firstFocusedElement.evaluate(el => el.type === 'email');
+                const isEmailInput = await firstFocusedElement.evaluate(el => (el as HTMLInputElement).type === 'email');
                 if (isEmailInput) {
                     // Fill form and test continued navigation
                     await firstFocusedElement.fill(TEST_SCENARIOS.VALID_EMAIL);

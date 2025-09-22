@@ -311,7 +311,7 @@ test.describe('LoginPage - Behavioral Tests', () => {
                         console.log(`Button ${selector} not found or not visible, skipping...`);
                     }
                 } catch (error) {
-                    console.log(`Button ${selector} activation test failed: ${error.message}`);
+                    console.log(`Button ${selector} activation test failed: ${error instanceof Error ? error.message : String(error)}`);
                 }
             }
         });

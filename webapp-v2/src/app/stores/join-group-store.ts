@@ -74,7 +74,9 @@ class JoinGroupStore {
                     memberApproval: 'automatic' as const,
                     settingsManagement: 'anyone' as const,
                 },
-                balance: {},
+                balance: {
+                    balancesByCurrency: {}
+                },
                 lastActivity: 'Never',
                 lastActivityRaw: new Date().toISOString(),
             };

@@ -62,14 +62,14 @@ test.describe('API Error Handling', () => {
         const error = errorScenarios[scenario];
 
         await page.route(endpoint, (route: any) => {
-            if (error.type === 'network') {
+            if ('type' in error && error.type === 'network') {
                 // Simulate network failure
                 route.abort('failed');
             } else {
                 route.fulfill({
                     status: error.status,
                     contentType: 'application/json',
-                    body: JSON.stringify(error.body || { error: error.message }),
+                    body: JSON.stringify('body' in error ? error.body : { error: error.message }),
                 });
             }
         });
@@ -129,27 +129,34 @@ test.describe('API Error Handling', () => {
             // Add error display functions
             window.showError = function(message, details) {
                 const container = document.getElementById('message-container');
+                if (!container) return;
                 container.innerHTML = '<div class="error-message" id="error-display">' +
                     '<div class="error-heading">Something went wrong</div>' +
                     '<div class="error-details">' + message + (details ? ' - ' + details : '') + '</div>' +
                     '</div>';
-                document.getElementById('retry-btn').style.display = 'inline-block';
+                const retryBtn = document.getElementById('retry-btn');
+                if (retryBtn) retryBtn.style.display = 'inline-block';
             };
 
             window.showSuccess = function(message) {
                 const container = document.getElementById('message-container');
+                if (!container) return;
                 container.innerHTML = '<div class="success-message" id="success-display">' + message + '</div>';
-                document.getElementById('retry-btn').style.display = 'none';
+                const retryBtn = document.getElementById('retry-btn');
+                if (retryBtn) retryBtn.style.display = 'none';
             };
 
             window.showLoading = function() {
                 const container = document.getElementById('message-container');
+                if (!container) return;
                 container.innerHTML = '<div class="loading-message" id="loading-display">Processing request...</div>';
             };
 
             window.clearMessages = function() {
-                document.getElementById('message-container').innerHTML = '';
-                document.getElementById('retry-btn').style.display = 'none';
+                const container = document.getElementById('message-container');
+                const retryBtn = document.getElementById('retry-btn');
+                if (container) container.innerHTML = '';
+                if (retryBtn) retryBtn.style.display = 'none';
             };
         });
     }
@@ -331,6 +338,7 @@ test.describe('API Error Handling', () => {
             // Add error display function
             window.showError = function(message, details) {
                 const container = document.getElementById('message-container');
+                if (!container) return;
                 container.innerHTML = '<div class="error-message" id="error-display" style="color: red; padding: 10px; border: 1px solid red;">' +
                     '<div class="error-heading">Something went wrong</div>' +
                     '<div class="error-details">' + message + (details ? ' - ' + details : '') + '</div>' +
@@ -338,7 +346,8 @@ test.describe('API Error Handling', () => {
             };
 
             window.clearMessages = function() {
-                document.getElementById('message-container').innerHTML = '';
+                const container = document.getElementById('message-container');
+                if (container) container.innerHTML = '';
             };
         });
 

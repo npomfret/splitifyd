@@ -536,7 +536,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
 
                 const focusedElement = page.locator(':focus');
                 if (await focusedElement.count() > 0) {
-                    const elementType = await focusedElement.evaluate(el => el.type);
+                    const elementType = await focusedElement.evaluate(el => (el as HTMLInputElement).type);
 
                     if (elementType === 'checkbox') {
                         // Test keyboard interaction on this checkbox

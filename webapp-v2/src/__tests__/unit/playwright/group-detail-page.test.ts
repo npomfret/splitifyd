@@ -5,6 +5,7 @@ import {
     verifyNavigation,
     setupAuthenticatedUser,
     expectElementVisible,
+    testTabOrder,
     TEST_SCENARIOS,
 } from '../infra/test-helpers';
 

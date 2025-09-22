@@ -896,7 +896,7 @@ export async function testTabOrder(page: Page, selectors: string[], options: { s
             }
         } catch (error) {
             // Log but continue - this is expected for some elements in multi-worker scenarios
-            console.log(`Element ${selectors[i]} not focusable: ${error.message}`);
+            console.log(`Element ${selectors[i]} not focusable: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 }
@@ -928,7 +928,7 @@ export async function testReverseTabOrder(page: Page, selectors: string[], optio
                 console.log(`Element ${selectors[i]} not found, skipping...`);
             }
         } catch (error) {
-            console.log(`Element ${selectors[i]} not focusable in reverse order: ${error.message}`);
+            console.log(`Element ${selectors[i]} not focusable in reverse order: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 }

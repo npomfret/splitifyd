@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { setupTestPage, verifyNavigation, testKeyboardNavigationWithAuthRedirect } from '../infra/test-helpers';
+import { setupTestPage, verifyNavigation, testKeyboardNavigationWithAuthRedirect, testTabOrder } from '../infra/test-helpers';
 
 /**
  * TODO: Add comprehensive join group behavioral tests

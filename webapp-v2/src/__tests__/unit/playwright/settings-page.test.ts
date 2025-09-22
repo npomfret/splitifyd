@@ -251,7 +251,7 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
                     const focusedElement = page.locator(':focus');
                     if (await focusedElement.count() > 0) {
                         const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
-                        const elementType = await focusedElement.evaluate(el => el.type || '');
+                        const elementType = await focusedElement.evaluate(el => (el as HTMLInputElement).type || '');
 
                         // Count any interactive element we find
                         if (['input', 'button', 'a'].includes(tagName)) {

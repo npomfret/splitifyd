@@ -48,7 +48,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
         // Check if current user appears in any debt relationship
         return balances.value.simplifiedDebts.some(debt =>
-            debt.from.userId === currentUser.value.uid || debt.to.userId === currentUser.value.uid
+            debt.from.userId === currentUser.value?.uid || debt.to.userId === currentUser.value?.uid
         );
     });
     // Users can leave if they're not the owner and not the only member left

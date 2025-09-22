@@ -441,7 +441,7 @@ test.describe('DashboardPage - Behavioral Tests', () => {
                             console.log(`✓ Element ${selector} has proper focus indicators`);
                         }
                     } catch (error) {
-                        console.log(`Element ${selector} focus indicator test failed: ${error.message}`);
+                        console.log(`Element ${selector} focus indicator test failed: ${error instanceof Error ? error.message : String(error)}`);
                     }
                 }
             });
