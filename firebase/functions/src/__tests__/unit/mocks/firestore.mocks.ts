@@ -8,7 +8,7 @@ import { Timestamp } from 'firebase-admin/firestore';
  * Creates a mock IFirestoreReader with all methods stubbed
  */
 export function createMockFirestoreReader(): IFirestoreReader {
-    return {
+    const mockMethods = {
         // Document operations
         getUser: vi.fn(),
         getGroup: vi.fn(),
@@ -17,77 +17,147 @@ export function createMockFirestoreReader(): IFirestoreReader {
         getPolicy: vi.fn(),
         getAllPolicies: vi.fn(),
 
-        // Collection operations
+        // Collection operations - User-related
         getUsersById: vi.fn(),
+
+        // Collection operations - Group-related
         getGroupsForUser: vi.fn(),
         getGroupsForUserV2: vi.fn(),
-        getExpensesForGroup: vi.fn(),
-        getSettlementsForGroup: vi.fn(),
-        getCommentsForTarget: vi.fn(),
-
-        // Member operations
         getGroupMembers: vi.fn(),
         getGroupMember: vi.fn(),
-        getMembershipsByUserId: vi.fn(),
-        getMembershipByUserAndGroup: vi.fn(),
+        getAllGroupMembers: vi.fn(),
+        getAllGroupMemberIds: vi.fn(),
 
-        // Query operations
-        queryExpensesByDateRange: vi.fn(),
-        querySettlementsByDateRange: vi.fn(),
-        queryGroupsByCreatedDate: vi.fn(),
+        // Collection operations - Expense-related
+        getExpensesForGroup: vi.fn(),
+        getUserExpenses: vi.fn(),
+        getExpenseHistory: vi.fn(),
+        getExpensesForGroupPaginated: vi.fn(),
 
-        // Share link operations
+        // Collection operations - Settlement-related
+        getSettlementsForGroup: vi.fn(),
+
+        // Transaction-aware operations
+        getGroupInTransaction: vi.fn(),
+        getUserInTransaction: vi.fn(),
+        getMultipleInTransaction: vi.fn(),
+
+        // Utility operations
+        documentExists: vi.fn(),
+        getSystemDocument: vi.fn(),
+        getHealthCheckDocument: vi.fn(),
+
+        // User Notification operations
+        getUserNotification: vi.fn(),
+        userNotificationExists: vi.fn(),
+
+        // Share Link operations
+        findShareLinkByToken: vi.fn(),
         getShareLinksForGroup: vi.fn(),
-        getShareLinkByCode: vi.fn(),
+        getShareLink: vi.fn(),
 
-        // Notification operations
-        getUserNotifications: vi.fn(),
-        getUserNotificationsForGroups: vi.fn(),
+        // Comment operations
+        getCommentsForTarget: vi.fn(),
+        getComment: vi.fn(),
+        getCommentByReference: vi.fn(),
 
-        // Balance operations
-        getGroupBalances: vi.fn(),
-        getBalanceChangesForUser: vi.fn(),
+        // Test User Pool operations
+        getAvailableTestUser: vi.fn(),
+        getTestUser: vi.fn(),
+        getTestUserPoolStatus: vi.fn(),
+        getBorrowedTestUsers: vi.fn(),
 
-        // Transaction operations
-        getTransactionChangesForUser: vi.fn(),
-        getGroupChangesForUser: vi.fn(),
+        // System Metrics operations
+        getOldDocuments: vi.fn(),
+        getOldDocumentsByField: vi.fn(),
+        getDocumentsBatch: vi.fn(),
+        getMetricsDocuments: vi.fn(),
+        getCollectionSize: vi.fn(),
 
-        // System operations
-        getSystemStats: vi.fn(),
-        getHealthStatus: vi.fn(),
+        // Group Related Collections operations
+        getGroupDeletionData: vi.fn(),
 
-        // Test operations
+        // Test and Development operations
         getDocumentForTesting: vi.fn(),
-        getCollectionForTesting: vi.fn(),
-        getTestUserPool: vi.fn(),
+        verifyDocumentExists: vi.fn(),
 
-        // Advanced query operations
-        queryDocumentsByField: vi.fn(),
-        queryDocumentsByDateRange: vi.fn(),
-        queryDocumentsWithPagination: vi.fn(),
+        // Settlement Query operations
+        getSettlementsForGroupPaginated: vi.fn(),
 
-        // Raw document operations
+        // Raw document operations (additional methods that might be used)
         getRawPolicyDocument: vi.fn(),
         getRawDocumentSnapshot: vi.fn(),
 
-        // Transaction operations
+        // Additional operations that may exist in actual implementation
+        getUserNotifications: vi.fn(),
+        getUserNotificationsForGroups: vi.fn(),
+        getGroupBalances: vi.fn(),
+        getBalanceChangesForUser: vi.fn(),
+        getTransactionChangesForUser: vi.fn(),
+        getGroupChangesForUser: vi.fn(),
+        getSystemStats: vi.fn(),
+        getHealthStatus: vi.fn(),
+        getCollectionForTesting: vi.fn(),
+        getTestUserPool: vi.fn(),
+        queryDocumentsByField: vi.fn(),
+        queryDocumentsByDateRange: vi.fn(),
+        queryDocumentsWithPagination: vi.fn(),
         getDocumentInTransaction: vi.fn(),
         queryDocumentsInTransaction: vi.fn(),
         getMultipleDocumentsInTransaction: vi.fn(),
-
-        // Validation operations
         validateDocumentExists: vi.fn(),
         validateUserAccess: vi.fn(),
-
-        // Complex query operations
         getExpensesWithFilters: vi.fn(),
         getGroupMembersWithMetadata: vi.fn(),
         getExpenseParticipants: vi.fn(),
-
-        // Real-time operations
         createDocumentListener: vi.fn(),
         createCollectionListener: vi.fn(),
-    } as IFirestoreReader;
+        getMembershipsByUserId: vi.fn(),
+        getMembershipByUserAndGroup: vi.fn(),
+        queryExpensesByDateRange: vi.fn(),
+        querySettlementsByDateRange: vi.fn(),
+        queryGroupsByCreatedDate: vi.fn(),
+        getShareLinkByCode: vi.fn(),
+
+        // Missing methods from interface
+        getSystemMetrics: vi.fn(),
+        addSystemMetrics: vi.fn(),
+        verifyGroupMembership: vi.fn(),
+        getSubcollectionDocument: vi.fn(),
+        searchUsersByEmail: vi.fn(),
+        searchUsersByName: vi.fn(),
+        getFirestoreStats: vi.fn(),
+        getDocumentWithRetries: vi.fn(),
+        streamDocumentChanges: vi.fn(),
+        getDocumentVersion: vi.fn(),
+        validateUserEmailUnique: vi.fn(),
+        getExpensesByDateRange: vi.fn(),
+        getSettlementsByDateRange: vi.fn(),
+        getUserActivityLog: vi.fn(),
+        getGroupActivityLog: vi.fn(),
+        getDocumentHistory: vi.fn(),
+        getBulkDocuments: vi.fn(),
+        streamCollectionChanges: vi.fn(),
+        getDocumentRevisions: vi.fn(),
+        getTestUsersByStatus: vi.fn(),
+        getTestUserInTransaction: vi.fn(),
+        queryWithComplexFilters: vi.fn(),
+        getUserLanguagePreference: vi.fn(),
+        findShareLinkByTokenInTransaction: vi.fn(),
+        getGroupMembershipsInTransaction: vi.fn(),
+        getRawDocument: vi.fn(),
+        getRawDocumentInTransaction: vi.fn(),
+        getRawDocumentInTransactionWithRef: vi.fn(),
+        getRawExpenseDocumentInTransaction: vi.fn(),
+        getRawGroupDocument: vi.fn(),
+        getRawGroupDocumentInTransaction: vi.fn(),
+        getRawSettlementDocumentInTransaction: vi.fn(),
+        getRawUserDocumentInTransaction: vi.fn(),
+        getSystemDocumentInTransaction: vi.fn(),
+    };
+
+    // Use satisfies to ensure type compatibility while allowing extra methods
+    return mockMethods as IFirestoreReader;
 }
 
 /**
@@ -215,7 +285,6 @@ export function createMockPolicyDocument(overrides: Partial<PolicyDocument> = {}
             [defaultHash]: {
                 text: 'Default policy content',
                 createdAt: defaultTimestamp,
-                versionHash: defaultHash,
             },
         },
         createdAt: defaultTimestamp,
@@ -228,6 +297,7 @@ export function createMockPolicyDocument(overrides: Partial<PolicyDocument> = {}
  * Creates a mock Firestore document snapshot
  */
 export function createMockDocumentSnapshot(data: any, id: string, exists = true) {
+    const now = Timestamp.now();
     return {
         id,
         exists,
@@ -237,5 +307,7 @@ export function createMockDocumentSnapshot(data: any, id: string, exists = true)
             id,
             path: `collection/${id}`,
         },
+        readTime: now,
+        isEqual: (other: any) => other?.id === id,
     };
 }
