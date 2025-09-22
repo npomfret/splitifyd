@@ -3,6 +3,7 @@ import {
     setupTestPage,
     verifyNavigation,
     setupAuthenticatedUserWithToken,
+    setupUnauthenticatedTest,
     expectElementVisible,
     expectButtonState,
     fillFormField,
@@ -17,6 +18,7 @@ import {
  */
 test.describe('AddExpensePage - Unauthenticated Access', () => {
     test.beforeEach(async ({ page }) => {
+        await setupUnauthenticatedTest(page);
         await setupTestPage(page, '/');
     });
 

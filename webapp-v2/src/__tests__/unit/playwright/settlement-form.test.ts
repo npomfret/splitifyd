@@ -3,6 +3,7 @@ import {
     setupTestPage,
     verifyNavigation,
     setupAuthenticatedUserWithToken,
+    setupUnauthenticatedTest,
     expectElementVisible,
     expectButtonState,
     fillFormField,
@@ -90,6 +91,7 @@ async function mockGroupAPI(page: any, scenario: 'success' | 'not-found' = 'succ
 
 test.describe('GroupDetailPage - Settlement Access', () => {
     test.beforeEach(async ({ page }) => {
+        await setupUnauthenticatedTest(page);
         await setupTestPage(page, '/');
     });
 

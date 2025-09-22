@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import {
     setupTestPage,
+    setupUnauthenticatedTest,
     fillFormField,
     expectButtonState,
     verifyNavigation,
@@ -20,6 +21,7 @@ import {
  */
 test.describe('ResetPasswordPage - Behavioral Tests', () => {
     test.beforeEach(async ({ page }) => {
+        await setupUnauthenticatedTest(page);
         await setupTestPage(page, '/reset-password');
         // Wait for essential form elements to be visible
         await expectElementVisible(page, 'input[type="email"]');

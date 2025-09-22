@@ -4,6 +4,7 @@ import {
     setupTestPage,
     verifyNavigation,
     setupAuthenticatedUser,
+    setupUnauthenticatedTest,
     expectElementVisible,
     testTabOrder,
     TEST_SCENARIOS,
@@ -70,6 +71,7 @@ async function mockGroupAPI(page: any, groupId: string, scenario: 'success' | 'n
 
 test.describe('GroupDetailPage - Behavioral Tests', () => {
     test.beforeEach(async ({ page }) => {
+        await setupUnauthenticatedTest(page);
         await setupTestPage(page, '/');
     });
 

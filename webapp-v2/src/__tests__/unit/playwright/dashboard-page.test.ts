@@ -4,6 +4,7 @@ import {
     verifyNavigation,
     expectElementVisible,
     setupAuthenticatedUser,
+    setupUnauthenticatedTest,
     expectButtonState,
     testTabOrder,
     verifyFocusVisible,
@@ -109,6 +110,9 @@ test.describe('DashboardPage - Behavioral Tests', () => {
     // === PROTECTED ROUTE BEHAVIOR ===
 
     test('should redirect to login when accessing dashboard without authentication', async ({ page }) => {
+        // Set up unauthenticated test with proper Firebase config
+        await setupUnauthenticatedTest(page);
+
         // Navigate to dashboard without authentication
         await page.goto('/dashboard');
 

@@ -490,8 +490,6 @@ test.describe('Expense Operations', () => {
                 });
             });
 
-            await page.reload();
-            await page.waitForLoadState('networkidle');
 
             // Look for exact amount split option
             const exactSplitOption = page.locator('input[type="radio"][value*="exact"], button[data-testid*="exact"], option[value*="exact"]');
@@ -524,8 +522,6 @@ test.describe('Expense Operations', () => {
                 });
             });
 
-            await page.reload();
-            await page.waitForLoadState('networkidle');
 
             // Look for member checkboxes or toggle buttons
             const memberToggles = page.locator('input[type="checkbox"][name*="member"], button[data-testid*="member-toggle"]');

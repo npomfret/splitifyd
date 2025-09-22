@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { setupTestPage, verifyNavigation, testKeyboardNavigationWithAuthRedirect, testTabOrder } from '../infra/test-helpers';
+import { setupTestPage, verifyNavigation, testKeyboardNavigationWithAuthRedirect, testTabOrder, setupUnauthenticatedTest } from '../infra/test-helpers';
 
 /**
  * TODO: Add comprehensive join group behavioral tests
@@ -24,6 +24,7 @@ import { setupTestPage, verifyNavigation, testKeyboardNavigationWithAuthRedirect
  */
 test.describe('JoinGroupPage - Basic Behavioral Tests', () => {
     test.beforeEach(async ({ page }) => {
+        await setupUnauthenticatedTest(page);
         await setupTestPage(page, '/join');
     });
 

@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import {
     setupTestPage,
+    setupUnauthenticatedTest,
     expectElementVisible,
     verifyFocusVisible,
 } from '../infra/test-helpers';
@@ -14,6 +15,7 @@ import {
  */
 test.describe('NotFoundPage - Behavioral Tests', () => {
     test.beforeEach(async ({ page }) => {
+        await setupUnauthenticatedTest(page);
         await setupTestPage(page, '/');
     });
 
@@ -256,11 +258,11 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
                 await actionButton.first().focus();
                 await expect(actionButton.first()).toBeFocused();
 
-                // Press Enter to activate
+                // Press Enter to activate (should navigate away)
                 await page.keyboard.press('Enter');
 
-                // Button should still be accessible after activation
-                await expect(actionButton.first()).toBeVisible();
+                // Should navigate away from 404 page (this is expected behavior)
+                await expect(page).not.toHaveURL(/\/invalid-route/);
             }
         });
 
@@ -275,11 +277,11 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
                 await actionButton.first().focus();
                 await expect(actionButton.first()).toBeFocused();
 
-                // Press Space to activate
+                // Press Space to activate (should navigate away)
                 await page.keyboard.press('Space');
 
-                // Button should still be accessible after activation
-                await expect(actionButton.first()).toBeVisible();
+                // Should navigate away from 404 page (this is expected behavior)
+                await expect(page).not.toHaveURL(/\/another-invalid-route/);
             }
         });
 
@@ -343,11 +345,11 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
                 await homeButton.first().focus();
                 await expect(homeButton.first()).toBeFocused();
 
-                // Test keyboard activation
+                // Test keyboard activation (should navigate away)
                 await page.keyboard.press('Enter');
 
-                // Should navigate or at least be interactive
-                await expect(homeButton.first()).toBeVisible();
+                // Should navigate away from 404 page
+                await expect(page).not.toHaveURL(/\/some-invalid-page/);
             }
         });
 
@@ -356,7 +358,7 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
                 '/this-page-does-not-exist',
                 '/users/nonexistent',
                 '/admin/forbidden',
-                '/api/invalid-endpoint',
+                '/invalid-app-route',
             ];
 
             for (const route of invalidRoutes) {

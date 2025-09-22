@@ -1070,3 +1070,142 @@ export async function testModalKeyboardNavigation(page: Page, options: {
         await expect(modal).not.toBeVisible();
     }
 }
+
+/**
+ * Setup for static policy page tests with consistent mocking
+ */
+export async function setupPolicyPageTest(
+    page: Page,
+    url: string,
+    policyApiPath: string,
+    mockPolicyData: {
+        id: string;
+        type: string;
+        text: string;
+        createdAt: string;
+    }
+): Promise<void> {
+    // Fail fast for any unmocked API calls (excluding Vite dev files)
+    // This must be registered FIRST (lowest priority) so specific mocks can override it
+    await page.route('**/api/**', (route) => {
+        const url = route.request().url();
+
+        // Allow Vite dev files, source maps, and src/api/ directory files
+        if (url.includes('.ts?t=') || url.includes('.js?t=') || url.includes('.map') || url.includes('/src/api/')) {
+            route.continue();
+            return;
+        }
+
+        throw new Error(`Unmocked API call: ${route.request().method()} ${url}`);
+    });
+
+    // Mock the Firebase config API (required for app initialization)
+    await page.route('**/api/config', (route) => {
+        route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                firebase: {
+                    apiKey: 'test-key',
+                    authDomain: 'test.firebaseapp.com',
+                    projectId: 'test-project',
+                },
+            }),
+        });
+    });
+
+    // Mock the specific policy API
+    await page.route(policyApiPath, (route) => {
+        route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockPolicyData),
+        });
+    });
+
+    await setupTestPage(page, url);
+
+    // Wait for the app to actually render
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000); // Give components time to mount
+}
+
+/**
+ * Test error state for policy pages by mocking API failure
+ */
+export async function testPolicyPageError(
+    page: Page,
+    policyApiPath: string,
+    expectedErrorText: string
+): Promise<void> {
+    // Set up unauthenticated test first
+    await setupUnauthenticatedTest(page);
+
+    // Override the policy API to return an error (registered after setupUnauthenticatedTest)
+    await page.route(policyApiPath, (route) => {
+        route.fulfill({
+            status: 500,
+            contentType: 'application/json',
+            body: JSON.stringify({ error: 'Failed to load policy' }),
+        });
+    });
+
+    // Navigate to the page to trigger the error (extract path from policyApiPath)
+    const policyPath = policyApiPath.includes('cookie-policy') ? '/cookies' :
+                      policyApiPath.includes('privacy-policy') ? '/privacy-policy' :
+                      '/terms-of-service';
+
+    await setupTestPage(page, policyPath);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
+
+    // Should show error message
+    await expect(page.locator(`text=${expectedErrorText}`)).toBeVisible();
+}
+
+/**
+ * Setup for unauthenticated tests that need proper Firebase config for auth redirects
+ */
+export async function setupUnauthenticatedTest(page: Page): Promise<void> {
+    // Clear auth state first
+    await page.context().clearCookies();
+
+    // Fail fast for any unmocked API calls (excluding Vite dev files)
+    await page.route('**/api/**', (route) => {
+        const url = route.request().url();
+
+        // Allow Vite dev files, source maps, and src/api/ directory files
+        if (url.includes('.ts?t=') || url.includes('.js?t=') || url.includes('.map') || url.includes('/src/api/')) {
+            route.continue();
+            return;
+        }
+
+        throw new Error(`Unmocked API call: ${route.request().method()} ${url}`);
+    });
+
+    // Mock the Firebase config API (required for app initialization)
+    await page.route('**/api/config', (route) => {
+        route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                firebase: {
+                    apiKey: 'test-key',
+                    authDomain: 'test.firebaseapp.com',
+                    projectId: 'test-project',
+                },
+            }),
+        });
+    });
+
+    // Navigate to a page first to establish context, then clear storage
+    await page.goto('/');
+    await page.evaluate(() => {
+        try {
+            localStorage.clear();
+            sessionStorage.clear();
+        } catch (e) {
+            // Ignore storage errors - they may occur in some test environments
+        }
+    });
+}
