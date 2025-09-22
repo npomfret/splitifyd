@@ -8,7 +8,6 @@
 // Core interface and implementations
 export { IAuthService } from './IAuthService';
 export { FirebaseAuthService } from './FirebaseAuthService';
-export { MockAuthService } from './MockAuthService';
 
 // Types and interfaces
 export type {
