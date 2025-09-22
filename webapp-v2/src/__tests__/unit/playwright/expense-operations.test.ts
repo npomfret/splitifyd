@@ -384,15 +384,12 @@ test.describe('Expense Operations', () => {
 
             // Fill required fields and verify real-time validation
             await fillFormField(page, 'input[name*="description"]', 'Test Dinner');
-            await page.waitForTimeout(100); // Wait for validation
 
             await fillFormField(page, 'input[name*="amount"]', '50.00');
-            await page.waitForTimeout(100); // Wait for validation
 
             // Select payer
             const payerSelect = page.locator('select[name*="payer"]');
             await payerSelect.selectOption(TEST_SCENARIOS.VALID_EMAIL);
-            await page.waitForTimeout(100); // Wait for validation
 
             // Submit button should now be enabled due to real-time validation
             await expectButtonState(page, '#expense-form button[type="submit"]', 'enabled');
@@ -411,11 +408,9 @@ test.describe('Expense Operations', () => {
                 if (amount) {
                     await amountInput.fill(amount);
                 }
-                await page.waitForTimeout(100); // Wait for validation
 
                 // Fill description to ensure only amount is the validation issue
                 await fillFormField(page, 'input[name*="description"]', 'Test Expense');
-                await page.waitForTimeout(100);
 
                 // Real-time validation should keep button disabled for invalid amounts
                 await expect(submitButton).toBeDisabled();
@@ -429,11 +424,8 @@ test.describe('Expense Operations', () => {
 
             // Test valid amount triggers real-time updates
             await fillFormField(page, amountInput, '25.50');
-            await page.waitForTimeout(100);
             await fillFormField(page, 'input[name*="description"]', 'Valid Expense');
-            await page.waitForTimeout(100);
             await page.locator('select[name*="payer"]').selectOption(TEST_SCENARIOS.VALID_EMAIL);
-            await page.waitForTimeout(100);
 
             // Real-time validation should enable the button
             await expect(submitButton).toBeEnabled();
@@ -450,7 +442,6 @@ test.describe('Expense Operations', () => {
             await fillFormField(page, 'input[name*="amount"]', '60.00');
 
             // Wait for real-time split calculation
-            await page.waitForTimeout(100); // Brief wait for calculation
 
             // Verify split breakdown shows equal amounts for all members
             const splitBreakdown = page.locator('[data-testid="split-breakdown"]');
@@ -476,7 +467,6 @@ test.describe('Expense Operations', () => {
             await fillFormField(page, 'input[name*="amount"]', '100.00');
 
             // Should trigger real-time recalculation for percentage mode
-            await page.waitForTimeout(100);
 
             // Verify split type changed
             await expect(percentageSplitOption).toBeChecked();
@@ -566,7 +556,6 @@ test.describe('Expense Operations', () => {
             // Fill in expense details to trigger split calculation
             await fillFormField(page, 'input[name*="description"]', 'Restaurant Bill');
             await fillFormField(page, 'input[name*="amount"]', '60.00');
-            await page.waitForTimeout(100); // Wait for calculation
 
             // Look for split breakdown section
             const splitBreakdown = page.locator('[data-testid="split-breakdown"]');
@@ -592,7 +581,6 @@ test.describe('Expense Operations', () => {
 
             // Set initial amount
             await fillFormField(page, amountInput, '30.00');
-            await page.waitForTimeout(100); // Wait for calculation
 
             // Should show 10.00 per person for 3 members
             const initialAmount = formatTestCurrency(10.00, CURRENCY_REPLACEMENTS.USD);
@@ -600,7 +588,6 @@ test.describe('Expense Operations', () => {
 
             // Change amount and verify split updates in real-time
             await fillFormField(page, amountInput, '90.00');
-            await page.waitForTimeout(100); // Wait for recalculation
 
             // Should now show 30.00 per person
             const updatedAmount = formatTestCurrency(30.00, CURRENCY_REPLACEMENTS.USD);
@@ -610,7 +597,6 @@ test.describe('Expense Operations', () => {
         test('should handle currency symbol display correctly', async ({ page }) => {
             // Fill expense with amount to trigger breakdown
             await fillFormField(page, 'input[name*="amount"]', '45.00');
-            await page.waitForTimeout(100); // Wait for calculation
 
             // Check that currency symbols are displayed properly
             const currencySymbol = CURRENCY_REPLACEMENTS.USD.symbol; // Should be 'zł' for Polish Złoty
@@ -629,7 +615,6 @@ test.describe('Expense Operations', () => {
         test('should validate split total matches expense amount', async ({ page }) => {
             // Set expense amount
             await fillFormField(page, 'input[name*="amount"]', '100.00');
-            await page.waitForTimeout(100); // Wait for calculation
 
             // Verify that equal split totals match the expense amount
             const expectedSplitAmount = formatTestCurrency(33.33, CURRENCY_REPLACEMENTS.USD); // 100.00 / 3 = 33.33

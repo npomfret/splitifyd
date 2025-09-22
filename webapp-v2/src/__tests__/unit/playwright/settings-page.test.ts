@@ -27,7 +27,7 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
             await page.goto('/settings');
 
             // Since this is a protected route, it should redirect to login
-            await verifyNavigation(page, /\/login/, 10000); // Longer timeout for route protection redirect
+            await verifyNavigation(page, /\/login/, 2000); // Route protection redirect
         });
 
         test('should preserve returnUrl when redirecting from settings', async ({ page }) => {
@@ -263,7 +263,6 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
 
                                 // Test Enter key activation
                                 await page.keyboard.press('Enter');
-                                await page.waitForTimeout(100);
 
                                 emailFieldTested = true;
                                 console.log('✓ Enter key activation tested on email field');
@@ -344,7 +343,6 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
 
                     // Press Space to toggle
                     await page.keyboard.press('Space');
-                    await page.waitForTimeout(100);
 
                     // Verify state changed
                     const newChecked = await rememberMeCheckbox.isChecked();
@@ -494,7 +492,6 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
                     // Test keyboard activation
                     if (selector.includes('button')) {
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(100);
                         // Button should still be accessible after activation attempt
                         await expect(element).toBeVisible();
                     }

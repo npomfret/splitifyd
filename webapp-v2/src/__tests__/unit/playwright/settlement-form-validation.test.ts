@@ -81,7 +81,6 @@ test.describe('Settlement Form Validation', () => {
 
         if (await settleUpButton.count() > 0) {
             await settleUpButton.first().click();
-            await page.waitForTimeout(500); // Wait for modal to open
         } else {
             // Fallback: add modal HTML for testing
             await page.addStyleTag({
@@ -286,7 +285,6 @@ test.describe('Settlement Form Validation', () => {
 
             // Valid positive amount
             await fillFormField(page, amountInput, '25.50');
-            await page.waitForTimeout(100); // Allow validation to process
 
             // Form should be enabled with valid data
             await expect(submitButton).toBeEnabled();
@@ -386,7 +384,6 @@ test.describe('Settlement Form Validation', () => {
             await fillFormField(page, noteInput, 'Dinner settlement');
         }
 
-        await page.waitForTimeout(200); // Allow validation to process
 
         // Form should be valid and submittable
         await expect(submitButton).toBeEnabled();
@@ -500,7 +497,6 @@ test.describe('Settlement Form Validation', () => {
             await cancelButton.click();
 
             // Modal should close or form should reset
-            await page.waitForTimeout(200);
 
             // Either modal closes or form resets
             const modalVisible = await modal.isVisible().catch(() => false);

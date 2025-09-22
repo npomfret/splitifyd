@@ -427,7 +427,6 @@ test.describe('Modal Behavior', () => {
 
         // Success alert should appear (in real app, might be toast notification)
         // For test, we verify the alert was called
-        await page.waitForTimeout(100);
     });
 
     test('should handle edit mode correctly', async ({ page }) => {

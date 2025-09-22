@@ -25,7 +25,7 @@ test.describe('AddExpensePage - Unauthenticated Access', () => {
         await page.goto('/groups/test-group/add-expense');
 
         // Should redirect to login due to ProtectedRoute
-        await verifyNavigation(page, /\/login/, 10000);
+        await verifyNavigation(page, /\/login/, 2000);
     });
 
     test('should preserve returnUrl when redirecting from add expense page', async ({ page }) => {
@@ -643,8 +643,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
         // Wait for form to load
         await expect(page.locator('form')).toBeVisible();
 
-        // Wait a bit more for the page to fully render the header
-        await page.waitForTimeout(100);
+        // Wait for page to fully render
 
         // Check that page has proper title/header structure
         // The ExpenseFormHeader component should be rendered
@@ -753,7 +752,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
                         // Test keyboard interaction
                         if (selector.includes('button')) {
                             await page.keyboard.press('Enter');
-                            await page.waitForTimeout(100);
+                            // Allow interaction to complete
                         } else if (selector.includes('input') || selector.includes('textarea')) {
                             await page.keyboard.press('Tab');
                         }
@@ -880,7 +879,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
                 // Test Enter key from description field
                 await descriptionInput.focus();
                 await page.keyboard.press('Enter');
-                await page.waitForTimeout(100);
+                // Allow form to process Enter key
 
                 // Should either submit form or move to next field
                 const currentFocused = page.locator(':focus');
@@ -896,7 +895,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
                 // Test Enter key from amount field
                 await amountInput.focus();
                 await page.keyboard.press('Enter');
-                await page.waitForTimeout(100);
+                // Allow form to process Enter key
 
                 // Form should handle Enter key appropriately
                 const focusedElement = page.locator(':focus');

@@ -59,7 +59,6 @@ test.describe('Group Creation Modal', () => {
 
         if (await createGroupButton.count() > 0) {
             await createGroupButton.first().click();
-            await page.waitForTimeout(500); // Wait for modal to open
         } else {
             // Fallback: add modal HTML for testing
             await page.addStyleTag({
@@ -152,7 +151,6 @@ test.describe('Group Creation Modal', () => {
 
         // Valid name should enable submit
         await fillFormField(page, nameInput, 'Valid Group Name');
-        await page.waitForTimeout(100); // Allow validation to process
         await expect(submitButton).toBeEnabled();
 
         // Clear name should disable submit again
@@ -273,7 +271,6 @@ test.describe('Group Creation Modal', () => {
         await submitButton.click();
 
         // Form should process submission
-        await page.waitForTimeout(200);
 
         // Either modal closes or shows success state
         const modal = page.locator('.create-group-modal');
@@ -305,7 +302,6 @@ test.describe('Group Creation Modal', () => {
         await cancelButton.click();
 
         // Modal should close or form should reset
-        await page.waitForTimeout(200);
 
         const modalVisible = await modal.isVisible().catch(() => false);
         if (modalVisible) {
@@ -387,7 +383,6 @@ test.describe('Group Creation Modal', () => {
         await nameInput.fill('Valid Group Name');
 
         // Button should be enabled during typing
-        await page.waitForTimeout(100);
         await expect(submitButton).toBeEnabled();
 
         // Clear the field
@@ -421,7 +416,6 @@ test.describe('Group Creation Modal', () => {
         await fillFormField(page, nameInput, '  Valid Group  ');
 
         // Form should handle whitespace appropriately
-        await page.waitForTimeout(100);
 
         // Either trim automatically or accept with whitespace
         const inputValue = await nameInput.inputValue();
@@ -469,7 +463,6 @@ test.describe('Group Creation Modal', () => {
 
         // Escape key should close modal or cancel
         await page.keyboard.press('Escape');
-        await page.waitForTimeout(100);
 
         // Modal might close or be cancelable
         const modal = page.locator('.create-group-modal');

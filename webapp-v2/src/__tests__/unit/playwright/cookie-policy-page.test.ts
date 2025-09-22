@@ -373,7 +373,6 @@ test.describe('CookiePolicyPage - Behavioral Tests', () => {
                 const href = await links.first().getAttribute('href');
                 if (href && !href.startsWith('mailto:')) {
                     await page.keyboard.press('Enter');
-                    await page.waitForTimeout(100);
                     // Link should still be accessible after activation
                     await expect(links.first()).toBeVisible();
                 }
@@ -424,7 +423,6 @@ test.describe('CookiePolicyPage - Behavioral Tests', () => {
 
             for (const viewport of viewports) {
                 await page.setViewportSize(viewport);
-                await page.waitForTimeout(100);
 
                 // Tab navigation should work consistently across viewports
                 await page.keyboard.press('Tab');
@@ -456,7 +454,6 @@ test.describe('CookiePolicyPage - Behavioral Tests', () => {
 
                 // Test activation with Enter key
                 await page.keyboard.press('Enter');
-                await page.waitForTimeout(100);
 
                 // Should jump to main content
                 const mainContent = page.locator('#main, #content, main').first();

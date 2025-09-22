@@ -98,7 +98,7 @@ test.describe('GroupDetailPage - Settlement Access', () => {
         await page.goto('/groups/test-group');
 
         // Should redirect to login due to ProtectedRoute
-        await verifyNavigation(page, /\/login/, 10000);
+        await verifyNavigation(page, /\/login/, 2000);
     });
 
     test('should preserve returnUrl when redirecting from group page', async ({ page }) => {
@@ -431,7 +431,6 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
 
                 // Test keyboard activation
                 await page.keyboard.press('Enter');
-                await page.waitForTimeout(100);
 
                 // Check if settlement modal appeared
                 const modal = page.locator('[data-testid="settlement-form-modal"]');
@@ -564,7 +563,6 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
 
                         // Test form submission with Enter key
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(100);
 
                         // Form should remain accessible
                         await expect(focusedElement).toBeVisible();
@@ -603,7 +601,6 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
                         await expect(focusedElement).toBeVisible();
                     }
 
-                    await page.waitForTimeout(50); // Small delay between shortcuts
                 }
             }
 

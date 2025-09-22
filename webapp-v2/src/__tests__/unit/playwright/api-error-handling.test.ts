@@ -311,7 +311,6 @@ test.describe('API Error Handling', () => {
             }, 500);
         });
 
-        await page.waitForTimeout(600);
 
         const successMessage = page.locator('#success-display');
         await expect(successMessage).toBeVisible();
@@ -404,7 +403,6 @@ test.describe('API Error Handling', () => {
             }, 300);
         });
 
-        await page.waitForTimeout(400);
 
         const successMessage = page.locator('#success-display');
         await expect(successMessage).toBeVisible();
@@ -484,7 +482,6 @@ test.describe('API Error Handling', () => {
             }, 100);
         });
 
-        await page.waitForTimeout(200);
 
         const errorMessage = page.locator('#error-display');
         await expect(errorMessage).toBeVisible();

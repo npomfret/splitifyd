@@ -61,7 +61,7 @@ export async function expectButtonState(page: Page, selector: string, state: 'en
 /**
  * Navigation verification with timeout handling
  */
-export async function verifyNavigation(page: Page, expectedUrl: string | RegExp, timeout = 5000): Promise<void> {
+export async function verifyNavigation(page: Page, expectedUrl: string | RegExp, timeout = 500): Promise<void> {
     if (typeof expectedUrl === 'string') {
         await expect(page).toHaveURL(expectedUrl, {timeout});
     } else {
@@ -79,14 +79,14 @@ export async function waitForStorageUpdate(page: Page, key: string, expectedValu
             return expectedValue ? value === expectedValue : value !== null;
         },
         {key, expectedValue},
-        {timeout: 2000},
+        {timeout: 500},
     );
 }
 
 /**
  * Check if an element is visible and accessible with better error handling
  */
-export async function expectElementVisible(page: Page, selector: string, timeout: number = 10000): Promise<void> {
+export async function expectElementVisible(page: Page, selector: string, timeout: number = 500): Promise<void> {
     const element = page.locator(selector);
     await expect(element).toBeVisible({ timeout });
 }
@@ -131,7 +131,7 @@ export async function verifyFormAccessibility(page: Page, fields: { selector: st
 /**
  * Wait for error message to appear
  */
-export async function expectErrorMessage(page: Page, expectedMessage?: string, timeout = 5000): Promise<void> {
+export async function expectErrorMessage(page: Page, expectedMessage?: string, timeout = 500): Promise<void> {
     const errorElement = page.locator('[data-testid="error-message"]');
     await expect(errorElement).toBeVisible({timeout});
 
@@ -789,7 +789,7 @@ export async function testSessionStoragePersistence(page: Page, testData: Record
             return storageKeys.some(key => sessionStorage.getItem(key) !== null);
         },
         Object.values(testData).map((d) => d.storageKey),
-        {timeout: 2000}
+        {timeout: 500}
     );
 
     // Verify storage values
@@ -827,8 +827,8 @@ export interface KeyboardShortcutTest {
 
 // Helper function for testing keyboard navigation regardless of auth redirects
 export async function testKeyboardNavigationWithAuthRedirect(page: Page, expectedSelectors?: string[]): Promise<void> {
-    // Wait for potential auth redirect
-    await page.waitForTimeout(1000);
+    // Wait for potential auth redirect - use proper state detection
+    await page.waitForLoadState('domcontentloaded');
     const currentUrl = page.url();
 
     if (currentUrl.includes('/login')) {
@@ -852,11 +852,11 @@ export async function testKeyboardNavigationWithAuthRedirect(page: Page, expecte
 }
 
 export async function testTabOrder(page: Page, selectors: string[], options: { skipFirst?: boolean; timeout?: number } = {}): Promise<void> {
-    const { skipFirst = false, timeout = 5000 } = options;
+    const { skipFirst = false, timeout = 500 } = options;
 
     // Ensure page is fully loaded and ready for interaction
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(200); // Give extra time for elements to become interactive
+    // Ensure page is ready for interaction
 
     // Instead of testing actual tab order (which is unreliable in multi-worker scenarios),
     // just test that each element can be focused and is interactive
@@ -868,7 +868,7 @@ export async function testTabOrder(page: Page, selectors: string[], options: { s
         try {
             // Check if element exists and is visible
             if (await element.count() > 0) {
-                await element.waitFor({ state: 'visible', timeout: 2000 });
+                await element.waitFor({ state: 'visible', timeout: 500 });
 
                 // Check if element is enabled (disabled elements shouldn't be focusable)
                 const isEnabled = await element.isEnabled();
@@ -878,10 +878,10 @@ export async function testTabOrder(page: Page, selectors: string[], options: { s
                 }
 
                 // Try to focus the element directly (more reliable than Tab navigation)
-                await element.focus({ timeout: 1000 });
+                await element.focus({ timeout: 500 });
 
                 // Verify it became focused
-                await expect(element).toBeFocused({ timeout: 1000 });
+                await expect(element).toBeFocused({ timeout: 500 });
 
                 console.log(`✓ Element ${selectors[i]} is focusable`);
             } else {
@@ -898,14 +898,14 @@ export async function testReverseTabOrder(page: Page, selectors: string[], optio
     // For multi-worker scenarios, just verify the elements are focusable in reverse order
     // This is more reliable than testing actual Shift+Tab behavior
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(200);
+    // Ensure page is ready for interaction
 
     for (let i = selectors.length - 1; i >= 0; i--) {
         const element = page.locator(selectors[i]);
 
         try {
             if (await element.count() > 0) {
-                await element.waitFor({ state: 'visible', timeout: 2000 });
+                await element.waitFor({ state: 'visible', timeout: 500 });
 
                 // Check if element is enabled (disabled elements shouldn't be focusable)
                 const isEnabled = await element.isEnabled();
@@ -914,8 +914,8 @@ export async function testReverseTabOrder(page: Page, selectors: string[], optio
                     continue;
                 }
 
-                await element.focus({ timeout: 1000 });
-                await expect(element).toBeFocused({ timeout: 1000 });
+                await element.focus({ timeout: 500 });
+                await expect(element).toBeFocused({ timeout: 500 });
                 console.log(`✓ Element ${selectors[i]} is focusable (reverse order)`);
             } else {
                 console.log(`Element ${selectors[i]} not found, skipping...`);
@@ -959,7 +959,7 @@ export async function testKeyboardShortcuts(page: Page, tests: KeyboardShortcutT
             await test.expectedAction();
         }
 
-        await page.waitForTimeout(100); // Small delay between shortcuts
+        // Allow browser to process keyboard event
     }
 }
 
@@ -972,7 +972,7 @@ export async function testSkipLinks(page: Page, skipLinkSelector = 'a[href="#mai
         await expect(skipLink).toBeVisible();
 
         await page.keyboard.press('Enter');
-        await page.waitForTimeout(100);
+        // Allow browser to process interaction
 
         const mainContent = page.locator(mainContentSelector);
         if (await mainContent.count() > 0) {
@@ -1029,7 +1029,7 @@ export async function testFormSubmissionWithEnter(page: Page, formSelector: stri
 
             // Test Enter key on form inputs
             await page.keyboard.press('Enter');
-            await page.waitForTimeout(100);
+            // Allow browser to process interaction
 
             // Form should remain accessible
             await expect(form).toBeVisible();
@@ -1043,7 +1043,7 @@ export async function testFormSubmissionWithEnter(page: Page, formSelector: stri
             await expect(submitButton).toBeFocused();
 
             await page.keyboard.press('Enter');
-            await page.waitForTimeout(100);
+            // Allow browser to process interaction
         }
     }
 }

@@ -258,7 +258,6 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
 
                 // Press Enter to activate
                 await page.keyboard.press('Enter');
-                await page.waitForTimeout(100);
 
                 // Button should still be accessible after activation
                 await expect(actionButton.first()).toBeVisible();
@@ -278,7 +277,6 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
 
                 // Press Space to activate
                 await page.keyboard.press('Space');
-                await page.waitForTimeout(100);
 
                 // Button should still be accessible after activation
                 await expect(actionButton.first()).toBeVisible();
@@ -347,7 +345,6 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
 
                 // Test keyboard activation
                 await page.keyboard.press('Enter');
-                await page.waitForTimeout(200);
 
                 // Should navigate or at least be interactive
                 await expect(homeButton.first()).toBeVisible();
@@ -390,7 +387,6 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
             await page.waitForLoadState('networkidle');
 
             // Wait for 404 page to fully render
-            await page.waitForTimeout(200);
 
             // First tab should go to the primary action button
             await page.keyboard.press('Tab');

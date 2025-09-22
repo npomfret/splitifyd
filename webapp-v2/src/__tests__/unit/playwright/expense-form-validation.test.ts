@@ -244,7 +244,6 @@ test.describe('Expense Form Validation', () => {
 
         // Valid positive amount
         await fillFormField(page, amountInput, '25.50');
-        await page.waitForTimeout(100); // Allow validation to process
 
         // Still needs all required fields
         await expect(submitButton).toBeDisabled();
@@ -343,7 +342,6 @@ test.describe('Expense Form Validation', () => {
         // Select first participant
         const participantCheckboxes = page.locator('input[name="participants"]');
         await participantCheckboxes.first().check();
-        await page.waitForTimeout(100);
 
         // Should enable submit with at least one participant and all required fields
         await expect(submitButton).toBeEnabled();
@@ -533,7 +531,6 @@ test.describe('Expense Form Validation', () => {
         const participantCheckboxes = page.locator('input[name="participants"]');
         await participantCheckboxes.first().check();
 
-        await page.waitForTimeout(200); // Allow validation to process
 
         // Form should be valid and submittable
         await expect(submitButton).toBeEnabled();

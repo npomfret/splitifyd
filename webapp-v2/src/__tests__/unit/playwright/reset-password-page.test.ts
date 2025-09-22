@@ -424,7 +424,6 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
             await emailInput.focus();
             await expect(emailInput).toBeFocused();
             await page.keyboard.press('Enter');
-            await page.waitForTimeout(100);
 
             // Submit button should be enabled for form submission
             await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
@@ -467,7 +466,6 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
             await page.keyboard.press('Enter');
 
             // Wait for potential error state
-            await page.waitForTimeout(200);
 
             // Should still be able to navigate with keyboard after validation error
             await page.keyboard.press('Tab');
@@ -492,7 +490,6 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
 
             // Press Space to activate button
             await page.keyboard.press('Space');
-            await page.waitForTimeout(100);
 
             // Button should still be accessible after activation attempt
             await expect(submitButton).toBeVisible();
@@ -510,7 +507,6 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
             await page.keyboard.press('Enter');
 
             // After submission, verify keyboard navigation still works
-            await page.waitForTimeout(500);
 
             // Should be able to tab through elements
             await page.keyboard.press('Tab');

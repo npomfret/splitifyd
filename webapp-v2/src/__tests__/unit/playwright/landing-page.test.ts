@@ -270,7 +270,6 @@ test.describe('LandingPage - Behavioral Tests', () => {
 
                     // Press Enter to activate
                     await page.keyboard.press('Enter');
-                    await page.waitForTimeout(100);
 
                     // Button should still be accessible after activation
                     await expect(button.first()).toBeVisible();
@@ -294,7 +293,6 @@ test.describe('LandingPage - Behavioral Tests', () => {
 
                     // Press Space to activate
                     await page.keyboard.press('Space');
-                    await page.waitForTimeout(100);
 
                     // Button should still be accessible
                     await expect(button.first()).toBeVisible();
@@ -343,7 +341,6 @@ test.describe('LandingPage - Behavioral Tests', () => {
             await page.setViewportSize({ width: 375, height: 667 });
 
             // Wait for responsive changes
-            await page.waitForTimeout(200);
 
             // Test that key elements are still keyboard accessible
             const mobileInteractiveElements = [
@@ -384,7 +381,6 @@ test.describe('LandingPage - Behavioral Tests', () => {
 
             // Scroll to middle of page
             await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2));
-            await page.waitForTimeout(200);
 
             // Tab navigation should still work
             await page.keyboard.press('Tab');
@@ -397,7 +393,6 @@ test.describe('LandingPage - Behavioral Tests', () => {
 
             // Scroll to bottom of page
             await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-            await page.waitForTimeout(200);
 
             // Keyboard navigation should still function
             await page.keyboard.press('Tab');
@@ -419,14 +414,12 @@ test.describe('LandingPage - Behavioral Tests', () => {
 
                 // Hover with mouse (should not break keyboard focus)
                 await button.first().hover();
-                await page.waitForTimeout(100);
 
                 // Should still be focused
                 await expect(button.first()).toBeFocused();
 
                 // Should be able to activate with keyboard
                 await page.keyboard.press('Enter');
-                await page.waitForTimeout(100);
 
                 // Should still be accessible
                 await expect(button.first()).toBeVisible();
@@ -463,7 +456,6 @@ test.describe('LandingPage - Behavioral Tests', () => {
 
                 // Change to mobile viewport
                 await page.setViewportSize({ width: 375, height: 667 });
-                await page.waitForTimeout(200);
 
                 // Element should still be accessible (may have moved but should be focusable)
                 const isFocused = await button.first().evaluate(el => el === document.activeElement);
@@ -493,7 +485,6 @@ test.describe('LandingPage - Behavioral Tests', () => {
 
                 // Activate skip link
                 await page.keyboard.press('Enter');
-                await page.waitForTimeout(100);
 
                 // Verify focus moved to main content area
                 const focusedElement = page.locator(':focus');
@@ -518,7 +509,6 @@ test.describe('LandingPage - Behavioral Tests', () => {
             for (let i = 0; i < 10; i++) {
                 await page.keyboard.press('Tab');
                 // Small delay to prevent overwhelming the browser
-                await page.waitForTimeout(10);
             }
 
             const endTime = Date.now();

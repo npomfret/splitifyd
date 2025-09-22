@@ -161,7 +161,6 @@ test.describe('PricingPage - Behavioral Tests', () => {
 
                 // Test Enter key activation
                 await page.keyboard.press('Enter');
-                await page.waitForTimeout(100);
 
                 // Button should still be accessible after activation
                 await expect(ctaButtons.first()).toBeVisible();
@@ -180,7 +179,6 @@ test.describe('PricingPage - Behavioral Tests', () => {
 
                 // Test Space key activation
                 await page.keyboard.press('Space');
-                await page.waitForTimeout(100);
 
                 // Button should still be accessible after activation
                 await expect(ctaButtons.first()).toBeVisible();
@@ -221,7 +219,6 @@ test.describe('PricingPage - Behavioral Tests', () => {
 
             for (const viewport of viewports) {
                 await page.setViewportSize(viewport);
-                await page.waitForTimeout(100);
 
                 // CTA buttons should remain accessible across viewports
                 const ctaButtons = page.locator('button').filter({ hasText: /Sign Up|Join Now|Get Started/ });
@@ -253,7 +250,6 @@ test.describe('PricingPage - Behavioral Tests', () => {
 
                 // Test activation with Enter key
                 await page.keyboard.press('Enter');
-                await page.waitForTimeout(100);
 
                 // Should jump to main content
                 const mainContent = page.locator('#main, #content, main').first();

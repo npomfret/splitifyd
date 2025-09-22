@@ -120,7 +120,7 @@ test.describe('LoginPage - Behavioral Tests', () => {
         await expectElementVisible(page, SELECTORS.SUBMIT_BUTTON);
 
         // Wait for signup button to be visible with a longer timeout
-        await page.waitForSelector(SELECTORS.SIGNUP_BUTTON, { timeout: 10000 });
+        await page.waitForSelector(SELECTORS.SIGNUP_BUTTON, { timeout: 2000 });
 
         // Click sign up button
         await page.click(SELECTORS.SIGNUP_BUTTON);
@@ -262,7 +262,6 @@ test.describe('LoginPage - Behavioral Tests', () => {
 
             // Press Space to toggle
             await page.keyboard.press('Space');
-            await page.waitForTimeout(100);
 
             // Verify state changed
             const newChecked = await checkbox.isChecked();
@@ -270,7 +269,6 @@ test.describe('LoginPage - Behavioral Tests', () => {
 
             // Press Space again to toggle back
             await page.keyboard.press('Space');
-            await page.waitForTimeout(100);
 
             // Verify state returned to original
             const finalChecked = await checkbox.isChecked();
@@ -302,7 +300,6 @@ test.describe('LoginPage - Behavioral Tests', () => {
 
                         // Press Enter and verify the button is activated
                         await page.keyboard.press('Enter');
-                        await page.waitForTimeout(100);
 
                         // Button should still be focusable and enabled
                         await expect(button).toBeEnabled();

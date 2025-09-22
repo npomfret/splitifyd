@@ -397,7 +397,6 @@ test.describe('RegisterPage - Behavioral Tests', () => {
 
                 // Press Enter
                 await page.keyboard.press('Enter');
-                await page.waitForTimeout(100);
 
                 // Verify submit button is enabled and ready
                 await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
@@ -419,7 +418,6 @@ test.describe('RegisterPage - Behavioral Tests', () => {
 
                 // Press Space to toggle
                 await page.keyboard.press('Space');
-                await page.waitForTimeout(100);
 
                 // Verify state changed
                 const newChecked = await checkbox.isChecked();
@@ -427,7 +425,6 @@ test.describe('RegisterPage - Behavioral Tests', () => {
 
                 // Press Space again to toggle back
                 await page.keyboard.press('Space');
-                await page.waitForTimeout(100);
 
                 // Verify state returned to original
                 const finalChecked = await checkbox.isChecked();
@@ -454,7 +451,6 @@ test.describe('RegisterPage - Behavioral Tests', () => {
 
             // Press Enter to activate button
             await page.keyboard.press('Enter');
-            await page.waitForTimeout(200);
 
             // Button should still be accessible after activation attempt
             await expect(submitButton).toBeEnabled();
@@ -542,7 +538,6 @@ test.describe('RegisterPage - Behavioral Tests', () => {
                         // Test keyboard interaction on this checkbox
                         const initialState = await focusedElement.isChecked();
                         await page.keyboard.press('Space');
-                        await page.waitForTimeout(100);
                         const newState = await focusedElement.isChecked();
                         expect(newState).toBe(!initialState);
 
@@ -551,7 +546,6 @@ test.describe('RegisterPage - Behavioral Tests', () => {
 
                         // Restore original state for clean test
                         await page.keyboard.press('Space');
-                        await page.waitForTimeout(100);
                     }
                 }
             }

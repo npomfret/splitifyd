@@ -81,7 +81,7 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
         await page.goto(`/groups/${groupId}`);
 
         // Should redirect to login due to ProtectedRoute
-        await verifyNavigation(page, /\/login/, 10000);
+        await verifyNavigation(page, /\/login/, 2000);
     });
 
     test('should preserve returnUrl when redirecting from group detail page', async ({ page }) => {
@@ -330,7 +330,6 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
                 await page.waitForLoadState('networkidle');
 
                 // Wait for potential auth redirect (may or may not happen depending on setup)
-                await page.waitForTimeout(1000); // Give time for auth redirect
 
                 const currentUrl = page.url();
 

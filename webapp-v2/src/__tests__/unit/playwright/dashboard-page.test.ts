@@ -113,7 +113,7 @@ test.describe('DashboardPage - Behavioral Tests', () => {
         await page.goto('/dashboard');
 
         // Should redirect to login due to ProtectedRoute
-        await verifyNavigation(page, /\/login/, 10000);
+        await verifyNavigation(page, /\/login/, 2000);
 
         // Should preserve returnUrl for after login
         expect(page.url()).toContain('returnUrl');
@@ -452,7 +452,6 @@ test.describe('DashboardPage - Behavioral Tests', () => {
                 await page.waitForLoadState('networkidle');
 
                 // Wait for potential auth redirect
-                await page.waitForTimeout(1000);
 
                 // Test Enter key on available interactive elements
                 const interactiveElements = [
@@ -469,7 +468,6 @@ test.describe('DashboardPage - Behavioral Tests', () => {
 
                             // Press Enter - should trigger button activation
                             await page.keyboard.press('Enter');
-                            await page.waitForTimeout(100);
 
                             // Element should still be accessible
                             await expect(element).toBeVisible();
@@ -498,7 +496,6 @@ test.describe('DashboardPage - Behavioral Tests', () => {
 
                     // Test keyboard activation
                     await page.keyboard.press('Enter');
-                    await page.waitForTimeout(200);
 
                     // After navigation, verify we can still use keyboard
                     await page.keyboard.press('Tab');

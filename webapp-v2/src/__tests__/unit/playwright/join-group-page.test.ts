@@ -32,7 +32,7 @@ test.describe('JoinGroupPage - Basic Behavioral Tests', () => {
         await page.goto('/join');
 
         // Since this is a protected route, it should redirect to login
-        await verifyNavigation(page, /\/login/, 10000); // Longer timeout for route protection redirect
+        await verifyNavigation(page, /\/login/, 2000); // Route protection redirect
     });
 
     test('should redirect to login with linkId parameter when not authenticated', async ({ page }) => {
@@ -151,7 +151,6 @@ test.describe('JoinGroupPage - Basic Behavioral Tests', () => {
                 await page.waitForLoadState('networkidle');
 
                 // Wait for potential auth redirect
-                await page.waitForTimeout(1000);
                 const currentUrl = page.url();
 
                 // Test keyboard navigation regardless of current page
