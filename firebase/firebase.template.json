@@ -136,7 +136,7 @@
     ]
   },
   "firestore": {
-    "rules": "firestore.rules",
+    "rules": "firestore.prod.rules",
     "indexes": "firestore.indexes.json"
   },
   "emulators": {

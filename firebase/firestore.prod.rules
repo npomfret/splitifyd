@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Simple production rule: Only allow authenticated users to read/write their own user documents
+    // All other collections require server-side authentication via Cloud Functions
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Default deny rule for all other collections - forces backend authorization
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
