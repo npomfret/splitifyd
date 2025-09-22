@@ -3,7 +3,10 @@ import {
     setupTestPage,
     setupAuthenticatedUser,
     fillFormField,
-    TEST_SCENARIOS,
+    TestScenarios,
+    GroupApiMock,
+    AuthApiMock,
+    GroupTestDataBuilder,
 } from '../infra/test-helpers';
 
 /**
@@ -11,14 +14,14 @@ import {
  * Tests the expense functionality on the dashboard page (since that's where it should be)
  */
 test.describe('Expense Operations', () => {
-    const mockGroupData = {
-        id: 'test-group-123',
-        name: 'Test Group',
-        currency: 'USD',
-        members: [
+    const mockGroupData = new GroupTestDataBuilder()
+        .withId('test-group-123')
+        .withName('Test Group')
+        .withCurrency('USD')
+        .withMembers([
             {
                 id: 'user1',
-                email: TEST_SCENARIOS.VALID_EMAIL,
+                email: TestScenarios.validUser.email,
                 displayName: 'Test User',
                 joinedAt: '2024-01-01T00:00:00.000Z'
             },
@@ -34,64 +37,36 @@ test.describe('Expense Operations', () => {
                 displayName: 'Bob Johnson',
                 joinedAt: '2024-01-01T00:00:00.000Z'
             },
-        ]
-    };
+        ])
+        .build();
 
     test.beforeEach(async ({ page }) => {
         await setupAuthenticatedUser(page);
 
+        // Set up API mocking using object-oriented approach
+        const authApiMock = new AuthApiMock(page);
+        const groupApiMock = new GroupApiMock(page);
+
         // Mock config API
-        await page.route('**/api/config', (route) => {
-            route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({
-                    firebase: {
-                        apiKey: 'test-key',
-                        authDomain: 'test.firebaseapp.com',
-                        projectId: 'test-project',
-                    },
-                }),
-            });
+        await authApiMock.mockConfigAPI({
+            firebase: {
+                apiKey: 'test-key',
+                authDomain: 'test.firebaseapp.com',
+                projectId: 'test-project',
+            },
         });
 
         // Mock groups API
-        await page.route('**/api/groups', (route) => {
-            route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify([mockGroupData]),
-            });
-        });
+        await groupApiMock.mockGetGroups([mockGroupData]);
 
         // Mock specific group API
-        await page.route(`**/api/groups/${mockGroupData.id}`, (route) => {
-            route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify(mockGroupData),
-            });
-        });
+        await groupApiMock.mockGetGroup(mockGroupData.id, mockGroupData);
 
         // Mock expenses API
-        await page.route(`**/api/groups/${mockGroupData.id}/expenses`, (route) => {
-            if (route.request().method() === 'POST') {
-                route.fulfill({
-                    status: 201,
-                    contentType: 'application/json',
-                    body: JSON.stringify({
-                        id: 'expense-' + Date.now(),
-                        ...JSON.parse(route.request().postData() || '{}'),
-                        createdAt: new Date().toISOString(),
-                    }),
-                });
-            } else {
-                route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify([]),
-                });
-            }
+        await groupApiMock.mockGroupExpenses(mockGroupData.id, []);
+        await groupApiMock.mockCreateExpense(mockGroupData.id, {
+            id: 'expense-' + Date.now(),
+            createdAt: new Date().toISOString(),
         });
 
         await setupTestPage(page, '/dashboard');
@@ -198,7 +173,7 @@ test.describe('Expense Operations', () => {
             const submitButton = page.locator('button[type="submit"]');
 
             // Fill login form
-            await fillFormField(page, emailInput, TEST_SCENARIOS.VALID_EMAIL);
+            await fillFormField(page, emailInput, TestScenarios.validUser.email);
             await fillFormField(page, passwordInput, 'testpassword');
 
             // Submit button should be present and interactive

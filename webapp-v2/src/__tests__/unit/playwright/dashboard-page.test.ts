@@ -9,98 +9,16 @@ import {
     testTabOrder,
     verifyFocusVisible,
     testModalKeyboardNavigation,
-    TEST_SCENARIOS,
 } from '../infra/test-helpers';
 import { CURRENCY_REPLACEMENTS } from './test-currencies';
-
-// Test data for dashboard scenarios
-const DASHBOARD_TEST_DATA = {
-    EMPTY_GROUPS: [],
-    SAMPLE_GROUPS: [
-        {
-            id: 'group-1',
-            name: 'Weekend Trip',
-            description: 'Vacation expenses for the beach house',
-            memberCount: 4,
-            ownerUid: 'test-user-123',
-            balance: 45.50,
-            currency: CURRENCY_REPLACEMENTS.USD.acronym,
-        },
-        {
-            id: 'group-2',
-            name: 'Apartment Expenses',
-            description: 'Monthly shared costs for rent and utilities',
-            memberCount: 3,
-            ownerUid: 'test-user-123',
-            balance: -12.25,
-            currency: CURRENCY_REPLACEMENTS.USD.acronym,
-        },
-        {
-            id: 'group-3',
-            name: 'Dinner Club',
-            description: 'Weekly restaurant outings with friends',
-            memberCount: 6,
-            ownerUid: 'other-user-456',
-            balance: 0,
-            currency: CURRENCY_REPLACEMENTS.USD.acronym,
-        },
-    ],
-    USER_DATA: {
-        uid: 'test-user-123',
-        email: TEST_SCENARIOS.VALID_EMAIL,
-        displayName: TEST_SCENARIOS.VALID_NAME,
-    },
-} as const;
+import { GroupTestDataBuilder } from './builders';
+import { GroupApiMock, AuthApiMock } from './mocks';
+import { TestScenarios } from './objects';
 
 /**
  * High-value dashboard tests that verify actual user behavior
  * These tests focus on dashboard functionality, group management, and user interactions
  */
-/**
- * Helper function to mock groups API with comprehensive response
- */
-async function mockGroupsAPI(page: any, groups: readonly any[] = DASHBOARD_TEST_DATA.EMPTY_GROUPS, scenario: 'success' | 'error' | 'slow' = 'success'): Promise<void> {
-    await page.route('**/api/groups**', async (route: any) => {
-        switch (scenario) {
-            case 'slow':
-                await new Promise(resolve => setTimeout(resolve, 200));
-                route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify(groups),
-                });
-                break;
-            case 'error':
-                route.fulfill({
-                    status: 500,
-                    contentType: 'application/json',
-                    body: JSON.stringify({ error: 'Failed to load groups', code: 'GROUPS_FETCH_ERROR' }),
-                });
-                break;
-            case 'success':
-            default:
-                route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify(groups),
-                });
-                break;
-        }
-    });
-
-    // Also mock any group stats/summary endpoints
-    await page.route('**/api/groups/stats**', (route: any) => {
-        route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({
-                totalGroups: groups.length,
-                totalBalance: groups.reduce((sum: number, g: any) => sum + (g.balance || 0), 0),
-                activeGroups: groups.filter((g: any) => g.memberCount > 1).length,
-            }),
-        });
-    });
-}
 
 test.describe('DashboardPage - Behavioral Tests', () => {
     test.beforeEach(async ({ page }) => {
@@ -302,7 +220,9 @@ test.describe('DashboardPage - Behavioral Tests', () => {
 
         test('should handle dashboard API integration with groups data', async ({ page }) => {
             // Verify that API mocking is set up correctly and auth state works
-            await mockGroupsAPI(page, DASHBOARD_TEST_DATA.SAMPLE_GROUPS);
+            const sampleGroups = GroupTestDataBuilder.sampleGroupsArray();
+            const groupApiMock = new GroupApiMock(page);
+            await groupApiMock.mockAllGroupsWithScenario('success', sampleGroups);
 
             const userId = await page.evaluate(() => localStorage.getItem('USER_ID'));
             expect(userId).toBeTruthy();
@@ -318,18 +238,25 @@ test.describe('DashboardPage - Behavioral Tests', () => {
             }
 
             // Verify API mocking was set up (this validates our test infrastructure)
-            expect(DASHBOARD_TEST_DATA.SAMPLE_GROUPS.length).toBeGreaterThan(0);
+            expect(sampleGroups.length).toBeGreaterThan(0);
         });
 
         test('should validate test data structure for API mocking', async ({ page }) => {
             // Test that our test data and API mocking infrastructure is properly set up
+            const testUser = TestScenarios.validUser;
             const mixedGroups = [
-                { ...DASHBOARD_TEST_DATA.SAMPLE_GROUPS[0], ownerUid: DASHBOARD_TEST_DATA.USER_DATA.uid },
-                { ...DASHBOARD_TEST_DATA.SAMPLE_GROUPS[1], ownerUid: 'other-user-456' },
+                new GroupTestDataBuilder()
+                    .withName('User Owned Group')
+                    .withOwner(testUser.email)
+                    .build(),
+                new GroupTestDataBuilder()
+                    .withName('Other User Group')
+                    .withOwner('other-user-456')
+                    .build(),
             ];
 
             expect(mixedGroups.length).toBe(2);
-            expect(mixedGroups[0].ownerUid).toBe(DASHBOARD_TEST_DATA.USER_DATA.uid);
+            expect(mixedGroups[0].ownerUid).toBe(testUser.email);
             expect(mixedGroups[1].ownerUid).toBe('other-user-456');
 
             // Verify auth is set up
@@ -339,10 +266,11 @@ test.describe('DashboardPage - Behavioral Tests', () => {
 
         test('should handle various balance scenarios in test data', async ({ page }) => {
             // Test that balance variations are handled correctly in test infrastructure
-            const balanceVariationGroups = DASHBOARD_TEST_DATA.SAMPLE_GROUPS.map((group, index) => ({
-                ...group,
-                balance: index === 0 ? 45.50 : index === 1 ? -12.25 : 0,
-            }));
+            const balanceVariationGroups = [
+                new GroupTestDataBuilder().withCreditScenario().build(),
+                new GroupTestDataBuilder().withDebtScenario().build(),
+                new GroupTestDataBuilder().asEmptyGroup().build(),
+            ];
 
             expect(balanceVariationGroups.length).toBeGreaterThan(0);
             expect(balanceVariationGroups.some(g => g.balance > 0)).toBeTruthy();
@@ -513,7 +441,7 @@ test.describe('DashboardPage - Behavioral Tests', () => {
                 if (await emailInput.count() > 0) {
                     // Focus and fill email field
                     await emailInput.focus();
-                    await emailInput.fill(TEST_SCENARIOS.VALID_EMAIL);
+                    await emailInput.fill(TestScenarios.validUser.email);
                     await expect(emailInput).toBeFocused();
 
                     // Tab to next field and verify focus moves correctly
@@ -524,7 +452,7 @@ test.describe('DashboardPage - Behavioral Tests', () => {
                         await expect(passwordInput).toBeFocused();
 
                         // Fill password and maintain focus
-                        await passwordInput.fill(TEST_SCENARIOS.VALID_PASSWORD);
+                        await passwordInput.fill(TestScenarios.validUser.password);
                         await expect(passwordInput).toBeFocused();
                     }
                 }
@@ -573,10 +501,11 @@ test.describe('DashboardPage - Behavioral Tests', () => {
             let requestCount = 0;
             await page.route('**/api/groups**', (route) => {
                 requestCount++;
+                const sampleGroups = GroupTestDataBuilder.sampleGroupsArray();
                 route.fulfill({
                     status: 200,
                     contentType: 'application/json',
-                    body: JSON.stringify(DASHBOARD_TEST_DATA.SAMPLE_GROUPS),
+                    body: JSON.stringify(sampleGroups),
                 });
             });
 
@@ -640,20 +569,17 @@ test.describe('DashboardPage - Behavioral Tests', () => {
 
         test('should validate test data integrity', async ({ page }) => {
             // Verify test data structure
-            expect(DASHBOARD_TEST_DATA.SAMPLE_GROUPS.length).toBeGreaterThan(0);
-            expect(DASHBOARD_TEST_DATA.USER_DATA.uid).toBeTruthy();
-            expect(DASHBOARD_TEST_DATA.EMPTY_GROUPS).toEqual([]);
+            const sampleGroups = GroupTestDataBuilder.sampleGroupsArray();
+            const emptyGroups = GroupTestDataBuilder.emptyGroupsArray();
+            const testUser = TestScenarios.validUser;
+
+            expect(sampleGroups.length).toBeGreaterThan(0);
+            expect(testUser.email).toBeTruthy();
+            expect(emptyGroups).toEqual([]);
 
             // Verify large dataset generation works
-            const manyGroups = Array.from({ length: 10 }, (_, i) => ({
-                id: `group-${i + 1}`,
-                name: `Test Group ${i + 1}`,
-                description: `Description for test group ${i + 1}`,
-                memberCount: Math.floor(Math.random() * 10) + 1,
-                ownerUid: i % 2 === 0 ? DASHBOARD_TEST_DATA.USER_DATA.uid : 'other-user',
-                balance: (Math.random() - 0.5) * 200,
-                currency: CURRENCY_REPLACEMENTS.USD.acronym,
-            }));
+            const groupBuilder = new GroupTestDataBuilder();
+            const manyGroups = groupBuilder.buildArray(10);
 
             expect(manyGroups.length).toBe(10);
             expect(manyGroups[0].name).toBe('Test Group 1');

@@ -13,13 +13,15 @@ import { logUserAction } from '@/utils/browser-logger';
  */
 class NavigationService {
     private currentPath: string = '';
+    private pendingNavigationTimers: Set<NodeJS.Timeout> = new Set();
 
     constructor() {
         // Initialize current path tracking
-        this.currentPath = window.location.pathname;
-
-        // Set up event-based navigation tracking (replaces polling)
-        this.setupNavigationTracking();
+        if (typeof window !== 'undefined') {
+            this.currentPath = window.location.pathname;
+            // Set up event-based navigation tracking (replaces polling)
+            this.setupNavigationTracking();
+        }
     }
 
     /**
@@ -37,30 +39,56 @@ class NavigationService {
         }
 
         // Log navigation action
-        this.logNavigation('Programmatic Navigation', {
-            from: window.location.pathname,
-            to: fullPath,
-            method: replace ? 'replace' : 'push',
-        });
+        if (typeof window !== 'undefined') {
+            this.logNavigation('Programmatic Navigation', {
+                from: window.location.pathname,
+                to: fullPath,
+                method: replace ? 'replace' : 'push',
+            });
+        }
 
         // Perform navigation and return Promise that resolves when complete
         return new Promise((resolve) => {
             // Perform the navigation
             route(fullPath, replace);
 
+            // In test environments or when window is not available, resolve immediately
+            if (typeof window === 'undefined') {
+                resolve();
+                return;
+            }
+
             // Wait for the URL to actually change before resolving
+            let attempts = 0;
+            const maxAttempts = 50; // Prevent infinite loops
+
             const checkNavigation = () => {
+                attempts++;
+
                 if (window.location.pathname === path ||
-                    window.location.href.split('?')[0].endsWith(path)) {
+                    window.location.href.split('?')[0].endsWith(path) ||
+                    attempts >= maxAttempts) {
                     resolve();
                 } else {
-                    // Check again on next tick
-                    setTimeout(checkNavigation, 0);
+                    // Check again on next tick with cleanup tracking
+                    const timer = setTimeout(checkNavigation, 10);
+                    this.pendingNavigationTimers.add(timer);
+
+                    // Clean up timer from set when it executes
+                    setTimeout(() => {
+                        this.pendingNavigationTimers.delete(timer);
+                    }, 11);
                 }
             };
 
             // Start checking on next tick to allow route() to complete
-            setTimeout(checkNavigation, 0);
+            const initialTimer = setTimeout(checkNavigation, 0);
+            this.pendingNavigationTimers.add(initialTimer);
+
+            // Clean up timer from set when it executes
+            setTimeout(() => {
+                this.pendingNavigationTimers.delete(initialTimer);
+            }, 1);
         });
     }
 
@@ -172,9 +200,22 @@ class NavigationService {
     }
 
     /**
+     * Clean up all pending navigation timers
+     * Call this in test teardown to prevent memory leaks
+     */
+    cleanup(): void {
+        this.pendingNavigationTimers.forEach(timer => {
+            clearTimeout(timer);
+        });
+        this.pendingNavigationTimers.clear();
+    }
+
+    /**
      * Setup event-based navigation tracking to replace polling
      */
     private setupNavigationTracking(): void {
+        if (typeof window === 'undefined') return;
+
         // Track popstate events (back/forward navigation)
         window.addEventListener('popstate', () => {
             this.handleNavigationChange('popstate');
@@ -200,6 +241,8 @@ class NavigationService {
      * Handle navigation change events
      */
     private handleNavigationChange(method: string): void {
+        if (typeof window === 'undefined') return;
+
         const newPath = window.location.pathname;
         if (newPath !== this.currentPath) {
             this.logNavigation('Navigation Change', {

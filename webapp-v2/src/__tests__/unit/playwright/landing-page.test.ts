@@ -242,7 +242,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
     test('should handle slow network conditions gracefully', async () => {
         const page = (globalThis as any).sharedLandingPage;
         // Simulate slow network
-        await page.route('**/*', async (route) => {
+        await page.route('**/*', async (route: any) => {
             await new Promise((resolve) => setTimeout(resolve, 100)); // 100ms delay
             route.continue();
         });
@@ -348,7 +348,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
                     await element.first().focus();
 
                     // Check for focus indicators
-                    const focusStyles = await element.first().evaluate((el) => {
+                    const focusStyles = await element.first().evaluate((el: any) => {
                         const styles = getComputedStyle(el);
                         return {
                             outline: styles.outline,
@@ -393,7 +393,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
                     const isFocused = await focusedElement.count() > 0;
 
                     if (isFocused) {
-                        const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                        const tagName = await focusedElement.evaluate((el: any) =>el.tagName.toLowerCase());
                         expect(['button', 'a', 'input'].includes(tagName)).toBeTruthy();
                     }
                 }
@@ -421,7 +421,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
             const midPageFocused = page.locator(':focus');
 
             if (await midPageFocused.count() > 0) {
-                const tagName = await midPageFocused.evaluate(el => el.tagName.toLowerCase());
+                const tagName = await midPageFocused.evaluate((el: any) =>el.tagName.toLowerCase());
                 expect(['button', 'a', 'input', 'select', 'textarea'].includes(tagName)).toBeTruthy();
             }
 
@@ -433,7 +433,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
             const bottomFocused = page.locator(':focus');
 
             if (await bottomFocused.count() > 0) {
-                const tagName = await bottomFocused.evaluate(el => el.tagName.toLowerCase());
+                const tagName = await bottomFocused.evaluate((el: any) =>el.tagName.toLowerCase());
                 expect(['button', 'a', 'input', 'select', 'textarea'].includes(tagName)).toBeTruthy();
             }
         });
@@ -450,7 +450,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
             const focusedElement = page.locator(':focus');
             if (await focusedElement.count() > 0) {
                 // Should be focused on an interactive element
-                const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                const tagName = await focusedElement.evaluate((el: any) =>el.tagName.toLowerCase());
                 expect(['button', 'a'].includes(tagName)).toBeTruthy();
             }
         });
@@ -469,7 +469,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
                 const previousElement = page.locator(':focus');
 
                 if (await previousElement.count() > 0) {
-                    const tagName = await previousElement.evaluate(el => el.tagName.toLowerCase());
+                    const tagName = await previousElement.evaluate((el: any) =>el.tagName.toLowerCase());
                     expect(['button', 'a', 'input'].includes(tagName)).toBeTruthy();
                 }
             }
@@ -489,7 +489,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
                 await page.setViewportSize({ width: 375, height: 667 });
 
                 // Element should still be accessible (may have moved but should be focusable)
-                const isFocused = await button.first().evaluate(el => el === document.activeElement);
+                const isFocused = await button.first().evaluate((el: any) =>el === document.activeElement);
 
                 // If focus was lost due to layout changes, tab navigation should still work
                 if (!isFocused) {
@@ -497,7 +497,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
                     const focusedElement = page.locator(':focus');
 
                     if (await focusedElement.count() > 0) {
-                        const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                        const tagName = await focusedElement.evaluate((el: any) =>el.tagName.toLowerCase());
                         expect(['button', 'a', 'input'].includes(tagName)).toBeTruthy();
                     }
                 }
@@ -522,7 +522,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
                 const focusedElement = page.locator(':focus');
                 if (await focusedElement.count() > 0) {
                     const elementId = await focusedElement.getAttribute('id');
-                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                    const tagName = await focusedElement.evaluate((el: any) =>el.tagName.toLowerCase());
 
                     expect(
                         elementId === 'main' ||
@@ -553,7 +553,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
             // Should still be able to focus elements
             const finalFocused = page.locator(':focus');
             if (await finalFocused.count() > 0) {
-                const tagName = await finalFocused.evaluate(el => el.tagName.toLowerCase());
+                const tagName = await finalFocused.evaluate((el: any) =>el.tagName.toLowerCase());
                 expect(['button', 'a', 'input', 'select', 'textarea'].includes(tagName)).toBeTruthy();
             }
         });

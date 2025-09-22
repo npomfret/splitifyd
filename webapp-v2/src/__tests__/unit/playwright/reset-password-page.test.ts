@@ -12,7 +12,7 @@ import {
     testTabOrder,
     verifyFocusVisible,
     SELECTORS,
-    TEST_SCENARIOS,
+    TestScenarios,
 } from '../infra/test-helpers';
 
 /**
@@ -56,7 +56,7 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
         await expectButtonState(page, SELECTORS.SUBMIT_BUTTON, 'disabled');
 
         // Test email input functionality
-        await fillFormField(page, emailSelector, TEST_SCENARIOS.VALID_EMAIL);
+        await fillFormField(page, emailSelector, TestScenarios.validUser.email);
 
         // Submit button should be enabled with valid email
         await expectButtonState(page, SELECTORS.SUBMIT_BUTTON, 'enabled');
@@ -79,13 +79,13 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
         await expectButtonState(page, SELECTORS.SUBMIT_BUTTON, 'disabled');
 
         // Fill with actual email - should become enabled
-        await fillFormField(page, 'input[type="email"]', TEST_SCENARIOS.VALID_EMAIL);
+        await fillFormField(page, 'input[type="email"]', TestScenarios.validUser.email);
         await expectButtonState(page, SELECTORS.SUBMIT_BUTTON, 'enabled');
     });
 
     test('should accept various email formats', async ({ page }) => {
         const emailSelector = 'input[type="email"]';
-        const testEmails = ['invalid-email', 'user@domain', TEST_SCENARIOS.VALID_EMAIL];
+        const testEmails = ['invalid-email', 'user@domain', TestScenarios.validUser.email];
 
         // Wait for the email input to be visible before testing
         await expectElementVisible(page, emailSelector);
@@ -108,7 +108,7 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
         const emailSelector = 'input[type="email"]';
 
         // Fill email and submit (will fail due to no Firebase setup in tests)
-        await fillFormField(page, emailSelector, TEST_SCENARIOS.VALID_EMAIL);
+        await fillFormField(page, emailSelector, TestScenarios.validUser.email);
         await page.click(SELECTORS.SUBMIT_BUTTON);
 
         // Wait for error to appear (Firebase will fail and show error)
@@ -118,7 +118,7 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
         await expectElementVisible(page, emailSelector);
 
         // Email should still be in the field
-        await expect(page.locator(emailSelector)).toHaveValue(TEST_SCENARIOS.VALID_EMAIL);
+        await expect(page.locator(emailSelector)).toHaveValue(TestScenarios.validUser.email);
 
         // Should be able to try again
         await expectButtonState(page, SELECTORS.SUBMIT_BUTTON, 'enabled');
@@ -159,7 +159,7 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
         const emailSelector = 'input[type="email"]';
 
         // Test various input patterns
-        await fillFormField(page, emailSelector, TEST_SCENARIOS.VALID_EMAIL);
+        await fillFormField(page, emailSelector, TestScenarios.validUser.email);
         await fillFormField(page, emailSelector, '');
         await fillFormField(page, emailSelector, 'newuser@domain.com');
 
@@ -420,7 +420,7 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
             const emailInput = page.locator('input[type="email"]');
 
             // Fill email field
-            await emailInput.fill(TEST_SCENARIOS.VALID_EMAIL);
+            await emailInput.fill(TestScenarios.validUser.email);
 
             // Test Enter key submission from email field
             await emailInput.focus();
@@ -448,7 +448,7 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
             await expect(emailInput).toBeFocused();
 
             // Fill email field and verify focus is maintained
-            await emailInput.fill(TEST_SCENARIOS.VALID_EMAIL);
+            await emailInput.fill(TestScenarios.validUser.email);
             await expect(emailInput).toBeFocused();
 
             // Tab to submit button
@@ -484,7 +484,7 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
             const emailInput = page.locator('input[type="email"]');
 
             // Fill email field first
-            await emailInput.fill(TEST_SCENARIOS.VALID_EMAIL);
+            await emailInput.fill(TestScenarios.validUser.email);
 
             // Focus on submit button
             await submitButton.focus();
@@ -499,12 +499,12 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
 
         test('should handle keyboard navigation during password reset submission', async ({ page }) => {
             // Set up password reset mocking
-            await mockFirebasePasswordReset(page, TEST_SCENARIOS.VALID_EMAIL);
+            await mockFirebasePasswordReset(page, TestScenarios.validUser.email);
 
             const emailInput = page.locator('input[type="email"]');
 
             // Fill and submit form using keyboard
-            await emailInput.fill(TEST_SCENARIOS.VALID_EMAIL);
+            await emailInput.fill(TestScenarios.validUser.email);
             await emailInput.focus();
             await page.keyboard.press('Enter');
 
@@ -540,7 +540,7 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
                 const isEmailInput = await firstFocusedElement.evaluate(el => (el as HTMLInputElement).type === 'email');
                 if (isEmailInput) {
                     // Fill form and test continued navigation
-                    await firstFocusedElement.fill(TEST_SCENARIOS.VALID_EMAIL);
+                    await firstFocusedElement.fill(TestScenarios.validUser.email);
 
                     // Tab to next element
                     await page.keyboard.press('Tab');

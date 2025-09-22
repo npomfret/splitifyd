@@ -739,8 +739,14 @@ export const SELECTORS = {
 
 const someValidEmail = () => `${generateShortId()}@bar.com`;
 
+// Re-export new object-oriented test patterns
+export { TestScenarios } from '../playwright/objects';
+export { GroupTestDataBuilder } from '../playwright/builders';
+export { GroupApiMock, AuthApiMock } from '../playwright/mocks';
+
 /**
  * Common test scenarios for reuse
+ * @deprecated Use TestScenarios class instead for better type safety and flexibility
  */
 export const TEST_SCENARIOS = {
     VALID_EMAIL: someValidEmail(),

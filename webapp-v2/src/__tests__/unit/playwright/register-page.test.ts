@@ -14,7 +14,7 @@ import {
     testReverseTabOrder,
     verifyFocusVisible,
     SELECTORS,
-    TEST_SCENARIOS,
+    TestScenarios,
 } from '../infra/test-helpers';
 
 /**
@@ -58,10 +58,10 @@ test.describe('RegisterPage - Behavioral Tests', () => {
     test('should handle user input correctly across all fields', async ({ page }) => {
         // Test all input fields
         await fillMultipleFields(page, {
-            [SELECTORS.FULLNAME_INPUT]: TEST_SCENARIOS.VALID_NAME,
-            [SELECTORS.EMAIL_INPUT]: TEST_SCENARIOS.VALID_EMAIL,
-            [SELECTORS.PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
-            [SELECTORS.CONFIRM_PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
+            [SELECTORS.FULLNAME_INPUT]: TestScenarios.validUser.displayName,
+            [SELECTORS.EMAIL_INPUT]: TestScenarios.validUser.email,
+            [SELECTORS.PASSWORD_INPUT]: TestScenarios.validUser.password,
+            [SELECTORS.CONFIRM_PASSWORD_INPUT]: TestScenarios.validUser.password,
         });
 
         // Test checkbox interactions
@@ -104,9 +104,9 @@ test.describe('RegisterPage - Behavioral Tests', () => {
     test('should validate password confirmation correctly', async ({ page }) => {
         // Fill all required fields
         await fillMultipleFields(page, {
-            [SELECTORS.FULLNAME_INPUT]: TEST_SCENARIOS.VALID_NAME,
-            [SELECTORS.EMAIL_INPUT]: TEST_SCENARIOS.VALID_EMAIL,
-            [SELECTORS.PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
+            [SELECTORS.FULLNAME_INPUT]: TestScenarios.validUser.displayName,
+            [SELECTORS.EMAIL_INPUT]: TestScenarios.validUser.email,
+            [SELECTORS.PASSWORD_INPUT]: TestScenarios.validUser.password,
         });
         await page.check(SELECTORS.TERMS_CHECKBOX);
         await page.check(SELECTORS.COOKIES_CHECKBOX);
@@ -122,7 +122,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
         await expectErrorMessage(page);
 
         // Fix confirmation password - error should clear
-        await fillFormField(page, SELECTORS.CONFIRM_PASSWORD_INPUT, TEST_SCENARIOS.VALID_PASSWORD);
+        await fillFormField(page, SELECTORS.CONFIRM_PASSWORD_INPUT, TestScenarios.validUser.password);
         await expectButtonState(page, SELECTORS.SUBMIT_BUTTON, 'enabled');
     });
 
@@ -177,7 +177,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
         // Fill form to test that functionality still works with URL params
         await fillMultipleFields(page, {
             [SELECTORS.FULLNAME_INPUT]: 'Test User',
-            [SELECTORS.EMAIL_INPUT]: TEST_SCENARIOS.VALID_EMAIL,
+            [SELECTORS.EMAIL_INPUT]: TestScenarios.validUser.email,
         });
 
         // Still needs password and checkboxes
@@ -186,15 +186,15 @@ test.describe('RegisterPage - Behavioral Tests', () => {
 
     test('should accept different password strengths', async ({ page }) => {
         // Test that various password strengths are accepted in the field
-        for (const password of [...TEST_SCENARIOS.WEAK_PASSWORDS, ...TEST_SCENARIOS.STRONG_PASSWORDS]) {
+        for (const password of [...TestScenarios.weakPasswords, ...TestScenarios.strongPasswords]) {
             await fillFormField(page, SELECTORS.PASSWORD_INPUT, password);
         }
 
         // Test that form accepts strong password for submission
-        const strongPassword = TEST_SCENARIOS.STRONG_PASSWORDS[0];
+        const strongPassword = TestScenarios.strongPasswords[0];
         await fillMultipleFields(page, {
             [SELECTORS.FULLNAME_INPUT]: 'Test User',
-            [SELECTORS.EMAIL_INPUT]: TEST_SCENARIOS.VALID_EMAIL,
+            [SELECTORS.EMAIL_INPUT]: TestScenarios.validUser.email,
             [SELECTORS.PASSWORD_INPUT]: strongPassword,
             [SELECTORS.CONFIRM_PASSWORD_INPUT]: strongPassword,
         });
@@ -230,10 +230,10 @@ test.describe('RegisterPage - Behavioral Tests', () => {
     test('should properly handle checkbox toggling for form validation', async ({ page }) => {
         // Fill form completely
         await fillMultipleFields(page, {
-            [SELECTORS.FULLNAME_INPUT]: TEST_SCENARIOS.VALID_NAME,
-            [SELECTORS.EMAIL_INPUT]: TEST_SCENARIOS.VALID_EMAIL,
-            [SELECTORS.PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
-            [SELECTORS.CONFIRM_PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
+            [SELECTORS.FULLNAME_INPUT]: TestScenarios.validUser.displayName,
+            [SELECTORS.EMAIL_INPUT]: TestScenarios.validUser.email,
+            [SELECTORS.PASSWORD_INPUT]: TestScenarios.validUser.password,
+            [SELECTORS.CONFIRM_PASSWORD_INPUT]: TestScenarios.validUser.password,
         });
 
         await page.check(SELECTORS.TERMS_CHECKBOX);
@@ -393,10 +393,10 @@ test.describe('RegisterPage - Behavioral Tests', () => {
 
             // Fill form with valid data
             await fillMultipleFields(page, {
-                [SELECTORS.FULLNAME_INPUT]: TEST_SCENARIOS.VALID_NAME,
-                [SELECTORS.EMAIL_INPUT]: TEST_SCENARIOS.VALID_EMAIL,
-                [SELECTORS.PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
-                [SELECTORS.CONFIRM_PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
+                [SELECTORS.FULLNAME_INPUT]: TestScenarios.validUser.displayName,
+                [SELECTORS.EMAIL_INPUT]: TestScenarios.validUser.email,
+                [SELECTORS.PASSWORD_INPUT]: TestScenarios.validUser.password,
+                [SELECTORS.CONFIRM_PASSWORD_INPUT]: TestScenarios.validUser.password,
             });
             await page.check(SELECTORS.TERMS_CHECKBOX);
             await page.check(SELECTORS.COOKIES_CHECKBOX);
@@ -471,10 +471,10 @@ test.describe('RegisterPage - Behavioral Tests', () => {
 
             // Fill form with valid data
             await fillMultipleFields(page, {
-                [SELECTORS.FULLNAME_INPUT]: TEST_SCENARIOS.VALID_NAME,
-                [SELECTORS.EMAIL_INPUT]: TEST_SCENARIOS.VALID_EMAIL,
-                [SELECTORS.PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
-                [SELECTORS.CONFIRM_PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
+                [SELECTORS.FULLNAME_INPUT]: TestScenarios.validUser.displayName,
+                [SELECTORS.EMAIL_INPUT]: TestScenarios.validUser.email,
+                [SELECTORS.PASSWORD_INPUT]: TestScenarios.validUser.password,
+                [SELECTORS.CONFIRM_PASSWORD_INPUT]: TestScenarios.validUser.password,
             });
             await page.check(SELECTORS.TERMS_CHECKBOX);
             await page.check(SELECTORS.COOKIES_CHECKBOX);
@@ -510,7 +510,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
             // Fill name field and verify it maintains focus
             const nameInput = page.locator(SELECTORS.FULLNAME_INPUT);
             await nameInput.focus();
-            await nameInput.fill(TEST_SCENARIOS.VALID_NAME);
+            await nameInput.fill(TestScenarios.validUser.displayName);
             await expect(nameInput).toBeFocused();
 
             // Tab to email field and verify focus moves correctly
@@ -519,7 +519,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
             await expect(emailInput).toBeFocused();
 
             // Fill email and verify focus is maintained
-            await emailInput.fill(TEST_SCENARIOS.VALID_EMAIL);
+            await emailInput.fill(TestScenarios.validUser.email);
             await expect(emailInput).toBeFocused();
 
             // Tab to password field
@@ -528,7 +528,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
             await expect(passwordInput).toBeFocused();
 
             // Fill password and verify focus is maintained
-            await passwordInput.fill(TEST_SCENARIOS.VALID_PASSWORD);
+            await passwordInput.fill(TestScenarios.validUser.password);
             await expect(passwordInput).toBeFocused();
         });
 
@@ -593,9 +593,9 @@ test.describe('RegisterPage - Behavioral Tests', () => {
         test('should handle field validation errors without breaking keyboard navigation', async ({ page }) => {
             // Fill form with mismatched passwords to trigger validation error
             await fillMultipleFields(page, {
-                [SELECTORS.FULLNAME_INPUT]: TEST_SCENARIOS.VALID_NAME,
-                [SELECTORS.EMAIL_INPUT]: TEST_SCENARIOS.VALID_EMAIL,
-                [SELECTORS.PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
+                [SELECTORS.FULLNAME_INPUT]: TestScenarios.validUser.displayName,
+                [SELECTORS.EMAIL_INPUT]: TestScenarios.validUser.email,
+                [SELECTORS.PASSWORD_INPUT]: TestScenarios.validUser.password,
                 [SELECTORS.CONFIRM_PASSWORD_INPUT]: 'different-password',
             });
             await page.check(SELECTORS.TERMS_CHECKBOX);
@@ -616,7 +616,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
             await expect(confirmPasswordInput).toBeFocused();
 
             // Should be able to correct the error
-            await confirmPasswordInput.fill(TEST_SCENARIOS.VALID_PASSWORD);
+            await confirmPasswordInput.fill(TestScenarios.validUser.password);
             await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
         });
 

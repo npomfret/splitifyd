@@ -9,7 +9,8 @@ import {
     fillFormField,
     testTabOrder,
     verifyFocusVisible,
-    TEST_SCENARIOS,
+    TestScenarios,
+    GroupApiMock,
 } from '../infra/test-helpers';
 
 /**
@@ -116,7 +117,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
         id: 'test-group',
         name: 'Test Group',
         members: [
-            { id: 'user1', email: TEST_SCENARIOS.VALID_EMAIL, displayName: 'Test User', joinedAt: new Date().toISOString() },
+            { id: 'user1', email: TestScenarios.validUser.email, displayName: 'Test User', joinedAt: new Date().toISOString() },
             { id: 'user2', email: 'member2@test.com', displayName: 'Member Two', joinedAt: new Date().toISOString() },
             { id: 'user3', email: 'member3@test.com', displayName: 'Member Three', joinedAt: new Date().toISOString() }
         ]
@@ -124,104 +125,32 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
 
     let authToken: { idToken: string; localId: string; refreshToken: string };
 
-    async function mockGroupAPI(page: any) {
-        // Mock group data API - return group info
-        await page.route('**/api/groups/test-group', (route: any) => {
-            if (route.request().method() === 'GET') {
-                route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify(mockGroupData),
-                });
-            } else {
-                route.continue();
-            }
-        });
+    let groupApiMock: GroupApiMock;
+
+    async function setupGroupAPIMocking(page: any) {
+        groupApiMock = new GroupApiMock(page);
+
+        // Mock group data for the test group
+        await groupApiMock.mockGetGroup('test-group', mockGroupData);
 
         // Mock expense submission API
-        await page.route('**/api/groups/test-group/expenses', (route: any) => {
-            if (route.request().method() === 'POST') {
-                route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify({
-                        id: 'new-expense-id',
-                        success: true,
-                        message: 'Expense created successfully'
-                    }),
-                });
-            } else if (route.request().method() === 'GET') {
-                // Return empty expenses list
-                route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify([]),
-                });
-            } else {
-                route.continue();
-            }
+        await groupApiMock.mockCreateExpense('test-group', {
+            id: 'new-expense-id',
+            success: true,
+            message: 'Expense created successfully'
         });
 
-        // Mock groups list API (in case it's called)
-        await page.route('**/api/groups', (route: any) => {
-            if (route.request().method() === 'GET') {
-                route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify([mockGroupData]),
-                });
-            } else {
-                route.continue();
-            }
-        });
+        // Mock empty expenses list
+        await groupApiMock.mockGroupExpenses('test-group', []);
+
+        // Mock groups list API
+        await groupApiMock.mockGetGroups([mockGroupData]);
 
         // Mock user groups membership API
-        await page.route('**/api/user/groups', (route: any) => {
-            if (route.request().method() === 'GET') {
-                route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify([mockGroupData]),
-                });
-            } else {
-                route.continue();
-            }
-        });
+        await groupApiMock.mockUserGroups([mockGroupData]);
 
-        // Mock Firebase Firestore API for group operations
-        await page.route('**/_mock/firebase-firestore/**', (route: any) => {
-            const url = route.request().url();
-
-            if (url.includes('documents/groups/test-group')) {
-                route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify({
-                        name: 'documents/groups/test-group',
-                        fields: {
-                            id: { stringValue: 'test-group' },
-                            name: { stringValue: 'Test Group' },
-                            members: {
-                                arrayValue: {
-                                    values: mockGroupData.members.map(member => ({
-                                        mapValue: {
-                                            fields: {
-                                                id: { stringValue: member.id },
-                                                email: { stringValue: member.email },
-                                                displayName: { stringValue: member.displayName },
-                                                joinedAt: { timestampValue: member.joinedAt }
-                                            }
-                                        }
-                                    }))
-                                }
-                            }
-                        }
-                    }),
-                });
-            } else {
-                route.continue();
-            }
-        });
+        // Mock Firebase Firestore for group operations
+        await groupApiMock.mockFirebaseFirestoreGroup('test-group', mockGroupData);
     }
 
     test.beforeAll(async () => {
@@ -246,7 +175,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
     test.beforeEach(async ({ page }) => {
         await setupTestPage(page, '/');
         await setupAuthenticatedUserWithToken(page, authToken);
-        await mockGroupAPI(page);
+        await setupGroupAPIMocking(page);
     });
 
     test('should show 404 error when accessing invalid route', async ({ page }) => {

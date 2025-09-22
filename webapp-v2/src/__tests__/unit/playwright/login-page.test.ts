@@ -11,7 +11,7 @@ import {
     mockFirebaseAuthLogin,
     setupAuthenticatedUser,
     SELECTORS,
-    TEST_SCENARIOS,
+    TestScenarios,
     testFormValidation,
     testTabOrder,
     testReverseTabOrder,
@@ -53,10 +53,10 @@ test.describe('LoginPage - Behavioral Tests', () => {
 
     test('should handle user input correctly', async ({ page }) => {
         // Test email input functionality
-        await fillFormField(page, SELECTORS.EMAIL_INPUT, TEST_SCENARIOS.VALID_EMAIL);
+        await fillFormField(page, SELECTORS.EMAIL_INPUT, TestScenarios.validUser.email);
 
         // Test password input functionality
-        await fillFormField(page, SELECTORS.PASSWORD_INPUT, TEST_SCENARIOS.VALID_PASSWORD);
+        await fillFormField(page, SELECTORS.PASSWORD_INPUT, TestScenarios.validUser.password);
 
         // Test input clearing
         await fillFormField(page, SELECTORS.EMAIL_INPUT, '');
@@ -72,7 +72,7 @@ test.describe('LoginPage - Behavioral Tests', () => {
         await expectButtonState(page, SELECTORS.SUBMIT_BUTTON, 'disabled');
 
         // Re-add email to verify it works
-        await fillFormField(page, SELECTORS.EMAIL_INPUT, TEST_SCENARIOS.VALID_EMAIL);
+        await fillFormField(page, SELECTORS.EMAIL_INPUT, TestScenarios.validUser.email);
         await expectButtonState(page, SELECTORS.SUBMIT_BUTTON, 'enabled');
     });
 
@@ -239,8 +239,8 @@ test.describe('LoginPage - Behavioral Tests', () => {
 
         test('should submit form with Enter key from any input field', async ({ page }) => {
             // Fill form with valid data
-            await fillFormField(page, SELECTORS.EMAIL_INPUT, TEST_SCENARIOS.VALID_EMAIL);
-            await fillFormField(page, SELECTORS.PASSWORD_INPUT, TEST_SCENARIOS.VALID_PASSWORD);
+            await fillFormField(page, SELECTORS.EMAIL_INPUT, TestScenarios.validUser.email);
+            await fillFormField(page, SELECTORS.PASSWORD_INPUT, TestScenarios.validUser.password);
 
             // Test Enter key submission from email field
             await page.locator(SELECTORS.EMAIL_INPUT).focus();
@@ -335,7 +335,7 @@ test.describe('LoginPage - Behavioral Tests', () => {
             // Fill email field and verify it maintains focus
             const emailInput = page.locator(SELECTORS.EMAIL_INPUT);
             await emailInput.focus();
-            await emailInput.fill(TEST_SCENARIOS.VALID_EMAIL);
+            await emailInput.fill(TestScenarios.validUser.email);
             await expect(emailInput).toBeFocused();
 
             // Tab to password field and verify focus moves correctly
@@ -344,7 +344,7 @@ test.describe('LoginPage - Behavioral Tests', () => {
             await expect(passwordInput).toBeFocused();
 
             // Fill password and verify focus is maintained
-            await passwordInput.fill(TEST_SCENARIOS.VALID_PASSWORD);
+            await passwordInput.fill(TestScenarios.validUser.password);
             await expect(passwordInput).toBeFocused();
         });
 

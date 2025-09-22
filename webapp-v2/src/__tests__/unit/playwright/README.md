@@ -242,3 +242,111 @@ test('should render all required form elements', async ({ page }) => {
 - User interaction patterns
 
 The Pricing Page represents an excellent example of comprehensive unit testing for static content, covering user-facing functionality, content verification, and interaction patterns without requiring external dependencies.
+
+## Object-Oriented Test Infrastructure (New)
+
+### Overview
+
+We've implemented a new object-oriented approach to test data generation and API mocking using the Builder pattern and mock objects. This provides better type safety, reusability, and maintainability.
+
+### Architecture
+
+#### Builders (`./builders/`)
+- **GroupTestDataBuilder**: Creates consistent group test data with fluent API
+- **MockResponseBuilder**: Creates standardized API response objects
+
+#### Mock Objects (`./mocks/`)
+- **GroupApiMock**: Handles all group-related API endpoint mocking
+- **AuthApiMock**: Handles authentication and Firebase API mocking
+
+#### Test Objects (`./objects/`)
+- **TestScenarios**: Provides scenario-based test data (replaces TEST_SCENARIOS constant)
+
+### Usage Examples
+
+#### Creating Test Groups
+```typescript
+// Simple group
+const group = new GroupTestDataBuilder()
+  .withName('My Test Group')
+  .withMemberCount(3)
+  .withBalance(100.50)
+  .build();
+
+// Pre-defined scenarios
+const debtGroup = new GroupTestDataBuilder().withDebtScenario().build();
+const emptyGroup = new GroupTestDataBuilder().asEmptyGroup().build();
+const sampleGroups = GroupTestDataBuilder.sampleGroupsArray();
+```
+
+#### API Mocking
+```typescript
+// Set up group API mocking
+const groupApiMock = new GroupApiMock(page);
+await groupApiMock.mockGetGroups(groups);
+await groupApiMock.mockGetGroupNotFound('group-id');
+await groupApiMock.mockAllGroupsWithScenario('success', groups);
+
+// Set up auth mocking
+const authApiMock = new AuthApiMock(page);
+await authApiMock.mockSuccessfulLogin(email, password);
+await authApiMock.mockInvalidCredentials(email, password);
+```
+
+#### Test Scenarios
+```typescript
+// User scenarios
+const user = TestScenarios.validUser;
+const emails = TestScenarios.invalidEmails;
+const passwords = TestScenarios.strongPasswords;
+
+// Dynamic data
+const members = TestScenarios.createGroupMembers(5);
+const tabOrder = TestScenarios.commonTabOrders.loginForm;
+```
+
+### Migration from Old Patterns
+
+#### Before (Helper Functions)
+```typescript
+// Old approach
+const mockData = { id: 'test', name: 'Test Group', ... };
+await mockGroupsAPI(page, [mockData], 'success');
+
+// Old constants
+const email = TEST_SCENARIOS.VALID_EMAIL;
+```
+
+#### After (Object-Oriented)
+```typescript
+// New approach
+const group = new GroupTestDataBuilder()
+  .withName('Test Group')
+  .build();
+
+const groupApiMock = new GroupApiMock(page);
+await groupApiMock.mockGetGroups([group]);
+
+// New objects
+const email = TestScenarios.validUser.email;
+```
+
+### Benefits
+
+1. **Type Safety**: Better TypeScript support with builders
+2. **Reusability**: Consistent data structures across tests
+3. **Maintainability**: Centralized mock data generation
+4. **Flexibility**: Easy to create test data variations
+5. **Integration**: Leverages existing builders from `@splitifyd/test-support`
+
+### Backward Compatibility
+
+All old helper functions and constants are still available but marked as deprecated. New tests should use the object-oriented approach, and existing tests will be gradually migrated.
+
+```typescript
+// Still works but deprecated
+import { TEST_SCENARIOS, mockFirebaseAuthLogin } from '../infra/test-helpers';
+
+// Recommended approach
+import { TestScenarios, AuthApiMock } from '../infra/test-helpers';
+```

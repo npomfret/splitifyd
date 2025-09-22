@@ -7,9 +7,11 @@ import {
     setupUnauthenticatedTest,
     expectElementVisible,
     testTabOrder,
-    TEST_SCENARIOS,
 } from '../infra/test-helpers';
 import { CURRENCY_REPLACEMENTS } from './test-currencies';
+import { GroupTestDataBuilder } from './builders';
+import { GroupApiMock, AuthApiMock } from './mocks';
+import { TestScenarios } from './objects';
 
 /**
  * High-value group detail page tests that verify actual user behavior
@@ -21,52 +23,6 @@ import { CURRENCY_REPLACEMENTS } from './test-currencies';
  */
 function generateTestGroupId(): string {
     return `test-group-${generateShortId()}`;
-}
-
-/**
- * Simple API mocking helper following existing patterns
- */
-async function mockGroupAPI(page: any, groupId: string, scenario: 'success' | 'not-found' | 'deleted' | 'removed' = 'success'): Promise<void> {
-    await page.route(`**/api/groups/${groupId}`, (route: any) => {
-        switch (scenario) {
-            case 'not-found':
-                route.fulfill({
-                    status: 404,
-                    contentType: 'application/json',
-                    body: JSON.stringify({ error: 'Group not found' }),
-                });
-                break;
-            case 'deleted':
-                route.fulfill({
-                    status: 404,
-                    contentType: 'application/json',
-                    body: JSON.stringify({ error: 'Group has been deleted', code: 'GROUP_DELETED' }),
-                });
-                break;
-            case 'removed':
-                route.fulfill({
-                    status: 403,
-                    contentType: 'application/json',
-                    body: JSON.stringify({ error: 'User removed from group', code: 'USER_REMOVED_FROM_GROUP' }),
-                });
-                break;
-            case 'success':
-            default:
-                route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify({
-                        id: groupId,
-                        name: 'Test Group',
-                        description: 'A test group',
-                        currency: CURRENCY_REPLACEMENTS.USD.acronym,
-                        createdBy: 'test-user-id',
-                        createdAt: new Date().toISOString(),
-                    }),
-                });
-                break;
-        }
-    });
 }
 
 test.describe('GroupDetailPage - Behavioral Tests', () => {
@@ -147,7 +103,8 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
             const groupId = generateTestGroupId();
 
             // Mock the group API to return 404
-            await mockGroupAPI(page, groupId, 'not-found');
+            const groupApiMock = new GroupApiMock(page);
+            await groupApiMock.mockGetGroupNotFound(groupId);
 
             const userId = await page.evaluate(() => localStorage.getItem('USER_ID'));
             expect(userId).toBeTruthy();
@@ -171,7 +128,8 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
         test('should handle group deleted scenario correctly', async ({ page }) => {
             const groupId = generateTestGroupId();
 
-            await mockGroupAPI(page, groupId, 'deleted');
+            const groupApiMock = new GroupApiMock(page);
+            await groupApiMock.mockGetGroupDeleted(groupId);
 
             const userId = await page.evaluate(() => localStorage.getItem('USER_ID'));
             expect(userId).toBeTruthy();
@@ -188,7 +146,8 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
         test('should handle user removed from group scenario correctly', async ({ page }) => {
             const groupId = generateTestGroupId();
 
-            await mockGroupAPI(page, groupId, 'removed');
+            const groupApiMock = new GroupApiMock(page);
+            await groupApiMock.mockGetGroupUserRemoved(groupId);
 
             const userId = await page.evaluate(() => localStorage.getItem('USER_ID'));
             expect(userId).toBeTruthy();
@@ -205,7 +164,14 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
         test('should handle successful group load with API mocking', async ({ page }) => {
             const groupId = generateTestGroupId();
 
-            await mockGroupAPI(page, groupId, 'success');
+            const testGroup = new GroupTestDataBuilder()
+                .withId(groupId)
+                .withName('Test Group')
+                .withDescription('A test group')
+                .build();
+
+            const groupApiMock = new GroupApiMock(page);
+            await groupApiMock.mockGetGroup(groupId, testGroup);
 
             const userId = await page.evaluate(() => localStorage.getItem('USER_ID'));
             expect(userId).toBeTruthy();
@@ -491,7 +457,8 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
             const groupId = generateTestGroupId();
 
             // Mock API to return various error scenarios
-            await mockGroupAPI(page, groupId, 'not-found');
+            const groupApiMock = new GroupApiMock(page);
+            await groupApiMock.mockGetGroupNotFound(groupId);
 
             await page.goto(`/groups/${groupId}`);
             await page.waitForLoadState('networkidle');
@@ -526,7 +493,16 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
             ];
 
             for (const { groupId, scenario } of scenarios) {
-                await mockGroupAPI(page, groupId, scenario as any);
+                const groupApiMock = new GroupApiMock(page);
+
+                if (scenario === 'success') {
+                    const testGroup = new GroupTestDataBuilder().withId(groupId).build();
+                    await groupApiMock.mockGetGroup(groupId, testGroup);
+                } else if (scenario === 'not-found') {
+                    await groupApiMock.mockGetGroupNotFound(groupId);
+                } else if (scenario === 'deleted') {
+                    await groupApiMock.mockGetGroupDeleted(groupId);
+                }
 
                 await page.goto(`/groups/${groupId}`);
                 await page.waitForLoadState('networkidle');
@@ -599,7 +575,10 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
          */
         async function setupSettlementTestEnvironment(page: any, groupId: string): Promise<void> {
             await setupAuthenticatedUser(page);
-            await mockGroupAPI(page, groupId, 'success');
+
+            const testGroup = new GroupTestDataBuilder().withId(groupId).build();
+            const groupApiMock = new GroupApiMock(page);
+            await groupApiMock.mockGetGroup(groupId, testGroup);
             await mockSettlementsAPI(page, groupId, [
                 {
                     id: 'settlement-1',
@@ -794,7 +773,10 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
         test('should handle API errors gracefully when loading settlement history', async ({ page }) => {
             const groupId = generateTestGroupId();
             await setupAuthenticatedUser(page);
-            await mockGroupAPI(page, groupId, 'success');
+
+            const testGroup = new GroupTestDataBuilder().withId(groupId).build();
+            const groupApiMock = new GroupApiMock(page);
+            await groupApiMock.mockGetGroup(groupId, testGroup);
 
             // Mock settlements API to return error
             await page.route(`**/api/groups/${groupId}/settlements`, (route: any) => {

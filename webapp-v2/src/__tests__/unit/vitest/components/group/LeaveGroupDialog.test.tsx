@@ -1,17 +1,17 @@
-import { describe, it, expect, beforeEach, vi, type MockedFunction } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, type MockedFunction } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/preact';
 import { useTranslation } from 'react-i18next';
-import { route } from 'preact-router';
 import { LeaveGroupDialog } from '@/components/group/LeaveGroupDialog';
 import { apiClient } from '@/app/apiClient';
 import { logError } from '@/utils/browser-logger';
+import { useNavigation } from '@/hooks/useNavigation';
 
 // Mock all dependencies
 vi.mock('react-i18next');
-vi.mock('preact-router');
 vi.mock('@/app/apiClient');
 vi.mock('@/utils/browser-logger');
+vi.mock('@/hooks/useNavigation');
 
 // Mock translations
 const mockT = vi.fn((key: string) => {
@@ -26,9 +26,10 @@ const mockT = vi.fn((key: string) => {
     return translations[key] || key;
 }) as any;
 
-const mockRoute = vi.mocked(route);
+const mockGoToDashboard = vi.fn();
 const mockApiClient = apiClient as any;
 const mockLogError = logError as MockedFunction<typeof logError>;
+const mockUseNavigation = vi.mocked(useNavigation);
 
 describe('LeaveGroupDialog', () => {
     const defaultProps = {
@@ -46,6 +47,14 @@ describe('LeaveGroupDialog', () => {
             ready: true,
         } as any);
         mockApiClient.leaveGroup = vi.fn();
+        mockUseNavigation.mockReturnValue({
+            goToDashboard: mockGoToDashboard,
+        } as any);
+    });
+
+    afterEach(() => {
+        // Reset mock function call counts
+        mockGoToDashboard.mockClear();
     });
 
     it('renders the dialog when open', () => {
@@ -89,7 +98,7 @@ describe('LeaveGroupDialog', () => {
 
         // Should not call API or navigate
         expect(mockApiClient.leaveGroup).not.toHaveBeenCalled();
-        expect(mockRoute).not.toHaveBeenCalled();
+        expect(mockGoToDashboard).not.toHaveBeenCalled();
     });
 
     it('successfully leaves group when no outstanding balance', async () => {
@@ -103,7 +112,7 @@ describe('LeaveGroupDialog', () => {
 
         await waitFor(() => {
             expect(mockApiClient.leaveGroup).toHaveBeenCalledWith('test-group-id');
-            expect(mockRoute).toHaveBeenCalledWith('/dashboard', false);
+            expect(mockGoToDashboard).toHaveBeenCalled();
             expect(onCloseMock).toHaveBeenCalled();
         });
     });
@@ -125,7 +134,7 @@ describe('LeaveGroupDialog', () => {
         });
 
         // Should not navigate on error
-        expect(mockRoute).not.toHaveBeenCalled();
+        expect(mockGoToDashboard).not.toHaveBeenCalled();
     });
 
     it('shows loading state while processing', async () => {
