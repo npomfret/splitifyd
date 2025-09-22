@@ -1,55 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
 import { CommentService } from '../../../services/CommentService';
+import { StubFirestoreReader, StubFirestoreWriter, StubAuthService, clearSharedStorage } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import type { CommentTargetType, CreateCommentRequest } from '@splitifyd/shared';
-
-// Simple in-memory stubs for testing
-class TestFirestoreReader {
-    private comments = new Map<string, any[]>();
-
-    setCommentsForTarget(targetType: CommentTargetType, targetId: string, comments: any[]) {
-        this.comments.set(`${targetType}:${targetId}`, comments);
-    }
-
-    async getCommentsForTarget(targetType: CommentTargetType, targetId: string, options: any) {
-        const comments = this.comments.get(`${targetType}:${targetId}`) || [];
-        return { comments, hasMore: false, nextCursor: null };
-    }
-
-    async getComment(targetType: CommentTargetType, targetId: string, commentId: string) {
-        const comments = this.comments.get(`${targetType}:${targetId}`) || [];
-        return comments.find(c => c.id === commentId) || null;
-    }
-}
-
-class TestFirestoreWriter {
-    private nextResult: { id: string; success: boolean; error?: string } = { id: 'comment-123', success: true };
-
-    setNextWriteResult(id: string, success: boolean, error?: string) {
-        this.nextResult = { id, success, error };
-    }
-
-    async addComment(targetType: CommentTargetType, targetId: string, commentData: any) {
-        if (!this.nextResult.success) {
-            throw new Error(this.nextResult.error || 'Write failed');
-        }
-        return { id: this.nextResult.id, success: true, timestamp: Timestamp.now() };
-    }
-}
-
-class TestAuthService {
-    private users = new Map<string, any>();
-
-    setUser(userId: string, user: any) {
-        this.users.set(userId, user);
-    }
-
-    async getUser(userId: string) {
-        return this.users.get(userId) || null;
-    }
-}
 
 // Mock the strategy factory
 const mockStrategy = { verifyAccess: vi.fn() };
@@ -61,23 +16,25 @@ vi.mock('../../../services/comments/CommentStrategyFactory', () => ({
 
 describe('CommentService - Unit Tests', () => {
     let commentService: CommentService;
-    let testReader: TestFirestoreReader;
-    let testWriter: TestFirestoreWriter;
-    let testAuthService: TestAuthService;
+    let stubReader: StubFirestoreReader;
+    let stubWriter: StubFirestoreWriter;
+    let stubAuth: StubAuthService;
 
     beforeEach(() => {
-        testReader = new TestFirestoreReader();
-        testWriter = new TestFirestoreWriter();
-        testAuthService = new TestAuthService();
+        stubReader = new StubFirestoreReader();
+        stubWriter = new StubFirestoreWriter();
+        stubAuth = new StubAuthService();
 
         commentService = new CommentService(
-            testReader as any,
-            testWriter as any,
+            stubReader,
+            stubWriter,
             {} as any, // GroupMemberService not used in these tests
-            testAuthService as any,
+            stubAuth,
         );
 
         mockStrategy.verifyAccess.mockResolvedValue(undefined);
+        stubAuth.clear();
+        clearSharedStorage();
     });
 
     describe('createComment', () => {
@@ -92,13 +49,13 @@ describe('CommentService - Unit Tests', () => {
             };
 
             // Setup
-            testAuthService.setUser(userId, {
+            stubAuth.setUser(userId, {
                 uid: userId,
                 displayName: 'Test User',
                 email: 'test@example.com',
                 photoURL: 'https://example.com/avatar.jpg',
             });
-            testReader.setCommentsForTarget(targetType, targetId, [
+            stubReader.setCommentsForTarget(targetType, targetId, [
                 {
                     id: 'comment-123',
                     authorId: userId,
@@ -113,7 +70,7 @@ describe('CommentService - Unit Tests', () => {
             const result = await commentService.createComment(targetType, targetId, commentData, userId);
 
             expect(result).toMatchObject({
-                id: 'comment-123',
+                id: expect.any(String),
                 authorId: userId,
                 authorName: 'Test User',
                 text: 'Test comment',
@@ -133,12 +90,12 @@ describe('CommentService - Unit Tests', () => {
                 targetId,
             };
 
-            testAuthService.setUser(userId, {
+            stubAuth.setUser(userId, {
                 uid: userId,
                 email: 'john.doe@example.com',
                 // No displayName
             });
-            testReader.setCommentsForTarget(targetType, targetId, [
+            stubReader.setCommentsForTarget(targetType, targetId, [
                 {
                     id: 'comment-123',
                     authorId: userId,
@@ -183,7 +140,7 @@ describe('CommentService - Unit Tests', () => {
                 targetId,
             };
 
-            testAuthService.setUser(userId, { uid: userId, displayName: 'Test User' });
+            stubAuth.setUser(userId, { uid: userId, displayName: 'Test User' });
             mockStrategy.verifyAccess.mockRejectedValue(
                 new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'Access denied')
             );
@@ -205,8 +162,8 @@ describe('CommentService - Unit Tests', () => {
                 targetId,
             };
 
-            testAuthService.setUser(userId, { uid: userId, displayName: 'Test User' });
-            testWriter.setNextWriteResult('comment-123', false, 'Database error');
+            stubAuth.setUser(userId, { uid: userId, displayName: 'Test User' });
+            stubWriter.setWriteResult('comment-123', false, 'Database error');
 
             await expect(commentService.createComment(targetType, targetId, commentData, userId))
                 .rejects.toThrow('Database error');
@@ -240,7 +197,7 @@ describe('CommentService - Unit Tests', () => {
                 }
             ];
 
-            testReader.setCommentsForTarget(targetType, targetId, mockComments);
+            stubReader.setCommentsForTarget(targetType, targetId, mockComments);
 
             const result = await commentService.listComments(targetType, targetId, userId);
 
@@ -293,7 +250,7 @@ describe('CommentService - Unit Tests', () => {
             const targetType: CommentTargetType = 'group';
             const targetId = 'group-456';
 
-            testReader.setCommentsForTarget(targetType, targetId, []);
+            stubReader.setCommentsForTarget(targetType, targetId, []);
 
             await commentService.listComments(targetType, targetId, userId);
 
@@ -305,11 +262,158 @@ describe('CommentService - Unit Tests', () => {
             const targetType: CommentTargetType = 'expense';
             const targetId = 'expense-789';
 
-            testReader.setCommentsForTarget(targetType, targetId, []);
+            stubReader.setCommentsForTarget(targetType, targetId, []);
 
             await commentService.listComments(targetType, targetId, userId);
 
             expect(mockStrategy.verifyAccess).toHaveBeenCalledWith(targetId, userId);
+        });
+    });
+
+    describe('Comment validation and business logic', () => {
+        it('should handle anonymous author names for users without display name or email', async () => {
+            const userId = 'user-anonymous';
+            const targetType: CommentTargetType = 'group';
+            const targetId = 'group-456';
+            const commentData: CreateCommentRequest = {
+                text: 'Anonymous comment',
+                targetType,
+                targetId,
+            };
+
+            // User without displayName or email
+            stubAuth.setUser(userId, {
+                uid: userId,
+                // No displayName, no email
+            });
+
+            stubReader.setCommentsForTarget(targetType, targetId, [
+                {
+                    id: 'comment-anonymous',
+                    authorId: userId,
+                    authorName: 'Anonymous',
+                    authorAvatar: null,
+                    text: 'Anonymous comment',
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                }
+            ]);
+
+            const result = await commentService.createComment(targetType, targetId, commentData, userId);
+
+            expect(result.authorName).toBe('Anonymous');
+        });
+
+        it('should handle long comment text within limits', async () => {
+            const userId = 'user-123';
+            const targetType: CommentTargetType = 'group';
+            const targetId = 'group-456';
+            const longText = 'This is a very long comment '.repeat(20); // Realistic length
+            const commentData: CreateCommentRequest = {
+                text: longText,
+                targetType,
+                targetId,
+            };
+
+            stubAuth.setUser(userId, {
+                uid: userId,
+                displayName: 'Test User',
+                email: 'test@example.com',
+            });
+
+            stubReader.setCommentsForTarget(targetType, targetId, [
+                {
+                    id: 'comment-long',
+                    authorId: userId,
+                    authorName: 'Test User',
+                    authorAvatar: null,
+                    text: longText,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                }
+            ]);
+
+            const result = await commentService.createComment(targetType, targetId, commentData, userId);
+
+            expect(result.text).toBe(longText);
+            expect(result.text.length).toBeGreaterThan(100);
+        });
+
+        it('should handle comment creation with all optional fields', async () => {
+            const userId = 'user-complete';
+            const targetType: CommentTargetType = 'expense';
+            const targetId = 'expense-789';
+            const commentData: CreateCommentRequest = {
+                text: 'Complete comment with all data',
+                targetType,
+                targetId,
+            };
+
+            stubAuth.setUser(userId, {
+                uid: userId,
+                displayName: 'Complete User',
+                email: 'complete@example.com',
+                photoURL: 'https://example.com/complete-avatar.jpg',
+                emailVerified: true,
+            });
+
+            stubReader.setCommentsForTarget(targetType, targetId, [
+                {
+                    id: 'comment-complete',
+                    authorId: userId,
+                    authorName: 'Complete User',
+                    authorAvatar: 'https://example.com/complete-avatar.jpg',
+                    text: 'Complete comment with all data',
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                }
+            ]);
+
+            const result = await commentService.createComment(targetType, targetId, commentData, userId);
+
+            expect(result).toMatchObject({
+                id: expect.any(String),
+                authorId: userId,
+                authorName: 'Complete User',
+                authorAvatar: 'https://example.com/complete-avatar.jpg',
+                text: 'Complete comment with all data',
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+            });
+        });
+
+        it('should maintain consistency between creation and listing', async () => {
+            const userId = 'user-consistency';
+            const targetType: CommentTargetType = 'group';
+            const targetId = 'group-consistency';
+            const commentText = 'Consistency test comment';
+
+            stubAuth.setUser(userId, {
+                uid: userId,
+                displayName: 'Consistency User',
+                email: 'consistency@example.com',
+            });
+
+            const commentData: CreateCommentRequest = {
+                text: commentText,
+                targetType,
+                targetId,
+            };
+
+            // Don't pre-populate comments - let the creation add it
+
+            // Create the comment
+            const createdComment = await commentService.createComment(targetType, targetId, commentData, userId);
+
+            // List comments to verify consistency
+            const listedComments = await commentService.listComments(targetType, targetId, userId);
+
+            expect(listedComments.comments).toHaveLength(1);
+            expect(listedComments.comments[0]).toMatchObject({
+                authorId: createdComment.authorId,
+                authorName: createdComment.authorName,
+                text: createdComment.text,
+            });
         });
     });
 });

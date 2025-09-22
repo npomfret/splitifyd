@@ -1,10 +1,17 @@
 import { Timestamp } from 'firebase-admin/firestore';
+import type { UserRecord, UpdateRequest, CreateRequest, GetUsersResult, DecodedIdToken, ListUsersResult, DeleteUsersResult } from 'firebase-admin/auth';
 import type { IFirestoreReader } from '../../../services/firestore/IFirestoreReader';
 import type { IFirestoreWriter, WriteResult } from '../../../services/firestore/IFirestoreWriter';
+import type { IAuthService } from '../../../services/auth/IAuthService';
 import type { PolicyDocument, UserDocument, GroupDocument, ExpenseDocument, SettlementDocument } from '../../../schemas';
 import type { GroupMemberDocument, CommentTargetType } from '@splitifyd/shared';
 import type { UserNotificationDocument } from '../../../schemas/user-notifications';
 import type { ParsedShareLink, ParsedComment } from '../../../schemas';
+import { ApiError } from '../../../utils/errors';
+import { HTTP_STATUS } from '../../../constants';
+
+// Shared storage for comments between reader and writer
+const sharedCommentStorage = new Map<string, any[]>();
 
 /**
  * In-memory stub implementation of IFirestoreReader for unit testing
@@ -95,8 +102,19 @@ export class StubFirestoreReader implements IFirestoreReader {
     async findShareLinkByToken(): Promise<any | null> { return null; }
     async getShareLinksForGroup(): Promise<ParsedShareLink[]> { return []; }
     async getShareLink(): Promise<ParsedShareLink | null> { return null; }
-    async getCommentsForTarget(): Promise<any> { return { comments: [], hasMore: false }; }
-    async getComment(): Promise<ParsedComment | null> { return null; }
+    // Helper method for tests to set up comments for a target
+    setCommentsForTarget(targetType: CommentTargetType, targetId: string, comments: any[]) {
+        sharedCommentStorage.set(`${targetType}:${targetId}`, comments);
+    }
+
+    async getCommentsForTarget(targetType: CommentTargetType, targetId: string, options?: any): Promise<any> {
+        const comments = sharedCommentStorage.get(`${targetType}:${targetId}`) || [];
+        return { comments, hasMore: false, nextCursor: null };
+    }
+    async getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<ParsedComment | null> {
+        const comments = sharedCommentStorage.get(`${targetType}:${targetId}`) || [];
+        return comments.find(c => c.id === commentId) || null;
+    }
     async getCommentByReference(): Promise<ParsedComment | null> { return null; }
     async getAvailableTestUser(): Promise<any | null> { return null; }
     async getTestUser(): Promise<any | null> { return null; }
@@ -108,7 +126,9 @@ export class StubFirestoreReader implements IFirestoreReader {
     async getMetricsDocuments(): Promise<any[]> { return []; }
     async getCollectionSize(): Promise<number> { return 0; }
     async getGroupDeletionData(): Promise<any> { return {}; }
-    async getDocumentForTesting(): Promise<any | null> { return null; }
+    async getDocumentForTesting(collection: string, id: string): Promise<any | null> {
+        return this.documents.get(`${collection}/${id}`) || null;
+    }
     async verifyDocumentExists(): Promise<boolean> { return false; }
     async getSettlementsForGroupPaginated(): Promise<any> { return { settlements: [], hasMore: false }; }
     async getRawDocumentSnapshot(): Promise<any | null> { return null; }
@@ -229,7 +249,14 @@ export class StubFirestoreWriter implements IFirestoreWriter {
 
     // Minimal implementations for other required methods
     async createUser(): Promise<WriteResult> { return { id: 'user', success: true, timestamp: Timestamp.now() }; }
-    async updateUser(): Promise<WriteResult> { return { id: 'user', success: true, timestamp: Timestamp.now() }; }
+    async updateUser(userId: string, updates: any): Promise<WriteResult> {
+        // Update the document in memory
+        const existing = this.documents.get(`users/${userId}`);
+        if (existing) {
+            this.documents.set(`users/${userId}`, { ...existing, ...updates });
+        }
+        return { id: userId, success: true, timestamp: Timestamp.now() };
+    }
     async deleteUser(): Promise<WriteResult> { return { id: 'user', success: true, timestamp: Timestamp.now() }; }
     async createGroup(): Promise<WriteResult> { return { id: 'group', success: true, timestamp: Timestamp.now() }; }
     async updateGroup(): Promise<WriteResult> { return { id: 'group', success: true, timestamp: Timestamp.now() }; }
@@ -240,7 +267,25 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     async createSettlement(): Promise<WriteResult> { return { id: 'settlement', success: true, timestamp: Timestamp.now() }; }
     async updateSettlement(): Promise<WriteResult> { return { id: 'settlement', success: true, timestamp: Timestamp.now() }; }
     async deleteSettlement(): Promise<WriteResult> { return { id: 'settlement', success: true, timestamp: Timestamp.now() }; }
-    async addComment(): Promise<WriteResult> { return { id: 'comment', success: true, timestamp: Timestamp.now() }; }
+    async addComment(targetType: CommentTargetType, targetId: string, commentData: any): Promise<WriteResult> {
+        const id = `comment-${Date.now()}`;
+        const result = this.getLastWriteResult() || { id, success: true, timestamp: Timestamp.now() };
+
+        if (!result.success) {
+            throw new Error(result.error || 'Write failed');
+        }
+
+        // Add the comment to the shared comment storage for retrieval
+        const targetKey = `${targetType}:${targetId}`;
+        const existingComments = sharedCommentStorage.get(targetKey) || [];
+        const newComment = {
+            id: result.id,
+            ...commentData,
+        };
+        sharedCommentStorage.set(targetKey, [...existingComments, newComment]);
+
+        return result;
+    }
     async updateComment(): Promise<WriteResult> { return { id: 'comment', success: true, timestamp: Timestamp.now() }; }
     async deleteComment(): Promise<WriteResult> { return { id: 'comment', success: true, timestamp: Timestamp.now() }; }
     async batchWrite(): Promise<any> { return { successCount: 0, failureCount: 0, results: [] }; }
@@ -280,6 +325,287 @@ export class StubFirestoreWriter implements IFirestoreWriter {
 }
 
 /**
+ * In-memory stub implementation of IAuthService for unit testing
+ * Provides predictable behavior for testing user authentication operations
+ */
+export class StubAuthService implements IAuthService {
+    private users = new Map<string, UserRecord>();
+    private usersByEmail = new Map<string, UserRecord>();
+    private usersByPhone = new Map<string, UserRecord>();
+    private customTokens = new Map<string, string>();
+    private decodedTokens = new Map<string, DecodedIdToken>();
+    private customClaims = new Map<string, object>();
+    private deletedUsers = new Set<string>();
+
+    // Helper methods to set up test data
+    setUser(uid: string, user: Partial<UserRecord> & { uid: string }) {
+        const fullUser: UserRecord = {
+            uid,
+            email: user.email,
+            emailVerified: user.emailVerified ?? false,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            phoneNumber: user.phoneNumber,
+            disabled: user.disabled ?? false,
+            metadata: user.metadata ?? {
+                creationTime: new Date().toISOString(),
+                lastSignInTime: new Date().toISOString(),
+                lastRefreshTime: new Date().toISOString(),
+                toJSON: () => ({}),
+            },
+            customClaims: user.customClaims ?? {},
+            providerData: user.providerData ?? [],
+            tenantId: user.tenantId,
+            tokensValidAfterTime: user.tokensValidAfterTime,
+            toJSON: () => ({}),
+        };
+
+        this.users.set(uid, fullUser);
+        if (fullUser.email) {
+            this.usersByEmail.set(fullUser.email, fullUser);
+        }
+        if (fullUser.phoneNumber) {
+            this.usersByPhone.set(fullUser.phoneNumber, fullUser);
+        }
+    }
+
+    setCustomToken(uid: string, token: string) {
+        this.customTokens.set(uid, token);
+    }
+
+    setDecodedToken(token: string, decoded: DecodedIdToken) {
+        this.decodedTokens.set(token, decoded);
+    }
+
+    markUserAsDeleted(uid: string) {
+        this.deletedUsers.add(uid);
+        this.users.delete(uid);
+    }
+
+    // Clear all test data
+    clear() {
+        this.users.clear();
+        this.usersByEmail.clear();
+        this.usersByPhone.clear();
+        this.customTokens.clear();
+        this.decodedTokens.clear();
+        this.customClaims.clear();
+        this.deletedUsers.clear();
+    }
+
+    // IAuthService implementation
+    async createUser(userData: CreateRequest): Promise<UserRecord> {
+        const uid = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+        // Check for duplicate email
+        if (userData.email && this.usersByEmail.has(userData.email)) {
+            throw new ApiError(HTTP_STATUS.CONFLICT, 'EMAIL_ALREADY_EXISTS', 'An account with this email already exists');
+        }
+
+        const user: UserRecord = {
+            uid,
+            email: userData.email ?? undefined,
+            emailVerified: userData.emailVerified ?? false,
+            displayName: userData.displayName ?? undefined,
+            photoURL: userData.photoURL ?? undefined,
+            phoneNumber: userData.phoneNumber ?? undefined,
+            disabled: userData.disabled ?? false,
+            metadata: {
+                creationTime: new Date().toISOString(),
+                lastSignInTime: new Date().toISOString(),
+                lastRefreshTime: new Date().toISOString(),
+                toJSON: () => ({}),
+            },
+            customClaims: {},
+            providerData: [],
+            tenantId: undefined,
+            tokensValidAfterTime: new Date().toISOString(),
+            toJSON: () => ({}),
+        };
+
+        this.setUser(uid, user);
+        return user;
+    }
+
+    async getUser(uid: string): Promise<UserRecord | null> {
+        if (this.deletedUsers.has(uid)) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${uid} not found`);
+        }
+        return this.users.get(uid) || null;
+    }
+
+    async getUsers(uids: { uid: string }[]): Promise<GetUsersResult> {
+        const users: UserRecord[] = [];
+        const notFound: { uid: string }[] = [];
+
+        for (const { uid } of uids) {
+            const user = this.users.get(uid);
+            if (user && !this.deletedUsers.has(uid)) {
+                users.push(user);
+            } else {
+                notFound.push({ uid });
+            }
+        }
+
+        return { users, notFound };
+    }
+
+    async updateUser(uid: string, updates: UpdateRequest): Promise<UserRecord> {
+        const existingUser = this.users.get(uid);
+        if (!existingUser || this.deletedUsers.has(uid)) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${uid} not found`);
+        }
+
+        // Check for email conflicts if updating email
+        if (updates.email && updates.email !== existingUser.email && this.usersByEmail.has(updates.email)) {
+            throw new ApiError(HTTP_STATUS.CONFLICT, 'EMAIL_ALREADY_EXISTS', 'An account with this email already exists');
+        }
+
+        const updatedUser: UserRecord = {
+            ...existingUser,
+            email: updates.email ?? existingUser.email,
+            emailVerified: updates.emailVerified ?? existingUser.emailVerified,
+            displayName: updates.displayName ?? existingUser.displayName,
+            photoURL: updates.photoURL === null ? undefined : (updates.photoURL ?? existingUser.photoURL),
+            phoneNumber: updates.phoneNumber ?? existingUser.phoneNumber,
+            disabled: updates.disabled ?? existingUser.disabled,
+            metadata: {
+                ...existingUser.metadata,
+                lastRefreshTime: new Date().toISOString(),
+                toJSON: () => ({}),
+            },
+            toJSON: () => ({}),
+        };
+
+        this.setUser(uid, updatedUser);
+        return updatedUser;
+    }
+
+    async deleteUser(uid: string): Promise<void> {
+        const user = this.users.get(uid);
+        if (!user || this.deletedUsers.has(uid)) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${uid} not found`);
+        }
+        this.markUserAsDeleted(uid);
+    }
+
+    async verifyIdToken(idToken: string): Promise<DecodedIdToken> {
+        const decoded = this.decodedTokens.get(idToken);
+        if (!decoded) {
+            throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'INVALID_TOKEN', 'Invalid ID token');
+        }
+        return decoded;
+    }
+
+    async createCustomToken(uid: string, additionalClaims?: object): Promise<string> {
+        const user = this.users.get(uid);
+        if (!user || this.deletedUsers.has(uid)) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${uid} not found`);
+        }
+
+        const token = `custom-token-${uid}-${Date.now()}`;
+        this.customTokens.set(uid, token);
+
+        if (additionalClaims) {
+            this.customClaims.set(uid, additionalClaims);
+        }
+
+        return token;
+    }
+
+    async getUserByEmail(email: string): Promise<UserRecord | null> {
+        const user = this.usersByEmail.get(email);
+        if (user && this.deletedUsers.has(user.uid)) {
+            return null;
+        }
+        return user || null;
+    }
+
+    async getUserByPhoneNumber(phoneNumber: string): Promise<UserRecord | null> {
+        const user = this.usersByPhone.get(phoneNumber);
+        if (user && this.deletedUsers.has(user.uid)) {
+            return null;
+        }
+        return user || null;
+    }
+
+    async listUsers(maxResults?: number, pageToken?: string): Promise<ListUsersResult> {
+        const allUsers = Array.from(this.users.values()).filter(user => !this.deletedUsers.has(user.uid));
+        const limit = maxResults || 1000;
+        const start = pageToken ? parseInt(pageToken, 10) : 0;
+        const users = allUsers.slice(start, start + limit);
+
+        return {
+            users,
+            pageToken: (start + limit < allUsers.length) ? (start + limit).toString() : undefined,
+        };
+    }
+
+    async deleteUsers(uids: string[]): Promise<DeleteUsersResult> {
+        let successCount = 0;
+        const errors: any[] = [];
+
+        for (const uid of uids) {
+            try {
+                await this.deleteUser(uid);
+                successCount++;
+            } catch (error) {
+                errors.push({ index: uids.indexOf(uid), error });
+            }
+        }
+
+        return {
+            successCount,
+            failureCount: errors.length,
+            errors,
+        };
+    }
+
+    async generatePasswordResetLink(email: string): Promise<string> {
+        const user = this.usersByEmail.get(email);
+        if (!user || this.deletedUsers.has(user.uid)) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User with email ${email} not found`);
+        }
+        return `https://example.com/reset-password?token=reset-${user.uid}-${Date.now()}`;
+    }
+
+    async generateEmailVerificationLink(email: string): Promise<string> {
+        const user = this.usersByEmail.get(email);
+        if (!user || this.deletedUsers.has(user.uid)) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User with email ${email} not found`);
+        }
+        return `https://example.com/verify-email?token=verify-${user.uid}-${Date.now()}`;
+    }
+
+    async setCustomUserClaims(uid: string, customClaims: object): Promise<void> {
+        const user = this.users.get(uid);
+        if (!user || this.deletedUsers.has(uid)) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${uid} not found`);
+        }
+        this.customClaims.set(uid, customClaims);
+
+        // Update the user record with custom claims
+        const updatedUser = { ...user, customClaims, toJSON: () => ({}) };
+        this.users.set(uid, updatedUser);
+    }
+
+    async revokeRefreshTokens(uid: string): Promise<void> {
+        const user = this.users.get(uid);
+        if (!user || this.deletedUsers.has(uid)) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${uid} not found`);
+        }
+
+        // Update tokens valid after time
+        const updatedUser = {
+            ...user,
+            tokensValidAfterTime: new Date().toISOString(),
+            toJSON: () => ({}),
+        };
+        this.users.set(uid, updatedUser);
+    }
+}
+
+/**
  * Helper functions to create mock data for testing
  */
 export function createMockPolicyDocument(overrides: Partial<PolicyDocument> = {}): PolicyDocument {
@@ -316,4 +642,11 @@ export function createMockWriteResultFailure(id: string, error: string): WriteRe
         success: false,
         error,
     };
+}
+
+/**
+ * Clear all shared storage for tests
+ */
+export function clearSharedStorage() {
+    sharedCommentStorage.clear();
 }

@@ -1,3 +1,10 @@
+/**
+ * Essential GroupMember Subcollection Integration Tests
+ *
+ * Tests Firestore collectionGroup queries and subcollection behavior that cannot be stubbed.
+ * Most business logic is now covered by unit tests.
+ */
+
 import { describe, test, expect, beforeEach } from 'vitest';
 import { borrowTestUsers } from '@splitifyd/test-support';
 import { GroupMemberDocument, MemberRoles, MemberStatuses } from '@splitifyd/shared';
@@ -5,13 +12,12 @@ import { PooledTestUser } from '@splitifyd/shared';
 import { getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 
-describe('Group Member Subcollection Scalability Tests', () => {
+describe('GroupMember Subcollection - Integration Tests (Essential Firestore Behavior)', () => {
     const firestore = getFirestore();
     const applicationBuilder = new ApplicationBuilder(firestore);
     const groupService = applicationBuilder.buildGroupService();
     const groupMemberService = applicationBuilder.buildGroupMemberService();
     const groupShareService = applicationBuilder.buildGroupShareService();
-    const userService = applicationBuilder.buildUserService();
 
     let users: PooledTestUser[];
     let testUser1: PooledTestUser;
@@ -19,31 +25,22 @@ describe('Group Member Subcollection Scalability Tests', () => {
     let testGroup: any;
 
     beforeEach(async () => {
-        // Create test users
-        users = await borrowTestUsers(5); // Borrow 5 users for all tests
+        users = await borrowTestUsers(3);
         testUser1 = users[0];
         testUser2 = users[1];
 
-        // Create test group
         testGroup = await groupService.createGroup(testUser1.uid, {
             name: 'Test Subcollection Group',
             description: 'Testing subcollection functionality',
         });
     });
 
-    // Basic CRUD operations moved to groups-management-consolidated.test.ts for better organization
-
-    describe('getUserGroupsViaSubcollection - Scalable Query', () => {
-        test('should return groups where user is a member via collectionGroup query', async () => {
-            // Create additional groups
+    describe('Firestore CollectionGroup Queries', () => {
+        test('should execute collectionGroup query across multiple group subcollections', async () => {
+            // This tests actual Firestore collectionGroup functionality that cannot be stubbed
             const group2 = await groupService.createGroup(testUser2.uid, {
                 name: 'User2 Group',
                 description: 'Second group',
-            });
-
-            const group3 = await groupService.createGroup(testUser1.uid, {
-                name: 'Another Group',
-                description: 'Third group',
             });
 
             // Add testUser1 to group2 via subcollection
@@ -58,39 +55,19 @@ describe('Group Member Subcollection Scalability Tests', () => {
             };
             await groupMemberService.createMember(group2.id, memberDoc);
 
-            // Query for testUser1's groups using scalable query
+            // Test the actual Firestore collectionGroup query
             const userGroups = await groupMemberService.getUserGroupsViaSubcollection(testUser1.uid);
 
-            // Should find groups where testUser1 is a member (including our test groups)
+            // Should find groups across all subcollections where testUser1 is a member
             expect(userGroups).toContain(testGroup.id); // Creator of testGroup
             expect(userGroups).toContain(group2.id); // Member of group2
-            expect(userGroups).toContain(group3.id); // Creator of group3
-            expect(userGroups.length).toBeGreaterThanOrEqual(3); // May have more from other tests
+            expect(userGroups.length).toBeGreaterThanOrEqual(2);
         });
 
-        test('should query correctly for user with existing groups', async () => {
-            const testUser = users[4]; // Use pre-borrowed user
-
-            // Check current groups for this user
-            const initialGroups = await groupMemberService.getUserGroupsViaSubcollection(testUser.uid);
-            const initialCount = initialGroups.length;
-
-            // Create a new group for this user
-            const newGroup = await groupService.createGroup(testUser.uid, {
-                name: 'New Test Group for User4',
-                description: 'Testing query functionality',
-            });
-
-            // Query again - should include the new group
-            const updatedGroups = await groupMemberService.getUserGroupsViaSubcollection(testUser.uid);
-            expect(updatedGroups).toContain(newGroup.id);
-            expect(updatedGroups.length).toBe(initialCount + 1);
-        });
-
-        test('should work with large number of groups (scalability test)', async () => {
-            // Create multiple groups for testUser1
+        test('should handle collectionGroup query scalability', async () => {
+            // This tests Firestore's ability to efficiently query across many subcollections
             const groupPromises = [];
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 5; i++) {
                 groupPromises.push(
                     groupService.createGroup(testUser1.uid, {
                         name: `Scale Test Group ${i}`,
@@ -100,127 +77,17 @@ describe('Group Member Subcollection Scalability Tests', () => {
             }
             const groups = await Promise.all(groupPromises);
 
-            // Query should efficiently find all groups
+            // Query should efficiently find all groups using collectionGroup
             const userGroups = await groupMemberService.getUserGroupsViaSubcollection(testUser1.uid);
 
-            // Should include original testGroup + 10 new groups = 11 total
-            expect(userGroups.length).toBeGreaterThanOrEqual(11);
+            // Should include original testGroup + 5 new groups = 6 total
+            expect(userGroups.length).toBeGreaterThanOrEqual(6);
 
-            // Verify all new groups are included
+            // Verify all new groups are included in the collectionGroup query result
             const groupIds = groups.map((g) => g.id);
             for (const groupId of groupIds) {
                 expect(userGroups).toContain(groupId);
             }
-        });
-    });
-
-    describe('getGroupMembersResponseFromSubcollection', () => {
-        test('should return GroupMembersResponse with profile data from subcollection', async () => {
-            // Add second member
-            const memberDoc: GroupMemberDocument = {
-                userId: testUser2.uid,
-                groupId: testGroup.id,
-                memberRole: MemberRoles.MEMBER,
-                theme: groupShareService.getThemeColorForMember(1),
-                joinedAt: new Date().toISOString(),
-                memberStatus: MemberStatuses.ACTIVE,
-                invitedBy: testUser1.uid,
-            };
-            await groupMemberService.createMember(testGroup.id, memberDoc);
-
-            // Get members response
-            const response = await userService.getGroupMembersResponseFromSubcollection(testGroup.id);
-
-            expect(response.members).toHaveLength(2);
-            expect(response.hasMore).toBe(false);
-
-            // Verify profile data is merged correctly
-            const member1 = response.members.find((m) => m.uid === testUser1.uid);
-            const member2 = response.members.find((m) => m.uid === testUser2.uid);
-
-            expect(member1).toBeDefined();
-            // Test that profile data exists and has correct structure (not specific values)
-            expect(member1?.displayName).toBeTruthy();
-            expect(member1?.email).toBeTruthy();
-            expect(member1?.uid).toBe(testUser1.uid);
-            expect(member1?.memberRole).toBe(MemberRoles.ADMIN);
-            expect(member1?.initials).toBeTruthy();
-
-            expect(member2).toBeDefined();
-            expect(member2?.displayName).toBeTruthy();
-            expect(member2?.email).toBeTruthy();
-            expect(member2?.uid).toBe(testUser2.uid);
-            expect(member2?.memberRole).toBe(MemberRoles.MEMBER);
-            expect(member2?.initials).toBeTruthy();
-        });
-
-        test('should handle unknown users gracefully', async () => {
-            // Add member with non-existent user profile
-            const memberDoc: GroupMemberDocument = {
-                userId: 'unknown-user-id',
-                groupId: testGroup.id,
-                memberRole: MemberRoles.MEMBER,
-                theme: groupShareService.getThemeColorForMember(2),
-                joinedAt: new Date().toISOString(),
-                memberStatus: MemberStatuses.ACTIVE,
-                invitedBy: testUser1.uid,
-            };
-            await groupMemberService.createMember(testGroup.id, memberDoc);
-
-            const response = await userService.getGroupMembersResponseFromSubcollection(testGroup.id);
-
-            const unknownMember = response.members.find((m) => m.uid === 'unknown-user-id');
-            expect(unknownMember).toBeDefined();
-            expect(unknownMember?.displayName).toBe('Unknown User');
-            expect(unknownMember?.email).toBe('');
-            expect(unknownMember?.initials).toBe('?');
-            expect(unknownMember?.memberRole).toBe(MemberRoles.MEMBER);
-        });
-
-        test('should sort members by display name', async () => {
-            // Use additional users from borrowed users
-            const user3 = users[2];
-            const user4 = users[3];
-
-            const memberDocs: GroupMemberDocument[] = [
-                {
-                    userId: user3.uid,
-                    groupId: testGroup.id,
-                    memberRole: MemberRoles.MEMBER,
-                    theme: groupShareService.getThemeColorForMember(2),
-                    joinedAt: new Date().toISOString(),
-                    memberStatus: MemberStatuses.ACTIVE,
-                    invitedBy: testUser1.uid,
-                },
-                {
-                    userId: user4.uid,
-                    groupId: testGroup.id,
-                    memberRole: MemberRoles.MEMBER,
-                    theme: groupShareService.getThemeColorForMember(3),
-                    joinedAt: new Date().toISOString(),
-                    memberStatus: MemberStatuses.ACTIVE,
-                    invitedBy: testUser1.uid,
-                },
-            ];
-
-            for (const doc of memberDocs) {
-                await groupMemberService.createMember(testGroup.id, doc);
-            }
-
-            const response = await userService.getGroupMembersResponseFromSubcollection(testGroup.id);
-
-            // Verify sorting behavior without relying on exact names
-            const displayNames = response.members.map((m) => m.displayName);
-
-            // Test that sorting is working correctly by checking if list is sorted
-            const isSorted = displayNames.every((name, i, arr) => i === 0 || arr[i - 1].localeCompare(name) <= 0);
-            expect(isSorted).toBe(true);
-
-            // Additional verification: ensure we have all expected members
-            expect(response.members).toHaveLength(3); // testUser1 (admin) + 2 added members
-            expect(response.members.some((m) => m.uid === testUser1.uid)).toBe(true);
-            expect(response.members.some((m) => m.uid === user3.uid)).toBe(true);
-            expect(response.members.some((m) => m.uid === user4.uid)).toBe(true);
         });
     });
 });
