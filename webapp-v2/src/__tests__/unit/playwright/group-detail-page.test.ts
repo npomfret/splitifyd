@@ -275,21 +275,16 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
             ];
 
             for (const groupId of malformedGroupIds) {
-                try {
-                    await page.goto(`/groups/${encodeURIComponent(groupId)}`);
-                    await page.waitForLoadState('networkidle');
+                await page.goto(`/groups/${encodeURIComponent(groupId)}`);
+                await page.waitForLoadState('networkidle');
 
-                    const currentUrl = page.url();
-                    // Should either redirect to login or handle the malformed ID gracefully
-                    const isOnLogin = currentUrl.includes('/login');
-                    const isOnGroup = currentUrl.includes('/groups');
-                    const isOn404 = currentUrl.includes('/404') || currentUrl.includes('not-found');
+                const currentUrl = page.url();
+                // Should either redirect to login or handle the malformed ID gracefully
+                const isOnLogin = currentUrl.includes('/login');
+                const isOnGroup = currentUrl.includes('/groups');
+                const isOn404 = currentUrl.includes('/404') || currentUrl.includes('not-found');
 
-                    expect(isOnLogin || isOnGroup || isOn404).toBe(true);
-                } catch (error) {
-                    // Some malformed URLs might cause navigation errors, which is acceptable
-                    console.log(`Navigation error for group ID "${groupId}": ${error}`);
-                }
+                expect(isOnLogin || isOnGroup || isOn404).toBe(true);
             }
         });
     });
@@ -399,28 +394,23 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
             ];
 
             for (const groupId of malformedIds) {
-                try {
-                    await page.goto(`/groups/${encodeURIComponent(groupId)}`);
-                    await page.waitForLoadState('networkidle');
+                await page.goto(`/groups/${encodeURIComponent(groupId)}`);
+                await page.waitForLoadState('networkidle');
 
-                    // Should either redirect to login or show 404
-                    const currentUrl = page.url();
-                    const isOnLogin = currentUrl.includes('/login');
-                    const isOn404 = currentUrl.includes('/404') || currentUrl.includes('not-found');
+                // Should either redirect to login or show 404
+                const currentUrl = page.url();
+                const isOnLogin = currentUrl.includes('/login');
+                const isOn404 = currentUrl.includes('/404') || currentUrl.includes('not-found');
 
-                    if (isOnLogin || isOn404) {
-                        // Keyboard navigation should work regardless
-                        await page.keyboard.press('Tab');
-                        const focusedElement = page.locator(':focus');
+                if (isOnLogin || isOn404) {
+                    // Keyboard navigation should work regardless
+                    await page.keyboard.press('Tab');
+                    const focusedElement = page.locator(':focus');
 
-                        if (await focusedElement.count() > 0) {
-                            const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
-                            expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
-                        }
+                    if (await focusedElement.count() > 0) {
+                        const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                        expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
                     }
-                } catch (error) {
-                    // Some malformed URLs might cause navigation errors, which is acceptable
-                    console.log(`Expected navigation error for malformed group ID "${groupId}"`);
                 }
             }
         });

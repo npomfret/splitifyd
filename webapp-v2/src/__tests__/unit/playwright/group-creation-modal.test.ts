@@ -274,13 +274,12 @@ test.describe('Group Creation Modal', () => {
 
         // Either modal closes or shows success state
         const modal = page.locator('.create-group-modal');
-        const modalVisible = await modal.isVisible().catch(() => false);
 
-        // If modal still visible, should show loading or success state
-        if (modalVisible) {
+        if (await modal.count() > 0 && await modal.isVisible()) {
             // Check for loading or disabled state during submission
-            const isButtonDisabled = await submitButton.isDisabled().catch(() => true);
-            expect(isButtonDisabled).toBeTruthy();
+            if (await submitButton.count() > 0) {
+                expect(await submitButton.isDisabled()).toBeTruthy();
+            }
         }
     });
 
@@ -303,8 +302,7 @@ test.describe('Group Creation Modal', () => {
 
         // Modal should close or form should reset
 
-        const modalVisible = await modal.isVisible().catch(() => false);
-        if (modalVisible) {
+        if (await modal.count() > 0 && await modal.isVisible()) {
             // If modal still visible, either form is reset or cancel worked
             const nameValue = await nameInput.inputValue();
             // Form reset behavior may vary - either empty or unchanged is acceptable
@@ -466,13 +464,14 @@ test.describe('Group Creation Modal', () => {
 
         // Modal might close or be cancelable
         const modal = page.locator('.create-group-modal');
-        const modalVisible = await modal.isVisible().catch(() => false);
 
-        if (modalVisible) {
+        if (await modal.count() > 0 && await modal.isVisible()) {
             // If still visible, form might be reset
-            const nameValue = await nameInput.inputValue().catch(() => '');
-            // Either cleared or unchanged is acceptable
-            expect(typeof nameValue).toBe('string');
+            if (await nameInput.count() > 0) {
+                const nameValue = await nameInput.inputValue();
+                // Either cleared or unchanged is acceptable
+                expect(typeof nameValue).toBe('string');
+            }
         }
     });
 });

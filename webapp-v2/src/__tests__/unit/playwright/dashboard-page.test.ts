@@ -414,39 +414,27 @@ test.describe('DashboardPage - Behavioral Tests', () => {
                 for (const selector of interactiveElements) {
                     const element = page.locator(selector);
 
-                    try {
-                        // Only test elements that exist and are visible
-                        if (await element.count() > 0 && await element.isVisible()) {
-                            // Check if element is enabled (skip disabled elements)
-                            const isEnabled = await element.isEnabled();
-                            if (!isEnabled) {
-                                console.log(`Element ${selector} is disabled, skipping focus indicator test`);
-                                continue;
-                            }
+                    // Only test elements that exist, are visible, and are enabled
+                    if (await element.count() > 0 && await element.isVisible() && await element.isEnabled()) {
+                        await element.focus();
 
-                            await element.focus();
+                        // Check for focus indicators
+                        const focusStyles = await element.evaluate((el) => {
+                            const styles = getComputedStyle(el);
+                            return {
+                                outline: styles.outline,
+                                outlineWidth: styles.outlineWidth,
+                                boxShadow: styles.boxShadow,
+                            };
+                        });
 
-                            // Check for focus indicators
-                            const focusStyles = await element.evaluate((el) => {
-                                const styles = getComputedStyle(el);
-                                return {
-                                    outline: styles.outline,
-                                    outlineWidth: styles.outlineWidth,
-                                    boxShadow: styles.boxShadow,
-                                };
-                            });
+                        // Verify some form of focus indicator exists
+                        const hasFocusIndicator =
+                            focusStyles.outline !== 'none' ||
+                            focusStyles.outlineWidth !== '0px' ||
+                            focusStyles.boxShadow.includes('rgb');
 
-                            // Verify some form of focus indicator exists
-                            const hasFocusIndicator =
-                                focusStyles.outline !== 'none' ||
-                                focusStyles.outlineWidth !== '0px' ||
-                                focusStyles.boxShadow.includes('rgb');
-
-                            expect(hasFocusIndicator).toBeTruthy();
-                            console.log(`✓ Element ${selector} has proper focus indicators`);
-                        }
-                    } catch (error) {
-                        console.log(`Element ${selector} focus indicator test failed: ${error instanceof Error ? error.message : String(error)}`);
+                        expect(hasFocusIndicator).toBeTruthy();
                     }
                 }
             });
@@ -455,32 +443,35 @@ test.describe('DashboardPage - Behavioral Tests', () => {
                 await page.goto('/dashboard');
                 await page.waitForLoadState('networkidle');
 
-                // Wait for potential auth redirect
-
-                // Test Enter key on available interactive elements
+                // Test Enter key on available interactive elements that should be present
                 const interactiveElements = [
-                    'button:has-text("Forgot")',
-                    '[data-testid="loginpage-signup-button"]'
+                    'input[type="email"]',
+                    'input[type="password"]',
+                    'button[type="submit"]',
+                    'a[href]'
                 ];
 
+                let foundInteractiveElement = false;
+
                 for (const selector of interactiveElements) {
-                    const element = page.locator(selector);
-                    try {
-                        if (await element.count() > 0 && await element.isVisible() && await element.isEnabled()) {
-                            await element.focus();
-                            await expect(element).toBeFocused();
+                    const element = page.locator(selector).first();
 
-                            // Press Enter - should trigger button activation
-                            await page.keyboard.press('Enter');
+                    if (await element.count() > 0 && await element.isVisible() && await element.isEnabled()) {
+                        await element.focus();
+                        await expect(element).toBeFocused();
 
-                            // Element should still be accessible
-                            await expect(element).toBeVisible();
-                            console.log(`✓ Enter key works on ${selector}`);
-                        }
-                    } catch (error) {
-                        console.log(`Element ${selector} not available for Enter key test`);
+                        // Press Enter - should trigger activation
+                        await page.keyboard.press('Enter');
+
+                        // Verify page still exists (element might navigate away)
+                        await expect(page.locator('body')).toBeVisible();
+                        foundInteractiveElement = true;
+                        break; // Test only first available element to avoid navigation issues
                     }
                 }
+
+                // Should have found at least one interactive element
+                expect(foundInteractiveElement).toBeTruthy();
             });
 
             test('should handle modal keyboard navigation patterns when create group modal opens', async ({ page }) => {

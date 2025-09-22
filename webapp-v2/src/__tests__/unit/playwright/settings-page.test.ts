@@ -495,8 +495,7 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
                     // Test keyboard activation (but only for first button to avoid navigation issues)
                     if (selector.includes('button') && selector === 'button[type="submit"]') {
                         await page.keyboard.press('Enter');
-                        // Wait for any response and verify page still exists
-                        await page.waitForTimeout(200);
+                        // Verify page still exists after activation
                         await expect(page.locator('body')).toBeVisible();
                     }
                 }

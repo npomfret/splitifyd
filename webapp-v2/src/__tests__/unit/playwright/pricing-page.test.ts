@@ -289,13 +289,10 @@ test.describe('PricingPage - Behavioral Tests', () => {
 
                 for (let i = 0; i < Math.min(count, 5); i++) { // Check up to 5 elements of each type
                     const element = elements.nth(i);
-                    try {
-                        if (await element.isVisible()) {
-                            const text = await element.textContent();
-                            foundElements.push(text?.trim().substring(0, 20) || 'Interactive Element');
-                        }
-                    } catch (error) {
-                        // Element might not be accessible, continue
+
+                    if (await element.isVisible()) {
+                        const text = await element.textContent();
+                        foundElements.push(text?.trim().substring(0, 20) || 'Interactive Element');
                     }
                 }
             }

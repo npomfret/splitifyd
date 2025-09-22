@@ -499,10 +499,9 @@ test.describe('Settlement Form Validation', () => {
             // Modal should close or form should reset
 
             // Either modal closes or form resets
-            const modalVisible = await modal.isVisible().catch(() => false);
-            if (modalVisible) {
+            if (await modal.count() > 0 && await modal.isVisible()) {
                 // If modal still visible, form may or may not be reset
-                if (await amountInput.isVisible()) {
+                if (await amountInput.count() > 0 && await amountInput.isVisible()) {
                     const value = await amountInput.inputValue();
                     // Either cleared, reset to 0, or unchanged is acceptable
                     expect(typeof value === 'string').toBeTruthy();

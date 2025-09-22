@@ -153,8 +153,9 @@ test.describe('RegisterPage - Behavioral Tests', () => {
         expect(storedData.password).toBe('mypassword456');
         expect(storedData.confirmPassword).toBe('mypassword456');
 
-        // Refresh and verify restoration
-        await page.reload();
+        // Test persistence by navigating away and back (instead of refresh)
+        await page.goto('/login');
+        await page.goto('/register');
         await page.waitForLoadState('networkidle');
 
         await expect(page.locator(SELECTORS.FULLNAME_INPUT)).toHaveValue('Jane Smith');
@@ -341,8 +342,8 @@ test.describe('RegisterPage - Behavioral Tests', () => {
         // Submit form with invalid data
         await page.click(SELECTORS.SUBMIT_BUTTON);
 
-        // Wait for error message or form to remain accessible for retry
-        await expect(page.locator('[role="alert"], [data-testid*="error"], ' + SELECTORS.SUBMIT_BUTTON)).toBeVisible();
+        // Wait for error message to appear
+        await expect(page.locator('[data-testid="error-message"]')).toBeVisible();
 
         // The mocked API will return a 400 error for mismatched credentials
         // Form should still be accessible for retry
@@ -487,8 +488,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
             // Press Enter to activate button
             await page.keyboard.press('Enter');
 
-            // Wait for API call to complete (button should remain visible for this test)
-            await page.waitForTimeout(500);
+            // Button should remain visible (API call will be mocked)
             await expect(submitButton).toBeVisible();
         });
 
