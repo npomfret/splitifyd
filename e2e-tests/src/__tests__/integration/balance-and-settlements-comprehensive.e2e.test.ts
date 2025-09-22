@@ -39,6 +39,7 @@ simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
             paidByDisplayName: user1DisplayName,
             currency: 'JPY',
             splitType: 'equal',
+            participants: [user1DisplayName, user2DisplayName]
         }, 2);
 
         await groupDetailPage1.waitForExpense('Test Expense');
@@ -52,6 +53,7 @@ simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
             paidByDisplayName: user2DisplayName,
             currency: 'JPY',
             splitType: 'equal',
+            participants: [user1DisplayName, user2DisplayName]
         }, 2);
 
         await groupDetailPage2.waitForExpense('User2 Payment');
@@ -65,6 +67,7 @@ simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
             paidByDisplayName: user1DisplayName,
             currency: 'JPY',
             splitType: 'equal',
+            participants: [user1DisplayName, user2DisplayName]
         }, 2);
 
         await groupDetailPage1.waitForExpense('Final Test Payment');
@@ -103,6 +106,7 @@ simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
             paidByDisplayName: user1DisplayName,
             currency: 'EUR',
             splitType: 'equal',
+            participants: [user1DisplayName, user2DisplayName]
         }, 2);
 
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u20ac50.00');
@@ -115,6 +119,7 @@ simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
             paidByDisplayName: user1DisplayName,
             currency: 'JPY',
             splitType: 'equal',
+            participants: [user1DisplayName, user2DisplayName]
         }, 2);
 
         // JPY: 123/2 = 61.5 -> rounds up to \u00a562
@@ -404,6 +409,7 @@ simpleTest.describe('Real-time Balance Updates', () => {
             paidByDisplayName: user1DisplayName,
             currency: 'JPY',
             splitType: 'equal',
+            participants: [user1DisplayName, user2DisplayName, user3DisplayName]
         }, memberCount);
 
         // Synchronize all pages
@@ -488,6 +494,7 @@ simpleTest.describe('Real-time Balance Updates', () => {
             paidByDisplayName: user1DisplayName,
             currency: 'JPY',
             splitType: 'equal',
+            participants: [user1DisplayName, user2DisplayName, user3DisplayName]
         }, 3);
 
         // Verify real-time updates across all pages

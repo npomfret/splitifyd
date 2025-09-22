@@ -9,15 +9,6 @@ import {RemoveMemberModalPage} from './remove-member-modal.page';
 import {ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES} from '../constants/selectors';
 import {DashboardPage} from "./dashboard.page.ts";
 
-interface ExpenseData {
-    description: string;
-    amount: number;
-    currency: string; // Required: must be explicitly provided
-    paidByDisplayName: string;
-    splitType: 'equal' | 'exact' | 'percentage';
-    participants?: string[]; // Optional: if not provided, selects all members
-}
-
 export class GroupDetailPage extends BasePage {
     constructor(page: Page) {
         super(page);
@@ -306,19 +297,10 @@ export class GroupDetailPage extends BasePage {
         }
     }
 
-    /**
-     * Create expense using proper page object composition
-     */
-    async addExpense(expense: ExpenseData, expectedMemberCount: number): Promise<void> {
+    async addExpense(expense: ExpenseFormData, expectedMemberCount: number): Promise<void> {
         const expenseFormPage = await this.clickAddExpenseButton(expectedMemberCount);
 
-        // Convert ExpenseData to ExpenseFormData, ensuring participants is provided
-        const expenseFormData: ExpenseFormData = {
-            ...expense,
-            participants: expense.participants || [], // Default to empty array if not provided
-        };
-
-        await expenseFormPage.submitExpense(expenseFormData);
+        await expenseFormPage.submitExpense(expense);
     }
 
     /**
