@@ -30,11 +30,23 @@ export async function startEmulator(config: EmulatorConfig): Promise<ChildProces
     emulatorProcess.stdout.on('data', (data: Buffer) => {
         const output = data.toString();
 
-        // Filter out noisy hosting logs for static assets.
-        const staticAssetLogPattern = /hosting: GET \/.*\.(js|css|svg|png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot|map|webmanifest)/;
+        // Filter out noisy hosting logs for static assets and HTTP access logs.
+        const staticAssetLogPattern = /hosting: \d+\.\d+\.\d+\.\d+ - - \[.*\] "(GET|POST|PUT|DELETE|HEAD|OPTIONS) \/.*\.(js|css|svg|png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot|map|webmanifest|json|xml|txt)" HTTP/;
+        const generalAccessLogPattern = /hosting: \d+\.\d+\.\d+\.\d+ - - \[.*\] "(GET|POST|PUT|DELETE|HEAD|OPTIONS) \// ;
 
         const lines = output.split('\n');
-        const filteredLines = lines.filter((line) => !staticAssetLogPattern.test(line));
+        const filteredLines = lines.filter((line) => {
+            // Filter out static asset requests
+            if (staticAssetLogPattern.test(line)) return false;
+
+            // Keep important hosting logs (errors, warnings, startup messages)
+            if (line.includes('hosting:') && !line.includes(' - - [')) return true;
+
+            // Filter out general access logs for all paths to reduce noise
+            if (generalAccessLogPattern.test(line)) return false;
+
+            return true;
+        });
 
         if (filteredLines.join('').trim().length > 0) {
             process.stdout.write(filteredLines.join('\n'));
