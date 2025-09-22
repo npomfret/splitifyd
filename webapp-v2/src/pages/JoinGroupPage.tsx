@@ -47,15 +47,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
         joinGroupStore.loadGroupPreview(actualLinkId);
     }, [actualLinkId]);
 
-    // Auto-redirect on successful join
-    useEffect(() => {
-        if (joinSuccess && group) {
-            // Navigate to the group detail page
-            setTimeout(() => {
-                navigationService.goToGroup(group.id);
-            }, 500); // Small delay to show success message
-        }
-    }, [joinSuccess, group]);
+    // No auto-redirect - let user choose when to navigate
 
     const handleJoinGroup = async () => {
         if (!actualLinkId) return;
@@ -136,7 +128,22 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             <div className="text-green-500 text-4xl mb-4">✅</div>
                             <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('joinGroupPage.welcome', { groupName: group.name })}</h2>
                             <p className="text-gray-600 mb-6">{t('joinGroupPage.joinSuccess')}</p>
-                            <LoadingSpinner size="sm" />
+                            <Stack spacing="md">
+                                <Button
+                                    onClick={() => navigationService.goToGroup(group.id)}
+                                    fullWidth
+                                    className="py-3"
+                                >
+                                    {t('joinGroupPage.goToGroup')}
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => navigationService.goToDashboard()}
+                                    fullWidth
+                                >
+                                    {t('joinGroupPage.backToDashboard')}
+                                </Button>
+                            </Stack>
                         </div>
                     </Card>
                 </div>

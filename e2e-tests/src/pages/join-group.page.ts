@@ -293,10 +293,19 @@ export class JoinGroupPage extends BasePage {
                     // If we reach here, one of the expected outcomes occurred
                 }).toPass({ timeout: 5000 });
 
-                // Final state check
+                // Check if we're on success screen and need to click "Go to Group"
                 const currentUrl = this.page.url();
                 if (!currentUrl.match(groupDetailUrlPattern())) {
-                    throw new Error('Join operation completed but not on group page');
+                    // Check if we're on the success screen
+                    const isOnSuccessScreen = await this.page.locator('[data-join-success="true"]').isVisible();
+                    if (isOnSuccessScreen) {
+                        // Click "Go to Group" button to navigate to the group page
+                        await this.clickOkButton();
+                        // Wait for navigation to group page
+                        await expect(this.page).toHaveURL(groupDetailUrlPattern());
+                    } else {
+                        throw new Error('Join operation completed but not on group page or success screen');
+                    }
                 }
             })(),
         ]).catch((error) => {

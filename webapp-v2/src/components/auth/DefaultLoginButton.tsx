@@ -4,7 +4,7 @@ import { Button } from '../ui';
 import { firebaseConfigManager } from '@/app/firebase-config.ts';
 
 interface DefaultLoginButtonProps {
-    onFillForm: (email: string, password: string) => void;
+    onFillForm: (email: string, password: string) => Promise<void>;
     onSubmit: () => void;
     disabled?: boolean;
 }
@@ -34,14 +34,13 @@ export function DefaultLoginButton({ onFillForm, onSubmit, disabled }: DefaultLo
         try {
             const config = await firebaseConfigManager.getConfig();
             if (config.formDefaults?.email && config.formDefaults?.password) {
-                onFillForm(config.formDefaults.email, config.formDefaults.password);
-                // Small delay to ensure form is filled before submit
-                setTimeout(() => {
-                    onSubmit();
-                    setLoading(false);
-                }, 50);
+                // Wait for form to be filled before submitting
+                await onFillForm(config.formDefaults.email, config.formDefaults.password);
+                onSubmit();
             }
         } catch (error) {
+            // Error handling remains the same
+        } finally {
             setLoading(false);
         }
     };

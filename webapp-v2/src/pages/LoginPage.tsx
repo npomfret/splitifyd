@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useState, useRef } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { navigationService } from '@/services/navigation.service';
 import { AuthLayout } from '../components/auth/AuthLayout';
@@ -71,10 +71,23 @@ export function LoginPage() {
         }
     };
 
-    const handleFillForm = (defaultEmail: string, defaultPassword: string) => {
-        setEmail(defaultEmail);
-        setPassword(defaultPassword);
+    const fillFormResolver = useRef<(() => void) | null>(null);
+
+    const handleFillForm = async (defaultEmail: string, defaultPassword: string): Promise<void> => {
+        return new Promise((resolve) => {
+            fillFormResolver.current = resolve;
+            setEmail(defaultEmail);
+            setPassword(defaultPassword);
+        });
     };
+
+    // Effect to resolve the promise when state has updated
+    useEffect(() => {
+        if (fillFormResolver.current) {
+            fillFormResolver.current();
+            fillFormResolver.current = null;
+        }
+    }, [email, password]);
 
     const isFormValid = email.trim() && password;
     const isSubmitting = authStore.loading;

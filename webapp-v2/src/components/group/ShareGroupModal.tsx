@@ -19,6 +19,8 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
     const [copied, setCopied] = useState(false);
     const [showToast, setShowToast] = useState(false);
     const linkInputRef = useRef<HTMLInputElement>(null);
+    const copiedTimerRef = useRef<number | null>(null);
+    const toastTimerRef = useRef<number | null>(null);
 
     useEffect(() => {
         if (isOpen && groupId) {
@@ -43,6 +45,18 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
         };
     }, [isOpen, onClose]);
 
+    // Cleanup timers on unmount
+    useEffect(() => {
+        return () => {
+            if (copiedTimerRef.current) {
+                clearTimeout(copiedTimerRef.current);
+            }
+            if (toastTimerRef.current) {
+                clearTimeout(toastTimerRef.current);
+            }
+        };
+    }, []);
+
     const generateLink = async () => {
         setLoading(true);
         setError(null);
@@ -63,15 +77,27 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
     const copyToClipboard = async () => {
         if (!shareLink) return;
 
+        // Clear any existing timers
+        if (copiedTimerRef.current) {
+            clearTimeout(copiedTimerRef.current);
+        }
+        if (toastTimerRef.current) {
+            clearTimeout(toastTimerRef.current);
+        }
+
         try {
             await navigator.clipboard.writeText(shareLink);
             setCopied(true);
             setShowToast(true);
-            setTimeout(() => {
+
+            copiedTimerRef.current = window.setTimeout(() => {
                 setCopied(false);
+                copiedTimerRef.current = null;
             }, 2000);
-            setTimeout(() => {
+
+            toastTimerRef.current = window.setTimeout(() => {
                 setShowToast(false);
+                toastTimerRef.current = null;
             }, 3000);
         } catch (err) {
             if (linkInputRef.current) {
@@ -79,11 +105,15 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
                 document.execCommand('copy');
                 setCopied(true);
                 setShowToast(true);
-                setTimeout(() => {
+
+                copiedTimerRef.current = window.setTimeout(() => {
                     setCopied(false);
+                    copiedTimerRef.current = null;
                 }, 2000);
-                setTimeout(() => {
+
+                toastTimerRef.current = window.setTimeout(() => {
                     setShowToast(false);
+                    toastTimerRef.current = null;
                 }, 3000);
             }
         }

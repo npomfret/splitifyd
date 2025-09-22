@@ -58,10 +58,9 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                 textareaRef.current.style.height = 'auto';
             }
 
-            // Delay clearing editing state to prevent race condition with disabled prop
-            setTimeout(() => {
-                isEditing.value = false;
-            }, 100);
+            // Clear editing state after successful submission
+            // Note: This will respect the parent's disabled prop if still true
+            isEditing.value = false;
         } catch (err) {
             setError(err instanceof Error ? err.message : t('comments.commentInput.addFailed'));
             // Keep editing state on error so user can retry
