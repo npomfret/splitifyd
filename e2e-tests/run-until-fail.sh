@@ -31,7 +31,7 @@ if [ "$(pwd)" != "$PROJECT_ROOT" ]; then
 fi
 
 # Parse command line arguments
-MAX_SUCCESSES=1
+MAX_SUCCESSES=3
 HEADED_FLAG=""
 WORKERS=1
 

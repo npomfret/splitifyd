@@ -3,6 +3,7 @@ import { simpleTest as test } from '../../fixtures/simple-test.fixture';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
 import { generateShortId } from '@splitifyd/test-support';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Comprehensive Expense Operations E2E Tests
@@ -11,6 +12,7 @@ import { generateShortId } from '@splitifyd/test-support';
  * - expense-form-operations.e2e.test.ts (basic CRUD)
  * - expense-datetime.e2e.test.ts (date/time selection)
  * - multi-currency.e2e.test.ts (currency handling)
+ * - realtime-comprehensive.e2e.test.ts (expense comments functionality)
  *
  * This file covers all essential expense functionality in one place
  * to eliminate duplication while maintaining critical test coverage.
@@ -366,6 +368,63 @@ simpleTest.describe('Expense Operations - Comprehensive', () => {
             if (!found2) {
                 throw new Error('Second KWD amount not found in any expected format');
             }
+        });
+    });
+
+    simpleTest.describe('Real-time Comments', () => {
+        simpleTest('should support real-time expense comments', async ({ createLoggedInBrowsers }, testInfo) => {
+            testInfo.setTimeout(20000); // 20 seconds
+            // Create two browser instances - Alice and Bob
+            const [
+                { dashboardPage: user1DashboardPage },
+                { dashboardPage: user2DashboardPage },
+            ] = await createLoggedInBrowsers(2);
+
+            const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+            const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
+
+            const [user1GroupDetailPage, user2GroupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+            const groupId = user1GroupDetailPage.inferGroupId();
+
+            // Create expense
+            const expenseFormPage = await user1GroupDetailPage.clickAddExpenseButton(2);
+            const expenseDescription = 'Test Expense for Comments';
+            await expenseFormPage.submitExpense({
+                description: expenseDescription,
+                amount: 50000,
+                currency: 'VND',
+                paidByDisplayName: user1DisplayName,
+                splitType: 'equal',
+                participants: [user1DisplayName, user2DisplayName],
+            });
+
+            await user1GroupDetailPage.waitForExpense(expenseDescription);
+            await user2GroupDetailPage.waitForExpense(expenseDescription);
+
+            // Navigate to expense detail pages
+            const aliceExpenseDetailPage = await user1GroupDetailPage.clickExpenseToView(expenseDescription);
+            const bobExpenseDetailPage = await user2GroupDetailPage.clickExpenseToView(expenseDescription);
+
+            await aliceExpenseDetailPage.verifyCommentsSection();
+            await bobExpenseDetailPage.verifyCommentsSection();
+
+            // Test real-time comments
+            const comment1 = `comment ${uuidv4()}`;
+            await aliceExpenseDetailPage.addComment(comment1);
+            await bobExpenseDetailPage.waitForCommentToAppear(comment1);
+
+            const comment2 = `comment ${uuidv4()}`;
+            await bobExpenseDetailPage.addComment(comment2);
+            await aliceExpenseDetailPage.waitForCommentToAppear(comment2);
+
+            // Verify both comments visible
+            await aliceExpenseDetailPage.waitForCommentCount(2);
+            await bobExpenseDetailPage.waitForCommentCount(2);
+
+            await expect(aliceExpenseDetailPage.getCommentByText(comment1)).toBeVisible();
+            await expect(aliceExpenseDetailPage.getCommentByText(comment2)).toBeVisible();
+            await expect(bobExpenseDetailPage.getCommentByText(comment1)).toBeVisible();
+            await expect(bobExpenseDetailPage.getCommentByText(comment2)).toBeVisible();
         });
     });
 
