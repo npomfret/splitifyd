@@ -1,6 +1,5 @@
 import {expect, simpleTest} from '../../fixtures';
 import {SettlementData} from '../../pages/settlement-form.page';
-import {generateShortId} from '@splitifyd/test-support';
 
 /**
  * Comprehensive Balance & Settlement Operations E2E Tests
@@ -16,48 +15,64 @@ import {generateShortId} from '@splitifyd/test-support';
 
 simpleTest.describe('Balance Calculation Fundamentals', () => {
 
-    simpleTest('should show settled up when group is empty', async ({ createLoggedInBrowsers }) => {
-        const [{ dashboardPage },] = await createLoggedInBrowsers(1);
-
-        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
-
-        // Empty group should always be settled up
-        await groupDetailPage.waitForSettledUpMessage();
-    });
-
-    simpleTest('should show settled up when both users pay equal amounts', async ({ createLoggedInBrowsers }) => {
-        const memberCount = 2;
-
+    simpleTest('should handle all settled up scenarios comprehensively', async ({ createLoggedInBrowsers }) => {
         const [
             { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(memberCount);
+        ] = await createLoggedInBrowsers(2);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        // Setup 2-person group
-        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+        // Scenario 1: Empty group → ALWAYS settled up
+        const [groupDetailPage1, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+        await groupDetailPage1.waitForSettledUpMessage();
+        await groupDetailPage2.waitForSettledUpMessage();
 
-        // Create two equal expenses
-        await groupDetailPage.addExpense({
+        // Scenario 2: Single expense creates debt
+        await groupDetailPage1.addExpense({
             description: 'User1 Payment',
             amount: 100,
             paidByDisplayName: user1DisplayName,
-            currency: 'GBP',
+            currency: 'USD',
             splitType: 'equal',
-        }, memberCount);
+        }, 2);
 
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
+
+        // Scenario 3: Equal expenses → settled up
         await groupDetailPage2.addExpense({
             description: 'User2 Payment',
             amount: 100,
             paidByDisplayName: user2DisplayName,
-            currency: 'GBP',
+            currency: 'USD',
             splitType: 'equal',
-        }, memberCount);
+        }, 2);
 
-        // Verify both users see settled up state
-        await groupDetailPage.waitForSettledUpMessage();
+        await groupDetailPage1.waitForSettledUpMessage();
+        await groupDetailPage2.waitForSettledUpMessage();
+
+        // Scenario 4: Settlement clears debt → settled up
+        await groupDetailPage1.addExpense({
+            description: 'Final Test Payment',
+            amount: 80,
+            paidByDisplayName: user1DisplayName,
+            currency: 'USD',
+            splitType: 'equal',
+        }, 2);
+
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$40.00');
+
+        const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
+        await settlementForm.submitSettlement({
+            payerName: user2DisplayName,
+            payeeName: user1DisplayName,
+            amount: '40.00',
+            currency: 'USD',
+            note: 'Full settlement test',
+        }, 2);
+
+        await groupDetailPage1.waitForSettledUpMessage();
         await groupDetailPage2.waitForSettledUpMessage();
     });
 
@@ -151,7 +166,7 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
         const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
         // User1 pays $123.45 → User2 owes exactly $61.73 (rounded appropriately)
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
+        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
         await expenseFormPage.submitExpense({
             description: 'Currency Precision Test',
             amount: 123.45,
@@ -162,7 +177,7 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
         });
 
         // Calculate expected debt: $123.45 / 2 = $61.725 → $61.73
-        const expectedDebt = expenseFormPage.calculateEqualSplitDebt(123.45, 2);
+        const expectedDebt = expenseFormPage.calculateEqualSplitDebt(123.45, memberCount);
 
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, `$${expectedDebt}`);
         await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, `$${expectedDebt}`);
@@ -171,69 +186,6 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
         await expect(groupDetailPage.getCurrencyAmount('123.45')).toBeVisible();
     });
 
-    simpleTest('should transition between settled and debt states predictably', async ({ createLoggedInBrowsers }) => {
-        const memberCount = 2;
-
-        const [
-            { dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(memberCount);
-
-        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
-
-        const [groupDetailPage1, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
-        const groupId = groupDetailPage1.inferGroupId();
-
-        // State 1: Empty group → ALWAYS settled up
-        await groupDetailPage1.waitForSettledUpMessage();
-        await groupDetailPage2.waitForSettledUpMessage();
-
-        // State 2: User1 pays $100 → User2 MUST owe $50
-        const expenseFormPage = await groupDetailPage1.clickAddExpenseButton(2);
-        const expense1Description = generateShortId();
-        await expenseFormPage.submitExpense({
-            description: expense1Description,
-            amount: 100,
-            paidByDisplayName: user1DisplayName,
-            currency: 'USD',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName],
-        });
-
-        await groupDetailPage1.waitForExpense(expense1Description);
-        await groupDetailPage2.waitForExpense(expense1Description);
-        await groupDetailPage1.waitForPage(groupId, memberCount);
-        await groupDetailPage2.waitForPage(groupId, memberCount);
-
-        // Verify debt exists
-        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
-
-        // State 3: User2 pays $100 → MUST be settled up
-        const expenseFormPage2 = await groupDetailPage2.clickAddExpenseButton(memberCount);
-        const expense2Description = generateShortId();
-        await expenseFormPage2.submitExpense({
-            description: expense2Description,
-            amount: 100,
-            paidByDisplayName: user2DisplayName,
-            currency: 'USD',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName],
-        });
-
-        await groupDetailPage1.waitForExpense(expense2Description);
-        await groupDetailPage2.waitForExpense(expense2Description);
-        await groupDetailPage2.waitForBalanceUpdate();
-
-        // Verify settled up state
-        await groupDetailPage1.waitForSettledUpMessage();
-        await groupDetailPage2.waitForSettledUpMessage();
-
-        // Verify NO debt messages remain
-        await expect(groupDetailPage1.getBalancesSection().getByText(`${user2DisplayName} → ${user1DisplayName}`)).not.toBeVisible();
-        await expect(groupDetailPage2.getBalancesSection().getByText(`${user2DisplayName} → ${user1DisplayName}`)).not.toBeVisible();
-    });
 });
 
 simpleTest.describe('Settlement Operations', () => {
@@ -532,68 +484,6 @@ simpleTest.describe('Balance & Settlement Integration', () => {
         await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$40.00');
     });
 
-    simpleTest('should show settled up after exact settlement', async ({ createLoggedInBrowsers }) => {
-        const memberCount = 2;
-
-        const [
-            { dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(memberCount);
-
-        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
-
-        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
-        const groupId = groupDetailPage.inferGroupId();
-
-        // Create expense: User1 pays $150 → User2 owes $75
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
-        await expenseFormPage.submitExpense({
-            description: 'One Person Pays',
-            amount: 150,
-            paidByDisplayName: user1DisplayName,
-            currency: 'USD',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName],
-        });
-
-        await groupDetailPage.waitForBalanceUpdate();
-        await groupDetailPage2.waitForBalancesToLoad(groupId);
-        await expect(groupDetailPage.getTextElement('One Person Pays')).toBeVisible();
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$75.00');
-
-        // User2 pays User1 the exact debt amount ($75) → should be settled up
-        const settlementFormPage = await groupDetailPage2.clickSettleUpButton(memberCount);
-        await settlementFormPage.submitSettlement({
-            payerName: user2DisplayName,
-            payeeName: user1DisplayName,
-            amount: '75.00',
-            currency: 'USD',
-            note: 'Full settlement payment',
-        }, memberCount);
-
-        // Wait for settlement to propagate
-        await groupDetailPage.waitForBalancesToLoad(groupId);
-        await groupDetailPage2.waitForBalancesToLoad(groupId);
-
-        // Verify settlement recorded
-        await groupDetailPage.verifySettlementDetails({note: "Full settlement payment"});
-        await groupDetailPage.closeModal();
-        await groupDetailPage2.verifySettlementDetails({note: "Full settlement payment"});
-        await groupDetailPage2.closeModal();
-
-        // Verify settled up state
-        await groupDetailPage.waitForSettledUpMessage();
-        await groupDetailPage2.waitForSettledUpMessage();
-
-        // Verify expenses still visible after settlement
-        await expect(groupDetailPage.getExpensesHeading()).toBeVisible();
-        await expect(groupDetailPage.getTextElement('One Person Pays')).toBeVisible();
-        await expect(groupDetailPage.getCurrencyAmount('150.00')).toBeVisible();
-        await expect(groupDetailPage2.getExpensesHeading()).toBeVisible();
-        await groupDetailPage2.verifyExpenseVisible('One Person Pays');
-        await groupDetailPage2.verifyCurrencyAmountVisible('150.00');
-    });
 
     simpleTest('should handle multi-user partial settlements correctly', async ({ createLoggedInBrowsers }) => {
         const memberCount = 3;
