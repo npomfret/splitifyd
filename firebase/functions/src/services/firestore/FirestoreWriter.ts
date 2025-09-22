@@ -19,6 +19,7 @@ import { measureDb } from '../../monitoring/measure';
 // Import schemas for validation
 import { UserDocumentSchema, GroupDocumentSchema, ExpenseDocumentSchema, SettlementDocumentSchema, CommentDataSchema } from '../../schemas';
 import { UserNotificationDocumentSchema, UserNotificationGroupSchema } from '../../schemas/user-notifications';
+import { validateBeforeWrite, validateUpdate } from '../../schemas/validation-helpers';
 
 // Import types
 import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument } from '../../schemas';
@@ -45,6 +46,134 @@ interface TransactionRetryMetric {
 
 export class FirestoreWriter implements IFirestoreWriter {
     constructor(private readonly db: Firestore) {}
+
+    // ========================================================================
+    // Private Validation Helper Methods
+    // ========================================================================
+
+    /**
+     * Safely validate merged data, handling FieldValue operations gracefully
+     */
+    private safeValidateUpdate<T>(
+        schema: any,
+        mergedData: Record<string, any>,
+        schemaName: string,
+        documentId: string,
+        collection: string,
+    ): { isValid: boolean; data?: T; skipValidation?: boolean } {
+        try {
+            const validatedData = this.validateMergedData<T>(schema, mergedData, schemaName, documentId, collection);
+            return { isValid: true, data: validatedData };
+        } catch (error) {
+            // Check if error is due to FieldValue operations
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (errorMessage.includes('FieldValue') || errorMessage.includes('Transform')) {
+                logger.info('Validation skipped due to FieldValue operations', {
+                    documentId,
+                    collection,
+                    schema: schemaName,
+                });
+                return { isValid: true, skipValidation: true };
+            }
+            // Re-throw non-FieldValue validation errors
+            throw error;
+        }
+    }
+
+    /**
+     * Fetch existing document and merge with updates for validation
+     */
+    private async fetchAndMergeForValidation(
+        documentPath: string,
+        updates: Record<string, any>,
+        documentId: string,
+        collection: string,
+    ): Promise<Record<string, any>> {
+        const docRef = this.db.doc(documentPath);
+        const docSnapshot = await docRef.get();
+
+        let existingData: Record<string, any> = {};
+        if (docSnapshot.exists) {
+            existingData = docSnapshot.data() || {};
+        }
+
+        // Merge updates with existing data
+        const mergedData = {
+            ...existingData,
+            ...updates,
+            id: documentId, // Ensure ID is present for validation
+            updatedAt: FieldValue.serverTimestamp(), // Will be replaced during validation
+        };
+
+        return mergedData;
+    }
+
+    /**
+     * Validate merged document data using the appropriate schema
+     */
+    private validateMergedData<T>(
+        schema: any,
+        mergedData: Record<string, any>,
+        schemaName: string,
+        documentId: string,
+        collection: string,
+    ): T {
+        // For validation, replace FieldValue.serverTimestamp() with current timestamp
+        const dataForValidation = { ...mergedData };
+        if (dataForValidation.updatedAt && typeof dataForValidation.updatedAt === 'object') {
+            dataForValidation.updatedAt = new Date();
+        }
+        if (dataForValidation.createdAt && typeof dataForValidation.createdAt === 'object') {
+            dataForValidation.createdAt = new Date();
+        }
+
+        return validateUpdate(schema, dataForValidation, schemaName, {
+            documentId,
+            collection,
+        });
+    }
+
+    // ========================================================================
+    // Transaction Validation Helper Methods
+    // ========================================================================
+
+    /**
+     * Validate data within a transaction before writing
+     *
+     * USAGE INSIDE TRANSACTIONS:
+     * ```typescript
+     * await this.firestoreWriter.runTransaction(async (transaction) => {
+     *     // Read data
+     *     const userDoc = await transaction.get(userRef);
+     *
+     *     // Validate before writing
+     *     const updatedData = { ...userDoc.data(), ...updates };
+     *     this.validateInTransaction(UserDocumentSchema, updatedData, 'UserDocument', userId);
+     *
+     *     // Write validated data
+     *     transaction.update(userRef, updates);
+     * });
+     * ```
+     */
+    validateInTransaction<T>(
+        schema: any,
+        data: Record<string, any>,
+        schemaName: string,
+        documentId: string,
+    ): T {
+        // Prepare data for validation by replacing FieldValue objects
+        const dataForValidation = { ...data };
+        if (dataForValidation.updatedAt && typeof dataForValidation.updatedAt === 'object') {
+            dataForValidation.updatedAt = new Date();
+        }
+        if (dataForValidation.createdAt && typeof dataForValidation.createdAt === 'object') {
+            dataForValidation.createdAt = new Date();
+        }
+
+        return validateUpdate(schema, dataForValidation, schemaName, {
+            documentId,
+        });
+    }
 
     /**
      * Get the Firestore collection path for comments on a target entity
@@ -113,9 +242,29 @@ export class FirestoreWriter implements IFirestoreWriter {
                     updatedAt: FieldValue.serverTimestamp(),
                 };
 
+                // Always try validation first, handle FieldValue operations gracefully
+                const documentPath = `${FirestoreCollections.USERS}/${userId}`;
+                const mergedData = await this.fetchAndMergeForValidation(
+                    documentPath,
+                    finalUpdates,
+                    userId,
+                    FirestoreCollections.USERS,
+                );
+
+                // Validate with graceful FieldValue handling
+                const validationResult = this.safeValidateUpdate<UserDocument>(
+                    UserDocumentSchema,
+                    mergedData,
+                    'UserDocument',
+                    userId,
+                    FirestoreCollections.USERS,
+                );
+
+                // Perform the update
                 await this.db.collection(FirestoreCollections.USERS).doc(userId).update(finalUpdates);
 
-                logger.info('User document updated', { userId, fields: Object.keys(updates) });
+                const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(validated)';
+                logger.info(`User document updated ${logType}`, { userId, fields: Object.keys(updates) });
 
                 return {
                     id: userId,
@@ -123,7 +272,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                     timestamp: new Date() as any,
                 };
             } catch (error) {
-                logger.error('Failed to update user document', error, { userId });
+                logger.error('Failed to update user document', error, { userId, updates: Object.keys(updates) });
                 return {
                     id: userId,
                     success: false,
@@ -211,9 +360,29 @@ export class FirestoreWriter implements IFirestoreWriter {
                     updatedAt: FieldValue.serverTimestamp(),
                 };
 
+                // Always try validation first, handle FieldValue operations gracefully
+                const documentPath = `${FirestoreCollections.GROUPS}/${groupId}`;
+                const mergedData = await this.fetchAndMergeForValidation(
+                    documentPath,
+                    finalUpdates,
+                    groupId,
+                    FirestoreCollections.GROUPS,
+                );
+
+                // Validate with graceful FieldValue handling
+                const validationResult = this.safeValidateUpdate<GroupDocument>(
+                    GroupDocumentSchema,
+                    mergedData,
+                    'GroupDocument',
+                    groupId,
+                    FirestoreCollections.GROUPS,
+                );
+
+                // Perform the update
                 await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).update(finalUpdates);
 
-                logger.info('Group document updated', { groupId, fields: Object.keys(updates) });
+                const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(validated)';
+                logger.info(`Group document updated ${logType}`, { groupId, fields: Object.keys(updates) });
 
                 return {
                     id: groupId,
@@ -221,7 +390,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                     timestamp: new Date() as any,
                 };
             } catch (error) {
-                logger.error('Failed to update group document', error, { groupId });
+                logger.error('Failed to update group document', error, { groupId, updates: Object.keys(updates) });
                 return {
                     id: groupId,
                     success: false,
@@ -316,9 +485,29 @@ export class FirestoreWriter implements IFirestoreWriter {
                     updatedAt: FieldValue.serverTimestamp(),
                 };
 
+                // Always try validation first, handle FieldValue operations gracefully
+                const documentPath = `${FirestoreCollections.EXPENSES}/${expenseId}`;
+                const mergedData = await this.fetchAndMergeForValidation(
+                    documentPath,
+                    finalUpdates,
+                    expenseId,
+                    FirestoreCollections.EXPENSES,
+                );
+
+                // Validate with graceful FieldValue handling
+                const validationResult = this.safeValidateUpdate<ExpenseDocument>(
+                    ExpenseDocumentSchema,
+                    mergedData,
+                    'ExpenseDocument',
+                    expenseId,
+                    FirestoreCollections.EXPENSES,
+                );
+
+                // Perform the update
                 await this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId).update(finalUpdates);
 
-                logger.info('Expense document updated', { expenseId, fields: Object.keys(updates) });
+                const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(validated)';
+                logger.info(`Expense document updated ${logType}`, { expenseId, fields: Object.keys(updates) });
 
                 return {
                     id: expenseId,
@@ -326,7 +515,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                     timestamp: new Date() as any,
                 };
             } catch (error) {
-                logger.error('Failed to update expense document', error, { expenseId });
+                logger.error('Failed to update expense document', error, { expenseId, updates: Object.keys(updates) });
                 return {
                     id: expenseId,
                     success: false,
@@ -417,9 +606,29 @@ export class FirestoreWriter implements IFirestoreWriter {
                     updatedAt: FieldValue.serverTimestamp(),
                 };
 
+                // Always try validation first, handle FieldValue operations gracefully
+                const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
+                const mergedData = await this.fetchAndMergeForValidation(
+                    documentPath,
+                    finalUpdates,
+                    settlementId,
+                    FirestoreCollections.SETTLEMENTS,
+                );
+
+                // Validate with graceful FieldValue handling
+                const validationResult = this.safeValidateUpdate<SettlementDocument>(
+                    SettlementDocumentSchema,
+                    mergedData,
+                    'SettlementDocument',
+                    settlementId,
+                    FirestoreCollections.SETTLEMENTS,
+                );
+
+                // Perform the update
                 await this.db.collection(FirestoreCollections.SETTLEMENTS).doc(settlementId).update(finalUpdates);
 
-                logger.info('Settlement document updated', { settlementId, fields: Object.keys(updates) });
+                const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(validated)';
+                logger.info(`Settlement document updated ${logType}`, { settlementId, fields: Object.keys(updates) });
 
                 return {
                     id: settlementId,
@@ -427,7 +636,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                     timestamp: new Date() as any,
                 };
             } catch (error) {
-                logger.error('Failed to update settlement document', error, { settlementId });
+                logger.error('Failed to update settlement document', error, { settlementId, updates: Object.keys(updates) });
                 return {
                     id: settlementId,
                     success: false,
@@ -511,9 +720,35 @@ export class FirestoreWriter implements IFirestoreWriter {
             try {
                 const collection = targetType === 'expense' ? FirestoreCollections.EXPENSES : FirestoreCollections.SETTLEMENTS;
 
-                await this.db.collection(collection).doc(targetId).collection('comments').doc(commentId).update(updates);
+                // Add updated timestamp
+                const finalUpdates = {
+                    ...updates,
+                    updatedAt: FieldValue.serverTimestamp(),
+                };
 
-                logger.info('Comment updated', { targetType, targetId, commentId });
+                // Always try validation first, handle FieldValue operations gracefully
+                const documentPath = `${collection}/${targetId}/comments/${commentId}`;
+                const mergedData = await this.fetchAndMergeForValidation(
+                    documentPath,
+                    finalUpdates,
+                    commentId,
+                    'comments',
+                );
+
+                // Validate with graceful FieldValue handling
+                const validationResult = this.safeValidateUpdate<CommentDocument>(
+                    CommentDataSchema,
+                    mergedData,
+                    'CommentDocument',
+                    commentId,
+                    'comments',
+                );
+
+                // Perform the update
+                await this.db.collection(collection).doc(targetId).collection('comments').doc(commentId).update(finalUpdates);
+
+                const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(validated)';
+                logger.info(`Comment updated ${logType}`, { targetType, targetId, commentId });
 
                 return {
                     id: commentId,
@@ -521,7 +756,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                     timestamp: new Date() as any,
                 };
             } catch (error) {
-                logger.error('Failed to update comment', error, { targetType, targetId, commentId });
+                logger.error('Failed to update comment', error, { targetType, targetId, commentId, updates: Object.keys(updates) });
                 return {
                     id: commentId,
                     success: false,
@@ -599,6 +834,13 @@ export class FirestoreWriter implements IFirestoreWriter {
             let successCount = 0;
             let failureCount = 0;
 
+            // WARNING: Bulk operations cannot validate individual documents
+            logger.warn('Bulk create operation used without individual document validation', {
+                collection,
+                documentCount: documents.length,
+                recommendation: 'Consider using individual create methods for validation'
+            });
+
             try {
                 for (const doc of documents) {
                     try {
@@ -627,7 +869,7 @@ export class FirestoreWriter implements IFirestoreWriter {
 
                 await batch.commit();
 
-                logger.info('Bulk create completed', {
+                logger.info('Bulk create completed (unvalidated)', {
                     collection,
                     successCount,
                     failureCount,
@@ -656,6 +898,12 @@ export class FirestoreWriter implements IFirestoreWriter {
             let successCount = 0;
             let failureCount = 0;
 
+            // WARNING: Bulk operations cannot validate individual documents
+            logger.warn('Bulk update operation used without individual document validation', {
+                updateCount: updates.size,
+                recommendation: 'Consider using individual update methods for validation'
+            });
+
             try {
                 for (const [path, updateData] of updates) {
                     try {
@@ -683,7 +931,7 @@ export class FirestoreWriter implements IFirestoreWriter {
 
                 await batch.commit();
 
-                logger.info('Bulk update completed', {
+                logger.info('Bulk update completed (unvalidated)', {
                     successCount,
                     failureCount,
                 });
@@ -763,6 +1011,12 @@ export class FirestoreWriter implements IFirestoreWriter {
     async runTransaction<T>(updateFunction: (transaction: Transaction) => Promise<T>, options: TransactionOptions = {}): Promise<T> {
         const { maxAttempts = 3, baseDelayMs = 100, context = {} } = options;
         const operationName = context.operation || 'transaction';
+
+        // WARNING: Transaction operations cannot be automatically validated
+        logger.warn('Transaction operation started - ensure manual validation of all writes', {
+            operation: operationName,
+            recommendation: 'Validate all document changes within transaction using schemas'
+        });
 
         return measureDb(operationName, async () => {
             let attempts = 0;
@@ -904,9 +1158,16 @@ export class FirestoreWriter implements IFirestoreWriter {
                     updatedAt: FieldValue.serverTimestamp(),
                 };
 
+                // WARNING: Generic createDocument method cannot validate without schema
+                // Consider using type-specific create methods (createUser, createGroup, etc.)
+                logger.warn('Generic createDocument used without validation', {
+                    documentPath,
+                    recommendation: 'Use type-specific create methods for validation'
+                });
+
                 await this.db.doc(documentPath).set(finalData);
 
-                logger.info('Document created', { documentPath });
+                logger.info('Document created (unvalidated)', { documentPath });
 
                 return {
                     id: documentPath,
@@ -933,9 +1194,17 @@ export class FirestoreWriter implements IFirestoreWriter {
                     updatedAt: FieldValue.serverTimestamp(),
                 };
 
+                // WARNING: Generic updateDocument method cannot validate without schema
+                // Consider using type-specific update methods (updateUser, updateGroup, etc.)
+                logger.warn('Generic updateDocument used without validation', {
+                    documentPath,
+                    fields: Object.keys(updates),
+                    recommendation: 'Use type-specific update methods for validation'
+                });
+
                 await this.db.doc(documentPath).update(finalUpdates);
 
-                logger.info('Document updated', { documentPath, fields: Object.keys(updates) });
+                logger.info('Document updated (unvalidated)', { documentPath, fields: Object.keys(updates) });
 
                 return {
                     id: documentPath,
@@ -1029,12 +1298,13 @@ export class FirestoreWriter implements IFirestoreWriter {
     async updateUserNotification(userId: string, updates: Record<string, any>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.updateUserNotification', async () => {
             try {
-                // Check if updates contain FieldValue operations (increment, serverTimestamp, etc.)
+                // Note: This method has complex FieldValue operations that need special handling
+                // Check for FieldValue operations using simple detection
                 const hasFieldValueOperations = Object.values(updates).some(
-                    (value) =>
-                        value &&
-                        typeof value === 'object' &&
-                        (value.constructor?.name === 'NumericIncrementTransform' || value.constructor?.name === 'ServerTimestampTransform' || value.operand !== undefined), // FieldValue.increment has operand property
+                    (value) => value && typeof value === 'object' && (
+                        value.constructor?.name?.includes('Transform') ||
+                        value.operand !== undefined
+                    )
                 );
 
                 if (hasFieldValueOperations) {
