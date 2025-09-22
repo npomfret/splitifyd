@@ -57,11 +57,11 @@ export function CurrencyAmountInput({
         recentCurrencies,
     });
 
-    const selectedCurrency = useMemo(() => currencyService.getCurrencyByCode(currency), [currency, currencyService]);
+    const selectedCurrency = useMemo(() => currency ? currencyService.getCurrencyByCode(currency) : undefined, [currency, currencyService]);
 
     // Calculate min and step values based on currency decimal digits using service
     const { minValue, stepValue } = useMemo(() => {
-        return currencyService.getCurrencyInputConfig(currency);
+        return currency ? currencyService.getCurrencyInputConfig(currency) : { minValue: '0.01', stepValue: '0.01' };
     }, [currency, currencyService]);
 
     const handleAmountChange = useCallback(
@@ -104,8 +104,7 @@ export function CurrencyAmountInput({
               `}
                         >
                             <span className={`font-medium text-base ${isHighlighted ? 'text-white' : 'text-gray-700'}`}>{curr.symbol}</span>
-                            <span className={`font-medium ${isHighlighted ? 'text-white' : 'text-gray-900'}`}>{curr.acronym}</span>
-                            <span className={`text-xs ${isHighlighted ? 'text-indigo-100' : 'text-gray-500'}`}>{curr.name}</span>
+                            <span className={`text-sm ${isHighlighted ? 'text-white' : 'text-gray-900'}`}>{curr.name} ({curr.acronym})</span>
                         </button>
                     );
                 })}
@@ -147,7 +146,7 @@ export function CurrencyAmountInput({
                         aria-expanded={isOpen}
                         aria-haspopup="listbox"
                     >
-                        <span className="font-medium text-lg">{selectedCurrency?.symbol || currency}</span>
+                        <span className="font-medium text-lg">{selectedCurrency?.symbol || (currency || '?')}</span>
                         <svg
                             className={`ml-1 h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                             xmlns="http://www.w3.org/2000/svg"

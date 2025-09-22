@@ -9,6 +9,11 @@ export interface FormatOptions {
 export const formatCurrency = (amount: number, currencyCode: string, options: FormatOptions = {}): string => {
     const { showSymbol = true, showCode = false, locale = 'en-US' } = options;
 
+    // Handle empty currency gracefully - return unformatted amount
+    if (!currencyCode || currencyCode.trim() === '') {
+        return amount.toFixed(2);
+    }
+
     // getCurrency now throws for invalid currencies (fail-fast principle)
     const currency = getCurrency(currencyCode);
 

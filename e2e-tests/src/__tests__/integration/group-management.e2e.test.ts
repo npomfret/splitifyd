@@ -139,7 +139,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         await expenseFormPage.submitExpense({
             description: expenseDescription,
             amount: 100,
-            currency: 'USD',
+            currency: 'JPY',
             paidByDisplayName: ownerDisplayName,
             splitType: 'equal',
             participants: [ownerDisplayName, memberDisplayName],
@@ -147,10 +147,10 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
 
         // Wait for expense to be processed and balances to update
         await groupDetailPage.waitForExpense(expenseDescription);
-        await groupDetailPage.verifyDebtRelationship(memberDisplayName, ownerDisplayName, "$50.00");
+        await groupDetailPage.verifyDebtRelationship(memberDisplayName, ownerDisplayName, "¥50");
 
         await memberGroupDetailPage.waitForExpense(expenseDescription);
-        await memberGroupDetailPage.verifyDebtRelationship(memberDisplayName, ownerDisplayName, "$50.00");
+        await memberGroupDetailPage.verifyDebtRelationship(memberDisplayName, ownerDisplayName, "¥50");
 
         // Member tries to leave group
         await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
@@ -186,7 +186,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
             new ExpenseFormDataBuilder()
                 .withDescription('Test expense for balance validation')
                 .withAmount(60)
-                .withCurrency('USD')
+                .withCurrency('JPY')
                 .withPaidByDisplayName(ownerDisplayName)
                 .withSplitType('equal')
                 .withParticipants([ownerDisplayName, memberDisplayName])
@@ -200,8 +200,8 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         // Member records a settlement to clear the balance
         const settlementFormPage = await memberGroupDetailPage.clickSettleUpButton(2);
 
-        // Fill and submit settlement for the full owed amount (30 in this case)
-        await settlementFormPage.fillAndSubmitSettlement('30', ownerDisplayName);
+        // Fill and submit settlement for the full owed amount (¥30 JPY in this case)
+        await settlementFormPage.fillAndSubmitSettlement('30', ownerDisplayName, 'JPY');
 
         // Wait for settlement to process and balances to update
         await groupDetailPage.verifyAllSettledUp(groupId);
@@ -291,7 +291,7 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
             new ExpenseFormDataBuilder()
                 .withDescription(expenseDescription)
                 .withAmount(60)
-                .withCurrency('USD')
+                .withCurrency('JPY')
                 .withPaidByDisplayName(creatorDisplayName)
                 .withSplitType('equal')
                 .withParticipants([creatorDisplayName])

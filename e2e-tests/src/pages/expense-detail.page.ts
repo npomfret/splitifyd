@@ -200,11 +200,13 @@ export class ExpenseDetailPage extends BasePage {
     /**
      * Get the current currency amount from the page
      */
-    private async getCurrentCurrencyAmount(): Promise<string> {
-        const headings = await this.page.getByRole('heading').allTextContents();
-        const currencyHeadings = headings.filter(h => /[€$£¥]\d+/.test(h));
-        return currencyHeadings.join(', ');
-    }
+        private async getCurrentCurrencyAmount(): Promise<string> {
+            // Use the specific data-testid for the main expense amount display
+            const expenseAmountElement = this.page.getByTestId('expense-amount');
+            const amountText = await expenseAmountElement.textContent();
+            // Normalize non-breaking spaces to regular spaces for easier test matching
+            return amountText?.trim().replace(/\u00A0/g, ' ') || 'expense amount not found';
+        }
 
     /**
      * Get the current split amounts from the split section
@@ -221,7 +223,8 @@ export class ExpenseDetailPage extends BasePage {
         const amounts: string[] = [];
         for (let i = 0; i < count; i++) {
             const text = await splitAmountElements.nth(i).textContent() || '';
-            amounts.push(text.trim());
+            // Normalize non-breaking spaces to regular spaces for easier test matching
+            amounts.push(text.trim().replace(/\u00A0/g, ' '));
         }
 
         return amounts.join(', ');

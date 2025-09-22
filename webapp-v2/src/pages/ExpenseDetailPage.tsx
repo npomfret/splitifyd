@@ -188,8 +188,8 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
 
     return (
         <BaseLayout
-            title={`${truncateDescription(expense.value.description)}${t('pages.expenseDetailPage.titleSeparator')}${formatCurrency(expense.value.amount, expense.value.currency || 'USD')}`}
-            description={`${t('pages.expenseDetailPage.expenseFor')}${expense.value.description}${t('pages.expenseDetailPage.titleSeparator')}${formatCurrency(expense.value.amount, expense.value.currency || 'USD')}`}
+            title={`${truncateDescription(expense.value.description)}${t('pages.expenseDetailPage.titleSeparator')}${formatCurrency(expense.value.amount, expense.value.currency)}`}
+            description={`${t('pages.expenseDetailPage.expenseFor')}${expense.value.description}${t('pages.expenseDetailPage.titleSeparator')}${formatCurrency(expense.value.amount, expense.value.currency)}`}
             headerVariant="dashboard"
         >
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -201,7 +201,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                                 {t('pages.expenseDetailPage.backButton')}
                             </Button>
                             <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                                {truncateDescription(expense.value.description)}{t('pages.expenseDetailPage.titleSeparator')}{formatCurrency(expense.value.amount, expense.value.currency || 'USD')}
+                                {truncateDescription(expense.value.description)}{t('pages.expenseDetailPage.titleSeparator')}{formatCurrency(expense.value.amount, expense.value.currency)}
                             </h1>
                             <div className="w-16"></div> {/* Spacer for centered title */}
                         </div>
@@ -216,7 +216,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                             <Stack spacing="lg">
                                 {/* Top Section - Amount & Description */}
                                 <div className="text-center pb-4 border-b border-gray-200 dark:border-gray-700">
-                                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{formatCurrency(expense.value.amount, expense.value.currency || 'USD')}</h2>
+                                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="expense-amount">{formatCurrency(expense.value.amount, expense.value.currency)}</h2>
                                     <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">{expense.value.description}</p>
                                 </div>
 

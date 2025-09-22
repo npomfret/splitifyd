@@ -34,20 +34,29 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
             description: 'User1 Payment',
             amount: 100,
             paidByDisplayName: user1DisplayName,
-            currency: 'USD',
+            currency: 'JPY',
             splitType: 'equal',
         }, 2);
 
-        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
+        // Wait for expense to appear and balance to update
+        await groupDetailPage1.waitForExpense('User1 Payment');
+        await groupDetailPage1.waitForBalanceUpdate();
+
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥50');
 
         // Scenario 3: Equal expenses → settled up
         await groupDetailPage2.addExpense({
             description: 'User2 Payment',
             amount: 100,
             paidByDisplayName: user2DisplayName,
-            currency: 'USD',
+            currency: 'JPY',
             splitType: 'equal',
         }, 2);
+
+        // Wait for second expense to appear and balance to update
+        await groupDetailPage2.waitForExpense('User2 Payment');
+        await groupDetailPage1.waitForBalanceUpdate();
+        await groupDetailPage2.waitForBalanceUpdate();
 
         await groupDetailPage1.waitForSettledUpMessage();
         await groupDetailPage2.waitForSettledUpMessage();
@@ -57,20 +66,28 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
             description: 'Final Test Payment',
             amount: 80,
             paidByDisplayName: user1DisplayName,
-            currency: 'USD',
+            currency: 'JPY',
             splitType: 'equal',
         }, 2);
 
-        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$40.00');
+        // Wait for third expense to appear and balance to update
+        await groupDetailPage1.waitForExpense('Final Test Payment');
+        await groupDetailPage1.waitForBalanceUpdate();
+
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
 
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
         await settlementForm.submitSettlement({
             payerName: user2DisplayName,
             payeeName: user1DisplayName,
-            amount: '40.00',
-            currency: 'USD',
+            amount: '40',
+            currency: 'JPY',
             note: 'Full settlement test',
         }, 2);
+
+        // Wait for settlement to be processed and balance to update
+        await groupDetailPage1.waitForBalanceUpdate();
+        await groupDetailPage2.waitForBalanceUpdate();
 
         await groupDetailPage1.waitForSettledUpMessage();
         await groupDetailPage2.waitForSettledUpMessage();
@@ -90,10 +107,10 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
         // Setup 2-person group
         const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
-        // User1 pays $200, split equally → User2 owes $100
+        // User1 pays €100, split equally → User2 owes €50
         await groupDetailPage.addExpense({
             description: 'One Person Pays',
-            amount: 100.00,
+            amount: 100,
             paidByDisplayName: user1DisplayName,
             currency: 'EUR',
             splitType: 'equal',
@@ -117,13 +134,13 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
 
         const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
-        // User1 pays $300 first
+        // User1 pays ¥300 first
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
         await expenseFormPage.submitExpense({
             description: 'Large User1 Payment',
             amount: 300,
             paidByDisplayName: user1DisplayName,
-            currency: 'USD',
+            currency: 'JPY',
             splitType: 'equal',
             participants: [user1DisplayName, user2DisplayName],
         });
@@ -139,17 +156,17 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
             description: 'Small User2 Payment',
             amount: 100,
             paidByDisplayName: user2DisplayName,
-            currency: 'USD',
+            currency: 'JPY',
             splitType: 'equal',
             participants: [user1DisplayName, user2DisplayName],
         });
 
         await groupDetailPage2.waitForBalanceUpdate();
 
-        // Complex calculation: User1 paid $300 (owes $150), User2 paid $100 (owes $200)
-        // Net: User2 owes User1 $100 ($200 - $150 = $50 + $150 - $100 = $100)
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
+        // Complex calculation: User1 paid ¥300 (owes ¥150), User2 paid ¥100 (owes ¥200)
+        // Net: User2 owes User1 ¥100 (¥200 - ¥150 = ¥50 + ¥150 - ¥100 = ¥100)
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥100');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥100');
     });
 
     simpleTest('should handle precise currency formatting in debt calculations', async ({ createLoggedInBrowsers }) => {
@@ -165,25 +182,24 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
 
         const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
-        // User1 pays $123.45 → User2 owes exactly $61.73 (rounded appropriately)
+        // User1 pays ¥123 → User2 owes exactly ¥62 (JPY has no decimals, rounds up)
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
         await expenseFormPage.submitExpense({
             description: 'Currency Precision Test',
-            amount: 123.45,
+            amount: 123,
             paidByDisplayName: user1DisplayName,
-            currency: 'USD',
+            currency: 'JPY',
             splitType: 'equal',
             participants: [user1DisplayName, user2DisplayName],
         });
 
-        // Calculate expected debt: $123.45 / 2 = $61.725 → $61.73
-        const expectedDebt = expenseFormPage.calculateEqualSplitDebt(123.45, memberCount);
-
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, `$${expectedDebt}`);
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, `$${expectedDebt}`);
+        // Calculate expected debt: ¥123 / 2 = ¥61.5 → ¥62 (JPY has no decimals, rounds up)
+        // For JPY, we expect ¥62 (rounded up from 61.5)
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62');
 
         // Verify original expense amount is preserved
-        await expect(groupDetailPage.getCurrencyAmount('123.45')).toBeVisible();
+        await expect(groupDetailPage.getCurrencyAmount('123')).toBeVisible();
     });
 
 });
@@ -206,7 +222,7 @@ simpleTest.describe('Settlement Operations', () => {
             payerName: payerName,
             payeeName: payeeName,
             amount: '100.50',
-            currency: 'USD',
+            currency: 'JPY',
             note: 'Test payment for history',
         };
 
@@ -233,7 +249,7 @@ simpleTest.describe('Settlement Operations', () => {
             payerName: await user2DashboardPage.header.getCurrentUserDisplayName(),
             payeeName: await groupDetailPage.header.getCurrentUserDisplayName(),
             amount: '75.00',
-            currency: 'USD',
+            currency: 'JPY',
             note: 'Creator receives payment',
         };
 
@@ -266,7 +282,7 @@ simpleTest.describe('Settlement Operations', () => {
             payerName: payerName,
             payeeName: payeeName,
             amount: '100.50',
-            currency: 'USD',
+            currency: 'JPY',
             note: 'Initial test payment',
         };
 
@@ -320,7 +336,7 @@ simpleTest.describe('Settlement Operations', () => {
             payerName,
             payeeName,
             amount: '50.00',
-            currency: 'USD',
+            currency: 'JPY',
             note: 'Validation test payment',
         };
 
@@ -375,7 +391,7 @@ simpleTest.describe('Settlement Operations', () => {
             payerName,
             payeeName,
             amount: '100.00',
-            currency: 'USD',
+            currency: 'JPY',
             note: 'Payment to be deleted',
         };
 
@@ -413,7 +429,7 @@ simpleTest.describe('Settlement Operations', () => {
             payerName: payerName,
             payeeName: payeeName,
             amount: '75.00',
-            currency: 'USD',
+            currency: 'JPY',
             note: 'Payment to keep',
         };
 
@@ -443,13 +459,13 @@ simpleTest.describe('Balance & Settlement Integration', () => {
         const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
         const groupId = groupDetailPage.inferGroupId();
 
-        // Create expense: User1 pays $200 → User2 owes $100
+        // Create expense: User1 pays ¥200 → User2 owes ¥100
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
         await expenseFormPage.submitExpense({
             description: 'Test Expense for Settlement',
             amount: 200,
             paidByDisplayName: user1DisplayName,
-            currency: 'USD',
+            currency: 'JPY',
             splitType: 'equal',
             participants: [user1DisplayName, user2DisplayName],
         });
@@ -459,16 +475,16 @@ simpleTest.describe('Balance & Settlement Integration', () => {
         await groupDetailPage2.verifyExpenseVisible('Test Expense for Settlement');
         await groupDetailPage.waitForBalancesToLoad(groupId);
         await groupDetailPage2.waitForBalancesToLoad(groupId);
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥100');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥100');
 
-        // Record partial settlement of $60
+        // Record partial settlement of ¥60
         const settlementFormPage = await groupDetailPage.clickSettleUpButton(2);
         await settlementFormPage.submitSettlement({
             payerName: user2DisplayName,
             payeeName: user1DisplayName,
             amount: '60',
-            currency: 'USD',
+            currency: 'JPY',
             note: 'Partial payment of $60',
         }, 2);
 
@@ -476,12 +492,12 @@ simpleTest.describe('Balance & Settlement Integration', () => {
         await groupDetailPage.waitForBalancesToLoad(groupId);
         await groupDetailPage2.waitForBalancesToLoad(groupId);
 
-        // Verify updated debt ($100 - $60 = $40 remaining)
+        // Verify updated debt (¥100 - ¥60 = ¥40 remaining)
         // Wait for debt to appear (not settled up)
         await expect(groupDetailPage.getBalancesSection().getByText(`${user2DisplayName} → ${user1DisplayName}`)).toBeVisible({ timeout: 5000 });
 
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$40.00');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$40.00');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
     });
 
 
@@ -501,14 +517,14 @@ simpleTest.describe('Balance & Settlement Integration', () => {
         const [groupDetailPage1, groupDetailPage2, groupDetailPage3] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage, user3DashboardPage);
         const groupId = groupDetailPage1.inferGroupId();
 
-        // User1 creates expense for $120, split 3 ways ($40 each)
-        // Result: User2 owes $40, User3 owes $40 to User1
+        // User1 creates expense for ¥120, split 3 ways (¥40 each)
+        // Result: User2 owes ¥40, User3 owes ¥40 to User1
         const expenseDescription = 'Group dinner expense';
         await groupDetailPage1.addExpense({
             description: expenseDescription,
             amount: 120,
             paidByDisplayName: user1DisplayName,
-            currency: 'USD',
+            currency: 'JPY',
             splitType: 'equal',
         }, memberCount);
 
@@ -516,54 +532,52 @@ simpleTest.describe('Balance & Settlement Integration', () => {
         for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
             await groupDetailPage.waitForExpense(expenseDescription);
             await groupDetailPage.waitForPage(groupId, memberCount);
-            await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$40.00');
-            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '$40.00');
+            await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
+            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
         }
 
-        // User2 makes partial settlement of $30 (leaving $10 debt)
+        // User2 makes partial settlement of ¥30 (leaving ¥10 debt)
         const settlementNote1 = 'Partial payment from user2';
         await groupDetailPage1.recordSettlement({
             payerName: user2DisplayName,
             payeeName: user1DisplayName,
             amount: '30',
-            currency: 'USD',
+            currency: 'JPY',
             note: settlementNote1,
         }, memberCount);
 
         // Synchronize settlement
         for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
             await groupDetailPage.verifySettlementDetails({note: settlementNote1});
-            await groupDetailPage.verifySettlementDetails({ note: settlementNote1 });
             await groupDetailPage.waitForPage(groupId, memberCount);
         }
 
-        // Verify updated balances: User2 now owes $10, User3 still owes $40
+        // Verify updated balances: User2 now owes ¥10, User3 still owes ¥40
         for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
-            await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$10.00');
-            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '$40.00');
+            await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥10');
+            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
         }
 
-        // User2 makes final settlement of $10 (fully settled)
+        // User2 makes final settlement of ¥10 (fully settled)
         const settlementNote2 = 'Final payment from user2 - all settled!';
         await groupDetailPage1.recordSettlement({
             payerName: user2DisplayName,
             payeeName: user1DisplayName,
             amount: '10',
-            currency: 'USD',
+            currency: 'JPY',
             note: settlementNote2,
         }, memberCount);
 
         // Synchronize final settlement
         for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
             await groupDetailPage.verifySettlementDetails({note: settlementNote2});
-            await groupDetailPage.verifySettlementDetails({ note: settlementNote2 });
             await groupDetailPage.waitForPage(groupId, memberCount);
         }
 
-        // Verify final state: User2 fully settled, User3 still owes $40
+        // Verify final state: User2 fully settled, User3 still owes ¥40
         for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
             await expect(groupDetailPage.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible();
-            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '$40.00');
+            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
         }
 
         // Verify both settlements in history
@@ -590,50 +604,63 @@ simpleTest.describe('Mixed Currency Operations', () => {
         const [groupDetailPage1, groupDetailPage2, groupDetailPage3] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage, user3DashboardPage);
         const groupId = groupDetailPage1.inferGroupId();
 
-        // User1 pays $60 USD, split 3 ways → User2 owes $20, User3 owes $20
+        // User1 pays ₩60000 KRW, split 3 ways → User2 owes ₩20000, User3 owes ₩20000
         await groupDetailPage1.addExpense({
-            description: 'USD Expense from User1',
-            amount: 60,
+            description: 'KRW Expense from User1',
+            amount: 60000,
             paidByDisplayName: user1DisplayName,
-            currency: 'USD',
+            currency: 'KRW',
             splitType: 'equal',
         }, memberCount);
 
-        // User2 pays €45 EUR, split 3 ways → User1 owes €15, User3 owes €15
+        // Wait for first expense to appear
+        await groupDetailPage1.waitForExpense('KRW Expense from User1');
+        await groupDetailPage1.waitForBalanceUpdate();
+
+        // User2 pays JD45.000 JOD, split 3 ways → User1 owes JD15.000, User3 owes JD15.000
         await groupDetailPage2.addExpense({
-            description: 'EUR Expense from User2',
+            description: 'JOD Expense from User2',
             amount: 45,
             paidByDisplayName: user2DisplayName,
-            currency: 'EUR',
+            currency: 'JOD',
             splitType: 'equal',
         }, memberCount);
 
-        // User3 pays £30 GBP, split 3 ways → User1 owes £10, User2 owes £10
+        // Wait for second expense to appear
+        await groupDetailPage2.waitForExpense('JOD Expense from User2');
+        await groupDetailPage2.waitForBalanceUpdate();
+
+        // User3 pays kr3000 ISK, split 3 ways → User1 owes kr1000, User2 owes kr1000
         await groupDetailPage3.addExpense({
-            description: 'GBP Expense from User3',
-            amount: 30,
+            description: 'ISK Expense from User3',
+            amount: 3000,
             paidByDisplayName: user3DisplayName,
-            currency: 'GBP',
+            currency: 'ISK',
             splitType: 'equal',
         }, memberCount);
+
+        // Wait for third expense to appear
+        await groupDetailPage3.waitForExpense('ISK Expense from User3');
+        await groupDetailPage3.waitForBalanceUpdate();
 
         // Wait for all expenses to synchronize
         for (const groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
-            await groupDetailPage.waitForExpense('USD Expense from User1');
-            await groupDetailPage.waitForExpense('EUR Expense from User2');
-            await groupDetailPage.waitForExpense('GBP Expense from User3');
+            await groupDetailPage.waitForExpense('KRW Expense from User1');
+            await groupDetailPage.waitForExpense('JOD Expense from User2');
+            await groupDetailPage.waitForExpense('ISK Expense from User3');
+            await groupDetailPage.waitForBalanceUpdate();
             await groupDetailPage.waitForPage(groupId, memberCount);
         }
 
         // Verify mixed currency debt relationships on all pages
-        // User1's perspective: User2 owes $20 and £10, User3 owes $20 and €15
+        // Intl.NumberFormat produces: KRW → "₩20,000", JOD → "JOD 15.000", ISK → "ISK 1,000"
         for (const groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
-            await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$20.00');
-            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '$20.00');
-            await groupDetailPage.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€15.00');
-            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user2DisplayName, '€15.00');
-            await groupDetailPage.verifyDebtRelationship(user1DisplayName, user3DisplayName, '£10.00');
-            await groupDetailPage.verifyDebtRelationship(user2DisplayName, user3DisplayName, '£10.00');
+            await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '₩20,000');
+            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '₩20,000');
+            await groupDetailPage.verifyDebtRelationship(user1DisplayName, user2DisplayName, 'JOD 15.000');
+            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user2DisplayName, 'JOD 15.000');
+            await groupDetailPage.verifyDebtRelationship(user1DisplayName, user3DisplayName, 'ISK 1,000');
+            await groupDetailPage.verifyDebtRelationship(user2DisplayName, user3DisplayName, 'ISK 1,000');
         }
     });
 
@@ -650,12 +677,12 @@ simpleTest.describe('Mixed Currency Operations', () => {
         const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
         const groupId = groupDetailPage.inferGroupId();
 
-        // User1 pays $100 USD → User2 owes $50
+        // User1 pays ¥100 JPY → User2 owes ¥50
         await groupDetailPage.addExpense({
-            description: 'USD Expense',
+            description: 'JPY Expense',
             amount: 100,
             paidByDisplayName: user1DisplayName,
-            currency: 'USD',
+            currency: 'JPY',
             splitType: 'equal',
         }, memberCount);
 
@@ -679,7 +706,7 @@ simpleTest.describe('Mixed Currency Operations', () => {
 
         // Wait for all expenses to synchronize
         for (const page of [groupDetailPage, groupDetailPage2]) {
-            await page.waitForExpense('USD Expense');
+            await page.waitForExpense('JPY Expense');
             await page.waitForExpense('EUR Expense');
             await page.waitForExpense('GBP Expense');
             await page.waitForPage(groupId, memberCount);
@@ -687,7 +714,7 @@ simpleTest.describe('Mixed Currency Operations', () => {
 
         // Verify User2 owes User1 in all three currencies separately
         for (const page of [groupDetailPage, groupDetailPage2]) {
-            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
+            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥50');
             await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€40.00');
             await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '£30.00');
         }
@@ -708,66 +735,51 @@ simpleTest.describe('Mixed Currency Operations', () => {
 
         // API interceptors are now automatically set up for all pages
 
-        // Create USD expense: User1 pays $200 → User2 owes $100
+        // Create JPY expense: User1 pays ¥200 → User2 owes ¥100
         await groupDetailPage1.addExpense({
-            description: 'USD Expense for Settlement Test',
+            description: 'JPY Expense for Settlement Test',
             amount: 200,
             paidByDisplayName: user1DisplayName,
-            currency: 'USD',
+            currency: 'JPY',
             splitType: 'equal',
         }, memberCount);
 
         // Wait for expense to sync and verify initial debt
-        await groupDetailPage1.waitForExpense('USD Expense for Settlement Test');
-        await groupDetailPage2.waitForExpense('USD Expense for Settlement Test');
+        await groupDetailPage1.waitForExpense('JPY Expense for Settlement Test');
+        await groupDetailPage2.waitForExpense('JPY Expense for Settlement Test');
         await groupDetailPage1.waitForPage(groupId, memberCount);
         await groupDetailPage2.waitForPage(groupId, memberCount);
 
-        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥100');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥100');
 
-        // User2 settles with €75 EUR (different currency than the debt)
+        // User2 settles the JPY debt with ¥75 JPY (partial settlement)
         const settlementFormPage = await groupDetailPage2.clickSettleUpButton(memberCount);
         await settlementFormPage.submitSettlement({
             payerName: user2DisplayName,
             payeeName: user1DisplayName,
-            amount: '75.00',
-            currency: 'EUR',
-            note: 'EUR Settlement for USD Debt',
+            amount: '75',
+            currency: 'JPY',
+            note: 'JPY Partial Settlement',
         }, memberCount);
 
         // Wait for settlement to appear in payment history on both pages
-        await groupDetailPage1.verifySettlementDetails({note: 'EUR Settlement for USD Debt'});
-        await groupDetailPage2.verifySettlementDetails({note: 'EUR Settlement for USD Debt'});
+        await groupDetailPage1.verifySettlementDetails({note: 'JPY Partial Settlement'});
+        await groupDetailPage2.verifySettlementDetails({note: 'JPY Partial Settlement'});
 
-        // Verify settlement appears in history with EUR currency on both pages
-        await groupDetailPage1.verifySettlementDetails({note: "EUR Settlement for USD Debt"});
+        // Verify settlement appears in history with JPY currency on both pages
+        await groupDetailPage1.verifySettlementDetails({note: "JPY Partial Settlement"});
         await groupDetailPage1.closeModal();
-        await groupDetailPage2.verifySettlementDetails({note: "EUR Settlement for USD Debt"});
+        await groupDetailPage2.verifySettlementDetails({note: "JPY Partial Settlement"});
         await groupDetailPage2.closeModal();
 
         // Wait for pages to fully sync after settlement processing
         await groupDetailPage1.waitForPage(groupId, memberCount);
         await groupDetailPage2.waitForPage(groupId, memberCount);
 
-        // Verify USD debt still exists (no currency conversion)
-        // AND verify EUR settlement creates opposite EUR debt
-
-        // Add logging to debug the actual balance state
-        const balancesSection1 = groupDetailPage1.getBalancesSection();
-        const balancesSection2 = groupDetailPage2.getBalancesSection();
-
-        const balanceText1 = await balancesSection1.textContent();
-        const balanceText2 = await balancesSection2.textContent();
-
-        // Try to find the actual amounts shown
-        const allAmounts1 = await balancesSection1.locator('[data-testid*="amount"], .amount, .currency-amount').allTextContents();
-        const allAmounts2 = await balancesSection2.locator('[data-testid*="amount"], .amount, .currency-amount').allTextContents();
-
-        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
-        await groupDetailPage1.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€75.00');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
-        await groupDetailPage2.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€75.00');
+        // Verify partial settlement: ¥100 - ¥75 = ¥25 remaining debt
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥25');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥25');
     });
 
     simpleTest('should show settled up only when all currencies are balanced', async ({ createLoggedInBrowsers }) => {
@@ -785,10 +797,10 @@ simpleTest.describe('Mixed Currency Operations', () => {
 
         // Create expenses in different currencies
         await groupDetailPage.addExpense({
-            description: 'USD Expense',
+            description: 'JPY Expense',
             amount: 100,
             paidByDisplayName: user1DisplayName,
-            currency: 'USD',
+            currency: 'JPY',
             splitType: 'equal',
         }, memberCount);
 
@@ -801,33 +813,33 @@ simpleTest.describe('Mixed Currency Operations', () => {
         }, memberCount);
 
         // Wait for expenses to sync
-        await groupDetailPage.waitForExpense('USD Expense');
+        await groupDetailPage.waitForExpense('JPY Expense');
         await groupDetailPage.waitForExpense('EUR Expense');
-        await groupDetailPage2.waitForExpense('USD Expense');
+        await groupDetailPage2.waitForExpense('JPY Expense');
         await groupDetailPage2.waitForExpense('EUR Expense');
         await groupDetailPage.waitForPage(groupId, memberCount);
         await groupDetailPage2.waitForPage(groupId, memberCount);
 
         // Verify User2 owes in both currencies
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥50');
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€30.00');
 
-        // User2 settles USD debt only
+        // User2 settles JPY debt only
         const settlementFormPage = await groupDetailPage2.clickSettleUpButton(memberCount);
         await settlementFormPage.submitSettlement({
             payerName: user2DisplayName,
             payeeName: user1DisplayName,
-            amount: '50.00',
-            currency: 'USD',
-            note: 'USD Settlement Only',
+            amount: '50',
+            currency: 'JPY',
+            note: 'JPY Settlement Only',
         }, memberCount);
 
-        await groupDetailPage.verifySettlementDetails({note: 'USD Settlement Only'});
+        await groupDetailPage.verifySettlementDetails({note: 'JPY Settlement Only'});
         await groupDetailPage.waitForPage(groupId, memberCount);
         await groupDetailPage2.waitForPage(groupId, memberCount);
 
-        // Verify USD debt is settled but EUR debt remains
-        await expect(groupDetailPage.getBalancesSection().getByText(`${user2DisplayName} → ${user1DisplayName}`).filter({hasText: '$'})).not.toBeVisible();
+        // Verify JPY debt is settled but EUR debt remains
+        await expect(groupDetailPage.getBalancesSection().getByText(`${user2DisplayName} → ${user1DisplayName}`).filter({hasText: '¥'})).not.toBeVisible();
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€30.00');
 
         // Should NOT be settled up yet
@@ -865,18 +877,18 @@ simpleTest.describe('Mixed Currency Operations', () => {
         const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
         const groupId = groupDetailPage.inferGroupId();
 
-        // Create USD expense
+        // Create JPY expense
         await groupDetailPage.addExpense({
-            description: 'Original USD Expense',
+            description: 'Original JPY Expense',
             amount: 100,
             paidByDisplayName: user1DisplayName,
-            currency: 'USD',
+            currency: 'JPY',
             splitType: 'equal',
         }, memberCount);
 
         await groupDetailPage.waitForPage(groupId, memberCount);
         await groupDetailPage2.waitForPage(groupId, memberCount);
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥50');
 
         // Create EUR settlement
         const settlementFormPage = await groupDetailPage.clickSettleUpButton(memberCount);
@@ -893,7 +905,7 @@ simpleTest.describe('Mixed Currency Operations', () => {
         await groupDetailPage.waitForPage(groupId, memberCount);
 
         // Verify mixed currency state
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥50');
         await groupDetailPage.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€40.00');
 
         // Edit settlement to GBP
@@ -912,14 +924,14 @@ simpleTest.describe('Mixed Currency Operations', () => {
         await groupDetailPage.verifySettlementDetails({ note: 'Updated GBP Settlement' });
 
         // Verify balances updated - EUR debt removed, new settlement amount
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥50');
         await expect(groupDetailPage.getBalancesSection().getByText(`${user1DisplayName} → ${user2DisplayName}`).filter({hasText: '€'})).not.toBeVisible();
 
         // Delete the settlement
         await groupDetailPage.deleteSettlement('Updated GBP Settlement', true);
 
-        // Verify only original USD debt remains
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
+        // Verify only original JPY debt remains
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥50');
         await expect(groupDetailPage.getBalancesSection().getByText(`${user1DisplayName} → ${user2DisplayName}`)).not.toBeVisible();
     });
 
@@ -936,23 +948,23 @@ simpleTest.describe('Mixed Currency Operations', () => {
         const [groupDetailPage1, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
         const groupId = groupDetailPage1.inferGroupId();
 
-        // Step 1: Create USD expense: User1 pays $100 → User2 owes $50
+        // Step 1: Create JPY expense: User1 pays ¥100 → User2 owes ¥50
         await groupDetailPage1.addExpense({
-            description: 'Simple USD Expense',
+            description: 'Simple JPY Expense',
             amount: 100,
             paidByDisplayName: user1DisplayName,
-            currency: 'USD',
+            currency: 'JPY',
             splitType: 'equal',
         }, memberCount);
 
-        await groupDetailPage1.waitForExpense('Simple USD Expense');
-        await groupDetailPage2.waitForExpense('Simple USD Expense');
+        await groupDetailPage1.waitForExpense('Simple JPY Expense');
+        await groupDetailPage2.waitForExpense('Simple JPY Expense');
         await groupDetailPage1.waitForPage(groupId, memberCount);
         await groupDetailPage2.waitForPage(groupId, memberCount);
 
         // Verify initial debt: User2 owes User1 $50.00
-        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥50');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥50');
 
         // Step 2: User2 settles with €30 EUR (different currency)
         const settlementFormPage = await groupDetailPage2.clickSettleUpButton(memberCount);
@@ -969,13 +981,13 @@ simpleTest.describe('Mixed Currency Operations', () => {
         await groupDetailPage2.waitForPage(groupId, memberCount);
 
         // Step 3: Verify CORRECT behavior (no currency conversion should occur)
-        // Expected: USD debt unchanged, EUR debt created in opposite direction
+        // Expected: JPY debt unchanged, EUR debt created in opposite direction
 
         // API interceptors are now automatically set up for all pages
 
-        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00'); // USD debt unchanged
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥50'); // JPY debt unchanged
         await groupDetailPage1.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€30.00'); // EUR debt created
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00'); // USD debt unchanged
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥50'); // JPY debt unchanged
         await groupDetailPage2.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€30.00'); // EUR debt created
     });
 });

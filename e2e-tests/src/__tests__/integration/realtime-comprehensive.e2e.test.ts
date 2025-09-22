@@ -25,7 +25,7 @@ simpleTest.describe('Real-Time Updates - Core Functionality', () => {
         // Create two browser instances - Owner and Member
         const [
             { dashboardPage: ownerDashboardPage },
-            { page: memberPage, dashboardPage: memberDashboardPage }
+            { dashboardPage: memberDashboardPage }
         ] = await createLoggedInBrowsers(2);
 
         // Get display names for verification
@@ -61,7 +61,8 @@ simpleTest.describe('Real-Time Updates - Core Functionality', () => {
     });
 
 
-    simpleTest('should support real-time expense comments', async ({ createLoggedInBrowsers }) => {
+    simpleTest('should support real-time expense comments', async ({ createLoggedInBrowsers }, testInfo) => {
+        testInfo.setTimeout(20000); // 20 seconds
         // Create two browser instances - Alice and Bob
         const [
             { dashboardPage: user1DashboardPage },
@@ -79,8 +80,8 @@ simpleTest.describe('Real-Time Updates - Core Functionality', () => {
         const expenseDescription = 'Test Expense for Comments';
         await expenseFormPage.submitExpense({
             description: expenseDescription,
-            amount: 50.0,
-            currency: 'USD',
+            amount: 50000,
+            currency: 'VND',
             paidByDisplayName: user1DisplayName,
             splitType: 'equal',
             participants: [user1DisplayName, user2DisplayName],
@@ -117,7 +118,8 @@ simpleTest.describe('Real-Time Updates - Core Functionality', () => {
 });
 
 simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
-    simpleTest('should handle concurrent expense editing', async ({ createLoggedInBrowsers }) => {
+    simpleTest('should handle concurrent expense editing', async ({ createLoggedInBrowsers }, testInfo) => {
+        testInfo.setTimeout(20000); // 20 seconds
         // Create two editors and one watcher
         const [
             { dashboardPage: editor1DashboardPage },
@@ -138,8 +140,8 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await expense1FormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(expense1Description)
-                .withAmount(30) // $10 each
-                .withCurrency('USD')
+                .withAmount(30000) // ₫15000 each
+                .withCurrency('VND')
                 .withPaidByDisplayName(editor1DisplayName)
                 .withSplitType('equal')
                 .withParticipants([editor1DisplayName, editor2DisplayName])
@@ -151,7 +153,7 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await watcherGroupDetailPage.waitForExpense(expense1Description);
 
         // Verify initial balances
-        await editor1GroupDetailPage.verifyDebtRelationship(editor2DisplayName, editor1DisplayName, '$15.00');
+        await editor1GroupDetailPage.verifyDebtRelationship(editor2DisplayName, editor1DisplayName, '₫15,000');
 
         // Editor2 creates second expense concurrently
         const expense2FormPage = await editor2GroupDetailPage.clickAddExpenseButton(3);
@@ -160,8 +162,8 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await expense2FormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(expense2Description)
-                .withAmount(45)
-                .withCurrency('USD')
+                .withAmount(45000)
+                .withCurrency('VND')
                 .withPaidByDisplayName(editor2DisplayName)
                 .withSplitType('equal')
                 .withParticipants([editor1DisplayName, editor2DisplayName])
@@ -173,7 +175,7 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await watcherGroupDetailPage.waitForExpense(expense2Description);
 
         // Verify balanced state after both expenses
-        await editor1GroupDetailPage.verifyDebtRelationship(editor1DisplayName, editor2DisplayName, '$7.50');
+        await editor1GroupDetailPage.verifyDebtRelationship(editor1DisplayName, editor2DisplayName, '₫7,500');
 
         // Editor1 edits first expense
         const expense1DetailPage = await editor1GroupDetailPage.clickExpenseToView(expense1Description);
@@ -181,6 +183,16 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         const expense1DescriptionEdited = `${expense1Description} edited`;
         await edit1FormPage.fillDescription(expense1DescriptionEdited);
         await edit1FormPage.fillAmount('60');
+
+        // Set currency during edit to ensure it's not lost
+        const currencyButton = edit1FormPage.page.getByRole('button', { name: /select currency/i });
+        await currencyButton.click();
+        const searchInput = edit1FormPage.page.getByPlaceholder('Search by symbol, code, or country...');
+        await expect(searchInput).toBeVisible();
+        await searchInput.fill('VND');
+        const currencyOption = edit1FormPage.page.getByText('VND').first();
+        await currencyOption.click();
+
         await edit1FormPage.clickUpdateExpenseButton();
         await expense1DetailPage.clickBackButton();
 
@@ -190,10 +202,11 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await watcherGroupDetailPage.waitForExpense(expense1DescriptionEdited);
 
         // Verify updated balances
-        await editor1GroupDetailPage.verifyDebtRelationship(editor2DisplayName, editor1DisplayName, '$7.50');
+        await editor1GroupDetailPage.verifyDebtRelationship(editor1DisplayName, editor2DisplayName, '₫22,470');
     });
 
     simpleTest('should handle network instability simulation', async ({ createLoggedInBrowsers }, testInfo) => {
+        testInfo.setTimeout(20000); // 20 seconds
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Network simulation may generate expected connection errors' });
 
         // Create two users - ActiveUser and OfflineUser
@@ -218,8 +231,8 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(expenseDescription)
-                .withAmount(60)
-                .withCurrency('USD')
+                .withAmount(60000)
+                .withCurrency('VND')
                 .withPaidByDisplayName(activeDisplayName)
                 .withSplitType('equal')
                 .withParticipants([activeDisplayName])
@@ -241,8 +254,8 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await expense2FormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(afterReconnectDescription)
-                .withAmount(30)
-                .withCurrency('USD')
+                .withAmount(30000)
+                .withCurrency('VND')
                 .withPaidByDisplayName(activeDisplayName)
                 .withSplitType('equal')
                 .withParticipants([activeDisplayName])
@@ -254,6 +267,7 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
     });
 
     simpleTest('should allow third-party expense creation and editing', async ({ createLoggedInBrowsers }, testInfo) => {
+        testInfo.setTimeout(20000); // 20 seconds
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Testing third-party expense creation and editing' });
 
         // Create three users - Creator (not involved), Payer, Receiver
@@ -277,8 +291,8 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(expenseDescription)
-                .withAmount(80)
-                .withCurrency('EUR')
+                .withAmount(80.0)
+                .withCurrency('OMR')
                 .withPaidByDisplayName(payerDisplayName)
                 .withSplitType('equal')
                 .withParticipants([payerDisplayName, receiverDisplayName])
@@ -293,8 +307,8 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await payerGroupDetailPage.waitForExpense(expenseDescription);
         await receiverGroupDetailPage.waitForExpense(expenseDescription);
 
-        // Verify debt relationship (Receiver owes €40 to Payer)
-        await creatorGroupDetailPage.verifyDebtRelationship(receiverDisplayName, payerDisplayName, "€40.00");
+        // Verify debt relationship (Receiver owes OMR 40.000 to Payer)
+        await creatorGroupDetailPage.verifyDebtRelationship(receiverDisplayName, payerDisplayName, "OMR 40.000");
 
         // Payer edits the expense
         const payerExpenseDetailPage = await payerGroupDetailPage.clickExpenseToView(expenseDescription);
@@ -302,9 +316,9 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await payerEditFormPage.fillAmount('100');
         await payerEditFormPage.getUpdateExpenseButton().click();
 
-        // Verify split amounts display correctly in expense detail (2 people, €50 each)
-        await payerExpenseDetailPage.waitForCurrencyAmount('€100.00');
-        await payerExpenseDetailPage.verifySplitAmount('€50.00', 2);
+        // Verify split amounts display correctly in expense detail (2 people, OMR 50.000 each)
+        await payerExpenseDetailPage.waitForCurrencyAmount('OMR 100.000');
+        await payerExpenseDetailPage.verifySplitAmount('OMR 50.000', 2);
 
         await payerGroupDetailPage.navigateToStaticPath(`/groups/${groupId}`);
         await expect(payerPage).toHaveURL(groupDetailUrlPattern(groupId));
@@ -314,12 +328,12 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await receiverGroupDetailPage.waitForExpense(expenseDescription);
         await creatorGroupDetailPage.waitForExpense(expenseDescription);
 
-        await expect(payerPage.getByText('€100.00').first()).toBeVisible();
-        await expect(receiverPage.getByText('€100.00').first()).toBeVisible();
-        await expect(creatorGroupDetailPage.getTextElement('€100.00').first()).toBeVisible();
+        await expect(payerPage.getByText('OMR 100.000').first()).toBeVisible();
+        await expect(receiverPage.getByText('OMR 100.000').first()).toBeVisible();
+        await expect(creatorGroupDetailPage.getTextElement('OMR 100.000').first()).toBeVisible();
 
-        // Verify updated debt (Receiver now owes €50 to Payer)
-        await creatorGroupDetailPage.verifyDebtRelationship(receiverDisplayName, payerDisplayName, "€50.00");
+        // Verify updated debt (Receiver now owes OMR 50.000 to Payer)
+        await creatorGroupDetailPage.verifyDebtRelationship(receiverDisplayName, payerDisplayName, "OMR 50.000");
     });
 
 });

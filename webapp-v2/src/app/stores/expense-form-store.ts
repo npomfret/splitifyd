@@ -200,7 +200,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     // Private signals - encapsulated within the class
     readonly #descriptionSignal = signal<string>('');
     readonly #amountSignal = signal<number>(0);
-    readonly #currencySignal = signal<string>('USD'); // Default to USD since UI doesn't expose currency selection yet
+    readonly #currencySignal = signal<string>(''); // No default - currency must be explicitly selected
     readonly #dateSignal = signal<string>(getTodayDate());
     readonly #timeSignal = signal<string>('12:00'); // Default to noon (12:00 PM)
     readonly #paidBySignal = signal<string>('');
@@ -807,7 +807,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     reset(): void {
         this.#descriptionSignal.value = '';
         this.#amountSignal.value = 0;
-        this.#currencySignal.value = 'USD'; // Default to USD
+        this.#currencySignal.value = ''; // No default - currency must be explicitly selected
         this.#dateSignal.value = getTodayDate();
         this.#timeSignal.value = '12:00'; // Default to noon
         this.#paidBySignal.value = '';
@@ -825,7 +825,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         return (
             this.#descriptionSignal.value.trim() !== '' ||
             hasAmount ||
-            this.#currencySignal.value !== 'USD' ||
+            this.#currencySignal.value !== '' ||
             this.#dateSignal.value !== getTodayDate() ||
             this.#paidBySignal.value !== '' ||
             this.#categorySignal.value !== 'food' ||
@@ -879,7 +879,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             // Restore form data
             this.#descriptionSignal.value = draftData.description || '';
             this.#amountSignal.value = draftData.amount || 0;
-            this.#currencySignal.value = draftData.currency || 'USD'; // Default to USD
+            this.#currencySignal.value = draftData.currency || ''; // No default - currency must be explicitly selected
             this.#dateSignal.value = draftData.date || getTodayDate();
             this.#timeSignal.value = draftData.time || '12:00'; // Default to noon
             this.#paidBySignal.value = draftData.paidBy || '';

@@ -35,7 +35,8 @@ export class SettlementFormPage extends BasePage {
 
     getCurrencyButton(): Locator {
         // Currency selector button in the CurrencyAmountInput component
-        return this.getModal().locator('button').filter({ hasText: /USD|EUR|GBP|\$|€|£/ }).first();
+        // Look for the button that's part of the amount input (has aria-label for currency selection)
+        return this.getModal().locator('button[aria-label*="currency"], button[aria-label*="Currency"]');
     }
 
     getNoteInput(): Locator {
@@ -261,7 +262,17 @@ export class SettlementFormPage extends BasePage {
      * Simplified method to fill and submit settlement form
      * Used when the form is already open and ready
      */
-    async fillAndSubmitSettlement(amount: string, payeeName: string): Promise<void> {
+    async fillAndSubmitSettlement(amount: string, payeeName: string, currency: string): Promise<void> {
+        const modal = this.getModal();
+
+        // Set currency - MANDATORY, no defaults allowed
+        const currencyButton = this.getCurrencyButton();
+        await currencyButton.click();
+
+        // Select the target currency from dropdown
+        const currencyOption = modal.getByRole('option', { name: currency });
+        await currencyOption.click();
+
         const amountInput = this.getAmountInput();
         await this.fillNumberInput(amountInput, amount);
 
@@ -272,7 +283,6 @@ export class SettlementFormPage extends BasePage {
         await this.clickButton(submitButton, { buttonName: 'Record Payment' });
 
         // Wait for modal to close
-        const modal = this.getModal();
         await expect(modal).not.toBeVisible({ timeout: 5000 });
     }
 

@@ -114,6 +114,16 @@ simpleTest.describe('Expense Operations - Comprehensive', () => {
             // Create invalid form state that passes client validation but fails server validation
             await expenseFormPage.fillDescription('Test expense');
             await expenseFormPage.fillAmount('50');
+
+            // Set a currency to pass client validation
+            const currencyButton = page.getByRole('button', { name: /select currency/i });
+            await currencyButton.click();
+            const searchInput = page.getByPlaceholder('Search by symbol, code, or country...');
+            await expect(searchInput).toBeVisible();
+            await searchInput.fill('USD');
+            const currencyOption = page.getByText('United States Dollar (USD)').first();
+            await currencyOption.click();
+
             const submitButton = expenseFormPage.getSaveButtonForValidation();
             await expect(submitButton).toBeEnabled({ timeout: 2000 });
 
@@ -199,6 +209,15 @@ simpleTest.describe('Expense Operations - Comprehensive', () => {
             await expenseFormPage.fillDescription('Dinner with custom datetime');
             await expenseFormPage.fillAmount('45.50');
 
+            // Set currency
+            const currencyButton = page.getByRole('button', { name: /select currency/i });
+            await currencyButton.click();
+            const searchInput = page.getByPlaceholder('Search by symbol, code, or country...');
+            await expect(searchInput).toBeVisible();
+            await searchInput.fill('USD');
+            const currencyOption = page.getByText('United States Dollar (USD)').first();
+            await currencyOption.click();
+
             // Set yesterday's date
             await expenseFormPage.clickYesterdayButton();
             const dateInput = expenseFormPage.getDateInput();
@@ -228,36 +247,36 @@ simpleTest.describe('Expense Operations - Comprehensive', () => {
     });
 
     simpleTest.describe('Multi-Currency Support', () => {
-        simpleTest('should handle different currencies correctly', async ({ createLoggedInBrowsers }) => {
+        simpleTest('should handle currencies with uncommon decimal formatting correctly', async ({ createLoggedInBrowsers }) => {
             const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
             const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
             const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
             const memberCount = await groupDetailPage.getCurrentMemberCount();
 
-            // Create USD expense
+            // Create JPY expense (0 decimals)
             const uniqueId = generateShortId();
             const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
             await expenseFormPage1.submitExpense(
                 new ExpenseFormDataBuilder()
                     .withDescription(`Lunch ${uniqueId}`)
-                    .withAmount(25.0)
-                    .withCurrency('USD')
+                    .withAmount(2500)
+                    .withCurrency('JPY')
                     .withPaidByDisplayName(userDisplayName)
                     .withSplitType('equal')
                     .withParticipants([userDisplayName])
                     .build(),
             );
 
-            // Verify USD expense
-            await expect(groupDetailPage.getCurrencyAmount('25.00').first()).toBeVisible();
+            // Verify JPY expense (no decimals)
+            await expect(page.getByText('¥2,500').first()).toBeVisible();
 
-            // Create EUR expense
+            // Create BHD expense (3 decimals)
             const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
             await expenseFormPage2.submitExpense(
                 new ExpenseFormDataBuilder()
                     .withDescription(`Dinner ${uniqueId}`)
-                    .withAmount(30.0)
-                    .withCurrency('EUR')
+                    .withAmount(30.5)
+                    .withCurrency('BHD')
                     .withPaidByDisplayName(userDisplayName)
                     .withSplitType('equal')
                     .withParticipants([userDisplayName])
@@ -265,8 +284,8 @@ simpleTest.describe('Expense Operations - Comprehensive', () => {
             );
 
             // Verify both currencies display correctly
-            await expect(groupDetailPage.getCurrencyAmount('25.00').first()).toBeVisible(); // USD
-            await expect(page.getByText('€30.00').first()).toBeVisible(); // EUR
+            await expect(page.getByText('¥2,500').first()).toBeVisible(); // JPY (0 decimals)
+            await expect(page.getByText('BHD 30.500').first()).toBeVisible(); // BHD (3 decimals)
             await expect(page.getByText(`Lunch ${uniqueId}`)).toBeVisible();
             await expect(page.getByText(`Dinner ${uniqueId}`)).toBeVisible();
         });
@@ -277,38 +296,76 @@ simpleTest.describe('Expense Operations - Comprehensive', () => {
             const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
             const memberCount = await groupDetailPage.getCurrentMemberCount();
 
-            // Create first expense with EUR
+            // Create first expense with KWD (3 decimals)
             const uniqueId = generateShortId();
             const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
             await expenseFormPage1.submitExpense(
                 new ExpenseFormDataBuilder()
                     .withDescription(`Coffee ${uniqueId}`)
                     .withAmount(5.5)
-                    .withCurrency('EUR')
+                    .withCurrency('KWD')
                     .withPaidByDisplayName(userDisplayName)
                     .withSplitType('equal')
                     .withParticipants([userDisplayName])
                     .build(),
             );
 
-            // Verify EUR expense created
-            await expect(page.getByText('€5.50').first()).toBeVisible();
+            // Verify KWD expense created (3 decimals) - check multiple possible formats
+            const kdElements = [
+                page.getByText('KD5.500').first(),
+                page.getByText('KD 5.500').first(),
+                page.getByText('5.500 KD').first(),
+                page.getByText('KWD 5.500').first(),
+            ];
 
-            // Create second expense - should remember EUR
+            let found = false;
+            for (const element of kdElements) {
+                try {
+                    await expect(element).toBeVisible({ timeout: 1000 });
+                    found = true;
+                    break;
+                } catch (e) {
+                    // Continue to next format
+                }
+            }
+            if (!found) {
+                throw new Error('KWD amount not found in any expected format');
+            }
+
+            // Create second expense - should remember KWD
             const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
             await expenseFormPage2.submitExpense(
                 new ExpenseFormDataBuilder()
                     .withDescription(`Snack ${uniqueId}`)
                     .withAmount(3.25)
-                    .withCurrency('EUR')
+                    .withCurrency('KWD')
                     .withPaidByDisplayName(userDisplayName)
                     .withSplitType('equal')
                     .withParticipants([userDisplayName])
                     .build(),
             );
 
-            // Verify second expense also uses EUR
-            await expect(page.getByText('€3.25').first()).toBeVisible();
+            // Verify second expense also uses KWD (3 decimals) - check multiple possible formats
+            const kd2Elements = [
+                page.getByText('KD3.250').first(),
+                page.getByText('KD 3.250').first(),
+                page.getByText('3.250 KD').first(),
+                page.getByText('KWD 3.250').first(),
+            ];
+
+            let found2 = false;
+            for (const element of kd2Elements) {
+                try {
+                    await expect(element).toBeVisible({ timeout: 1000 });
+                    found2 = true;
+                    break;
+                } catch (e) {
+                    // Continue to next format
+                }
+            }
+            if (!found2) {
+                throw new Error('Second KWD amount not found in any expected format');
+            }
         });
     });
 

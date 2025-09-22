@@ -5,9 +5,6 @@ import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { Input, Button, Form } from '../ui';
 import type { CreateGroupRequest } from '@splitifyd/shared';
 
-const groupNameSignal = signal('');
-const groupDescriptionSignal = signal('');
-
 interface CreateGroupModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -19,6 +16,10 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
+
+    // Create fresh signals for each modal instance to avoid stale state
+    const [groupNameSignal] = useState(() => signal(''));
+    const [groupDescriptionSignal] = useState(() => signal(''));
 
     // Reset form when modal opens/closes
     useEffect(() => {
@@ -45,9 +46,9 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
         return () => document.removeEventListener('keydown', handleEscape);
     }, [isOpen, onClose]);
 
-    // Handle click outside modal to close
+    // Handle click outside modal to close - but not during submission
     const handleBackdropClick = (e: Event) => {
-        if (e.target === e.currentTarget) {
+        if (e.target === e.currentTarget && !isSubmitting) {
             onClose();
         }
     };

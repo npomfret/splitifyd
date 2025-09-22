@@ -30,7 +30,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     const [payerId, setPayerId] = useState('');
     const [payeeId, setPayeeId] = useState('');
     const [amount, setAmount] = useState('');
-    const [currency, setCurrency] = useState('USD');
+    const [currency, setCurrency] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [note, setNote] = useState('');
 
@@ -58,7 +58,27 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 setPayerId(currentUser.uid);
                 setPayeeId('');
                 setAmount('');
-                setCurrency('USD');
+                // Determine currency from existing group balances or recent expenses
+                const balances = enhancedGroupDetailStore.balances;
+                const expenses = enhancedGroupDetailStore.expenses;
+                let detectedCurrency = '';
+
+                // First try: get currency from existing debts involving current user
+                if (balances?.simplifiedDebts && balances.simplifiedDebts.length > 0) {
+                    const userDebt = balances.simplifiedDebts.find((debt: SimplifiedDebt) =>
+                        debt.from.userId === currentUser.uid || debt.to.userId === currentUser.uid
+                    );
+                    if (userDebt) {
+                        detectedCurrency = userDebt.currency;
+                    }
+                }
+                // Second try: get currency from most recent expense if no user debts
+                else if (expenses && expenses.length > 0) {
+                    detectedCurrency = expenses[0].currency;
+                }
+
+                // Force user to select currency - no defaults allowed
+                setCurrency(detectedCurrency); // Will be empty string if no currency can be detected
                 setDate(new Date().toISOString().split('T')[0]);
                 setNote('');
             }
@@ -100,16 +120,16 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             return t('settlementForm.validation.samePersonError');
         }
 
+        if (!currency || currency.trim() === '' || currency.length !== 3) {
+            return t('settlementForm.validation.currencyRequired');
+        }
+
         if (!amount || isNaN(amountNum) || amountNum <= 0) {
             return t('settlementForm.validation.validAmountRequired');
         }
 
         if (amountNum > 999999.99) {
             return t('settlementForm.validation.amountTooLarge');
-        }
-
-        if (!currency || currency.length !== 3) {
-            return t('settlementForm.validation.validCurrencyRequired');
         }
 
         if (!date) {

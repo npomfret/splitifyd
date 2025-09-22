@@ -199,11 +199,8 @@ export function CurrencySelector({
                                 <span className="font-medium" aria-label="Currency symbol">
                                     {currency.symbol}
                                 </span>
-                                <span className={isHighlighted ? 'text-white' : 'text-gray-900'} aria-label="Currency code">
-                                    {currency.acronym}
-                                </span>
-                                <span className={`text-xs ${isHighlighted ? 'text-indigo-100' : 'text-gray-500'}`} aria-label="Currency name">
-                                    {currency.name}
+                                <span className={isHighlighted ? 'text-white' : 'text-gray-900'} aria-label="Currency name and code">
+                                    {currency.name} ({currency.acronym})
                                 </span>
                             </div>
                         </button>
@@ -243,8 +240,7 @@ export function CurrencySelector({
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <span className="font-medium">{selectedCurrency.symbol}</span>
-                                <span>{selectedCurrency.acronym}</span>
-                                <span className="text-gray-500 text-sm">{selectedCurrency.name}</span>
+                                <span className="text-sm">{selectedCurrency.name} ({selectedCurrency.acronym})</span>
                             </div>
                             <svg
                                 className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}

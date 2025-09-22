@@ -111,9 +111,11 @@ export function DashboardPage() {
             <CreateGroupModal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
-                onSuccess={(groupId) => {
+                onSuccess={async (groupId) => {
+                    // Wait for navigation to complete before closing modal
+                    // This eliminates race conditions deterministically
+                    await navigationService.goToGroup(groupId);
                     setIsCreateModalOpen(false);
-                    navigationService.goToGroup(groupId);
                 }}
             />
 

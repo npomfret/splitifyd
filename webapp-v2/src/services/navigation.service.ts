@@ -24,8 +24,9 @@ class NavigationService {
 
     /**
      * Navigate to a specific route with optional query parameters
+     * Returns a Promise that resolves when navigation is complete
      */
-    navigateTo(path: string, options: { replace?: boolean; queryParams?: Record<string, string> } = {}): void {
+    navigateTo(path: string, options: { replace?: boolean; queryParams?: Record<string, string> } = {}): Promise<void> {
         const { replace = false, queryParams } = options;
 
         // Build full URL with query parameters
@@ -42,115 +43,132 @@ class NavigationService {
             method: replace ? 'replace' : 'push',
         });
 
-        // Perform navigation
-        route(fullPath, replace);
+        // Perform navigation and return Promise that resolves when complete
+        return new Promise((resolve) => {
+            // Perform the navigation
+            route(fullPath, replace);
+
+            // Wait for the URL to actually change before resolving
+            const checkNavigation = () => {
+                if (window.location.pathname === path ||
+                    window.location.href.split('?')[0].endsWith(path)) {
+                    resolve();
+                } else {
+                    // Check again on next tick
+                    setTimeout(checkNavigation, 0);
+                }
+            };
+
+            // Start checking on next tick to allow route() to complete
+            setTimeout(checkNavigation, 0);
+        });
     }
 
     /**
      * Navigate to home/landing page
      */
-    goHome(): void {
-        this.navigateTo(ROUTES.HOME);
+    goHome(): Promise<void> {
+        return this.navigateTo(ROUTES.HOME);
     }
 
     /**
      * Navigate to dashboard
      */
-    goToDashboard(): void {
-        this.navigateTo(ROUTES.DASHBOARD);
+    goToDashboard(): Promise<void> {
+        return this.navigateTo(ROUTES.DASHBOARD);
     }
 
     /**
      * Navigate to login with optional return URL
      */
-    goToLogin(returnUrl?: string): void {
+    goToLogin(returnUrl?: string): Promise<void> {
         if (returnUrl) {
-            this.navigateTo(routes.loginWithReturnUrl(returnUrl));
+            return this.navigateTo(routes.loginWithReturnUrl(returnUrl));
         } else {
-            this.navigateTo(ROUTES.LOGIN);
+            return this.navigateTo(ROUTES.LOGIN);
         }
     }
 
     /**
      * Navigate to register page
      */
-    goToRegister(): void {
-        this.navigateTo(ROUTES.REGISTER);
+    goToRegister(): Promise<void> {
+        return this.navigateTo(ROUTES.REGISTER);
     }
 
     /**
      * Navigate to reset password page
      */
-    goToResetPassword(): void {
-        this.navigateTo(ROUTES.RESET_PASSWORD);
+    goToResetPassword(): Promise<void> {
+        return this.navigateTo(ROUTES.RESET_PASSWORD);
     }
 
     /**
      * Navigate to settings page
      */
-    goToSettings(): void {
-        this.navigateTo(ROUTES.SETTINGS);
+    goToSettings(): Promise<void> {
+        return this.navigateTo(ROUTES.SETTINGS);
     }
 
     /**
      * Navigate to group detail page
      */
-    goToGroup(groupId: string): void {
-        this.navigateTo(routes.groupDetail(groupId));
+    goToGroup(groupId: string): Promise<void> {
+        return this.navigateTo(routes.groupDetail(groupId));
     }
 
     /**
      * Navigate to add expense page
      */
-    goToAddExpense(groupId: string): void {
-        this.navigateTo(routes.addExpense(groupId));
+    goToAddExpense(groupId: string): Promise<void> {
+        return this.navigateTo(routes.addExpense(groupId));
     }
 
     /**
      * Navigate to edit expense page
      */
-    goToEditExpense(groupId: string, expenseId: string): void {
-        this.navigateTo(routes.editExpense(groupId, expenseId));
+    goToEditExpense(groupId: string, expenseId: string): Promise<void> {
+        return this.navigateTo(routes.editExpense(groupId, expenseId));
     }
 
     /**
      * Navigate to copy expense page
      */
-    goToCopyExpense(groupId: string, sourceId: string): void {
-        this.navigateTo(routes.copyExpense(groupId, sourceId));
+    goToCopyExpense(groupId: string, sourceId: string): Promise<void> {
+        return this.navigateTo(routes.copyExpense(groupId, sourceId));
     }
 
     /**
      * Navigate to expense detail page
      */
-    goToExpenseDetail(groupId: string, expenseId: string): void {
-        this.navigateTo(routes.expenseDetail(groupId, expenseId));
+    goToExpenseDetail(groupId: string, expenseId: string): Promise<void> {
+        return this.navigateTo(routes.expenseDetail(groupId, expenseId));
     }
 
     /**
      * Navigate to static pages
      */
-    goToPricing(): void {
-        this.navigateTo(ROUTES.PRICING);
+    goToPricing(): Promise<void> {
+        return this.navigateTo(ROUTES.PRICING);
     }
 
-    goToTerms(): void {
-        this.navigateTo(ROUTES.TERMS_OF_SERVICE);
+    goToTerms(): Promise<void> {
+        return this.navigateTo(ROUTES.TERMS_OF_SERVICE);
     }
 
-    goToPrivacyPolicy(): void {
-        this.navigateTo(ROUTES.PRIVACY_POLICY);
+    goToPrivacyPolicy(): Promise<void> {
+        return this.navigateTo(ROUTES.PRIVACY_POLICY);
     }
 
-    goToCookiePolicy(): void {
-        this.navigateTo(ROUTES.COOKIE_POLICY);
+    goToCookiePolicy(): Promise<void> {
+        return this.navigateTo(ROUTES.COOKIE_POLICY);
     }
 
     /**
      * Navigate to 404 page
      */
-    goToNotFound(): void {
-        this.navigateTo(ROUTES.NOT_FOUND);
+    goToNotFound(): Promise<void> {
+        return this.navigateTo(ROUTES.NOT_FOUND);
     }
 
     /**

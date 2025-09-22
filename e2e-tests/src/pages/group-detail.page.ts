@@ -560,7 +560,7 @@ export class GroupDetailPage extends BasePage {
      */
     async waitForExpenseDescription(description: string, timeout: number = 5000): Promise<void> {
         const descriptionLocator = this.getExpenseByDescription(description);
-        await expect(descriptionLocator).toBeVisible({ timeout });
+        await expect(descriptionLocator).toBeVisible({timeout});
     }
 
     getExpenseAmount(amount: string) {
@@ -1095,6 +1095,7 @@ export class GroupDetailPage extends BasePage {
             // Check each relationship to find one with the matching amount
             let foundMatchingAmount = false;
             let actualAmounts: string[] = [];
+            let debugInfo: Array<{ amount: string, trimmed: string, length: number, charCodes: number[] }> = [];
 
             for (let i = 0; i < count; i++) {
                 const relationshipSpan = debtRelationshipSpans.nth(i);
@@ -1104,8 +1105,19 @@ export class GroupDetailPage extends BasePage {
 
                 const actualAmount = await amountSpan.textContent().catch(() => null);
                 if (actualAmount) {
+                    // Normalize spaces - replace non-breaking spaces (char 160) with regular spaces (char 32)
+                    const normalizedActual = actualAmount.trim().replace(/\u00A0/g, ' ');
+                    const normalizedExpected = expectedAmount.trim().replace(/\u00A0/g, ' ');
+
                     actualAmounts.push(actualAmount);
-                    if (actualAmount === expectedAmount) {
+                    debugInfo.push({
+                        amount: actualAmount,
+                        trimmed: normalizedActual,
+                        length: normalizedActual.length,
+                        charCodes: Array.from(normalizedActual).map(c => c.charCodeAt(0))
+                    });
+
+                    if (normalizedActual === normalizedExpected) {
                         foundMatchingAmount = true;
                         break;
                     }
@@ -1113,10 +1125,20 @@ export class GroupDetailPage extends BasePage {
             }
 
             if (!foundMatchingAmount) {
+                const expectedTrimmed = expectedAmount.trim().replace(/\u00A0/g, ' ');
+                const expectedDebugInfo = {
+                    amount: expectedAmount,
+                    trimmed: expectedTrimmed,
+                    length: expectedTrimmed.length,
+                    charCodes: Array.from(expectedTrimmed).map(c => c.charCodeAt(0))
+                };
+
                 throw new Error(
                     `Debt amount mismatch for ${debtorName} → ${creditorName}\n` +
-                    `Expected: ${expectedAmount}\n` +
-                    `Found amounts: ${actualAmounts.join(', ')}`
+                    `Expected: "${expectedAmount}" (trimmed: "${expectedTrimmed}", length: ${expectedDebugInfo.length}, chars: [${expectedDebugInfo.charCodes.join(',')}])\n` +
+                    `Found amounts: ${actualAmounts.map((amt, idx) =>
+                        `"${amt}" (trimmed: "${debugInfo[idx].trimmed}", length: ${debugInfo[idx].length}, chars: [${debugInfo[idx].charCodes.join(',')}])`
+                    ).join(', ')}`
                 );
             }
 

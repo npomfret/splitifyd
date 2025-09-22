@@ -375,56 +375,16 @@ export class ExpenseFormPage extends BasePage {
         // Fill amount
         await this.fillAmount(expense.amount.toString());
 
-        // Handle currency selection
-        // The currency selector is a button that shows the currency symbol
-        // Get the currency button
+        // Set currency - always set it explicitly
         const currencyButton = this.page.getByRole('button', { name: /select currency/i });
-
-        // Get the current currency from the button text
-        const currentButtonText = await currencyButton.textContent();
-
-        // Map common currency codes to their symbols
-        const currencySymbols: Record<string, string> = {
-            USD: '$',
-            EUR: '€',
-            GBP: '£',
-            JPY: '¥',
-            CAD: 'C$',
-            AUD: 'A$',
-        };
-
-        const expectedSymbol = currencySymbols[expense.currency] || expense.currency;
-
-        // Only change currency if current selection doesn't match what we need
-        // Check both symbol and code since button might show either
-        if (!currentButtonText?.includes(expectedSymbol) && !currentButtonText?.includes(expense.currency)) {
-            // Click the currency button to open the dropdown
-            await currencyButton.click();
-
-            // Wait for the dropdown to open
-            const searchInput = this.page.getByPlaceholder('Search by symbol, code, or country...');
-            await expect(searchInput).toBeVisible();
-
-            // Type the currency code to filter the list
-            await searchInput.fill(expense.currency);
-
-            // Wait a moment for the search to filter results
-            // Look for a button that contains the currency code
-            // The format is "symbol CODE name" e.g., "€ EUR Euro"
-            const currencyOption = this.page
-                .locator('button')
-                .filter({
-                    hasText: expense.currency, // Just look for the currency code anywhere in the text
-                })
-                .first();
-
-            // Wait for it to be visible and click it
-            await expect(currencyOption).toBeVisible({ timeout: 3000 });
-            await currencyOption.click();
-
-            // Wait for dropdown to close
-            await expect(searchInput).not.toBeVisible();
-        }
+        await currencyButton.click();
+        const searchInput = this.page.getByPlaceholder('Search by symbol, code, or country...');
+        await expect(searchInput).toBeVisible();
+        await searchInput.fill(expense.currency);
+        const currencyOption = this.page.getByText(expense.currency).first();
+        await expect(currencyOption).toBeVisible({ timeout: 3000 });
+        await currencyOption.click();
+        await expect(searchInput).not.toBeVisible();
 
         // Select who paid - handle both UID and display name
         await this.selectPayer(expense.paidByDisplayName);
