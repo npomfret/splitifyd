@@ -15,23 +15,6 @@ import {SettlementData} from '../../pages/settlement-form.page';
  * - Partial and full settlement flows
  */
 
-// Helper functions to reduce test duplication
-const createBalanceTestData = {
-    singleExpense: { amount: 100, currency: 'JPY', description: 'Test Expense' },
-    partialSettlement: { amount: 60, currency: 'JPY', note: 'Partial payment' },
-    fullSettlement: { amount: 40, currency: 'JPY', note: 'Full settlement' }
-};
-
-const verifyBalanceSync = async (pages: any[], expectedDebt: { debtor: string; creditor: string; amount: string } | null = null) => {
-    // Verify debt relationship on all pages - each page has built-in polling/waiting
-    for (const page of pages) {
-        if (expectedDebt) {
-            await page.verifyDebtRelationship(expectedDebt.debtor, expectedDebt.creditor, expectedDebt.amount);
-        } else {
-            await page.waitForSettledUpMessage();
-        }
-    }
-};
 
 simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
 
@@ -43,24 +26,24 @@ simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
-        const pages = [];
 
         // Scenario 1: Empty group -> ALWAYS settled up
         const [groupDetailPage1, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
-        pages.push(groupDetailPage1, groupDetailPage2);
-        await verifyBalanceSync(pages);
+        await groupDetailPage1.waitForSettledUpMessage();
+        await groupDetailPage2.waitForSettledUpMessage();
 
         // Scenario 2: Single expense creates debt
         await groupDetailPage1.addExpense({
-            description: createBalanceTestData.singleExpense.description,
-            amount: createBalanceTestData.singleExpense.amount,
+            description: 'Test Expense',
+            amount: 100,
             paidByDisplayName: user1DisplayName,
-            currency: createBalanceTestData.singleExpense.currency,
+            currency: 'JPY',
             splitType: 'equal',
         }, 2);
 
-        await groupDetailPage1.waitForExpense(createBalanceTestData.singleExpense.description);
-        await verifyBalanceSync(pages, { debtor: user2DisplayName, creditor: user1DisplayName, amount: '\u00a550' });
+        await groupDetailPage1.waitForExpense('Test Expense');
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a550');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a550');
 
         // Scenario 3: Equal expenses -> settled up
         await groupDetailPage2.addExpense({
@@ -72,7 +55,8 @@ simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
         }, 2);
 
         await groupDetailPage2.waitForExpense('User2 Payment');
-        await verifyBalanceSync(pages);
+        await groupDetailPage1.waitForSettledUpMessage();
+        await groupDetailPage2.waitForSettledUpMessage();
 
         // Scenario 4: New debt + partial settlement
         await groupDetailPage1.addExpense({
@@ -84,7 +68,8 @@ simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
         }, 2);
 
         await groupDetailPage1.waitForExpense('Final Test Payment');
-        await verifyBalanceSync(pages, { debtor: user2DisplayName, creditor: user1DisplayName, amount: '\u00a540' });
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a540');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a540');
 
         // Scenario 5: Full settlement clears debt -> settled up
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
@@ -96,7 +81,8 @@ simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
             note: 'Full settlement test',
         }, 2);
 
-        await verifyBalanceSync(pages);
+        await groupDetailPage1.waitForSettledUpMessage();
+        await groupDetailPage2.waitForSettledUpMessage();
     });
 
     simpleTest('should calculate debt correctly with different currencies and precision', async ({ createLoggedInBrowsers }) => {
@@ -119,8 +105,8 @@ simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
             splitType: 'equal',
         }, 2);
 
-        await verifyBalanceSync([groupDetailPage, groupDetailPage2],
-            { debtor: user2DisplayName, creditor: user1DisplayName, amount: '\u20ac50.00' });
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u20ac50.00');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u20ac50.00');
 
         // Test 2: JPY currency with no decimals + rounding
         await groupDetailPage.addExpense({
@@ -176,8 +162,8 @@ simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
         });
 
         // Net calculation: User1 owes \u00a5150, User2 owes \u00a5200 -> User2 owes User1 \u00a5100
-        await verifyBalanceSync([groupDetailPage, groupDetailPage2],
-            { debtor: user2DisplayName, creditor: user1DisplayName, amount: '\u00a5100' });
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a5100');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a5100');
     });
 
 
@@ -186,7 +172,7 @@ simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
 simpleTest.describe('Settlement CRUD Operations', () => {
     simpleTest('should create settlements with comprehensive display and permissions', async ({ createLoggedInBrowsers }) => {
         const [
-            { page: user1Page, dashboardPage: user1DashboardPage },
+            { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage }
         ] = await createLoggedInBrowsers(2);
 
@@ -232,7 +218,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
 
     simpleTest('should edit settlements with comprehensive validation and form handling', async ({ createLoggedInBrowsers }) => {
         const [
-            { page: user1Page, dashboardPage: user1DashboardPage },
+            { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage }
         ] = await createLoggedInBrowsers(2);
 
@@ -301,7 +287,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
 
     simpleTest('should delete settlements with confirmation and cancellation flows', async ({ createLoggedInBrowsers }) => {
         const [
-            { page: user1Page, dashboardPage: user1DashboardPage },
+            { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage }
         ] = await createLoggedInBrowsers(2);
 
@@ -358,7 +344,6 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
-        const groupId = groupDetailPage.inferGroupId();
 
         // Create expense: User1 pays \u00a5200 -> User2 owes \u00a5100
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
@@ -374,8 +359,8 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         // Verify expense appears and initial debt
         await groupDetailPage.verifyExpenseVisible('Test Expense for Settlement');
         await groupDetailPage2.verifyExpenseVisible('Test Expense for Settlement');
-        const pages = [groupDetailPage, groupDetailPage2];
-        await verifyBalanceSync(pages, { debtor: user2DisplayName, creditor: user1DisplayName, amount: '\u00a5100' });
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a5100');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a5100');
 
         // Record partial settlement of \u00a560
         const settlementFormPage = await groupDetailPage.clickSettleUpButton(2);
@@ -388,7 +373,8 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         }, 2);
 
         // Verify updated debt (\u00a5100 - \u00a560 = \u00a540 remaining)
-        await verifyBalanceSync(pages, { debtor: user2DisplayName, creditor: user1DisplayName, amount: '\u00a540' });
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a540');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a540');
     });
 });
 
