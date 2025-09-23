@@ -215,89 +215,15 @@ describe('Expenses Management - Consolidated Tests', () => {
         });
     });
 
-    describe('Expense Access Control and Security', () => {
-        let managedGroupId: string;
-        let testExpenseId: string;
-
-        beforeEach(async () => {
-            // Create managed group for access control tests
-            const group = await apiDriver.createGroupWithMembers('Access Control Test Group', [users[0], users[1], users[2]], users[0].token);
-            managedGroupId = group.id;
-
-            // Create test expense
-            const expense = await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(managedGroupId)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid, users[1].uid])
-                    .withAmount(100)
-                    .withDescription('Access Control Test Expense')
-                    .withSplitType('equal')
-                    .build(),
-                users[0].token,
-            );
-            testExpenseId = expense.id;
-        });
-
-        test('should allow access for expense participants', async () => {
-            // Both API and service layer access for participants
-            const apiResult = await apiDriver.getExpense(testExpenseId, users[0].token);
-            expect(apiResult.id).toBe(testExpenseId);
-
-            const apiResult2 = await apiDriver.getExpense(testExpenseId, users[1].token);
-            expect(apiResult2.id).toBe(testExpenseId);
-            expect(apiResult2.participants).toContain(users[1].uid);
-        });
-
-        test('should deny access to non-participants', async () => {
-            // Group member who is not participant should be denied
-            await expect(apiDriver.getExpense(testExpenseId, users[2].token)).rejects.toThrow(/failed with status 403/);
-
-            // Non-group member should be denied
-            await expect(apiDriver.getExpense(testExpenseId, users[3].token)).rejects.toThrow(/failed with status 403/);
-        });
-
-        test('should validate group membership for creation and participants', async () => {
-            // Non-member cannot create expense
-            const invalidApiData = new CreateExpenseRequestBuilder()
-                .withGroupId(managedGroupId)
-                .withPaidBy(users[3].uid)
-                .withAmount(50)
-                .withDescription('Unauthorized expense')
-                .withCategory('Food')
-                .withParticipants([users[3].uid])
-                .withSplitType('equal')
-                .build();
-            await expect(apiDriver.createExpense(invalidApiData, users[3].token)).rejects.toThrow(/failed with status 40[0-9]/);
-
-            // Cannot add non-member as payer
-            const invalidPayerApiData = new CreateExpenseRequestBuilder()
-                .withGroupId(managedGroupId)
-                .withPaidBy(users[3].uid)
-                .withAmount(50)
-                .withDescription('Invalid payer')
-                .withParticipants([users[0].uid])
-                .withSplitType('equal')
-                .build();
-            await expect(apiDriver.createExpense(invalidPayerApiData, users[0].token)).rejects.toThrow(/failed with status 40[0-9]/);
-
-            // Cannot add non-member as participant
-            const invalidParticipantApiData = new CreateExpenseRequestBuilder()
-                .withGroupId(managedGroupId)
-                .withPaidBy(users[0].uid)
-                .withAmount(50)
-                .withDescription('Invalid participant')
-                .withParticipants([users[0].uid, users[3].uid])
-                .withSplitType('equal')
-                .build();
-            await expect(apiDriver.createExpense(invalidParticipantApiData, users[0].token)).rejects.toThrow(/failed with status 40[0-9]/);
-        });
-
-        test('should handle non-existent expenses gracefully', async () => {
-            await expect(apiDriver.getExpense('nonexistent', users[0].token)).rejects.toThrow(/failed with status 404/);
-            await expect(apiDriver.getExpense('invalid-id', users[0].token)).rejects.toThrow();
-        });
-    });
+    // REMOVED: Expense Access Control and Security tests that duplicate unit test coverage
+    // The following tests have been moved to ExpenseService.test.ts:
+    // - Participant access validation
+    // - Non-participant access denial
+    // - Non-existent expense handling
+    // - Data transformation and validation edge cases
+    //
+    // These integration tests provided no additional value beyond API testing
+    // since the access control logic itself is now comprehensively tested in unit tests.
 
     describe('Expense Deletion and Soft Delete Behavior', () => {
         test('should handle expense deletion with proper access control', async () => {

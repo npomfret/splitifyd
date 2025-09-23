@@ -87,57 +87,15 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             testGroup = await TestGroupManager.getOrCreateGroup(settlementUsers, { memberCount: 2, fresh: true });
         });
 
-        describe('Settlement Creation', () => {
-            test('should create a new settlement', async () => {
-                const settlementData = new SettlementBuilder()
-                    .withGroupId(testGroup.id)
-                    .withPayer(settlementUsers[0].uid)
-                    .withPayee(settlementUsers[1].uid)
-                    .withAmount(75.5)
-                    .withNote('Test settlement payment')
-                    .build();
-
-                const createdSettlement = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
-
-                expect(createdSettlement.id).toBeDefined();
-                expect(createdSettlement.groupId).toBe(testGroup.id);
-                expect(createdSettlement.amount).toBe(75.5);
-                expect(createdSettlement.note).toBe('Test settlement payment');
-            });
-
-            test('should create a settlement without optional fields', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).withAmount(25.0).build();
-
-                const createdSettlement = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
-
-                expect(createdSettlement.id).toBeDefined();
-                expect(createdSettlement.amount).toBe(25.0);
-            });
-
-            test('should reject settlement with invalid group', async () => {
-                const settlementData = new SettlementBuilder().withGroupId('invalid-group-id').withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
-
-                await expect(apiDriver.createSettlement(settlementData, settlementUsers[0].token)).rejects.toThrow(/status 404.*GROUP_NOT_FOUND/);
-            });
-
-            test('should reject settlement between non-group-members', async () => {
-                const outsiderUser = users[2]; // Get a third user from pool
-
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(outsiderUser.uid).build();
-
-                await expect(apiDriver.createSettlement(settlementData, settlementUsers[0].token)).rejects.toThrow(/status 400.*USER_NOT_IN_GROUP/);
-            });
-
-            // REMOVED: Redundant validation tests - can be unit tested with SettlementService
-            // test('should validate required fields', async () => {
-            //     // Basic validation logic can be tested in unit tests with stubs
-            // });
-
-            // REMOVED: Redundant validation tests - can be unit tested with SettlementService
-            // test('should validate positive amounts', async () => {
-            //     // Amount validation logic can be tested in unit tests with stubs
-            // });
-        });
+        // REMOVED: Settlement Creation tests that duplicate unit test coverage
+        // The following tests have been moved to SettlementService.test.ts:
+        // - Settlement amount validation (positive amounts, max/min values)
+        // - Optional field handling (note field)
+        // - Group membership validation
+        // - Invalid group handling
+        //
+        // These integration tests provided no additional value beyond API testing
+        // since the validation logic itself is now comprehensively tested in unit tests.
 
         describe('Settlement Retrieval', () => {
             test('should retrieve a settlement by ID', async () => {

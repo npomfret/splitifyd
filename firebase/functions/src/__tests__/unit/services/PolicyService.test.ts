@@ -599,4 +599,255 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             );
         });
     });
+
+    describe('Version Management Scenarios', () => {
+        it('should handle multiple version creation and management', async () => {
+            // Arrange
+            const policyId = 'test-policy';
+            const policyName = 'Multi-Version Policy';
+            const version1Hash = 'hash-v1';
+
+            // Initially create policy with version 1
+            const mockPolicyV1 = createMockPolicyDocument({
+                id: policyId,
+                policyName,
+                currentVersionHash: version1Hash,
+                versions: {
+                    [version1Hash]: {
+                        text: 'Version 1 content',
+                        createdAt: Timestamp.now(),
+                    },
+                },
+            });
+
+            stubReader.setDocument('policies', policyId, mockPolicyV1);
+            stubReader.setRawDocument(policyId, mockPolicyV1);
+            stubWriter.setWriteResult(policyId, true);
+
+            // Act - Create version 2
+            const result2 = await policyService.updatePolicy(policyId, 'Version 2 content', false);
+            expect(result2.versionHash).toBeDefined();
+
+            // Act - Create version 3
+            const result3 = await policyService.updatePolicy(policyId, 'Version 3 content', false);
+            expect(result3.versionHash).toBeDefined();
+
+            // Assert - Verify that different versions have different hashes
+            expect(result2.versionHash).not.toBe(version1Hash);
+            expect(result3.versionHash).not.toBe(version1Hash);
+            expect(result2.versionHash).not.toBe(result3.versionHash);
+        });
+
+        it('should prevent deletion of only remaining version', async () => {
+            // Arrange
+            const policyId = 'test-policy';
+            const onlyVersionHash = 'only-version';
+            const mockPolicy = createMockPolicyDocument({
+                id: policyId,
+                currentVersionHash: onlyVersionHash,
+                versions: {
+                    [onlyVersionHash]: {
+                        text: 'Only version content',
+                        createdAt: Timestamp.now(),
+                    },
+                },
+            });
+
+            stubReader.setRawDocument(policyId, mockPolicy);
+            stubReader.setDocument('policies', policyId, mockPolicy);
+
+            // Act & Assert
+            await expect(policyService.deletePolicyVersion(policyId, onlyVersionHash)).rejects.toThrow(
+                expect.objectContaining({
+                    statusCode: HTTP_STATUS.BAD_REQUEST,
+                    code: 'CANNOT_DELETE_CURRENT',
+                }),
+            );
+        });
+
+        it('should handle version retrieval edge cases', async () => {
+            // Arrange
+            const policyId = 'test-policy';
+            const versionHash = 'test-version';
+            const mockPolicy = createMockPolicyDocument({
+                id: policyId,
+                versions: {
+                    [versionHash]: {
+                        text: 'Test version content',
+                        createdAt: Timestamp.now(),
+                    },
+                },
+            });
+
+            stubReader.setDocument('policies', policyId, mockPolicy);
+
+            // Act
+            const version = await policyService.getPolicyVersion(policyId, versionHash);
+
+            // Assert
+            expect(version.versionHash).toBe(versionHash);
+            expect(version.text).toBe('Test version content');
+            expect(version.createdAt).toBeDefined();
+        });
+    });
+
+    describe('Concurrent Operations Protection', () => {
+        it('should handle concurrent version creation attempts', async () => {
+            // Arrange
+            const policyId = 'test-policy';
+            const policyName = 'Concurrent Test Policy';
+            const baseVersionHash = 'base-version';
+
+            const mockPolicy = createMockPolicyDocument({
+                id: policyId,
+                policyName,
+                currentVersionHash: baseVersionHash,
+                versions: {
+                    [baseVersionHash]: {
+                        text: 'Base content',
+                        createdAt: Timestamp.now(),
+                    },
+                },
+            });
+
+            stubReader.setDocument('policies', policyId, mockPolicy);
+            stubReader.setRawDocument(policyId, mockPolicy);
+            stubWriter.setWriteResult(policyId, true);
+
+            // Act - Simulate concurrent version creation
+            const promise1 = policyService.updatePolicy(policyId, 'Concurrent content 1', false);
+            const promise2 = policyService.updatePolicy(policyId, 'Concurrent content 2', false);
+
+            // Assert - Both should succeed (in unit test context)
+            const [result1, result2] = await Promise.all([promise1, promise2]);
+
+            expect(result1.versionHash).toBeDefined();
+            expect(result2.versionHash).toBeDefined();
+            expect(result1.versionHash).not.toBe(result2.versionHash);
+        });
+
+        it('should handle concurrent policy publication attempts', async () => {
+            // Arrange
+            const policyId = 'test-policy';
+            const currentVersion = 'current-version';
+            const newVersion = 'new-version';
+
+            const mockPolicy = createMockPolicyDocument({
+                id: policyId,
+                currentVersionHash: currentVersion,
+                versions: {
+                    [currentVersion]: {
+                        text: 'Current content',
+                        createdAt: Timestamp.now(),
+                    },
+                    [newVersion]: {
+                        text: 'New content',
+                        createdAt: Timestamp.now(),
+                    },
+                },
+            });
+
+            stubReader.setDocument('policies', policyId, mockPolicy);
+            stubReader.setRawDocument(policyId, mockPolicy);
+            stubWriter.setWriteResult(policyId, true);
+
+            // Act
+            const result = await policyService.publishPolicy(policyId, newVersion);
+
+            // Assert
+            expect(result.currentVersionHash).toBe(newVersion);
+        });
+    });
+
+    describe('Policy Lifecycle Management', () => {
+        it('should handle complete policy lifecycle from creation to deletion', async () => {
+            // Arrange
+            const policyId = 'lifecycle-policy';
+            const policyName = 'Lifecycle Test Policy';
+            const initialContent = 'Initial content';
+            const updatedContent = 'Updated content';
+
+            // Mock policy creation
+            stubWriter.setWriteResult(policyId, true);
+
+            // Act - Create policy
+            const createResult = await policyService.createPolicy(policyName, initialContent);
+            expect(createResult.id).toBeDefined();
+            expect(createResult.currentVersionHash).toBeDefined();
+
+            // Mock policy with initial version for updatePolicy call
+            const initialVersionHash = createResult.currentVersionHash;
+            const mockPolicyInitial = createMockPolicyDocument({
+                id: policyId,
+                policyName,
+                currentVersionHash: initialVersionHash,
+                versions: {
+                    [initialVersionHash]: {
+                        text: initialContent,
+                        createdAt: Timestamp.now(),
+                    },
+                },
+            });
+
+            stubReader.setDocument('policies', policyId, mockPolicyInitial);
+            stubReader.setRawDocument(policyId, mockPolicyInitial);
+
+            // Act - Update policy
+            const updateResult = await policyService.updatePolicy(policyId, updatedContent, false);
+            expect(updateResult.versionHash).toBeDefined();
+            expect(updateResult.versionHash).not.toBe(initialVersionHash);
+
+            // Mock policy with both versions for publishPolicy call
+            const mockPolicyWithBothVersions = createMockPolicyDocument({
+                id: policyId,
+                policyName,
+                currentVersionHash: initialVersionHash,
+                versions: {
+                    [initialVersionHash]: {
+                        text: initialContent,
+                        createdAt: Timestamp.now(),
+                    },
+                    [updateResult.versionHash]: {
+                        text: updatedContent,
+                        createdAt: Timestamp.now(),
+                    },
+                },
+            });
+
+            stubReader.setDocument('policies', policyId, mockPolicyWithBothVersions);
+            stubReader.setRawDocument(policyId, mockPolicyWithBothVersions);
+
+            // Act - Publish new version
+            const publishResult = await policyService.publishPolicy(policyId, updateResult.versionHash);
+            expect(publishResult.currentVersionHash).toBe(updateResult.versionHash);
+
+            // Mock policy with both versions, new one current for deletion
+            const mockPolicyUpdated = createMockPolicyDocument({
+                id: policyId,
+                policyName,
+                currentVersionHash: updateResult.versionHash,
+                versions: {
+                    [initialVersionHash]: {
+                        text: initialContent,
+                        createdAt: Timestamp.now(),
+                    },
+                    [updateResult.versionHash]: {
+                        text: updatedContent,
+                        createdAt: Timestamp.now(),
+                    },
+                },
+            });
+
+            stubReader.setDocument('policies', policyId, mockPolicyUpdated);
+            stubReader.setRawDocument(policyId, mockPolicyUpdated);
+
+            // Act - Delete old version
+            await expect(policyService.deletePolicyVersion(policyId, initialVersionHash)).resolves.not.toThrow();
+
+            // Verify current version is still accessible
+            const currentPolicy = await policyService.getCurrentPolicy(policyId);
+            expect(currentPolicy.currentVersionHash).toBe(updateResult.versionHash);
+            expect(currentPolicy.text).toBe(updatedContent);
+        });
+    });
 });
