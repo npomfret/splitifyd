@@ -2,16 +2,15 @@ import {expect, simpleTest} from '../../fixtures';
 import {SettlementData} from '../../pages/settlement-form.page';
 
 /**
- * Settlement-Focused Operations E2E Tests
+ * Settlement CRUD Operations E2E Tests
  *
- * CONSOLIDATION UPDATE: Removed overlapping expense creation and balance calculation
- * tests that were moved to expense-and-balance-lifecycle.e2e.test.ts.
+ * This file focuses exclusively on settlement-specific CRUD operations:
+ * - Settlement creation with comprehensive display and permissions
+ * - Settlement editing with form validation
+ * - Settlement deletion with confirmation flows
  *
- * This file now focuses exclusively on settlement-specific operations:
- * - Settlement CRUD operations (create, read, update, delete)
- * - Settlement form validation and UI behavior
- * - Multi-user settlement scenarios
- * - Settlement-specific real-time updates
+ * For settlement integration with balance calculations and multi-user scenarios,
+ * see expense-and-balance-lifecycle.e2e.test.ts
  */
 
 simpleTest.describe('Settlement CRUD Operations', () => {
@@ -177,107 +176,5 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         await groupDetailPage.deleteSettlement(settlementData2.note, false); // Cancel deletion
         await groupDetailPage.openHistoryIfClosed();
         await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
-    });
-
-});
-
-simpleTest.describe('Settlement Real-time Updates', () => {
-    simpleTest('should handle comprehensive multi-user settlement scenarios with real-time updates', async ({ createLoggedInBrowsers }) => {
-        const memberCount = 3;
-
-        const [
-            { dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage },
-            { dashboardPage: user3DashboardPage }
-        ] = await createLoggedInBrowsers(memberCount);
-
-        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
-        const user3DisplayName = await user3DashboardPage.header.getCurrentUserDisplayName();
-
-        const [groupDetailPage1, groupDetailPage2, groupDetailPage3] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage, user3DashboardPage);
-        const groupId = groupDetailPage1.inferGroupId();
-        const pages = [groupDetailPage1, groupDetailPage2, groupDetailPage3];
-
-        // Create expense for ¥120, split 3 ways (¥40 each)
-        // Result: User2 owes ¥40, User3 owes ¥40 to User1
-        const expenseDescription = 'Group dinner expense';
-        await groupDetailPage1.addExpense({
-            description: expenseDescription,
-            amount: 120,
-            paidByDisplayName: user1DisplayName,
-            currency: 'JPY',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName, user3DisplayName]
-        }, memberCount);
-
-        // Verify initial state across all pages
-        for (const page of pages) {
-            await page.waitForExpense(expenseDescription);
-            await page.waitForPage(groupId, memberCount);
-            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
-            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
-        }
-
-        // PHASE 1: User2 makes partial settlement of ¥30 (leaving ¥10 debt)
-        const settlementNote1 = 'Partial payment from user2';
-        await groupDetailPage1.recordSettlement({
-            payerName: user2DisplayName,
-            payeeName: user1DisplayName,
-            amount: '30',
-            currency: 'JPY',
-            note: settlementNote1,
-        }, memberCount);
-
-        // Verify real-time updates for partial settlement
-        for (const page of pages) {
-            await page.verifySettlementDetails({note: settlementNote1});
-            await page.waitForPage(groupId, memberCount);
-            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥10'); // 40 - 30 = 10
-            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40'); // unchanged
-        }
-
-        // PHASE 2: User2 makes final settlement of ¥10 (fully settled)
-        const settlementNote2 = 'Final payment from user2 - all settled!';
-        await groupDetailPage1.recordSettlement({
-            payerName: user2DisplayName,
-            payeeName: user1DisplayName,
-            amount: '10',
-            currency: 'JPY',
-            note: settlementNote2,
-        }, memberCount);
-
-        // Verify real-time updates for final settlement
-        for (const page of pages) {
-            await page.verifySettlementDetails({note: settlementNote2});
-            await page.waitForPage(groupId, memberCount);
-            await expect(page.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible(); // User2 fully settled
-            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40'); // User3 still owes
-        }
-
-        // PHASE 3: Test additional real-time scenarios - User3 partial settlement
-        const settlementNote3 = 'User3 partial payment';
-        await groupDetailPage1.recordSettlement({
-            payerName: user3DisplayName,
-            payeeName: user1DisplayName,
-            amount: '25',
-            currency: 'JPY',
-            note: settlementNote3,
-        }, memberCount);
-
-        // Verify final real-time state
-        for (const page of pages) {
-            await page.verifySettlementDetails({note: settlementNote3});
-            await page.waitForPage(groupId, memberCount);
-            await expect(page.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible(); // User2 still fully settled
-            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥15'); // 40 - 25 = 15
-        }
-
-        // Verify all settlements appear in history
-        for (const page of pages) {
-            await page.verifySettlementDetails({ note: settlementNote1 });
-            await page.verifySettlementDetails({ note: settlementNote2 });
-            await page.verifySettlementDetails({ note: settlementNote3 });
-        }
     });
 });
