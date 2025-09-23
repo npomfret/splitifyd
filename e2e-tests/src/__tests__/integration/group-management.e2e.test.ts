@@ -19,7 +19,7 @@ import {ExpenseFormDataBuilder} from '../../pages/expense-form.page';
  */
 
 simpleTest.describe('Member Management - Core Operations', () => {
-    simpleTest('group owner should not see leave button and should see settings', async ({ createLoggedInBrowsers }) => {
+    simpleTest('group owner should not see leave button and should see settings with member UI elements', async ({ createLoggedInBrowsers }) => {
         const [{ dashboardPage }] = await createLoggedInBrowsers(1);
 
         // Create a group as owner
@@ -30,6 +30,21 @@ simpleTest.describe('Member Management - Core Operations', () => {
 
         // But Settings button should be visible
         await expect(groupDetailPage.getSettingsButton()).toBeVisible();
+
+        // UI Components validation: Member count and expense split options
+        await expect(groupDetailPage.getMemberCountElement()).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
+
+        // Test member visibility in expense split options
+        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
+        await expect(expenseFormPage.getSplitBetweenHeading()).toBeVisible();
+
+        const userCheckbox = expenseFormPage.getSplitOptionsFirstCheckbox();
+        await expect(userCheckbox).toBeVisible();
+        await expect(userCheckbox).toBeChecked();
+
+        const currentUserDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
+        const isUserInSplit = await expenseFormPage.isUserInSplitOptions(currentUserDisplayName);
+        expect(isUserInSplit).toBe(true);
     });
 
     simpleTest('non-owner member should be able to leave group', async ({ createLoggedInBrowsers }) => {
@@ -415,111 +430,63 @@ simpleTest.describe('Member Management - Group Settings', () => {
     });
 });
 
-test.describe('Member Management - UI Components', () => {
-    test('should display current group members', async ({ createLoggedInBrowsers }) => {
-        const [{ dashboardPage }] = await createLoggedInBrowsers(1);
-
-        // Navigate to dashboard
-        await dashboardPage.waitForDashboard();
-
-        // Create a group
-        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
-
-        // Look for members section showing 1 member
-        await expect(groupDetailPage.getMemberCountElement()).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
-    });
-
-    test('should show member in expense split options', async ({ createLoggedInBrowsers }) => {
-        const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
-
-        // Create a group
-        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
-
-        // Navigate to add expense
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
-
-        // Wait for expense form
-        await expect(page.getByPlaceholder(PLACEHOLDERS.EXPENSE_DESCRIPTION)).toBeVisible();
-
-        // Member should be visible in split section
-        const splitHeading = expenseFormPage.getSplitBetweenHeading();
-        await expect(splitHeading).toBeVisible();
-
-        // The current user should be included and checked by default (payer is auto-selected)
-        const userCheckbox = expenseFormPage.getSplitOptionsFirstCheckbox();
-        await expect(userCheckbox).toBeVisible();
-        await expect(userCheckbox).toBeChecked();
-
-        // User name should be visible in split section
-        const isUserInSplit = await expenseFormPage.isUserInSplitOptions(await dashboardPage.header.getCurrentUserDisplayName());
-        expect(isUserInSplit).toBe(true);
-    });
-});
 
 simpleTest.describe('Group Deletion', () => {
-    simpleTest('should update dashboards when owner deletes group', async ({ createLoggedInBrowsers }) => {
-        // Create two browser instances - owner and member (both on dashboard)
-        let [
-            { dashboardPage: ownerDashboardPage },
-            { page: memberPage, dashboardPage: memberDashboardPage }
-        ] = await createLoggedInBrowsers(2);
-
-        // Setup 2-person group with unique ID
-        let [ownerGroupDetailPage, memberGroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({  }, memberDashboardPage);
-        const groupId = ownerGroupDetailPage.inferGroupId();
-        const groupName = await ownerGroupDetailPage.getGroupName();
-
-        // Both users navigate to dashboard to see the group
-        ownerDashboardPage = await ownerGroupDetailPage.navigateToDashboard();
-        memberDashboardPage = await memberGroupDetailPage.navigateToDashboard();
-
-        // Verify both users can see the group on dashboard
-        await ownerDashboardPage.waitForGroupToAppear(groupName);
-        await memberDashboardPage.waitForGroupToAppear(groupName);
-
-        // Owner clicks on the group from dashboard to navigate to it
-        ownerGroupDetailPage = await ownerDashboardPage.clickGroupCard(groupName);
-
-        // Delete the group
-        const editModal = await ownerGroupDetailPage.openEditGroupModal();
-        await editModal.clickDeleteGroup();
-        ownerDashboardPage = await editModal.handleDeleteConfirmDialog(groupName);
-
-        // CRITICAL TEST: Both dashboards should update in real-time WITHOUT reload
-        await ownerDashboardPage.waitForGroupToNotBePresent(groupName);
-        await memberDashboardPage.waitForGroupToNotBePresent(groupName);
-    });
-
-    simpleTest('should redirect member when group deleted while viewing', async ({ createLoggedInBrowsers }, testInfo) => {
+    simpleTest('comprehensive group deletion scenarios with dashboard updates and member redirects', async ({ createLoggedInBrowsers }, testInfo) => {
         // Skip error checking - console errors may occur during redirect
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Console errors may occur during redirect when group is deleted while member viewing it' });
 
-        // Create two browser instances - owner and member
+        // Create three browser instances to test different deletion scenarios
         let [
             { dashboardPage: ownerDashboardPage },
-            { dashboardPage: memberDashboardPage }
-        ] = await createLoggedInBrowsers(2);
+            { page: memberPage1, dashboardPage: memberDashboardPage1 },
+            { dashboardPage: memberDashboardPage2 }
+        ] = await createLoggedInBrowsers(3);
 
-        // Setup 2-person group with unique ID
-        // Create memberDashboardPage since it's not in the destructured variables
-        let [ownerGroupDetailPage, memberGroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({ }, memberDashboardPage);
-        const groupId = ownerGroupDetailPage.inferGroupId();
-        const groupName = await ownerGroupDetailPage.getGroupName();
+        // Scenario 1: Dashboard real-time updates when group is deleted
+        let [ownerGroupDetailPage, member1GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({}, memberDashboardPage1);
+        const groupId1 = ownerGroupDetailPage.inferGroupId();
+        const groupName1 = await ownerGroupDetailPage.getGroupName();
+
+        // Both users navigate to dashboard to see the group
+        ownerDashboardPage = await ownerGroupDetailPage.navigateToDashboard();
+        memberDashboardPage1 = await member1GroupDetailPage.navigateToDashboard();
+
+        // Verify both users can see the group on dashboard
+        await ownerDashboardPage.waitForGroupToAppear(groupName1);
+        await memberDashboardPage1.waitForGroupToAppear(groupName1);
+
+        // Owner clicks on the group from dashboard to navigate to it
+        ownerGroupDetailPage = await ownerDashboardPage.clickGroupCard(groupName1);
+
+        // Delete the group
+        const editModal1 = await ownerGroupDetailPage.openEditGroupModal();
+        await editModal1.clickDeleteGroup();
+        ownerDashboardPage = await editModal1.handleDeleteConfirmDialog(groupName1);
+
+        // CRITICAL TEST: Both dashboards should update in real-time WITHOUT reload
+        await ownerDashboardPage.waitForGroupToNotBePresent(groupName1);
+        await memberDashboardPage1.waitForGroupToNotBePresent(groupName1);
+
+        // Scenario 2: Member redirect when group deleted while viewing
+        let [ownerGroupDetailPage2, member2GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({}, memberDashboardPage2);
+        const groupId2 = ownerGroupDetailPage2.inferGroupId();
+        const groupName2 = await ownerGroupDetailPage2.getGroupName();
 
         // Owner navigates to dashboard to delete the group
-        ownerDashboardPage = await ownerGroupDetailPage.navigateToDashboard();
+        ownerDashboardPage = await ownerGroupDetailPage2.navigateToDashboard();
         await ownerDashboardPage.waitForDashboard();
-        await ownerDashboardPage.waitForGroupToAppear(groupName);
+        await ownerDashboardPage.waitForGroupToAppear(groupName2);
 
         // Owner clicks on the group from dashboard to delete it
-        ownerGroupDetailPage = await ownerDashboardPage.clickGroupCard(groupName);
+        ownerGroupDetailPage2 = await ownerDashboardPage.clickGroupCard(groupName2);
 
         // Owner deletes the group while member is still viewing it
-        const editModal = await ownerGroupDetailPage.openEditGroupModal();
-        await editModal.clickDeleteGroup();
-        ownerDashboardPage = await editModal.handleDeleteConfirmDialog(groupName);
+        const editModal2 = await ownerGroupDetailPage2.openEditGroupModal();
+        await editModal2.clickDeleteGroup();
+        ownerDashboardPage = await editModal2.handleDeleteConfirmDialog(groupName2);
 
         // CRITICAL TEST: Member should be redirected away when group is deleted
-        await memberGroupDetailPage.waitForRedirectAwayFromGroup(groupId);
+        await member2GroupDetailPage.waitForRedirectAwayFromGroup(groupId2);
     });
 });

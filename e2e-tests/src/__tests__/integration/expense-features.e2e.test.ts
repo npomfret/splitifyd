@@ -10,75 +10,16 @@ import { v4 as uuidv4 } from 'uuid';
  *
  * This file focuses exclusively on expense-specific features that don't require
  * balance calculations or multi-user scenarios:
- * - Form validation and UI behavior
  * - Date/time selection functionality
  * - Real-time comments system
- * - Server-side validation error handling
  *
  * For expense lifecycle (creation, editing, deletion) and balance impact tests,
  * see expense-and-balance-lifecycle.e2e.test.ts
+ *
+ * For form validation and error handling tests,
+ * see error-handling-comprehensive.e2e.test.ts
  */
 
-simpleTest.describe('Expense Form Validation & UI Behavior', () => {
-    simpleTest('should validate form inputs and handle submission states', async ({ createLoggedInBrowsers }) => {
-        const memberCount = 1;
-
-        const [{ dashboardPage }] = await createLoggedInBrowsers(memberCount);
-
-        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
-        const submitButton = expenseFormPage.getSaveButtonForValidation();
-
-        // Test validation sequence
-        await expect(submitButton).toBeDisabled(); // Empty form
-
-        await expenseFormPage.fillDescription('Test expense');
-        await expect(submitButton).toBeDisabled(); // Missing amount
-
-        await expenseFormPage.fillAmount('0');
-        await expect(submitButton).toBeDisabled(); // Zero amount
-
-        await expenseFormPage.fillAmount('50');
-        await expect(submitButton).toBeEnabled({ timeout: 2000 }); // Valid form
-
-        // Test clearing description disables form again
-        await expenseFormPage.fillDescription('');
-        await expect(submitButton).toBeDisabled(); // Missing description
-    });
-
-    simpleTest('should handle server validation errors gracefully', async ({ createLoggedInBrowsers }, testInfo) => {
-        testInfo.annotations.push({ type: 'skip-error-checking', description: 'Expected: Failed to load resource: the server responded with a status of 400 (Bad Request)' });
-
-        const memberCount = 1;
-
-        const [{ page, dashboardPage }] = await createLoggedInBrowsers(memberCount);
-
-        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
-
-        // Create invalid form state that passes client validation but fails server validation
-        await expenseFormPage.fillDescription('Test expense');
-        await expenseFormPage.fillAmount('50');
-
-        // Set a currency to pass client validation
-        const currencyButton = page.getByRole('button', { name: /select currency/i });
-        await currencyButton.click();
-        const searchInput = page.getByPlaceholder('Search by symbol, code, or country...');
-        await expect(searchInput).toBeVisible();
-        await searchInput.fill('EUR');
-        const currencyOption = page.getByText('Euro (EUR)').first();
-        await currencyOption.click();
-
-        const submitButton = expenseFormPage.getSaveButtonForValidation();
-        await expect(submitButton).toBeEnabled({ timeout: 2000 });
-
-        await expenseFormPage.typeCategoryText(''); // Clear category to trigger server error
-        await submitButton.click();
-
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
-        await expect(page.getByRole('heading', { name: /something went wrong/i })).toBeVisible({ timeout: 5000 });
-    });
-});
 
 simpleTest.describe('Date and Time Selection', () => {
     simpleTest('should handle date convenience buttons and time input', async ({ createLoggedInBrowsers }) => {

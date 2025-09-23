@@ -270,6 +270,67 @@ test.describe('Network & Server Error Handling', () => {
     });
 });
 
+test.describe('Form Validation & UI Error Handling', () => {
+    test('should validate form inputs and handle expense form submission states', async ({ createLoggedInBrowsers }) => {
+        const memberCount = 1;
+
+        const [{ dashboardPage }] = await createLoggedInBrowsers(memberCount);
+
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
+        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+        const submitButton = expenseFormPage.getSaveButtonForValidation();
+
+        // Test validation sequence
+        await expect(submitButton).toBeDisabled(); // Empty form
+
+        await expenseFormPage.fillDescription('Test expense');
+        await expect(submitButton).toBeDisabled(); // Missing amount
+
+        await expenseFormPage.fillAmount('0');
+        await expect(submitButton).toBeDisabled(); // Zero amount
+
+        await expenseFormPage.fillAmount('50');
+        await expect(submitButton).toBeEnabled({ timeout: 2000 }); // Valid form
+
+        // Test clearing description disables form again
+        await expenseFormPage.fillDescription('');
+        await expect(submitButton).toBeDisabled(); // Missing description
+    });
+
+    test('should handle server validation errors gracefully', async ({ createLoggedInBrowsers }, testInfo) => {
+        testInfo.annotations.push({ type: 'skip-error-checking', description: 'Expected: Failed to load resource: the server responded with a status of 400 (Bad Request)' });
+
+        const memberCount = 1;
+
+        const [{ page, dashboardPage }] = await createLoggedInBrowsers(memberCount);
+
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
+        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+
+        // Create invalid form state that passes client validation but fails server validation
+        await expenseFormPage.fillDescription('Test expense');
+        await expenseFormPage.fillAmount('50');
+
+        // Set a currency to pass client validation
+        const currencyButton = page.getByRole('button', { name: /select currency/i });
+        await currencyButton.click();
+        const searchInput = page.getByPlaceholder('Search by symbol, code, or country...');
+        await expect(searchInput).toBeVisible();
+        await searchInput.fill('EUR');
+        const currencyOption = page.getByText('Euro (EUR)').first();
+        await currencyOption.click();
+
+        const submitButton = expenseFormPage.getSaveButtonForValidation();
+        await expect(submitButton).toBeEnabled({ timeout: 2000 });
+
+        await expenseFormPage.typeCategoryText(''); // Clear category to trigger server error
+        await submitButton.click();
+
+        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+        await expect(page.getByRole('heading', { name: /something went wrong/i })).toBeVisible({ timeout: 5000 });
+    });
+});
+
 test.describe('Security & Access Control Errors', () => {
     test('should handle authentication and authorization failures', async ({ createLoggedInBrowsers, newEmptyBrowser }) => {
         // Test 1: Unauthenticated access redirects
