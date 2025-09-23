@@ -2,10 +2,9 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SettlementService } from '../../../services/SettlementService';
 import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 import { GroupMemberService } from '../../../services/GroupMemberService';
-import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { Timestamp } from 'firebase-admin/firestore';
-import type { CreateSettlementRequest, UpdateSettlementRequest } from '@splitifyd/shared';
+import type { CreateSettlementRequest } from '@splitifyd/shared';
 
 // Mock dependencies
 vi.mock('../../../utils/dateHelpers', () => ({

@@ -3,8 +3,7 @@ import { UserService } from '../../../services/UserService2';
 import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 import { StubFirestoreWriter } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
-import type { IAuthService } from '../../../services/auth/IAuthService';
-import type { UpdateUserProfileRequest, ChangePasswordRequest, DeleteUserRequest } from '../../../user/validation';
+import type { IAuthService } from '../../../services/auth';
 
 // Mock i18n functions to avoid translation errors in tests
 vi.mock('../../../utils/i18n-validation', () => ({

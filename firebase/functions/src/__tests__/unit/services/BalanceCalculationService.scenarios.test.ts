@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { BalanceCalculationService } from '../../../services/balance/BalanceCalculationService';
+import { BalanceCalculationService } from '../../../services/balance';
 import { StubFirestoreReader } from '../mocks/firestore-stubs';
 import { UserService } from '../../../services/UserService2';
-import type { BalanceCalculationInput, Expense, Settlement, GroupData } from '../../../services/balance/types';
-import { Timestamp } from 'firebase-admin/firestore';
+import type { BalanceCalculationInput, Expense, Settlement, GroupData } from '../../../services/balance';
 
 /**
  * Comprehensive BalanceCalculationService Unit Tests

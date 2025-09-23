@@ -2,7 +2,6 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { ExpenseFormPage } from './expense-form.page';
 import { PooledTestUser } from '@splitifyd/shared';
-import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 
 export class ExpenseDetailPage extends BasePage {
     constructor(page: Page, userInfo?: PooledTestUser) {

@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import type { IFirestoreReader } from '../../../services/firestore/IFirestoreReader';
+import type { IFirestoreReader } from '../../../services/firestore';
 import type { IFirestoreWriter, WriteResult } from '../../../services/firestore/IFirestoreWriter';
 import type { PolicyDocument } from '../../../schemas';
 import { Timestamp } from 'firebase-admin/firestore';

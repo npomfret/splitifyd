@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { borrowTestUser, UserRegistrationBuilder, generateShortId } from '@splitifyd/test-support';
 import { SystemUserRoles } from '@splitifyd/shared';
 import { getAuth, getFirestore } from '../../firebase';

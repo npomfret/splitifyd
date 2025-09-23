@@ -1,6 +1,6 @@
 import {simpleTest, expect} from '../../fixtures';
 import {GroupDetailPage, JoinGroupPage} from '../../pages';
-import {generateNewUserDetails, generateShortId, generateTestGroupName} from '@splitifyd/test-support';
+import {generateNewUserDetails, generateTestGroupName} from '@splitifyd/test-support';
 import {groupDetailUrlPattern} from '../../pages/group-detail.page';
 import {getUserPool} from '../../fixtures/user-pool.fixture';
 

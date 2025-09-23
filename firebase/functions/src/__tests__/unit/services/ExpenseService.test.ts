@@ -3,11 +3,8 @@ import { ExpenseService } from '../../../services/ExpenseService';
 import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { UserService } from '../../../services/UserService2';
-import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { Timestamp } from 'firebase-admin/firestore';
-import { ExpenseDocumentSchema } from '../../../schemas';
-import type { CreateExpenseRequest } from '@splitifyd/shared';
 
 // Mock dependencies that aren't part of core business logic testing
 vi.mock('../../../utils/dateHelpers', () => ({

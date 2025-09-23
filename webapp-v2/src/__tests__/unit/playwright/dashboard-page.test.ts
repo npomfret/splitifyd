@@ -2,17 +2,14 @@ import { test, expect } from '@playwright/test';
 import {
     setupTestPage,
     verifyNavigation,
-    expectElementVisible,
     setupAuthenticatedUser,
     setupUnauthenticatedTest,
-    expectButtonState,
     testTabOrder,
-    verifyFocusVisible,
-    testModalKeyboardNavigation,
+
+
 } from '../infra/test-helpers';
-import { CURRENCY_REPLACEMENTS } from './test-currencies';
 import { GroupTestDataBuilder } from './builders';
-import { GroupApiMock, AuthApiMock } from './mocks';
+import { GroupApiMock } from './mocks';
 import { TestScenarios } from './objects';
 
 /**

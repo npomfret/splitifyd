@@ -17,9 +17,9 @@ import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 import { measureDb } from '../../monitoring/measure';
 
 // Import schemas for validation
-import { UserDocumentSchema, GroupDocumentSchema, ExpenseDocumentSchema, SettlementDocumentSchema, CommentDataSchema, PolicyDocumentSchema, PolicyDataSchema } from '../../schemas';
+import { UserDocumentSchema, GroupDocumentSchema, ExpenseDocumentSchema, SettlementDocumentSchema, CommentDataSchema, PolicyDocumentSchema } from '../../schemas';
 import { UserNotificationDocumentSchema, UserNotificationGroupSchema } from '../../schemas/user-notifications';
-import { validateBeforeWrite, validateUpdate } from '../../schemas/validation-helpers';
+import { validateUpdate } from '../../schemas';
 
 // Import types
 import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument } from '../../schemas';

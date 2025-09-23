@@ -3,7 +3,6 @@ import {CreateGroupModalPage, LoginPage} from '../../pages';
 import {TIMEOUT_CONTEXTS, TIMEOUTS} from '../../config/timeouts';
 import {SELECTORS} from '../../constants/selectors';
 import {generateTestGroupName} from '@splitifyd/test-support';
-import {groupDetailUrlPattern} from '../../pages/group-detail.page';
 
 /**
  * Comprehensive Error Handling E2E Tests

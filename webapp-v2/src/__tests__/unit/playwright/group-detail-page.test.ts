@@ -5,13 +5,10 @@ import {
     verifyNavigation,
     setupAuthenticatedUser,
     setupUnauthenticatedTest,
-    expectElementVisible,
     testTabOrder,
 } from '../infra/test-helpers';
-import { CURRENCY_REPLACEMENTS } from './test-currencies';
 import { GroupTestDataBuilder } from './builders';
-import { GroupApiMock, AuthApiMock } from './mocks';
-import { TestScenarios } from './objects';
+import { GroupApiMock } from './mocks';
 
 /**
  * High-value group detail page tests that verify actual user behavior

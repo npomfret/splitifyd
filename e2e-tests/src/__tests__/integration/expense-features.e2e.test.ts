@@ -1,8 +1,4 @@
 import { simpleTest, expect } from '../../fixtures';
-import { simpleTest as test } from '../../fixtures/simple-test.fixture';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page';
-import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
-import { generateShortId } from '@splitifyd/test-support';
 import { v4 as uuidv4 } from 'uuid';
 
 /**

@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { calculateSplits } from '../../../expenses/validation';
-import { validateCreateExpense } from '../../../expenses/validation';
 import { ApiError } from '../../../utils/errors';
 
 describe('Focused Input Validation Tests', () => {

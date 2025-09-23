@@ -3,7 +3,7 @@ import {
     setupTestPage,
     setupUnauthenticatedTest,
     expectElementVisible,
-    verifyFocusVisible,
+
 } from '../infra/test-helpers';
 
 /**

@@ -1,7 +1,5 @@
 import {expect, simpleTest} from '../../fixtures';
-import {simpleTest as test} from '../../fixtures/simple-test.fixture';
 import {TIMEOUT_CONTEXTS} from '../../config/timeouts';
-import {PLACEHOLDERS} from '../../constants/selectors';
 import {generateShortId} from '@splitifyd/test-support';
 import {groupDetailUrlPattern} from '../../pages/group-detail.page';
 import {ExpenseFormDataBuilder} from '../../pages/expense-form.page';

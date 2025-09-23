@@ -4,7 +4,6 @@
 
 import { describe, expect, test } from 'vitest';
 import { ApiDriver, CreateExpenseRequestBuilder, SettlementBuilder, borrowTestUsers, TestGroupManager } from '@splitifyd/test-support';
-import { PooledTestUser } from '@splitifyd/shared';
 
 describe('Mixed Currency Settlements - API Integration', () => {
     const apiDriver = new ApiDriver();

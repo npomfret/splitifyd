@@ -8,7 +8,6 @@ import {
     expectButtonState,
     fillFormField,
     testTabOrder,
-    verifyFocusVisible,
     TestScenarios,
     GroupApiMock,
 } from '../infra/test-helpers';

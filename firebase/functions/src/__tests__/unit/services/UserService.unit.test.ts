@@ -4,7 +4,6 @@ import { UserService } from '../../../services/UserService2';
 import { FirestoreValidationService } from '../../../services/FirestoreValidationService';
 import { NotificationService } from '../../../services/notification-service';
 import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
-import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { SystemUserRoles, type UserThemeColor } from '@splitifyd/shared';
 import { USER_COLORS } from '@splitifyd/shared';

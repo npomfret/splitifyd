@@ -1,4 +1,4 @@
-import { afterEach, beforeEach } from 'vitest';
+import { afterEach } from 'vitest';
 
 // Mock firebase-functions logger to use console in tests
 // vi.mock('firebase-functions', () => ({

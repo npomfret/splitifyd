@@ -3,7 +3,6 @@ import { EMULATOR_URL } from '../helpers';
 import { createErrorHandlingProxy } from '../utils/error-proxy';
 import { PooledTestUser } from '@splitifyd/shared';
 import { HeaderPage } from './header.page';
-import {DashboardPage} from "./dashboard.page.ts";
 
 export abstract class BasePage {
     private _header?: HeaderPage;

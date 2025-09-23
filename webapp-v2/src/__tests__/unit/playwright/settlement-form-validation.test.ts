@@ -2,12 +2,9 @@ import { test, expect } from '@playwright/test';
 import {
     setupTestPage,
     setupAuthenticatedUserWithToken,
-    expectElementVisible,
-    expectButtonState,
     fillFormField,
     TEST_SCENARIOS,
 } from '../infra/test-helpers';
-import { CURRENCY_REPLACEMENTS, formatTestCurrency } from './test-currencies';
 
 /**
  * Unit tests for settlement form validation

@@ -1,7 +1,6 @@
 import {expect, Locator, Page} from '@playwright/test';
 import {BasePage} from './base.page';
 import {ARIA_ROLES, SELECTORS} from '../constants/selectors';
-import {TIMEOUTS} from '../config/timeouts';
 import {PooledTestUser} from '@splitifyd/shared';
 import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with {type: 'json'};
 

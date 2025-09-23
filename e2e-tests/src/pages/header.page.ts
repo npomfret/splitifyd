@@ -1,5 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test';
-import { EMULATOR_URL } from '../helpers';
+import { Page, expect } from '@playwright/test';
 import { PooledTestUser } from '@splitifyd/shared';
 
 export class HeaderPage {

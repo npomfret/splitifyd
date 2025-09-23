@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import * as crypto from 'crypto';
 import { PolicyService } from '../../../services/PolicyService';
-import { StubFirestoreReader, StubFirestoreWriter, createMockPolicyDocument, createMockWriteResult } from '../mocks/firestore-stubs';
+import { StubFirestoreReader, StubFirestoreWriter, createMockPolicyDocument } from '../mocks/firestore-stubs';
 import { HTTP_STATUS } from '../../../constants';
 import { Timestamp } from 'firebase-admin/firestore';
 

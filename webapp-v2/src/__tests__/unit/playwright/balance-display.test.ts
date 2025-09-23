@@ -2,11 +2,9 @@ import { test, expect } from '@playwright/test';
 import {
     setupTestPage,
     setupAuthenticatedUserWithToken,
-    expectElementVisible,
-    fillFormField,
     TEST_SCENARIOS,
 } from '../infra/test-helpers';
-import { CURRENCY_REPLACEMENTS, formatTestCurrency, getTestCurrency } from './test-currencies';
+import { CURRENCY_REPLACEMENTS, getTestCurrency } from './test-currencies';
 
 /**
  * Unit tests for balance display components

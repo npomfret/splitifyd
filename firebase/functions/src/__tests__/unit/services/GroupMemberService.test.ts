@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 import { StubFirestoreWriter } from '../mocks/firestore-stubs';
-import { ApiError } from '../../../utils/errors';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 
 // Create mock services

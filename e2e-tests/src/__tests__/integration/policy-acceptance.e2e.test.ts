@@ -2,7 +2,7 @@ import { simpleTest, expect } from '../../fixtures';
 import { ApiDriver } from '@splitifyd/test-support';
 import { PolicyAcceptanceModalPage } from '../../pages/policy-acceptance-modal.page';
 import { LoginPage, DashboardPage, RegisterPage, HomepagePage } from '../../pages';
-import { DEFAULT_PASSWORD, generateTestEmail, generateTestUserName } from '@splitifyd/test-support';
+import { DEFAULT_PASSWORD, generateTestEmail } from '@splitifyd/test-support';
 
 /**
  * Policy Acceptance E2E Tests

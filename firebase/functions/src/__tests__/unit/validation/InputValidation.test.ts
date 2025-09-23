@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ExpenseService } from '../../../services/ExpenseService';
 import { SettlementService } from '../../../services/SettlementService';
 import { GroupMemberService } from '../../../services/GroupMemberService';
-import { UserService } from '../../../services/UserService2';
 import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 import { StubFirestoreWriter } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';

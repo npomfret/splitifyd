@@ -1,4 +1,4 @@
-import {expect, simpleTest} from '../../fixtures';
+import {simpleTest} from '../../fixtures';
 import {SettlementData} from '../../pages/settlement-form.page';
 
 /**

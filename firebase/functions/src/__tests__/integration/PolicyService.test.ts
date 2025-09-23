@@ -4,7 +4,6 @@ import { PolicyService } from '../../services/PolicyService';
 import { FirestoreReader } from '../../services/firestore';
 import { FirestoreWriter } from '../../services/firestore';
 import { getFirestore } from '../../firebase';
-import { HTTP_STATUS } from '../../constants';
 
 /**
  * Minimal PolicyService Integration Tests

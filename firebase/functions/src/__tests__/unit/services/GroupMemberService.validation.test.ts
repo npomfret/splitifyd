@@ -1,7 +1,6 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
-import { Errors } from '../../../utils/errors';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import type { GroupDocument } from '../../../schemas';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';

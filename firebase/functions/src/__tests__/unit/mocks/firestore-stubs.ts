@@ -1,8 +1,8 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import type { UserRecord, UpdateRequest, CreateRequest, GetUsersResult, DecodedIdToken, ListUsersResult, DeleteUsersResult } from 'firebase-admin/auth';
-import type { IFirestoreReader } from '../../../services/firestore/IFirestoreReader';
+import type { IFirestoreReader } from '../../../services/firestore';
 import type { IFirestoreWriter, WriteResult } from '../../../services/firestore/IFirestoreWriter';
-import type { IAuthService } from '../../../services/auth/IAuthService';
+import type { IAuthService } from '../../../services/auth';
 import type { PolicyDocument, UserDocument, GroupDocument, ExpenseDocument, SettlementDocument } from '../../../schemas';
 import type { GroupMemberDocument, CommentTargetType } from '@splitifyd/shared';
 import type { UserNotificationDocument } from '../../../schemas/user-notifications';

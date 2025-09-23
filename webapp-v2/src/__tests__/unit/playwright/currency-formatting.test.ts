@@ -2,9 +2,9 @@ import { test, expect } from '@playwright/test';
 import {
     setupTestPage,
     setupAuthenticatedUserWithToken,
-    TEST_SCENARIOS,
+
 } from '../infra/test-helpers';
-import { CURRENCY_REPLACEMENTS, formatTestCurrency, getTestCurrency } from './test-currencies';
+import { CURRENCY_REPLACEMENTS, formatTestCurrency } from './test-currencies';
 
 /**
  * Unit tests for currency formatting consistency
