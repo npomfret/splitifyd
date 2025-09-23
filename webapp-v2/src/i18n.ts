@@ -19,14 +19,14 @@ i18n.use(initReactI18next) // passes i18n down to react-i18next
             escapeValue: false, // react already safes from xss
         },
 
-        // Development-only: Log missing translations to console
-        debug: process.env.NODE_ENV === 'development',
+        // Always log missing translations to console in ALL environments
+        // Missing translations are bugs and should be caught everywhere
+        debug: true,
         missingKeyHandler: (lng, ns, key, fallbackValue) => {
-            if (process.env.NODE_ENV === 'development') {
-                console.error(`🌍 Missing translation: "${key}" in namespace "${ns}" for language "${lng}"`);
-                console.error(`   Fallback value: "${fallbackValue}"`);
-                console.error(`   Add to translation file: webapp-v2/src/locales/${lng}/translation.json`);
-            }
+            // ALWAYS log missing translations as errors - this is quality control
+            console.error(`🌍 Missing translation: "${key}" in namespace "${ns}" for language "${lng}"`);
+            console.error(`   Fallback value: "${fallbackValue}"`);
+            console.error(`   Add to translation file: webapp-v2/src/locales/${lng}/translation.json`);
         },
     });
 
