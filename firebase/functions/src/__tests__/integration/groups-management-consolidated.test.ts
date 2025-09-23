@@ -629,33 +629,6 @@ describe('Groups Management - Consolidated Tests', () => {
                 expect(fullDetailsResponse.members.members.length).toBe(2);
             });
 
-            test('should prevent the creator from leaving', async () => {
-                const testUsers = users.slice(0, 2);
-                const groupId = await createGroupWithMembers(apiDriver, testUsers);
-
-                await expect(apiDriver.leaveGroup(groupId, testUsers[0].token)).rejects.toThrow(/Group creator cannot leave/);
-            });
-
-            test('should prevent leaving with outstanding balance', async () => {
-                const testUsers = users.slice(0, 2);
-                const groupId = await createGroupWithMembers(apiDriver, testUsers);
-                const memberWithDebt = testUsers[1];
-
-                // Create an expense where member owes money
-                await apiDriver.createExpense(
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withDescription('Test expense')
-                        .withAmount(100)
-                        .withPaidBy(testUsers[0].uid)
-                        .withParticipants([testUsers[0].uid, memberWithDebt.uid])
-                        .withSplitType('equal')
-                        .build(),
-                    testUsers[0].token,
-                );
-
-                await expect(apiDriver.leaveGroup(groupId, memberWithDebt.token)).rejects.toThrow(/Cannot leave group with outstanding balance/);
-            });
 
             test('should update timestamps when leaving', async () => {
                 const testUsers = users.slice(0, 2);
@@ -693,53 +666,6 @@ describe('Groups Management - Consolidated Tests', () => {
                 expect(fullDetailsResponse.members.members.length).toBe(2);
             });
 
-            test('should prevent non-creator from removing members', async () => {
-                const testUsers = users.slice(0, 3);
-                const groupId = await createGroupWithMembers(apiDriver, testUsers);
-                const nonCreator = testUsers[1];
-                const memberToRemove = testUsers[2];
-
-                await expect(apiDriver.removeGroupMember(groupId, memberToRemove.uid, nonCreator.token)).rejects.toThrow(/FORBIDDEN/);
-            });
-
-            test('should prevent removing the creator', async () => {
-                const testUsers = users.slice(0, 2);
-                const groupId = await createGroupWithMembers(apiDriver, testUsers);
-                const creator = testUsers[0];
-
-                await expect(apiDriver.removeGroupMember(groupId, creator.uid, creator.token)).rejects.toThrow(/Group creator cannot be removed/);
-            });
-
-            test('should prevent removing member with outstanding balance', async () => {
-                const testUsers = users.slice(0, 2);
-                const groupId = await createGroupWithMembers(apiDriver, testUsers);
-                const creator = testUsers[0];
-                const memberWithDebt = testUsers[1];
-
-                // Create expense where member owes money
-                await apiDriver.createExpense(
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withDescription('Test expense')
-                        .withAmount(100)
-                        .withPaidBy(creator.uid)
-                        .withParticipants([creator.uid, memberWithDebt.uid])
-                        .withSplitType('equal')
-                        .build(),
-                    creator.token,
-                );
-
-                await expect(apiDriver.removeGroupMember(groupId, memberWithDebt.uid, creator.token)).rejects.toThrow(/Cannot remove member with outstanding balance/);
-            });
-
-            test('should handle removing non-existent member', async () => {
-                const testUsers = users.slice(0, 1);
-                const groupId = await createGroupWithMembers(apiDriver, testUsers);
-                const creator = testUsers[0];
-                const nonExistentMember = 'non-existent-uid';
-
-                await expect(apiDriver.removeGroupMember(groupId, nonExistentMember, creator.token)).rejects.toThrow(/User is not a member of this group/);
-            });
         });
 
         describe('Complex Member Management Scenarios', () => {

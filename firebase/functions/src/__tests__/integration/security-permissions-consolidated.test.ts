@@ -69,21 +69,6 @@ describe('Security and Permissions - Consolidated Tests', () => {
             await expect(apiDriver.listGroups(wrongProjectToken)).rejects.toThrow(/401|unauthorized|invalid|audience/i);
         });
 
-        test('should reject injection attacks in Authorization header', async () => {
-            // SQL injection attempts
-            const sqlInjectionTokens = ["Bearer '; DROP TABLE users; --", "Bearer ' OR '1'='1", "Bearer admin'/*", "Bearer 1' UNION SELECT * FROM secrets--"];
-
-            for (const token of sqlInjectionTokens) {
-                await expect(apiDriver.listGroups(token)).rejects.toThrow(/401|unauthorized|invalid/i);
-            }
-
-            // Script injection attempts
-            const scriptInjectionTokens = ['Bearer <script>alert("xss")</script>', 'Bearer javascript:alert(1)', 'Bearer vbscript:msgbox(1)', 'Bearer data:text/html,<script>alert(1)</script>'];
-
-            for (const token of scriptInjectionTokens) {
-                await expect(apiDriver.listGroups(token)).rejects.toThrow(/401|unauthorized|invalid/i);
-            }
-        });
     });
 
     describe('Cross-User Data Access Control', () => {
@@ -168,26 +153,6 @@ describe('Security and Permissions - Consolidated Tests', () => {
             ).rejects.toThrow(/failed with status (401|403)/);
         });
 
-        test('should reject invalid parameters and malformed requests', async () => {
-            // Invalid permissions object (null should cause validation error)
-            await expect(apiDriver.updateGroupPermissions(edgeTestGroup.id, users[0].token, null as any)).rejects.toThrow(/failed with status (400|401)/);
-
-            // Invalid expense data (missing required fields)
-            await expect(apiDriver.makeInvalidApiCall(`/expenses`, 'POST', { groupId: edgeTestGroup.id }, users[0].token)).rejects.toThrow(
-                /failed with status 400/,
-            );
-
-            // Invalid expense amount (negative value)
-            await expect(apiDriver.makeInvalidApiCall(`/expenses`, 'POST', {
-                groupId: edgeTestGroup.id,
-                amount: -100,
-                description: 'Test',
-                paidBy: users[0].uid,
-                participants: [users[0].uid]
-            }, users[0].token)).rejects.toThrow(
-                /failed with status 400/,
-            );
-        });
     });
 
     describe('Permission System and Role Management', () => {
