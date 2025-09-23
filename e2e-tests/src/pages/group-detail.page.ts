@@ -196,18 +196,31 @@ export class GroupDetailPage extends BasePage {
         // Wait for page to load
         await this.waitForDomContentLoaded();
 
-        const expectedText = `${expectedCount} member${expectedCount !== 1 ? 's' : ''}`;
+        // Use polling pattern to wait for both member count text AND actual member items
+        await expect(async () => {
+            // Check member count text
+            let textCount: number;
+            try {
+                textCount = await this.getCurrentMemberCount();
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                throw new Error(`Member count text not ready: ${errorMessage}`);
+            }
 
-        // Wait for member count to appear in the main group heading
-        try {
-            await expect(this.page.getByText(expectedText).first()).toBeVisible({timeout});
-        } catch (error) {
-            // Get actual visible member count for better error reporting
-            const visibleMemberTexts = await this.page.locator('text=/\\d+ member/').allTextContents();
-            const actualMemberCount = visibleMemberTexts.length > 0 ? visibleMemberTexts[0] : 'none found';
+            // Check actual member items
+            const actualItems = await this.getActualMemberItems().count();
 
-            throw new Error(`Expected "${expectedText}" but found "${actualMemberCount}". Current URL: ${this.page.url()}`);
-        }
+            // Both must match expected count
+            if (textCount !== expectedCount || actualItems !== expectedCount) {
+                // Get member names for better debugging
+                const memberNames = await this.getMemberNames();
+                throw new Error(
+                    `Member count mismatch. Expected: ${expectedCount}, ` +
+                    `Text shows: ${textCount}, Actual items: ${actualItems}. ` +
+                    `Members: [${memberNames.join(', ')}]. URL: ${this.page.url()}`
+                );
+            }
+        }).toPass({ timeout });
 
         // Double-check we're still on the group page after waiting
         const finalUrl = this.page.url();
@@ -461,10 +474,10 @@ export class GroupDetailPage extends BasePage {
     // ==============================
 
     /**
-     * Get member count text element (e.g., "1 member" or "3 members")
+     * Get member count text element using data-testid
      */
     getMemberCountElement() {
-        return this.page.getByText(/\d+ member/i);
+        return this.page.getByTestId('member-count');
     }
 
     /**
@@ -472,8 +485,7 @@ export class GroupDetailPage extends BasePage {
      * Waits for the API-loaded member count to be available
      */
     async getCurrentMemberCount(): Promise<number> {
-        // Use the specific testid we added to the GroupHeader component
-        const memberCountElement = this.page.getByTestId('member-count');
+        const memberCountElement = this.getMemberCountElement();
         await expect(memberCountElement).toBeVisible({timeout: 1000});
 
         const memberText = await memberCountElement.textContent();
@@ -488,6 +500,33 @@ export class GroupDetailPage extends BasePage {
         }
 
         return parseInt(match[1], 10);
+    }
+
+    /**
+     * Get actual member items displayed in the members list
+     */
+    getActualMemberItems() {
+        return this.getMembersContainer()
+            .locator('[data-testid="member-item"]:visible');
+    }
+
+    /**
+     * Get all visible member names for debugging purposes
+     */
+    async getMemberNames(): Promise<string[]> {
+        const memberItems = this.getActualMemberItems();
+        const count = await memberItems.count();
+        const names: string[] = [];
+
+        for (let i = 0; i < count; i++) {
+            const item = memberItems.nth(i);
+            const name = await item.getAttribute('data-member-name');
+            if (name) {
+                names.push(name);
+            }
+        }
+
+        return names;
     }
 
     /**

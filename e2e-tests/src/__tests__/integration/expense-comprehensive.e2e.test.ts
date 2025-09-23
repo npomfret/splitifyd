@@ -21,9 +21,11 @@ import { v4 as uuidv4 } from 'uuid';
 simpleTest.describe('Expense-Specific Features', () => {
     simpleTest.describe('Form Validation & UI Behavior', () => {
         simpleTest('should validate form inputs and handle submission states', async ({ createLoggedInBrowsers }) => {
-            const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
+            const memberCount = 1;
+
+            const [{ dashboardPage }] = await createLoggedInBrowsers(memberCount);
+
             const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
-            const memberCount = await groupDetailPage.getCurrentMemberCount();
             const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
             const submitButton = expenseFormPage.getSaveButtonForValidation();
 
@@ -47,9 +49,11 @@ simpleTest.describe('Expense-Specific Features', () => {
         simpleTest('should handle server validation errors gracefully', async ({ createLoggedInBrowsers }, testInfo) => {
             testInfo.annotations.push({ type: 'skip-error-checking', description: 'Expected: Failed to load resource: the server responded with a status of 400 (Bad Request)' });
 
-            const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
+            const memberCount = 1;
+
+            const [{ page, dashboardPage }] = await createLoggedInBrowsers(memberCount);
+
             const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
-            const memberCount = await groupDetailPage.getCurrentMemberCount();
             const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
             // Create invalid form state that passes client validation but fails server validation
@@ -78,9 +82,11 @@ simpleTest.describe('Expense-Specific Features', () => {
 
     simpleTest.describe('Date and Time Selection', () => {
         simpleTest('should handle date convenience buttons and time input', async ({ createLoggedInBrowsers }) => {
-            const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
+            const memberCount = 1;
+
+            const [{ dashboardPage }] = await createLoggedInBrowsers(memberCount);
+
             const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
-            const memberCount = await groupDetailPage.getCurrentMemberCount();
             const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
             // Test date convenience buttons
