@@ -196,55 +196,10 @@ describe('Authentication and Registration', () => {
         });
     });
 
-    describe('Terms and Policy Validation', () => {
-        test('should reject registration with missing termsAccepted field', async () => {
-            const userData = new UserRegistrationBuilder().build();
-
-            try {
-                await apiDriver.makeInvalidApiCall('/register', 'POST', {
-                    email: userData.email,
-                    password: userData.password,
-                    displayName: userData.displayName,
-                    cookiePolicyAccepted: true,
-                    // termsAccepted field intentionally omitted
-                });
-                throw new Error('Registration should have been rejected for missing termsAccepted');
-            } catch (error) {
-                expect((error as Error).message).toMatch(/400|terms.*acceptance|required/i);
-            }
-        });
-
-        test('should reject registration with missing cookiePolicyAccepted field', async () => {
-            const userData = new UserRegistrationBuilder().build();
-
-            try {
-                await apiDriver.makeInvalidApiCall('/register', 'POST', {
-                    email: userData.email,
-                    password: userData.password,
-                    displayName: userData.displayName,
-                    termsAccepted: true,
-                    // cookiePolicyAccepted field intentionally omitted
-                });
-                throw new Error('Registration should have been rejected for missing cookiePolicyAccepted');
-            } catch (error) {
-                expect((error as Error).message).toMatch(/400|cookie.*policy.*acceptance|required/i);
-            }
-        });
-
-        test('should reject registration with both terms fields missing', async () => {
-            const userData = new UserRegistrationBuilder().build();
-
-            try {
-                await apiDriver.makeInvalidApiCall('/register', 'POST', {
-                    email: userData.email,
-                    password: userData.password,
-                    displayName: userData.displayName,
-                    // Both terms fields intentionally omitted
-                });
-                throw new Error('Registration should have been rejected for missing terms fields');
-            } catch (error) {
-                expect((error as Error).message).toMatch(/400|terms.*acceptance|required/i);
-            }
-        });
-    });
+    // REMOVED: Entire "Terms and Policy Validation" test suite
+    // All registration validation tests have been moved to unit tests in:
+    // UserService.validation.test.ts
+    //
+    // These integration tests provided no additional value beyond API testing
+    // since the validation logic itself is now comprehensively tested in unit tests.
 });
