@@ -1,9 +1,13 @@
 /**
- * Invalid Data Resilience Tests
+ * Invalid Data Resilience Integration Tests
  *
  * This test suite verifies that the API continues to function correctly
- * even when invalid data exists in Firestore. It uses builders to create valid
- * data, then corrupts specific fields to test error handling.
+ * even when invalid data exists in Firestore. It focuses on testing the
+ * end-to-end behavior that requires actual Firebase interaction.
+ *
+ * IMPORTANT: Data validation and sanitization logic has been moved to unit tests:
+ * - FirestoreReader.validation.unit.test.ts - Tests data sanitization without Firebase
+ * - These integration tests focus on actual API behavior with real Firebase
  *
  * Add new invalid data scenarios here as they're discovered in production.
  */
@@ -89,21 +93,8 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             console.log(`API returned ${response.groups.length} groups successfully`);
         });
 
-        test('FirestoreReader.getGroupsForUserV2 should handle invalid securityPreset values', async () => {
-            const firestoreReader = new FirestoreReader(getFirestore());
-
-            const paginatedResult = await firestoreReader.getGroupsForUserV2(testUser.uid);
-
-            expect(paginatedResult).toBeDefined();
-            expect(paginatedResult.data).toBeDefined();
-            expect(Array.isArray(paginatedResult.data)).toBe(true);
-
-            // Should include at least the valid group
-            const validGroup = paginatedResult.data.find((g: any) => g.id === validGroupId);
-            expect(validGroup).toBeDefined();
-
-            console.log(`FirestoreReader V2 returned ${paginatedResult.data.length} groups successfully`);
-        });
+        // REMOVED: FirestoreReader validation test - moved to FirestoreReader.validation.unit.test.ts
+        // This test is now covered by unit tests which are faster and don't require Firebase setup
 
         test('GET /groups/:id should handle invalid securityPreset for specific group', async () => {
             const invalidGroupRef = firestore.collection(FirestoreCollections.GROUPS).doc();
@@ -184,5 +175,10 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             const corruptedGroupInResult = result.data.find((g: any) => g.id === corruptedGroupRef.id);
             expect(corruptedGroupInResult).toBeUndefined();
         });
+
+        // NOTE: Additional data validation scenarios have been moved to unit tests:
+        // - FirestoreReader.validation.unit.test.ts covers securityPreset sanitization
+        // - Timestamp validation, missing fields, and wrong data types
+        // - These unit tests are faster and provide better isolation
     });
 });
