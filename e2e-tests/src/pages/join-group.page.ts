@@ -245,77 +245,33 @@ export class JoinGroupPage extends BasePage {
     }
 
     async clickJoinGroupAndWaitForJoin() {
-        // Wait for join button to be available (don't just check if join page is visible)
-        const joinButton = this.getJoinGroupButton();
-
         await this.clickJoinGroup();
 
-        // Wait for the join to complete - several possible outcomes:
-        const joinSuccessIndicator = this.page.locator('[data-join-success="true"]');
-        // More specific error selectors to avoid false positives from group descriptions
-        const errorMessage = this.page.locator('[data-testid="invalid-link-warning"], [data-testid="unable-join-warning"], [role="alert"]');
-
-        // Wait for one of the expected outcomes
-        await Promise.race([
-            // Success: Welcome screen appears then navigates
-            (async () => {
-                await expect(joinSuccessIndicator).toBeVisible({ timeout: 5000 });
-                await expect(this.page).toHaveURL(groupDetailUrlPattern(), { timeout: 2000 });
-            })(),
-
-            // Success: Direct navigation to group (fast join)
-            expect(this.page).toHaveURL(groupDetailUrlPattern(), { timeout: 5000 }),
-
-            // Failure: Error message appears
-            (async () => {
-                await expect(errorMessage).toBeVisible({ timeout: 5000 });
-                const errorText = await errorMessage.textContent();
-                throw new Error(`Join failed: ${errorText}`);
-            })(),
-
-            // Timeout: Button stuck in joining state - use polling instead of fixed timeout
-            (async () => {
-                await expect(async () => {
-                    // Check if button is still showing "Joining..."
-                    const buttonText = await joinButton.textContent().catch(() => null);
-                    if (buttonText?.includes('Joining...')) {
-                        throw new Error('Button still stuck in joining state');
-                    }
-                    // If button text has changed, check for other completion indicators
-                    const currentUrl = this.page.url();
-                    const isOnGroupPage = currentUrl.match(groupDetailUrlPattern());
-                    const hasError = await errorMessage.isVisible().catch(() => false);
-                    const hasSuccess = await joinSuccessIndicator.isVisible().catch(() => false);
-
-                    if (!isOnGroupPage && !hasError && !hasSuccess) {
-                        throw new Error('Join operation in unknown state - no completion indicators found');
-                    }
-                    // If we reach here, one of the expected outcomes occurred
-                }).toPass({ timeout: 5000 });
-
-                // Check if we're on success screen and need to click "Go to Group"
-                const currentUrl = this.page.url();
-                if (!currentUrl.match(groupDetailUrlPattern())) {
-                    // Check if we're on the success screen
-                    const isOnSuccessScreen = await this.page.locator('[data-join-success="true"]').isVisible();
-                    if (isOnSuccessScreen) {
-                        // Click "Go to Group" button to navigate to the group page
-                        await this.clickOkButton();
-                        // Wait for navigation to group page
-                        await expect(this.page).toHaveURL(groupDetailUrlPattern());
-                    } else {
-                        throw new Error('Join operation completed but not on group page or success screen');
-                    }
-                }
-            })(),
-        ]).catch((error) => {
-            // If we got here due to success conditions, check if we're actually on the group page
+        // Wait for join to complete using single polling loop
+        await expect(async () => {
             const currentUrl = this.page.url();
-            if (currentUrl.match(groupDetailUrlPattern())) {
-                return; // Success!
+            const isOnGroupPage = currentUrl.match(groupDetailUrlPattern());
+            const hasError = await this.getErrorMessage().isVisible().catch(() => false);
+            const hasSuccessScreen = await this.page.locator('[data-join-success="true"]').isVisible().catch(() => false);
+
+            if (isOnGroupPage) {
+                return; // Success - direct navigation
             }
-            throw error; // Re-throw the actual error
-        });
+
+            if (hasError) {
+                const errorText = await this.getErrorMessage().textContent();
+                throw new Error(`Join failed: ${errorText}`);
+            }
+
+            if (hasSuccessScreen) {
+                await this.clickOkButton();
+                await expect(this.page).toHaveURL(groupDetailUrlPattern());
+                return; // Success - via success screen
+            }
+
+            // Still joining - keep polling
+            throw new Error('Still joining...');
+        }).toPass({ timeout: 5000 });
     }
 
     // Helper for debugging failed joins
