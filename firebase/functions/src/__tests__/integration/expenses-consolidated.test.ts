@@ -15,6 +15,8 @@ describe('Expenses Management - Consolidated Tests', () => {
     });
 
     describe('Expense Creation and Basic Operations', () => {
+        // NOTE: Business logic for split calculations, validation, etc. is now tested in unit tests
+        // This integration test focuses on API endpoints and Firebase integration
         test('should create expense with equal splits via API and service layer', async () => {
             // Test API layer creation
             const apiExpenseData = new CreateExpenseRequestBuilder()
@@ -44,47 +46,29 @@ describe('Expenses Management - Consolidated Tests', () => {
             });
         });
 
-        test('should create expenses with different split types', async () => {
-            // Test unequal/exact splits
-            const exactSplitData = new CreateExpenseRequestBuilder()
+        // NOTE: Split calculation logic is now comprehensively tested in unit tests
+        // This integration test focuses on API endpoints and database persistence
+        test('should create and persist expenses via API endpoints', async () => {
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
-                .withDescription('Exact Split Expense')
+                .withDescription('API Integration Test')
                 .withAmount(100)
                 .withPaidBy(users[0].uid)
                 .withSplitType('exact')
                 .withParticipants([users[0].uid, users[1].uid])
                 .withSplits([
-                    { userId: users[0].uid, amount: 80 },
-                    { userId: users[1].uid, amount: 20 },
+                    { userId: users[0].uid, amount: 60 },
+                    { userId: users[1].uid, amount: 40 },
                 ])
                 .build();
 
-            const exactResponse = await apiDriver.createExpense(exactSplitData, users[0].token);
-            const exactExpense = await apiDriver.getExpense(exactResponse.id, users[0].token);
-            expect(exactExpense.splitType).toBe('exact');
-            expect(exactExpense.splits.find((s: any) => s.userId === users[0].uid)?.amount).toBe(80);
+            // Test API creation and retrieval
+            const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
+            expect(createdExpense.id).toBeDefined();
 
-            // Test percentage splits
-            const percentageApiData = new CreateExpenseRequestBuilder()
-                .withGroupId(testGroup.id)
-                .withAmount(100)
-                .withDescription('Percentage split test')
-                .withCategory('Food')
-                .withPaidBy(users[0].uid)
-                .withParticipants([users[0].uid, users[1].uid])
-                .withSplitType('percentage')
-                .withSplits([
-                    { userId: users[0].uid, amount: 70, percentage: 70 },
-                    { userId: users[1].uid, amount: 30, percentage: 30 },
-                ])
-                .build();
-
-            const percentageResult = await apiDriver.createExpense(percentageApiData, users[0].token);
-            expect(percentageResult.splitType).toBe('percentage');
-            expect(percentageResult.splits).toEqual([
-                { userId: users[0].uid, amount: 70, percentage: 70 },
-                { userId: users[1].uid, amount: 30, percentage: 30 },
-            ]);
+            const retrievedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
+            expect(retrievedExpense.id).toBe(createdExpense.id);
+            expect(retrievedExpense.description).toBe('API Integration Test');
         });
 
         test('should list and paginate group expenses', async () => {

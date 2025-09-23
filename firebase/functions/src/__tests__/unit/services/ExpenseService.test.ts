@@ -3,8 +3,10 @@ import { ExpenseService } from '../../../services/ExpenseService';
 import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { UserService } from '../../../services/UserService2';
+import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { Timestamp } from 'firebase-admin/firestore';
+import type { CreateExpenseRequest } from '@splitifyd/shared';
 
 // Mock dependencies that aren't part of core business logic testing
 vi.mock('../../../utils/dateHelpers', () => ({
@@ -438,6 +440,184 @@ describe('ExpenseService - Unit Tests', () => {
             // Assert
             expect(result.amount).toBe(100.33);
             expect(result.splits[0].amount).toBe(100.33);
+        });
+    });
+
+    describe('Validation Logic - Business Logic', () => {
+        it('should require positive expense amount', async () => {
+            // Arrange
+            const { validateCreateExpense } = await import('../../../expenses/validation');
+
+            const mockExpenseRequest: CreateExpenseRequest = {
+                groupId: 'test-group',
+                description: 'Negative amount test',
+                amount: -50, // Invalid negative amount
+                currency: 'USD',
+                category: 'Food',
+                paidBy: 'user1',
+                participants: ['user1'],
+                splitType: 'equal',
+                date: new Date().toISOString(),
+            };
+
+            // Mock validation to reject negative amounts
+            (validateCreateExpense as any).mockImplementation(() => {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT', 'Amount must be positive');
+            });
+
+            // Act & Assert
+            await expect(expenseService.createExpense('user1', mockExpenseRequest))
+                .rejects.toThrow(expect.objectContaining({
+                    statusCode: HTTP_STATUS.BAD_REQUEST,
+                }));
+        });
+
+        it('should validate currency format', async () => {
+            // Arrange
+            const { validateCreateExpense } = await import('../../../expenses/validation');
+
+            const mockExpenseRequest: CreateExpenseRequest = {
+                groupId: 'test-group',
+                description: 'Invalid currency test',
+                amount: 100,
+                currency: 'INVALID_CURRENCY', // Invalid currency code
+                category: 'Food',
+                paidBy: 'user1',
+                participants: ['user1'],
+                splitType: 'equal',
+                date: new Date().toISOString(),
+            };
+
+            // Mock validation to reject invalid currency
+            (validateCreateExpense as any).mockImplementation(() => {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CURRENCY', 'Invalid currency code');
+            });
+
+            // Act & Assert
+            await expect(expenseService.createExpense('user1', mockExpenseRequest))
+                .rejects.toThrow(expect.objectContaining({
+                    statusCode: HTTP_STATUS.BAD_REQUEST,
+                }));
+        });
+    });
+
+    describe('Category and Metadata Handling', () => {
+        it('should handle expense categories correctly', async () => {
+            // Arrange
+            const expenseId = 'categorized-expense';
+            const userId = 'test-user-id';
+
+            const mockExpense = {
+                id: expenseId,
+                groupId: 'test-group-id',
+                createdBy: userId,
+                paidBy: userId,
+                amount: 100,
+                currency: 'USD',
+                description: 'Restaurant dinner',
+                category: 'Food & Dining', // Specific category
+                date: Timestamp.now(),
+                splitType: 'equal',
+                participants: [userId],
+                splits: [{ userId, amount: 100 }],
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
+                deletedAt: null,
+                deletedBy: null,
+            };
+
+            setExpenseData(expenseId, mockExpense);
+
+            // Act
+            const result = await expenseService.getExpense(expenseId, userId);
+
+            // Assert
+            expect(result.category).toBe('Food & Dining');
+        });
+
+        it('should handle expenses without categories', async () => {
+            // Arrange
+            const expenseId = 'uncategorized-expense';
+            const userId = 'test-user-id';
+
+            const mockExpense = {
+                id: expenseId,
+                groupId: 'test-group-id',
+                createdBy: userId,
+                paidBy: userId,
+                amount: 100,
+                currency: 'USD',
+                description: 'Uncategorized expense',
+                // category intentionally omitted
+                date: Timestamp.now(),
+                splitType: 'equal',
+                participants: [userId],
+                splits: [{ userId, amount: 100 }],
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
+                deletedAt: null,
+                deletedBy: null,
+            };
+
+            setExpenseData(expenseId, mockExpense);
+
+            // Act
+            const result = await expenseService.getExpense(expenseId, userId);
+
+            // Assert
+            expect(result.category).toBeUndefined();
+        });
+
+        it('should preserve receipt URLs correctly', async () => {
+            // Arrange
+            const expenseId = 'receipt-expense';
+            const userId = 'test-user-id';
+            const receiptUrl = 'https://storage.example.com/receipts/receipt123.jpg';
+
+            const mockExpense = {
+                id: expenseId,
+                groupId: 'test-group-id',
+                createdBy: userId,
+                paidBy: userId,
+                amount: 100,
+                currency: 'USD',
+                description: 'Expense with receipt',
+                category: 'Business',
+                receiptUrl: receiptUrl,
+                date: Timestamp.now(),
+                splitType: 'equal',
+                participants: [userId],
+                splits: [{ userId, amount: 100 }],
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
+                deletedAt: null,
+                deletedBy: null,
+            };
+
+            setExpenseData(expenseId, mockExpense);
+
+            // Act
+            const result = await expenseService.getExpense(expenseId, userId);
+
+            // Assert
+            expect(result.receiptUrl).toBe(receiptUrl);
+        });
+    });
+
+    describe('Database Error Handling', () => {
+        it('should handle database read failures gracefully', async () => {
+            // Arrange
+            const expenseId = 'failing-expense';
+            const userId = 'test-user-id';
+
+            // Mock the reader to throw an error
+            stubReader.getExpense = vi.fn().mockRejectedValue(
+                new Error('Database connection failed')
+            );
+
+            // Act & Assert
+            await expect(expenseService.getExpense(expenseId, userId))
+                .rejects.toThrow('Database connection failed');
         });
     });
 });

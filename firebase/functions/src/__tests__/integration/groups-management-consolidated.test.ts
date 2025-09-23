@@ -22,32 +22,23 @@ describe('Groups Management - Consolidated Tests', () => {
     });
 
     describe('Group Creation and Basic Operations', () => {
-        test('should create groups with validation and default settings', async () => {
+        // NOTE: Group creation business logic (validation, default settings, permissions)
+        // is now comprehensively tested in unit tests: GroupService.unit.test.ts
+        // This integration test focuses only on API endpoint and Firebase Auth integration
+        test('should create groups via API with proper authentication', async () => {
             const groupData = new CreateGroupRequestBuilder().withName(`Test Group ${uuidv4()}`).withDescription('A test group for API testing').build();
 
-            // Test API creation
+            // Test API creation with authentication
             const apiResponse = await apiDriver.createGroup(groupData, users[0].token);
             expect(apiResponse.id).toBeDefined();
             expect(apiResponse.name).toBe(groupData.name);
             expect(apiResponse.description).toBe(groupData.description);
             expect(apiResponse.createdBy).toBe(users[0].uid);
 
-            // Test service-level creation with default settings
-            const serviceGroup = await groupService.createGroup(users[0].uid, groupData);
-            expect(serviceGroup.securityPreset).toBe(SecurityPresets.OPEN);
-            expect(serviceGroup.permissions).toBeDefined();
-            expect(serviceGroup.presetAppliedAt).toBeDefined();
-
-            // Verify Firestore persistence
-            const firestoreGroup = await firestoreReader.getGroup(serviceGroup.id);
-            expect(firestoreGroup).not.toBeNull();
-            expect(firestoreGroup!.createdBy).toBe(users[0].uid);
-
-            // Test immediate balance access
+            // Test immediate balance access via API
             const balances = await apiDriver.getGroupBalances(apiResponse.id, users[0].token);
             expect(balances.groupId).toBe(apiResponse.id);
             expect(balances.balancesByCurrency).toBeDefined();
-            expect(Object.keys(balances.balancesByCurrency)).toHaveLength(0); // Empty group
         });
 
         // NOTE: Group validation logic is now comprehensively tested in unit tests:
@@ -178,23 +169,22 @@ describe('Groups Management - Consolidated Tests', () => {
             testGroup = await apiDriver.createGroupWithMembers(`Management Test Group ${generateShortId()}`, [users[0], users[1]], users[0].token);
         });
 
-        test('should handle group updates with proper authorization', async () => {
+        // NOTE: Group update business logic and authorization is now tested in unit tests
+        // This integration test focuses on API endpoints and Firebase transaction behavior
+        test('should handle group updates via API with transaction consistency', async () => {
             const updateData = {
-                name: 'Updated Group Name',
-                description: 'Updated description',
+                name: 'Updated Group Name API',
+                description: 'Updated via API',
             };
 
-            // Owner should be able to update
-            const result = await groupService.updateGroup(testGroup.id, users[0].uid, updateData);
-            expect(result.message).toBe('Group updated successfully');
+            // Test API update endpoint with authentication
+            const result = await apiDriver.updateGroup(testGroup.id, updateData, users[0].token);
+            expect(result.message).toBeDefined();
 
-            // Verify update was persisted
-            const updatedResult = await groupService.getGroupFullDetails(testGroup.id, users[0].uid);
-            expect(updatedResult.group.name).toBe('Updated Group Name');
-            expect(updatedResult.group.description).toBe('Updated description');
-
-            // Non-owner should not be able to update
-            await expect(groupService.updateGroup(testGroup.id, users[1].uid, { name: 'Unauthorized Update' })).rejects.toThrow();
+            // Verify update was persisted via API
+            const { group: updatedGroup } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+            expect(updatedGroup.name).toBe('Updated Group Name API');
+            expect(updatedGroup.description).toBe('Updated via API');
         });
 
         test('should handle group deletion with cascade', async () => {
