@@ -37,8 +37,8 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         };
 
         await settlementForm1.submitSettlement(settlementData1, 2);
-        await groupDetailPage.verifySettlementDetails({note: settlementData1.note});
         await groupDetailPage.openHistoryIfClosed();
+        await groupDetailPage.verifySettlementDetails({note: settlementData1.note});
         await groupDetailPage.verifySettlementDetails(settlementData1);
 
         // Test 2: Settlement where creator is payee (different permissions scenario)
@@ -52,8 +52,8 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         };
 
         await settlementForm2.submitSettlement(settlementData2, 2);
-        await groupDetailPage.verifySettlementDetails({note: settlementData2.note});
         await groupDetailPage.openHistoryIfClosed();
+        await groupDetailPage.verifySettlementDetails({note: settlementData2.note});
         await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
 
         // Verify creator can edit/delete even when they're the payee
@@ -179,52 +179,10 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
     });
 
-    simpleTest('should update debt correctly after partial settlement', async ({ createLoggedInBrowsers }) => {
-        const [
-            { dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
-
-        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
-
-        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
-
-        // Create expense: User1 pays ¥200 -> User2 owes ¥100
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
-        await expenseFormPage.submitExpense({
-            description: 'Test Expense for Settlement',
-            amount: 200,
-            paidByDisplayName: user1DisplayName,
-            currency: 'JPY',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName],
-        });
-
-        // Verify expense appears and initial debt
-        await groupDetailPage.verifyExpenseVisible('Test Expense for Settlement');
-        await groupDetailPage2.verifyExpenseVisible('Test Expense for Settlement');
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥100');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥100');
-
-        // Record partial settlement of ¥60
-        const settlementFormPage = await groupDetailPage.clickSettleUpButton(2);
-        await settlementFormPage.submitSettlement({
-            payerName: user2DisplayName,
-            payeeName: user1DisplayName,
-            amount: '60',
-            currency: 'JPY',
-            note: 'Partial payment of $60',
-        }, 2);
-
-        // Verify updated debt (¥100 - ¥60 = ¥40 remaining)
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
-    });
 });
 
 simpleTest.describe('Settlement Real-time Updates', () => {
-    simpleTest('should handle multi-user partial settlements correctly', async ({ createLoggedInBrowsers }) => {
+    simpleTest('should handle comprehensive multi-user settlement scenarios with real-time updates', async ({ createLoggedInBrowsers }) => {
         const memberCount = 3;
 
         const [
@@ -239,8 +197,9 @@ simpleTest.describe('Settlement Real-time Updates', () => {
 
         const [groupDetailPage1, groupDetailPage2, groupDetailPage3] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage, user3DashboardPage);
         const groupId = groupDetailPage1.inferGroupId();
+        const pages = [groupDetailPage1, groupDetailPage2, groupDetailPage3];
 
-        // User1 creates expense for ¥120, split 3 ways (¥40 each)
+        // Create expense for ¥120, split 3 ways (¥40 each)
         // Result: User2 owes ¥40, User3 owes ¥40 to User1
         const expenseDescription = 'Group dinner expense';
         await groupDetailPage1.addExpense({
@@ -252,15 +211,15 @@ simpleTest.describe('Settlement Real-time Updates', () => {
             participants: [user1DisplayName, user2DisplayName, user3DisplayName]
         }, memberCount);
 
-        // Synchronize all pages
-        for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
-            await groupDetailPage.waitForExpense(expenseDescription);
-            await groupDetailPage.waitForPage(groupId, memberCount);
-            await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
-            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
+        // Verify initial state across all pages
+        for (const page of pages) {
+            await page.waitForExpense(expenseDescription);
+            await page.waitForPage(groupId, memberCount);
+            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
+            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
         }
 
-        // User2 makes partial settlement of ¥30 (leaving ¥10 debt)
+        // PHASE 1: User2 makes partial settlement of ¥30 (leaving ¥10 debt)
         const settlementNote1 = 'Partial payment from user2';
         await groupDetailPage1.recordSettlement({
             payerName: user2DisplayName,
@@ -270,19 +229,15 @@ simpleTest.describe('Settlement Real-time Updates', () => {
             note: settlementNote1,
         }, memberCount);
 
-        // Synchronize settlement
-        for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
-            await groupDetailPage.verifySettlementDetails({note: settlementNote1});
-            await groupDetailPage.waitForPage(groupId, memberCount);
+        // Verify real-time updates for partial settlement
+        for (const page of pages) {
+            await page.verifySettlementDetails({note: settlementNote1});
+            await page.waitForPage(groupId, memberCount);
+            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥10'); // 40 - 30 = 10
+            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40'); // unchanged
         }
 
-        // Verify updated balances: User2 now owes ¥10, User3 still owes ¥40
-        for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
-            await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥10');
-            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
-        }
-
-        // User2 makes final settlement of ¥10 (fully settled)
+        // PHASE 2: User2 makes final settlement of ¥10 (fully settled)
         const settlementNote2 = 'Final payment from user2 - all settled!';
         await groupDetailPage1.recordSettlement({
             payerName: user2DisplayName,
@@ -292,93 +247,37 @@ simpleTest.describe('Settlement Real-time Updates', () => {
             note: settlementNote2,
         }, memberCount);
 
-        // Synchronize final settlement
-        for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
-            await groupDetailPage.verifySettlementDetails({note: settlementNote2});
-            await groupDetailPage.waitForPage(groupId, memberCount);
-        }
-
-        // Verify final state: User2 fully settled, User3 still owes ¥40
-        for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
-            await expect(groupDetailPage.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible();
-            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
-        }
-
-        // Verify both settlements in history
-        for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
-            await groupDetailPage.verifySettlementDetails({ note: "Partial payment from user2" });
-            await groupDetailPage.verifySettlementDetails({ note: "Final payment from user2 - all settled!" });
-        }
-    });
-
-    simpleTest('should handle real-time settlement updates across multiple users', async ({ createLoggedInBrowsers }) => {
-        const [
-            { dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage },
-            { dashboardPage: user3DashboardPage }
-        ] = await createLoggedInBrowsers(3);
-
-        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
-        const user3DisplayName = await user3DashboardPage.header.getCurrentUserDisplayName();
-
-        const [groupDetailPage1, groupDetailPage2, groupDetailPage3] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage, user3DashboardPage);
-        const groupId = groupDetailPage1.inferGroupId();
-        const pages = [groupDetailPage1, groupDetailPage2, groupDetailPage3];
-
-        // Create expense for testing settlement real-time updates
-        const expenseDescription = 'Group dinner expense';
-        await groupDetailPage1.addExpense({
-            description: expenseDescription,
-            amount: 120,
-            paidByDisplayName: user1DisplayName,
-            currency: 'JPY',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName, user3DisplayName]
-        }, 3);
-
-        // Verify real-time updates across all pages
-        for (const page of pages) {
-            await page.waitForExpense(expenseDescription);
-            await page.waitForPage(groupId, 3);
-            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
-            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
-        }
-
-        // User2 makes partial settlement
-        const settlementNote1 = 'Partial payment from user2';
-        await groupDetailPage1.recordSettlement({
-            payerName: user2DisplayName,
-            payeeName: user1DisplayName,
-            amount: '30',
-            currency: 'JPY',
-            note: settlementNote1,
-        }, 3);
-
-        // Verify real-time settlement updates
-        for (const page of pages) {
-            await page.verifySettlementDetails({note: settlementNote1});
-            await page.waitForPage(groupId, 3);
-            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥10'); // 40 - 30 = 10
-            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40'); // unchanged
-        }
-
-        // User2 completes final settlement
-        const settlementNote2 = 'Final payment from user2';
-        await groupDetailPage1.recordSettlement({
-            payerName: user2DisplayName,
-            payeeName: user1DisplayName,
-            amount: '10',
-            currency: 'JPY',
-            note: settlementNote2,
-        }, 3);
-
-        // Verify final real-time updates
+        // Verify real-time updates for final settlement
         for (const page of pages) {
             await page.verifySettlementDetails({note: settlementNote2});
-            await page.waitForPage(groupId, 3);
+            await page.waitForPage(groupId, memberCount);
             await expect(page.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible(); // User2 fully settled
             await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40'); // User3 still owes
+        }
+
+        // PHASE 3: Test additional real-time scenarios - User3 partial settlement
+        const settlementNote3 = 'User3 partial payment';
+        await groupDetailPage1.recordSettlement({
+            payerName: user3DisplayName,
+            payeeName: user1DisplayName,
+            amount: '25',
+            currency: 'JPY',
+            note: settlementNote3,
+        }, memberCount);
+
+        // Verify final real-time state
+        for (const page of pages) {
+            await page.verifySettlementDetails({note: settlementNote3});
+            await page.waitForPage(groupId, memberCount);
+            await expect(page.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible(); // User2 still fully settled
+            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥15'); // 40 - 25 = 15
+        }
+
+        // Verify all settlements appear in history
+        for (const page of pages) {
+            await page.verifySettlementDetails({ note: settlementNote1 });
+            await page.verifySettlementDetails({ note: settlementNote2 });
+            await page.verifySettlementDetails({ note: settlementNote3 });
         }
     });
 });

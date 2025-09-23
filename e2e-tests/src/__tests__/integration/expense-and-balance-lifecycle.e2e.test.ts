@@ -100,7 +100,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await groupDetailPage2.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€50.25');
     });
 
-    simpleTest('should handle multi-currency expenses with different decimal precisions and balance calculations', async ({ createLoggedInBrowsers }) => {
+    simpleTest('should handle comprehensive multi-currency expenses with precision and cross-currency settlements', async ({ createLoggedInBrowsers }) => {
         const [
             { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage }
@@ -110,11 +110,11 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
-
-        // Test 1: JPY (0 decimals) with rounding
         const uniqueId = generateShortId();
+
+        // PHASE 1: Test JPY (0 decimals) with rounding
         await groupDetailPage.addExpense({
-            description: `JPY Test ${uniqueId}`,
+            description: `Multi-currency JPY ${uniqueId}`,
             amount: 123, // Should split as ¥62 each (123/2 = 61.5 rounds up)
             paidByDisplayName: user1DisplayName,
             currency: 'JPY',
@@ -122,14 +122,9 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             participants: [user1DisplayName, user2DisplayName]
         }, 2);
 
-        // Verify JPY amount and balance calculation with rounding
-        await expect(groupDetailPage.page.getByText('¥123').first()).toBeVisible();
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62');
-
-        // Test 2: BHD (3 decimals)
+        // PHASE 2: Test BHD (3 decimals) - add to same group
         await groupDetailPage.addExpense({
-            description: `BHD Test ${uniqueId}`,
+            description: `Multi-currency BHD ${uniqueId}`,
             amount: 30.5,
             paidByDisplayName: user1DisplayName,
             currency: 'BHD',
@@ -137,15 +132,9 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             participants: [user1DisplayName, user2DisplayName]
         }, 2);
 
-        // Verify BHD amount displays correctly and net balance calculated
-        await expect(groupDetailPage.page.getByText('BHD 30.500').first()).toBeVisible();
-
-        // Net calculation: User2 owes ¥62 + BHD15.250, but different currencies so shown separately
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62');
-
-        // Test 3: KWD (3 decimals) with currency memory
+        // PHASE 3: Test KWD (3 decimals) - comprehensive currency test
         await groupDetailPage.addExpense({
-            description: `KWD Test ${uniqueId}`,
+            description: `Multi-currency KWD ${uniqueId}`,
             amount: 5.5,
             paidByDisplayName: user1DisplayName,
             currency: 'KWD',
@@ -153,11 +142,11 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             participants: [user1DisplayName, user2DisplayName]
         }, 2);
 
-        // Verify all currencies are displayed correctly with proper precision
+        // Verify all currency amounts are displayed with correct precision
         await expect(groupDetailPage.page.getByText('¥123').first()).toBeVisible();
         await expect(groupDetailPage.page.getByText('BHD 30.500').first()).toBeVisible();
 
-        // Check for KWD amount - try multiple possible formats
+        // Check KWD with flexible format matching
         const kwdElements = [
             groupDetailPage.page.getByText('KD5.500').first(),
             groupDetailPage.page.getByText('KD 5.500').first(),
@@ -179,21 +168,25 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             throw new Error('KWD amount not found in any expected format');
         }
 
-        // Test 4: Cross-currency settlement (settle JPY debt with EUR)
+        // Verify multi-currency balances (separate debt per currency)
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62');
+
+        // PHASE 4: Test cross-currency settlement (settle with different currency)
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
         await settlementForm.submitSettlement({
             payerName: user2DisplayName,
             payeeName: user1DisplayName,
             amount: '25',
             currency: 'EUR',
-            note: 'Cross-currency settlement',
+            note: 'Cross-currency settlement test',
         }, 2);
 
-        // Verify settlement appears while original currency debts remain
-        await groupDetailPage.verifySettlementDetails({ note: 'Cross-currency settlement' });
-        await groupDetailPage2.verifySettlementDetails({ note: 'Cross-currency settlement' });
+        // Verify cross-currency settlement recorded while original debts remain
+        await groupDetailPage.verifySettlementDetails({ note: 'Cross-currency settlement test' });
+        await groupDetailPage2.verifySettlementDetails({ note: 'Cross-currency settlement test' });
 
-        // Original currency debts should still be visible since different currency
+        // Original currency debts should persist (cross-currency doesn't auto-convert)
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62');
     });
 
