@@ -60,7 +60,7 @@ export class SettlementFormPage extends BasePage {
     }
 
     // Helper methods
-    async waitForDropdownOptions(dropdown: Locator, expectedCount?: number): Promise<void> {
+    private async waitForDropdownOptions(dropdown: Locator, expectedCount?: number): Promise<void> {
         await expect(async () => {
             const options = await dropdown.locator('option').all();
             const optionTexts: string[] = [];

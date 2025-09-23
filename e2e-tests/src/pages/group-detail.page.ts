@@ -73,6 +73,10 @@ export class GroupDetailPage extends BasePage {
         // Verify modal opened
         const settlementFormPage = new SettlementFormPage(this.page, this.userInfo);
         await expect(settlementFormPage.getModal()).toBeVisible();
+
+        const membersCount = await this.getCurrentMemberCount();
+        expect(membersCount).toBe(expectedMemberCount);
+
         await settlementFormPage.waitForFormReady(expectedMemberCount);
         return settlementFormPage;
     }

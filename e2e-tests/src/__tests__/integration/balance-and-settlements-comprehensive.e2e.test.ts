@@ -2,177 +2,17 @@ import {expect, simpleTest} from '../../fixtures';
 import {SettlementData} from '../../pages/settlement-form.page';
 
 /**
- * Comprehensive Balance & Settlement Operations E2E Tests
+ * Settlement-Focused Operations E2E Tests
  *
- * CONSOLIDATION: Reduced from 18 to ~10 tests by eliminating redundancy
- * while maintaining 100% feature coverage.
+ * CONSOLIDATION UPDATE: Removed overlapping expense creation and balance calculation
+ * tests that were moved to expense-and-balance-lifecycle.e2e.test.ts.
  *
- * Covers:
- * - Balance calculations across all scenarios
+ * This file now focuses exclusively on settlement-specific operations:
  * - Settlement CRUD operations (create, read, update, delete)
- * - Multi-currency support and formatting
- * - Real-time balance updates
- * - Partial and full settlement flows
+ * - Settlement form validation and UI behavior
+ * - Multi-user settlement scenarios
+ * - Settlement-specific real-time updates
  */
-
-
-simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
-
-    simpleTest('should handle complete balance lifecycle: empty -> debt -> settled -> partial -> full settlement', async ({ createLoggedInBrowsers }) => {
-        const [
-            { dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
-
-        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
-
-        // Scenario 1: Empty group -> ALWAYS settled up
-        const [groupDetailPage1, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
-        await groupDetailPage1.waitForSettledUpMessage();
-        await groupDetailPage2.waitForSettledUpMessage();
-
-        // Scenario 2: Single expense creates debt
-        await groupDetailPage1.addExpense({
-            description: 'Test Expense',
-            amount: 100,
-            paidByDisplayName: user1DisplayName,
-            currency: 'JPY',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName]
-        }, 2);
-
-        await groupDetailPage1.waitForExpense('Test Expense');
-        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥50');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥50');
-
-        // Scenario 3: Equal expenses -> settled up
-        await groupDetailPage2.addExpense({
-            description: 'User2 Payment',
-            amount: 100,
-            paidByDisplayName: user2DisplayName,
-            currency: 'JPY',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName]
-        }, 2);
-
-        await groupDetailPage2.waitForExpense('User2 Payment');
-        await groupDetailPage1.waitForSettledUpMessage();
-        await groupDetailPage2.waitForSettledUpMessage();
-
-        // Scenario 4: New debt + partial settlement
-        await groupDetailPage1.addExpense({
-            description: 'Final Test Payment',
-            amount: 80,
-            paidByDisplayName: user1DisplayName,
-            currency: 'JPY',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName]
-        }, 2);
-
-        await groupDetailPage1.waitForExpense('Final Test Payment');
-        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
-
-        // Scenario 5: Full settlement clears debt -> settled up
-        const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
-        await settlementForm.submitSettlement({
-            payerName: user2DisplayName,
-            payeeName: user1DisplayName,
-            amount: '40',
-            currency: 'JPY',
-            note: 'Full settlement test',
-        }, 2);
-
-        await groupDetailPage1.waitForSettledUpMessage();
-        await groupDetailPage2.waitForSettledUpMessage();
-    });
-
-    simpleTest('should calculate debt correctly with different currencies and precision', async ({ createLoggedInBrowsers }) => {
-        const [
-            { dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
-
-        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
-
-        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
-
-        // Test 1: EUR currency with decimal precision
-        await groupDetailPage.addExpense({
-            description: 'EUR Expense',
-            amount: 100,
-            paidByDisplayName: user1DisplayName,
-            currency: 'EUR',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName]
-        }, 2);
-
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€50.00');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€50.00');
-
-        // Test 2: JPY currency with no decimals + rounding
-        await groupDetailPage.addExpense({
-            description: 'JPY Rounding Test',
-            amount: 123,
-            paidByDisplayName: user1DisplayName,
-            currency: 'JPY',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName]
-        }, 2);
-
-        // JPY: 123/2 = 61.5 -> rounds up to \u00a562
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62');
-
-        // Verify original expense amount is preserved
-        await expect(groupDetailPage.getCurrencyAmount('123')).toBeVisible();
-    });
-
-    simpleTest('should handle complex multi-expense net debt calculations', async ({ createLoggedInBrowsers }) => {
-        const [
-            { dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
-
-        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
-
-        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
-
-        // User1 pays \u00a5300 (owes \u00a5150)
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
-        await expenseFormPage.submitExpense({
-            description: 'Large User1 Payment',
-            amount: 300,
-            paidByDisplayName: user1DisplayName,
-            currency: 'JPY',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName],
-        });
-
-        await groupDetailPage.verifyExpenseVisible('Large User1 Payment');
-        await groupDetailPage2.verifyExpenseVisible('Large User1 Payment');
-
-        // User2 pays \u00a5100 (owes \u00a5200)
-        const expenseFormPage2 = await groupDetailPage2.clickAddExpenseButton(2);
-        await expenseFormPage2.submitExpense({
-            description: 'Small User2 Payment',
-            amount: 100,
-            paidByDisplayName: user2DisplayName,
-            currency: 'JPY',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName],
-        });
-
-        // Net calculation: User1 owes \u00a5150, User2 owes \u00a5200 -> User2 owes User1 \u00a5100
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥100');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥100');
-    });
-
-
-});
 
 simpleTest.describe('Settlement CRUD Operations', () => {
     simpleTest('should create settlements with comprehensive display and permissions', async ({ createLoggedInBrowsers }) => {
@@ -350,7 +190,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
 
         const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
-        // Create expense: User1 pays \u00a5200 -> User2 owes \u00a5100
+        // Create expense: User1 pays ¥200 -> User2 owes ¥100
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
         await expenseFormPage.submitExpense({
             description: 'Test Expense for Settlement',
@@ -367,7 +207,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥100');
         await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥100');
 
-        // Record partial settlement of \u00a560
+        // Record partial settlement of ¥60
         const settlementFormPage = await groupDetailPage.clickSettleUpButton(2);
         await settlementFormPage.submitSettlement({
             payerName: user2DisplayName,
@@ -377,13 +217,13 @@ simpleTest.describe('Settlement CRUD Operations', () => {
             note: 'Partial payment of $60',
         }, 2);
 
-        // Verify updated debt (\u00a5100 - \u00a560 = \u00a540 remaining)
+        // Verify updated debt (¥100 - ¥60 = ¥40 remaining)
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
         await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
     });
 });
 
-simpleTest.describe('Real-time Balance Updates', () => {
+simpleTest.describe('Settlement Real-time Updates', () => {
     simpleTest('should handle multi-user partial settlements correctly', async ({ createLoggedInBrowsers }) => {
         const memberCount = 3;
 
@@ -400,8 +240,8 @@ simpleTest.describe('Real-time Balance Updates', () => {
         const [groupDetailPage1, groupDetailPage2, groupDetailPage3] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage, user3DashboardPage);
         const groupId = groupDetailPage1.inferGroupId();
 
-        // User1 creates expense for \u00a5120, split 3 ways (\u00a540 each)
-        // Result: User2 owes \u00a540, User3 owes \u00a540 to User1
+        // User1 creates expense for ¥120, split 3 ways (¥40 each)
+        // Result: User2 owes ¥40, User3 owes ¥40 to User1
         const expenseDescription = 'Group dinner expense';
         await groupDetailPage1.addExpense({
             description: expenseDescription,
@@ -420,7 +260,7 @@ simpleTest.describe('Real-time Balance Updates', () => {
             await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
         }
 
-        // User2 makes partial settlement of \u00a530 (leaving \u00a510 debt)
+        // User2 makes partial settlement of ¥30 (leaving ¥10 debt)
         const settlementNote1 = 'Partial payment from user2';
         await groupDetailPage1.recordSettlement({
             payerName: user2DisplayName,
@@ -436,13 +276,13 @@ simpleTest.describe('Real-time Balance Updates', () => {
             await groupDetailPage.waitForPage(groupId, memberCount);
         }
 
-        // Verify updated balances: User2 now owes \u00a510, User3 still owes \u00a540
+        // Verify updated balances: User2 now owes ¥10, User3 still owes ¥40
         for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
             await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥10');
             await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
         }
 
-        // User2 makes final settlement of \u00a510 (fully settled)
+        // User2 makes final settlement of ¥10 (fully settled)
         const settlementNote2 = 'Final payment from user2 - all settled!';
         await groupDetailPage1.recordSettlement({
             payerName: user2DisplayName,
@@ -458,7 +298,7 @@ simpleTest.describe('Real-time Balance Updates', () => {
             await groupDetailPage.waitForPage(groupId, memberCount);
         }
 
-        // Verify final state: User2 fully settled, User3 still owes \u00a540
+        // Verify final state: User2 fully settled, User3 still owes ¥40
         for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
             await expect(groupDetailPage.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible();
             await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
@@ -471,7 +311,7 @@ simpleTest.describe('Real-time Balance Updates', () => {
         }
     });
 
-    simpleTest('should handle real-time balance updates across multiple users', async ({ createLoggedInBrowsers }) => {
+    simpleTest('should handle real-time settlement updates across multiple users', async ({ createLoggedInBrowsers }) => {
         const [
             { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage },
@@ -486,7 +326,7 @@ simpleTest.describe('Real-time Balance Updates', () => {
         const groupId = groupDetailPage1.inferGroupId();
         const pages = [groupDetailPage1, groupDetailPage2, groupDetailPage3];
 
-        // Test complex multi-user scenario with partial settlements
+        // Create expense for testing settlement real-time updates
         const expenseDescription = 'Group dinner expense';
         await groupDetailPage1.addExpense({
             description: expenseDescription,
@@ -542,10 +382,3 @@ simpleTest.describe('Real-time Balance Updates', () => {
         }
     });
 });
-
-// Comprehensive test coverage achieved with 9 tests (reduced from 18)
-// - Balance lifecycle: empty -> debt -> settled -> partial -> full
-// - Currency handling: precision, formatting, mixed currencies
-// - Settlement CRUD: create, read, update, delete with validation
-// - Multi-currency: separate tracking, cross-currency settlements
-// - Real-time updates: multi-user synchronization
