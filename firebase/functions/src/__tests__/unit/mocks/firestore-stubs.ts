@@ -26,6 +26,12 @@ export class StubFirestoreReader implements IFirestoreReader {
         this.documents.set(`${collection}/${id}`, data);
     }
 
+    setCollectionDocuments(collection: string, documents: any[]) {
+        documents.forEach(doc => {
+            this.setDocument(collection, doc.id, doc);
+        });
+    }
+
     setRawDocument(id: string, data: any) {
         if (data === null) {
             this.rawDocuments.delete(id);
@@ -172,7 +178,16 @@ export class StubFirestoreReader implements IFirestoreReader {
     async getRawDocument(): Promise<any | null> { return null; }
     async getRawDocumentInTransaction(): Promise<any | null> { return null; }
     async getRawDocumentInTransactionWithRef(): Promise<any | null> { return null; }
-    async getRawExpenseDocumentInTransaction(): Promise<any | null> { return null; }
+    async getRawExpenseDocumentInTransaction(transaction: any, expenseId: string): Promise<any | null> {
+        const expenseData = this.documents.get(`expenses/${expenseId}`);
+        if (!expenseData) return null;
+
+        return {
+            exists: true,
+            data: () => expenseData,
+            ref: { id: expenseId, path: `expenses/${expenseId}` },
+        };
+    }
     async getRawGroupDocument(): Promise<any | null> { return null; }
     async getRawGroupDocumentInTransaction(transaction: any, groupId: string): Promise<any | null> {
         const groupData = this.documents.get(`groups/${groupId}`);
@@ -329,14 +344,28 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     async removeUserNotificationGroup(): Promise<WriteResult> { return { id: 'notification', success: true, timestamp: Timestamp.now() }; }
     async setUserNotificationGroupInTransaction(): Promise<WriteResult> { return { id: 'notification', success: true, timestamp: Timestamp.now() }; }
     async runTransaction(transactionFn: (transaction: any) => Promise<any>): Promise<any> {
-        const mockTransaction = {};
+        const mockTransaction = {
+            get: vi.fn().mockImplementation((docRef: any) => {
+                // Return a mock document snapshot
+                return Promise.resolve({
+                    exists: true,
+                    data: () => ({}),
+                    ref: docRef,
+                });
+            }),
+            update: vi.fn(),
+            set: vi.fn(),
+            delete: vi.fn(),
+        };
         return await transactionFn(mockTransaction);
     }
     createInTransaction(transaction: any, collection: string, documentId: string | null, data: any): any {
         const id = documentId || this.generateDocumentId();
         return { id, path: `${collection}/${id}` };
     }
-    async updateInTransaction(): Promise<WriteResult> { return { id: 'doc', success: true, timestamp: Timestamp.now() }; }
+    updateInTransaction = vi.fn().mockImplementation(async (): Promise<WriteResult> => {
+        return { id: 'doc', success: true, timestamp: Timestamp.now() };
+    });
     async deleteInTransaction(): Promise<WriteResult> { return { id: 'doc', success: true, timestamp: Timestamp.now() }; }
     async createDocument(): Promise<WriteResult> { return { id: 'doc', success: true, timestamp: Timestamp.now() }; }
     async updateDocument(): Promise<WriteResult> { return { id: 'doc', success: true, timestamp: Timestamp.now() }; }
