@@ -108,6 +108,21 @@ simpleTest.describe('Profile Management', () => {
 });
 
 test.describe('Registration & Account Management', () => {
+    test('simple happy path: register new user successfully', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const registerPage = new RegisterPage(page);
+
+        const email = generateTestEmail('happy-path');
+        const password = DEFAULT_PASSWORD;
+        const displayName = generateTestUserName('HappyPath');
+
+        await registerPage.navigate();
+        await registerPage.register(displayName, email, password);
+
+        await expect(page).toHaveURL(/\/dashboard/);
+        await expect(page.getByText(displayName).first()).toBeVisible();
+    });
+
     test('comprehensive registration flow with loading states, validation, and error handling', async ({ newEmptyBrowser }) => {
         const { page } = await newEmptyBrowser();
         const registerPage = new RegisterPage(page);
