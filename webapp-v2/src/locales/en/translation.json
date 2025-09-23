@@ -43,6 +43,7 @@
     "submitButton": "Create Account",
     "hasAccount": "Already have an account?",
     "signIn": "Sign in",
+    "requiredIndicator": "*",
     "validation": {
       "nameRequired": "Name is required",
       "emailRequired": "Email is required",
@@ -756,6 +757,9 @@
       "emailPlaceholder": "Enter your email address",
       "sendResetInstructions": "Send Reset Instructions"
     }
+  },
+  "app": {
+    "loadingPage": "Loading page..."
   },
   "main": {
     "unknownButton": "Unknown Button",
