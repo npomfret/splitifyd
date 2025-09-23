@@ -397,6 +397,7 @@
     "welcome": "Welcome to {{groupName}}!",
     "joinSuccess": "You've successfully joined the group. Redirecting to group page...",
     "joinedTitle": "Joined {{groupName}} - Splitifyd",
+    "backToDashboard": "Back to Dashboard",
     "errors": {
       "invalidLink": "This invitation link is invalid or has expired",
       "groupNotFound": "This group no longer exists",
