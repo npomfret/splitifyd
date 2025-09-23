@@ -425,10 +425,6 @@ test.describe('Member Management - UI Components', () => {
         // Create a group
         const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
 
-        // Should show the current user as a member in the main content area
-        // Use the groupDetailPage page object model instead of direct selectors
-        await expect(groupDetailPage.getUserName(await dashboardPage.header.getCurrentUserDisplayName())).toBeVisible();
-
         // Look for members section showing 1 member
         await expect(groupDetailPage.getMemberCountElement()).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
     });

@@ -197,13 +197,6 @@ export class GroupDetailPage extends BasePage {
         return this.page.getByRole('button', {name: /close|×/i}).first();
     }
 
-    // User-related accessors
-    getUserName(displayName: string) {
-        return this.page.getByText(displayName).first();
-    }
-
-    // CONTEXT-SPECIFIC SELECTORS TO FIX STRICT MODE VIOLATIONS
-
     /**
      * Waits for the group to have the expected number of members.
      * Relies on real-time updates to show the correct member count.
@@ -575,25 +568,11 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * @deprecated  what modal!?
-     */
-    async closeModal(): Promise<void> {
-        const closeButton = this.getCloseButton();
-        if (await closeButton.isVisible()) {
-            await closeButton.click();
-        } else {
-            // Click outside modal to close
-            await this.page.click('body', {position: {x: 10, y: 10}});
-        }
-    }
-
-    /**
      * Verify expense is visible for the current user
      */
     async verifyExpenseVisible(description: string): Promise<void> {
         await expect(this.getExpenseByDescription(description)).toBeVisible();
     }
-
 
     async verifyExpenseInList(description: string, amount?: string) {
         await expect(this.getExpenseByDescription(description)).toBeVisible();
