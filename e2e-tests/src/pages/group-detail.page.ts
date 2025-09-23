@@ -6,6 +6,7 @@ import {SettlementData, SettlementFormPage} from './settlement-form.page';
 import {EditGroupModalPage} from './edit-group-modal.page';
 import {LeaveGroupModalPage} from './leave-group-modal.page';
 import {RemoveMemberModalPage} from './remove-member-modal.page';
+import {ShareGroupModalPage} from './share-group-modal.page';
 import {ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES} from '../constants/selectors';
 import {DashboardPage} from "./dashboard.page.ts";
 
@@ -41,10 +42,6 @@ export class GroupDetailPage extends BasePage {
         // Target the paragraph element containing the group description
         // This is rendered in GroupHeader.tsx as: <p className="text-gray-600">{group.description}</p>
         return this.page.locator('p.text-gray-600').first();
-    }
-
-    getMembersCount() {
-        return this.page.getByText(/\d+ member/i);
     }
 
     getBalancesHeading() {
@@ -185,18 +182,6 @@ export class GroupDetailPage extends BasePage {
         return this.page.getByRole('button', {name: /invite others/i}).first();
     }
 
-    getShareDialog() {
-        return this.page.getByRole('dialog');
-    }
-
-    getShareLinkInput() {
-        return this.getShareDialog().locator('input[type="text"]');
-    }
-
-    getCloseButton() {
-        return this.page.getByRole('button', {name: /close|×/i}).first();
-    }
-
     /**
      * Waits for the group to have the expected number of members.
      * Relies on real-time updates to show the correct member count.
@@ -329,27 +314,6 @@ export class GroupDetailPage extends BasePage {
         return this.page.getByText(MESSAGES.LOADING_BALANCES);
     }
 
-    // Utility method for member count
-    getMemberCountText(count: number) {
-        const memberText = count === 1 ? 'member' : 'members';
-        return this.page.getByText(`${count} ${memberText}`);
-    }
-
-    /**
-     * Get currency amount element with flexible currency support
-     * @param amount - The numeric amount (e.g., "125.50")
-     * @param currency - Optional currency symbol (defaults to any currency)
-     */
-    getCurrencyAmount(amount: string, currency?: string) {
-        if (currency) {
-            // Target element with specific currency and amount
-            return this.page.getByText(`${currency}${amount}`);
-        } else {
-            // Target element containing the amount with any currency symbol
-            return this.page.locator(`text=/[\\$€£¥]${amount.replace('.', '\\.')}/`);
-        }
-    }
-
     /**
      * Gets the balances section using the complex locator
      * This replaces repeated complex locator chains in tests
@@ -361,20 +325,6 @@ export class GroupDetailPage extends BasePage {
                 has: this.page.getByRole('heading', {name: 'Balances'}),
             })
             .first();
-    }
-
-    /**
-     * Gets any text element - centralizes getByText calls
-     */
-    getTextElement(text: string | RegExp) {
-        return this.page.getByText(text);
-    }
-
-    /**
-     * Gets the delete button for an expense
-     */
-    getExpenseDeleteButton() {
-        return this.page.getByRole('button', {name: /delete/i});
     }
 
     /**
@@ -429,7 +379,8 @@ export class GroupDetailPage extends BasePage {
      * Deletes an expense with confirmation
      */
     async deleteExpense() {
-        const deleteButton = this.getExpenseDeleteButton();
+        const deleteButton = this.page.getByRole('button', {name: /delete/i});
+
         await this.clickButton(deleteButton, {buttonName: 'Delete Expense'});
 
         // Confirm deletion
@@ -441,44 +392,27 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
+     * Opens the share group modal and returns the ShareGroupModalPage instance.
+     */
+    async openShareGroupModal(): Promise<ShareGroupModalPage> {
+        const shareButton = this.getShareButton();
+        await this.clickButton(shareButton, {buttonName: 'Invite Others'});
+
+        // Create and return the ShareGroupModalPage instance
+        const shareModal = new ShareGroupModalPage(this.page, this.userInfo);
+        await shareModal.waitForModalVisible();
+
+        return shareModal;
+    }
+
+    /**
      * Gets the share link from the group page.
      * Assumes the app works perfectly - no retries or workarounds.
      */
     async getShareLink(): Promise<string> {
-        // Click share button
-        const shareButton = this.getShareButton();
-        await expect(shareButton).toBeVisible();
-        await expect(shareButton).toBeEnabled();
-        await shareButton.click();
-
-        // Wait for modal to appear
-        const dialog = this.getShareDialog();
-        await expect(dialog).toBeVisible();
-
-        // Wait for loading spinner to disappear if present
-        const loadingSpinner = dialog.locator('.animate-spin');
-        if ((await loadingSpinner.count()) > 0) {
-            await expect(loadingSpinner).not.toBeVisible({timeout: 5000}); // for some reason this can be slow
-        }
-
-        // Get the share link
-        const shareLinkInput = this.getShareLinkInput();
-        await expect(shareLinkInput).toBeVisible({timeout: 5000});
-        const shareLink = await shareLinkInput.inputValue();
-
-        if (!shareLink || !shareLink.includes('/join?')) {
-            throw new Error(`Invalid share link received: ${shareLink}`);
-        }
-
-        // Close modal by clicking close button or clicking outside
-        const closeButton = this.getCloseButton();
-        if (await closeButton.isVisible()) {
-            await closeButton.click();
-        } else {
-            // Click outside modal to close
-            await this.page.click('body', {position: {x: 10, y: 10}});
-        }
-
+        const shareModal = await this.openShareGroupModal();
+        const shareLink = await shareModal.getShareLink();
+        await shareModal.closeModal();
         return shareLink;
     }
 
@@ -527,17 +461,6 @@ export class GroupDetailPage extends BasePage {
     // ==============================
 
     /**
-     * Get the main section of the page
-     */
-    getMainSection() {
-        return this.page.getByRole('main');
-    }
-
-    /**
-     * Get the amount input field (for expense or settlement forms)
-     */
-
-    /**
      * Get member count text element (e.g., "1 member" or "3 members")
      */
     getMemberCountElement() {
@@ -551,7 +474,7 @@ export class GroupDetailPage extends BasePage {
     async getCurrentMemberCount(): Promise<number> {
         // Use the specific testid we added to the GroupHeader component
         const memberCountElement = this.page.getByTestId('member-count');
-        await expect(memberCountElement).toBeVisible({timeout: 10000});
+        await expect(memberCountElement).toBeVisible({timeout: 1000});
 
         const memberText = await memberCountElement.textContent();
         if (!memberText) {
@@ -568,86 +491,19 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Verify expense is visible for the current user
-     */
-    async verifyExpenseVisible(description: string): Promise<void> {
-        await expect(this.getExpenseByDescription(description)).toBeVisible();
-    }
-
-    async verifyExpenseInList(description: string, amount?: string) {
-        await expect(this.getExpenseByDescription(description)).toBeVisible();
-        if (amount) {
-            await expect(this.page.getByText(amount)).toBeVisible();
-        }
-    }
-
-    /**
-     * Verify expense details similar to settlement verification
-     * Allows checking specific fields of an expense within the expenses container
-     */
-    async verifyExpenseDetails(details: {
-        description: string;
-        amount?: string;
-        currency?: string;
-        paidBy?: string;
-        category?: string;
-        date?: string;
-    }): Promise<void> {
-        // Find the expense within the expenses container using the helper
-        const expenseItem = this.getExpenseItem(details.description);
-
-        // Verify expense is visible
-        await expect(expenseItem.first()).toBeVisible();
-
-        // Verify optional fields if provided
-        if (details.amount) {
-            await expect(expenseItem.getByText(details.amount)).toBeVisible();
-        }
-
-        if (details.currency) {
-            // Look for currency symbol or code within the expense
-            await expect(expenseItem.locator(`:has-text("${details.currency}")`)).toBeVisible();
-        }
-
-        if (details.paidBy) {
-            await expect(expenseItem.getByText(details.paidBy)).toBeVisible();
-        }
-
-        if (details.category) {
-            await expect(expenseItem.getByText(details.category)).toBeVisible();
-        }
-
-        if (details.date) {
-            await expect(expenseItem.getByText(details.date)).toBeVisible();
-        }
-    }
-
-    /**
      * Get the members container that contains the "Members" heading
      */
-    getMembersContainer(): Locator {
+    private getMembersContainer(): Locator {
         // Find the visible Members container (either sidebar div or Card)
         // Use the specific classes from the TSX: sidebar has "border rounded-lg bg-white p-4"
         return this.page.locator('.border.rounded-lg.bg-white, .p-6').filter({has: this.page.getByText('Members')});
     }
 
     /**
-     * Wait for a specific member to become visible in the member list
-     * This ensures the member has been fully added to the group before proceeding
-     */
-    async waitForMemberVisible(memberName: string, timeout: number = 3000): Promise<void> {
-        const membersContainer = this.getMembersContainer();
-
-        // Look for visible member item with our name within the visible container
-        const memberElement = membersContainer.locator('[data-testid="member-item"]:visible').filter({hasText: memberName}).first();
-        await expect(memberElement).toBeVisible({timeout});
-    }
-
-    /**
      * Get the payment history container that contains the "Payment History" heading
      * This ensures all settlement-related selectors are properly scoped
      */
-    getPaymentHistoryContainer(): Locator {
+    private getPaymentHistoryContainer(): Locator {
         // Find the SidebarCard containing "Payment History" heading
         // Based on SidebarCard structure: bg-white rounded-lg shadow-sm border border-gray-200 p-4
         return this.page.locator('.bg-white.rounded-lg.shadow-sm.border.border-gray-200.p-4').filter({
@@ -659,12 +515,26 @@ export class GroupDetailPage extends BasePage {
      * Get the expenses container that contains the "Expenses" heading
      * This ensures all expense-related selectors are properly scoped
      */
-    getExpensesContainer(): Locator {
+    private getExpensesContainer(): Locator {
         // Find the main content area containing "Expenses" heading
         // The expenses are in the main content area, not a sidebar card
         return this.page.locator('main, .main-content, [role="main"]').filter({
             has: this.page.getByRole('heading', {name: 'Expenses'})
         });
+    }
+
+    /**
+     * Verify expense is visible for the current user
+     */
+    async verifyExpenseVisible(description: string): Promise<void> {
+        await expect(this.getExpenseByDescription(description)).toBeVisible();
+    }
+
+    async verifyExpenseInList(description: string, amount?: string) {
+        await expect(this.getExpenseByDescription(description)).toBeVisible();
+        if (amount) {
+            await expect(this.page.getByText(amount)).toBeVisible();
+        }
     }
 
     /**
@@ -696,7 +566,7 @@ export class GroupDetailPage extends BasePage {
      * Get edit button for a specific settlement by identifying the settlement container
      * Properly scoped to the payment history container
      */
-    getSettlementEditButton(settlementNote: string): Locator {
+    private getSettlementEditButton(settlementNote: string): Locator {
         const settlementItem = this.getSettlementHistoryEntry(settlementNote);
         return settlementItem.locator('[data-testid="edit-settlement-button"]');
     }
@@ -705,7 +575,7 @@ export class GroupDetailPage extends BasePage {
      * Get delete button for a specific settlement by identifying the settlement container
      * Properly scoped to the payment history container
      */
-    getSettlementDeleteButton(settlementNote: string): Locator {
+    private getSettlementDeleteButton(settlementNote: string): Locator {
         const settlementItem = this.getSettlementHistoryEntry(settlementNote);
         return settlementItem.locator('[data-testid="delete-settlement-button"]');
     }
@@ -740,44 +610,6 @@ export class GroupDetailPage extends BasePage {
         await settlementFormPage.waitForFormReady(expectedMemberCount);
 
         return settlementFormPage;
-    }
-
-    /**
-     * Click delete button for a settlement and handle confirmation dialog
-     */
-    async clickDeleteSettlement(settlementNote: string, confirm: boolean = true): Promise<void> {
-        // Assert we're on the group detail page before action
-        await expect(this.page).toHaveURL(groupDetailUrlPattern());
-
-        await this.openHistoryIfClosed();
-
-        // Assert the delete button exists and is enabled
-        const deleteButton = this.getSettlementDeleteButton(settlementNote);
-        await expect(deleteButton).toBeVisible({timeout: 2000});
-        await expect(deleteButton).toBeEnabled();
-
-        await this.clickButton(deleteButton, {buttonName: 'Delete Settlement'});
-
-        // Wait for confirmation dialog - it uses data-testid, not role="dialog"
-        const confirmDialog = this.page.locator('[data-testid="confirmation-dialog"]');
-        await expect(confirmDialog).toBeVisible({timeout: 3000});
-
-        // Verify it's the correct dialog
-        await expect(confirmDialog.locator('h3')).toHaveText('Delete Payment');
-
-        if (confirm) {
-            const deleteButton = confirmDialog.locator('[data-testid="confirm-button"]');
-            await this.clickButton(deleteButton, {buttonName: 'Delete'});
-
-            // Wait for dialog to close
-            await expect(confirmDialog).not.toBeVisible({timeout: 3000});
-        } else {
-            const cancelButton = confirmDialog.locator('[data-testid="cancel-button"]');
-            await this.clickButton(cancelButton, {buttonName: 'Cancel'});
-
-            // Wait for dialog to close
-            await expect(confirmDialog).not.toBeVisible({timeout: 3000});
-        }
     }
 
     /**
@@ -903,7 +735,38 @@ export class GroupDetailPage extends BasePage {
      * Delete a settlement
      */
     async deleteSettlement(note: string, confirm: boolean): Promise<void> {
-        await this.clickDeleteSettlement(note, confirm);
+        // Assert we're on the group detail page before action
+        await expect(this.page).toHaveURL(groupDetailUrlPattern());
+
+        await this.openHistoryIfClosed();
+
+        // Assert the delete button exists and is enabled
+        const deleteButton = this.getSettlementDeleteButton(note);
+        await expect(deleteButton).toBeVisible({timeout: 2000});
+        await expect(deleteButton).toBeEnabled();
+
+        await this.clickButton(deleteButton, {buttonName: 'Delete Settlement'});
+
+        // Wait for confirmation dialog - it uses data-testid, not role="dialog"
+        const confirmDialog = this.page.locator('[data-testid="confirmation-dialog"]');
+        await expect(confirmDialog).toBeVisible({timeout: 3000});
+
+        // Verify it's the correct dialog
+        await expect(confirmDialog.locator('h3')).toHaveText('Delete Payment');
+
+        if (confirm) {
+            const deleteButton = confirmDialog.locator('[data-testid="confirm-button"]');
+            await this.clickButton(deleteButton, {buttonName: 'Delete'});
+
+            // Wait for dialog to close
+            await expect(confirmDialog).not.toBeVisible({timeout: 3000});
+        } else {
+            const cancelButton = confirmDialog.locator('[data-testid="cancel-button"]');
+            await this.clickButton(cancelButton, {buttonName: 'Cancel'});
+
+            // Wait for dialog to close
+            await expect(confirmDialog).not.toBeVisible({timeout: 3000});
+        }
     }
 
     private getBalancesSectionByContext() {
@@ -1012,21 +875,6 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Assert that a user is settled up (has no debts)
-     * @param userName - The display name of the user to check
-     */
-    async assertUserSettledUp(userName: string): Promise<void> {
-        const balancesSection = this.getBalancesSection();
-
-        // User should not appear in any debt relationships
-        const debtAsDebtor = balancesSection.getByText(new RegExp(`${userName}\\s*→`));
-        const debtAsCreditor = balancesSection.getByText(new RegExp(`→\\s*${userName}`));
-
-        await expect(debtAsDebtor).not.toBeVisible();
-        await expect(debtAsCreditor).not.toBeVisible();
-    }
-
-    /**
      * Verify that all members in the group are settled up (no outstanding balances)
      * @param groupId - The group ID for context (used for better error messages)
      */
@@ -1047,24 +895,6 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Get currency amount text locator
-     */
-    getCurrencyAmountText(amount: string) {
-        return this.page.getByText(`$${amount}`);
-    }
-
-    /**
-     * Verify currency amount is visible
-     */
-    async verifyCurrencyAmountVisible(amount: string): Promise<void> {
-        await expect(this.getCurrencyAmountText(amount)).toBeVisible();
-    }
-
-    // ========================================================================
-    // COMPREHENSIVE EXPENSE WORKFLOW HELPERS
-    // ========================================================================
-
-    /**
      * Ensures group page is fully loaded before proceeding with expense operations.
      * This should be called after creating a group or navigating to a group page.
      */
@@ -1076,15 +906,7 @@ export class GroupDetailPage extends BasePage {
 
     // ========== Member Management Methods ==========
 
-    // Member management element accessors
-    getLeaveGroupButton(): Locator {
-        // Leave button is now in the Group Actions panel
-        // There may be multiple (sidebar and mobile views)
-        // Return the first visible one with the test id
-        return this.page.getByTestId('leave-group-button').first();
-    }
-
-    getMemberItem(memberName: string): Locator {
+    private getMemberItem(memberName: string): Locator {
         // Use data-member-name attribute for precise selection within the members container
         // This avoids issues with "Admin" text or other content in the member item
         // Important: Only select visible member items within the Members section
@@ -1095,6 +917,13 @@ export class GroupDetailPage extends BasePage {
     getRemoveMemberButton(memberName: string): Locator {
         const memberItem = this.getMemberItem(memberName);
         return memberItem.locator('[data-testid="remove-member-button"]');
+    }
+
+    getLeaveGroupButton(): Locator {
+        // Leave button is now in the Group Actions panel
+        // There may be multiple (sidebar and mobile views)
+        // Return the first visible one with the test id
+        return this.page.getByTestId('leave-group-button').first();
     }
 
     // Member management actions
@@ -1142,128 +971,6 @@ export class GroupDetailPage extends BasePage {
 
     async verifyMemberNotVisible(memberName: string): Promise<void> {
         await expect(this.getMemberItem(memberName)).not.toBeVisible();
-    }
-
-    // ====== COMMENTS METHODS ======
-
-    /**
-     * Get the comments section container
-     */
-    getCommentsSection() {
-        return this.page.getByTestId('comments-section');
-    }
-
-    /**
-     * Get the comment input textarea
-     */
-    getCommentInput() {
-        return this.getCommentsSection().getByRole('textbox', {name: /comment text/i});
-    }
-
-    /**
-     * Get the send comment button
-     */
-    getSendCommentButton() {
-        return this.getCommentsSection().getByRole('button', {name: /send comment/i});
-    }
-
-    /**
-     * Get a specific comment by its text content
-     */
-    getCommentByText(text: string) {
-        return this.getCommentsSection().getByText(text);
-    }
-
-    /**
-     * Add a comment to the group
-     */
-    async addComment(text: string): Promise<void> {
-        const input = this.getCommentInput();
-        const sendButton = this.getSendCommentButton();
-
-        // Verify comments section is visible
-        await expect(this.getCommentsSection()).toBeVisible();
-
-        // Type the comment using fillPreactInput for proper signal updates
-        await this.fillPreactInput(input, text);
-
-        // Verify the send button becomes enabled
-        await expect(sendButton).toBeEnabled();
-
-        // Click send button
-        await this.clickButton(sendButton, {buttonName: 'Send comment'});
-
-        // Wait for comment to be sent (button should become disabled briefly)
-        await expect(sendButton).toBeDisabled({timeout: 2000});
-
-        // Verify input is cleared and button remains disabled (empty input = disabled button)
-        await expect(input).toHaveValue('');
-        await expect(sendButton).toBeDisabled();
-    }
-
-    /**
-     * Wait for a comment with specific text to appear
-     */
-    async waitForCommentToAppear(text: string, timeout: number = 5000): Promise<void> {
-        const comment = this.getCommentByText(text);
-        await expect(comment).toBeVisible({timeout});
-    }
-
-    /**
-     * Leave the group (non-owner members)
-     */
-    async leaveGroup(): Promise<void> {
-        // Look for a leave group button in GroupActions component
-        const leaveGroupButton = this.page.getByRole('button', {name: /leave group/i});
-        await expect(leaveGroupButton).toBeVisible();
-        await this.clickButton(leaveGroupButton, {buttonName: 'Leave Group'});
-
-        // Wait for Leave Group confirmation UI to appear
-        const leaveGroupHeading = this.page.getByRole('heading', {name: /leave group/i});
-        await expect(leaveGroupHeading).toBeVisible();
-
-        // Check for any error messages that might prevent leaving
-        const errorElements = await this.page.locator('[role="alert"], .text-red-500, .error').count();
-        if (errorElements > 0) {
-            const errorText = await this.page.locator('[role="alert"], .text-red-500, .error').first().textContent();
-            throw new Error(`Cannot leave group due to error: ${errorText}`);
-        }
-
-        // Click confirm button with data-testid
-        const confirmButton = this.page.getByTestId('confirm-button');
-        await expect(confirmButton).toBeEnabled();
-
-        const clickTime = Date.now();
-        console.log('🕒 Clicking leave group confirm button at:', new Date(clickTime).toISOString());
-        await confirmButton.click();
-
-        // Wait for confirmation UI to close and navigation to occur with better error handling
-        try {
-            await expect(leaveGroupHeading).not.toBeVisible({timeout: 3000});
-            const closeTime = Date.now();
-            const duration = closeTime - clickTime;
-            console.log(`🕒 Modal closed after ${duration}ms`);
-
-            if (duration > 1000) {
-                console.warn(`⚠️ SLOW MODAL CLOSE: Took ${duration}ms (expected <1000ms)`);
-            }
-        } catch (timeoutError) {
-            // Check if there are any error messages preventing the leave
-            const postClickErrors = await this.page.locator('[role="alert"], .text-red-500, .error').count();
-            if (postClickErrors > 0) {
-                const errorText = await this.page.locator('[role="alert"], .text-red-500, .error').first().textContent();
-                throw new Error(`Leave group failed with error: ${errorText}`);
-            }
-
-            // Check if the button is still enabled (might indicate a failed action)
-            const stillEnabled = await confirmButton.isEnabled().catch(() => false);
-            if (stillEnabled) {
-                throw new Error('Leave group confirmation button is still enabled - action may have failed');
-            }
-
-            // Re-throw the timeout error with more context
-            throw new Error(`Leave group modal did not close within 10 seconds. Modal still visible: ${await leaveGroupHeading.isVisible()}`);
-        }
     }
 }
 
