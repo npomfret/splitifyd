@@ -164,7 +164,19 @@ export class StubFirestoreReader implements IFirestoreReader {
     async getRawDocumentInTransactionWithRef(): Promise<any | null> { return null; }
     async getRawExpenseDocumentInTransaction(): Promise<any | null> { return null; }
     async getRawGroupDocument(): Promise<any | null> { return null; }
-    async getRawGroupDocumentInTransaction(): Promise<any | null> { return null; }
+    async getRawGroupDocumentInTransaction(transaction: any, groupId: string): Promise<any | null> {
+        const groupData = this.documents.get(`groups/${groupId}`);
+        if (!groupData) {
+            return null;
+        }
+        return {
+            id: groupId,
+            exists: true,
+            data: () => groupData,
+            get: (field: string) => groupData?.[field],
+            ref: { id: groupId, path: `groups/${groupId}` },
+        };
+    }
     async getRawSettlementDocumentInTransaction(): Promise<any | null> { return null; }
     async getRawUserDocumentInTransaction(): Promise<any | null> { return null; }
     async getSystemDocumentInTransaction(): Promise<any | null> { return null; }
@@ -301,8 +313,14 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     async setUserNotificationGroup(): Promise<WriteResult> { return { id: 'notification', success: true, timestamp: Timestamp.now() }; }
     async removeUserNotificationGroup(): Promise<WriteResult> { return { id: 'notification', success: true, timestamp: Timestamp.now() }; }
     async setUserNotificationGroupInTransaction(): Promise<WriteResult> { return { id: 'notification', success: true, timestamp: Timestamp.now() }; }
-    async runTransaction(): Promise<any> { return null; }
-    createInTransaction(): any { return { id: 'doc', path: 'collection/doc' }; }
+    async runTransaction(transactionFn: (transaction: any) => Promise<any>): Promise<any> {
+        const mockTransaction = {};
+        return await transactionFn(mockTransaction);
+    }
+    createInTransaction(transaction: any, collection: string, documentId: string | null, data: any): any {
+        const id = documentId || this.generateDocumentId();
+        return { id, path: `${collection}/${id}` };
+    }
     async updateInTransaction(): Promise<WriteResult> { return { id: 'doc', success: true, timestamp: Timestamp.now() }; }
     async deleteInTransaction(): Promise<WriteResult> { return { id: 'doc', success: true, timestamp: Timestamp.now() }; }
     async createDocument(): Promise<WriteResult> { return { id: 'doc', success: true, timestamp: Timestamp.now() }; }
@@ -602,6 +620,16 @@ export class StubAuthService implements IAuthService {
             toJSON: () => ({}),
         };
         this.users.set(uid, updatedUser);
+    }
+
+    async verifyPassword(email: string, password: string): Promise<boolean> {
+        const user = this.usersByEmail.get(email);
+        if (!user || this.deletedUsers.has(user.uid)) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User with email ${email} not found`);
+        }
+        // For testing purposes, return true for valid passwords
+        // You could enhance this to store and verify actual passwords if needed
+        return true;
     }
 }
 

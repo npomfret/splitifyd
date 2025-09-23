@@ -207,6 +207,6 @@ export class ApplicationBuilder {
                 true, // enableMetrics
             );
         }
-        return this.authService;
+        return this.authService!;
     }
 }

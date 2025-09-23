@@ -295,10 +295,11 @@ export class UserService {
                 throw Errors.INVALID_INPUT('User email not found');
             }
 
-            // TODO: In a production environment, we should verify the current password
-            // by attempting to sign in with it using the Firebase Client SDK.
-            // For now, we're updating the password directly as this is a backend service.
-            // Consider implementing a more secure password verification flow.
+            // Verify current password
+            const isCurrentPasswordValid = await this.authService.verifyPassword(userRecord.email, validatedData.currentPassword);
+            if (!isCurrentPasswordValid) {
+                throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'INVALID_PASSWORD', 'Current password is incorrect');
+            }
 
             // Update password in Firebase Auth
             await this.authService.updateUser(userId, {
@@ -341,6 +342,12 @@ export class UserService {
         validateDeleteUser(requestBody);
 
         try {
+            // Verify user exists
+            const userExists = await this.firestoreReader.getUser(userId);
+            if (!userExists) {
+                throw Errors.NOT_FOUND('User not found');
+            }
+
             // Check if user has any groups or outstanding balances using scalable query
             // This is a simplified check - in production you'd want more thorough validation
             const userGroupIds = await this.getUserGroupsViaSubcollection(userId);

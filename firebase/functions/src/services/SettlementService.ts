@@ -142,6 +142,14 @@ export class SettlementService {
         LoggerContext.setBusinessContext({ groupId: settlementData.groupId });
         LoggerContext.update({ userId, operation: 'create-settlement', amount: settlementData.amount });
 
+        // Validate amount
+        if (settlementData.amount <= 0) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT', 'Amount must be greater than 0');
+        }
+        if (settlementData.amount > 999999.99) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT', 'Amount cannot exceed 999999.99');
+        }
+
         await this.firestoreReader.verifyGroupMembership(settlementData.groupId, userId);
         await this.verifyUsersInGroup(settlementData.groupId, [settlementData.payerId, settlementData.payeeId]);
 

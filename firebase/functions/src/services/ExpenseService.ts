@@ -6,7 +6,7 @@ import { createOptimisticTimestamp, parseISOToTimestamp, timestampToISO } from '
 import { logger, LoggerContext } from '../logger';
 import type { Group, GroupPermissions } from '@splitifyd/shared';
 import { CreateExpenseRequest, DELETED_AT_FIELD, FirestoreCollections, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
-import { calculateSplits, Expense } from '../expenses/validation';
+import { calculateSplits, validateCreateExpense, Expense } from '../expenses/validation';
 import { getMemberDocFromArray } from '../utils/memberHelpers';
 import { PermissionEngineAsync } from '../permissions/permission-engine-async';
 import { ExpenseDocumentSchema, ExpenseSplitSchema } from '../schemas';
@@ -141,11 +141,14 @@ export class ExpenseService {
     }
 
     private async _createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<any> {
+        // Validate the input data early
+        const validatedExpenseData = validateCreateExpense(expenseData);
+
         // Verify user is a member of the group
-        await this.firestoreReader.verifyGroupMembership(expenseData.groupId, userId);
+        await this.firestoreReader.verifyGroupMembership(validatedExpenseData.groupId, userId);
 
         // Get group data and verify permissions using FirestoreReader
-        const groupData = await this.firestoreReader.getGroup(expenseData.groupId);
+        const groupData = await this.firestoreReader.getGroup(validatedExpenseData.groupId);
         if (!groupData) {
             throw Errors.NOT_FOUND('Group');
         }
@@ -160,13 +163,13 @@ export class ExpenseService {
         }
 
         // Get current members to validate participants
-        const members = await this.groupMemberService.getAllGroupMembers(expenseData.groupId);
+        const members = await this.groupMemberService.getAllGroupMembers(validatedExpenseData.groupId);
 
-        if (!getMemberDocFromArray(members, expenseData.paidBy)) {
+        if (!getMemberDocFromArray(members, validatedExpenseData.paidBy)) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
         }
 
-        for (const participantId of expenseData.participants) {
+        for (const participantId of validatedExpenseData.participants) {
             if (!getMemberDocFromArray(members, participantId)) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Participant ${participantId} is not a member of the group`);
             }
@@ -179,20 +182,20 @@ export class ExpenseService {
         const expenseId = this.firestoreWriter.generateDocumentId(FirestoreCollections.EXPENSES);
 
         // Calculate splits based on split type
-        const splits = calculateSplits(expenseData.amount, expenseData.splitType, expenseData.participants, expenseData.splits);
+        const splits = calculateSplits(validatedExpenseData.amount, validatedExpenseData.splitType, validatedExpenseData.participants, validatedExpenseData.splits);
 
         const expense: Expense = {
             id: expenseId,
-            groupId: expenseData.groupId,
+            groupId: validatedExpenseData.groupId,
             createdBy: userId,
-            paidBy: expenseData.paidBy,
-            amount: expenseData.amount,
-            currency: expenseData.currency,
-            description: expenseData.description,
-            category: expenseData.category,
-            date: parseISOToTimestamp(expenseData.date)!,
-            splitType: expenseData.splitType,
-            participants: expenseData.participants,
+            paidBy: validatedExpenseData.paidBy,
+            amount: validatedExpenseData.amount,
+            currency: validatedExpenseData.currency,
+            description: validatedExpenseData.description,
+            category: validatedExpenseData.category,
+            date: parseISOToTimestamp(validatedExpenseData.date)!,
+            splitType: validatedExpenseData.splitType,
+            participants: validatedExpenseData.participants,
             splits,
             createdAt: now,
             updatedAt: now,
@@ -201,8 +204,8 @@ export class ExpenseService {
         };
 
         // Only add receiptUrl if it's defined
-        if (expenseData.receiptUrl !== undefined) {
-            expense.receiptUrl = expenseData.receiptUrl;
+        if (validatedExpenseData.receiptUrl !== undefined) {
+            expense.receiptUrl = validatedExpenseData.receiptUrl;
         }
 
         // Validate the expense document before writing
@@ -218,11 +221,11 @@ export class ExpenseService {
         // DEBUGGING: Log the participants before saving to Firestore
         logger.info('ExpenseService creating expense with participants', {
             expenseId: expenseId,
-            groupId: expenseData.groupId,
-            paidBy: expenseData.paidBy,
-            participants: expenseData.participants.map((p) => p),
-            participantCount: expenseData.participants.length,
-            description: expenseData.description,
+            groupId: validatedExpenseData.groupId,
+            paidBy: validatedExpenseData.paidBy,
+            participants: validatedExpenseData.participants.map((p) => p),
+            participantCount: validatedExpenseData.participants.length,
+            description: validatedExpenseData.description,
         });
 
         // Use transaction to create expense atomically

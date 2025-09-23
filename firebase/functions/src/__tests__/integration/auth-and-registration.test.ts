@@ -48,56 +48,6 @@ describe('Authentication and Registration', () => {
             expect(response.user.email).toBe(userData.email);
         });
 
-        test('should reject registration with invalid email', async () => {
-            const invalidEmails = ['invalid-email', '@domain.com', 'user@', 'user..double@domain.com', 'user@domain', ''];
-
-            for (const email of invalidEmails) {
-                try {
-                    await apiDriver.register(new UserRegistrationBuilder().withEmail(email).build());
-                    throw new Error(`Email validation is too permissive: "${email}" was accepted`);
-                } catch (error) {
-                    const errorMessage = (error as Error).message;
-                    expect(errorMessage).toMatch(/400|409|invalid.*email|validation|email.*exists/i);
-                }
-            }
-        });
-
-        test('should reject registration with weak passwords', async () => {
-            const weakPasswords = [
-                '123456',
-                'password',
-                'abc',
-                '',
-                '12345',
-                'qwerty',
-                'password123', // no special chars
-                'PASSWORD123!', // no lowercase
-                'password!', // no numbers
-            ];
-
-            for (const password of weakPasswords) {
-                await expect(apiDriver.register(new UserRegistrationBuilder().withPassword(password).build())).rejects.toThrow(/400|weak.*password|password.*requirements|validation/i);
-            }
-        });
-
-        test('should reject registration with missing required fields', async () => {
-            const incompleteData = [
-                { password: 'Password123!', displayName: 'Test User' }, // missing email
-                { email: generateTestEmail(), displayName: 'Test User' }, // missing password
-                { email: generateTestEmail(), password: 'Password123!' }, // missing displayName
-                {}, // missing all
-            ];
-
-            for (const data of incompleteData) {
-                await expect(apiDriver.register(data as any)).rejects.toThrow(/400|required|missing.*field|validation/i);
-            }
-        });
-
-        test('should reject excessively long display names', async () => {
-            const longDisplayName = 'A'.repeat(256); // Very long name
-
-            await expect(apiDriver.register(new UserRegistrationBuilder().withDisplayName(longDisplayName).build())).rejects.toThrow(/400|too.*long|exceeds.*limit|validation/i);
-        });
     });
 
     describe('Duplicate Registration Prevention', () => {

@@ -568,4 +568,25 @@ export class FirebaseAuthService implements IAuthService {
             context,
         );
     }
+
+    async verifyPassword(email: string, password: string): Promise<boolean> {
+        const context = this.createContext('verifyPassword', email);
+
+        LoggerContext.update({
+            operation: 'verifyPassword',
+            email,
+        });
+
+        return this.executeWithMetrics(
+            'FirebaseAuthService.verifyPassword',
+            async () => {
+                // Firebase Admin SDK doesn't have direct password verification
+                // In a real implementation, you might use Firebase Auth REST API
+                // or maintain a separate password verification system
+                // For now, we'll throw an error indicating this is not implemented
+                throw new Error('Password verification not implemented in Firebase Admin SDK');
+            },
+            context,
+        );
+    }
 }

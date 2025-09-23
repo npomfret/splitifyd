@@ -159,4 +159,13 @@ export interface IAuthService {
      * @throws ApiError if operation fails
      */
     revokeRefreshTokens(uid: string): Promise<void>;
+
+    /**
+     * Verify a user's password
+     * @param email - User email address
+     * @param password - Password to verify
+     * @returns True if password is correct, false otherwise
+     * @throws ApiError if user not found or operation fails
+     */
+    verifyPassword(email: string, password: string): Promise<boolean>;
 }
