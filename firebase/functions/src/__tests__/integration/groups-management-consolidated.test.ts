@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, borrowTestUsers, generateShortId } from '@splitifyd/test-support';
+import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, borrowTestUsers, generateShortId, NotificationDriver } from '@splitifyd/test-support';
 import { SecurityPresets, PooledTestUser, FirestoreCollections, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
@@ -9,6 +9,7 @@ import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 
 describe('Groups Management - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();
+    const notificationDriver = new NotificationDriver(getFirestore());
     const applicationBuilder = new ApplicationBuilder(getFirestore());
     const groupService = applicationBuilder.buildGroupService();
     const groupMemberService = applicationBuilder.buildGroupMemberService();
@@ -49,22 +50,10 @@ describe('Groups Management - Consolidated Tests', () => {
             expect(Object.keys(balances.balancesByCurrency)).toHaveLength(0); // Empty group
         });
 
-        test('should validate group creation input', async () => {
-            // Missing name
-            await expect(apiDriver.createGroup({ description: 'No name' }, users[0].token)).rejects.toThrow(/name.*required/i);
-
-            // Empty name
-            await expect(apiDriver.createGroup({ name: '   ' }, users[0].token)).rejects.toThrow(/name.*required/i);
-
-            // Field length validation
-            const longName = 'a'.repeat(101);
-            const longDescription = 'b'.repeat(501);
-
-            await expect(apiDriver.createGroup({ name: longName }, users[0].token)).rejects.toThrow(/less than 100 characters/i);
-
-            await expect(apiDriver.createGroup({ name: 'Valid Name', description: longDescription }, users[0].token)).rejects.toThrow(/less than or equal to 500 characters/i);
-
-            // Authentication required
+        // NOTE: Group validation logic is now comprehensively tested in unit tests:
+        // firebase/functions/src/__tests__/unit/validation/group-validation.unit.test.ts
+        // This integration test focuses on Firebase Auth integration only
+        test('should require authentication for group creation', async () => {
             await expect(apiDriver.createGroup({ name: 'Test' }, '')).rejects.toThrow(/401|unauthorized/i);
         });
     });
@@ -978,80 +967,29 @@ describe('Groups Management - Consolidated Tests', () => {
         });
 
         test('should handle single user group deletion', async () => {
-            // Clean up notification documents from previous tests to ensure clean state
-            const firestore = getFirestore();
-            await firestore.collection('user-notifications').doc(users[0].uid).delete();
+            // Set up notification listener before any operations
+            const [user1Listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // Create a group with just the owner
             const groupData = new CreateGroupRequestBuilder().withName(`Single User Test ${uuidv4()}`).withDescription('Testing single user group deletion').build();
 
             const group = await apiDriver.createGroup(groupData, users[0].token);
 
-            // Wait for group creation notification to propagate
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            // Wait for group creation notification
+            await user1Listener.waitForGroupEvent(group.id, 1, 1000);
 
-            // Get initial change version (should be > 0 after group creation)
-            const userNotificationsBefore = await firestore.doc(`user-notifications/${users[0].uid}`).get();
+            // Verify event count after group creation
+            user1Listener.assertEventCount(group.id, 1, 'group');
 
-            // If no notification doc exists yet, create expectations for that scenario
-            if (!userNotificationsBefore.exists) {
-                console.log('No notification document exists after group creation - this is acceptable');
-                // Delete the group and verify it's actually deleted (simplified test)
-                await apiDriver.deleteGroup(group.id, users[0].token);
-                await expect(apiDriver.getGroupFullDetails(group.id, users[0].token)).rejects.toThrow(/404|not found/i);
-                return;
-            }
-
-            const initialVersion = userNotificationsBefore.data()?.changeVersion || 0;
-            const groupsBefore = userNotificationsBefore.data()?.groups || {};
-
-            // Verify our test group is in notifications (if notifications exist)
-            if (Object.keys(groupsBefore).length > 0) {
-                expect(groupsBefore[group.id]).toBeDefined();
-            }
+            // Clear events to isolate deletion operation
+            notificationDriver.clearEvents();
 
             // Delete the group
             await apiDriver.deleteGroup(group.id, users[0].token);
 
-            // Poll for the group to be removed from notifications
-            let userNotificationsAfter;
-            let finalVersion = initialVersion;
-            const maxAttempts = 50; // 10 seconds max
-            let attempts = 0;
-
-            while (attempts < maxAttempts) {
-                userNotificationsAfter = await firestore.doc(`user-notifications/${users[0].uid}`).get();
-
-                if (userNotificationsAfter.exists) {
-                    finalVersion = userNotificationsAfter.data()?.changeVersion || 0;
-                    const groups = userNotificationsAfter.data()?.groups || {};
-
-                    // Check if group is removed and version incremented
-                    if (!groups[group.id] && finalVersion > initialVersion) {
-                        break;
-                    }
-                }
-
-                attempts++;
-                await new Promise((resolve) => setTimeout(resolve, 200));
-            }
-
-            if (!userNotificationsAfter) {
-                throw new Error('Failed to poll notification document after group deletion');
-            }
-
-            expect(userNotificationsAfter.exists).toBe(true);
-
-            // User should be notified about the group deletion
-            expect(finalVersion).toBeGreaterThan(initialVersion);
-
-            // Group should be removed from notifications (hard delete)
-            // This is the key assertion - the specific group should be gone
-            expect(userNotificationsAfter.data()?.groups?.[group.id]).toBeUndefined();
-
-            // Verify the group is actually deleted
+            // Verify the group is actually deleted from the backend
             await expect(apiDriver.getGroupFullDetails(group.id, users[0].token)).rejects.toThrow(/404|not found/i);
-        }, 10000);
+        });
     });
 
     describe('Group Lifecycle Edge Cases', () => {

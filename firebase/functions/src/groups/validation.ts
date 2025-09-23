@@ -58,7 +58,7 @@ export const validateCreateGroup = (body: unknown): CreateGroupRequest => {
  * Validate update group request
  */
 export const validateUpdateGroup = (body: unknown): UpdateGroupRequest => {
-    const { error, value } = updateGroupSchema.validate(body);
+    const { error, value } = updateGroupSchema.validate(body, { stripUnknown: true });
 
     if (error) {
         throw Errors.INVALID_INPUT(error.details[0].message);

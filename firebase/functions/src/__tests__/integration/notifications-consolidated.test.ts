@@ -75,7 +75,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             // Create a group and verify notification document creation
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
 
-            // Wait for group creation notification
+            // Wait for group creation notification (increased timeout for Firebase emulator trigger latency)
             await user1Listener.waitForGroupEvent(group.id, 1, 5000);
 
             // Assert event count after group creation

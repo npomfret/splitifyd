@@ -73,7 +73,7 @@ export const validateCreateComment = (body: any): CreateCommentRequest => {
  * Validates query parameters for listing comments
  */
 export const validateListCommentsQuery = (query: any): { cursor?: string; limit: number } => {
-    const { error, value } = listCommentsQuerySchema.validate(query, { abortEarly: false });
+    const { error, value } = listCommentsQuerySchema.validate(query, { abortEarly: false, stripUnknown: true });
 
     if (error) {
         const firstError = error.details[0];

@@ -30,7 +30,9 @@ export const trackGroupChanges = onDocumentWritten(
         return measureTrigger('trackGroupChanges', async () => {
             const affectedUsers = await firestoreReader.getAllGroupMemberIds(groupId);
 
-            await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'group');
+            if (affectedUsers.length > 0) {
+                await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'group');
+            }
 
             logger.info('group-changed', { id: groupId, groupId, usersNotified: affectedUsers.length });
         });

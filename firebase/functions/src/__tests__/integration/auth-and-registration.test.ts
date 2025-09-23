@@ -1,12 +1,19 @@
-// Comprehensive authentication and user registration integration tests
-// Consolidates tests from auth.test.ts, user-auth.test.ts, duplicate-user-registration.test.ts, and user-management.test.ts
+/**
+ * Essential Authentication and Registration Integration Tests
+ *
+ * IMPORTANT: Most validation logic is now tested in unit tests:
+ * - firebase/functions/src/__tests__/unit/auth/registration-validation.unit.test.ts
+ *
+ * This file now only contains essential Firebase-specific integration tests
+ * that cannot be stubbed and require real Firebase Auth + HTTP API coordination.
+ */
 
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { ApiDriver, borrowTestUsers, generateTestEmail, generateNewUserDetails, UserRegistrationBuilder } from '@splitifyd/test-support';
 import { PooledTestUser } from '@splitifyd/shared';
 
-describe('Authentication and Registration', () => {
+describe('Authentication and Registration - Integration Tests (Essential Firebase Behavior Only)', () => {
     const apiDriver = new ApiDriver();
 
     describe('Basic Authentication', () => {
@@ -36,8 +43,9 @@ describe('Authentication and Registration', () => {
         });
     });
 
-    describe('Registration Validation', () => {
-        test('should register a new user successfully', async () => {
+    describe('Firebase Auth Integration', () => {
+        test('should register a new user and create Firebase Auth record', async () => {
+            // This test verifies actual Firebase Auth integration
             const userData = new UserRegistrationBuilder().build();
 
             const response = await apiDriver.register(userData);
@@ -47,7 +55,6 @@ describe('Authentication and Registration', () => {
             expect(response.user).toHaveProperty('email');
             expect(response.user.email).toBe(userData.email);
         });
-
     });
 
     describe('Duplicate Registration Prevention', () => {
@@ -159,11 +166,11 @@ describe('Authentication and Registration', () => {
                 // Register normally
                 await apiDriver.register(userData);
 
-                // Try with spaces - Firebase validates email format first
+                // Try with spaces - should be trimmed and treated as duplicate
                 const spacedData = new UserRegistrationBuilder().withEmail(`  ${baseEmail}  `).withPassword(userData.password).withDisplayName(userData.displayName).build();
 
-                // Server correctly rejects emails with spaces as invalid format
-                await expect(apiDriver.register(spacedData)).rejects.toThrow(/400|invalid.*email|validation/i);
+                // Server trims email spaces and detects duplicate email
+                await expect(apiDriver.register(spacedData)).rejects.toThrow(/409|email.*exists|already.*registered/i);
             });
 
             test('should allow different users with different emails', async () => {
@@ -196,10 +203,4 @@ describe('Authentication and Registration', () => {
         });
     });
 
-    // REMOVED: Entire "Terms and Policy Validation" test suite
-    // All registration validation tests have been moved to unit tests in:
-    // UserService.validation.test.ts
-    //
-    // These integration tests provided no additional value beyond API testing
-    // since the validation logic itself is now comprehensively tested in unit tests.
 });

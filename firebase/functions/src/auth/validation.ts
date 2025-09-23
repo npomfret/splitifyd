@@ -6,12 +6,19 @@ import { UserRegistration } from '@splitifyd/shared';
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&\s]{8,}$/;
 
 const registerSchema = Joi.object({
-    email: Joi.string().pattern(EMAIL_REGEX).required().messages({
+    email: Joi.string().trim().min(1).pattern(EMAIL_REGEX).custom((value, helpers) => {
+        if (value.includes('..')) {
+            return helpers.error('string.invalidEmail');
+        }
+        return value;
+    }).required().messages({
         'string.pattern.base': 'Invalid email format',
+        'string.invalidEmail': 'Invalid email format',
         'string.empty': 'Email is required',
+        'string.min': 'Email is required',
         'any.required': 'Email is required',
     }),
     password: Joi.string().pattern(PASSWORD_REGEX).required().messages({
@@ -54,9 +61,9 @@ export const validateRegisterRequest = (body: UserRegistration): UserRegistratio
                 errorCode = 'MISSING_DISPLAY_NAME';
             }
         } else if (firstError.path.includes('termsAccepted')) {
-            errorCode = firstError.message.includes('accept') ? 'TERMS_NOT_ACCEPTED' : 'MISSING_TERMS_ACCEPTANCE';
+            errorCode = firstError.message.includes('required') ? 'MISSING_TERMS_ACCEPTANCE' : 'TERMS_NOT_ACCEPTED';
         } else if (firstError.path.includes('cookiePolicyAccepted')) {
-            errorCode = firstError.message.includes('accept') ? 'COOKIE_POLICY_NOT_ACCEPTED' : 'MISSING_COOKIE_POLICY_ACCEPTANCE';
+            errorCode = firstError.message.includes('required') ? 'MISSING_COOKIE_POLICY_ACCEPTANCE' : 'COOKIE_POLICY_NOT_ACCEPTED';
         }
 
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, firstError.message);

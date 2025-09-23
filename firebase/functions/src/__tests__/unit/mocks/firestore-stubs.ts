@@ -237,12 +237,17 @@ export class StubFirestoreWriter implements IFirestoreWriter {
 
     // Policy operations (used by PolicyService)
     async createPolicy(policyId: string, policyData: any): Promise<WriteResult> {
-        this.documents.set(`policies/${policyId}`, policyData);
         const result = this.getLastWriteResult() || {
             id: policyId,
             success: true,
             timestamp: Timestamp.now(),
         };
+
+        if (!result.success) {
+            throw new Error(result.error || 'Write operation failed');
+        }
+
+        this.documents.set(`policies/${policyId}`, policyData);
         return result;
     }
 
