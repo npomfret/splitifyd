@@ -17,8 +17,8 @@
 #   open -a "Google Chrome" "e2e-tests/playwright-report/ad-hoc/index.html"
 
 # edit these to pick your test cases
-TEST_FILE="src/__tests__/integration/balance-and-settlements-comprehensive.e2e.test.ts"
-TEST_FILTER="should handle all settled up scenarios comprehensively"
+TEST_FILE="src/__tests__/integration/expense-and-balance-lifecycle.e2e.test.ts"
+TEST_FILTER="should handle comprehensive multi-user settlement scenarios with real-time updates"
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -56,19 +56,14 @@ else
 fi
 
 # Clean up any existing screenshots in the ad-hoc folder
-echo "🧹 Cleaning up existing playwright-report/ad-hoc..."
 rm -f e2e-tests/playwright-report/ad-hoc/*.png 2>/dev/null
 
 echo "🚀 Starting repeated test runs for: $TEST_FILE"
 if [ -n "$TEST_FILTER" ]; then
     echo "🎯 Test filter: '$TEST_FILTER'"
 fi
-echo "📍 Working directory: $(pwd)"
 echo "📊 Results will be stored in: e2e-tests/playwright-report/ad-hoc/"
 echo "📸 Screenshots on failure: e2e-tests/playwright-report/ad-hoc/data/"
-echo "🔢 Will stop after: $MAX_SUCCESSES successful runs OR first failure"
-echo "⚙️ Configuration: MAX_SUCCESSES=$MAX_SUCCESSES (pass a number as first argument to override)"
-echo "⏰ Started at: $(date)"
 echo ""
 
 while [ $SUCCESS_COUNT -lt $MAX_SUCCESSES ]; do
