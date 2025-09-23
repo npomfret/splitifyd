@@ -408,6 +408,7 @@
   },
   "auth": {
     "defaultLoginButton": "Default Login",
+    "initializationFailed": "Auth initialization failed",
     "emailInput": {
       "label": "Email address",
       "requiredIndicator": "*",
@@ -781,5 +782,9 @@
     "unknown": "Unknown",
     "plus": "+",
     "moreUsers": " more users"
+  },
+  "seo": {
+    "titleSuffix": " | Splitifyd",
+    "siteName": "Splitifyd"
   }
 }

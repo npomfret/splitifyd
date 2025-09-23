@@ -41,7 +41,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             } catch (error) {
                 if (!mounted) return;
                 logError('Failed to initialize auth store', error);
-                setInitError(error instanceof Error ? error.message : 'Auth initialization failed');
+                setInitError(error instanceof Error ? error.message : t('auth.initializationFailed'));
             }
         };
 

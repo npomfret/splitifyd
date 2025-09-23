@@ -1,4 +1,5 @@
 import { useEffect } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 
 interface SEOHeadProps {
     title: string;
@@ -10,10 +11,11 @@ interface SEOHeadProps {
 }
 
 export function SEOHead({ title, description, canonical, ogType = 'website', ogImage, structuredData }: SEOHeadProps) {
+    const { t } = useTranslation();
     useEffect(() => {
         if (typeof document === 'undefined') return;
 
-        document.title = `${title} | Splitifyd`;
+        document.title = `${title}${t('seo.titleSuffix')}`;
 
         // Helper function to set or update meta tag
         const setMeta = (name: string, content: string, property?: boolean) => {
@@ -39,12 +41,12 @@ export function SEOHead({ title, description, canonical, ogType = 'website', ogI
         }
 
         // Set Open Graph tags
-        setMeta('og:title', `${title} | Splitifyd`, true);
+        setMeta('og:title', `${title}${t('seo.titleSuffix')}`, true);
         if (description) {
             setMeta('og:description', description, true);
         }
         setMeta('og:type', ogType, true);
-        setMeta('og:site_name', 'Splitifyd', true);
+        setMeta('og:site_name', t('seo.siteName'), true);
 
         if (canonical) {
             setMeta('og:url', canonical, true);
@@ -56,7 +58,7 @@ export function SEOHead({ title, description, canonical, ogType = 'website', ogI
 
         // Set Twitter Card tags
         setMeta('twitter:card', 'summary_large_image');
-        setMeta('twitter:title', `${title} | Splitifyd`);
+        setMeta('twitter:title', `${title}${t('seo.titleSuffix')}`);
         if (description) {
             setMeta('twitter:description', description);
         }
@@ -85,7 +87,7 @@ export function SEOHead({ title, description, canonical, ogType = 'website', ogI
             }
             structuredDataScript.textContent = JSON.stringify(structuredData);
         }
-    }, [title, description, canonical, ogType, ogImage, structuredData]);
+    }, [title, description, canonical, ogType, ogImage, structuredData, t]);
 
     return null; // This component doesn't render anything
 }

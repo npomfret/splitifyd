@@ -139,13 +139,6 @@ This plan will bridge the identified gaps and deliver a complete i18n system.
 
 The following is a list of hardcoded text found in the `webapp-v2` `.tsx` files that needs to be internationalized.
 
-### `/src/app/providers/AuthProvider.tsx`
-- "Auth initialization failed"
-
-### `/src/components/SEOHead.tsx`
-- " | Splitifyd"
-- "Splitifyd"
-
 ### `/src/components/auth/EmailInput.tsx`
 - "Enter your email" (placeholder)
 
