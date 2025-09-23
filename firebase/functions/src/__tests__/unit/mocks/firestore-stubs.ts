@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { UserRecord, UpdateRequest, CreateRequest, GetUsersResult, DecodedIdToken, ListUsersResult, DeleteUsersResult } from 'firebase-admin/auth';
 import type { IFirestoreReader } from '../../../services/firestore';
@@ -101,7 +102,7 @@ export class StubFirestoreReader implements IFirestoreReader {
         }
         return members;
     }
-    async getAllGroupMemberIds(): Promise<String[]> { return []; }
+    async getAllGroupMemberIds(): Promise<string[]> { return []; }
     async getExpensesForGroup(): Promise<ExpenseDocument[]> { return []; }
     async getUserExpenses(): Promise<any> { return { expenses: [], hasMore: false }; }
     async getExpenseHistory(): Promise<any> { return { history: [], count: 0 }; }
@@ -141,7 +142,15 @@ export class StubFirestoreReader implements IFirestoreReader {
     async getDocumentsBatch(): Promise<any[]> { return []; }
     async getMetricsDocuments(): Promise<any[]> { return []; }
     async getCollectionSize(): Promise<number> { return 0; }
-    async getGroupDeletionData(): Promise<any> { return {}; }
+    async getGroupDeletionData(): Promise<any> {
+        return {
+            expenses: { size: 0, docs: [] },
+            settlements: { size: 0, docs: [] },
+            shareLinks: { size: 0, docs: [] },
+            groupComments: { size: 0, docs: [] },
+            expenseComments: []
+        };
+    }
     async getDocumentForTesting(collection: string, id: string): Promise<any | null> {
         return this.documents.get(`${collection}/${id}`) || null;
     }
@@ -260,6 +269,11 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         return this.writeResults[this.writeResults.length - 1];
     }
 
+    // Helper method to set documents for testing
+    setDocument(collection: string, id: string, data: any) {
+        this.documents.set(`${collection}/${id}`, data);
+    }
+
     // Policy operations (used by PolicyService)
     async createPolicy(policyId: string, policyData: any): Promise<WriteResult> {
         const result = this.getLastWriteResult() || {
@@ -346,16 +360,44 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     async runTransaction(transactionFn: (transaction: any) => Promise<any>): Promise<any> {
         const mockTransaction = {
             get: vi.fn().mockImplementation((docRef: any) => {
-                // Return a mock document snapshot
+                // Extract collection and document ID from docRef path
+                let path = docRef.path || docRef.id || '';
+
+                // Try alternative path formats if not found
+                if (!this.documents.has(path) && docRef._path && docRef._path.segments) {
+                    path = docRef._path.segments.join('/');
+                }
+                if (!this.documents.has(path) && docRef.parent && docRef.id) {
+                    path = `${docRef.parent.id}/${docRef.id}`;
+                }
+                if (!this.documents.has(path) && docRef.collection && docRef.id) {
+                    path = `${docRef.collection.id}/${docRef.id}`;
+                }
+
+                const documentData = this.documents.get(path);
+
                 return Promise.resolve({
-                    exists: true,
-                    data: () => ({}),
+                    exists: !!documentData,
+                    data: () => documentData || {},
                     ref: docRef,
                 });
             }),
-            update: vi.fn(),
-            set: vi.fn(),
-            delete: vi.fn(),
+            update: vi.fn().mockImplementation((docRef: any, data: any) => {
+                // Update the document in our mock storage
+                const path = docRef.path || docRef.id || '';
+                const existingData = this.documents.get(path) || {};
+                this.documents.set(path, { ...existingData, ...data });
+            }),
+            set: vi.fn().mockImplementation((docRef: any, data: any) => {
+                // Set the document in our mock storage
+                const path = docRef.path || docRef.id || '';
+                this.documents.set(path, data);
+            }),
+            delete: vi.fn().mockImplementation((docRef: any) => {
+                // Delete the document from our mock storage
+                const path = docRef.path || docRef.id || '';
+                this.documents.delete(path);
+            }),
         };
         return await transactionFn(mockTransaction);
     }
@@ -379,7 +421,13 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     async queryAndUpdateInTransaction(): Promise<any> { return { successCount: 0, failureCount: 0, results: [] }; }
     batchCreateInTransaction(): any[] { return []; }
     async getMultipleByPathsInTransaction(): Promise<any> { return []; }
-    getDocumentReferenceInTransaction(): any { return { id: 'doc', path: 'collection/doc' }; }
+    getDocumentReferenceInTransaction(transaction: any, collection: string, documentId: string): any {
+        return {
+            id: documentId,
+            path: `${collection}/${documentId}`,
+            collection: { id: collection }
+        };
+    }
     async queryGroupsByDeletionStatus(): Promise<any> { return []; }
     async getSingleDocument(): Promise<any> { return null; }
     async deleteMemberAndNotifications(): Promise<any> { return { successCount: 1, failureCount: 0, results: [] }; }

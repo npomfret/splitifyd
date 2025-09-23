@@ -6,7 +6,7 @@ import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { getFirestore } from '../../firebase';
 
 describe('Concurrent Operations Integration Tests', () => {
-    const applicationBuilder = new ApplicationBuilder(getFirestore());
+    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore());
     const groupService = applicationBuilder.buildGroupService();
     const groupMemberService = applicationBuilder.buildGroupMemberService();
     const expenseService = applicationBuilder.buildExpenseService();

@@ -10,7 +10,7 @@ import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { getFirestore } from '../firebase';
 
 // Initialize services
-const applicationBuilder = new ApplicationBuilder(getFirestore());
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore());
 const firestoreReader = applicationBuilder.buildFirestoreReader();
 
 /**

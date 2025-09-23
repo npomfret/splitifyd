@@ -8,7 +8,7 @@ import { LoggerContext } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
-const applicationBuilder = new ApplicationBuilder(firestore);
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
 const firestoreReader = applicationBuilder.buildFirestoreReader();
 const authService = applicationBuilder.buildAuthService();
 

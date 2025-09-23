@@ -6,7 +6,7 @@ import { getConfig } from '../client-config';
 import { FirestoreCollections, SystemUserRoles } from '@splitifyd/shared';
 
 const firestore = getFirestore();
-const applicationBuilder = new ApplicationBuilder(firestore);
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
 const authService = applicationBuilder.buildAuthService();
 
 /**

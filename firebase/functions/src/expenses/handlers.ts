@@ -8,7 +8,7 @@ import { getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
-const applicationBuilder = new ApplicationBuilder(firestore);
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
 const expenseService = applicationBuilder.buildExpenseService();
 
 export const createExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {

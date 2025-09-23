@@ -17,7 +17,7 @@ import { getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
-const applicationBuilder = new ApplicationBuilder(firestore);
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
 const settlementService = applicationBuilder.buildSettlementService();
 
 export const createSettlement = async (req: AuthenticatedRequest, res: Response): Promise<void> => {

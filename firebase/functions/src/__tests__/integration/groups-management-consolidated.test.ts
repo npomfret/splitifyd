@@ -10,7 +10,7 @@ import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 describe('Groups Management - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();
     const notificationDriver = new NotificationDriver(getFirestore());
-    const applicationBuilder = new ApplicationBuilder(getFirestore());
+    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore());
     const groupService = applicationBuilder.buildGroupService();
     const groupMemberService = applicationBuilder.buildGroupMemberService();
     const groupShareService = applicationBuilder.buildGroupShareService();

@@ -28,7 +28,7 @@ import { ApplicationBuilder } from '../functions/src/services/ApplicationBuilder
 
 // Get Firebase instances
 const firestoreDb = getFirestore();
-const applicationBuilder = new ApplicationBuilder(firestoreDb);
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestoreDb);
 const policyService = applicationBuilder.buildPolicyService();
 
 /**

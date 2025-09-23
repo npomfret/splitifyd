@@ -9,7 +9,7 @@ import { getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
-const appBuilder = new ApplicationBuilder(firestore);
+const appBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
 const firestoreReader = appBuilder.buildFirestoreReader();
 const notificationService = appBuilder.buildNotificationService();
 

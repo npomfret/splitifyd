@@ -1,36 +1,25 @@
-/**
- * ApplicationBuilder - Simple service factory with dependency injection
- *
- * Replaces the complex ServiceContainer/ServiceRegistry pattern with a straightforward
- * factory that creates services once and injects dependencies through constructors.
- */
-
-import type { Firestore } from 'firebase-admin/firestore';
-import { FirestoreReader } from './firestore';
-import { FirestoreWriter } from './firestore';
-import { UserService } from './UserService2';
-import { GroupService } from './GroupService';
-import { ExpenseService } from './ExpenseService';
-import { SettlementService } from './SettlementService';
-import { CommentService } from './CommentService';
-import { PolicyService } from './PolicyService';
-import { UserPolicyService } from './UserPolicyService';
-import { GroupMemberService } from './GroupMemberService';
-import { GroupPermissionService } from './GroupPermissionService';
-import { GroupShareService } from './GroupShareService';
-import { ExpenseMetadataService } from './expenseMetadataService';
-import { FirestoreValidationService } from './FirestoreValidationService';
-import { NotificationService } from './notification-service';
-import { IAuthService } from './auth';
-import { FirebaseAuthService } from './auth';
-import { getAuth } from '../firebase';
+import type {Firestore} from 'firebase-admin/firestore';
+import {FirestoreReader, type IFirestoreReader, type IFirestoreWriter} from './firestore';
+import {FirestoreWriter} from './firestore';
+import {UserService} from './UserService2';
+import {GroupService} from './GroupService';
+import {ExpenseService} from './ExpenseService';
+import {SettlementService} from './SettlementService';
+import {CommentService} from './CommentService';
+import {PolicyService} from './PolicyService';
+import {UserPolicyService} from './UserPolicyService';
+import {GroupMemberService} from './GroupMemberService';
+import {GroupPermissionService} from './GroupPermissionService';
+import {GroupShareService} from './GroupShareService';
+import {ExpenseMetadataService} from './expenseMetadataService';
+import {FirestoreValidationService} from './FirestoreValidationService';
+import {NotificationService} from './notification-service';
+import {IAuthService} from './auth';
+import {FirebaseAuthService} from './auth';
+import {getAuth} from '../firebase';
 
 export class ApplicationBuilder {
-    private readonly firestore: Firestore;
-
     // Base infrastructure - created once
-    private firestoreReader?: FirestoreReader;
-    private firestoreWriter?: FirestoreWriter;
     private validationService?: FirestoreValidationService;
     private authService?: IAuthService;
 
@@ -48,8 +37,14 @@ export class ApplicationBuilder {
     private expenseMetadataService?: ExpenseMetadataService;
     private notificationService?: NotificationService;
 
-    constructor(firestore: Firestore) {
-        this.firestore = firestore;
+    constructor(private firestoreReader: IFirestoreReader, private firestoreWriter: IFirestoreWriter,) {
+    }
+
+    static createApplicationBuilder(firestore: Firestore) {
+        const firestoreReader = new FirestoreReader(firestore);
+        const firestoreWriter = new FirestoreWriter(firestore);
+
+        return new ApplicationBuilder(firestoreReader, firestoreWriter);
     }
 
     // ========================================================================
@@ -178,17 +173,11 @@ export class ApplicationBuilder {
         return this.notificationService;
     }
 
-    buildFirestoreReader(): FirestoreReader {
-        if (!this.firestoreReader) {
-            this.firestoreReader = new FirestoreReader(this.firestore);
-        }
+    buildFirestoreReader(): IFirestoreReader {
         return this.firestoreReader;
     }
 
-    buildFirestoreWriter(): FirestoreWriter {
-        if (!this.firestoreWriter) {
-            this.firestoreWriter = new FirestoreWriter(this.firestore);
-        }
+    buildFirestoreWriter(): IFirestoreWriter {
         return this.firestoreWriter;
     }
 

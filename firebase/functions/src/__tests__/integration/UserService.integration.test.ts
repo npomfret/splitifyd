@@ -10,7 +10,7 @@ import { ApplicationBuilder } from '../../services/ApplicationBuilder';
  */
 describe('UserService - Integration Tests (Essential Firebase Behavior)', () => {
     const firestore = getFirestore();
-    const applicationBuilder = new ApplicationBuilder(firestore);
+    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
     const firestoreReader = applicationBuilder.buildFirestoreReader();
     const userService = applicationBuilder.buildUserService();
 

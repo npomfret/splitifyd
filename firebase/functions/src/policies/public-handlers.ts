@@ -4,7 +4,7 @@ import { getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
-const applicationBuilder = new ApplicationBuilder(firestore);
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
 const policyService = applicationBuilder.buildPolicyService();
 
 /**

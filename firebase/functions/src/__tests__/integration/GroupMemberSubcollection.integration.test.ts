@@ -14,7 +14,7 @@ import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 
 describe('GroupMember Subcollection - Integration Tests (Essential Firestore Behavior)', () => {
     const firestore = getFirestore();
-    const applicationBuilder = new ApplicationBuilder(firestore);
+    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
     const groupService = applicationBuilder.buildGroupService();
     const groupMemberService = applicationBuilder.buildGroupMemberService();
     const groupShareService = applicationBuilder.buildGroupShareService();

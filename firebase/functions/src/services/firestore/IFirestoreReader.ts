@@ -134,7 +134,7 @@ export interface IFirestoreReader {
      */
     getAllGroupMembers(groupId: string): Promise<GroupMemberDocument[]>;
 
-    getAllGroupMemberIds(groupId: string): Promise<String[]>;
+    getAllGroupMemberIds(groupId: string): Promise<string[]>;
 
     // ========================================================================
     // Collection Read Operations - Expense-related
