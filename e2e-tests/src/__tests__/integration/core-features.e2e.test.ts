@@ -461,3 +461,47 @@ simpleTest.describe('Group Deletion', () => {
         await member2GroupDetailPage.waitForRedirectAwayFromGroup(groupId2);
     });
 });
+
+simpleTest.describe('Group Comments - Real-time Communication', () => {
+    simpleTest('should support real-time group-level comments between multiple users', async ({ createLoggedInBrowsers }, testInfo) => {
+        const [
+            { dashboardPage: aliceDashboardPage },
+            { dashboardPage: bobDashboardPage }
+        ] = await createLoggedInBrowsers(2);
+
+        testInfo.setTimeout(20000); // 20 seconds for multi-user test
+
+        // Create a group with Alice as owner and Bob as member
+        const [aliceGroupDetailPage, bobGroupDetailPage] = await aliceDashboardPage.createMultiUserGroup({}, bobDashboardPage);
+
+        const groupId = aliceGroupDetailPage.inferGroupId();
+
+        // Verify both users can see the comments section
+        await aliceGroupDetailPage.verifyCommentsSection();
+        await bobGroupDetailPage.verifyCommentsSection();
+
+        // Alice adds the first comment
+        const comment1 = `First comment from Alice - ${generateShortId()}`;
+        await aliceGroupDetailPage.addComment(comment1);
+
+        // Bob should see Alice's comment in real-time
+        await bobGroupDetailPage.waitForCommentToAppear(comment1);
+
+        // Bob adds a reply comment
+        const comment2 = `Reply from Bob - ${generateShortId()}`;
+        await bobGroupDetailPage.addComment(comment2);
+
+        // Alice should see Bob's comment in real-time
+        await aliceGroupDetailPage.waitForCommentToAppear(comment2);
+
+        // Both users should now see 2 comments total
+        await aliceGroupDetailPage.waitForCommentCount(2);
+        await bobGroupDetailPage.waitForCommentCount(2);
+
+        // Verify both comments are visible on both pages
+        await expect(aliceGroupDetailPage.getCommentByText(comment1)).toBeVisible();
+        await expect(aliceGroupDetailPage.getCommentByText(comment2)).toBeVisible();
+        await expect(bobGroupDetailPage.getCommentByText(comment1)).toBeVisible();
+        await expect(bobGroupDetailPage.getCommentByText(comment2)).toBeVisible();
+    });
+});

@@ -215,7 +215,11 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
                                 {/* Link expiration options */}
                                 <div class="flex items-center justify-between text-sm text-gray-500 pt-2 border-t border-gray-100">
                                     <span>{t('shareGroupModal.expiration')}</span>
-                                    <button class="text-purple-600 hover:text-purple-700 font-medium" data-testid="generate-new-link-button">
+                                    <button
+                                        onClick={generateLink}
+                                        class="text-purple-600 hover:text-purple-700 font-medium"
+                                        data-testid="generate-new-link-button"
+                                    >
                                         {t('shareGroupModal.generateNew')}
                                     </button>
                                 </div>

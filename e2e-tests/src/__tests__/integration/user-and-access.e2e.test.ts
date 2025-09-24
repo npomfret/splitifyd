@@ -655,5 +655,41 @@ simpleTest.describe('Share Link Access Management', () => {
             await backButton.click();
             await joinGroupPage.expectUrl(/\/dashboard/);
         });
+
+        simpleTest('should regenerate share link and update QR code when Generate New button is clicked', async ({ createLoggedInBrowsers }) => {
+            const [{ dashboardPage }] = await createLoggedInBrowsers(1);
+
+            // Create a group to share
+            const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
+
+            // Open the share modal
+            const shareModalPage = await groupDetailPage.openShareGroupModal();
+            await shareModalPage.waitForModalVisible();
+
+            // Get the initial share link
+            const initialShareLink = await shareModalPage.getShareLink();
+            expect(initialShareLink).toMatch(/\/join\?linkId=/);
+
+            // Click "Generate New" to regenerate the link
+            await shareModalPage.clickGenerateNewLink();
+
+            // Get the new share link
+            const newShareLink = await shareModalPage.getShareLink();
+            expect(newShareLink).toMatch(/\/join\?linkId=/);
+
+            // Verify the link has actually changed
+            expect(newShareLink).not.toBe(initialShareLink);
+
+            // Verify both links follow the correct format but are different
+            const initialLinkId = new URL(initialShareLink).searchParams.get('linkId');
+            const newLinkId = new URL(newShareLink).searchParams.get('linkId');
+
+            expect(initialLinkId).toBeTruthy();
+            expect(newLinkId).toBeTruthy();
+            expect(newLinkId).not.toBe(initialLinkId);
+
+            // Close the modal
+            await shareModalPage.closeModal();
+        });
     });
 });

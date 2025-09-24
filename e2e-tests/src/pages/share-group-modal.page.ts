@@ -78,4 +78,44 @@ export class ShareGroupModalPage extends BasePage {
         // Wait for modal to close
         await expect(this.getModalDialog()).not.toBeVisible({ timeout: 3000 });
     }
+
+    // Element accessors for regeneration functionality
+    getGenerateNewButton(): Locator {
+        return this.getModalDialog().getByTestId('generate-new-link-button');
+    }
+
+    // Action methods for regeneration
+    async clickGenerateNewLink(): Promise<void> {
+        await this.waitForShareLinkLoaded(); // Ensure initial link is loaded first
+
+        // Get the current share link before regeneration
+        const initialShareLink = await this.getShareLink();
+
+        // Click the "Generate New" button
+        const generateNewButton = this.getGenerateNewButton();
+        await this.clickButton(generateNewButton, { buttonName: 'Generate New' });
+
+        // Wait for new share link to be generated
+        await this.waitForNewShareLink(initialShareLink);
+    }
+
+    async waitForNewShareLink(previousLink: string, timeout: number = 10000): Promise<void> {
+        // Wait for the share link to change from the previous one
+        await expect(async () => {
+            const currentLink = await this.getShareLinkInput().inputValue();
+
+            if (!currentLink || !currentLink.includes('/join?')) {
+                throw new Error(`Invalid share link: ${currentLink}`);
+            }
+
+            if (currentLink === previousLink) {
+                throw new Error(`Share link has not changed yet. Current: ${currentLink}`);
+            }
+        }).toPass({ timeout });
+    }
+
+    async getNewShareLinkAfterRegeneration(previousLink: string): Promise<string> {
+        await this.waitForNewShareLink(previousLink);
+        return await this.getShareLink();
+    }
 }

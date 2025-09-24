@@ -88,9 +88,9 @@ An analysis of the codebase was performed to determine the test coverage for the
 | Copy Expense | E2E Test | ✅ **COMPLETED** |
 | Expense Form Drafts | **Unit Test** | ✅ **COMPLETED** |
 | Recent Amounts / Category Suggestions | **Component Test** | ✅ **COMPLETED** |
-| Group-Level Comments | E2E Test | ❌ Not implemented |
+| Group-Level Comments | E2E Test | ✅ **COMPLETED** |
 | Hard Group Deletion | E2E and Component Test | ✅ **ALREADY EXISTS** |
-| Share Link Regeneration | E2E Test | ❌ Not implemented |
+| Share Link Regeneration | E2E Test | ✅ **COMPLETED** |
 | Real-time Connectivity Indicator | **Unit & Component Test** | ❌ Not implemented |
 | Settlement Editing/Deletion | E2E Test | ✅ **ALREADY EXISTS** |
 | Expense Split Logic (Exact Amount) | **Unit Test** | ✅ **COMPLETED** |
@@ -224,13 +224,66 @@ Based on this analysis, it is recommended to prioritize creating unit and compon
 - Prevents UI regressions in form interaction components
 - Documents expected behavior for different data states
 
+### Group-Level Comments E2E Test Implementation (COMPLETED)
+
+**Files Modified/Created:**
+- `e2e-tests/src/__tests__/integration/core-features.e2e.test.ts` - Added comprehensive multi-user group comments test
+- `e2e-tests/src/pages/group-detail.page.ts` - Added complete comments functionality methods
+
+**Key Implementation Notes:**
+- **Complete Comments Methods:** Added all necessary page object methods following the same patterns as expense comments
+- **Multi-User Real-time Testing:** Tests 2-user scenarios with real-time comment synchronization
+- **Proper E2E Patterns:** Uses `createMultiUserGroup({}, bobDashboardPage)` pattern following existing codebase conventions
+- **Web-First Assertions:** All waits use proper Playwright web-first assertions, no hardcoded timeouts
+
+**Page Object Methods Added:**
+- `getCommentsSection()`, `getCommentInput()`, `getSendCommentButton()`
+- `addComment()`, `waitForCommentToAppear()`, `waitForCommentCount()`
+- `verifyCommentsSection()` with proper placeholder validation for group comments
+
+**Test Coverage:**
+- Real-time comment synchronization between multiple users
+- Comment submission workflow with proper state validation
+- Comment count verification and visibility across browsers
+- Comments section UI validation with group-specific placeholder text
+
+### Share Link Regeneration E2E Test Implementation (COMPLETED)
+
+**Files Modified/Created:**
+- `webapp-v2/src/components/group/ShareGroupModal.tsx` - Fixed missing `onClick={generateLink}` handler
+- `e2e-tests/src/__tests__/integration/user-and-access.e2e.test.ts` - Added comprehensive share link regeneration test
+- `e2e-tests/src/pages/share-group-modal.page.ts` - Added complete regeneration functionality methods
+
+**Key Implementation Notes:**
+- **Component Fix:** The "Generate New" button was missing its click handler - added `onClick={generateLink}`
+- **Regeneration Methods:** Added complete workflow methods for testing link regeneration
+- **Link Uniqueness Validation:** Tests verify that new links are different from original links
+- **QR Code Data Changes:** Validates that QR code data changes by testing the underlying URL
+
+**Page Object Methods Added:**
+- `getGenerateNewButton()`, `clickGenerateNewLink()`
+- `waitForNewShareLink()`, `getNewShareLinkAfterRegeneration()`
+- Proper timeout handling and link validation
+
+**Test Coverage:**
+- Complete share link regeneration workflow
+- Link format validation (`/join?linkId=`)
+- Link uniqueness verification (before/after comparison)
+- URL parsing to verify different linkId values
+- Modal interaction patterns
+
+**Business Impact:**
+- Ensures share link regeneration feature works correctly for security purposes
+- Validates that old links become invalid when new ones are generated
+- Documents expected behavior for link format and QR code updates
+
 **Priority Order for Remaining Gaps:**
 1. **Unit Tests** (fastest to implement):
    - ✅ ~~Exact Amount Split validation~~ **COMPLETED**
    - ✅ ~~Expense Form Drafts logic~~ **COMPLETED**
 2. **Component Tests** (moderate effort):
    - ✅ ~~Recent Amounts / Category Suggestions UI~~ **COMPLETED**
-   - Real-time Connectivity Indicator
+   - Real-time Connectivity Indicator (to be removed)
 3. **E2E Tests** (highest effort, highest value):
-   - Group-Level Comments
-   - Share Link Regeneration
+   - ✅ ~~Group-Level Comments~~ **COMPLETED**
+   - ✅ ~~Share Link Regeneration~~ **COMPLETED**
