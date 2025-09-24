@@ -48,6 +48,18 @@ This report analyzes the gaps in the current E2E test suite. Based on the princi
 - **Recommended Strategy:** **E2E Test**.
 - **Justification:** This represents a core CRUD (Create, Read, Update, Delete) lifecycle for settlements. The user flow of navigating to the history, editing a settlement, or deleting one involves multiple components, modals, and API calls. This is a classic use case for E2E tests to ensure the entire feature works from the user's perspective.
 
+### 9. Additional Analysis: Expense Split Strategies
+An analysis of the codebase was performed to determine the test coverage for the core expense splitting strategies.
+
+-   **Percentage Splits:** ✅ **Excellent coverage.** The backend has dedicated unit tests for the `PercentageSplitStrategy` that validate the total percentage, reject negative values, and ensure calculations are correct.
+-   **Equal Splits:** ✅ **Good coverage.** This strategy is used in numerous backend integration and scenario tests. Its correct behavior is implicitly verified by the success of these broader balance and settlement tests.
+-   **Exact Amount Splits:** ❌ **Weak/Incomplete coverage.** A significant gap was identified here. The existing backend unit test for the `ExactSplitStrategy` is minimal and, most importantly, **lacks validation to ensure the provided amounts sum up to the total expense amount.**
+
+#### Recommendation: Add Backend Unit Tests
+-   **Feature:** `ExactAmountSplitStrategy` Validation
+-   **Recommended Strategy:** **Unit Test**.
+-   **Justification:** The validation logic for the exact amount split strategy is a critical piece of business logic that lives on the backend. It can and should be tested with fast and reliable unit tests to cover various scenarios (correct sum, incorrect sum, negative numbers, etc.).
+
 ## Summary Table
 
 | Feature Gap | Recommended Strategy |
@@ -60,6 +72,7 @@ This report analyzes the gaps in the current E2E test suite. Based on the princi
 | Share Link Regeneration | E2E Test |
 | Real-time Connectivity Indicator | **Unit & Component Test** |
 | Settlement Editing/Deletion | E2E Test |
+| Expense Split Logic (Exact Amount) | **Unit Test** |
 
 ## Next Steps
 
