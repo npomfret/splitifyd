@@ -1,0 +1,66 @@
+# E2E and Unit Test Coverage Analysis and Recommendations
+
+## Overview
+
+This report analyzes the gaps in the current E2E test suite. Based on the principle of using the right tool for the job, it provides recommendations on whether each gap is better addressed by E2E tests, unit/component tests, or a combination of both. The goal is to increase test coverage efficiently, improve reliability, and speed up the feedback loop.
+
+## Analysis and Recommendations
+
+### 1. Copy Expense Feature
+- **Current E2E Coverage:** Untested.
+- **Recommended Strategy:** **E2E Test**.
+- **Justification:** This is a multi-step user flow that involves a user action on one page (`ExpenseActions`), a redirect with specific URL parameters (`?copy=true&sourceId=...`), and pre-filling a form on a different page (`AddExpensePage`). An E2E test is the only way to verify this entire journey works as expected. Component-level tests can supplement this by verifying the `AddExpensePage` correctly parses URL parameters.
+
+### 2. Expense Form Drafts
+- **Current E2E Coverage:** Untested.
+- **Recommended Strategy:** **Unit Test**.
+- **Justification:** The core logic for saving and loading drafts resides in `expense-form-store.ts`. This logic's interaction with `sessionStorage` can be tested robustly and quickly in isolation using unit tests by mocking the `sessionStorage` API. An E2E test would be slower and more brittle.
+
+### 3. Expense Form UI Features (Recent Amounts, Category Suggestions)
+- **Current E2E Coverage:** Untested.
+- **Recommended Strategy:** **Component Tests**.
+- **Justification:** These features involve the `ExpenseBasicFields.tsx` component rendering UI elements based on props. Component tests (using Vitest and React Testing Library) are the most effective way to verify the UI renders correctly for different states (e.g., with suggestions, without suggestions) without the overhead of a full E2E test.
+
+### 4. Group-Level Comments
+- **Current E2E Coverage:** Untested.
+- **Recommended Strategy:** **E2E Test**.
+- **Justification:** While expense-level comments are tested, this is a separate feature on a different page (`GroupDetailPage.tsx`). An E2E test is needed to validate the complete user flow: typing and submitting a comment and seeing it appear in the list, including the real-time aspect.
+
+### 5. Group Deletion with Confirmation
+- **Current E2E Coverage:** Untested.
+- **Recommended Strategy:** **Both E2E and Component Tests**.
+- **Justification:**
+    - **Component Test:** The logic within the `EditGroupModal.tsx` that enables the final "Delete" button only after the user correctly types the group's name is a perfect, self-contained piece of UI logic for a component test.
+    - **E2E Test:** The overall critical path—a user initiating the deletion, completing the confirmation, and verifying the group is gone—is a destructive and important flow that must be validated end-to-end.
+
+### 6. Share Link Regeneration (in Share Group Modal)
+- **Current E2E Coverage:** Untested.
+- **Recommended Strategy:** **E2E Test**.
+- **Justification:** The user action of clicking the "Generate New" button and visually confirming that the share link and associated QR code data have been updated is a user-facing interaction that should be covered by an E2E test. Testing the QR code's image is not feasible, but we can assert the underlying data changes.
+
+### 7. Real-time Connectivity Indicator
+- **Current E2E Coverage:** Untested.
+- **Recommended Strategy:** **Unit and Component Tests**.
+- **Justification:** Reliably testing network disconnection in an E2E test is complex and can be flaky. The logic for detecting connectivity status should be covered by **unit tests** (for the hook or store), and the `RealTimeIndicator.tsx` component's visual changes based on a status prop ('connected', 'disconnected') should be covered by simple **component tests**.
+
+### 8. Settlement Editing and Deletion
+- **Current E2E Coverage:** Untested.
+- **Recommended Strategy:** **E2E Test**.
+- **Justification:** This represents a core CRUD (Create, Read, Update, Delete) lifecycle for settlements. The user flow of navigating to the history, editing a settlement, or deleting one involves multiple components, modals, and API calls. This is a classic use case for E2E tests to ensure the entire feature works from the user's perspective.
+
+## Summary Table
+
+| Feature Gap | Recommended Strategy |
+| :--- | :--- |
+| Copy Expense | E2E Test |
+| Expense Form Drafts | **Unit Test** |
+| Recent Amounts / Category Suggestions | **Component Test** |
+| Group-Level Comments | E2E Test |
+| Hard Group Deletion | E2E and Component Test |
+| Share Link Regeneration | E2E Test |
+| Real-time Connectivity Indicator | **Unit & Component Test** |
+| Settlement Editing/Deletion | E2E Test |
+
+## Next Steps
+
+Based on this analysis, it is recommended to prioritize creating unit and component tests for the identified gaps first, as they are typically faster to write and provide a high degree of confidence in the core logic. Following that, new E2E tests should be written for the critical user flows. This balanced approach will improve test coverage and application quality most effectively.
