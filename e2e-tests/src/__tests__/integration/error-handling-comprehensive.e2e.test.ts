@@ -16,7 +16,7 @@ import {generateTestGroupName} from '@splitifyd/test-support';
  */
 
 test.describe('Network & Server Error Handling', () => {
-    test('should handle network failures during group creation', async ({ createLoggedInBrowsers, newEmptyBrowser }) => {
+    test('should handle network failures during group creation', async ({ createLoggedInBrowsers }) => {
         const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
 
         test.info().annotations.push({

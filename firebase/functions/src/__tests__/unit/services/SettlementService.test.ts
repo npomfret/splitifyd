@@ -48,11 +48,6 @@ describe('SettlementService - Unit Tests', () => {
     let stubAuth: StubAuthService;
     let applicationBuilder: ApplicationBuilder;
 
-    // Helper to set settlement data in stub
-    const setSettlementData = (settlementId: string, settlementData: any) => {
-        stubReader.setDocument('settlements', settlementId, settlementData);
-    };
-
     // Helper to set user data in stub
     const setUserData = (userId: string, userData: any) => {
         stubReader.setDocument('users', userId, userData);

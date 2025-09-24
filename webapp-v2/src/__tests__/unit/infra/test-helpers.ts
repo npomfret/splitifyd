@@ -780,49 +780,6 @@ export async function testFormValidation(page: Page, requiredFields: string[], s
     await expect(submitButton).toBeEnabled();
 }
 
-/**
- * Session storage persistence test helper
- */
-export async function testSessionStoragePersistence(page: Page, testData: Record<string, { selector: string; value: string; storageKey: string }>): Promise<void> {
-    // Fill all fields
-    for (const [, data] of Object.entries(testData)) {
-        await fillFormField(page, data.selector, data.value);
-    }
-
-    // Wait for storage to be updated using proper state-based waiting
-    await page.waitForFunction(
-        (storageKeys) => {
-            return storageKeys.some(key => sessionStorage.getItem(key) !== null);
-        },
-        Object.values(testData).map((d) => d.storageKey),
-        {timeout: 500}
-    );
-
-    // Verify storage values
-    const storedValues = await page.evaluate(
-        (keys) => {
-            const result: Record<string, string | null> = {};
-            keys.forEach((key) => {
-                result[key] = sessionStorage.getItem(key);
-            });
-            return result;
-        },
-        Object.values(testData).map((d) => d.storageKey),
-    );
-
-    // Verify each stored value
-    for (const [, data] of Object.entries(testData)) {
-        expect(storedValues[data.storageKey]).toBe(data.value);
-    }
-
-    // Refresh and verify restoration
-    await page.reload();
-
-    for (const [, data] of Object.entries(testData)) {
-        await expect(page.locator(data.selector)).toHaveValue(data.value);
-    }
-}
-
 // === KEYBOARD NAVIGATION HELPER FUNCTIONS ===
 
 export interface KeyboardShortcutTest {
@@ -858,7 +815,7 @@ export async function testKeyboardNavigationWithAuthRedirect(page: Page, expecte
 }
 
 export async function testTabOrder(page: Page, selectors: string[], options: { skipFirst?: boolean; timeout?: number } = {}): Promise<void> {
-    const { skipFirst = false, timeout = 500 } = options;
+    const { skipFirst = false } = options;
 
     // Ensure page is fully loaded and ready for interaction
     await page.waitForLoadState('networkidle');
@@ -900,7 +857,7 @@ export async function testTabOrder(page: Page, selectors: string[], options: { s
     }
 }
 
-export async function testReverseTabOrder(page: Page, selectors: string[], options: { timeout?: number } = {}): Promise<void> {
+export async function testReverseTabOrder(page: Page, selectors: string[]): Promise<void> {
     // For multi-worker scenarios, just verify the elements are focusable in reverse order
     // This is more reliable than testing actual Shift+Tab behavior
     await page.waitForLoadState('networkidle');
@@ -953,50 +910,6 @@ export async function testFocusTrap(page: Page, containerSelector: string, focus
     }
 }
 
-export async function testKeyboardShortcuts(page: Page, tests: KeyboardShortcutTest[]): Promise<void> {
-    for (const test of tests) {
-        await page.keyboard.press(test.key);
-
-        if (test.expectedElement) {
-            await expect(page.locator(test.expectedElement)).toBeFocused();
-        }
-
-        if (test.expectedAction) {
-            await test.expectedAction();
-        }
-
-        // Allow browser to process keyboard event
-    }
-}
-
-export async function testSkipLinks(page: Page, skipLinkSelector = 'a[href="#main"]', mainContentSelector = '#main'): Promise<void> {
-    const skipLink = page.locator(skipLinkSelector);
-
-    if (await skipLink.count() > 0) {
-        await skipLink.focus();
-        await expect(skipLink).toBeFocused();
-        await expect(skipLink).toBeVisible();
-
-        await page.keyboard.press('Enter');
-        // Allow browser to process interaction
-
-        const mainContent = page.locator(mainContentSelector);
-        if (await mainContent.count() > 0) {
-            // Focus should be on or near main content
-            const focusedElement = page.locator(':focus');
-            if (await focusedElement.count() > 0) {
-                const mainHandle = await mainContent.elementHandle();
-                if (mainHandle) {
-                    const isFocusedOnMain = await focusedElement.evaluate((focused, main) => {
-                        return focused === main || main.contains(focused);
-                    }, mainHandle);
-                    expect(isFocusedOnMain).toBeTruthy();
-                }
-            }
-        }
-    }
-}
-
 export async function verifyFocusVisible(page: Page, selectors: string[]): Promise<void> {
     for (const selector of selectors) {
         const element = page.locator(selector);
@@ -1020,60 +933,6 @@ export async function verifyFocusVisible(page: Page, selectors: string[]): Promi
 
             expect(hasFocusIndicator).toBeTruthy();
         }
-    }
-}
-
-export async function testFormSubmissionWithEnter(page: Page, formSelector: string, inputSelectors: string[], submitButtonSelector?: string): Promise<void> {
-    const form = page.locator(formSelector);
-    await expect(form).toBeVisible();
-
-    for (const inputSelector of inputSelectors) {
-        const input = form.locator(inputSelector);
-        if (await input.count() > 0) {
-            await input.focus();
-            await expect(input).toBeFocused();
-
-            // Test Enter key on form inputs
-            await page.keyboard.press('Enter');
-            // Allow browser to process interaction
-
-            // Form should remain accessible
-            await expect(form).toBeVisible();
-        }
-    }
-
-    if (submitButtonSelector) {
-        const submitButton = form.locator(submitButtonSelector);
-        if (await submitButton.count() > 0) {
-            await submitButton.focus();
-            await expect(submitButton).toBeFocused();
-
-            await page.keyboard.press('Enter');
-            // Allow browser to process interaction
-        }
-    }
-}
-
-export async function testModalKeyboardNavigation(page: Page, options: {
-    openModalSelector: string;
-    modalSelector: string;
-    focusableSelectors: string[];
-    closeButtonSelector?: string;
-}): Promise<void> {
-    const { openModalSelector, modalSelector, focusableSelectors, closeButtonSelector } = options;
-
-    // Open modal
-    await page.locator(openModalSelector).click();
-    const modal = page.locator(modalSelector);
-    await expect(modal).toBeVisible();
-
-    // Test focus trap within modal
-    await testFocusTrap(page, modalSelector, focusableSelectors);
-
-    // Test escape key closes modal
-    await page.keyboard.press('Escape');
-    if (closeButtonSelector) {
-        await expect(modal).not.toBeVisible();
     }
 }
 

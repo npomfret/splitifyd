@@ -189,7 +189,6 @@ test.describe('PricingPage - Behavioral Tests', () => {
             await page.waitForLoadState('networkidle');
 
             // Tab through the page to navigate pricing plans
-            let currentFocusIndex = 0;
             const maxTabs = 10; // Reasonable limit to avoid infinite loops
 
             for (let i = 0; i < maxTabs; i++) {

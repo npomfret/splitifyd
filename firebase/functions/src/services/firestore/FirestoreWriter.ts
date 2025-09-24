@@ -137,44 +137,6 @@ export class FirestoreWriter implements IFirestoreWriter {
     // ========================================================================
 
     /**
-     * Validate data within a transaction before writing
-     *
-     * USAGE INSIDE TRANSACTIONS:
-     * ```typescript
-     * await this.firestoreWriter.runTransaction(async (transaction) => {
-     *     // Read data
-     *     const userDoc = await transaction.get(userRef);
-     *
-     *     // Validate before writing
-     *     const updatedData = { ...userDoc.data(), ...updates };
-     *     this.validateInTransaction(UserDocumentSchema, updatedData, 'UserDocument', userId);
-     *
-     *     // Write validated data
-     *     transaction.update(userRef, updates);
-     * });
-     * ```
-     */
-    validateInTransaction<T>(
-        schema: any,
-        data: Record<string, any>,
-        schemaName: string,
-        documentId: string,
-    ): T {
-        // Prepare data for validation by replacing FieldValue objects
-        const dataForValidation = { ...data };
-        if (dataForValidation.updatedAt && typeof dataForValidation.updatedAt === 'object') {
-            dataForValidation.updatedAt = new Date();
-        }
-        if (dataForValidation.createdAt && typeof dataForValidation.createdAt === 'object') {
-            dataForValidation.createdAt = new Date();
-        }
-
-        return validateUpdate(schema, dataForValidation, schemaName, {
-            documentId,
-        });
-    }
-
-    /**
      * Get the Firestore collection path for comments on a target entity
      * This eliminates type-dispatching conditionals in comment methods
      */

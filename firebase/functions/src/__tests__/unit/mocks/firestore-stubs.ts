@@ -748,22 +748,6 @@ export function createMockPolicyDocument(overrides: Partial<PolicyDocument> = {}
     };
 }
 
-export function createMockWriteResult(id: string): WriteResult {
-    return {
-        id,
-        success: true,
-        timestamp: Timestamp.now(),
-    };
-}
-
-export function createMockWriteResultFailure(id: string, error: string): WriteResult {
-    return {
-        id,
-        success: false,
-        error,
-    };
-}
-
 /**
  * Clear all shared storage for tests
  */

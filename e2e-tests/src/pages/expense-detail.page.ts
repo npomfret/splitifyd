@@ -147,20 +147,6 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
-     * Click the back button to navigate to the group detail page
-     */
-    async clickBackButton(): Promise<void> {
-        // Find the back button with "← Back" text
-        const backButton = this.page.getByRole('button', { name: /← Back/i });
-        await expect(backButton).toBeVisible();
-        await this.clickButton(backButton, { buttonName: 'Back' });
-
-        // Wait for navigation back to group detail page
-        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
-        await this.waitForDomContentLoaded();
-    }
-
-    /**
      * Delete the expense via the ExpenseActions component
      */
     async deleteExpense(): Promise<void> {
@@ -251,25 +237,5 @@ export class ExpenseDetailPage extends BasePage {
             const actual = await this.getCurrentCurrencyAmount();
             expect(actual, `Expected currency amount "${formattedAmount}". Found: ${actual}`).toContain(formattedAmount);
         }).toPass({ timeout });
-    }
-
-    /**
-     * Verify that the split section displays the correct amount per person
-     * @param expectedAmountPerPerson - The formatted currency amount expected per person (e.g., "€50.00")
-     * @param expectedUserCount - Optional: verify this many users have the amount (defaults to at least 1)
-     */
-    async verifySplitAmount(expectedAmountPerPerson: string, expectedUserCount?: number): Promise<void> {
-        await expect(async () => {
-            const actual = await this.getCurrentSplitAmounts();
-            let errorMsg = `Expected split amount "${expectedAmountPerPerson}". Found: ${actual}`;
-
-            expect(actual, errorMsg).toContain(expectedAmountPerPerson);
-
-            if (expectedUserCount !== undefined) {
-                const matches = (actual.match(new RegExp(expectedAmountPerPerson.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
-                errorMsg += ` (expected ${expectedUserCount} occurrences, found ${matches})`;
-                expect(matches, errorMsg).toBe(expectedUserCount);
-            }
-        }).toPass({ timeout: 5000 });
     }
 }

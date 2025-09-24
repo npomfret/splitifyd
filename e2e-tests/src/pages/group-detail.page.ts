@@ -44,10 +44,6 @@ export class GroupDetailPage extends BasePage {
         return this.page.locator('p.text-gray-600').first();
     }
 
-    getBalancesHeading() {
-        return this.page.getByRole('heading', {name: /balances/i});
-    }
-
     // Element accessors for expenses
     getAddExpenseButton() {
         // Primary selector: use data-testid
@@ -307,27 +303,6 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * New getter methods using centralized constants
-     */
-
-    // Headings
-    getExpensesHeading() {
-        return this.page.getByRole(ARIA_ROLES.HEADING, {name: HEADINGS.EXPENSES});
-    }
-
-    getShowHistoryButton() {
-        return this.page.getByRole(ARIA_ROLES.BUTTON, {name: BUTTON_TEXTS.SHOW_HISTORY});
-    }
-
-    getNoExpensesText() {
-        return this.page.getByText(MESSAGES.NO_EXPENSES_YET);
-    }
-
-    getLoadingBalancesText() {
-        return this.page.getByText(MESSAGES.LOADING_BALANCES);
-    }
-
-    /**
      * Gets the balances section using the complex locator
      * This replaces repeated complex locator chains in tests
      */
@@ -372,39 +347,6 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Wait for expense description to be visible (polls until found)
-     * @param description - The expense description text
-     * @param timeout - Optional timeout in milliseconds
-     */
-    async waitForExpenseDescription(description: string, timeout: number = 5000): Promise<void> {
-        const descriptionLocator = this.getExpenseByDescription(description);
-        await expect(descriptionLocator).toBeVisible({timeout});
-    }
-
-    getExpenseAmount(amount: string) {
-        // Target expense amount specifically within the expenses container
-        // This avoids conflicts with settlement amounts and balance amounts
-        const expensesContainer = this.getExpensesContainer();
-        return expensesContainer.locator('[data-testid="expense-amount"]').filter({hasText: amount});
-    }
-
-    /**
-     * Deletes an expense with confirmation
-     */
-    async deleteExpense() {
-        const deleteButton = this.page.getByRole('button', {name: /delete/i});
-
-        await this.clickButton(deleteButton, {buttonName: 'Delete Expense'});
-
-        // Confirm deletion
-        const confirmButton = this.getDeleteConfirmButton();
-        await this.clickButton(confirmButton, {buttonName: 'Confirm Delete'});
-
-        // Wait for deletion to complete
-        await this.waitForDomContentLoaded();
-    }
-
-    /**
      * Opens the share group modal and returns the ShareGroupModalPage instance.
      */
     async openShareGroupModal(): Promise<ShareGroupModalPage> {
@@ -438,15 +380,6 @@ export class GroupDetailPage extends BasePage {
         return balancesSection.getByText(`${debtorName} → ${creditorName}`).or(balancesSection.getByText(`${debtorName} owes ${creditorName}`));
     }
 
-    /**
-     * Gets the admin badge element specifically.
-     * This targets the small badge text, not the group heading or description.
-     */
-    getAdminBadge() {
-        // Target the admin badge which is typically a small text element with specific styling
-        // Use exact match and look for the element with the smallest font size (text-xs class)
-        return this.page.locator('.text-xs').filter({hasText: 'Admin'}).first();
-    }
 
     /**
      * Gets the settings button (only visible for group owner)
@@ -562,29 +495,12 @@ export class GroupDetailPage extends BasePage {
         });
     }
 
-    /**
-     * Verify expense is visible for the current user
-     */
-    async verifyExpenseVisible(description: string): Promise<void> {
-        await expect(this.getExpenseByDescription(description)).toBeVisible();
-    }
 
     async verifyExpenseInList(description: string, amount?: string) {
         await expect(this.getExpenseByDescription(description)).toBeVisible();
         if (amount) {
             await expect(this.page.getByText(amount)).toBeVisible();
         }
-    }
-
-    /**
-     * Get expense item by description within the expenses container
-     * Properly scoped to avoid conflicts with settlements
-     */
-    private getExpenseItem(description: string) {
-        const expensesContainer = this.getExpensesContainer();
-        // Look for any element within the expenses container that contains the description text
-        // This matches what users see without relying on technical implementation details
-        return expensesContainer.locator(':has-text("' + description + '")');
     }
 
     /**

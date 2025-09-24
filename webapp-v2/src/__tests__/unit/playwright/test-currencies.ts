@@ -69,9 +69,6 @@ export const PRIMARY_TEST_CURRENCY = TEST_CURRENCIES[0]; // PLN (zł)
 export const SECONDARY_TEST_CURRENCY = TEST_CURRENCIES[2]; // THB (฿)
 export const TERTIARY_TEST_CURRENCY = TEST_CURRENCIES[3]; // RON (lei)
 
-// Zero-decimal test currencies for edge case testing
-export const ZERO_DECIMAL_CURRENCIES = TEST_CURRENCIES.filter(c => c.decimal_digits === 0); // ISK, VND
-
 // Currency mapping for consistent replacement
 export const CURRENCY_REPLACEMENTS = {
     USD: PRIMARY_TEST_CURRENCY,    // zł instead of $
@@ -91,22 +88,3 @@ export const formatTestCurrency = (amount: number, currency: TestCurrency): stri
     }
     return `${currency.symbol}${amount.toFixed(currency.decimal_digits)}`;
 };
-
-// Mock currency data for tests that need a complete currency list
-export const getMockCurrencyData = () => {
-    return TEST_CURRENCIES;
-};
-
-// Helper to create mock balances with test currencies
-export const createMockBalance = (amount: number, currency: TestCurrency) => ({
-    amount,
-    currency: currency.acronym
-});
-
-// Helper to create mock debts with test currencies
-export const createMockDebt = (from: string, to: string, amount: number, currency: TestCurrency) => ({
-    from,
-    to,
-    amount,
-    currency: currency.acronym
-});

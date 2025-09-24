@@ -442,8 +442,6 @@ test.describe('Expense Form Validation', () => {
         await page.waitForLoadState('networkidle');
         await expect(page.locator('form')).toBeVisible();
 
-        const submitButton = page.locator('button[type="submit"]');
-
         // Try submitting with invalid data
         const descriptionInput = page.locator('input[placeholder*="description"], input[name*="description"], input[type="text"]').first();
         const amountInput = page.locator('input[type="number"], input[inputmode="decimal"]').first();

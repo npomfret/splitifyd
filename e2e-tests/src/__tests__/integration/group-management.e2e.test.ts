@@ -80,7 +80,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
         // Create two browser instances - Owner and Member
         const [
             { dashboardPage: ownerDashboardPage },
-            { page: memberPage, dashboardPage: memberDashboardPage }
+            { dashboardPage: memberDashboardPage }
         ] = await createLoggedInBrowsers(2);
 
         const memberDisplayName = await memberDashboardPage.header.getCurrentUserDisplayName();
@@ -90,6 +90,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
         const groupId = groupDetailPage.inferGroupId();
 
         // Owner removes the member
+        await groupDetailPage.waitForMemberCount(2);
         const removeMemberModal = await groupDetailPage.clickRemoveMember(memberDisplayName);
         await removeMemberModal.confirmRemoveMember();
 
@@ -105,7 +106,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
         // Create two browser instances - Owner and Member
         const [
             { page: ownerPage, dashboardPage: user1DashboardPage },
-            { page: memberPage, dashboardPage: user2DashboardPage }
+            { dashboardPage: user2DashboardPage }
         ] = await createLoggedInBrowsers(2);
 
         const memberDisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -136,7 +137,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         // Create two browser instances - Owner and Member
         const [
             { dashboardPage: user1DashboardPage },
-            { page: memberPage, dashboardPage: user2DashboardPage }
+            { dashboardPage: user2DashboardPage }
         ] = await createLoggedInBrowsers(2);
 
         const ownerDisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
@@ -144,7 +145,6 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
 
         // Owner creates group
         const [groupDetailPage, memberGroupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
-        const groupId = groupDetailPage.inferGroupId()
 
         // Owner adds an expense that creates a balance
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
@@ -237,14 +237,13 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
         const [
             { dashboardPage: ownerDashboardPage },
             { page: member1Page, dashboardPage: member1DashboardPage },
-            { page: member2Page, dashboardPage: member2DashboardPage }
+            { dashboardPage: member2DashboardPage }
         ] = await createLoggedInBrowsers(3);
 
         // Get display names
         const member1DisplayName = await member1DashboardPage.header.getCurrentUserDisplayName();
 
-        const [groupDetailPage, member1GroupDetailPage, member2GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup(
-            {}, member1DashboardPage, member2DashboardPage);
+        const [groupDetailPage, member1GroupDetailPage, member2GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({}, member1DashboardPage, member2DashboardPage);
 
         // Owner removes Member1
         const removeMember1Modal = await groupDetailPage.clickRemoveMember(member1DisplayName);
@@ -276,9 +275,9 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
 
         // Create three users - Creator, LeavingUser, WatchingUser
         const [
-            { dashboardPage: creatorDashboardPage, user: creator },
-            { page: leavingPage, dashboardPage: leavingDashboardPage, user: leaving },
-            { page: watchingPage, dashboardPage: watchingDashboardPage, user: watching }
+            { dashboardPage: creatorDashboardPage },
+            { dashboardPage: leavingDashboardPage },
+            { dashboardPage: watchingDashboardPage }
         ] = await createLoggedInBrowsers(3);
 
         const creatorDisplayName = await creatorDashboardPage.header.getCurrentUserDisplayName();
@@ -437,13 +436,12 @@ simpleTest.describe('Group Deletion', () => {
         // Create three browser instances to test different deletion scenarios
         let [
             { dashboardPage: ownerDashboardPage },
-            { page: memberPage1, dashboardPage: memberDashboardPage1 },
+            { dashboardPage: memberDashboardPage1 },
             { dashboardPage: memberDashboardPage2 }
         ] = await createLoggedInBrowsers(3);
 
         // Scenario 1: Dashboard real-time updates when group is deleted
         let [ownerGroupDetailPage, member1GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({}, memberDashboardPage1);
-        const groupId1 = ownerGroupDetailPage.inferGroupId();
         const groupName1 = await ownerGroupDetailPage.getGroupName();
 
         // Both users navigate to dashboard to see the group

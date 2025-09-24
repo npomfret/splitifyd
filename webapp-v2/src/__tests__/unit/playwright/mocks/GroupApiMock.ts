@@ -64,28 +64,6 @@ export class GroupApiMock {
         });
     }
 
-    async mockCreateGroup(newGroup: any): Promise<void> {
-        await this.page.route('**/api/groups', (route) => {
-            if (route.request().method() === 'POST') {
-                const response = MockResponseBuilder.created(newGroup).build();
-                route.fulfill(response);
-            } else {
-                route.continue();
-            }
-        });
-    }
-
-    async mockCreateGroupValidationError(field: string, message: string): Promise<void> {
-        await this.page.route('**/api/groups', (route) => {
-            if (route.request().method() === 'POST') {
-                const response = MockResponseBuilder.validationError(field, message).build();
-                route.fulfill(response);
-            } else {
-                route.continue();
-            }
-        });
-    }
-
     async mockGroupStats(stats: any): Promise<void> {
         await this.page.route('**/api/groups/stats**', (route) => {
             const response = MockResponseBuilder.success(stats).build();
@@ -131,24 +109,6 @@ export class GroupApiMock {
                 route.continue();
             }
         });
-    }
-
-    async mockCreateSettlement(groupId: string, settlement: any): Promise<void> {
-        await this.page.route(`**/api/groups/${groupId}/settlements`, (route) => {
-            if (route.request().method() === 'POST') {
-                const response = MockResponseBuilder.created(settlement).build();
-                route.fulfill(response);
-            } else {
-                route.continue();
-            }
-        });
-    }
-
-    async mockAllGroupEndpoints(group: any): Promise<void> {
-        await this.mockGetGroup(group.id, group);
-        await this.mockGroupExpenses(group.id, []);
-        await this.mockGroupSettlements(group.id, []);
-        await this.mockUserGroups([group]);
     }
 
     async mockAllGroupsWithScenario(scenario: 'empty' | 'success' | 'error' | 'slow', groups: any[] = []): Promise<void> {

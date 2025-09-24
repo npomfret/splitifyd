@@ -57,25 +57,4 @@ export class LeaveGroupModalPage extends BasePage {
         const balanceMessage = this.dialog.getByText(/You have an outstanding balance in this group\. Please settle up before leaving\./i);
         await expect(balanceMessage).toBeVisible({ timeout: 1000 });
     }
-
-
-    async expectLeaveBlockedAndCancel(): Promise<void> {
-        // Verify outstanding balance message is shown
-        await this.assertOutstandingBalanceMessage();
-
-        // Click "Understood" - this should do nothing (user cannot leave with outstanding balance)
-        await expect(this.confirmButton).toBeVisible({ timeout: 2000 });
-        await this.clickButton(this.confirmButton, { buttonName: 'Understood' });
-
-        // Verify we're still on the same page (not redirected to dashboard)
-        // Modal should still be visible
-        await expect(this.dialog).toBeVisible({ timeout: 2000 });
-
-        // Cancel to close the modal
-        await this.clickButton(this.cancelButton, { buttonName: 'Cancel' });
-
-        // Wait for the modal to close
-        await expect(this.dialog).not.toBeVisible({ timeout: 2000 });
-    }
-
 }

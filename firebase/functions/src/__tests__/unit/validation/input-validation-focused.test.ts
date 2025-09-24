@@ -71,7 +71,6 @@ describe('Focused Input Validation Tests', () => {
         });
 
         it('should validate exact splits add up to total', () => {
-            const participants = ['user1', 'user2'];
             const amount = 100;
             const exactSplits = [
                 { userId: 'user1', amount: 60 },
@@ -87,7 +86,6 @@ describe('Focused Input Validation Tests', () => {
         });
 
         it('should accept valid exact splits', () => {
-            const participants = ['user1', 'user2'];
             const amount = 100;
             const exactSplits = [
                 { userId: 'user1', amount: 60 },

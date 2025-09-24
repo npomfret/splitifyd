@@ -110,7 +110,6 @@ test.describe('Currency Formatting', () => {
         containerHTML += '<h3>Multi-Currency (Same Amount)</h3>';
         const sameAmount = 50.00;
         [CURRENCY_REPLACEMENTS.USD, CURRENCY_REPLACEMENTS.EUR, CURRENCY_REPLACEMENTS.GBP].forEach((currency, index) => {
-            const symbol = currency.symbol;
             const cssClass = `currency-${currency.acronym.toLowerCase()}`;
             containerHTML += `
                 <div class="currency-amount ${cssClass}" data-testid="multi-${index}">

@@ -436,8 +436,6 @@ describe('UserService - Unit Tests', () => {
             };
             stubReader.setDocument('users', uid, userDoc);
 
-            const beforeChange = new Date();
-
             const result = await userService.changePassword(uid, {
                 currentPassword,
                 newPassword,

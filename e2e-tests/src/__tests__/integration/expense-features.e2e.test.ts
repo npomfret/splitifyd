@@ -1,5 +1,5 @@
 import { simpleTest, expect } from '../../fixtures';
-import { v4 as uuidv4 } from 'uuid';
+import {generateShortId} from "@splitifyd/test-support";
 
 /**
  * Expense Feature-Specific E2E Tests
@@ -120,11 +120,11 @@ simpleTest.describe('Real-time Comments', () => {
         await bobExpenseDetailPage.verifyCommentsSection();
 
         // Test real-time comments
-        const comment1 = `comment ${uuidv4()}`;
+        const comment1 = `comment ${generateShortId()}`;
         await aliceExpenseDetailPage.addComment(comment1);
         await bobExpenseDetailPage.waitForCommentToAppear(comment1);
 
-        const comment2 = `comment ${uuidv4()}`;
+        const comment2 = `comment ${generateShortId()}`;
         await bobExpenseDetailPage.addComment(comment2);
         await aliceExpenseDetailPage.waitForCommentToAppear(comment2);
 

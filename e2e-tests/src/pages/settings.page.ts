@@ -85,36 +85,6 @@ export class SettingsPage extends BasePage {
         return this.page.locator('.text-green-600, .bg-green-50, [role="alert"]').filter({ hasText: /successfully|updated|changed/i });
     }
 
-    // Profile Information Actions
-    async updateDisplayName(newDisplayName: string): Promise<void> {
-        const displayNameInput = this.getDisplayNameInput();
-
-        // Clear and fill the display name
-        await this.fillPreactInput(displayNameInput, '');
-        await this.fillPreactInput(displayNameInput, newDisplayName);
-
-        // Click save button
-        const saveButton = this.getSaveChangesButton();
-        await this.clickButton(saveButton, { buttonName: this.saveChangesButtonText });
-
-        // Wait for loading to complete (button becomes disabled after successful save)
-        await this.waitForLoadingComplete('save');
-
-        // Real-time updates: verify the display name updated in both places
-        // 1. In the profile display section
-        await expect(this.getProfileDisplayName()).toContainText(newDisplayName);
-        // 2. In the user menu at the top right corner
-        await expect(this.header.getUserMenuButton()).toContainText(newDisplayName);
-    }
-
-    async verifyRealTimeDisplayNameUpdate(expectedName: string): Promise<void> {
-        // Verify the display name updates in real-time in the profile section
-        await expect(this.getProfileDisplayName()).toContainText(expectedName);
-
-        // Verify the user menu in navigation also updates automatically
-        await expect(this.header.getUserMenuButton()).toContainText(expectedName);
-    }
-
     // Password Change Actions
     async openPasswordChangeForm(): Promise<void> {
         const changePasswordButton = this.getChangePasswordButton();

@@ -44,16 +44,6 @@ export const ARIA_ROLES = {
     MAIN: 'main',
 } as const;
 
-export const PLACEHOLDERS = {
-    EXPENSE_DESCRIPTION: translation.expenseBasicFields.descriptionPlaceholder,
-    EXPENSE_AMOUNT: '0.00',
-    SETTLEMENT_AMOUNT: translation.settlementForm.amountPlaceholder,
-    GROUP_DESCRIPTION: translation.createGroupModal.groupDescriptionPlaceholder,
-    CATEGORY_INPUT: translation.expenseBasicFields.categoryPlaceholder,
-    SELECT_PERSON: translation.settlementForm.selectPersonPlaceholder,
-    SETTLEMENT_NOTE: translation.settlementForm.notePlaceholder,
-} as const;
-
 export const HEADINGS = {
     SIGN_IN: translation.loginPage.title,
     CREATE_ACCOUNT: translation.registerPage.title,

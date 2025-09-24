@@ -37,11 +37,6 @@ export class ShareGroupModalPage extends BasePage {
         return this.getModalDialog().locator('canvas'); // QR code is rendered as canvas
     }
 
-    // Modal state methods
-    async isOpen(): Promise<boolean> {
-        return await this.getModalDialog().isVisible();
-    }
-
     async waitForModalVisible(): Promise<void> {
         await expect(this.getModalDialog()).toBeVisible({ timeout: 5000 });
 
@@ -83,17 +78,6 @@ export class ShareGroupModalPage extends BasePage {
         return shareLink;
     }
 
-    async copyShareLink(): Promise<void> {
-        await this.waitForShareLinkLoaded();
-
-        const copyButton = this.getCopyButton();
-        await expect(copyButton).toBeVisible();
-        await this.clickButton(copyButton, { buttonName: 'Copy Link' });
-
-        // Wait for copy confirmation (button icon changes)
-        await expect(copyButton.locator('svg').first()).toBeVisible();
-    }
-
     async closeModal(): Promise<void> {
         const closeButton = this.getCloseButton();
         if (await closeButton.isVisible()) {
@@ -107,14 +91,4 @@ export class ShareGroupModalPage extends BasePage {
         await expect(this.getModalDialog()).not.toBeVisible({ timeout: 3000 });
     }
 
-    async verifyErrorMessage(expectedError: string): Promise<void> {
-        const errorMessage = this.getErrorMessage();
-        await expect(errorMessage).toBeVisible();
-        await expect(errorMessage).toContainText(expectedError);
-    }
-
-    async verifyQRCodeVisible(): Promise<void> {
-        const qrCode = this.getQRCode();
-        await expect(qrCode).toBeVisible();
-    }
 }

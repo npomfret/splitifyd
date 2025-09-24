@@ -61,10 +61,6 @@ export class JoinGroupPage extends BasePage {
         return this.page.locator('[data-testid="invalid-link-warning"], [data-testid="unable-join-warning"], [role="alert"]');
     }
 
-    getSpecificErrorMessage(pattern: string | RegExp): Locator {
-        return this.page.getByText(pattern);
-    }
-
     getBackToDashboardButton(): Locator {
         return this.page.getByRole('button', { name: /Go to dashboard/i });
     }

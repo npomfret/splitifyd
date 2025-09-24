@@ -3,8 +3,7 @@ import { PooledTestUser } from '@splitifyd/shared';
 
 export class HeaderPage {
     constructor(
-        private page: Page,
-        private userInfo?: PooledTestUser
+        private page: Page
     ) {}
 
     /**
@@ -20,15 +19,6 @@ export class HeaderPage {
 
     getDashboardLink() {
         return this.page.locator('[data-testid="user-menu-dashboard-link"]');
-    }
-
-    /**
-     * Wait for the user menu to be available on the page.
-     * This indicates the user is authenticated and the page has loaded.
-     */
-    async waitForUserMenu(): Promise<void> {
-        await this.page.waitForLoadState('domcontentloaded');
-        await expect(this.getUserMenuButton()).toBeVisible({ timeout: 5000 });
     }
 
     /**

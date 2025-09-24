@@ -436,8 +436,6 @@ test.describe('Group Creation Modal', () => {
 
         const nameInput = page.locator('#group-name');
         const descriptionInput = page.locator('#group-description');
-        const submitButton = page.locator('#create-group');
-        const cancelButton = page.locator('#cancel-group');
 
         // Tab navigation should work
         await nameInput.focus();

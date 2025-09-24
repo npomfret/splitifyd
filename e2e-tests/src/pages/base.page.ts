@@ -44,14 +44,9 @@ export abstract class BasePage {
      */
     get header(): HeaderPage {
         if (!this._header) {
-            this._header = new HeaderPage(this._page, this.userInfo);
+            this._header = new HeaderPage(this._page);
         }
         return this._header;
-    }
-
-    // Common element accessors
-    getHeading(name: string | RegExp) {
-        return this._page.getByRole('heading', { name });
     }
 
     getHeadingByLevel(level: number) {

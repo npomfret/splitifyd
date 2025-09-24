@@ -105,10 +105,6 @@ async function deleteAllData() {
             }
         }
 
-        const totalDocs = Object.values(collectionCounts).reduce((sum, count) => {
-            return sum + (typeof count === 'number' ? count : 0);
-        }, 0);
-
         console.log(`\n⚠️  This will delete ALL documents across ${allCollections.length} collections from Firebase project: ${serviceAccount.project_id}`);
         console.log('⚠️  THIS ACTION CANNOT BE UNDONE!');
 

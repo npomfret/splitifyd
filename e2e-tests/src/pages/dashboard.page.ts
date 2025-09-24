@@ -83,22 +83,12 @@ export class DashboardPage extends BasePage {
         return groupDetailPage;
     }
 
-    getGroupsHeading() {
-        return this.page.getByRole(ARIA_ROLES.HEADING, {name: HEADINGS.YOUR_GROUPS});
-    }
-
     getCreateGroupButton() {
         return this.page.getByRole('button', {name: /Create.*Group/i}).first();
     }
 
     getBaseUrl() {
         return this.page.url().split('/dashboard')[0];
-    }
-
-    async clickSettings() {
-        const settingsPage = new SettingsPage(this.page, this.userInfo);
-        await settingsPage.navigate();
-        return settingsPage;
     }
 
     async openCreateGroupModal() {
@@ -172,27 +162,6 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Wait for dashboard, handling the case where user might be on 404 page due to group removal.
-     * This method handles the real-time edge case where a removed user lands on 404 before being redirected.
-     */
-    async waitForDashboardWithFallback() {
-        // Check if we're on a 404 page first (common when user is removed from group)
-        const currentUrl = this.page.url();
-        if (currentUrl.includes('/404')) {
-            // Look for the "Go to Dashboard" button and click it
-            const dashboardButton = this.page.getByRole('button', {name: 'Go to Dashboard'});
-            await expect(dashboardButton).toBeVisible({timeout: 2000});
-            await dashboardButton.click();
-
-            // Wait for navigation to dashboard
-            await expect(this.page).toHaveURL(/\/dashboard\/?$/, {timeout: 5000});
-        }
-
-        // Now wait for dashboard to be ready (either directly or after 404 redirect)
-        await this.waitForDashboard();
-    }
-
-    /**
      * Wait for a group with the specified name to not be present on the dashboard
      * This handles async deletion processes and real-time updates properly
      */
@@ -230,51 +199,6 @@ export class DashboardPage extends BasePage {
             timeout,
             intervals: [100, 250, 500], // Check frequently for appearance
         });
-    }
-
-    /**
-     * Get a list of visible group names on the dashboard
-     * Returns an array of group names that are currently visible
-     */
-    async getVisibleGroupNames(): Promise<string[]> {
-        // Ensure we're on the dashboard and it's loaded
-        await this.waitForDashboard();
-
-        // Check if groups container exists (it won't exist if there are no groups)
-        const groupsContainer = this.page.getByTestId('groups-container');
-        const containerExists = await groupsContainer.isVisible().catch(() => false);
-
-        // If no groups container, check for empty state
-        if (!containerExists) {
-            const emptyState = this.page.getByRole('button', {name: /create.*first.*group/i});
-            const hasEmptyState = await emptyState.isVisible().catch(() => false);
-
-            // Return empty array if we're in empty state
-            if (hasEmptyState) {
-                return [];
-            }
-
-            // If neither container nor empty state, something is wrong
-            throw new Error('Dashboard in unexpected state - no groups container and no empty state');
-        }
-
-        // Groups container exists, get the group cards
-        const groupCards = groupsContainer.getByTestId('group-card');
-        const groupNames: string[] = [];
-
-        const cardCount = await groupCards.count();
-        for (let i = 0; i < cardCount; i++) {
-            const card = groupCards.nth(i);
-            // Get the group name from the h4 element which contains the group title
-            const groupNameElement = card.locator('h4');
-            const groupName = await groupNameElement.textContent();
-
-            if (groupName && groupName.trim().length > 0) {
-                groupNames.push(groupName.trim());
-            }
-        }
-
-        return groupNames;
     }
 
     /**

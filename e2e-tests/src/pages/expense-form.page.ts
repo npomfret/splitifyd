@@ -225,10 +225,6 @@ export class ExpenseFormPage extends BasePage {
         return this.page.getByRole('button', { name: /update expense/i });
     }
 
-    async clickUpdateExpenseButton() {
-        await this.getUpdateExpenseButton().click()
-    }
-
     // Split type controls
     getExactAmountsText(): Locator {
         return this.page.getByText('Exact amounts');
@@ -472,17 +468,6 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
-     * Calculate exact debt amount for equal split
-     * @param totalAmount - Total expense amount
-     * @param numberOfPeople - Number of people splitting
-     * @returns The amount each person owes, rounded to 2 decimal places
-     */
-    calculateEqualSplitDebt(totalAmount: number, numberOfPeople: number): string {
-        const debtPerPerson = totalAmount / numberOfPeople;
-        return debtPerPerson.toFixed(2);
-    }
-
-    /**
      * Check if a user name is visible in split options
      */
     async isUserInSplitOptions(userName: string): Promise<boolean> {
@@ -546,10 +531,6 @@ export class ExpenseFormPage extends BasePage {
         await this.clickButton(this.getYesterdayButton(), { buttonName: 'Yesterday' });
     }
 
-    async clickThisMorningButton() {
-        await this.clickButton(this.getThisMorningButton(), { buttonName: 'This Morning' });
-    }
-
     async clickLastNightButton() {
         await this.clickButton(this.getLastNightButton(), { buttonName: 'Last Night' });
     }
@@ -586,15 +567,6 @@ export class ExpenseFormPage extends BasePage {
         return this.page.getByRole('option', { name: new RegExp(text, 'i') });
     }
 
-    async selectCategoryFromSuggestions(categoryText: string) {
-        const categoryInput = this.getCategoryInput();
-        await categoryInput.focus();
-        await this.page.waitForSelector('[role="listbox"]');
-        const suggestion = this.getCategorySuggestion(categoryText);
-        // Note: Not a button, but a dropdown option
-        await suggestion.click();
-    }
-
     async typeCategoryText(text: string) {
         const categoryInput = this.getCategoryInput();
         await this.fillPreactInput(categoryInput, text);
@@ -609,28 +581,5 @@ export class ExpenseFormPage extends BasePage {
      */
     getSplitAmountInputs(): Locator {
         return this.page.locator('input[type="number"][step]').filter({ hasText: '' });
-    }
-
-    /**
-     * Select exact amounts split type using page object method
-     */
-    async selectExactAmountsSplit(): Promise<void> {
-        await this.page.getByText('Exact amounts').click();
-    }
-
-    /**
-     * Select percentage split type using page object method
-     */
-    async selectPercentageSplit(): Promise<void> {
-        await this.getPercentageText().click();
-    }
-
-    /**
-     * Fill split amount for exact amounts
-     */
-    async fillSplitAmount(index: number, amount: string): Promise<void> {
-        const splitInputs = this.getSplitAmountInputs();
-        const targetInput = splitInputs.nth(index);
-        await this.fillNumberInput(targetInput, amount);
     }
 }

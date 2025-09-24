@@ -47,10 +47,6 @@ test.describe('Site Quality - SEO', () => {
         expect(viewportMeta).toContain('width=device-width');
         expect(viewportMeta).toContain('initial-scale=1');
 
-        // Canonical URL (optional - check if present)
-        const canonicalLink = page.locator('link[rel="canonical"]');
-        const canonicalCount = await canonicalLink.count();
-
         // Language attribute
         const htmlLang = await page.getAttribute('html', 'lang');
         expect(htmlLang).toBe('en');

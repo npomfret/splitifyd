@@ -549,8 +549,6 @@ test.describe('Modal Behavior', () => {
         const nameInput = page.locator('#item-name');
         const amountInput = page.locator('#item-amount');
         const descriptionInput = page.locator('#item-description');
-        const cancelButton = page.locator('#form-modal .modal-footer .btn-secondary');
-        const submitButton = page.locator('#modal-submit');
 
         // Fill in valid data to enable submit button
         await nameInput.fill('Test Item');
