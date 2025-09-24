@@ -89,6 +89,7 @@ export interface IFirestoreReader {
      * @param userId - The user ID
      * @param options - Query options for pagination and filtering
      * @returns Paginated result containing group documents, hasMore flag, and nextCursor
+     * @deprecated Use getGroupsForUserV2 instead for better database-level ordering and pagination
      */
     getGroupsForUser(userId: string, options?: QueryOptions): Promise<PaginatedResult<GroupDocument[]>>;
 
@@ -153,6 +154,7 @@ export interface IFirestoreReader {
      * @param userId - The user ID
      * @param options - Query options for pagination and filtering
      * @returns Object with expenses array, hasMore flag, and nextCursor
+     * @deprecated This method is not used and will be removed in a future version
      */
     getUserExpenses(
         userId: string,
@@ -247,6 +249,7 @@ export interface IFirestoreReader {
      * @param transaction - The transaction context
      * @param refs - Array of document references to read
      * @returns Array of document snapshots
+     * @deprecated This method is not used and will be removed in a future version
      */
     getMultipleInTransaction<T>(transaction: Transaction, refs: DocumentReference[]): Promise<T[]>;
 
@@ -278,12 +281,14 @@ export interface IFirestoreReader {
      * Get a system document by path
      * @param docPath - The document path (e.g., 'system/colorAssignment')
      * @returns Document data or null if not found
+     * @deprecated This method is not used and will be removed in a future version. Use getSystemDocumentInTransaction if needed.
      */
     getSystemDocument(docPath: string): Promise<any | null>;
 
     /**
      * Get health check document for testing Firestore connectivity
      * @returns Health check result
+     * @deprecated This method is not used and will be removed in a future version
      */
     getHealthCheckDocument(): Promise<any | null>;
 
@@ -376,6 +381,7 @@ export interface IFirestoreReader {
     /**
      * Get an available test user from the pool
      * @returns Available test user or null if none available
+     * @deprecated This method is only used in tests and will be removed in a future version. Use TestUserPoolService directly.
      */
     getAvailableTestUser(): Promise<any | null>;
 
@@ -383,18 +389,21 @@ export interface IFirestoreReader {
      * Get a test user by email
      * @param email - The test user email
      * @returns Test user document or null if not found
+     * @deprecated This method is only used in tests and will be removed in a future version. Use TestUserPoolService directly.
      */
     getTestUser(email: string): Promise<any | null>;
 
     /**
      * Get test user pool status with counts
      * @returns Pool status with available, borrowed, and total counts
+     * @deprecated This method is only used in tests and will be removed in a future version. Use TestUserPoolService directly.
      */
     getTestUserPoolStatus(): Promise<{ available: number; borrowed: number; total: number }>;
 
     /**
      * Get all borrowed test users for cleanup operations
      * @returns Array of borrowed test user documents
+     * @deprecated This method is only used in tests and will be removed in a future version. Use TestUserPoolService directly.
      */
     getBorrowedTestUsers(): Promise<FirebaseFirestore.QueryDocumentSnapshot[]>;
 
@@ -408,6 +417,7 @@ export interface IFirestoreReader {
      * @param cutoffDate - The cutoff date for old documents
      * @param limit - Maximum number of documents to return
      * @returns Array of document snapshots
+     * @deprecated This method is not used and will be removed in a future version
      */
     getOldDocuments(collection: string, cutoffDate: Date, limit?: number): Promise<FirebaseFirestore.DocumentSnapshot[]>;
 
@@ -418,6 +428,7 @@ export interface IFirestoreReader {
      * @param cutoffDate - The cutoff date for old documents
      * @param limit - Maximum number of documents to return
      * @returns Array of old document snapshots
+     * @deprecated This method is not used and will be removed in a future version
      */
     getOldDocumentsByField(collection: string, timestampField: string, cutoffDate: Date, limit?: number): Promise<FirebaseFirestore.DocumentSnapshot[]>;
 
@@ -426,6 +437,7 @@ export interface IFirestoreReader {
      * @param collection - The collection name
      * @param limit - Maximum number of documents to return
      * @returns Array of document snapshots
+     * @deprecated This method is not used and will be removed in a future version
      */
     getDocumentsBatch(collection: string, limit?: number): Promise<FirebaseFirestore.DocumentSnapshot[]>;
 
@@ -436,6 +448,7 @@ export interface IFirestoreReader {
      * @param cutoffTimestamp - The cutoff timestamp
      * @param limit - Maximum number of documents to return
      * @returns Array of document snapshots
+     * @deprecated This method is not used and will be removed in a future version
      */
     getMetricsDocuments(collection: string, timestampField: string, cutoffTimestamp: any, limit?: number): Promise<FirebaseFirestore.DocumentSnapshot[]>;
 
@@ -443,6 +456,7 @@ export interface IFirestoreReader {
      * Get the size of a collection
      * @param collection - The collection name
      * @returns The number of documents in the collection
+     * @deprecated This method is not used and will be removed in a future version
      */
     getCollectionSize(collection: string): Promise<number>;
 
@@ -472,6 +486,7 @@ export interface IFirestoreReader {
      * @param collection - The collection name
      * @param docId - The document ID
      * @returns Document data or null if not found
+     * @deprecated This method is not used and will be removed in a future version. Use specific, typed methods instead.
      */
     getDocumentForTesting(collection: string, docId: string): Promise<any | null>;
 
@@ -480,6 +495,7 @@ export interface IFirestoreReader {
      * @param collection - The collection name
      * @param docId - The document ID
      * @returns True if document exists, false otherwise
+     * @deprecated This method is not used and will be removed in a future version. Use documentExists instead.
      */
     verifyDocumentExists(collection: string, docId: string): Promise<boolean>;
 
@@ -516,6 +532,7 @@ export interface IFirestoreReader {
      * Get system metrics document
      * @param metricType - The type of metric to retrieve
      * @returns System metric document or null if not found
+     * @deprecated This method is not used and will be removed in a future version
      */
     getSystemMetrics(metricType: string): Promise<any | null>;
 
@@ -523,6 +540,7 @@ export interface IFirestoreReader {
      * Add system metrics document
      * @param metricData - The metric data to store
      * @returns Document ID of the created metric
+     * @deprecated This method is not used and will be removed in a future version. Write operations belong in IFirestoreWriter.
      */
     addSystemMetrics(metricData: any): Promise<string>;
 
@@ -549,6 +567,7 @@ export interface IFirestoreReader {
      * @param subcollectionName - The subcollection name
      * @param docId - The document ID within the subcollection
      * @returns Document data or null if not found
+     * @deprecated This method is not used and will be removed in a future version. Use specific, typed methods instead.
      */
     getSubcollectionDocument(parentCollection: string, parentDocId: string, subcollectionName: string, docId: string): Promise<any | null>;
 
@@ -561,6 +580,7 @@ export interface IFirestoreReader {
      * @param status - The status to filter by ('available', 'borrowed')
      * @param limit - Maximum number of users to return
      * @returns Array of test user documents
+     * @deprecated This method is only used by TestUserPoolService and will be removed in a future version. Use TestUserPoolService directly.
      */
     getTestUsersByStatus(status: string, limit?: number): Promise<FirebaseFirestore.DocumentSnapshot[]>;
 
@@ -569,6 +589,7 @@ export interface IFirestoreReader {
      * @param transaction - The transaction context
      * @param email - The test user email
      * @returns Test user document or null if not found
+     * @deprecated This method is only used in tests and will be removed in a future version. Use TestUserPoolService directly.
      */
     getTestUserInTransaction(transaction: FirebaseFirestore.Transaction, email: string): Promise<any | null>;
 
@@ -582,6 +603,7 @@ export interface IFirestoreReader {
      * @param filters - Array of filter conditions
      * @param options - Query options for ordering and pagination
      * @returns Array of document snapshots
+     * @deprecated This method is not used and will be removed in a future version. Use specific, typed query methods instead.
      */
     queryWithComplexFilters(
         collection: string,
@@ -605,6 +627,7 @@ export interface IFirestoreReader {
      * Get user language preference from user document
      * @param userId - The user ID
      * @returns User's language preference or null if not found
+     * @deprecated This method has limited usage and will be removed in a future version. Consider using getUser and extracting the preference.
      */
     getUserLanguagePreference(userId: string): Promise<string | null>;
 
@@ -635,6 +658,7 @@ export interface IFirestoreReader {
      * @param transaction - Firestore transaction
      * @param token - Share link token
      * @returns Share link data and group ID or null if not found
+     * @deprecated This method is not used and will be removed in a future version. Use findShareLinkByToken if needed.
      */
     findShareLinkByTokenInTransaction(transaction: Transaction, token: string): Promise<{ groupId: string; shareLink: ParsedShareLink } | null>;
 
@@ -689,6 +713,7 @@ export interface IFirestoreReader {
      * @param transaction - Firestore transaction
      * @param docRef - The document reference
      * @returns Raw document snapshot or null if not found
+     * @deprecated This method is not used and will be removed in a future version. Use specific typed methods instead.
      */
     getRawDocumentInTransactionWithRef(transaction: Transaction, docRef: DocumentReference): Promise<FirebaseFirestore.DocumentSnapshot | null>;
 
@@ -697,6 +722,7 @@ export interface IFirestoreReader {
      * @param transaction - Firestore transaction
      * @param docId - The document ID in the system collection
      * @returns Raw document snapshot or null if not found
+     * @deprecated This method is not used and will be removed in a future version
      */
     getSystemDocumentInTransaction(transaction: Transaction, docId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
 
