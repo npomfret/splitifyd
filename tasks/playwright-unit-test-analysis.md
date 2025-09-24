@@ -98,3 +98,82 @@ The project's own `e2e-testing.md` guide recommends using the Page Object Model 
 - **Write tests against the real application, not injected mock DOMs.**
 
 By implementing these changes, the test suite can be transformed from a brittle, low-value collection of scripts into a robust, maintainable, and effective safety net for the application.
+
+## 4. Implementation Progress
+
+### Phase 1: Cleanup (COMPLETED)
+
+**Status:** ✅ **COMPLETED** - All fake DOM tests deleted on 2025-01-24
+
+The following 7 test files that injected fake DOM structures have been **deleted**:
+
+- ❌ `api-error-handling.test.ts` - Injected fake error display elements and `window.showError` function
+- ❌ `balance-display.test.ts` - Injected fake balance display elements
+- ❌ `currency-formatting.test.ts` - Injected fake currency display elements
+- ❌ `expense-form-validation.test.ts` - Injected complete fake expense form
+- ❌ `settlement-form-validation.test.ts` - Injected fake settlement form
+- ❌ `group-creation-modal.test.ts` - Injected fake modal elements
+- ❌ `modal-behavior.test.ts` - Injected fake modal behavior
+
+**Impact:**
+- Removed ~150KB of misleading test code
+- Eliminated false positives that provided zero value
+- Made room for proper tests
+
+### Phase 2: Test Coverage Replacement Plan
+
+**Status:** 🔄 **NEXT PHASE** - Plan for replacing deleted functionality
+
+The deleted tests were testing important functionality, but in the wrong way. Here's how to properly replace that coverage:
+
+#### 4.1 API Error Handling (was `api-error-handling.test.ts`)
+**Replacement Approach:** Integration tests with real components
+- **Target:** Create proper E2E tests that trigger real API errors in actual forms
+- **Files to create:**
+  - E2E test: `/e2e-tests/src/__tests__/integration/error-handling/api-error-responses.e2e.test.ts`
+  - Component test: Unit test the actual error handling service/hook
+- **Coverage:** Real error boundaries, toast notifications, retry mechanisms
+
+#### 4.2 Balance Display (was `balance-display.test.ts`)
+**Replacement Approach:** Component testing + visual regression
+- **Target:** Test actual `BalanceDisplay` component with real data
+- **Files to create:**
+  - Component test: `src/__tests__/unit/components/BalanceDisplay.test.tsx` (Vitest + Testing Library)
+  - Visual test: Add balance display scenarios to existing Playwright tests
+- **Coverage:** Balance calculation display, currency formatting, positive/negative states
+
+#### 4.3 Currency Formatting (was `currency-formatting.test.ts`)
+**Replacement Approach:** Pure function unit tests
+- **Target:** Test actual currency formatting utilities
+- **Files to create:**
+  - Unit test: `src/__tests__/unit/utils/currency-formatting.test.ts` (Vitest)
+- **Coverage:** All currency codes, localization, edge cases
+
+#### 4.4 Form Validation (was `expense-form-validation.test.ts`, `settlement-form-validation.test.ts`)
+**Replacement Approach:** Component testing with real form components
+- **Target:** Test actual form components with validation
+- **Files to create:**
+  - Component tests: `src/__tests__/unit/components/ExpenseForm.test.tsx`
+  - Component tests: `src/__tests__/unit/components/SettlementForm.test.tsx`
+  - E2E tests: Form submission flows in existing group management tests
+- **Coverage:** Validation rules, error messages, submission handling
+
+#### 4.5 Modal Behavior (was `group-creation-modal.test.ts`, `modal-behavior.test.ts`)
+**Replacement Approach:** Component testing + E2E integration
+- **Target:** Test actual modal components and behavior
+- **Files to create:**
+  - Component test: `src/__tests__/unit/components/Modal.test.tsx`
+  - E2E scenarios: Add modal testing to existing dashboard/group tests
+- **Coverage:** Open/close, keyboard navigation, focus management, backdrop clicks
+
+### Phase 3: Implementation Priority
+
+1. **HIGH PRIORITY:** API Error Handling - Critical for user experience
+2. **HIGH PRIORITY:** Form Validation - Core functionality testing
+3. **MEDIUM PRIORITY:** Currency Formatting - Business logic correctness
+4. **MEDIUM PRIORITY:** Balance Display - UI component reliability
+5. **LOW PRIORITY:** Modal Behavior - UX polish (already partially covered)
+
+### Phase 4: Authentication Testing (Future)
+
+Once replacement tests are in place, tackle the authentication testing problem to enable testing of protected routes properly.
