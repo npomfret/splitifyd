@@ -231,7 +231,7 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
         test('should support keyboard navigation to action buttons', async ({ page }) => {
             // Navigate to 404 page
             await page.goto('/non-existent-page');
-            await page.waitForLoadState('networkidle');
+            await expect(page.locator('[data-testid="not-found-title"]')).toBeVisible();
 
             // Tab to the action button
             await page.keyboard.press('Tab');
@@ -244,7 +244,7 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
 
         test('should activate action button with Enter key', async ({ page }) => {
             await page.goto('/invalid-route');
-            await page.waitForLoadState('networkidle');
+            await expect(page.locator('[data-testid="not-found-title"]')).toBeVisible();
 
             // Find and focus on action button
             const actionButton = page.locator('[data-testid="go-home-link"], [data-testid="go-to-dashboard-link"], button:has-text("Go Home"), button:has-text("Go to Dashboard")');
@@ -263,7 +263,7 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
 
         test('should activate action button with Space key', async ({ page }) => {
             await page.goto('/another-invalid-route');
-            await page.waitForLoadState('networkidle');
+            await expect(page.locator('[data-testid="not-found-title"]')).toBeVisible();
 
             // Find and focus on action button
             const actionButton = page.locator('[data-testid="go-home-link"], [data-testid="go-to-dashboard-link"], button:has-text("Go Home"), button:has-text("Go to Dashboard")');
@@ -282,7 +282,7 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
 
         test('should have visible focus indicators on interactive elements', async ({ page }) => {
             await page.goto('/404');
-            await page.waitForLoadState('networkidle');
+            await expect(page.locator('[data-testid="not-found-title"]')).toBeVisible();
 
             const interactiveElements = [
                 '[data-testid="go-home-link"]',
@@ -319,7 +319,7 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
         test('should handle keyboard navigation for both authenticated and unauthenticated states', async ({ page }) => {
             // Test unauthenticated state first
             await page.goto('/some-invalid-page');
-            await page.waitForLoadState('networkidle');
+            await expect(page.locator('[data-testid="not-found-title"]')).toBeVisible();
 
             // Should have some interactive element for unauthenticated users
             await page.keyboard.press('Tab');
@@ -349,8 +349,11 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
             const invalidRoutes = ['/this-page-does-not-exist', '/users/nonexistent', '/admin/forbidden', '/invalid-app-route'];
 
             for (const route of invalidRoutes) {
+                // Navigate to the route - should load quickly since it's a local SPA
                 await page.goto(route);
-                await page.waitForLoadState('networkidle');
+
+                // Wait for the 404 page to render - this should be very fast for a local app
+                await expect(page.locator('[data-testid="not-found-title"]')).toBeVisible({ timeout: 3000 });
 
                 // Should be able to tab to interactive elements
                 await page.keyboard.press('Tab');
@@ -373,7 +376,7 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
 
         test('should support keyboard navigation after page load with proper focus management', async ({ page }) => {
             await page.goto('/definitely-does-not-exist');
-            await page.waitForLoadState('networkidle');
+            await expect(page.locator('[data-testid="not-found-title"]')).toBeVisible();
 
             // Wait for 404 page to fully render
 
