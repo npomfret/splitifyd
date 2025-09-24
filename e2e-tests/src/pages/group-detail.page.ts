@@ -7,7 +7,6 @@ import {EditGroupModalPage} from './edit-group-modal.page';
 import {LeaveGroupModalPage} from './leave-group-modal.page';
 import {RemoveMemberModalPage} from './remove-member-modal.page';
 import {ShareGroupModalPage} from './share-group-modal.page';
-import {ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES} from '../constants/selectors';
 import {DashboardPage} from "./dashboard.page.ts";
 
 export class GroupDetailPage extends BasePage {

@@ -1,5 +1,4 @@
 import { Page, expect } from '@playwright/test';
-import { PooledTestUser } from '@splitifyd/shared';
 
 export class HeaderPage {
     constructor(

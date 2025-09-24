@@ -1,10 +1,8 @@
 import {expect, Page} from '@playwright/test';
 import {BasePage} from './base.page';
-import {ARIA_ROLES, HEADINGS} from '../constants/selectors';
 import {PooledTestUser} from '@splitifyd/shared';
 import {CreateGroupModalPage} from './create-group-modal.page.ts';
 import {GroupDetailPage, groupDetailUrlPattern} from './group-detail.page.ts';
-import {SettingsPage} from "./settings.page.ts";
 import {generateShortId, randomString} from "@splitifyd/test-support";
 import {JoinGroupPage} from "./join-group.page.ts";
 
