@@ -35,7 +35,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
         await expect(groupDetailPage.getMemberCountElement()).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
 
         // Test member visibility in expense split options
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
+        const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
         await expect(expenseFormPage.getSplitBetweenHeading()).toBeVisible();
 
         const userCheckbox = expenseFormPage.getSplitOptionsFirstCheckbox();
@@ -138,7 +138,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         const [groupDetailPage, memberGroupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
         // Owner adds an expense that creates a balance
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
+        const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
         const expenseDescription = 'Test expense for balance';
         await expenseFormPage.submitExpense({
             description: expenseDescription,
@@ -182,7 +182,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         const groupId = groupDetailPage.inferGroupId();
 
         // Create expense that creates a balance
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
+        const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription('Test expense for balance validation')
@@ -276,7 +276,7 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
         await watchingGroupDetailPage.waitForPage(groupId, 2);
 
         // Creator creates expense after user has left
-        const expenseFormPage = await creatorGroupDetailPage.clickAddExpenseButton(2);
+        const expenseFormPage = await creatorGroupDetailPage.clickAddExpenseButton();
         const expenseDescription = `Edge Leave Test ${generateShortId()}`;
 
         await expenseFormPage.submitExpense(

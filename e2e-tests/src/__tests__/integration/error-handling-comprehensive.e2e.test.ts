@@ -276,7 +276,7 @@ test.describe('Form Validation & UI Error Handling', () => {
         const [{ dashboardPage }] = await createLoggedInBrowsers(memberCount);
 
         const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+        const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
         const submitButton = expenseFormPage.getSaveButtonForValidation();
 
         // Test validation sequence
@@ -304,7 +304,7 @@ test.describe('Form Validation & UI Error Handling', () => {
         const [{ page, dashboardPage }] = await createLoggedInBrowsers(memberCount);
 
         const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+        const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
 
         // Create invalid form state that passes client validation but fails server validation
         await expenseFormPage.fillDescription('Test expense');

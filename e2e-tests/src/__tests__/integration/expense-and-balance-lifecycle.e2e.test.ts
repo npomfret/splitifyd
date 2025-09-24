@@ -38,7 +38,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // Step 2: Create expense with EUR currency and verify balance calculation
         const expenseDescription = `Lifecycle Test ${generateShortId()}`;
-        const expenseFormPage = await groupDetailPage1.clickAddExpenseButton(2);
+        const expenseFormPage = await groupDetailPage1.clickAddExpenseButton();
         await expenseFormPage.submitExpense({
             description: expenseDescription,
             amount: 100,
@@ -113,7 +113,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const uniqueId = generateShortId();
 
         // PHASE 1: Test JPY (0 decimals) with rounding
-        const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(2);
+        const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton();
         await expenseFormPage2.submitExpense({
             description: `Multi-currency JPY ${uniqueId}`,
             amount: 123, // Should split as ¥62 each (123/2 = 61.5 rounds up)
@@ -124,7 +124,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         });
 
         // PHASE 2: Test BHD (3 decimals) - add to same group
-        const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(2);
+        const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton();
         await expenseFormPage1.submitExpense({
             description: `Multi-currency BHD ${uniqueId}`,
             amount: 30.5,
@@ -135,7 +135,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         });
 
         // PHASE 3: Test KWD (3 decimals) - comprehensive currency test
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
+        const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
         await expenseFormPage.submitExpense({
             description: `Multi-currency KWD ${uniqueId}`,
             amount: 5.5,
@@ -204,7 +204,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const groupId = groupDetailPage.inferGroupId();
 
         // Create expense with custom date/time and currency
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
+        const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
         await expenseFormPage.waitForExpenseFormSections();
 
         // Fill expense details with custom date/time
@@ -267,7 +267,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // Scenario: Complex expense and settlement flow to test net calculations
 
         // User1 pays €300 (each owes €150)
-        const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(2);
+        const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton();
         await expenseFormPage2.submitExpense({
             description: 'Large User1 Payment',
             amount: 300,
@@ -281,7 +281,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€150.00');
 
         // User2 pays €100 (each owes €50, net: User2 owes €100)
-        const expenseFormPage1 = await groupDetailPage2.clickAddExpenseButton(2);
+        const expenseFormPage1 = await groupDetailPage2.clickAddExpenseButton();
         await expenseFormPage1.submitExpense({
             description: 'Small User2 Payment',
             amount: 100,
@@ -317,7 +317,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await groupDetailPage2.verifySettlementDetails({ note: 'Partial settlement in complex scenario' });
 
         // Add one more expense to test continued calculation
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
+        const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
         await expenseFormPage.submitExpense({
             description: 'Final Test Expense',
             amount: 50,
@@ -348,7 +348,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // Create expense for ¥120, split 3 ways (¥40 each)
         // Result: User2 owes ¥40, User3 owes ¥40 to User1
         const expenseDescription = 'Group dinner expense';
-        const expenseFormPage = await groupDetailPage1.clickAddExpenseButton(memberCount);
+        const expenseFormPage = await groupDetailPage1.clickAddExpenseButton();
         await expenseFormPage.submitExpense({
             description: expenseDescription,
             amount: 120,
@@ -439,7 +439,7 @@ simpleTest.describe('Date and Time Selection', () => {
         const [{ dashboardPage }] = await createLoggedInBrowsers(memberCount);
 
         const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+        const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
 
         // Test date convenience buttons
         const dateInput = expenseFormPage.getDateInput();
@@ -511,7 +511,7 @@ simpleTest.describe('Real-time Comments', () => {
         const [user1GroupDetailPage, user2GroupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
         // Create expense
-        const expenseFormPage = await user1GroupDetailPage.clickAddExpenseButton(2);
+        const expenseFormPage = await user1GroupDetailPage.clickAddExpenseButton();
         const expenseDescription = 'Test Expense for Comments';
         await expenseFormPage.submitExpense({
             description: expenseDescription,

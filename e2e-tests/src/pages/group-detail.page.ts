@@ -1,13 +1,13 @@
-import { expect, Locator, Page } from '@playwright/test';
-import { BasePage } from './base.page';
-import { ExpenseFormData, ExpenseFormPage } from './expense-form.page';
-import { ExpenseDetailPage } from './expense-detail.page';
-import { SettlementData, SettlementFormPage } from './settlement-form.page';
-import { EditGroupModalPage } from './edit-group-modal.page';
-import { LeaveGroupModalPage } from './leave-group-modal.page';
-import { RemoveMemberModalPage } from './remove-member-modal.page';
-import { ShareGroupModalPage } from './share-group-modal.page';
-import { DashboardPage } from './dashboard.page.ts';
+import {expect, Locator, Page} from '@playwright/test';
+import {BasePage} from './base.page';
+import {ExpenseFormPage} from './expense-form.page';
+import {ExpenseDetailPage} from './expense-detail.page';
+import {SettlementFormPage} from './settlement-form.page';
+import {EditGroupModalPage} from './edit-group-modal.page';
+import {LeaveGroupModalPage} from './leave-group-modal.page';
+import {RemoveMemberModalPage} from './remove-member-modal.page';
+import {ShareGroupModalPage} from './share-group-modal.page';
+import {DashboardPage} from './dashboard.page.ts';
 
 export class GroupDetailPage extends BasePage {
     constructor(page: Page) {
@@ -77,26 +77,49 @@ export class GroupDetailPage extends BasePage {
         return this.page.getByRole('button', { name: /settle up/i });
     }
 
-    /**
-     * Waits for the Add Expense button to be visible and enabled.
-     * This ensures the page is fully loaded before attempting to interact with the button.
-     */
-    async waitForAddExpenseButton(timeout = 5000): Promise<void> {
+    async clickAddExpenseButton(): Promise<ExpenseFormPage> {
+        const expectedMemberCount = await this.getCurrentMemberCount()
+        const memberNames = await this.getMemberNames();
+        expect(memberNames.length).toBeGreaterThan(0);// sanity check
+        expect(memberNames.length).toBe(expectedMemberCount);// sanity check
+
         const addButton = this.getAddExpenseButton();
+        const groupId = this.inferGroupId();
 
-        // Wait for button to be visible
-        await expect(addButton).toBeVisible({ timeout });
+        await this.clickButton(addButton, { buttonName: 'Add Expense' });
 
-        // Wait for button to be enabled
-        await expect(addButton).toBeEnabled({ timeout });
-    }
+        // Wait for navigation to expense form
+        const expectedUrlPattern = /\/groups\/[a-zA-Z0-9]+\/add-expense/;
+        await expect(this.page).toHaveURL(expectedUrlPattern);
+        await this.waitForDomContentLoaded();
 
-    async clickAddExpenseButton(expectedMemberCount: number): Promise<ExpenseFormPage> {
-        // Wait for button to be ready first
-        await this.waitForAddExpenseButton();
+        // Verify we're on the correct page
+        const currentUrl = this.page.url();
+        if (!currentUrl.match(expectedUrlPattern)) {
+            throw new Error(`Navigation failed - expected URL pattern ${expectedUrlPattern}, got ${currentUrl}`);
+        }
 
-        // Now attempt navigation - will throw if it fails
-        return await this.attemptAddExpenseNavigation(expectedMemberCount);
+        // Wait for any loading spinner to disappear
+        const loadingSpinner = this.page.locator('.animate-spin');
+        const loadingText = this.page.getByText('Loading expense form...');
+
+        if ((await loadingSpinner.count()) > 0 || (await loadingText.count()) > 0) {
+            await expect(loadingSpinner).not.toBeVisible({ timeout: 5000 });
+            await expect(loadingText).not.toBeVisible({ timeout: 5000 });
+        }
+
+        // Verify we're still on the correct page
+        if (!this.page.url().match(expectedUrlPattern)) {
+            throw new Error(`Navigation failed after loading - expected URL pattern ${expectedUrlPattern}, got ${this.page.url()}`);
+        }
+
+        // Create and validate the expense form page
+        const expenseFormPage = new ExpenseFormPage(this.page);
+
+        // Wait for form to be ready
+        await expenseFormPage.waitForFormReady(expectedMemberCount);// todo: change this to pass in the names
+
+        return expenseFormPage;
     }
 
     async waitForGroupTitle(text: string) {
@@ -127,49 +150,6 @@ export class GroupDetailPage extends BasePage {
             timeout: 5000,
             intervals: [500, 1000, 1500, 2000], // Retry at these intervals
         });
-    }
-
-    /**
-     * Navigates to add expense form with comprehensive state detection.
-     */
-    private async attemptAddExpenseNavigation(expectedMemberCount: number): Promise<ExpenseFormPage> {
-        const expectedUrlPattern = /\/groups\/[a-zA-Z0-9]+\/add-expense/;
-        const addButton = this.getAddExpenseButton();
-
-        // Button readiness is already checked in clickAddExpenseButton
-        // Trust that the button is ready when this method is called
-        await this.clickButton(addButton, { buttonName: 'Add Expense' });
-
-        // Wait for navigation to expense form
-        await expect(this.page).toHaveURL(expectedUrlPattern);
-        await this.waitForDomContentLoaded();
-
-        // Verify we're on the correct page
-        const currentUrl = this.page.url();
-        if (!currentUrl.match(expectedUrlPattern)) {
-            throw new Error(`Navigation failed - expected URL pattern ${expectedUrlPattern}, got ${currentUrl}`);
-        }
-
-        // Wait for any loading spinner to disappear
-        const loadingSpinner = this.page.locator('.animate-spin');
-        const loadingText = this.page.getByText('Loading expense form...');
-
-        if ((await loadingSpinner.count()) > 0 || (await loadingText.count()) > 0) {
-            await expect(loadingSpinner).not.toBeVisible({ timeout: 5000 });
-            await expect(loadingText).not.toBeVisible({ timeout: 5000 });
-        }
-
-        // Verify we're still on the correct page
-        if (!this.page.url().match(expectedUrlPattern)) {
-            throw new Error(`Navigation failed after loading - expected URL pattern ${expectedUrlPattern}, got ${this.page.url()}`);
-        }
-
-        // Create and validate the expense form page
-        const expenseFormPage = new ExpenseFormPage(this.page);
-
-        // Wait for form to be ready
-        await expenseFormPage.waitForFormReady(expectedMemberCount);
-        return expenseFormPage;
     }
 
     // Share functionality accessors
