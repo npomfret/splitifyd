@@ -1,7 +1,6 @@
 import { useComputed } from '@preact/signals';
 import { useAuth } from '@/app/hooks/useAuth.ts';
 import { lazy, Suspense } from 'preact/compat';
-import { RealTimeIndicator } from '@/components/ui/RealTimeIndicator';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@/hooks/useNavigation';
 
@@ -38,7 +37,6 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
                     <Suspense fallback={<div>...</div>}>
                         <UserMenu user={user.value} />
                     </Suspense>
-                    <RealTimeIndicator />
                 </div>
             );
         }

@@ -658,15 +658,6 @@
     "loadingSpinner": {
       "loading": "Loading..."
     },
-    "realTimeIndicator": {
-      "networkConnected": "Network: Connected (Green)",
-      "networkOffline": "Network: Offline (Red)",
-      "serverUnknownOffline": "Server: Unknown - offline (Gray)",
-      "serverConnected": "Server: Connected (Green)",
-      "serverPoorConnection": "Server: Poor connection (Yellow)",
-      "serverUnavailable": "Server: Unavailable (Red)",
-      "serverUnknown": "Server: Unknown (Gray)"
-    },
     "timeInput": {
       "at": "at ",
       "placeholder": "Enter time (e.g., 2:30pm)",
