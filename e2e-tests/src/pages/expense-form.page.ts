@@ -110,9 +110,9 @@ export class ExpenseFormPage extends BasePage {
      * Waits for the expense form to be fully ready with all members loaded.
      * This is called automatically by clickAddExpenseButton() so forms are always ready.
      * Note: Loading spinner check is handled in clickAddExpenseButton() before this method is called.
-     * @param expectedMemberCount - The expected number of members in the group
+     * @param expectedMemberNames - The expected display names of members in the group
      */
-    async waitForFormReady(expectedMemberCount: number): Promise<void> {
+    async waitForFormReady(expectedMemberNames: string[]): Promise<void> {
         const currentUrl = this.page.url();
         const expectedUrlPattern = /\/groups\/[a-zA-Z0-9]+\/add-expense/;
 
@@ -155,7 +155,7 @@ export class ExpenseFormPage extends BasePage {
         await expect(this.getExpenseDescriptionField()).toBeVisible();
 
         // Step 5: Wait for ALL members to load in form sections
-        await this.waitForMembersInExpenseForm(expectedMemberCount);
+        await this.waitForMembersInExpenseForm(expectedMemberNames);
     }
 
     /**
@@ -173,12 +173,19 @@ export class ExpenseFormPage extends BasePage {
      * Wait for ALL members to load in the expense form
      * This prevents the intermittent issue where members don't appear and ensures ALL group members are represented
      */
-    private async waitForMembersInExpenseForm(expectedMemberCount: number, timeout = 5000): Promise<void> {
+    private async waitForMembersInExpenseForm(expectedMemberNames: string[], timeout = 5000): Promise<void> {
         // Wait for ALL members to appear in the "Who paid?" section
         await expect(async () => {
-            const payerRadios = await this.page.locator('input[type="radio"][name="paidBy"]').count();
-            if (payerRadios < expectedMemberCount) {
-                throw new Error(`Only ${payerRadios} members loaded in "Who paid?" section, expected ${expectedMemberCount} - waiting for all members data`);
+            const missingMembers = [];
+            for (const memberName of expectedMemberNames) {
+                const memberRadio = this.page.getByRole('radio', { name: memberName });
+                const isVisible = await memberRadio.isVisible();
+                if (!isVisible) {
+                    missingMembers.push(memberName);
+                }
+            }
+            if (missingMembers.length > 0) {
+                throw new Error(`Members not loaded in "Who paid?" section: ${missingMembers.join(', ')} - waiting for all members data`);
             }
         }).toPass({
             timeout,
@@ -187,16 +194,16 @@ export class ExpenseFormPage extends BasePage {
 
         // Wait for ALL members to appear in "Split between" section
         await expect(async () => {
-            // Check for checkboxes (one per member) or the Select all button
-            const checkboxes = await this.page.locator('input[type="checkbox"]').count();
-            const selectAllButton = await this.page.getByRole('button', { name: 'Select all' }).count();
-
-            if (checkboxes === 0 && selectAllButton === 0) {
-                throw new Error('No members loaded in "Split between" section - waiting for members data');
+            const missingMembers = [];
+            for (const memberName of expectedMemberNames) {
+                const memberCheckbox = this.page.getByRole('checkbox', { name: memberName });
+                const isVisible = await memberCheckbox.isVisible();
+                if (!isVisible) {
+                    missingMembers.push(memberName);
+                }
             }
-
-            if (checkboxes > 0 && checkboxes < expectedMemberCount) {
-                throw new Error(`Only ${checkboxes} member checkboxes found in "Split between", expected ${expectedMemberCount} - waiting for all members data`);
+            if (missingMembers.length > 0) {
+                throw new Error(`Members not loaded in "Split between" section: ${missingMembers.join(', ')} - waiting for all members data`);
             }
         }).toPass({
             timeout,
@@ -560,5 +567,48 @@ export class ExpenseFormPage extends BasePage {
     async typeCategoryText(text: string) {
         const categoryInput = this.getCategoryInput();
         await this.fillPreactInput(categoryInput, text);
+    }
+
+    /**
+     * Verify the page is in copy mode by checking the header
+     */
+    async verifyCopyMode(): Promise<void> {
+        const headerTitle = this.page.getByRole('heading', {
+            name: /Copy Expense/i,
+        });
+        await expect(headerTitle).toBeVisible({ timeout: 3000 });
+    }
+
+    /**
+     * Verify that form fields are pre-filled with expected values from copied expense
+     */
+    async verifyPreFilledValues(expectedValues: {
+        description?: string;
+        amount?: string;
+        category?: string;
+    }): Promise<void> {
+        if (expectedValues.description) {
+            const descriptionInput = this.getExpenseDescriptionField();
+            await expect(descriptionInput).toHaveValue(expectedValues.description);
+        }
+
+        if (expectedValues.amount) {
+            const amountInput = this.getAmountInput();
+            await expect(amountInput).toHaveValue(expectedValues.amount);
+        }
+
+        if (expectedValues.category) {
+            const categoryInput = this.getCategoryInput();
+            await expect(categoryInput).toHaveValue(expectedValues.category);
+        }
+    }
+
+    /**
+     * Verify that the date is set to today (not the original expense date)
+     */
+    async verifyDateIsToday(): Promise<void> {
+        const dateInput = this.getDateInput();
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+        await expect(dateInput).toHaveValue(today);
     }
 }

@@ -117,7 +117,7 @@ export class GroupDetailPage extends BasePage {
         const expenseFormPage = new ExpenseFormPage(this.page);
 
         // Wait for form to be ready
-        await expenseFormPage.waitForFormReady(expectedMemberCount);// todo: change this to pass in the names
+        await expenseFormPage.waitForFormReady(memberNames);
 
         return expenseFormPage;
     }
@@ -758,27 +758,6 @@ export class GroupDetailPage extends BasePage {
             intervals: [100, 200, 300, 500, 1000],
         });
     }
-
-    /**
-     * Waits for "All settled up!" message to appear in the balance section
-     * The Balances section is always visible (no collapse/expand functionality)
-     * This method waits for the text to appear as balances are calculated
-     */
-    async waitForSettledUpMessage(timeout: number = 3000): Promise<void> {
-        // Wait for at least one "All settled up!" text to appear in the DOM
-        // Using polling to handle dynamic rendering
-        await expect(async () => {
-            const balanceSection = this.getBalancesSectionByContext();
-            const count = await balanceSection.getByText('All settled up!').count();
-            if (count === 0) {
-                throw new Error('No "All settled up!" in balances section found yet');
-            }
-        }).toPass({
-            timeout,
-            intervals: [100, 200, 300, 400, 500, 1000],
-        });
-    }
-
     /**
      * Verify that all members in the group are settled up (no outstanding balances)
      * @param groupId - The group ID for context (used for better error messages)
@@ -791,7 +770,16 @@ export class GroupDetailPage extends BasePage {
         }
 
         // Wait for the "All settled up!" message to appear
-        await this.waitForSettledUpMessage();
+        await expect(async () => {
+            const balanceSection = this.getBalancesSectionByContext();
+            const count = await balanceSection.getByText('All settled up!').count();
+            if (count === 0) {
+                throw new Error('No "All settled up!" in balances section found yet');
+            }
+        }).toPass({
+            timeout: 3000,
+            intervals: [100, 200, 300, 400, 500, 1000],
+        });
 
         // Double-check that there are no debt relationships visible
         const balancesSection = this.getBalancesSection();

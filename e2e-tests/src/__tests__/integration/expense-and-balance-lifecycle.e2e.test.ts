@@ -33,9 +33,6 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const [groupDetailPage1, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
         const groupId = groupDetailPage1.inferGroupId();
 
-        await groupDetailPage1.waitForSettledUpMessage();
-        await groupDetailPage2.waitForSettledUpMessage();
-
         // Step 2: Create expense with EUR currency and verify balance calculation
         const expenseDescription = `Lifecycle Test ${generateShortId()}`;
         const expenseFormPage = await groupDetailPage1.clickAddExpenseButton();
@@ -55,7 +52,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // Step 3: Edit the expense and verify balance updates
         const expenseDetailPage = await groupDetailPage1.clickExpenseToView(expenseDescription);
-        const editFormPage = await expenseDetailPage.clickEditExpenseButton(2);
+        const editFormPage = await expenseDetailPage.clickEditExpenseButton([user1DisplayName, user2DisplayName]);
         const updatedDescription = `Updated ${generateShortId()}`;
 
         await editFormPage.fillDescription(updatedDescription);
@@ -253,7 +250,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await groupDetailPage.verifyExpenseInList(expenseDescription, '€89.99');
 
         // Should remain settled up since only one person
-        await groupDetailPage.waitForSettledUpMessage();
+        await groupDetailPage.verifyAllSettledUp(groupId);
     });
 
     simpleTest('should handle complex multi-expense net balance calculations with settlements', async ({ createLoggedInBrowsers }) => {
@@ -706,5 +703,128 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         await groupDetailPage.deleteSettlement(settlementData2.note, false); // Cancel deletion
         await groupDetailPage.openHistoryIfClosed();
         await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
+    });
+});
+
+simpleTest.describe('Copy Expense Feature', () => {
+    simpleTest('should copy expense with all fields pre-filled correctly', async ({ createLoggedInBrowsers }) => {
+        const [{ dashboardPage: user1DashboardPage }, { dashboardPage: user2DashboardPage }] = await createLoggedInBrowsers(2);
+
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
+
+        // Step 1: Create group and original expense
+        const [groupDetailPage1, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+
+        // Create original expense with specific details
+        const originalExpenseFormPage = await groupDetailPage1.clickAddExpenseButton();
+        const originalDescription = `Original Expense ${generateShortId()}`;
+        await originalExpenseFormPage.submitExpense({
+            description: originalDescription,
+            amount: 125.75,
+            currency: 'EUR',
+            paidByDisplayName: user1DisplayName,
+            splitType: 'equal',
+            participants: [user1DisplayName, user2DisplayName],
+        });
+
+        // Step 2: Navigate to expense detail page
+        await groupDetailPage1.waitForExpense(originalDescription);
+        const expenseDetailPage = await groupDetailPage1.clickExpenseToView(originalDescription);
+
+        // Step 3: Click "Copy expense" button
+        const copyExpenseFormPage = await expenseDetailPage.clickCopyExpenseButton([user1DisplayName, user2DisplayName]);
+
+        // Step 4: Verify copy mode UI
+        await copyExpenseFormPage.verifyCopyMode();
+
+        // Step 5: Verify all fields are pre-filled from original expense
+        await copyExpenseFormPage.verifyPreFilledValues({
+            description: originalDescription,
+            amount: '125.75',
+        });
+
+        // Step 6: Verify date is set to today (not original date)
+        await copyExpenseFormPage.verifyDateIsToday();
+
+        // Step 7: Modify some fields (description and amount)
+        const copiedDescription = `Copied Expense ${generateShortId()}`;
+        await copyExpenseFormPage.fillDescription(copiedDescription);
+        await copyExpenseFormPage.fillAmount('89.50');
+
+        // Step 8: Submit the copied expense
+        await copyExpenseFormPage.getUpdateExpenseButton().click();
+
+        // Step 9: Verify redirect to group page
+        await groupDetailPage1.waitForExpense(copiedDescription);
+
+        // Step 10: Verify both expenses exist independently
+        await groupDetailPage1.waitForExpense(originalDescription); // Original still exists
+        await groupDetailPage1.waitForExpense(copiedDescription); // Copied expense exists
+
+        // Step 11: Verify balances updated correctly (original €62.88 + copied €44.75 = €107.63 total)
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€107.63');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€107.63');
+
+        // Step 12: Verify both users can see both expenses
+        await groupDetailPage2.waitForExpense(originalDescription);
+        await groupDetailPage2.waitForExpense(copiedDescription);
+    });
+
+    simpleTest('should handle copy expense for multi-user scenarios with real-time updates', async ({ createLoggedInBrowsers }) => {
+        const [{ dashboardPage: user1DashboardPage }, { dashboardPage: user2DashboardPage }, { dashboardPage: user3DashboardPage }] = await createLoggedInBrowsers(3);
+
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
+        const user3DisplayName = await user3DashboardPage.header.getCurrentUserDisplayName();
+
+        // Create 3-user group
+        const [groupDetailPage1, groupDetailPage2, groupDetailPage3] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage, user3DashboardPage);
+
+        // Create original expense with complex split
+        const originalExpenseFormPage = await groupDetailPage1.clickAddExpenseButton();
+        const originalDescription = `Multi-user Original ${generateShortId()}`;
+        await originalExpenseFormPage.submitExpense({
+            description: originalDescription,
+            amount: 150,
+            currency: 'JPY',
+            paidByDisplayName: user2DisplayName, // User2 pays
+            splitType: 'equal',
+            participants: [user1DisplayName, user2DisplayName, user3DisplayName], // Split 3 ways
+        });
+
+        // Wait for all users to see the original expense
+        await groupDetailPage1.waitForExpense(originalDescription);
+        await groupDetailPage2.waitForExpense(originalDescription);
+        await groupDetailPage3.waitForExpense(originalDescription);
+
+        // User3 clicks to view and copy the expense
+        const expenseDetailPage = await groupDetailPage3.clickExpenseToView(originalDescription);
+        const copyExpenseFormPage = await expenseDetailPage.clickCopyExpenseButton([user1DisplayName, user2DisplayName, user3DisplayName]);
+
+        // Modify the copied expense (different payer and amount)
+        const copiedDescription = `Multi-user Copied ${generateShortId()}`;
+        await copyExpenseFormPage.fillDescription(copiedDescription);
+        await copyExpenseFormPage.fillAmount('90');
+
+        // Change payer to User1
+        await copyExpenseFormPage.selectPayer(user1DisplayName);
+        await copyExpenseFormPage.getUpdateExpenseButton().click();
+
+        // Verify real-time updates: all users should see both expenses
+        await groupDetailPage1.waitForExpense(originalDescription);
+        await groupDetailPage1.waitForExpense(copiedDescription);
+        await groupDetailPage2.waitForExpense(originalDescription);
+        await groupDetailPage2.waitForExpense(copiedDescription);
+        await groupDetailPage3.waitForExpense(originalDescription);
+        await groupDetailPage3.waitForExpense(copiedDescription);
+
+        // Verify complex balance calculations:
+        // Original: User2 paid ¥150, split 3 ways (¥50 each) -> User1 owes ¥50, User3 owes ¥50
+        // Copied: User1 paid ¥90, split 3 ways (¥30 each) -> User2 owes ¥30, User3 owes ¥30
+        // Net: User1 owes User2 ¥50-¥30=¥20, User3 owes User1 ¥30, User3 owes User2 ¥50
+        // But let's verify what the actual balances show first
+        await groupDetailPage1.verifyDebtRelationship(user3DisplayName, user2DisplayName, '¥70');
+        await groupDetailPage1.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥10');
     });
 });

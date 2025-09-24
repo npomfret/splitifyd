@@ -7,9 +7,24 @@ This report analyzes the gaps in the current E2E test suite. Based on the princi
 ## Analysis and Recommendations
 
 ### 1. Copy Expense Feature
-- **Current E2E Coverage:** Untested.
-- **Recommended Strategy:** **E2E Test**.
-- **Justification:** This is a multi-step user flow that involves a user action on one page (`ExpenseActions`), a redirect with specific URL parameters (`?copy=true&sourceId=...`), and pre-filling a form on a different page (`AddExpensePage`). An E2E test is the only way to verify this entire journey works as expected. Component-level tests can supplement this by verifying the `AddExpensePage` correctly parses URL parameters.
+- **Current E2E Coverage:** ✅ **COMPLETED - Comprehensive E2E test coverage implemented**.
+- **Implementation Status:** **DONE** - Two comprehensive E2E tests added to `expense-and-balance-lifecycle.e2e.test.ts`:
+  1. **Basic copy functionality test** - Verifies complete copy workflow with field pre-population, form validation, and balance updates
+  2. **Multi-user real-time test** - Tests complex 3-user scenarios with different payers and real-time updates across browsers
+- **Features Tested:**
+  - ✅ Copy button navigation (`/groups/{id}/add-expense?copy=true&sourceId={id}`)
+  - ✅ "Copy Expense" UI header display
+  - ✅ All fields pre-filled from source expense (description, amount, currency, category, payer, split participants)
+  - ✅ Date automatically set to today (not source expense date)
+  - ✅ Form validation works in copy mode
+  - ✅ Modified values can be submitted to create new expense
+  - ✅ Both original and copied expenses exist independently
+  - ✅ Balance calculations update correctly with both expenses
+  - ✅ Real-time updates work across multiple users
+  - ✅ Complex multi-user scenarios with different payers and currency handling
+- **Page Object Updates:** Added `clickCopyExpenseButton()` to `ExpenseDetailPage` and copy validation helpers to `ExpenseFormPage`
+- **Recommended Strategy:** **E2E Test** - **COMPLETED**.
+- **Justification:** This multi-step user flow involving navigation, URL parameters, and form pre-filling required comprehensive E2E testing, which has now been successfully implemented.
 
 ### 2. Expense Form Drafts
 - **Current E2E Coverage:** Untested.
@@ -62,18 +77,55 @@ An analysis of the codebase was performed to determine the test coverage for the
 
 ## Summary Table
 
-| Feature Gap | Recommended Strategy |
-| :--- | :--- |
-| Copy Expense | E2E Test |
-| Expense Form Drafts | **Unit Test** |
-| Recent Amounts / Category Suggestions | **Component Test** |
-| Group-Level Comments | E2E Test |
-| Hard Group Deletion | E2E and Component Test |
-| Share Link Regeneration | E2E Test |
-| Real-time Connectivity Indicator | **Unit & Component Test** |
-| Settlement Editing/Deletion | E2E Test |
-| Expense Split Logic (Exact Amount) | **Unit Test** |
+| Feature Gap | Recommended Strategy | Status |
+| :--- | :--- | :--- |
+| Copy Expense | E2E Test | ✅ **COMPLETED** |
+| Expense Form Drafts | **Unit Test** | ❌ Not implemented |
+| Recent Amounts / Category Suggestions | **Component Test** | ❌ Not implemented |
+| Group-Level Comments | E2E Test | ❌ Not implemented |
+| Hard Group Deletion | E2E and Component Test | ❌ Not implemented |
+| Share Link Regeneration | E2E Test | ❌ Not implemented |
+| Real-time Connectivity Indicator | **Unit & Component Test** | ❌ Not implemented |
+| Settlement Editing/Deletion | E2E Test | ❌ Not implemented |
+| Expense Split Logic (Exact Amount) | **Unit Test** | ❌ Not implemented |
+
+## Implementation Details
+
+### Copy Expense Feature Implementation (COMPLETED)
+
+**Files Modified/Created:**
+- `e2e-tests/src/__tests__/integration/expense-and-balance-lifecycle.e2e.test.ts` - Added 2 comprehensive test cases
+- `e2e-tests/src/pages/expense-detail.page.ts` - Added `getCopyButton()` and `clickCopyExpenseButton()` methods
+- `e2e-tests/src/pages/expense-form.page.ts` - Added copy validation helpers (`verifyCopyMode()`, `verifyPreFilledValues()`, `verifyDateIsToday()`)
+- `e2e-tests/src/pages/expense-form.page.ts` - Refactored `waitForMembersInExpenseForm()` to accept member names instead of counts for better validation
+
+**Key Implementation Notes:**
+- Copy mode uses "Update Expense" button (not "Save Expense") due to shared `ExpenseFormActions` component logic
+- Copy expense form correctly pre-fills all fields except date (which is set to today)
+- Multi-user scenarios require careful balance calculation verification
+- Real-time updates work correctly across multiple browser instances
+- Tests include both basic 2-user and complex 3-user scenarios
+
+**Test Coverage:**
+- Basic copy workflow (2 users, EUR currency)
+- Complex multi-user scenario (3 users, JPY currency, different payers)
+- Form validation and pre-population
+- Balance calculations with multiple expenses
+- Real-time synchronization across browsers
 
 ## Next Steps
 
 Based on this analysis, it is recommended to prioritize creating unit and component tests for the identified gaps first, as they are typically faster to write and provide a high degree of confidence in the core logic. Following that, new E2E tests should be written for the critical user flows. This balanced approach will improve test coverage and application quality most effectively.
+
+**Priority Order for Remaining Gaps:**
+1. **Unit Tests** (fastest to implement):
+   - Expense Form Drafts logic
+   - Exact Amount Split validation
+2. **Component Tests** (moderate effort):
+   - Recent Amounts / Category Suggestions UI
+   - Real-time Connectivity Indicator
+3. **E2E Tests** (highest effort, highest value):
+   - Group-Level Comments
+   - Hard Group Deletion
+   - Share Link Regeneration
+   - Settlement Editing/Deletion

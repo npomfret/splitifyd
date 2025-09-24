@@ -51,7 +51,7 @@ export class DashboardPage extends BasePage {
         for (const newGroupDetailPage of groupDetailPages) {
             // wait for each page to sync before adding the next user
             await newGroupDetailPage.waitForPage(groupId, groupDetailPages.length);
-            await newGroupDetailPage.waitForSettledUpMessage();
+            await newGroupDetailPage.verifyAllSettledUp(groupId);
         }
 
         return groupDetailPages;

@@ -29,9 +29,16 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
+     * Get the copy button for the expense
+     */
+    getCopyButton(): Locator {
+        return this.page.getByRole('button', { name: /copy/i });
+    }
+
+    /**
      * Click the edit expense button and return the expense form page for editing
      */
-    async clickEditExpenseButton(expectedMemberCount: number): Promise<ExpenseFormPage> {
+    async clickEditExpenseButton(expectedUsers: string[]): Promise<ExpenseFormPage> {
         const editButton = this.getEditButton();
         await this.clickButton(editButton, { buttonName: 'Edit Expense' });
 
@@ -41,7 +48,25 @@ export class ExpenseDetailPage extends BasePage {
 
         // Create and validate the expense form page in edit mode
         const expenseFormPage = new ExpenseFormPage(this.page);
-        await expenseFormPage.waitForFormReady(expectedMemberCount);
+        await expenseFormPage.waitForFormReady(expectedUsers);
+
+        return expenseFormPage;
+    }
+
+    /**
+     * Click the copy expense button and return the expense form page for copying
+     */
+    async clickCopyExpenseButton(expectedUsers: string[]): Promise<ExpenseFormPage> {
+        const copyButton = this.getCopyButton();
+        await this.clickButton(copyButton, { buttonName: 'Copy Expense' });
+
+        // Wait for navigation to copy expense page
+        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense\?.*copy=true.*sourceId=/);
+        await this.waitForDomContentLoaded();
+
+        // Create and validate the expense form page in copy mode
+        const expenseFormPage = new ExpenseFormPage(this.page);
+        await expenseFormPage.waitForFormReady(expectedUsers);
 
         return expenseFormPage;
     }
