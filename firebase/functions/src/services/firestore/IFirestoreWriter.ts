@@ -201,6 +201,7 @@ export interface IFirestoreWriter {
      * Perform multiple write operations in a batch
      * @param operations - Function that adds operations to the batch
      * @returns Batch write result
+     * @deprecated Unused method - no usages found in codebase
      */
     batchWrite(operations: (batch: WriteBatch) => void): Promise<BatchWriteResult>;
 
@@ -209,6 +210,7 @@ export interface IFirestoreWriter {
      * @param collection - The collection name
      * @param documents - Array of documents to create
      * @returns Batch write result
+     * @deprecated Unused method - no usages found in codebase
      */
     bulkCreate<T>(collection: string, documents: T[]): Promise<BatchWriteResult>;
 
@@ -216,6 +218,7 @@ export interface IFirestoreWriter {
      * Bulk update multiple documents
      * @param updates - Map of document paths to update data
      * @returns Batch write result
+     * @deprecated Unused method - no usages found in codebase
      */
     bulkUpdate(updates: Map<string, any>): Promise<BatchWriteResult>;
 
@@ -223,6 +226,7 @@ export interface IFirestoreWriter {
      * Bulk delete multiple documents
      * @param documentPaths - Array of document paths to delete
      * @returns Batch write result
+     * @deprecated Unused method - no usages found in codebase
      */
     bulkDelete(documentPaths: string[]): Promise<BatchWriteResult>;
 
@@ -260,6 +264,7 @@ export interface IFirestoreWriter {
      * @param userId - The user ID
      * @param updates - The notification updates
      * @returns Write result
+     * @deprecated Legacy method - use updateUserNotification instead
      */
     updateUserNotifications(userId: string, updates: any): Promise<WriteResult>;
 
@@ -269,6 +274,7 @@ export interface IFirestoreWriter {
      * @param data - The notification data
      * @param merge - Whether to merge with existing data
      * @returns Write result
+     * @deprecated Legacy method - use setUserNotificationGroup instead
      */
     setUserNotifications(userId: string, data: any, merge?: boolean): Promise<WriteResult>;
 
@@ -338,6 +344,7 @@ export interface IFirestoreWriter {
      * @param documentPath - The full document path (e.g., 'group-memberships/userId_groupId')
      * @param data - The document data
      * @returns Write result
+     * @deprecated Generic methods not used - prefer specific typed methods
      */
     createDocument(documentPath: string, data: any): Promise<WriteResult>;
 
@@ -346,6 +353,7 @@ export interface IFirestoreWriter {
      * @param documentPath - The full document path (e.g., 'user-notifications/userId')
      * @param updates - The update data
      * @returns Write result
+     * @deprecated Generic methods not used - prefer specific typed methods
      */
     updateDocument(documentPath: string, updates: any): Promise<WriteResult>;
 
@@ -353,6 +361,7 @@ export interface IFirestoreWriter {
      * Delete a single document by path
      * @param documentPath - The full document path (e.g., 'group-memberships/userId_groupId')
      * @returns Write result
+     * @deprecated Generic methods not used - prefer specific typed methods
      */
     deleteDocument(documentPath: string): Promise<WriteResult>;
 
@@ -421,6 +430,7 @@ export interface IFirestoreWriter {
      * Add system metrics document for monitoring
      * @param metricsData - The metrics data to store
      * @returns Write result with document ID
+     * @deprecated Unused method - no usages found in codebase
      */
     addSystemMetrics(metricsData: any): Promise<WriteResult>;
 
@@ -439,6 +449,7 @@ export interface IFirestoreWriter {
      * @param email - Test user email
      * @param userData - Test user data including token and password
      * @returns Write result
+     * @deprecated Test-only method - used only in TestUserPoolService for test infrastructure
      */
     createTestUser(email: string, userData: any): Promise<WriteResult>;
 
@@ -447,6 +458,7 @@ export interface IFirestoreWriter {
      * @param email - Test user email
      * @param status - New status ('available' or 'borrowed')
      * @returns Write result
+     * @deprecated Test-only method - used only in TestUserPoolService for test infrastructure
      */
     updateTestUserStatus(email: string, status: string): Promise<WriteResult>;
 
@@ -469,6 +481,7 @@ export interface IFirestoreWriter {
      * @param queryConstraints - Query constraints (where clauses)
      * @param updates - Updates to apply to all matched documents
      * @returns Promise<number> Number of documents updated
+     * @deprecated Unused method - no usages found in codebase
      */
     queryAndUpdateInTransaction(
         transaction: Transaction,
@@ -482,6 +495,7 @@ export interface IFirestoreWriter {
      * @param transaction - The transaction context
      * @param creates - Array of documents to create
      * @returns Array of document references created
+     * @deprecated Unused method - no usages found in codebase
      */
     batchCreateInTransaction(
         transaction: Transaction,
@@ -497,6 +511,7 @@ export interface IFirestoreWriter {
      * @param transaction - The transaction context
      * @param documentPaths - Array of document paths to fetch
      * @returns Promise<Array<DocumentSnapshot | null>> Array of document snapshots (null for non-existent docs)
+     * @deprecated Unused method - no usages found in codebase
      */
     getMultipleByPathsInTransaction(transaction: Transaction, documentPaths: string[]): Promise<Array<FirebaseFirestore.DocumentSnapshot | null>>;
 
@@ -519,6 +534,7 @@ export interface IFirestoreWriter {
      * @param cutoffTimestamp - Optional timestamp filter for deletionStartedAt
      * @param operator - Comparison operator for timestamp ('<=', '>=', etc.)
      * @returns Promise<Array<string>> Array of group IDs matching the criteria
+     * @deprecated Unused method - no usages found in codebase
      */
     queryGroupsByDeletionStatus(deletionStatus: string, cutoffTimestamp?: FirebaseFirestore.Timestamp, operator?: FirebaseFirestore.WhereFilterOp): Promise<string[]>;
 
@@ -527,6 +543,7 @@ export interface IFirestoreWriter {
      * @param collection - The collection name
      * @param documentId - The document ID
      * @returns Promise<DocumentSnapshot | null> Document snapshot or null if not found
+     * @deprecated Unused method - no usages found in codebase
      */
     getSingleDocument(collection: string, documentId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
 
