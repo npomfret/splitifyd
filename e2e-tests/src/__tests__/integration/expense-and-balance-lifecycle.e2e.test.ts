@@ -1,6 +1,7 @@
 import { simpleTest, expect } from '../../fixtures';
 import { generateShortId } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page';
+import { SettlementData } from '../../pages/settlement-form.page';
 
 /**
  * Consolidated Expense and Balance Lifecycle E2E Tests
@@ -8,12 +9,16 @@ import { groupDetailUrlPattern } from '../../pages/group-detail.page';
  * CONSOLIDATION: Merged overlapping tests from:
  * - expense-comprehensive.e2e.test.ts (expense creation, currency, CRUD)
  * - balance-and-settlements-comprehensive.e2e.test.ts (balance calculations)
+ * - expense-features.e2e.test.ts (date/time selection, comments)
+ * - settlement-operations.e2e.test.ts (settlement CRUD operations)
  *
  * This file covers the complete lifecycle of expenses and their impact on balances,
  * eliminating redundancy while maintaining comprehensive coverage of:
  * - Expense creation with various currencies and precision
+ * - Date/time selection functionality
+ * - Real-time comments system
  * - Balance calculations and debt relationships
- * - Settlement integration with balance updates
+ * - Settlement integration with balance updates and CRUD operations
  * - Multi-currency handling across expenses and balances
  */
 
@@ -446,5 +451,282 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             await page.verifySettlementDetails({ note: settlementNote2 });
             await page.verifySettlementDetails({ note: settlementNote3 });
         }
+    });
+});
+
+simpleTest.describe('Date and Time Selection', () => {
+    simpleTest('should handle date convenience buttons and time input', async ({ createLoggedInBrowsers }) => {
+        const memberCount = 1;
+
+        const [{ dashboardPage }] = await createLoggedInBrowsers(memberCount);
+
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
+        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+
+        // Test date convenience buttons
+        const dateInput = expenseFormPage.getDateInput();
+
+        // Test Today button
+        await expenseFormPage.clickTodayButton();
+        const todayInputValue = await dateInput.inputValue();
+        expect(todayInputValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+        // Test Yesterday button
+        await expenseFormPage.clickYesterdayButton();
+        const yesterdayInputValue = await dateInput.inputValue();
+        expect(yesterdayInputValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+        // Verify yesterday is one day before today
+        const todayParsed = new Date(todayInputValue + 'T00:00:00');
+        const yesterdayParsed = new Date(yesterdayInputValue + 'T00:00:00');
+        const dayDifference = (todayParsed.getTime() - yesterdayParsed.getTime()) / (1000 * 60 * 60 * 24);
+        expect(dayDifference).toBe(1);
+
+        // Test Last Night button (sets evening time)
+        await expenseFormPage.clickLastNightButton();
+        const lastNightInputValue = await dateInput.inputValue();
+        expect(lastNightInputValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+        // Test time input functionality
+        let timeButton = expenseFormPage.getTimeButton();
+        const timeButtonCount = await timeButton.count();
+
+        if (timeButtonCount === 0) {
+            const clockIcon = expenseFormPage.getClockIcon();
+            const clockIconCount = await clockIcon.count();
+            if (clockIconCount > 0) {
+                await expenseFormPage.clickClockIcon();
+            }
+            timeButton = expenseFormPage.getTimeButton();
+        }
+
+        await expect(timeButton).toBeVisible();
+        await timeButton.click();
+
+        const timeInput = expenseFormPage.getTimeInput();
+        await expect(timeInput).toBeVisible();
+        await expect(timeInput).toBeFocused();
+
+        // Test time suggestions
+        await timeInput.fill('3');
+        await expect(expenseFormPage.getTimeSuggestion('3:00 AM')).toBeVisible();
+        await expect(expenseFormPage.getTimeSuggestion('3:00 PM')).toBeVisible();
+
+        // Accept time selection
+        await expenseFormPage.getTimeSuggestion('3:00 PM').click();
+        await expect(expenseFormPage.getTimeSuggestion('at 3:00 PM')).toBeVisible();
+    });
+});
+
+simpleTest.describe('Real-time Comments', () => {
+    simpleTest('should support real-time expense comments', async ({ createLoggedInBrowsers }, testInfo) => {
+        testInfo.setTimeout(20000); // 20 seconds
+        // Create two browser instances - Alice and Bob
+        const [
+            { dashboardPage: user1DashboardPage },
+            { dashboardPage: user2DashboardPage },
+        ] = await createLoggedInBrowsers(2);
+
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
+
+        const [user1GroupDetailPage, user2GroupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+
+        // Create expense
+        const expenseFormPage = await user1GroupDetailPage.clickAddExpenseButton(2);
+        const expenseDescription = 'Test Expense for Comments';
+        await expenseFormPage.submitExpense({
+            description: expenseDescription,
+            amount: 50000,
+            currency: 'VND',
+            paidByDisplayName: user1DisplayName,
+            splitType: 'equal',
+            participants: [user1DisplayName, user2DisplayName],
+        });
+
+        await user1GroupDetailPage.waitForExpense(expenseDescription);
+        await user2GroupDetailPage.waitForExpense(expenseDescription);
+
+        // Navigate to expense detail pages
+        const aliceExpenseDetailPage = await user1GroupDetailPage.clickExpenseToView(expenseDescription);
+        const bobExpenseDetailPage = await user2GroupDetailPage.clickExpenseToView(expenseDescription);
+
+        await aliceExpenseDetailPage.verifyCommentsSection();
+        await bobExpenseDetailPage.verifyCommentsSection();
+
+        // Test real-time comments
+        const comment1 = `comment ${generateShortId()}`;
+        await aliceExpenseDetailPage.addComment(comment1);
+        await bobExpenseDetailPage.waitForCommentToAppear(comment1);
+
+        const comment2 = `comment ${generateShortId()}`;
+        await bobExpenseDetailPage.addComment(comment2);
+        await aliceExpenseDetailPage.waitForCommentToAppear(comment2);
+
+        // Verify both comments visible
+        await aliceExpenseDetailPage.waitForCommentCount(2);
+        await bobExpenseDetailPage.waitForCommentCount(2);
+
+        await expect(aliceExpenseDetailPage.getCommentByText(comment1)).toBeVisible();
+        await expect(aliceExpenseDetailPage.getCommentByText(comment2)).toBeVisible();
+        await expect(bobExpenseDetailPage.getCommentByText(comment1)).toBeVisible();
+        await expect(bobExpenseDetailPage.getCommentByText(comment2)).toBeVisible();
+    });
+});
+
+simpleTest.describe('Settlement CRUD Operations', () => {
+    simpleTest('should create settlements with comprehensive display and permissions', async ({ createLoggedInBrowsers }) => {
+        const [{ dashboardPage: user1DashboardPage }, { dashboardPage: user2DashboardPage }] = await createLoggedInBrowsers(2);
+
+        const payerName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const payeeName = await user2DashboardPage.header.getCurrentUserDisplayName();
+
+        const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+
+        // Test 1: Normal settlement creation and display
+        const settlementForm1 = await groupDetailPage.clickSettleUpButton(2);
+        const settlementData1: SettlementData = {
+            payerName: payerName,
+            payeeName: payeeName,
+            amount: '100.50',
+            currency: 'JPY',
+            note: 'Test payment for history',
+        };
+
+        await settlementForm1.submitSettlement(settlementData1, 2);
+        await groupDetailPage.openHistoryIfClosed();
+        await groupDetailPage.verifySettlementDetails({ note: settlementData1.note });
+        await groupDetailPage.verifySettlementDetails(settlementData1);
+
+        // Test 2: Settlement where creator is payee (different permissions scenario)
+        const settlementForm2 = await groupDetailPage.clickSettleUpButton(2);
+        const settlementData2: SettlementData = {
+            payerName: payeeName,  // Other user pays
+            payeeName: payerName,  // Creator receives
+            amount: '75.00',
+            currency: 'JPY',
+            note: 'Creator receives payment',
+        };
+
+        await settlementForm2.submitSettlement(settlementData2, 2);
+        await groupDetailPage.openHistoryIfClosed();
+        await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
+        await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
+
+        // Verify creator can edit/delete even when they're the payee
+        await groupDetailPage.verifySettlementHasEditButton(settlementData2.note);
+        await groupDetailPage.verifySettlementHasDeleteButton(settlementData2.note);
+    });
+
+    simpleTest('should edit settlements with comprehensive validation and form handling', async ({ createLoggedInBrowsers }) => {
+        const [{ dashboardPage: user1DashboardPage }, { dashboardPage: user2DashboardPage }] = await createLoggedInBrowsers(2);
+
+        const payerName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const payeeName = await user2DashboardPage.header.getCurrentUserDisplayName();
+
+        const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+
+        // Create settlement for editing
+        let settlementForm = await groupDetailPage.clickSettleUpButton(2);
+        const initialData: SettlementData = {
+            payerName,
+            payeeName,
+            amount: '100.50',
+            currency: 'JPY',
+            note: 'Initial test payment',
+        };
+
+        await settlementForm.submitSettlement(initialData, 2);
+        await groupDetailPage.verifySettlementDetails({ note: initialData.note });
+
+        // Test successful edit flow
+        await groupDetailPage.openHistoryIfClosed();
+        settlementForm = await groupDetailPage.clickEditSettlement(initialData.note);
+
+        await settlementForm.verifyUpdateMode();
+        await settlementForm.verifyFormValues({
+            amount: initialData.amount,
+            note: initialData.note,
+        });
+
+        const updatedData = {
+            amount: '150.75',
+            note: 'Updated test payment',
+        };
+
+        await settlementForm.updateSettlement(updatedData);
+        await settlementForm.waitForModalClosed();
+        await groupDetailPage.verifySettlementDetails({ note: updatedData.note });
+
+        // Test validation during edit
+        settlementForm = await groupDetailPage.clickEditSettlement(updatedData.note);
+
+        // Test invalid amounts
+        await settlementForm.clearAndFillAmount('0');
+        await settlementForm.verifyUpdateButtonDisabled();
+
+        await settlementForm.clearAndFillAmount('-50');
+        await settlementForm.verifyUpdateButtonDisabled();
+
+        // Test valid amount and cancel without saving
+        await settlementForm.clearAndFillAmount('75.50');
+        await settlementForm.verifyUpdateButtonEnabled();
+        await settlementForm.closeModal();
+        await settlementForm.waitForModalClosed();
+
+        // Verify no changes were saved
+        await groupDetailPage.openHistoryIfClosed();
+        await groupDetailPage.verifySettlementDetails({
+            note: updatedData.note,
+            amount: updatedData.amount,
+            payerName: initialData.payerName,
+            payeeName: initialData.payeeName,
+        });
+    });
+
+    simpleTest('should delete settlements with confirmation and cancellation flows', async ({ createLoggedInBrowsers }) => {
+        const [{ dashboardPage: user1DashboardPage }, { dashboardPage: user2DashboardPage }] = await createLoggedInBrowsers(2);
+
+        const payerName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const payeeName = await user2DashboardPage.header.getCurrentUserDisplayName();
+
+        const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+
+        // Create settlements for testing deletion flows
+        const settlementForm1 = await groupDetailPage.clickSettleUpButton(2);
+        const settlementData1: SettlementData = {
+            payerName,
+            payeeName,
+            amount: '100.00',
+            currency: 'JPY',
+            note: 'Payment to be deleted',
+        };
+
+        await settlementForm1.submitSettlement(settlementData1, 2);
+        await groupDetailPage.verifySettlementDetails({ note: settlementData1.note });
+
+        const settlementForm2 = await groupDetailPage.clickSettleUpButton(2);
+        const settlementData2: SettlementData = {
+            payerName,
+            payeeName,
+            amount: '75.00',
+            currency: 'JPY',
+            note: 'Payment to keep',
+        };
+
+        await settlementForm2.submitSettlement(settlementData2, 2);
+        await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
+
+        // Test 1: Successful deletion with confirmation
+        await groupDetailPage.openHistoryIfClosed();
+        await groupDetailPage.verifySettlementDetails({ note: settlementData1.note });
+        await groupDetailPage.deleteSettlement(settlementData1.note, true);
+        await groupDetailPage.openHistoryIfClosed();
+        await groupDetailPage.verifySettlementNotInHistory(settlementData1.note);
+
+        // Test 2: Cancelled deletion - settlement should remain
+        await groupDetailPage.deleteSettlement(settlementData2.note, false); // Cancel deletion
+        await groupDetailPage.openHistoryIfClosed();
+        await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
     });
 });

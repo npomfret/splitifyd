@@ -5,15 +5,17 @@ import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
 
 /**
- * Consolidated Group Management E2E Tests
+ * Consolidated Core Features E2E Tests
  *
- * Consolidated from:
- * - member-management.e2e.test.ts (member operations)
- * - group-lifecycle.e2e.test.ts (group editing/settings)
- * - member-lifecycle.e2e.test.ts (deprecated)
+ * CONSOLIDATION: Merged overlapping tests from:
+ * - group-management.e2e.test.ts (member management, group settings, deletion)
  *
- * This file provides comprehensive group and member management testing while eliminating
- * redundancy and reducing test complexity.
+ * This file covers all core group and member management functionality:
+ * - Member operations (adding, removing, leaving)
+ * - Group settings and editing
+ * - Balance restrictions for member operations
+ * - Real-time updates across multiple users
+ * - Group deletion scenarios
  */
 
 simpleTest.describe('Member Management - Core Operations', () => {
@@ -54,6 +56,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
         const [groupDetailPage, memberGroupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
         // Verify member sees Leave Group button
+        await groupDetailPage.waitForMemberCount(2);// sanity check
         await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
 
         // Member clicks Leave Group
@@ -298,7 +301,7 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
     });
 });
 
-simpleTest.describe('Member Management - Group Settings', () => {
+simpleTest.describe('Group Settings & Management', () => {
     simpleTest('should comprehensively test group editing validation and functionality', async ({ createLoggedInBrowsers }) => {
         const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
 
@@ -377,7 +380,10 @@ simpleTest.describe('Member Management - Group Settings', () => {
 
     simpleTest('should not show settings button for non-owner', async ({ createLoggedInBrowsers }) => {
         // Create two browser sessions with pooled users
-        const [{ page: ownerPage, dashboardPage }, { page: memberPage, dashboardPage: memberDashboardPage }] = await createLoggedInBrowsers(2);
+        const [
+            { page: ownerPage, dashboardPage },
+            { page: memberPage, dashboardPage: memberDashboardPage },
+        ] = await createLoggedInBrowsers(2);
 
         // Owner creates a group with member
         const [ownerGroupDetailPage, memberGroupDetailPage] = await dashboardPage.createMultiUserGroup({}, memberDashboardPage);
