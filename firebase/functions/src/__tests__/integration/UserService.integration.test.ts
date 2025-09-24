@@ -37,7 +37,7 @@ describe('UserService - Integration Tests (Essential Firebase Behavior)', () => 
             expect(authUser.displayName).toBe(userData.displayName);
 
             // Verify actual Firestore document with proper schema
-            const firestoreUser = await firestoreReader.getDocumentForTesting('users', result.user.uid!);
+            const firestoreUser = await firestoreReader.getUser(result.user.uid!);
             expect(firestoreUser).toBeDefined();
             expect(firestoreUser!.email).toBe(userData.email);
             expect(firestoreUser!.role).toBe(SystemUserRoles.SYSTEM_USER);

@@ -83,9 +83,6 @@ export class StubFirestoreReader implements IFirestoreReader {
     async getUsersById(): Promise<UserDocument[]> {
         return [];
     }
-    async getGroupsForUser(): Promise<any> {
-        return { data: [], hasMore: false };
-    }
     async getGroupsForUserV2(): Promise<any> {
         return { data: [], hasMore: false };
     }
@@ -110,9 +107,6 @@ export class StubFirestoreReader implements IFirestoreReader {
     async getExpensesForGroup(): Promise<ExpenseDocument[]> {
         return [];
     }
-    async getUserExpenses(): Promise<any> {
-        return { expenses: [], hasMore: false };
-    }
     async getExpenseHistory(): Promise<any> {
         return { history: [], count: 0 };
     }
@@ -128,17 +122,8 @@ export class StubFirestoreReader implements IFirestoreReader {
     async getUserInTransaction(): Promise<UserDocument | null> {
         return null;
     }
-    async getMultipleInTransaction(): Promise<any[]> {
-        return [];
-    }
     async documentExists(): Promise<boolean> {
         return false;
-    }
-    async getSystemDocument(): Promise<any | null> {
-        return null;
-    }
-    async getHealthCheckDocument(): Promise<any | null> {
-        return null;
     }
     async getUserNotification(): Promise<UserNotificationDocument | null> {
         return null;
@@ -171,33 +156,6 @@ export class StubFirestoreReader implements IFirestoreReader {
     async getCommentByReference(): Promise<ParsedComment | null> {
         return null;
     }
-    async getAvailableTestUser(): Promise<any | null> {
-        return null;
-    }
-    async getTestUser(): Promise<any | null> {
-        return null;
-    }
-    async getTestUserPoolStatus(): Promise<any> {
-        return { available: 0, borrowed: 0, total: 0 };
-    }
-    async getBorrowedTestUsers(): Promise<any[]> {
-        return [];
-    }
-    async getOldDocuments(): Promise<any[]> {
-        return [];
-    }
-    async getOldDocumentsByField(): Promise<any[]> {
-        return [];
-    }
-    async getDocumentsBatch(): Promise<any[]> {
-        return [];
-    }
-    async getMetricsDocuments(): Promise<any[]> {
-        return [];
-    }
-    async getCollectionSize(): Promise<number> {
-        return 0;
-    }
     async getGroupDeletionData(): Promise<any> {
         return {
             expenses: { size: 0, docs: [] },
@@ -207,54 +165,18 @@ export class StubFirestoreReader implements IFirestoreReader {
             expenseComments: [],
         };
     }
-    async getDocumentForTesting(collection: string, id: string): Promise<any | null> {
-        return this.documents.get(`${collection}/${id}`) || null;
-    }
-    async verifyDocumentExists(): Promise<boolean> {
-        return false;
-    }
     async getSettlementsForGroupPaginated(): Promise<any> {
         return { settlements: [], hasMore: false };
     }
 
     // Missing methods from interface
-    async getSystemMetrics(): Promise<any | null> {
-        return null;
-    }
-    async addSystemMetrics(): Promise<string> {
-        return 'metric-id';
-    }
     async verifyGroupMembership(): Promise<boolean> {
         return false;
-    }
-    async getSubcollectionDocument(): Promise<any | null> {
-        return null;
-    }
-    async getTestUsersByStatus(): Promise<any[]> {
-        return [];
-    }
-    async getTestUserInTransaction(): Promise<any | null> {
-        return null;
-    }
-    async queryWithComplexFilters(): Promise<any[]> {
-        return [];
-    }
-    async getUserLanguagePreference(): Promise<string | null> {
-        return null;
-    }
-    async findShareLinkByTokenInTransaction(): Promise<any | null> {
-        return null;
     }
     async getGroupMembershipsInTransaction(): Promise<any> {
         return { docs: [], size: 0, empty: true };
     }
-    async getRawDocument(): Promise<any | null> {
-        return null;
-    }
     async getRawDocumentInTransaction(): Promise<any | null> {
-        return null;
-    }
-    async getRawDocumentInTransactionWithRef(): Promise<any | null> {
         return null;
     }
     async getRawExpenseDocumentInTransaction(transaction: any, expenseId: string): Promise<any | null> {
@@ -287,9 +209,6 @@ export class StubFirestoreReader implements IFirestoreReader {
         return null;
     }
     async getRawUserDocumentInTransaction(): Promise<any | null> {
-        return null;
-    }
-    async getSystemDocumentInTransaction(): Promise<any | null> {
         return null;
     }
 }

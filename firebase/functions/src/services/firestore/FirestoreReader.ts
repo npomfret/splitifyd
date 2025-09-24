@@ -339,76 +339,6 @@ export class FirestoreReader implements IFirestoreReader {
      * - Provides proper cursor-based pagination with hasMore detection
      * - Reduces resource usage by 90%+ for users with many groups
      */
-    async getGroupsForUser(userId: string, options?: QueryOptions): Promise<PaginatedResult<GroupDocument[]>> {
-        return measureDb('USER_GROUPS', async () => {
-            const limit = options?.limit || 10;
-            const effectiveLimit = limit + 1; // +1 to detect "hasMore"
-
-            // PHASE 1: Get paginated group memberships (NOT all memberships!)
-            let membershipQuery = this.db
-                .collectionGroup('members')
-                .where('userId', '==', userId)
-                .orderBy('groupId') // Consistent ordering for cursor reliability
-                .limit(effectiveLimit * 2); // Buffer for potential deduplication
-
-            if (options?.cursor) {
-                try {
-                    const cursorData = this.decodeCursor(options.cursor);
-                    membershipQuery = membershipQuery.startAfter(cursorData.lastGroupId);
-                } catch (error) {
-                    logger.warn('Invalid cursor provided, ignoring');
-                }
-            }
-
-            const membershipSnapshot = await membershipQuery.get();
-
-            if (membershipSnapshot.empty) {
-                return {
-                    data: [],
-                    hasMore: false,
-                };
-            }
-
-            // Extract group IDs from the paginated membership documents
-            const groupIds = membershipSnapshot.docs.map((doc) => doc.data().groupId).filter(Boolean);
-
-            if (groupIds.length === 0) {
-                return {
-                    data: [],
-                    hasMore: false,
-                };
-            }
-
-            // PHASE 2: Get group documents with proper ordering and limits
-            const orderBy: OrderBy = options?.orderBy || { field: 'updatedAt', direction: 'desc' };
-            const groups = await this.getGroupsByIds(groupIds, { limit: limit + 1, orderBy });
-            // Detect if more results exist
-            const hasMore = groups.length > limit;
-            const returnedGroups = hasMore ? groups.slice(0, limit) : groups;
-
-            // Generate next cursor if there are more results
-            let nextCursor: string | undefined;
-            if (hasMore && membershipSnapshot.docs.length > 0) {
-                // Use the last membership document's groupId for cursor continuation
-                // This ensures consistency with the membership query ordering
-                const lastMembershipDoc = membershipSnapshot.docs[membershipSnapshot.docs.length - 1];
-                const lastProcessedGroupId = lastMembershipDoc.data().groupId;
-
-                nextCursor = this.encodeCursor({
-                    lastGroupId: lastProcessedGroupId,
-                    lastUpdatedAt: '', // Not used for membership cursor
-                    membershipCursor: lastProcessedGroupId,
-                });
-            }
-
-            return {
-                data: returnedGroups,
-                hasMore,
-                nextCursor,
-                totalEstimate: hasMore ? groupIds.length + 10 : groupIds.length, // Rough estimate
-            };
-        });
-    }
 
     /**
      * ✅ NEW: Enhanced group retrieval using top-level group-memberships collection
@@ -758,23 +688,6 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getMultipleInTransaction<T>(transaction: Transaction, refs: DocumentReference[]): Promise<T[]> {
-        try {
-            const docs = await Promise.all(refs.map((ref) => transaction.get(ref)));
-
-            const results: T[] = [];
-            for (const doc of docs) {
-                if (doc.exists) {
-                    results.push({ id: doc.id, ...doc.data() } as T);
-                }
-            }
-
-            return results;
-        } catch (error) {
-            logger.error('Failed to get multiple documents in transaction', error);
-            throw error;
-        }
-    }
 
     // ========================================================================
     // Real-time Subscription Operations - Minimal Implementation
@@ -1042,235 +955,23 @@ export class FirestoreReader implements IFirestoreReader {
     // Test User Pool Operations
     // ========================================================================
 
-    async getAvailableTestUser(): Promise<any | null> {
-        try {
-            const snapshot = await this.db.collection('test-user-pool').where('status', '==', 'available').limit(1).get();
 
-            if (snapshot.empty) {
-                return null;
-            }
 
-            const doc = snapshot.docs[0];
-            return {
-                id: doc.id,
-                ...doc.data(),
-            };
-        } catch (error) {
-            logger.error('Failed to get available test user', error);
-            throw error;
-        }
-    }
 
-    async getTestUser(email: string): Promise<any | null> {
-        try {
-            const doc = await this.db.collection('test-user-pool').doc(email).get();
-
-            if (!doc.exists) {
-                return null;
-            }
-
-            return {
-                id: doc.id,
-                ...doc.data(),
-            };
-        } catch (error) {
-            logger.error('Failed to get test user', error);
-            throw error;
-        }
-    }
-
-    async getTestUserPoolStatus(): Promise<{ available: number; borrowed: number; total: number }> {
-        return measureDb('FirestoreReader.getTestUserPoolStatus', async () => {
-            try {
-                const [availableSnapshot, borrowedSnapshot] = await Promise.all([
-                    this.db.collection('test-user-pool').where('status', '==', 'available').get(),
-                    this.db.collection('test-user-pool').where('status', '==', 'borrowed').get(),
-                ]);
-
-                return {
-                    available: availableSnapshot.size,
-                    borrowed: borrowedSnapshot.size,
-                    total: availableSnapshot.size + borrowedSnapshot.size,
-                };
-            } catch (error) {
-                logger.error('Failed to get test user pool status', error);
-                throw error;
-            }
-        });
-    }
-
-    async getBorrowedTestUsers(): Promise<FirebaseFirestore.QueryDocumentSnapshot[]> {
-        return measureDb('FirestoreReader.getBorrowedTestUsers', async () => {
-            try {
-                const snapshot = await this.db.collection('test-user-pool').where('status', '==', 'borrowed').get();
-
-                return snapshot.docs;
-            } catch (error) {
-                logger.error('Failed to get borrowed test users', error);
-                throw error;
-            }
-        });
-    }
 
     // ========================================================================
     // System Metrics Operations
     // ========================================================================
 
-    async getOldDocuments(collection: string, cutoffDate: Date, limit: number = 500): Promise<FirebaseFirestore.DocumentSnapshot[]> {
-        try {
-            let query: FirebaseFirestore.Query = this.db.collection(collection);
 
-            // If collection supports timestamp-based queries, use cutoff date
-            if (collection !== 'system-metrics') {
-                query = query.where('timestamp', '<', cutoffDate);
-            }
 
-            query = query.limit(limit);
 
-            const snapshot = await query.get();
-            return snapshot.docs;
-        } catch (error) {
-            logger.error('Failed to get old documents', error);
-            throw error;
-        }
-    }
 
-    async getOldDocumentsByField(collection: string, timestampField: string, cutoffDate: Date, limit: number = 500): Promise<FirebaseFirestore.DocumentSnapshot[]> {
-        return measureDb('FirestoreReader.getOldDocumentsByField', async () => {
-            try {
-                const snapshot = await this.db.collection(collection).where(timestampField, '<', cutoffDate).limit(limit).get();
-
-                return snapshot.docs;
-            } catch (error) {
-                logger.error('Failed to get old documents by field', error);
-                throw error;
-            }
-        });
-    }
-
-    async getDocumentsBatch(collection: string, limit: number = 500): Promise<FirebaseFirestore.DocumentSnapshot[]> {
-        return measureDb('FirestoreReader.getDocumentsBatch', async () => {
-            try {
-                const snapshot = await this.db.collection(collection).limit(limit).get();
-
-                return snapshot.docs;
-            } catch (error) {
-                logger.error('Failed to get documents batch', error);
-                throw error;
-            }
-        });
-    }
-
-    async getMetricsDocuments(collection: string, timestampField: string, cutoffTimestamp: any, limit: number = 500): Promise<FirebaseFirestore.DocumentSnapshot[]> {
-        try {
-            const snapshot = await this.db.collection(collection).where(timestampField, '<', cutoffTimestamp).limit(limit).get();
-
-            return snapshot.docs;
-        } catch (error) {
-            logger.error('Failed to get metrics documents', error);
-            throw error;
-        }
-    }
-
-    async getCollectionSize(collection: string): Promise<number> {
-        try {
-            const snapshot = await this.db.collection(collection).count().get();
-
-            return snapshot.data().count;
-        } catch (error) {
-            logger.error('Failed to get collection size', error);
-            throw error;
-        }
-    }
 
     // ========================================================================
     // New Methods for Centralizing Firestore Access
     // ========================================================================
 
-    async getUserExpenses(
-        userId: string,
-        options?: {
-            limit?: number;
-            cursor?: string;
-            includeDeleted?: boolean;
-        },
-    ): Promise<{
-        expenses: ExpenseDocument[];
-        hasMore: boolean;
-        nextCursor?: string;
-    }> {
-        return measureDb('FirestoreReader.getUserExpenses', async () => {
-            try {
-                const limit = Math.min(options?.limit || 50, 100);
-                const cursor = options?.cursor;
-                const includeDeleted = options?.includeDeleted || false;
-
-                let query = this.db
-                    .collection(FirestoreCollections.EXPENSES)
-                    .where('participants', 'array-contains', userId)
-                    .select(
-                        'groupId',
-                        'createdBy',
-                        'paidBy',
-                        'amount',
-                        'currency',
-                        'description',
-                        'category',
-                        'date',
-                        'splitType',
-                        'participants',
-                        'splits',
-                        'receiptUrl',
-                        'createdAt',
-                        'updatedAt',
-                        'deletedAt',
-                        'deletedBy',
-                    )
-                    .orderBy('date', 'desc')
-                    .orderBy('createdAt', 'desc')
-                    .limit(limit + 1);
-
-                // Filter out deleted expenses by default
-                if (!includeDeleted) {
-                    query = query.where('deletedAt', '==', null);
-                }
-
-                if (cursor) {
-                    const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
-                    const cursorData = JSON.parse(decodedCursor);
-                    if (cursorData.date && cursorData.createdAt) {
-                        query = query.startAfter(Timestamp.fromDate(new Date(cursorData.date)), Timestamp.fromDate(new Date(cursorData.createdAt)));
-                    }
-                }
-
-                const snapshot = await query.get();
-                const hasMore = snapshot.docs.length > limit;
-                const docs = hasMore ? snapshot.docs.slice(0, limit) : snapshot.docs;
-
-                const expenses = docs.map((doc) => ExpenseDocumentSchema.parse({ id: doc.id, ...doc.data() }));
-
-                let nextCursor: string | undefined;
-                if (hasMore && docs.length > 0) {
-                    const lastDoc = docs[docs.length - 1];
-                    const lastData = lastDoc.data();
-                    const cursorData = {
-                        date: lastData.date?.toDate?.()?.toISOString() || lastData.date,
-                        createdAt: lastData.createdAt?.toDate?.()?.toISOString() || lastData.createdAt,
-                    };
-                    nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
-                }
-
-                return {
-                    expenses,
-                    hasMore,
-                    nextCursor,
-                };
-            } catch (error) {
-                logger.error('Failed to get user expenses', error);
-                throw error;
-            }
-        });
-    }
 
     async getExpenseHistory(
         expenseId: string,
@@ -1310,30 +1011,7 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
-    async getSystemDocument(docPath: string): Promise<any | null> {
-        return measureDb('FirestoreReader.getSystemDocument', async () => {
-            try {
-                const doc = await this.db.doc(docPath).get();
-                return doc.exists ? doc.data() : null;
-            } catch (error) {
-                logger.error('Failed to get system document', error);
-                throw error;
-            }
-        });
-    }
 
-    async getHealthCheckDocument(): Promise<any | null> {
-        return measureDb('FirestoreReader.getHealthCheckDocument', async () => {
-            try {
-                const testRef = this.db.collection('_health_check').doc('test');
-                await testRef.get();
-                return { status: 'ok', timestamp: new Date().toISOString() };
-            } catch (error) {
-                logger.error('Failed to perform health check', error);
-                throw error;
-            }
-        });
-    }
 
     async getGroupDeletionData(groupId: string): Promise<{
         expenses: FirebaseFirestore.QuerySnapshot;
@@ -1370,25 +1048,7 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
-    async getDocumentForTesting(collection: string, docId: string): Promise<any | null> {
-        try {
-            const doc = await this.db.collection(collection).doc(docId).get();
-            return doc.exists ? { id: doc.id, ...doc.data() } : null;
-        } catch (error) {
-            logger.error('Failed to get document for testing', error);
-            throw error;
-        }
-    }
 
-    async verifyDocumentExists(collection: string, docId: string): Promise<boolean> {
-        try {
-            const doc = await this.db.collection(collection).doc(docId).get();
-            return doc.exists;
-        } catch (error) {
-            logger.error('Failed to verify document exists', error);
-            throw error;
-        }
-    }
 
     async getExpensesForGroupPaginated(
         groupId: string,
@@ -1542,31 +1202,7 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
-    async getSystemMetrics(metricType: string): Promise<any | null> {
-        try {
-            const snapshot = await this.db.collection('system-metrics').where('type', '==', metricType).orderBy('timestamp', 'desc').limit(1).get();
 
-            if (snapshot.empty) {
-                return null;
-            }
-
-            const doc = snapshot.docs[0];
-            return { id: doc.id, ...doc.data() };
-        } catch (error) {
-            logger.error('Failed to get system metrics', error);
-            throw error;
-        }
-    }
-
-    async addSystemMetrics(metricData: any): Promise<string> {
-        try {
-            const docRef = await this.db.collection('system-metrics').add(metricData);
-            return docRef.id;
-        } catch (error) {
-            logger.error('Failed to add system metrics', error);
-            throw error;
-        }
-    }
 
     async verifyGroupMembership(groupId: string, userId: string): Promise<boolean> {
         try {
@@ -1581,107 +1217,11 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getSubcollectionDocument(parentCollection: string, parentDocId: string, subcollectionName: string, docId: string): Promise<any | null> {
-        try {
-            const doc = await this.db.collection(parentCollection).doc(parentDocId).collection(subcollectionName).doc(docId).get();
 
-            return doc.exists ? { id: doc.id, ...doc.data() } : null;
-        } catch (error) {
-            logger.error('Failed to get subcollection document', error);
-            throw error;
-        }
-    }
 
-    async getTestUsersByStatus(status: string, limit: number = 10): Promise<FirebaseFirestore.DocumentSnapshot[]> {
-        try {
-            const snapshot = await this.db.collection('test-user-pool').where('status', '==', status).limit(limit).get();
 
-            return snapshot.docs;
-        } catch (error) {
-            logger.error('Failed to get test users by status', error);
-            throw error;
-        }
-    }
 
-    async getTestUserInTransaction(transaction: FirebaseFirestore.Transaction, email: string): Promise<any | null> {
-        try {
-            const docRef = this.db.collection('test-user-pool').doc(email);
-            const doc = await transaction.get(docRef);
-            return doc.exists ? { id: doc.id, ...doc.data() } : null;
-        } catch (error) {
-            logger.error('Failed to get test user in transaction', error);
-            throw error;
-        }
-    }
 
-    async queryWithComplexFilters(
-        collection: string,
-        filters: Array<{
-            field: string;
-            operator: FirebaseFirestore.WhereFilterOp;
-            value: any;
-        }>,
-        options?: {
-            orderBy?: { field: string; direction: 'asc' | 'desc' };
-            limit?: number;
-            startAfter?: FirebaseFirestore.DocumentSnapshot;
-        },
-    ): Promise<FirebaseFirestore.DocumentSnapshot[]> {
-        try {
-            let query: FirebaseFirestore.Query = this.db.collection(collection);
-
-            // Apply filters
-            for (const filter of filters) {
-                query = query.where(filter.field, filter.operator, filter.value);
-            }
-
-            // Apply ordering
-            if (options?.orderBy) {
-                query = query.orderBy(options.orderBy.field, options.orderBy.direction);
-            }
-
-            // Apply limit
-            if (options?.limit) {
-                query = query.limit(options.limit);
-            }
-
-            // Apply startAfter cursor
-            if (options?.startAfter) {
-                query = query.startAfter(options.startAfter);
-            }
-
-            const snapshot = await query.get();
-            return snapshot.docs;
-        } catch (error) {
-            logger.error('Failed to query with complex filters', error);
-            throw error;
-        }
-    }
-
-    async getUserLanguagePreference(userId: string): Promise<string | null> {
-        try {
-            const userDoc = await this.db.collection(FirestoreCollections.USERS).doc(userId).get();
-            if (!userDoc.exists) {
-                return null;
-            }
-
-            const userData = userDoc.data();
-            return userData?.language || userData?.locale || null;
-        } catch (error) {
-            logger.error('Failed to get user language preference', error);
-            throw error;
-        }
-    }
-
-    async getRawDocument(collection: string, docId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
-        try {
-            const doc = await this.db.collection(collection).doc(docId).get();
-            return doc.exists ? doc : null;
-        } catch (error) {
-            logger.error('Failed to get raw document', error, { collection, docId });
-            throw error;
-        }
-    }
 
     async getRawDocumentInTransaction(transaction: FirebaseFirestore.Transaction, collection: string, docId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
         try {
@@ -1694,45 +1234,6 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async findShareLinkByTokenInTransaction(transaction: FirebaseFirestore.Transaction, token: string): Promise<{ groupId: string; shareLink: ParsedShareLink } | null> {
-        try {
-            const groupsSnapshot = await this.db.collection(FirestoreCollections.GROUPS).get();
-
-            for (const groupDoc of groupsSnapshot.docs) {
-                const shareLinksRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupDoc.id).collection('shareLinks');
-                const shareLinksSnapshot = await shareLinksRef.where('token', '==', token).limit(1).get();
-
-                if (!shareLinksSnapshot.empty) {
-                    const shareLinkDoc = shareLinksSnapshot.docs[0];
-                    const shareLinkData = shareLinkDoc.data();
-
-                    try {
-                        const parsedShareLink = ShareLinkDocumentSchema.parse({
-                            ...shareLinkData,
-                            id: shareLinkDoc.id,
-                        });
-
-                        return {
-                            groupId: groupDoc.id,
-                            shareLink: parsedShareLink,
-                        };
-                    } catch (parseError) {
-                        logger.warn('Invalid share link data found', {
-                            groupId: groupDoc.id,
-                            shareLinkId: shareLinkDoc.id,
-                            parseError,
-                        });
-                        continue;
-                    }
-                }
-            }
-
-            return null;
-        } catch (error) {
-            logger.error('Failed to find share link by token in transaction', error, { token });
-            throw error;
-        }
-    }
 
     async getRawGroupDocument(groupId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
         try {
@@ -1798,26 +1299,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getRawDocumentInTransactionWithRef(transaction: FirebaseFirestore.Transaction, docRef: DocumentReference): Promise<FirebaseFirestore.DocumentSnapshot | null> {
-        try {
-            const doc = await transaction.get(docRef);
-            return doc.exists ? doc : null;
-        } catch (error) {
-            logger.error('Failed to get raw document in transaction with ref', error, { docRefPath: docRef.path });
-            throw error;
-        }
-    }
 
-    async getSystemDocumentInTransaction(transaction: FirebaseFirestore.Transaction, docId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
-        try {
-            const docRef = this.db.collection('system').doc(docId);
-            const doc = await transaction.get(docRef);
-            return doc.exists ? doc : null;
-        } catch (error) {
-            logger.error('Failed to get system document in transaction', error, { docId });
-            throw error;
-        }
-    }
 
     async getGroupMembershipsInTransaction(transaction: FirebaseFirestore.Transaction, groupId: string): Promise<FirebaseFirestore.QuerySnapshot> {
         try {

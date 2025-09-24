@@ -40,7 +40,7 @@ describe('FirestoreReader', () => {
 
         // Collection operations
         expect(typeof reader.getUsersById).toBe('function');
-        expect(typeof reader.getGroupsForUser).toBe('function');
+        expect(typeof reader.getGroupsForUserV2).toBe('function');
         expect(typeof reader.getExpensesForGroup).toBe('function');
 
         // Transaction operations

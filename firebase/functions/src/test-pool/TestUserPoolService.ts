@@ -1,6 +1,7 @@
 import type { IFirestoreReader, IFirestoreWriter } from '../services/firestore';
 import { UserService } from '../services/UserService2';
 import type { IAuthService } from '../services/auth';
+import { getFirestore } from '../firebase';
 
 export interface PoolUser {
     token: string;
@@ -20,6 +21,7 @@ const POOL_COLLECTION = 'test-user-pool';
 
 export class TestUserPoolService {
     private static instance: TestUserPoolService;
+    private readonly db = getFirestore();
 
     private constructor(
         private readonly firestoreReader: IFirestoreReader,
@@ -39,12 +41,17 @@ export class TestUserPoolService {
         // Use transaction to atomically claim an available user
         const result = await this.firestoreWriter.runTransaction(
             async (transaction) => {
-                // Query for available users using FirestoreReader
-                const availableUsers = await this.firestoreReader.getTestUsersByStatus('available', 1);
+                // Query for available users directly within transaction
+                // Since we deleted the deprecated getTestUsersByStatus method,
+                // we implement this query directly using the Firestore instance
+                const availableUsersQuery = this.db.collection(POOL_COLLECTION)
+                    .where('status', '==', 'available')
+                    .limit(1);
+                const availableUsersSnapshot = await transaction.get(availableUsersQuery);
 
-                if (availableUsers.length > 0) {
+                if (!availableUsersSnapshot.empty) {
                     // Found an available user - claim it atomically
-                    const doc = availableUsers[0];
+                    const doc = availableUsersSnapshot.docs[0];
                     const data = doc.data() as FirestorePoolUser;
 
                     // Update status to borrowed within transaction

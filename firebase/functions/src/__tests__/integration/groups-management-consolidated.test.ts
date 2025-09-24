@@ -1348,7 +1348,7 @@ describe('Groups Management - Consolidated Tests', () => {
             // COMPREHENSIVE VERIFICATION: ALL subcollections should be completely deleted
 
             // 1. Main group document should be deleted - use FirestoreReader method
-            const groupExists = await firestoreReader.verifyDocumentExists(FirestoreCollections.GROUPS, groupId);
+            const groupExists = await firestoreReader.documentExists(FirestoreCollections.GROUPS, groupId);
             expect(groupExists).toBe(false);
 
             // 2. Use group deletion data method to verify all subcollections are empty
@@ -1366,7 +1366,7 @@ describe('Groups Management - Consolidated Tests', () => {
             // 5. All top-level GROUP_MEMBERSHIPS documents should be deleted - use FirestoreReader
             for (const user of groupUsers) {
                 const topLevelDocId = getTopLevelMembershipDocId(user.uid, groupId);
-                const membershipExists = await firestoreReader.verifyDocumentExists(FirestoreCollections.GROUP_MEMBERSHIPS, topLevelDocId);
+                const membershipExists = await firestoreReader.documentExists(FirestoreCollections.GROUP_MEMBERSHIPS, topLevelDocId);
                 expect(membershipExists).toBe(false);
             }
 

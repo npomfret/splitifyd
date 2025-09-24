@@ -84,14 +84,6 @@ export interface IFirestoreReader {
     // Collection Read Operations - Group-related
     // ========================================================================
 
-    /**
-     * Get all groups where the user is a member with pagination support
-     * @param userId - The user ID
-     * @param options - Query options for pagination and filtering
-     * @returns Paginated result containing group documents, hasMore flag, and nextCursor
-     * @deprecated Use getGroupsForUserV2 instead for better database-level ordering and pagination
-     */
-    getGroupsForUser(userId: string, options?: QueryOptions): Promise<PaginatedResult<GroupDocument[]>>;
 
     /**
      * Get all groups where the user is a member using V2 implementation (top-level collection)
@@ -149,25 +141,6 @@ export interface IFirestoreReader {
      */
     getExpensesForGroup(groupId: string, options?: QueryOptions): Promise<ExpenseDocument[]>;
 
-    /**
-     * Get all expenses for a specific user (where user is a participant)
-     * @param userId - The user ID
-     * @param options - Query options for pagination and filtering
-     * @returns Object with expenses array, hasMore flag, and nextCursor
-     * @deprecated This method is not used and will be removed in a future version
-     */
-    getUserExpenses(
-        userId: string,
-        options?: {
-            limit?: number;
-            cursor?: string;
-            includeDeleted?: boolean;
-        },
-    ): Promise<{
-        expenses: ExpenseDocument[];
-        hasMore: boolean;
-        nextCursor?: string;
-    }>;
 
     /**
      * Get expense history for a specific expense
@@ -244,14 +217,6 @@ export interface IFirestoreReader {
      */
     getUserInTransaction(transaction: Transaction, userId: string): Promise<UserDocument | null>;
 
-    /**
-     * Get multiple documents within a transaction context
-     * @param transaction - The transaction context
-     * @param refs - Array of document references to read
-     * @returns Array of document snapshots
-     * @deprecated This method is not used and will be removed in a future version
-     */
-    getMultipleInTransaction<T>(transaction: Transaction, refs: DocumentReference[]): Promise<T[]>;
 
     // ========================================================================
     // Real-time Subscription Operations
@@ -277,20 +242,7 @@ export interface IFirestoreReader {
      */
     documentExists(collection: string, documentId: string): Promise<boolean>;
 
-    /**
-     * Get a system document by path
-     * @param docPath - The document path (e.g., 'system/colorAssignment')
-     * @returns Document data or null if not found
-     * @deprecated This method is not used and will be removed in a future version. Use getSystemDocumentInTransaction if needed.
-     */
-    getSystemDocument(docPath: string): Promise<any | null>;
 
-    /**
-     * Get health check document for testing Firestore connectivity
-     * @returns Health check result
-     * @deprecated This method is not used and will be removed in a future version
-     */
-    getHealthCheckDocument(): Promise<any | null>;
 
     // ========================================================================
     // User Notification Operations
@@ -374,91 +326,7 @@ export interface IFirestoreReader {
      */
     getCommentByReference(commentDocRef: FirebaseFirestore.DocumentReference): Promise<ParsedComment | null>;
 
-    // ========================================================================
-    // Test User Pool Operations
-    // ========================================================================
 
-    /**
-     * Get an available test user from the pool
-     * @returns Available test user or null if none available
-     * @deprecated This method is only used in tests and will be removed in a future version. Use TestUserPoolService directly.
-     */
-    getAvailableTestUser(): Promise<any | null>;
-
-    /**
-     * Get a test user by email
-     * @param email - The test user email
-     * @returns Test user document or null if not found
-     * @deprecated This method is only used in tests and will be removed in a future version. Use TestUserPoolService directly.
-     */
-    getTestUser(email: string): Promise<any | null>;
-
-    /**
-     * Get test user pool status with counts
-     * @returns Pool status with available, borrowed, and total counts
-     * @deprecated This method is only used in tests and will be removed in a future version. Use TestUserPoolService directly.
-     */
-    getTestUserPoolStatus(): Promise<{ available: number; borrowed: number; total: number }>;
-
-    /**
-     * Get all borrowed test users for cleanup operations
-     * @returns Array of borrowed test user documents
-     * @deprecated This method is only used in tests and will be removed in a future version. Use TestUserPoolService directly.
-     */
-    getBorrowedTestUsers(): Promise<FirebaseFirestore.QueryDocumentSnapshot[]>;
-
-    // ========================================================================
-    // System Metrics Operations
-    // ========================================================================
-
-    /**
-     * Get old documents for cleanup operations
-     * @param collection - The collection name
-     * @param cutoffDate - The cutoff date for old documents
-     * @param limit - Maximum number of documents to return
-     * @returns Array of document snapshots
-     * @deprecated This method is not used and will be removed in a future version
-     */
-    getOldDocuments(collection: string, cutoffDate: Date, limit?: number): Promise<FirebaseFirestore.DocumentSnapshot[]>;
-
-    /**
-     * Get old documents for cleanup operations with custom timestamp field
-     * @param collection - The collection name
-     * @param timestampField - The timestamp field name
-     * @param cutoffDate - The cutoff date for old documents
-     * @param limit - Maximum number of documents to return
-     * @returns Array of old document snapshots
-     * @deprecated This method is not used and will be removed in a future version
-     */
-    getOldDocumentsByField(collection: string, timestampField: string, cutoffDate: Date, limit?: number): Promise<FirebaseFirestore.DocumentSnapshot[]>;
-
-    /**
-     * Get a batch of documents from a collection (for deletion operations)
-     * @param collection - The collection name
-     * @param limit - Maximum number of documents to return
-     * @returns Array of document snapshots
-     * @deprecated This method is not used and will be removed in a future version
-     */
-    getDocumentsBatch(collection: string, limit?: number): Promise<FirebaseFirestore.DocumentSnapshot[]>;
-
-    /**
-     * Get metrics documents based on timestamp field
-     * @param collection - The collection name
-     * @param timestampField - The timestamp field name
-     * @param cutoffTimestamp - The cutoff timestamp
-     * @param limit - Maximum number of documents to return
-     * @returns Array of document snapshots
-     * @deprecated This method is not used and will be removed in a future version
-     */
-    getMetricsDocuments(collection: string, timestampField: string, cutoffTimestamp: any, limit?: number): Promise<FirebaseFirestore.DocumentSnapshot[]>;
-
-    /**
-     * Get the size of a collection
-     * @param collection - The collection name
-     * @returns The number of documents in the collection
-     * @deprecated This method is not used and will be removed in a future version
-     */
-    getCollectionSize(collection: string): Promise<number>;
 
     // ========================================================================
     // Group Related Collections Operations
@@ -477,27 +345,6 @@ export interface IFirestoreReader {
         expenseComments: FirebaseFirestore.QuerySnapshot[];
     }>;
 
-    // ========================================================================
-    // Test and Development Helper Operations
-    // ========================================================================
-
-    /**
-     * Get a document for testing purposes (generic method)
-     * @param collection - The collection name
-     * @param docId - The document ID
-     * @returns Document data or null if not found
-     * @deprecated This method is not used and will be removed in a future version. Use specific, typed methods instead.
-     */
-    getDocumentForTesting(collection: string, docId: string): Promise<any | null>;
-
-    /**
-     * Verify if a document exists for testing purposes
-     * @param collection - The collection name
-     * @param docId - The document ID
-     * @returns True if document exists, false otherwise
-     * @deprecated This method is not used and will be removed in a future version. Use documentExists instead.
-     */
-    verifyDocumentExists(collection: string, docId: string): Promise<boolean>;
 
     // ========================================================================
     // Settlement Query Operations
@@ -528,21 +375,6 @@ export interface IFirestoreReader {
     // System Document Operations
     // ========================================================================
 
-    /**
-     * Get system metrics document
-     * @param metricType - The type of metric to retrieve
-     * @returns System metric document or null if not found
-     * @deprecated This method is not used and will be removed in a future version
-     */
-    getSystemMetrics(metricType: string): Promise<any | null>;
-
-    /**
-     * Add system metrics document
-     * @param metricData - The metric data to store
-     * @returns Document ID of the created metric
-     * @deprecated This method is not used and will be removed in a future version. Write operations belong in IFirestoreWriter.
-     */
-    addSystemMetrics(metricData: any): Promise<string>;
 
     // ========================================================================
     // Group Membership Verification
@@ -560,89 +392,14 @@ export interface IFirestoreReader {
     // Subcollection Operations
     // ========================================================================
 
-    /**
-     * Get a document from a subcollection
-     * @param parentCollection - The parent collection name
-     * @param parentDocId - The parent document ID
-     * @param subcollectionName - The subcollection name
-     * @param docId - The document ID within the subcollection
-     * @returns Document data or null if not found
-     * @deprecated This method is not used and will be removed in a future version. Use specific, typed methods instead.
-     */
-    getSubcollectionDocument(parentCollection: string, parentDocId: string, subcollectionName: string, docId: string): Promise<any | null>;
 
-    // ========================================================================
-    // Test User Pool Operations (Enhanced)
-    // ========================================================================
 
-    /**
-     * Get available test users with query filtering
-     * @param status - The status to filter by ('available', 'borrowed')
-     * @param limit - Maximum number of users to return
-     * @returns Array of test user documents
-     * @deprecated This method is only used by TestUserPoolService and will be removed in a future version. Use TestUserPoolService directly.
-     */
-    getTestUsersByStatus(status: string, limit?: number): Promise<FirebaseFirestore.DocumentSnapshot[]>;
 
-    /**
-     * Get a specific test user document within a transaction
-     * @param transaction - The transaction context
-     * @param email - The test user email
-     * @returns Test user document or null if not found
-     * @deprecated This method is only used in tests and will be removed in a future version. Use TestUserPoolService directly.
-     */
-    getTestUserInTransaction(transaction: FirebaseFirestore.Transaction, email: string): Promise<any | null>;
-
-    // ========================================================================
-    // Complex Query Operations
-    // ========================================================================
-
-    /**
-     * Execute complex queries with multiple filters
-     * @param collection - The collection name
-     * @param filters - Array of filter conditions
-     * @param options - Query options for ordering and pagination
-     * @returns Array of document snapshots
-     * @deprecated This method is not used and will be removed in a future version. Use specific, typed query methods instead.
-     */
-    queryWithComplexFilters(
-        collection: string,
-        filters: Array<{
-            field: string;
-            operator: FirebaseFirestore.WhereFilterOp;
-            value: any;
-        }>,
-        options?: {
-            orderBy?: { field: string; direction: 'asc' | 'desc' };
-            limit?: number;
-            startAfter?: FirebaseFirestore.DocumentSnapshot;
-        },
-    ): Promise<FirebaseFirestore.DocumentSnapshot[]>;
-
-    // ========================================================================
-    // User Language Preference Operations
-    // ========================================================================
-
-    /**
-     * Get user language preference from user document
-     * @param userId - The user ID
-     * @returns User's language preference or null if not found
-     * @deprecated This method has limited usage and will be removed in a future version. Consider using getUser and extracting the preference.
-     */
-    getUserLanguagePreference(userId: string): Promise<string | null>;
 
     // ========================================================================
     // Raw Document Access (for special cases like optimistic locking)
     // ========================================================================
 
-    /**
-     * Get raw document data with metadata for optimistic locking scenarios
-     * @param collection - Collection name
-     * @param docId - Document ID
-     * @returns Raw document snapshot or null if not found
-     * @deprecated - the collection should be encapsulated
-     */
-    getRawDocument(collection: string, docId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
 
     /**
      * Get raw document data in a transaction
@@ -653,14 +410,6 @@ export interface IFirestoreReader {
      */
     getRawDocumentInTransaction(transaction: Transaction, collection: string, docId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
 
-    /**
-     * Find share link by token in a transaction
-     * @param transaction - Firestore transaction
-     * @param token - Share link token
-     * @returns Share link data and group ID or null if not found
-     * @deprecated This method is not used and will be removed in a future version. Use findShareLinkByToken if needed.
-     */
-    findShareLinkByTokenInTransaction(transaction: Transaction, token: string): Promise<{ groupId: string; shareLink: ParsedShareLink } | null>;
 
     /**
      * Get raw group document for optimistic locking scenarios
@@ -708,23 +457,7 @@ export interface IFirestoreReader {
      */
     getRawUserDocumentInTransaction(transaction: Transaction, userId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
 
-    /**
-     * Get any raw document in a transaction with DocumentReference for optimistic locking
-     * @param transaction - Firestore transaction
-     * @param docRef - The document reference
-     * @returns Raw document snapshot or null if not found
-     * @deprecated This method is not used and will be removed in a future version. Use specific typed methods instead.
-     */
-    getRawDocumentInTransactionWithRef(transaction: Transaction, docRef: DocumentReference): Promise<FirebaseFirestore.DocumentSnapshot | null>;
 
-    /**
-     * Get system document in a transaction
-     * @param transaction - Firestore transaction
-     * @param docId - The document ID in the system collection
-     * @returns Raw document snapshot or null if not found
-     * @deprecated This method is not used and will be removed in a future version
-     */
-    getSystemDocumentInTransaction(transaction: Transaction, docId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
 
     /**
      * Get group membership documents in a transaction

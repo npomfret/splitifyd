@@ -32,7 +32,6 @@ export class MockFirestoreReader implements IFirestoreReader {
     public getPolicy = vi.fn();
     public getAllPolicies = vi.fn();
     public getUsersById = vi.fn();
-    public getGroupsForUser = vi.fn();
     public getGroupsForUserV2 = vi.fn();
     public getGroupMembers = vi.fn();
     public getGroupMember = vi.fn();
@@ -43,7 +42,6 @@ export class MockFirestoreReader implements IFirestoreReader {
     // Note: getRecentGroupChanges removed as GROUP_CHANGES collection was unused
     public getGroupInTransaction = vi.fn();
     public getUserInTransaction = vi.fn();
-    public getMultipleInTransaction = vi.fn();
     public documentExists = vi.fn();
 
     // New methods added to interface
@@ -55,25 +53,11 @@ export class MockFirestoreReader implements IFirestoreReader {
     public getCommentsForTarget = vi.fn();
     public getComment = vi.fn();
     public getCommentByReference = vi.fn();
-    public getAvailableTestUser = vi.fn();
-    public getTestUser = vi.fn();
-    public getTestUserPoolStatus = vi.fn();
-    public getBorrowedTestUsers = vi.fn();
-    public getOldDocuments = vi.fn();
-    public getOldDocumentsByField = vi.fn();
-    public getDocumentsBatch = vi.fn();
-    public getMetricsDocuments = vi.fn();
-    public getCollectionSize = vi.fn();
 
     // New methods added for centralized Firestore access
-    public getUserExpenses = vi.fn();
     public getExpenseHistory = vi.fn();
     public getExpensesForGroupPaginated = vi.fn();
-    public getSystemDocument = vi.fn();
-    public getHealthCheckDocument = vi.fn();
     public getGroupDeletionData = vi.fn();
-    public getDocumentForTesting = vi.fn();
-    public verifyDocumentExists = vi.fn();
 
     // ========================================================================
     // Test Utility Methods
@@ -151,7 +135,7 @@ export class MockFirestoreReader implements IFirestoreReader {
             totalEstimate: groups.length + (hasMore ? 10 : 0),
         };
 
-        this.getGroupsForUser.mockResolvedValue(paginatedResult);
+        this.getGroupsForUserV2.mockResolvedValue(paginatedResult);
 
         // Also mock individual group gets
         groups.forEach((group) => {
@@ -163,53 +147,10 @@ export class MockFirestoreReader implements IFirestoreReader {
 
     /**
      * Mock paginated groups with specific pagination behavior
-     * Useful for testing pagination edge cases
+     * Useful for testing pagination edge cases - using V2 method
      */
     public mockPaginatedGroups(userId: string, allGroups: GroupDocument[], pageSize: number = 10): void {
-        this.getGroupsForUser.mockImplementation(async (uid, options) => {
-            if (uid !== userId) {
-                return { data: [], hasMore: false };
-            }
-
-            const limit = options?.limit || pageSize;
-            const cursor = options?.cursor;
-
-            let startIndex = 0;
-            if (cursor) {
-                try {
-                    const cursorData = JSON.parse(Buffer.from(cursor, 'base64').toString());
-                    const cursorIndex = allGroups.findIndex((group) => group.id === cursorData.lastGroupId);
-                    if (cursorIndex >= 0) {
-                        startIndex = cursorIndex + 1;
-                    }
-                } catch (error) {
-                    // Invalid cursor, start from beginning
-                }
-            }
-
-            const endIndex = startIndex + limit;
-            const pageData = allGroups.slice(startIndex, endIndex);
-            const hasMore = endIndex < allGroups.length;
-
-            let nextCursor: string | undefined;
-            if (hasMore && pageData.length > 0) {
-                const lastGroup = pageData[pageData.length - 1];
-                const cursorData = {
-                    lastGroupId: lastGroup.id,
-                    lastUpdatedAt: lastGroup.updatedAt,
-                };
-                nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
-            }
-
-            return {
-                data: pageData,
-                hasMore,
-                nextCursor,
-                totalEstimate: allGroups.length,
-            };
-        });
-
-        // Also mock the V2 method with the same implementation
+        // Mock the V2 method with pagination logic
         this.getGroupsForUserV2.mockImplementation(async (uid, options) => {
             if (uid !== userId) {
                 return { data: [], hasMore: false };
@@ -253,6 +194,8 @@ export class MockFirestoreReader implements IFirestoreReader {
             };
         });
     }
+
+
 
     // ========================================================================
     // Data Builder Helpers
@@ -409,27 +352,18 @@ export class MockFirestoreReader implements IFirestoreReader {
         nextCursor: undefined,
     });
 
-    getSystemMetrics = vi.fn().mockResolvedValue(null);
 
-    addSystemMetrics = vi.fn().mockResolvedValue('mock-metric-id');
 
     verifyGroupMembership = vi.fn().mockResolvedValue(true);
 
-    getSubcollectionDocument = vi.fn().mockResolvedValue(null);
 
-    getTestUsersByStatus = vi.fn().mockResolvedValue([]);
 
-    getTestUserInTransaction = vi.fn().mockResolvedValue(null);
 
-    queryWithComplexFilters = vi.fn().mockResolvedValue([]);
 
-    getUserLanguagePreference = vi.fn().mockResolvedValue('en');
 
-    getRawDocument = vi.fn().mockResolvedValue(null);
 
     getRawDocumentInTransaction = vi.fn().mockResolvedValue(null);
 
-    findShareLinkByTokenInTransaction = vi.fn().mockResolvedValue(null);
 
     // New encapsulated raw document methods
     getRawGroupDocument = vi.fn().mockResolvedValue(null);
@@ -440,7 +374,5 @@ export class MockFirestoreReader implements IFirestoreReader {
     getRawExpenseDocumentInTransaction = vi.fn().mockResolvedValue(null);
     getRawSettlementDocumentInTransaction = vi.fn().mockResolvedValue(null);
     getRawUserDocumentInTransaction = vi.fn().mockResolvedValue(null);
-    getRawDocumentInTransactionWithRef = vi.fn().mockResolvedValue(null);
-    getSystemDocumentInTransaction = vi.fn().mockResolvedValue(null);
     getGroupMembershipsInTransaction = vi.fn().mockResolvedValue({ empty: true, docs: [] });
 }

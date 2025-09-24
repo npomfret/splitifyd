@@ -77,8 +77,9 @@ export function i18nMiddleware() {
             // Try to get user's preferred language if authenticated
             const userId = (req as any).user?.uid;
             if (userId) {
-                const userLanguage = await firestoreReader.getUserLanguagePreference(userId);
-                if (userLanguage) {
+                const user = await firestoreReader.getUser(userId);
+                const userLanguage = (user?.language || user?.locale) as string;
+                if (userLanguage && typeof userLanguage === 'string') {
                     selectedLanguage = userLanguage;
                 } else {
                     // Fall back to Accept-Language header
