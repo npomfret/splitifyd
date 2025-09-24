@@ -315,13 +315,6 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Gets the confirmation delete button (second delete button in dialog)
-     */
-    getDeleteConfirmButton() {
-        return this.page.getByRole('button', {name: 'Delete'}).nth(1);
-    }
-
-    /**
      * Clicks on an expense by its description to view details
      * Returns the ExpenseDetailPage for further interactions
      */

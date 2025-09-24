@@ -11,28 +11,6 @@ export class HomepagePage extends BasePage {
         await this.navigateToHomepage();
     }
 
-    getPricingLink() {
-        // Pricing link is in the footer, not header
-        return this.page.getByText('Pricing').first();
-    }
-
-    getLoginLink() {
-        // Login appears as a button in header - use test ID for consistency
-        return this.page.getByTestId('header-login-link');
-    }
-
-    getSignUpLink() {
-        // Sign Up appears as a button in header - use test ID to be specific
-        return this.page.getByTestId('header-signup-link');
-    }
-
-    // Content sections
-    getMainHeading() {
-        return this.page.getByRole('heading', {
-            name: 'Effortless Bill Splitting, Simplified & Smart.',
-        });
-    }
-
     // Footer links
     getTermsLink() {
         return this.page.getByText('Terms of Service').first();
@@ -40,15 +18,5 @@ export class HomepagePage extends BasePage {
 
     getPrivacyLink() {
         return this.page.getByText('Privacy Policy').first();
-    }
-
-    // Logo
-    getLogo() {
-        return this.page.getByTestId('header-logo-link').locator('img');
-    }
-
-    getLogoLink() {
-        // Use the test ID added to the logo button
-        return this.page.getByTestId('header-logo-link');
     }
 }

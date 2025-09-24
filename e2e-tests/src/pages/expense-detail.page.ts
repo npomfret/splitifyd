@@ -194,28 +194,6 @@ export class ExpenseDetailPage extends BasePage {
         }
 
     /**
-     * Get the current split amounts from the split section
-     */
-    private async getCurrentSplitAmounts(): Promise<string> {
-        // Use the data-testid we added to the SplitBreakdown component
-        const splitAmountElements = this.page.getByTestId('split-amount');
-        const count = await splitAmountElements.count();
-
-        if (count === 0) {
-            return 'no split amounts found (missing data-testid="split-amount")';
-        }
-
-        const amounts: string[] = [];
-        for (let i = 0; i < count; i++) {
-            const text = await splitAmountElements.nth(i).textContent() || '';
-            // Normalize non-breaking spaces to regular spaces for easier test matching
-            amounts.push(text.trim().replace(/\u00A0/g, ' '));
-        }
-
-        return amounts.join(', ');
-    }
-
-    /**
      * Wait for expense description to be visible (polls until found)
      * @param description - The expense description text
      * @param timeout - Optional timeout in milliseconds

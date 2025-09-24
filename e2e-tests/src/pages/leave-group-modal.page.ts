@@ -51,10 +51,4 @@ export class LeaveGroupModalPage extends BasePage {
             throw new Error('The error message for leaving with an outstanding balance did not appear within 10 seconds');
         }
     }
-
-    async assertOutstandingBalanceMessage(): Promise<void> {
-        // Look for the specific outstanding balance message text
-        const balanceMessage = this.dialog.getByText(/You have an outstanding balance in this group\. Please settle up before leaving\./i);
-        await expect(balanceMessage).toBeVisible({ timeout: 1000 });
-    }
 }

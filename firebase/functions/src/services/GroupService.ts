@@ -1046,51 +1046,6 @@ export class GroupService {
         }
     }
 
-    private async _getGroupBalances(
-        groupId: string,
-        userId: string,
-    ): Promise<{
-        groupId: string;
-        simplifiedDebts: any;
-        lastUpdated: string;
-        balancesByCurrency: Record<string, any>;
-    }> {
-        if (!userId) {
-            throw Errors.UNAUTHORIZED();
-        }
-
-        if (!groupId) {
-            throw Errors.MISSING_FIELD('groupId');
-        }
-
-        const groupData = await this.firestoreReader.getGroup(groupId);
-
-        if (!groupData) {
-            throw Errors.NOT_FOUND('Group');
-        }
-
-        // Validate user access using scalable membership check
-        const membersData = await this.userService.getUsers([userId]);
-        if (!membersData.has(userId)) {
-            throw Errors.FORBIDDEN();
-        }
-
-        // Check if user is a member using the async helper
-        if (!(await this.groupMemberService.isGroupMemberAsync(groupId, userId))) {
-            throw Errors.FORBIDDEN();
-        }
-
-        // Always calculate balances on-demand for accurate data
-        const balances = await this.balanceService.calculateGroupBalances(groupId);
-
-        return {
-            groupId: balances.groupId,
-            simplifiedDebts: balances.simplifiedDebts,
-            lastUpdated: balances.lastUpdated,
-            balancesByCurrency: balances.balancesByCurrency || {},
-        };
-    }
-
     /**
      * Get comprehensive group details including members, expenses, balances, and settlements
      * @param groupId Group ID

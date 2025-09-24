@@ -102,22 +102,6 @@ export const BUTTON_TEXTS = {
     LOAD_MORE_SETTLEMENTS: translation.settlementHistory.loadMore,
 } as const;
 
-export const MESSAGES = {
-    ALL_SETTLED_UP: translation.common.allSettledUp,
-    ALL_SETTLED_UP_BALANCE: translation.balanceSummary.allSettledUp,
-    NO_EXPENSES_YET: translation.expensesList.noExpensesYet,
-    NO_PAYMENTS_YET: translation.settlementHistory.noPaymentsYet,
-    WELCOME_BACK: /Welcome (back|to Splitifyd)/i,
-    LOADING_BALANCES: translation.balanceSummary.loadingBalances,
-    LOADING_EXPENSE_FORM: translation.common.loadingExpenseForm,
-    CHECKING_AUTH: translation.common.checkingAuth,
-    INVALID_LINK: translation.common.invalidLink,
-    NO_GROUPS_YET: translation.emptyGroupsState.title,
-    SETTLED_UP: translation.groupCard.settledUp,
-    NO_RECENT_ACTIVITY: translation.groupCard.noRecentActivity,
-    RECENT_AMOUNTS: translation.expenseBasicFields.recentAmounts,
-} as const;
-
 export const FORM_LABELS = {
     DESCRIPTION: translation.expenseBasicFields.descriptionLabel,
     AMOUNT: translation.expenseBasicFields.amountLabel,

@@ -27,12 +27,6 @@ export class StubFirestoreReader implements IFirestoreReader {
         this.documents.set(`${collection}/${id}`, data);
     }
 
-    setCollectionDocuments(collection: string, documents: any[]) {
-        documents.forEach(doc => {
-            this.setDocument(collection, doc.id, doc);
-        });
-    }
-
     setRawDocument(id: string, data: any) {
         if (data === null) {
             this.rawDocuments.delete(id);
@@ -156,28 +150,12 @@ export class StubFirestoreReader implements IFirestoreReader {
     }
     async verifyDocumentExists(): Promise<boolean> { return false; }
     async getSettlementsForGroupPaginated(): Promise<any> { return { settlements: [], hasMore: false }; }
-    async getRawDocumentSnapshot(): Promise<any | null> { return null; }
 
     // Missing methods from interface
     async getSystemMetrics(): Promise<any | null> { return null; }
     async addSystemMetrics(): Promise<string> { return 'metric-id'; }
     async verifyGroupMembership(): Promise<boolean> { return false; }
     async getSubcollectionDocument(): Promise<any | null> { return null; }
-    async searchUsersByEmail(): Promise<any[]> { return []; }
-    async searchUsersByName(): Promise<any[]> { return []; }
-    async getFirestoreStats(): Promise<any> { return {}; }
-    async getDocumentWithRetries(): Promise<any | null> { return null; }
-    async streamDocumentChanges(): Promise<any> { return null; }
-    async getDocumentVersion(): Promise<any | null> { return null; }
-    async validateUserEmailUnique(): Promise<boolean> { return true; }
-    async getExpensesByDateRange(): Promise<any[]> { return []; }
-    async getSettlementsByDateRange(): Promise<any[]> { return []; }
-    async getUserActivityLog(): Promise<any[]> { return []; }
-    async getGroupActivityLog(): Promise<any[]> { return []; }
-    async getDocumentHistory(): Promise<any[]> { return []; }
-    async getBulkDocuments(): Promise<any[]> { return []; }
-    async streamCollectionChanges(): Promise<any> { return null; }
-    async getDocumentRevisions(): Promise<any[]> { return []; }
     async getTestUsersByStatus(): Promise<any[]> { return []; }
     async getTestUserInTransaction(): Promise<any | null> { return null; }
     async queryWithComplexFilters(): Promise<any[]> { return []; }
@@ -215,36 +193,6 @@ export class StubFirestoreReader implements IFirestoreReader {
     async getRawUserDocumentInTransaction(): Promise<any | null> { return null; }
     async getSystemDocumentInTransaction(): Promise<any | null> { return null; }
 
-    // Legacy methods that might still be called
-    async getUserNotifications(): Promise<any> { return null; }
-    async getUserNotificationsForGroups(): Promise<any> { return null; }
-    async getGroupBalances(): Promise<any> { return null; }
-    async getBalanceChangesForUser(): Promise<any> { return null; }
-    async getTransactionChangesForUser(): Promise<any> { return null; }
-    async getGroupChangesForUser(): Promise<any> { return null; }
-    async getSystemStats(): Promise<any> { return null; }
-    async getHealthStatus(): Promise<any> { return null; }
-    async getCollectionForTesting(): Promise<any> { return null; }
-    async getTestUserPool(): Promise<any> { return null; }
-    async queryDocumentsByField(): Promise<any> { return null; }
-    async queryDocumentsByDateRange(): Promise<any> { return null; }
-    async queryDocumentsWithPagination(): Promise<any> { return null; }
-    async getDocumentInTransaction(): Promise<any> { return null; }
-    async queryDocumentsInTransaction(): Promise<any> { return null; }
-    async getMultipleDocumentsInTransaction(): Promise<any> { return null; }
-    async validateDocumentExists(): Promise<any> { return null; }
-    async validateUserAccess(): Promise<any> { return null; }
-    async getExpensesWithFilters(): Promise<any> { return null; }
-    async getGroupMembersWithMetadata(): Promise<any> { return null; }
-    async getExpenseParticipants(): Promise<any> { return null; }
-    async createDocumentListener(): Promise<any> { return null; }
-    async createCollectionListener(): Promise<any> { return null; }
-    async getMembershipsByUserId(): Promise<any> { return null; }
-    async getMembershipByUserAndGroup(): Promise<any> { return null; }
-    async queryExpensesByDateRange(): Promise<any> { return null; }
-    async querySettlementsByDateRange(): Promise<any> { return null; }
-    async queryGroupsByCreatedDate(): Promise<any> { return null; }
-    async getShareLinkByCode(): Promise<any> { return null; }
 }
 
 /**
@@ -477,10 +425,6 @@ export class StubAuthService implements IAuthService {
         if (fullUser.phoneNumber) {
             this.usersByPhone.set(fullUser.phoneNumber, fullUser);
         }
-    }
-
-    setCustomToken(uid: string, token: string) {
-        this.customTokens.set(uid, token);
     }
 
     setDecodedToken(token: string, decoded: DecodedIdToken) {

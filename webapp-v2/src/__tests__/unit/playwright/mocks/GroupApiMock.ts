@@ -100,17 +100,6 @@ export class GroupApiMock {
         });
     }
 
-    async mockGroupSettlements(groupId: string, settlements: any[]): Promise<void> {
-        await this.page.route(`**/api/groups/${groupId}/settlements`, (route) => {
-            if (route.request().method() === 'GET') {
-                const response = MockResponseBuilder.success(settlements).build();
-                route.fulfill(response);
-            } else {
-                route.continue();
-            }
-        });
-    }
-
     async mockAllGroupsWithScenario(scenario: 'empty' | 'success' | 'error' | 'slow', groups: any[] = []): Promise<void> {
         switch (scenario) {
             case 'empty':

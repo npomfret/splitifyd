@@ -488,10 +488,6 @@ export class ExpenseFormPage extends BasePage {
         return this.page.getByRole('button', { name: 'Yesterday' });
     }
 
-    getThisMorningButton() {
-        return this.page.getByRole('button', { name: 'This Morning' });
-    }
-
     getLastNightButton() {
         return this.page.getByRole('button', { name: 'Last Night' });
     }
@@ -563,23 +559,8 @@ export class ExpenseFormPage extends BasePage {
         return this.page.locator('input[aria-haspopup="listbox"]').first();
     }
 
-    getCategorySuggestion(text: string) {
-        return this.page.getByRole('option', { name: new RegExp(text, 'i') });
-    }
-
     async typeCategoryText(text: string) {
         const categoryInput = this.getCategoryInput();
         await this.fillPreactInput(categoryInput, text);
-    }
-
-    getPercentageText() {
-        return this.page.getByText('Percentage', { exact: true });
-    }
-
-    /**
-     * Get split amount inputs (for exact amounts validation)
-     */
-    getSplitAmountInputs(): Locator {
-        return this.page.locator('input[type="number"][step]').filter({ hasText: '' });
     }
 }

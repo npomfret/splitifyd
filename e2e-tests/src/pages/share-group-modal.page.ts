@@ -17,24 +17,12 @@ export class ShareGroupModalPage extends BasePage {
         return this.getModalDialog().locator('input[type="text"]');
     }
 
-    getCopyButton(): Locator {
-        return this.getModalDialog().getByTestId('copy-link-button');
-    }
-
     getCloseButton(): Locator {
         return this.getModalDialog().getByTestId('close-share-modal-button');
     }
 
     getLoadingSpinner(): Locator {
         return this.getModalDialog().locator('.animate-spin');
-    }
-
-    getErrorMessage(): Locator {
-        return this.getModalDialog().getByTestId('share-group-error-message');
-    }
-
-    getQRCode(): Locator {
-        return this.getModalDialog().locator('canvas'); // QR code is rendered as canvas
     }
 
     async waitForModalVisible(): Promise<void> {

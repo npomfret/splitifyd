@@ -7,7 +7,6 @@ import { generateShortId } from '@splitifyd/test-support';
 export class TestScenarios {
     // Static instances to ensure consistency within test runs
     private static _validUser: { email: string; password: string; displayName: string } | null = null;
-    private static _anotherValidUser: { email: string; password: string; displayName: string } | null = null;
 
     // User data scenarios
     static get validUser() {

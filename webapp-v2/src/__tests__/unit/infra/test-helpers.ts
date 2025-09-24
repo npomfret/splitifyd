@@ -782,12 +782,6 @@ export async function testFormValidation(page: Page, requiredFields: string[], s
 
 // === KEYBOARD NAVIGATION HELPER FUNCTIONS ===
 
-export interface KeyboardShortcutTest {
-    key: string;
-    expectedElement?: string;
-    expectedAction?: () => Promise<void>;
-}
-
 // Helper function for testing keyboard navigation regardless of auth redirects
 export async function testKeyboardNavigationWithAuthRedirect(page: Page, expectedSelectors?: string[]): Promise<void> {
     // Wait for potential auth redirect - use proper state detection
@@ -886,27 +880,6 @@ export async function testReverseTabOrder(page: Page, selectors: string[]): Prom
         } catch (error) {
             console.log(`Element ${selectors[i]} not focusable in reverse order: ${error instanceof Error ? error.message : String(error)}`);
         }
-    }
-}
-
-export async function testFocusTrap(page: Page, containerSelector: string, focusableSelectors: string[]): Promise<void> {
-    const container = page.locator(containerSelector);
-    await expect(container).toBeVisible();
-
-    // Tab through all focusable elements within the container
-    for (const selector of focusableSelectors) {
-        const element = container.locator(selector);
-        if (await element.count() > 0) {
-            await element.focus();
-            await expect(element).toBeFocused();
-        }
-    }
-
-    // Test that focus stays within container when reaching the end
-    await page.keyboard.press('Tab');
-    const firstFocusable = container.locator(focusableSelectors[0]);
-    if (await firstFocusable.count() > 0) {
-        await expect(firstFocusable).toBeFocused();
     }
 }
 

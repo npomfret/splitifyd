@@ -95,7 +95,6 @@ simpleTest.describe('Real-time Comments', () => {
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         const [user1GroupDetailPage, user2GroupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
-        const groupId = user1GroupDetailPage.inferGroupId();
 
         // Create expense
         const expenseFormPage = await user1GroupDetailPage.clickAddExpenseButton(2);

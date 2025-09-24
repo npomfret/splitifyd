@@ -11,7 +11,6 @@ export class SettingsPage extends BasePage {
     // URL and button texts (using translation-based constants)
     readonly url = '/settings';
     readonly changePasswordButtonText = SETTINGS_TEXTS.CHANGE_PASSWORD_BUTTON;
-    readonly saveChangesButtonText = SETTINGS_TEXTS.SAVE_CHANGES_BUTTON;
     readonly updatePasswordButtonText = SETTINGS_TEXTS.UPDATE_PASSWORD_BUTTON;
     readonly cancelButtonText = SETTINGS_TEXTS.CANCEL_BUTTON;
 
