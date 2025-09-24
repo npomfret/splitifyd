@@ -17,6 +17,7 @@ import { NotificationService } from './notification-service';
 import { IAuthService } from './auth';
 import { FirebaseAuthService } from './auth';
 import * as admin from 'firebase-admin';
+import {BalanceCalculationService} from "./balance";
 
 export class ApplicationBuilder {
     // Base infrastructure - created once
@@ -67,7 +68,7 @@ export class ApplicationBuilder {
                 this.buildAuthService(),
             );
         }
-        return this.userService;
+        return this.userService!;
     }
 
     buildGroupService(): GroupService {
@@ -124,7 +125,8 @@ export class ApplicationBuilder {
 
     buildGroupMemberService(): GroupMemberService {
         if (!this.groupMemberService) {
-            this.groupMemberService = new GroupMemberService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildUserService());
+            const balanceCalculationService = new BalanceCalculationService(this.buildFirestoreReader(), this.buildUserService());
+            this.groupMemberService = new GroupMemberService(this.buildFirestoreReader(), this.buildFirestoreWriter(), balanceCalculationService);
         }
         return this.groupMemberService;
     }

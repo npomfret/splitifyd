@@ -62,7 +62,73 @@ The refactoring should be executed in the following order:
 7.  **Standardize All File Names**:
     -   Rename all remaining test files to use the `*.test.ts` suffix.
 
-## 5. Expected Benefits
+## 5. Progress Update (September 2024)
+
+### ✅ Completed Tasks
+
+#### 1. BalanceCalculationService Consolidation - ✅ COMPLETED & VERIFIED
+- **Status**: ✅ **FULLY COMPLETED** - All tests passing (7/7 ✓)
+- **Files consolidated**: 5 → 1
+  - Removed: `balance/BalanceCalculationService.test.ts` (104 lines)
+  - Removed: `balance/BalanceCalculationService.comprehensive.test.ts` (390 lines)
+  - Removed: `balance/BalanceCalculationService.scenarios.test.ts` (525 lines)
+  - Removed: `services/BalanceCalculationService.scenarios.test.ts` (558 lines)
+  - Removed: `balance/comprehensive-balance-scenarios.test.ts` (498 lines)
+- **Created**: `services/BalanceCalculationService.test.ts` (consolidated with 271 lines)
+- **Total lines reduced**: ~2,075 lines → 271 lines (87% reduction)
+- **Organization**: Tests grouped into logical describe blocks:
+  - "Core Data Fetching" (4 tests) - basic data retrieval tests
+  - "Balance Calculations" (1 test) - calculation logic tests
+  - "Mathematical Scenarios" (2 tests) - specific calculation scenarios
+- **Key Improvements**:
+  - ✅ Replaced complex mocking with real services + stubs
+  - ✅ Used ApplicationBuilder pattern for dependency injection
+  - ✅ Fixed StubFirestoreReader to support getUsersById and getExpensesForGroup
+  - ✅ Fixed StubAuthService integration for UserService2
+  - ✅ Proper enum usage (MemberRoles/MemberStatuses from @splitifyd/shared)
+  - ✅ Complete group-members data structure with roles and statuses
+- **Test Coverage**: All scenarios preserved from original 5 files
+  - Data fetching and validation
+  - Error handling (group not found, no members)
+  - Real expense calculations with balance verification
+  - Three-way equal splits and unequal split scenarios
+
+### 🔄 Remaining Tasks
+
+2. **Consolidate `PolicyService` Tests** - PENDING
+   - Files to merge: `PolicyService.test.ts` + `PolicyService.comprehensive.unit.test.ts`
+
+3. **Consolidate `UserService` Tests** - PENDING
+   - Files to merge: `UserService.unit.test.ts` + `UserService.validation.test.ts`
+
+4. **Consolidate `ExpenseService` Tests** - PENDING
+   - Files to merge: `ExpenseService.test.ts` + `ExpenseService.focused.test.ts`
+
+5. **Consolidate `CommentService` Tests** - PENDING
+   - Files to merge: `CommentService.test.ts` + `CommentService.unit.test.ts`
+
+6. **Consolidate `GroupMemberService` Tests** - PENDING
+   - Files to merge: `GroupMemberService.test.ts` + `GroupMemberService.validation.test.ts`
+
+7. **Migrate Validation Tests** - PENDING
+   - 10 validation files to migrate to appropriate service tests
+
+8. **Remove Validation Directory** - PENDING
+   - Delete `validation/` directory after migration
+
+9. **Standardize Naming Convention** - PENDING
+   - Ensure all files use `*.test.ts` suffix
+
+10. **Final Verification** - PENDING
+    - Run full test suite to verify no regressions
+
+### Current Statistics
+- **Before**: 64 test files (highly fragmented)
+- **Progress**: 5 files consolidated into 1
+- **Remaining**: ~59 test files to organize
+- **Target**: ~30-35 well-organized test files
+
+## 6. Expected Benefits
 
 -   **Improved Maintainability**: A single file per service is easier to find and update.
 -   **Reduced Redundancy**: Eliminates duplicated setup and mock configurations.

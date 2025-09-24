@@ -11,14 +11,12 @@ import { MemberRoles } from '@splitifyd/shared';
 import { getTopLevelMembershipDocId, createTopLevelMembershipDocument } from '../utils/groupMembershipHelpers';
 
 export class GroupMemberService {
-    private balanceService: BalanceCalculationService;
 
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
-        userService: UserService,
+        private readonly balanceService: BalanceCalculationService,
     ) {
-        this.balanceService = new BalanceCalculationService(firestoreReader, userService);
     }
 
     async leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string }> {

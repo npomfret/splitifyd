@@ -80,8 +80,15 @@ export class StubFirestoreReader implements IFirestoreReader {
     }
 
     // Minimal implementations for other required methods
-    async getUsersById(): Promise<UserDocument[]> {
-        return [];
+    async getUsersById(userIds: string[]): Promise<UserDocument[]> {
+        const users: UserDocument[] = [];
+        for (const userId of userIds) {
+            const user = this.documents.get(`users/${userId}`);
+            if (user) {
+                users.push(user);
+            }
+        }
+        return users;
     }
     async getGroupsForUserV2(): Promise<any> {
         return { data: [], hasMore: false };
@@ -104,8 +111,14 @@ export class StubFirestoreReader implements IFirestoreReader {
     async getAllGroupMemberIds(): Promise<string[]> {
         return [];
     }
-    async getExpensesForGroup(): Promise<ExpenseDocument[]> {
-        return [];
+    async getExpensesForGroup(groupId: string): Promise<ExpenseDocument[]> {
+        const expenses: ExpenseDocument[] = [];
+        for (const [key, value] of this.documents.entries()) {
+            if (key.startsWith(`expenses/`) && value.groupId === groupId) {
+                expenses.push(value);
+            }
+        }
+        return expenses;
     }
     async getExpenseHistory(): Promise<any> {
         return { history: [], count: 0 };
