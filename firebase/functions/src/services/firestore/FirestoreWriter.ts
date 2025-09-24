@@ -681,224 +681,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    // ========================================================================
-    // Batch Operations
-    // ========================================================================
-
-    async batchWrite(operations: (batch: WriteBatch) => void): Promise<BatchWriteResult> {
-        return measureDb('FirestoreWriter.batchWrite', async () => {
-            try {
-                // WARNING: Batch operations cannot be automatically validated
-                logger.warn('Batch write operation started - ensure manual validation of all writes', {
-                    operation: 'batchWrite',
-                    recommendation: 'Validate all document changes before adding to batch',
-                });
-
-                const batch = this.db.batch();
-                operations(batch);
-
-                await batch.commit();
-
-                logger.info('Batch write completed successfully (unvalidated)');
-
-                return {
-                    successCount: 1, // We don't know exact count without tracking
-                    failureCount: 0,
-                    results: [],
-                };
-            } catch (error) {
-                logger.error('Batch write failed', error);
-                return {
-                    successCount: 0,
-                    failureCount: 1,
-                    results: [
-                        {
-                            id: '',
-                            success: false,
-                            error: error instanceof Error ? error.message : 'Unknown error',
-                        },
-                    ],
-                };
-            }
-        });
-    }
-
-    async bulkCreate<T>(collection: string, documents: T[]): Promise<BatchWriteResult> {
-        return measureDb('FirestoreWriter.bulkCreate', async () => {
-            const batch = this.db.batch();
-            const results: WriteResult[] = [];
-            let successCount = 0;
-            let failureCount = 0;
-
-            // WARNING: Bulk operations cannot validate individual documents
-            logger.warn('Bulk create operation used without individual document validation', {
-                collection,
-                documentCount: documents.length,
-                recommendation: 'Consider using individual create methods for validation',
-            });
-
-            try {
-                for (const doc of documents) {
-                    try {
-                        const docRef = this.db.collection(collection).doc();
-                        batch.set(docRef, {
-                            ...doc,
-                            createdAt: FieldValue.serverTimestamp(),
-                            updatedAt: FieldValue.serverTimestamp(),
-                        });
-
-                        results.push({
-                            id: docRef.id,
-                            success: true,
-                            timestamp: new Date() as any,
-                        });
-                        successCount++;
-                    } catch (error) {
-                        failureCount++;
-                        results.push({
-                            id: '',
-                            success: false,
-                            error: error instanceof Error ? error.message : 'Unknown error',
-                        });
-                    }
-                }
-
-                await batch.commit();
-
-                logger.info('Bulk create completed (unvalidated)', {
-                    collection,
-                    successCount,
-                    failureCount,
-                });
-
-                return { successCount, failureCount, results };
-            } catch (error) {
-                logger.error('Bulk create failed', error, { collection });
-                return {
-                    successCount: 0,
-                    failureCount: documents.length,
-                    results: documents.map(() => ({
-                        id: '',
-                        success: false,
-                        error: error instanceof Error ? error.message : 'Unknown error',
-                    })),
-                };
-            }
-        });
-    }
-
-    async bulkUpdate(updates: Map<string, any>): Promise<BatchWriteResult> {
-        return measureDb('FirestoreWriter.bulkUpdate', async () => {
-            const batch = this.db.batch();
-            const results: WriteResult[] = [];
-            let successCount = 0;
-            let failureCount = 0;
-
-            // WARNING: Bulk operations cannot validate individual documents
-            logger.warn('Bulk update operation used without individual document validation', {
-                updateCount: updates.size,
-                recommendation: 'Consider using individual update methods for validation',
-            });
-
-            try {
-                for (const [path, updateData] of updates) {
-                    try {
-                        const docRef = this.db.doc(path);
-                        batch.update(docRef, {
-                            ...updateData,
-                            updatedAt: FieldValue.serverTimestamp(),
-                        });
-
-                        results.push({
-                            id: path,
-                            success: true,
-                            timestamp: new Date() as any,
-                        });
-                        successCount++;
-                    } catch (error) {
-                        failureCount++;
-                        results.push({
-                            id: path,
-                            success: false,
-                            error: error instanceof Error ? error.message : 'Unknown error',
-                        });
-                    }
-                }
-
-                await batch.commit();
-
-                logger.info('Bulk update completed (unvalidated)', {
-                    successCount,
-                    failureCount,
-                });
-
-                return { successCount, failureCount, results };
-            } catch (error) {
-                logger.error('Bulk update failed', error);
-                return {
-                    successCount: 0,
-                    failureCount: updates.size,
-                    results: Array.from(updates.keys()).map((path) => ({
-                        id: path,
-                        success: false,
-                        error: error instanceof Error ? error.message : 'Unknown error',
-                    })),
-                };
-            }
-        });
-    }
-
-    async bulkDelete(documentPaths: string[]): Promise<BatchWriteResult> {
-        return measureDb('FirestoreWriter.bulkDelete', async () => {
-            const batch = this.db.batch();
-            const results: WriteResult[] = [];
-            let successCount = 0;
-            let failureCount = 0;
-
-            try {
-                for (const path of documentPaths) {
-                    try {
-                        const docRef = this.db.doc(path);
-                        batch.delete(docRef);
-
-                        results.push({
-                            id: path,
-                            success: true,
-                            timestamp: new Date() as any,
-                        });
-                        successCount++;
-                    } catch (error) {
-                        failureCount++;
-                        results.push({
-                            id: path,
-                            success: false,
-                            error: error instanceof Error ? error.message : 'Unknown error',
-                        });
-                    }
-                }
-
-                await batch.commit();
-
-                logger.info('Bulk delete completed', {
-                    successCount,
-                    failureCount,
-                });
-
-                return { successCount, failureCount, results };
-            } catch (error) {
-                logger.error('Bulk delete failed', error);
-                return {
-                    successCount: 0,
-                    failureCount: documentPaths.length,
-                    results: documentPaths.map((path) => ({
-                        id: path,
-                        success: false,
-                        error: error instanceof Error ? error.message : 'Unknown error',
-                    })),
-                };
-            }
-        });
-    }
 
     // ========================================================================
     // Transaction Operations
@@ -1040,106 +822,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         transaction.delete(docRef);
     }
 
-    // ========================================================================
-    // Generic Document Operations
-    // ========================================================================
-
-    async createDocument(documentPath: string, data: any): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.createDocument', async () => {
-            try {
-                // Add timestamps
-                const finalData = {
-                    ...data,
-                    createdAt: FieldValue.serverTimestamp(),
-                    updatedAt: FieldValue.serverTimestamp(),
-                };
-
-                // WARNING: Generic createDocument method cannot validate without schema
-                // Consider using type-specific create methods (createUser, createGroup, etc.)
-                logger.warn('Generic createDocument used without validation', {
-                    documentPath,
-                    recommendation: 'Use type-specific create methods for validation',
-                });
-
-                await this.db.doc(documentPath).set(finalData);
-
-                logger.info('Document created (unvalidated)', { documentPath });
-
-                return {
-                    id: documentPath,
-                    success: true,
-                    timestamp: new Date() as any,
-                };
-            } catch (error) {
-                logger.error('Failed to create document', error, { documentPath });
-                return {
-                    id: documentPath,
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
-
-    async updateDocument(documentPath: string, updates: any): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.updateDocument', async () => {
-            try {
-                // Add updated timestamp
-                const finalUpdates = {
-                    ...updates,
-                    updatedAt: FieldValue.serverTimestamp(),
-                };
-
-                // WARNING: Generic updateDocument method cannot validate without schema
-                // Consider using type-specific update methods (updateUser, updateGroup, etc.)
-                logger.warn('Generic updateDocument used without validation', {
-                    documentPath,
-                    fields: Object.keys(updates),
-                    recommendation: 'Use type-specific update methods for validation',
-                });
-
-                await this.db.doc(documentPath).update(finalUpdates);
-
-                logger.info('Document updated (unvalidated)', { documentPath, fields: Object.keys(updates) });
-
-                return {
-                    id: documentPath,
-                    success: true,
-                    timestamp: new Date() as any,
-                };
-            } catch (error) {
-                logger.error('Failed to update document', error, { documentPath });
-                return {
-                    id: documentPath,
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
-
-    async deleteDocument(documentPath: string): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.deleteDocument', async () => {
-            try {
-                await this.db.doc(documentPath).delete();
-
-                logger.info('Document deleted', { documentPath });
-
-                return {
-                    id: documentPath,
-                    success: true,
-                    timestamp: new Date() as any,
-                };
-            } catch (error) {
-                logger.error('Failed to delete document', error, { documentPath });
-                return {
-                    id: documentPath,
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
 
     // ========================================================================
     // Utility Operations
@@ -1409,6 +1091,59 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
+    /**
+     * Set user notifications with merge option
+     * @param userId - The user ID
+     * @param data - The notification data
+     * @param merge - Whether to merge with existing data
+     * @returns Write result
+     */
+    async setUserNotifications(userId: string, data: any, merge?: boolean): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.setUserNotifications', async () => {
+            try {
+                const finalData = {
+                    ...data,
+                    lastModified: FieldValue.serverTimestamp(),
+                };
+
+                // Validate the data being set (for non-merge operations or when merge=false)
+                let skipValidation = false;
+                if (!merge) {
+                    // Full document set - validate the entire document
+                    const result = this.safeValidateUpdate<CreateUserNotificationDocument>(UserNotificationDocumentSchema, finalData, 'UserNotificationDocument', userId, 'user-notifications');
+                    skipValidation = Boolean(result.skipValidation);
+                } else {
+                    // Merge operation with FieldValue - log as unvalidated but proceed
+                    logger.warn('User notification set with merge=true - validation skipped due to FieldValue operations', {
+                        userId,
+                        operation: 'setUserNotifications',
+                        merge: true,
+                        fields: Object.keys(data),
+                    });
+                    skipValidation = true;
+                }
+
+                await this.db.doc(`user-notifications/${userId}`).set(finalData, { merge: merge || false });
+
+                const logType = skipValidation ? '(merge operation)' : '(validated)';
+                logger.info(`User notifications set ${logType}`, { userId, merge, fields: Object.keys(data) });
+
+                return {
+                    id: userId,
+                    success: true,
+                    timestamp: new Date() as any,
+                };
+            } catch (error) {
+                logger.error('Failed to set user notifications', error, { userId });
+                return {
+                    id: userId,
+                    success: false,
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                };
+            }
+        });
+    }
+
     // ========================================================================
     // Share Link Operations
     // ========================================================================
@@ -1467,104 +1202,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    // ========================================================================
-    // Notification Operations
-    // ========================================================================
-
-    /**
-     * Update user notifications
-     * @param userId - The user ID
-     * @param updates - The notification updates
-     * @returns Write result
-     */
-    async updateUserNotifications(userId: string, updates: any): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.updateUserNotifications', async () => {
-            try {
-                const finalUpdates = {
-                    ...updates,
-                    lastModified: FieldValue.serverTimestamp(),
-                };
-
-                // Always try validation first, handle FieldValue operations gracefully
-                const documentPath = `user-notifications/${userId}`;
-                const mergedData = await this.fetchAndMergeForValidation(documentPath, finalUpdates, userId);
-
-                // Validate with graceful FieldValue handling
-                const validationResult = this.safeValidateUpdate<CreateUserNotificationDocument>(UserNotificationDocumentSchema, mergedData, 'UserNotificationDocument', userId, 'user-notifications');
-
-                await this.db.doc(`user-notifications/${userId}`).update(finalUpdates);
-
-                const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(validated)';
-                logger.info(`User notifications updated ${logType}`, { userId, fields: Object.keys(updates) });
-
-                return {
-                    id: userId,
-                    success: true,
-                    timestamp: new Date() as any,
-                };
-            } catch (error) {
-                logger.error('Failed to update user notifications', error, { userId });
-                return {
-                    id: userId,
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
-
-    /**
-     * Set user notifications with merge option
-     * @param userId - The user ID
-     * @param data - The notification data
-     * @param merge - Whether to merge with existing data
-     * @returns Write result
-     */
-    async setUserNotifications(userId: string, data: any, merge?: boolean): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.setUserNotifications', async () => {
-            try {
-                const finalData = {
-                    ...data,
-                    lastModified: FieldValue.serverTimestamp(),
-                };
-
-                // Validate the data being set (for non-merge operations or when merge=false)
-                let skipValidation = false;
-                if (!merge) {
-                    // Full document set - validate the entire document
-                    const result = this.safeValidateUpdate<CreateUserNotificationDocument>(UserNotificationDocumentSchema, finalData, 'UserNotificationDocument', userId, 'user-notifications');
-                    skipValidation = Boolean(result.skipValidation);
-                } else {
-                    // Merge operation with FieldValue - log as unvalidated but proceed
-                    logger.warn('User notification set with merge=true - validation skipped due to FieldValue operations', {
-                        userId,
-                        operation: 'setUserNotifications',
-                        merge: true,
-                        fields: Object.keys(data),
-                    });
-                    skipValidation = true;
-                }
-
-                await this.db.doc(`user-notifications/${userId}`).set(finalData, { merge: merge || false });
-
-                const logType = skipValidation ? '(merge operation)' : '(validated)';
-                logger.info(`User notifications set ${logType}`, { userId, merge, fields: Object.keys(data) });
-
-                return {
-                    id: userId,
-                    success: true,
-                    timestamp: new Date() as any,
-                };
-            } catch (error) {
-                logger.error('Failed to set user notifications', error, { userId });
-                return {
-                    id: userId,
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
 
     // ========================================================================
     // Policy Operations
@@ -1710,53 +1347,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         }
     }
 
-    // ========================================================================
-    // System Operations Implementation
-    // ========================================================================
-
-    /**
-     * Add system metrics document for monitoring
-     * @param metricsData - The metrics data to store
-     * @returns Write result with document ID
-     */
-    async addSystemMetrics(metricsData: any): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.addSystemMetrics', async () => {
-            try {
-                // Log warning for unvalidated system metrics operation
-                logger.warn('System metrics operation - no schema validation available', {
-                    operation: 'addSystemMetrics',
-                    fields: Object.keys(metricsData),
-                    type: metricsData.type,
-                });
-
-                const finalData = {
-                    ...metricsData,
-                    createdAt: FieldValue.serverTimestamp(),
-                };
-
-                const docRef = await this.db.collection('system-metrics').add(finalData);
-
-                logger.info('System metrics added (unvalidated)', {
-                    docId: docRef.id,
-                    type: metricsData.type,
-                    fields: Object.keys(metricsData),
-                });
-
-                return {
-                    id: docRef.id,
-                    success: true,
-                    timestamp: new Date() as any,
-                };
-            } catch (error) {
-                logger.error('Failed to add system metrics', error, { metricsData });
-                return {
-                    id: '',
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
 
     /**
      * Perform health check operations (lightweight connectivity check)
@@ -1791,93 +1381,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    // ========================================================================
-    // Test User Pool Operations Implementation
-    // ========================================================================
-
-    /**
-     * Create a test user in the user pool
-     * @param email - Test user email
-     * @param userData - Test user data including token and password
-     * @returns Write result
-     */
-    async createTestUser(email: string, userData: any): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.createTestUser', async () => {
-            try {
-                // Log warning for unvalidated test user operation
-                logger.warn('Test user operation - no schema validation available', {
-                    operation: 'createTestUser',
-                    email,
-                    fields: Object.keys(userData),
-                });
-
-                const finalData = {
-                    ...userData,
-                    createdAt: FieldValue.serverTimestamp(),
-                };
-
-                await this.db.collection('test-user-pool').doc(email).set(finalData);
-
-                logger.info('Test user created in pool (unvalidated)', {
-                    email,
-                    status: userData.status,
-                    fields: Object.keys(userData),
-                });
-
-                return {
-                    id: email,
-                    success: true,
-                    timestamp: new Date() as any,
-                };
-            } catch (error) {
-                logger.error('Failed to create test user', error, { email });
-                return {
-                    id: email,
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
-
-    /**
-     * Update test user status in the pool
-     * @param email - Test user email
-     * @param status - New status ('available' or 'borrowed')
-     * @returns Write result
-     */
-    async updateTestUserStatus(email: string, status: string): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.updateTestUserStatus', async () => {
-            try {
-                // Log warning for unvalidated test user update operation
-                logger.warn('Test user update operation - no schema validation available', {
-                    operation: 'updateTestUserStatus',
-                    email,
-                    status,
-                });
-
-                const updates = {
-                    status,
-                    lastModified: FieldValue.serverTimestamp(),
-                };
-
-                await this.db.collection('test-user-pool').doc(email).update(updates);
-
-                return {
-                    id: email,
-                    success: true,
-                    timestamp: new Date() as any,
-                };
-            } catch (error) {
-                logger.error('Failed to update test user status', error, { email, status });
-                return {
-                    id: email,
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
 
     // ========================================================================
     // Transaction Helper Methods (Phase 1 - Transaction Foundation)
@@ -1927,185 +1430,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    /**
-     * Get multiple documents within a transaction by paths
-     * @param transaction - The transaction context
-     * @param documentPaths - Array of document paths to fetch
-     * @returns Promise<Array<DocumentSnapshot | null>> Array of document snapshots (null for non-existent docs)
-     */
-    async getMultipleByPathsInTransaction(transaction: Transaction, documentPaths: string[]): Promise<Array<FirebaseFirestore.DocumentSnapshot | null>> {
-        if (!Array.isArray(documentPaths)) {
-            throw new Error('documentPaths must be an array');
-        }
-
-        if (documentPaths.length === 0) {
-            return [];
-        }
-
-        logger.info('Getting multiple documents in transaction', {
-            operation: 'getMultipleByPathsInTransaction',
-            documentCount: documentPaths.length,
-        });
-
-        const results: Array<FirebaseFirestore.DocumentSnapshot | null> = [];
-
-        for (const path of documentPaths) {
-            if (!path || typeof path !== 'string') {
-                throw new Error(`Invalid document path: ${path}`);
-            }
-
-            try {
-                const docRef = this.db.doc(path);
-                const doc = await transaction.get(docRef);
-                results.push(doc.exists ? doc : null);
-            } catch (error) {
-                logger.error('Failed to get document in transaction', error, {
-                    path,
-                    operation: 'getMultipleByPathsInTransaction',
-                });
-                throw new Error(`Failed to get document at path: ${path}`);
-            }
-        }
-
-        return results;
-    }
-
-    /**
-     * Create multiple documents within a transaction atomically
-     * @param transaction - The transaction context
-     * @param creates - Array of documents to create
-     * @returns Array of document references created
-     */
-    batchCreateInTransaction(
-        transaction: Transaction,
-        creates: Array<{
-            collection: string;
-            id?: string;
-            data: any;
-        }>,
-    ): DocumentReference[] {
-        if (!Array.isArray(creates)) {
-            throw new Error('creates must be an array');
-        }
-
-        if (creates.length === 0) {
-            logger.warn('batchCreateInTransaction called with empty creates array');
-            return [];
-        }
-
-        logger.info('Batch create in transaction initiated', {
-            operation: 'batchCreateInTransaction',
-            documentCount: creates.length,
-        });
-
-        const docRefs: DocumentReference[] = [];
-
-        for (const create of creates) {
-            if (!create.collection || typeof create.collection !== 'string') {
-                throw new Error(`Invalid collection name: ${create.collection}`);
-            }
-
-            if (!create.data || typeof create.data !== 'object') {
-                throw new Error('Document data must be an object');
-            }
-
-            try {
-                const docRef = create.id ? this.db.collection(create.collection).doc(create.id) : this.db.collection(create.collection).doc();
-
-                transaction.create(docRef, create.data);
-                docRefs.push(docRef);
-            } catch (error) {
-                logger.error('Failed to create document in transaction', error, {
-                    create,
-                    operation: 'batchCreateInTransaction',
-                });
-                throw new Error(`Failed to create document in collection: ${create.collection}`);
-            }
-        }
-
-        logger.info('Batch create in transaction completed', {
-            operation: 'batchCreateInTransaction',
-            documentCount: docRefs.length,
-        });
-
-        return docRefs;
-    }
-
-    /**
-     * Query and update multiple documents within a transaction
-     * @param transaction - The transaction context
-     * @param collectionPath - Collection to query
-     * @param queryConstraints - Query constraints (where clauses)
-     * @param updates - Updates to apply to all matched documents
-     * @returns Promise<number> Number of documents updated
-     */
-    async queryAndUpdateInTransaction(
-        transaction: Transaction,
-        collectionPath: string,
-        queryConstraints: Array<{ field: string; op: FirebaseFirestore.WhereFilterOp; value: any }>,
-        updates: Record<string, any>,
-    ): Promise<number> {
-        if (!collectionPath || typeof collectionPath !== 'string') {
-            throw new Error('collectionPath must be a non-empty string');
-        }
-
-        if (!Array.isArray(queryConstraints)) {
-            throw new Error('queryConstraints must be an array');
-        }
-
-        if (!updates || typeof updates !== 'object') {
-            throw new Error('updates must be an object');
-        }
-
-        logger.info('Query and update in transaction initiated', {
-            operation: 'queryAndUpdateInTransaction',
-            collection: collectionPath,
-            constraintCount: queryConstraints.length,
-        });
-
-        try {
-            // Start with the collection reference
-            let query: FirebaseFirestore.Query = this.db.collection(collectionPath);
-
-            // Apply all query constraints
-            for (const constraint of queryConstraints) {
-                if (!constraint.field || typeof constraint.field !== 'string') {
-                    throw new Error(`Invalid field name: ${constraint.field}`);
-                }
-                query = query.where(constraint.field, constraint.op, constraint.value);
-            }
-
-            // Execute query within the transaction (reads must come before writes)
-            const querySnapshot = await transaction.get(query);
-
-            logger.info('Query executed in transaction', {
-                operation: 'queryAndUpdateInTransaction',
-                documentsFound: querySnapshot.size,
-                collection: collectionPath,
-            });
-
-            // Update all matching documents
-            querySnapshot.docs.forEach((doc) => {
-                transaction.update(doc.ref, updates);
-            });
-
-            const updatedCount = querySnapshot.size;
-
-            logger.info('Query and update in transaction completed', {
-                operation: 'queryAndUpdateInTransaction',
-                documentsUpdated: updatedCount,
-                collection: collectionPath,
-            });
-
-            return updatedCount;
-        } catch (error) {
-            logger.error('Failed to query and update in transaction', error, {
-                collection: collectionPath,
-                operation: 'queryAndUpdateInTransaction',
-            });
-            throw new Error(`Failed to query and update documents in collection: ${collectionPath}`);
-        }
-    }
 
     // ========================================================================
     // Group Deletion and Recovery Operations
@@ -2118,85 +1442,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         return this.db.collection(collection).doc(documentId);
     }
 
-    /**
-     * Query groups by deletion status with timestamp filters
-     */
-    async queryGroupsByDeletionStatus(deletionStatus: string, cutoffTimestamp?: FirebaseFirestore.Timestamp, operator: FirebaseFirestore.WhereFilterOp = '<='): Promise<string[]> {
-        try {
-            logger.info('Querying groups by deletion status', {
-                deletionStatus,
-                cutoffTimestamp: cutoffTimestamp?.toDate(),
-                operator,
-                operation: 'queryGroupsByDeletionStatus',
-            });
-
-            let query = this.db.collection(FirestoreCollections.GROUPS).where('deletionStatus', '==', deletionStatus);
-
-            if (cutoffTimestamp) {
-                query = query.where('deletionStartedAt', operator, cutoffTimestamp);
-            }
-
-            const querySnapshot = await query.get();
-            const groupIds = querySnapshot.docs.map((doc: any) => doc.id);
-
-            logger.info('Groups deletion status query completed', {
-                deletionStatus,
-                foundCount: groupIds.length,
-                groupIds,
-                operation: 'queryGroupsByDeletionStatus',
-            });
-
-            return groupIds;
-        } catch (error) {
-            logger.error('Failed to query groups by deletion status', error, {
-                deletionStatus,
-                cutoffTimestamp: cutoffTimestamp?.toDate(),
-                operator,
-                operation: 'queryGroupsByDeletionStatus',
-            });
-            throw new Error(`Failed to query groups by deletion status: ${deletionStatus}`);
-        }
-    }
-
-    /**
-     * Get a single document by path (for non-transaction operations)
-     */
-    async getSingleDocument(collection: string, documentId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
-        try {
-            logger.info('Getting single document', {
-                collection,
-                documentId,
-                operation: 'getSingleDocument',
-            });
-
-            const docRef = this.db.collection(collection).doc(documentId);
-            const docSnapshot = await docRef.get();
-
-            if (!docSnapshot.exists) {
-                logger.info('Document not found', {
-                    collection,
-                    documentId,
-                    operation: 'getSingleDocument',
-                });
-                return null;
-            }
-
-            logger.info('Single document retrieved successfully', {
-                collection,
-                documentId,
-                operation: 'getSingleDocument',
-            });
-
-            return docSnapshot;
-        } catch (error) {
-            logger.error('Failed to get single document', error, {
-                collection,
-                documentId,
-                operation: 'getSingleDocument',
-            });
-            throw new Error(`Failed to get document: ${collection}/${documentId}`);
-        }
-    }
 
     async deleteMemberAndNotifications(membershipDocId: string, userId: string, groupId: string): Promise<BatchWriteResult> {
         return measureDb('FirestoreWriter.deleteMemberAndNotifications', async () => {

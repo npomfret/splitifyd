@@ -146,7 +146,9 @@ export class GroupMemberService {
             const topLevelDocId = getTopLevelMembershipDocId(memberDoc.userId, groupId);
             const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, new Date().toISOString());
 
-            await this.firestoreWriter.createDocument(`${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`, topLevelMemberDoc);
+            await this.firestoreWriter.runTransaction(async (transaction) => {
+                this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, topLevelDocId, topLevelMemberDoc);
+            });
 
             logger.info('Member added to top-level collection', {
                 groupId,
@@ -179,7 +181,9 @@ export class GroupMemberService {
         return measureDb('UPDATE_MEMBER', async () => {
             const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
 
-            await this.firestoreWriter.updateDocument(`${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`, updates);
+            await this.firestoreWriter.runTransaction(async (transaction) => {
+                this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`, updates);
+            });
 
             logger.info('Member updated in top-level collection', {
                 groupId,

@@ -336,29 +336,11 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     async deleteComment(): Promise<WriteResult> {
         return { id: 'comment', success: true, timestamp: Timestamp.now() };
     }
-    async batchWrite(): Promise<any> {
-        return { successCount: 0, failureCount: 0, results: [] };
-    }
-    async bulkCreate(): Promise<any> {
-        return { successCount: 0, failureCount: 0, results: [] };
-    }
-    async bulkUpdate(): Promise<any> {
-        return { successCount: 0, failureCount: 0, results: [] };
-    }
-    async bulkDelete(): Promise<any> {
-        return { successCount: 0, failureCount: 0, results: [] };
-    }
     createShareLinkInTransaction(): any {
         return { id: 'link', path: 'shareLinks/link' };
     }
     async updateGroupInTransaction(): Promise<WriteResult> {
         return { id: 'group', success: true, timestamp: Timestamp.now() };
-    }
-    async updateUserNotifications(): Promise<WriteResult> {
-        return { id: 'notification', success: true, timestamp: Timestamp.now() };
-    }
-    async setUserNotifications(): Promise<WriteResult> {
-        return { id: 'notification', success: true, timestamp: Timestamp.now() };
     }
     async createUserNotification(): Promise<WriteResult> {
         return { id: 'notification', success: true, timestamp: Timestamp.now() };
@@ -370,6 +352,9 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         return { id: 'notification', success: true, timestamp: Timestamp.now() };
     }
     async removeUserNotificationGroup(): Promise<WriteResult> {
+        return { id: 'notification', success: true, timestamp: Timestamp.now() };
+    }
+    async setUserNotifications(): Promise<WriteResult> {
         return { id: 'notification', success: true, timestamp: Timestamp.now() };
     }
     async setUserNotificationGroupInTransaction(): Promise<WriteResult> {
@@ -429,41 +414,14 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     async deleteInTransaction(): Promise<WriteResult> {
         return { id: 'doc', success: true, timestamp: Timestamp.now() };
     }
-    async createDocument(): Promise<WriteResult> {
-        return { id: 'doc', success: true, timestamp: Timestamp.now() };
-    }
-    async updateDocument(): Promise<WriteResult> {
-        return { id: 'doc', success: true, timestamp: Timestamp.now() };
-    }
-    async deleteDocument(): Promise<WriteResult> {
-        return { id: 'doc', success: true, timestamp: Timestamp.now() };
-    }
     generateDocumentId(): string {
         return 'generated-id';
-    }
-    async addSystemMetrics(): Promise<WriteResult> {
-        return { id: 'metrics', success: true, timestamp: Timestamp.now() };
     }
     async performHealthCheck(): Promise<{ success: boolean; responseTime: number }> {
         return { success: true, responseTime: 50 };
     }
-    async createTestUser(): Promise<WriteResult> {
-        return { id: 'test-user', success: true, timestamp: Timestamp.now() };
-    }
-    async updateTestUserStatus(): Promise<WriteResult> {
-        return { id: 'test-user', success: true, timestamp: Timestamp.now() };
-    }
     async bulkDeleteInTransaction(): Promise<any> {
         return { successCount: 0, failureCount: 0, results: [] };
-    }
-    async queryAndUpdateInTransaction(): Promise<any> {
-        return { successCount: 0, failureCount: 0, results: [] };
-    }
-    batchCreateInTransaction(): any[] {
-        return [];
-    }
-    async getMultipleByPathsInTransaction(): Promise<any> {
-        return [];
     }
     getDocumentReferenceInTransaction(transaction: any, collection: string, documentId: string): any {
         return {
@@ -471,12 +429,6 @@ export class StubFirestoreWriter implements IFirestoreWriter {
             path: `${collection}/${documentId}`,
             collection: { id: collection },
         };
-    }
-    async queryGroupsByDeletionStatus(): Promise<any> {
-        return [];
-    }
-    async getSingleDocument(): Promise<any> {
-        return null;
     }
     async deleteMemberAndNotifications(): Promise<any> {
         return { successCount: 1, failureCount: 0, results: [] };
