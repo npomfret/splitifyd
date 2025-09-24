@@ -86,13 +86,13 @@ An analysis of the codebase was performed to determine the test coverage for the
 | Feature Gap | Recommended Strategy | Status |
 | :--- | :--- | :--- |
 | Copy Expense | E2E Test | ✅ **COMPLETED** |
-| Expense Form Drafts | **Unit Test** | ❌ Not implemented |
-| Recent Amounts / Category Suggestions | **Component Test** | ❌ Not implemented |
+| Expense Form Drafts | **Unit Test** | ✅ **COMPLETED** |
+| Recent Amounts / Category Suggestions | **Component Test** | ✅ **COMPLETED** |
 | Group-Level Comments | E2E Test | ❌ Not implemented |
-| Hard Group Deletion | E2E and Component Test | ❌ Not implemented |
+| Hard Group Deletion | E2E and Component Test | ✅ **ALREADY EXISTS** |
 | Share Link Regeneration | E2E Test | ❌ Not implemented |
 | Real-time Connectivity Indicator | **Unit & Component Test** | ❌ Not implemented |
-| Settlement Editing/Deletion | E2E Test | ❌ Not implemented |
+| Settlement Editing/Deletion | E2E Test | ✅ **ALREADY EXISTS** |
 | Expense Split Logic (Exact Amount) | **Unit Test** | ✅ **COMPLETED** |
 
 ## Implementation Details
@@ -147,15 +147,90 @@ Based on this analysis, it is recommended to prioritize creating unit and compon
 - Validates data integrity for multi-user expense scenarios
 - Documents expected behavior for edge cases and error conditions
 
+### Expense Form Drafts Unit Tests Implementation (COMPLETED)
+
+**Files Created:**
+- `webapp-v2/src/__tests__/unit/vitest/stores/expense-form-store.test.ts` - Comprehensive unit tests for draft functionality
+
+**Key Implementation Notes:**
+- **Complete Coverage:** 21 test cases covering all draft lifecycle operations
+- **Storage Mocking:** Full UserScopedStorage interface mocking for isolated testing
+- **Edge Cases:** Thorough testing of 24-hour expiry logic, missing timestamps, corrupted data
+- **Integration Testing:** Validates draft clearing on successful expense creation/update
+- **Error Handling:** Tests graceful handling of storage errors and missing storage
+
+**Test Categories:**
+- **Draft Saving** (4 tests): Complete data serialization, empty form handling, storage errors
+- **Draft Loading** (7 tests): Valid data restoration, missing drafts, corrupted data, expiry logic
+- **Draft Clearing** (3 tests): Manual clearing, storage errors, missing storage scenarios
+- **Form Integration** (3 tests): Automatic clearing on save/update, error preservation
+- **Edge Cases** (4 tests): Boundary testing for 24-hour limit, missing timestamps, data integrity
+
+**Business Impact:**
+- Prevents user data loss during form interactions
+- Ensures reliable draft storage across user sessions
+- Validates proper cleanup after successful operations
+- Documents expected behavior for edge cases
+
+### Group Deletion and Settlement CRUD Status Update (ALREADY EXISTS)
+
+**Discovery:** Comprehensive E2E tests already exist for both features:
+
+#### Group Deletion - ALREADY EXISTS
+- **File:** `e2e-tests/src/__tests__/integration/core-features.e2e.test.ts` (lines 410-462)
+- **Page Object:** `e2e-tests/src/pages/edit-group-modal.page.ts`
+- **Coverage:**
+  - ✅ Confirmation modal with exact name matching
+  - ✅ Button state validation (disabled until correct name entered)
+  - ✅ Hard delete confirmation workflow
+  - ✅ Multi-user scenarios with real-time dashboard updates
+  - ✅ Member redirection when group deleted while viewing
+
+#### Settlement Editing/Deletion - ALREADY EXISTS
+- **File:** `e2e-tests/src/__tests__/integration/expense-and-balance-lifecycle.e2e.test.ts` (lines 596-706)
+- **Coverage:**
+  - ✅ Complete CRUD operations (Create, Read, Update, Delete)
+  - ✅ Edit form validation and pre-population
+  - ✅ Permission verification (edit/delete buttons for creators)
+  - ✅ Confirmation dialogs for deletion
+  - ✅ Cancellation flows (settlement remains after cancelled deletion)
+  - ✅ Form handling with invalid data scenarios
+
+### Recent Amounts/Category Suggestions Component Tests Implementation (COMPLETED)
+
+**Files Created:**
+- `webapp-v2/src/__tests__/unit/vitest/components/ExpenseBasicFields.test.tsx` - Comprehensive component tests for UI features
+
+**Key Implementation Notes:**
+- **Comprehensive Coverage:** 20 test cases covering both Recent Amounts and Category Suggestions features
+- **Component Testing:** Uses Preact Testing Library for isolated component rendering and interaction
+- **Mock Strategy:** Strategic mocking of dependencies (currency service, translations, UI components) for focused testing
+- **Integration Testing:** Tests interaction between Recent Amounts and Category Suggestions features
+- **Edge Case Handling:** Comprehensive testing of boundary conditions and error scenarios
+
+**Test Categories:**
+- **Recent Amounts Feature** (7 tests): Display logic, button interactions, formatting, edge cases
+- **Category Suggestions Feature** (6 tests): Component rendering, data passing, change handlers, empty states
+- **Integration Tests** (3 tests): Combined feature interaction, independent state management
+- **Error Handling** (4 tests): Null data handling, empty arrays, large values, decimal precision
+
+**UI Features Tested:**
+- **Recent Amounts:** Conditional display based on data availability, button generation with currency formatting, click handlers for amount selection
+- **Category Suggestions:** Dropdown functionality, predefined category passing, custom input handling, suggestion filtering
+
+**Business Impact:**
+- Ensures recent amounts feature improves user experience by providing quick expense entry
+- Validates category suggestions work correctly for faster expense categorization
+- Prevents UI regressions in form interaction components
+- Documents expected behavior for different data states
+
 **Priority Order for Remaining Gaps:**
 1. **Unit Tests** (fastest to implement):
    - ✅ ~~Exact Amount Split validation~~ **COMPLETED**
-   - Expense Form Drafts logic
+   - ✅ ~~Expense Form Drafts logic~~ **COMPLETED**
 2. **Component Tests** (moderate effort):
-   - Recent Amounts / Category Suggestions UI
+   - ✅ ~~Recent Amounts / Category Suggestions UI~~ **COMPLETED**
    - Real-time Connectivity Indicator
 3. **E2E Tests** (highest effort, highest value):
    - Group-Level Comments
-   - Hard Group Deletion
    - Share Link Regeneration
-   - Settlement Editing/Deletion
