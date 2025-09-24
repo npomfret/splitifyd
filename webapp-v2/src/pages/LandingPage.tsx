@@ -10,7 +10,7 @@ export function LandingPage() {
 
     return (
         <BaseLayout
-            title={t('landingPage.title')}
+            title={t('pages.landingPage.title')}
             description="Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent. It's 100% free, with no ads and no limits."
         >
             <div class="bg-white">
