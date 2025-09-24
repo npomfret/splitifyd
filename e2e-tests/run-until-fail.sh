@@ -17,8 +17,8 @@
 #   open -a "Google Chrome" "e2e-tests/playwright-report/ad-hoc/index.html"
 
 # edit these to pick your test cases
-TEST_FILE="src/__tests__/integration/expense-and-balance-lifecycle.e2e.test.ts"
-TEST_FILTER="Copy Expense Feature"
+TEST_FILE="src/__tests__/integration/core-features.e2e.test.ts"
+TEST_FILTER="group owner should not see leave button and should see settings with member UI elements"
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

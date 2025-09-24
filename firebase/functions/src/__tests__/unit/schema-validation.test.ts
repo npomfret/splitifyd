@@ -121,6 +121,8 @@ describe('Cross-Service Schema Validation', () => {
             uid: 'user-456',
             email: 'test@example.com',
             displayName: 'Test User',
+            emailVerified: true,
+            photoURL: null,
             initials: 'TU',
             joinedAt: '2024-01-01T00:00:00.000Z',
             memberRole: MemberRoles.MEMBER,

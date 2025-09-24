@@ -12,7 +12,7 @@ import { measureDb } from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import type { BalanceCalculationResult } from './balance';
-import type { UserProfile } from './UserService2';
+import type { RegisteredUser } from '@splitifyd/shared';
 import type { ExpenseDocument } from '../schemas';
 import type { SettlementDocument } from '../schemas';
 import { ExpenseMetadataService } from './expenseMetadataService';
@@ -420,7 +420,7 @@ export class GroupService {
 
                 // Get member profiles for this group
                 const memberIds = membersByGroup.get(group.id) || [];
-                const memberProfiles = new Map<string, UserProfile>();
+                const memberProfiles = new Map<string, RegisteredUser>();
                 for (const memberId of memberIds) {
                     const profile = allMemberProfiles.get(memberId);
                     if (profile) {

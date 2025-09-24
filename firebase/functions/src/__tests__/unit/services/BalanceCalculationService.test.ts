@@ -3,7 +3,7 @@ import { BalanceCalculationService } from '../../../services/balance';
 import {StubAuthService, StubFirestoreReader, StubFirestoreWriter} from '../mocks/firestore-stubs';
 import { FirestoreGroupBuilder, FirestoreExpenseBuilder, UserProfileBuilder } from '@splitifyd/test-support';
 import {ApplicationBuilder} from "../../../services/ApplicationBuilder";
-import { UserService } from '../../../services/user';
+import { UserService } from '../../../services/UserService2';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
 
 describe('BalanceCalculationService', () => {

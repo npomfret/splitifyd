@@ -260,14 +260,43 @@ export interface UserToken {
 
 export interface AuthenticatedFirebaseUser extends FirebaseUser, UserToken {}
 
+/**
+ * Complete registered user profile - the canonical user document type.
+ * This is the single source of truth for user data stored in Firestore.
+ */
 export interface RegisteredUser extends FirebaseUser {
+    // Firebase Auth fields
+    photoURL?: string | null; // Profile photo URL from Firebase Auth
+    emailVerified: boolean; // Email verification status
+
+    // System administration
     role?: SystemUserRole; // Role field for admin access control
+
+    // Policy acceptance tracking
     termsAcceptedAt?: Date | FirestoreTimestamp; // Legacy timestamp field
     cookiePolicyAcceptedAt?: Date | FirestoreTimestamp; // Legacy timestamp field
     acceptedPolicies?: Record<string, string>; // Map of policyId -> versionHash
+
+    // User preferences
     themeColor?: UserThemeColor; // Automatic theme color assignment
     preferredLanguage?: string; // User's preferred language code (e.g., 'en', 'es', 'fr')
+
+    // Document timestamps
+    createdAt?: Date | FirestoreTimestamp; // When the user document was created
+    updatedAt?: Date | FirestoreTimestamp; // When the user document was last updated
 }
+
+/**
+ * Minimal user data for authentication context.
+ * Used in middleware and request context where only auth fields are needed.
+ */
+export type AuthenticatedUser = Pick<RegisteredUser, 'uid' | 'email' | 'displayName' | 'role'>;
+
+/**
+ * User data for client-side applications.
+ * Contains all fields needed by the frontend, excluding sensitive server-only data.
+ */
+export type ClientUser = Pick<RegisteredUser, 'uid' | 'email' | 'displayName' | 'emailVerified' | 'photoURL' | 'themeColor' | 'preferredLanguage'>;
 
 // ========================================================================
 // Policy Types - For versioned terms and cookie policy acceptance

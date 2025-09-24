@@ -18,20 +18,6 @@ import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import type { IAuthService } from './auth';
 import { type GroupMemberDocument, GroupMembersResponse, GroupMemberWithProfile } from '@splitifyd/shared/src';
 
-/**
- * User profile interface for consistent user data across the application
- */
-export interface UserProfile {
-    uid: string;
-    email: string;
-    displayName: string;
-    photoURL: string | null;
-    emailVerified: boolean;
-    themeColor?: string;
-    preferredLanguage?: string;
-    createdAt?: Timestamp;
-    updatedAt?: Timestamp;
-}
 
 /**
  * Result of a successful user registration
@@ -84,15 +70,19 @@ export class UserService {
     }
 
     /**
-     * Creates a UserProfile from Firebase Auth record and Firestore data
+     * Creates a RegisteredUser from Firebase Auth record and Firestore data
      */
-    private createUserProfile(userRecord: UserRecord & { email: string; displayName: string }, firestoreData: any): UserProfile {
+    private createUserProfile(userRecord: UserRecord & { email: string; displayName: string }, firestoreData: any): RegisteredUser {
         return {
             uid: userRecord.uid,
             email: userRecord.email,
             displayName: userRecord.displayName,
             photoURL: userRecord.photoURL || null,
             emailVerified: userRecord.emailVerified,
+            role: firestoreData?.role,
+            termsAcceptedAt: firestoreData?.termsAcceptedAt,
+            cookiePolicyAcceptedAt: firestoreData?.cookiePolicyAcceptedAt,
+            acceptedPolicies: firestoreData?.acceptedPolicies,
             themeColor: firestoreData?.themeColor,
             preferredLanguage: firestoreData?.preferredLanguage,
             createdAt: firestoreData?.createdAt,
@@ -106,11 +96,11 @@ export class UserService {
      * @returns The user's profile data
      * @throws If user is not found or an error occurs
      */
-    async getUser(userId: string): Promise<UserProfile> {
+    async getUser(userId: string): Promise<RegisteredUser> {
         return measureDb('UserService2.getUser', async () => this._getUser(userId));
     }
 
-    private async _getUser(userId: string): Promise<UserProfile> {
+    private async _getUser(userId: string): Promise<RegisteredUser> {
         LoggerContext.update({ userId });
 
         try {
@@ -149,14 +139,14 @@ export class UserService {
     /**
      * Get multiple user profiles by UIDs (batch operation)
      */
-    async getUsers(uids: string[]): Promise<Map<string, UserProfile>> {
+    async getUsers(uids: string[]): Promise<Map<string, RegisteredUser>> {
         return measureDb('UserService2.getUsers', async () => this._getUsers(uids));
     }
 
-    private async _getUsers(uids: string[]): Promise<Map<string, UserProfile>> {
+    private async _getUsers(uids: string[]): Promise<Map<string, RegisteredUser>> {
         LoggerContext.update({ operation: 'batch-get-users', userCount: uids.length });
 
-        const result = new Map<string, UserProfile>();
+        const result = new Map<string, RegisteredUser>();
 
         // Fetch all users in batches (Firebase Auth supports up to 100 users per batch)
         if (uids.length > 0) {
@@ -173,7 +163,7 @@ export class UserService {
     /**
      * Fetch a batch of users and add to result map
      */
-    private async fetchUserBatch(uids: string[], result: Map<string, UserProfile>): Promise<void> {
+    private async fetchUserBatch(uids: string[], result: Map<string, RegisteredUser>): Promise<void> {
         const getUsersResult = await this.authService.getUsers(uids.map((uid) => ({ uid })));
 
         // Process found users
@@ -202,11 +192,11 @@ export class UserService {
      * @returns The updated user profile
      * @throws ApiError if update fails
      */
-    async updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<UserProfile> {
+    async updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<RegisteredUser> {
         return measureDb('UserService2.updateProfile', async () => this._updateProfile(userId, requestBody, language));
     }
 
-    private async _updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<UserProfile> {
+    private async _updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<RegisteredUser> {
         LoggerContext.update({ userId, operation: 'update-profile' });
 
         // Validate the request body with localized error messages
@@ -415,6 +405,8 @@ export class UserService {
                     initials: '?',
                     email: '',
                     displayName: 'Unknown User',
+                    emailVerified: false, // Default for unknown users
+                    photoURL: null,
                     themeColor: memberDoc.theme,
                     // Group membership metadata
                     joinedAt: memberDoc.joinedAt,
@@ -430,8 +422,16 @@ export class UserService {
                 initials: this.getInitials(profile.displayName),
                 email: profile.email,
                 displayName: profile.displayName,
+                emailVerified: profile.emailVerified,
+                photoURL: profile.photoURL,
+                role: profile.role,
+                termsAcceptedAt: profile.termsAcceptedAt,
+                cookiePolicyAcceptedAt: profile.cookiePolicyAcceptedAt,
+                acceptedPolicies: profile.acceptedPolicies,
                 themeColor: (typeof profile.themeColor === 'object' ? profile.themeColor : memberDoc.theme) as UserThemeColor,
                 preferredLanguage: profile.preferredLanguage,
+                createdAt: profile.createdAt,
+                updatedAt: profile.updatedAt,
                 // Group membership metadata
                 joinedAt: memberDoc.joinedAt,
                 memberRole: memberDoc.memberRole,

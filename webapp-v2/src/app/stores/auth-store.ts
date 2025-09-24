@@ -1,21 +1,22 @@
-import { signal, ReadonlySignal } from '@preact/signals';
-import type { AuthStore, User } from '@/types/auth.ts';
-import { mapFirebaseUser } from '@/types/auth.ts';
-import { firebaseService } from '../firebase';
-import { apiClient } from '../apiClient';
-import { USER_ID_KEY } from '@/constants.ts';
-import { logError } from '@/utils/browser-logger.ts';
-import { AuthErrors } from '@splitifyd/shared';
-import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
-import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
-import { themeStore } from './theme-store';
-import { createUserScopedStorage } from '@/utils/userScopedStorage.ts';
-import { CurrencyService } from '../services/currencyService';
-import { expenseFormStore } from './expense-form-store';
+import {ReadonlySignal, signal} from '@preact/signals';
+import type {AuthStore} from '@/types/auth.ts';
+import {mapFirebaseUser} from '@/types/auth.ts';
+import {firebaseService} from '../firebase';
+import {apiClient} from '../apiClient';
+import {USER_ID_KEY} from '@/constants.ts';
+import {logError} from '@/utils/browser-logger.ts';
+import {AuthErrors} from '@splitifyd/shared';
+import {enhancedGroupsStore as groupsStore} from './groups-store-enhanced';
+import {enhancedGroupDetailStore} from './group-detail-store-enhanced';
+import {themeStore} from './theme-store';
+import {createUserScopedStorage} from '@/utils/userScopedStorage.ts';
+import {CurrencyService} from '../services/currencyService';
+import {expenseFormStore} from './expense-form-store';
+import type {ClientUser} from "@splitifyd/shared";
 
 class AuthStoreImpl implements AuthStore {
     // Private signals - encapsulated within the class
-    readonly #userSignal = signal<User | null>(null);
+    readonly #userSignal = signal<ClientUser | null>(null);
     readonly #loadingSignal = signal<boolean>(true);
     readonly #errorSignal = signal<string | null>(null);
     readonly #initializedSignal = signal<boolean>(false);

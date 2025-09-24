@@ -1,4 +1,4 @@
-import { UserBalance, SimplifiedDebt } from '@splitifyd/shared';
+import { UserBalance, SimplifiedDebt, RegisteredUser } from '@splitifyd/shared';
 
 // Core entity interfaces - properly typed versions of data from Firestore
 export interface Expense {
@@ -54,7 +54,7 @@ export interface BalanceCalculationInput {
     expenses: Expense[];
     settlements: Settlement[];
     groupData: GroupData;
-    memberProfiles: Map<string, import('../UserService2').UserProfile>;
+    memberProfiles: Map<string, RegisteredUser>;
 }
 
 export interface CurrencyBalances {

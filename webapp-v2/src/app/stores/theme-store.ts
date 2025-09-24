@@ -1,6 +1,6 @@
-import { signal } from '@preact/signals';
-import type { UserThemeColor } from '@splitifyd/shared';
-import type { User } from '@/types/auth.ts';
+import {signal} from '@preact/signals';
+import type {UserThemeColor} from '@splitifyd/shared';
+import type {ClientUser} from "@splitifyd/shared";
 
 export interface ThemeState {
     userThemes: Map<string, UserThemeColor>;
@@ -11,7 +11,7 @@ export interface ThemeState {
 export interface ThemeActions {
     setUserTheme: (userId: string, themeColor: UserThemeColor) => void;
     setDarkMode: (isDark: boolean) => void;
-    getCurrentUserTheme: (user: User | null) => UserThemeColor | null;
+    getCurrentUserTheme: (user: ClientUser | null) => UserThemeColor | null;
     applyThemeToDOM: (themeColor: UserThemeColor | null, isDark: boolean) => void;
 }
 
@@ -63,7 +63,7 @@ class ThemeStoreImpl implements ThemeStore {
         this.updateCSSVariables();
     }
 
-    getCurrentUserTheme(user: User | null): UserThemeColor | null {
+    getCurrentUserTheme(user: ClientUser | null): UserThemeColor | null {
         if (!user) return null;
 
         // Check if theme is already in the user object
@@ -105,7 +105,7 @@ class ThemeStoreImpl implements ThemeStore {
     }
 
     // Method to be called by auth store when user changes
-    updateCurrentUserTheme(user: User | null): void {
+    updateCurrentUserTheme(user: ClientUser | null): void {
         const theme = this.getCurrentUserTheme(user);
 
         // Update current user theme signal

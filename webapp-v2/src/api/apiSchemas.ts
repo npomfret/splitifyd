@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { SplitTypes } from '@splitifyd/shared';
+import { SplitTypes, SystemUserRoles } from '@splitifyd/shared';
 
 // Base schemas
 export const UserThemeColorSchema = z.object({
@@ -166,7 +166,7 @@ export const GroupMembersResponseSchema = z.object({
             uid: z.string().min(1),
             email: z.string().email(),
             displayName: z.string().min(1),
-            role: z.enum(['system-admin', 'system-user']).optional(),
+            role: z.enum(['system_admin', 'system_user']).optional(),
             termsAcceptedAt: z.any().optional(),
             cookiePolicyAcceptedAt: z.any().optional(),
             acceptedPolicies: z.record(z.string(), z.string()).optional(),
@@ -322,7 +322,7 @@ export const GroupFullDetailsSchema = z.object({
                 uid: z.string().min(1),
                 email: z.string().email(),
                 displayName: z.string().min(1),
-                role: z.enum(['system-admin', 'system-user']).optional(),
+                role: z.enum(['system_admin', 'system_user']).optional(),
                 termsAcceptedAt: z.any().optional(),
                 cookiePolicyAcceptedAt: z.any().optional(),
                 acceptedPolicies: z.record(z.string(), z.string()).optional(),

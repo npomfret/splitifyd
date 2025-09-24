@@ -8,7 +8,7 @@ import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import { Settlement, CreateSettlementRequest, UpdateSettlementRequest, SettlementListItem, RegisteredUser, FirestoreCollections } from '@splitifyd/shared';
 import { measureDb } from '../monitoring/measure';
-import { SettlementDocumentSchema } from '../schemas';
+import { SettlementDocumentSchema, UserDocument } from '../schemas';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
@@ -67,16 +67,24 @@ export class SettlementService {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${userId} not found`);
         }
 
-        const rawData = userData;
-
         // Validate user data with Zod instead of manual field checking
         try {
-            const validatedData = UserDataSchema.parse(rawData);
+            const validatedData = UserDataSchema.parse(userData);
 
             return {
                 uid: userId,
                 email: validatedData.email,
                 displayName: validatedData.displayName,
+                emailVerified: Boolean(userData.emailVerified),
+                photoURL: userData.photoURL || null,
+                role: userData.role,
+                termsAcceptedAt: userData.termsAcceptedAt,
+                cookiePolicyAcceptedAt: userData.cookiePolicyAcceptedAt,
+                acceptedPolicies: userData.acceptedPolicies,
+                themeColor: typeof userData.themeColor === 'object' ? userData.themeColor as RegisteredUser['themeColor'] : undefined,
+                preferredLanguage: userData.preferredLanguage,
+                createdAt: userData.createdAt,
+                updatedAt: userData.updatedAt,
             };
         } catch (error) {
             // Zod validation failed - user document is corrupted

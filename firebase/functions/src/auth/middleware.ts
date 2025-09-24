@@ -3,7 +3,7 @@ import { Errors, sendError } from '../utils/errors';
 import { getAuth, getFirestore } from '../firebase';
 import { logger } from '../logger';
 import { AUTH } from '../constants';
-import { SystemUserRoles } from '@splitifyd/shared';
+import { SystemUserRoles, AuthenticatedUser } from '@splitifyd/shared';
 import { LoggerContext } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
@@ -16,12 +16,7 @@ const authService = applicationBuilder.buildAuthService();
  * Extended Express Request with user information
  */
 export interface AuthenticatedRequest extends Request {
-    user?: {
-        uid: string;
-        email: string;
-        displayName: string;
-        role?: typeof SystemUserRoles.SYSTEM_ADMIN | typeof SystemUserRoles.SYSTEM_USER;
-    };
+    user?: AuthenticatedUser;
 }
 
 /**

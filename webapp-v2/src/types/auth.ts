@@ -1,17 +1,8 @@
-import type { User as FirebaseUser } from 'firebase/auth';
-import type { UserThemeColor } from '@splitifyd/shared';
-
-export interface User {
-    uid: string;
-    email: string;
-    displayName: string;
-    emailVerified: boolean;
-    photoURL: string | null;
-    themeColor?: UserThemeColor;
-}
+import type {User as FirebaseUser} from 'firebase/auth';
+import type {ClientUser} from '@splitifyd/shared';
 
 export interface AuthState {
-    user: User | null;
+    user: ClientUser | null;
     loading: boolean;
     error: string | null;
     initialized: boolean;
@@ -30,12 +21,14 @@ export interface AuthActions {
 
 export interface AuthStore extends AuthState, AuthActions {}
 
-export function mapFirebaseUser(firebaseUser: FirebaseUser): User {
+export function mapFirebaseUser(firebaseUser: FirebaseUser): ClientUser {
     return {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email || '',
-        displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+        uid: firebaseUser.uid!,
+        email: firebaseUser.email!,
+        displayName: firebaseUser.displayName!,
         emailVerified: firebaseUser.emailVerified,
         photoURL: firebaseUser.photoURL,
+        // Note: themeColor and preferredLanguage will be populated from backend API
+        // when user data is fetched from Firestore
     };
 }

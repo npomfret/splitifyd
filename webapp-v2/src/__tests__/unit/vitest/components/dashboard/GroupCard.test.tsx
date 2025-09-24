@@ -57,6 +57,8 @@ function createTestUser(overrides: Partial<RegisteredUser> = {}): RegisteredUser
         uid: `user-${id}`,
         email: `test-${id}@example.com`,
         displayName: `Test User ${id}`,
+        emailVerified: true,
+        photoURL: null,
         ...overrides,
     };
 }
