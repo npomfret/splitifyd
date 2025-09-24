@@ -287,20 +287,6 @@ export class GroupDetailPage extends BasePage {
         }
     }
 
-    async addExpense(expense: ExpenseFormData, expectedMemberCount: number): Promise<void> {
-        const expenseFormPage = await this.clickAddExpenseButton(expectedMemberCount);
-
-        await expenseFormPage.submitExpense(expense);
-    }
-
-    /**
-     * Record settlement using proper page object composition
-     */
-    async recordSettlement(settlementOptions: SettlementData, expectedMemberCount: number): Promise<void> {
-        const settlementFormPage = await this.clickSettleUpButton(expectedMemberCount);
-        await settlementFormPage.submitSettlement(settlementOptions, expectedMemberCount);
-    }
-
     /**
      * Gets the balances section using the complex locator
      * This replaces repeated complex locator chains in tests
