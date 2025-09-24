@@ -10,7 +10,7 @@
  * for migration guidance.
  */
 
-import type { Firestore, Transaction, DocumentReference } from 'firebase-admin/firestore';
+import type { Firestore, Transaction } from 'firebase-admin/firestore';
 import { logger } from '../../logger';
 import { FirestoreCollections, SecurityPresets, CommentTargetTypes, type CommentTargetType } from '@splitifyd/shared';
 import { FieldPath, Timestamp, Filter } from 'firebase-admin/firestore';

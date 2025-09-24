@@ -13,7 +13,7 @@
  * - Real-time subscription management
  */
 
-import type { Transaction, DocumentReference } from 'firebase-admin/firestore';
+import type { Transaction } from 'firebase-admin/firestore';
 import { QueryOptions, GroupMemberQueryOptions, PaginatedResult } from '../../types/firestore-reader-types';
 
 // Import parsed types from schemas

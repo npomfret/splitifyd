@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { GroupPermissionService } from '../../../services/GroupPermissionService';
 import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 import { FirestoreGroupBuilder } from '@splitifyd/test-support';

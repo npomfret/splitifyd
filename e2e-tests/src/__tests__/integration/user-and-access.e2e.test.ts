@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { simpleTest } from '../../fixtures/simple-test.fixture';
+import { simpleTest } from '../../fixtures';
 import { SettingsPage, RegisterPage, DashboardPage, HomepagePage, LoginPage, GroupDetailPage, JoinGroupPage } from '../../pages';
 import { generateNewUserDetails, DEFAULT_PASSWORD, generateTestEmail, generateTestUserName, generateTestGroupName } from '@splitifyd/test-support';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
