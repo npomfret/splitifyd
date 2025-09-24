@@ -2,8 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ExpenseService } from '../../../services/ExpenseService';
 import { SettlementService } from '../../../services/SettlementService';
 import { GroupMemberService } from '../../../services/GroupMemberService';
-import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
-import { StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import type { CreateExpenseRequest, CreateSettlementRequest } from '@splitifyd/shared';
 
@@ -14,8 +13,8 @@ vi.mock('../../../permissions/permission-engine-async', () => ({
     },
 }));
 
-// Mock services with full implementation
-const createMockUserService = () => ({
+// Simplified stub services - much cleaner than complex mocks
+const createStubUserService = () => ({
     getUsers: vi.fn().mockResolvedValue(new Map()),
     getUser: vi.fn().mockResolvedValue({
         uid: 'test-user',
@@ -28,34 +27,23 @@ const createMockUserService = () => ({
     deleteAccount: vi.fn(),
     registerUser: vi.fn(),
     createUserDirect: vi.fn(),
-    getGroupMembersResponseFromSubcollection: vi.fn().mockResolvedValue({
-        members: [],
-        hasMore: false,
-    }),
+    getGroupMembersResponseFromSubcollection: vi.fn(),
 });
 
-const createMockGroupMemberService = () => ({
+const createStubGroupMemberService = () => ({
     isGroupMemberAsync: vi.fn().mockResolvedValue(true),
-    getGroupMember: vi.fn().mockResolvedValue({
-        userId: 'test-user',
-        groupId: 'test-group',
-        role: 'member',
-        joinedAt: new Date().toISOString(),
-    }),
-    getAllGroupMembers: vi.fn().mockResolvedValue([]),
-    getGroupMembersResponseFromSubcollection: vi.fn().mockResolvedValue({
-        members: [],
-        hasMore: false,
-    }),
+    getGroupMember: vi.fn(),
+    getAllGroupMembers: vi.fn(),
+    getGroupMembersResponseFromSubcollection: vi.fn(),
 });
 
 describe('Input Validation Unit Tests', () => {
     let expenseService: ExpenseService;
     let settlementService: SettlementService;
-    let mockFirestoreReader: MockFirestoreReader;
-    let mockFirestoreWriter: StubFirestoreWriter;
-    let mockUserService: ReturnType<typeof createMockUserService>;
-    let mockGroupMemberService: ReturnType<typeof createMockGroupMemberService>;
+    let stubFirestoreReader: StubFirestoreReader;
+    let stubFirestoreWriter: StubFirestoreWriter;
+    let stubUserService: ReturnType<typeof createStubUserService>;
+    let stubGroupMemberService: ReturnType<typeof createStubGroupMemberService>;
 
     const testGroupId = 'test-group-id';
     const testUser1 = 'user1';
@@ -63,40 +51,43 @@ describe('Input Validation Unit Tests', () => {
     const testUser3 = 'user3';
 
     beforeEach(() => {
-        mockFirestoreReader = new MockFirestoreReader();
-        mockFirestoreWriter = new StubFirestoreWriter();
-        mockUserService = createMockUserService();
-        mockGroupMemberService = createMockGroupMemberService();
+        stubFirestoreReader = new StubFirestoreReader();
+        stubFirestoreWriter = new StubFirestoreWriter();
+        stubUserService = createStubUserService();
+        stubGroupMemberService = createStubGroupMemberService();
 
-        // Setup test group
-        const testGroup = MockFirestoreReader.createTestGroup(testGroupId, {
+        // Set up test group with simple stub data
+        stubFirestoreReader.setDocument('groups', testGroupId, {
+            id: testGroupId,
             name: 'Test Group',
+            members: {
+                [testUser1]: { userId: testUser1, memberRole: 'admin', memberStatus: 'active' },
+                [testUser2]: { userId: testUser2, memberRole: 'member', memberStatus: 'active' },
+                [testUser3]: { userId: testUser3, memberRole: 'member', memberStatus: 'active' },
+            },
             memberCount: 3,
         });
-        mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
 
-        // Mock the transaction method to return the same group
-        mockFirestoreReader.getRawGroupDocumentInTransaction.mockResolvedValue({
-            id: testGroupId,
-            exists: true,
-            data: () => testGroup,
-            get: (field: string) => testGroup?.[field],
-            ref: { id: testGroupId, path: `groups/${testGroupId}` },
+        // Set up group members
+        stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUser1}`, { userId: testUser1, groupId: testGroupId });
+        stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUser2}`, { userId: testUser2, groupId: testGroupId });
+        stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUser3}`, { userId: testUser3, groupId: testGroupId });
+
+        // Set up service mocks with simple responses
+        const testMembers = [
+            { userId: testUser1, groupId: testGroupId },
+            { userId: testUser2, groupId: testGroupId },
+            { userId: testUser3, groupId: testGroupId },
+        ];
+
+        stubGroupMemberService.getAllGroupMembers.mockResolvedValue(testMembers);
+
+        // Set up getGroupMember to return the appropriate member for each user
+        stubGroupMemberService.getGroupMember.mockImplementation(async (groupId: string, userId: string) => {
+            return testMembers.find(member => member.userId === userId) || null;
         });
 
-        // Setup test users as group members
-        const testMembers = [
-            mockFirestoreReader.createTestGroupMemberDocument({ userId: testUser1, groupId: testGroupId }),
-            mockFirestoreReader.createTestGroupMemberDocument({ userId: testUser2, groupId: testGroupId }),
-            mockFirestoreReader.createTestGroupMemberDocument({ userId: testUser3, groupId: testGroupId }),
-        ];
-        mockFirestoreReader.mockGroupMembersSubcollection(testGroupId, testMembers);
-
-        // Mock GroupMemberService to return the test members
-        mockGroupMemberService.getAllGroupMembers.mockResolvedValue(testMembers);
-
-        // Mock UserService to return group members response for the ExpenseService
-        mockUserService.getGroupMembersResponseFromSubcollection.mockResolvedValue({
+        stubUserService.getGroupMembersResponseFromSubcollection.mockResolvedValue({
             members: testMembers.map((member) => ({
                 ...member,
                 profile: {
@@ -108,9 +99,9 @@ describe('Input Validation Unit Tests', () => {
             hasMore: false,
         });
 
-        expenseService = new ExpenseService(mockFirestoreReader, mockFirestoreWriter, mockGroupMemberService as any, mockUserService as any);
+        expenseService = new ExpenseService(stubFirestoreReader, stubFirestoreWriter, stubGroupMemberService as any, stubUserService as any);
 
-        settlementService = new SettlementService(mockFirestoreReader, mockFirestoreWriter, mockGroupMemberService as any);
+        settlementService = new SettlementService(stubFirestoreReader, stubFirestoreWriter, stubGroupMemberService as any);
     });
 
     describe('Amount Validation', () => {

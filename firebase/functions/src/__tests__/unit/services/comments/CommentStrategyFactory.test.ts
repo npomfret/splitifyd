@@ -2,10 +2,10 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CommentStrategyFactory } from '../../../../services/comments/CommentStrategyFactory';
 import { GroupCommentStrategy } from '../../../../services/comments/GroupCommentStrategy';
 import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCommentStrategy';
-import { MockFirestoreReader } from '../../../test-utils/MockFirestoreReader';
+import { StubFirestoreReader } from '../../mocks/firestore-stubs';
 import { CommentTargetTypes } from '@splitifyd/shared';
 
-const createMockGroupMemberService = () => ({
+const createStubGroupMemberService = () => ({
     isGroupMemberAsync: vi.fn(),
     getGroupMember: vi.fn(),
     getAllGroupMembers: vi.fn(),
@@ -13,14 +13,13 @@ const createMockGroupMemberService = () => ({
 
 describe('CommentStrategyFactory', () => {
     let factory: CommentStrategyFactory;
-    let mockFirestoreReader: MockFirestoreReader;
-    let mockGroupMemberService: ReturnType<typeof createMockGroupMemberService>;
+    let stubFirestoreReader: StubFirestoreReader;
+    let stubGroupMemberService: ReturnType<typeof createStubGroupMemberService>;
 
     beforeEach(() => {
-        vi.clearAllMocks();
-        mockFirestoreReader = new MockFirestoreReader();
-        mockGroupMemberService = createMockGroupMemberService();
-        factory = new CommentStrategyFactory(mockFirestoreReader, mockGroupMemberService as any);
+        stubFirestoreReader = new StubFirestoreReader();
+        stubGroupMemberService = createStubGroupMemberService();
+        factory = new CommentStrategyFactory(stubFirestoreReader, stubGroupMemberService as any);
     });
 
     describe('getStrategy', () => {

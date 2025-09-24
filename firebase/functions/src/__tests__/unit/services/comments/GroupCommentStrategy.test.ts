@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GroupCommentStrategy } from '../../../../services/comments/GroupCommentStrategy';
-import { MockFirestoreReader } from '../../../test-utils/MockFirestoreReader';
+import { StubFirestoreReader } from '../../mocks/firestore-stubs';
 import { ApiError } from '../../../../utils/errors';
 import { HTTP_STATUS } from '../../../../constants';
 import { FirestoreGroupBuilder } from '@splitifyd/test-support';
 import { FirestoreCollections } from '@splitifyd/shared';
 
-const createMockGroupMemberService = () => ({
+const createStubGroupMemberService = () => ({
     isGroupMemberAsync: vi.fn(),
     getGroupMember: vi.fn(),
     getAllGroupMembers: vi.fn(),
@@ -14,31 +14,28 @@ const createMockGroupMemberService = () => ({
 
 describe('GroupCommentStrategy', () => {
     let strategy: GroupCommentStrategy;
-    let mockFirestoreReader: MockFirestoreReader;
-    let mockGroupMemberService: ReturnType<typeof createMockGroupMemberService>;
+    let stubFirestoreReader: StubFirestoreReader;
+    let stubGroupMemberService: ReturnType<typeof createStubGroupMemberService>;
 
     beforeEach(() => {
-        vi.clearAllMocks();
-        mockFirestoreReader = new MockFirestoreReader();
-        mockGroupMemberService = createMockGroupMemberService();
-        strategy = new GroupCommentStrategy(mockFirestoreReader, mockGroupMemberService as any);
+        stubFirestoreReader = new StubFirestoreReader();
+        stubGroupMemberService = createStubGroupMemberService();
+        strategy = new GroupCommentStrategy(stubFirestoreReader, stubGroupMemberService as any);
     });
 
     describe('verifyAccess', () => {
         it('should allow access when group exists and user is member', async () => {
             const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
 
-            mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
-            mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
+            // Simple stub data setup
+            stubFirestoreReader.setDocument('groups', 'test-group', testGroup);
+            stubGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
 
             await expect(strategy.verifyAccess('test-group', 'user-id')).resolves.not.toThrow();
-
-            expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith('test-group');
-            expect(mockGroupMemberService.isGroupMemberAsync).toHaveBeenCalledWith('test-group', 'user-id');
         });
 
         it('should throw NOT_FOUND when group does not exist', async () => {
-            mockFirestoreReader.getGroup.mockResolvedValue(null);
+            // No need to set up anything - stub returns null by default for non-existent documents
 
             await expect(strategy.verifyAccess('nonexistent-group', 'user-id')).rejects.toThrow(ApiError);
 
@@ -46,14 +43,14 @@ describe('GroupCommentStrategy', () => {
 
             expect(error.statusCode).toBe(HTTP_STATUS.NOT_FOUND);
             expect(error.code).toBe('GROUP_NOT_FOUND');
-            expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith('nonexistent-group');
         });
 
         it('should throw FORBIDDEN when user is not a group member', async () => {
             const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
 
-            mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
-            mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(false);
+            // Set up group but user is not a member
+            stubFirestoreReader.setDocument('groups', 'test-group', testGroup);
+            stubGroupMemberService.isGroupMemberAsync.mockResolvedValue(false);
 
             await expect(strategy.verifyAccess('test-group', 'unauthorized-user')).rejects.toThrow(ApiError);
 

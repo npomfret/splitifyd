@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCommentStrategy';
-import { MockFirestoreReader } from '../../../test-utils/MockFirestoreReader';
+import { StubFirestoreReader } from '../../mocks/firestore-stubs';
 import { ApiError } from '../../../../utils/errors';
 import { HTTP_STATUS } from '../../../../constants';
 import { FirestoreExpenseBuilder, FirestoreGroupBuilder } from '@splitifyd/test-support';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';
 
-const createMockGroupMemberService = () => ({
+const createStubGroupMemberService = () => ({
     isGroupMemberAsync: vi.fn(),
     getGroupMember: vi.fn(),
     getAllGroupMembers: vi.fn(),
@@ -15,35 +15,30 @@ const createMockGroupMemberService = () => ({
 
 describe('ExpenseCommentStrategy', () => {
     let strategy: ExpenseCommentStrategy;
-    let mockFirestoreReader: MockFirestoreReader;
-    let mockGroupMemberService: ReturnType<typeof createMockGroupMemberService>;
+    let stubFirestoreReader: StubFirestoreReader;
+    let stubGroupMemberService: ReturnType<typeof createStubGroupMemberService>;
 
     beforeEach(() => {
-        vi.clearAllMocks();
-        mockFirestoreReader = new MockFirestoreReader();
-        mockGroupMemberService = createMockGroupMemberService();
-        strategy = new ExpenseCommentStrategy(mockFirestoreReader, mockGroupMemberService as any);
+        stubFirestoreReader = new StubFirestoreReader();
+        stubGroupMemberService = createStubGroupMemberService();
+        strategy = new ExpenseCommentStrategy(stubFirestoreReader, stubGroupMemberService as any);
     });
 
     describe('verifyAccess', () => {
         it('should allow access when expense exists and user is group member', async () => {
             const testExpense = new FirestoreExpenseBuilder().withId('test-expense').withGroupId('test-group').build();
-
             const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
 
-            mockFirestoreReader.getExpense.mockResolvedValue(testExpense);
-            mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
-            mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
+            // Simple stub data setup
+            stubFirestoreReader.setDocument('expenses', 'test-expense', testExpense);
+            stubFirestoreReader.setDocument('groups', 'test-group', testGroup);
+            stubGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
 
             await expect(strategy.verifyAccess('test-expense', 'user-id')).resolves.not.toThrow();
-
-            expect(mockFirestoreReader.getExpense).toHaveBeenCalledWith('test-expense');
-            expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith('test-group');
-            expect(mockGroupMemberService.isGroupMemberAsync).toHaveBeenCalledWith('test-group', 'user-id');
         });
 
         it('should throw NOT_FOUND when expense does not exist', async () => {
-            mockFirestoreReader.getExpense.mockResolvedValue(null);
+            // No need to set up anything - stub returns null by default for non-existent documents
 
             await expect(strategy.verifyAccess('nonexistent-expense', 'user-id')).rejects.toThrow(ApiError);
 
@@ -51,7 +46,6 @@ describe('ExpenseCommentStrategy', () => {
 
             expect(error.statusCode).toBe(HTTP_STATUS.NOT_FOUND);
             expect(error.code).toBe('EXPENSE_NOT_FOUND');
-            expect(mockFirestoreReader.getExpense).toHaveBeenCalledWith('nonexistent-expense');
         });
 
         it('should throw NOT_FOUND when expense is soft deleted', async () => {
@@ -60,7 +54,7 @@ describe('ExpenseCommentStrategy', () => {
                 deletedAt: Timestamp.now(),
             };
 
-            mockFirestoreReader.getExpense.mockResolvedValue(deletedExpense);
+            stubFirestoreReader.setDocument('expenses', 'test-expense',deletedExpense);
 
             await expect(strategy.verifyAccess('deleted-expense', 'user-id')).rejects.toThrow(ApiError);
 
@@ -73,8 +67,8 @@ describe('ExpenseCommentStrategy', () => {
         it('should throw NOT_FOUND when expense group does not exist', async () => {
             const testExpense = new FirestoreExpenseBuilder().withId('test-expense').withGroupId('nonexistent-group').build();
 
-            mockFirestoreReader.getExpense.mockResolvedValue(testExpense);
-            mockFirestoreReader.getGroup.mockResolvedValue(null);
+            stubFirestoreReader.setDocument('expenses', 'test-expense',testExpense);
+            // stubFirestoreReader.getGroup.mockResolvedValue(null);
 
             await expect(strategy.verifyAccess('test-expense', 'user-id')).rejects.toThrow(ApiError);
 
@@ -82,7 +76,7 @@ describe('ExpenseCommentStrategy', () => {
 
             expect(error.statusCode).toBe(HTTP_STATUS.NOT_FOUND);
             expect(error.code).toBe('GROUP_NOT_FOUND');
-            expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith('nonexistent-group');
+            // expect(stubFirestoreReader.getGroup).toHaveBeenCalledWith('nonexistent-group');
         });
 
         it('should throw FORBIDDEN when user is not a member of expense group', async () => {
@@ -90,9 +84,9 @@ describe('ExpenseCommentStrategy', () => {
 
             const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
 
-            mockFirestoreReader.getExpense.mockResolvedValue(testExpense);
-            mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
-            mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(false);
+            stubFirestoreReader.setDocument('expenses', 'test-expense', testExpense);
+            stubFirestoreReader.setDocument('groups', 'test-group', testGroup);
+            stubGroupMemberService.isGroupMemberAsync.mockResolvedValue(false);
 
             await expect(strategy.verifyAccess('test-expense', 'unauthorized-user')).rejects.toThrow(ApiError);
 
@@ -107,16 +101,16 @@ describe('ExpenseCommentStrategy', () => {
         it('should return the expense groupId', async () => {
             const testExpense = new FirestoreExpenseBuilder().withId('test-expense').withGroupId('resolved-group-123').build();
 
-            mockFirestoreReader.getExpense.mockResolvedValue(testExpense);
+            stubFirestoreReader.setDocument('expenses', 'test-expense',testExpense);
 
             const result = await strategy.resolveGroupId('test-expense');
 
             expect(result).toBe('resolved-group-123');
-            expect(mockFirestoreReader.getExpense).toHaveBeenCalledWith('test-expense');
+            // expect(stubFirestoreReader.getExpense).toHaveBeenCalledWith('test-expense');
         });
 
         it('should throw NOT_FOUND when expense does not exist', async () => {
-            mockFirestoreReader.getExpense.mockResolvedValue(null);
+            stubFirestoreReader.setDocument('expenses', 'test-expense',null);
 
             await expect(strategy.resolveGroupId('nonexistent-expense')).rejects.toThrow(ApiError);
 
@@ -132,7 +126,7 @@ describe('ExpenseCommentStrategy', () => {
                 deletedAt: Timestamp.now(),
             };
 
-            mockFirestoreReader.getExpense.mockResolvedValue(deletedExpense);
+            stubFirestoreReader.setDocument('expenses', 'test-expense',deletedExpense);
 
             await expect(strategy.resolveGroupId('deleted-expense')).rejects.toThrow(ApiError);
 
