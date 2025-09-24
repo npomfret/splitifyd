@@ -3,7 +3,6 @@ import { CommentService } from '../../../services/CommentService';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
-import { HTTP_STATUS } from '../../../constants';
 import { FirestoreGroupBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-support';
 import { CommentTargetTypes } from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';

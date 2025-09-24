@@ -16,7 +16,6 @@ import {FirestoreValidationService} from './FirestoreValidationService';
 import {NotificationService} from './notification-service';
 import {IAuthService} from './auth';
 import {FirebaseAuthService} from './auth';
-import {getAuth} from '../firebase';
 import * as admin from "firebase-admin";
 
 export class ApplicationBuilder {
