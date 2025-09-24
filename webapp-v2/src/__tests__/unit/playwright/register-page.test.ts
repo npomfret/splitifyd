@@ -154,7 +154,10 @@ test.describe('RegisterPage - Behavioral Tests', () => {
         // Test persistence by navigating away and back (instead of refresh)
         await page.goto('/login');
         await page.goto('/register');
-        await page.waitForLoadState('networkidle');
+
+        // Wait for form to be ready by checking the form elements are visible
+        await expect(page.locator(SELECTORS.FULLNAME_INPUT)).toBeVisible();
+        await expect(page.locator(SELECTORS.EMAIL_INPUT)).toBeVisible();
 
         await expect(page.locator(SELECTORS.FULLNAME_INPUT)).toHaveValue('Jane Smith');
         await expect(page.locator(SELECTORS.EMAIL_INPUT)).toHaveValue('jane@example.com');

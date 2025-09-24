@@ -99,7 +99,8 @@ test.describe('PricingPage - Behavioral Tests', () => {
 
     test.describe('Keyboard Navigation', () => {
         test('should support keyboard navigation to call-to-action buttons', async ({ page }) => {
-            await page.waitForLoadState('networkidle');
+            // Wait for interactive elements to be ready
+            await expect(page.locator('body')).toBeVisible();
 
             // Look for sign-up buttons
             const ctaButtons = page.locator('button').filter({ hasText: /Sign Up|Join Now|Get Started/ });
@@ -113,7 +114,8 @@ test.describe('PricingPage - Behavioral Tests', () => {
         });
 
         test('should have visible focus indicators on interactive elements', async ({ page }) => {
-            await page.waitForLoadState('networkidle');
+            // Wait for interactive elements to be ready
+            await expect(page.locator('body')).toBeVisible();
 
             // Look for interactive elements on pricing page
             const interactiveElements = ['button', 'a[href]', '[tabindex="0"]', '[role="button"]'];
@@ -142,7 +144,8 @@ test.describe('PricingPage - Behavioral Tests', () => {
         });
 
         test('should activate CTA buttons with Enter key', async ({ page }) => {
-            await page.waitForLoadState('networkidle');
+            // Wait for interactive elements to be ready
+            await expect(page.locator('body')).toBeVisible();
 
             // Find CTA buttons
             const ctaButtons = page.locator('button').filter({ hasText: /Sign Up|Join Now|Get Started/ });
@@ -160,7 +163,8 @@ test.describe('PricingPage - Behavioral Tests', () => {
         });
 
         test('should activate CTA buttons with Space key', async ({ page }) => {
-            await page.waitForLoadState('networkidle');
+            // Wait for interactive elements to be ready
+            await expect(page.locator('body')).toBeVisible();
 
             // Find CTA buttons
             const ctaButtons = page.locator('button').filter({ hasText: /Sign Up|Join Now|Get Started/ });
@@ -178,7 +182,8 @@ test.describe('PricingPage - Behavioral Tests', () => {
         });
 
         test('should handle tab navigation through pricing plans', async ({ page }) => {
-            await page.waitForLoadState('networkidle');
+            // Wait for interactive elements to be ready
+            await expect(page.locator('body')).toBeVisible();
 
             // Tab through the page to navigate pricing plans
             const maxTabs = 10; // Reasonable limit to avoid infinite loops
@@ -227,7 +232,8 @@ test.describe('PricingPage - Behavioral Tests', () => {
         });
 
         test('should support skip links for better accessibility', async ({ page }) => {
-            await page.waitForLoadState('networkidle');
+            // Wait for interactive elements to be ready
+            await expect(page.locator('body')).toBeVisible();
 
             // Look for skip links (common accessibility pattern)
             const skipLinks = page.locator('a[href="#main"], a[href="#content"], .skip-link');
@@ -261,7 +267,8 @@ test.describe('PricingPage - Behavioral Tests', () => {
         });
 
         test('should maintain logical tab order through pricing sections', async ({ page }) => {
-            await page.waitForLoadState('networkidle');
+            // Wait for interactive elements to be ready
+            await expect(page.locator('body')).toBeVisible();
 
             // Look for common interactive elements on pricing pages
             const commonSelectors = ['button', 'a[href]', 'input', '[data-testid*="button"]', '[data-testid*="link"]'];
@@ -301,7 +308,8 @@ test.describe('PricingPage - Behavioral Tests', () => {
         });
 
         test('should handle keyboard navigation with pricing plan features', async ({ page }) => {
-            await page.waitForLoadState('networkidle');
+            // Wait for interactive elements to be ready
+            await expect(page.locator('body')).toBeVisible();
 
             // Verify that all pricing plan sections are accessible via keyboard
             const pricingPlanSections = ['text=The "Just Getting Started" Plan', 'text=The "I\'m Basically a Pro" Plan', 'text=The "I\'m a Philanthropist" Plan'];

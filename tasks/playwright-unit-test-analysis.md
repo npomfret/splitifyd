@@ -258,6 +258,87 @@ The following replacement tests have been **completed** and are **passing**:
 - ✅ Medium-priority functionality (currency formatting) has comprehensive coverage
 - ⚠️ Balance display testing deferred but core logic covered by currency formatting tests
 
-### Phase 4: Authentication Testing (Future)
+### Phase 3: Authentication Testing Fix (IN PROGRESS)
 
-Once the current test replacement is validated in production, tackle the authentication testing problem to enable testing of protected routes properly.
+**Status:** 🔄 **IN PROGRESS** - Authentication solution implemented on 2025-01-24
+
+#### Key Discovery: Tests Have Value, Authentication Approach Was Wrong
+
+**Initial Assessment Error:** Initially planned to delete Playwright unit tests due to authentication failures, but discovered they contain valuable infrastructure:
+
+- **API Mocking Infrastructure:** `GroupApiMock`, `MockResponseBuilder` classes for testing API integrations
+- **Test Data Builders:** `GroupTestDataBuilder` for creating consistent test scenarios
+- **Form Validation Testing:** Client-side validation rules and error handling
+- **URL Handling:** Complex URL parameter and fragment preservation testing
+- **Accessibility Testing:** Keyboard navigation and focus management
+
+#### Root Cause Analysis
+
+**Problem:** Tests contained conditional logic `if (currentUrl.includes('/login'))` instead of deterministic authentication setup.
+
+**Solution:** Use existing `setupAuthenticatedUser(page)` helper to properly mock Firebase authentication at API level.
+
+#### Implementation Approach
+
+**✅ Correct Pattern for Authenticated Tests:**
+```typescript
+test('should handle dashboard API integration with groups data', async ({ page }) => {
+    // Set up authenticated user state
+    await setupAuthenticatedUser(page);
+
+    // Set up API mocking for groups data
+    const sampleGroups = GroupTestDataBuilder.sampleGroupsArray();
+    const groupApiMock = new GroupApiMock(page);
+    await groupApiMock.mockAllGroupsWithScenario('success', sampleGroups);
+
+    // Navigate to dashboard - should work with proper auth
+    await page.goto('/dashboard');
+
+    // Wait for dashboard content to load and verify it shows groups
+    await expect(page.locator('main, [data-testid="dashboard-content"]')).toBeVisible();
+
+    // Verify we're on the dashboard (not redirected to login)
+    await expect(page).toHaveURL(/\/dashboard/);
+});
+```
+
+**✅ Correct Pattern for Unauthenticated Tests:**
+```typescript
+test('should redirect to login when accessing dashboard without authentication', async ({ page }) => {
+    await setupUnauthenticatedTest(page);
+    await page.goto('/dashboard');
+
+    // Should redirect to login due to ProtectedRoute
+    await verifyNavigation(page, /\/login/, 2000);
+
+    // Should preserve returnUrl for after login
+    expect(page.url()).toContain('returnUrl');
+    expect(page.url()).toContain('dashboard');
+});
+```
+
+#### Architecture Insight
+
+The Playwright unit tests are designed to **test the real UI components in-browser with mocked API backends** - exactly the right approach. The issue was improper authentication mocking, not the testing strategy itself.
+
+#### Progress Status
+
+- ✅ **Authentication Helper Identified:** `setupAuthenticatedUser(page)` function exists and works
+- ✅ **Anti-Pattern Eliminated:** Removed conditional `if (currentUrl.includes('/login'))` blocks
+- ✅ **Web-First Assertions:** Replaced `networkidle` with proper element visibility checks
+- ✅ **Sample Test Fixed:** Dashboard API integration test now uses proper auth setup
+- 🔄 **In Progress:** Need to apply pattern to remaining 15 test files
+- ⏳ **Pending:** Complete networkidle cleanup (110 remaining uses)
+
+#### Next Steps
+
+1. **Apply authentication fix** to remaining problematic tests across all 16 files
+2. **Complete networkidle cleanup** - replace remaining 110 uses with web-first assertions
+3. **Consolidate redundant tests** - merge duplicate keyboard/accessibility tests
+4. **Validate test infrastructure** - ensure API mocks work with authentication
+
+### Phase 4: Future Enhancements
+
+Once Phase 3 is complete, consider:
+- **Component-level tests** for complex UI interactions not covered by E2E
+- **Visual regression testing** integration with existing infrastructure

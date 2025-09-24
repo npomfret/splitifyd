@@ -61,8 +61,8 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
 
     test('should showcase key features and benefits', async () => {
         const page = (globalThis as any).sharedLandingPage;
-        // Wait for page to fully load before checking content
-        await page.waitForLoadState('networkidle');
+        // Wait for page content to be ready by checking for known elements
+        await expect(page.locator('h1')).toBeVisible();
 
         // Scroll to features section to ensure it's in view
         await page.evaluate(() => window.scrollBy(0, 500));
@@ -215,12 +215,10 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
         await page.evaluate(() => {
             window.scrollTo(0, document.body.scrollHeight / 2);
         });
-        await page.waitForLoadState('networkidle');
 
         await page.evaluate(() => {
             window.scrollTo(0, document.body.scrollHeight);
         });
-        await page.waitForLoadState('networkidle');
 
         // Check that all main sections loaded
         const sections = page.locator('section, .hero, .features, .cta');
