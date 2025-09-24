@@ -33,7 +33,7 @@ i18n.use(initReactI18next) // passes i18n down to react-i18next
             // ALWAYS log missing translations as errors - this is quality control
             logError(`🌍 Missing translation: "${key}" in namespace "${ns}" for language "${lng}"`, undefined, {
                 fallbackValue,
-                addToFile: `webapp-v2/src/locales/${lng}/translation.json`
+                addToFile: `webapp-v2/src/locales/${lng}/translation.json`,
             });
         },
     });

@@ -129,18 +129,10 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('joinGroupPage.welcome', { groupName: group.name })}</h2>
                             <p className="text-gray-600 mb-6">{t('joinGroupPage.joinSuccess')}</p>
                             <Stack spacing="md">
-                                <Button
-                                    onClick={() => navigationService.goToGroup(group.id)}
-                                    fullWidth
-                                    className="py-3"
-                                >
+                                <Button onClick={() => navigationService.goToGroup(group.id)} fullWidth className="py-3">
                                     {t('joinGroupPage.goToGroup')}
                                 </Button>
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => navigationService.goToDashboard()}
-                                    fullWidth
-                                >
+                                <Button variant="secondary" onClick={() => navigationService.goToDashboard()} fullWidth>
                                     {t('joinGroupPage.backToDashboard')}
                                 </Button>
                             </Stack>
@@ -158,9 +150,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                 <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
                     <div className="w-full max-w-md">
                         <div className="text-center mb-6">
-                            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                                {isAlreadyMember ? group.name : t('joinGroupPage.title')}
-                            </h1>
+                            <h1 className="text-2xl font-bold text-gray-900 mb-2">{isAlreadyMember ? group.name : t('joinGroupPage.title')}</h1>
                         </div>
 
                         <Stack spacing="lg">
@@ -173,12 +163,8 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             {/* Already Member Message */}
                             {isAlreadyMember && (
                                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-                                    <p className="text-blue-800 font-medium mb-2">
-                                        {t('joinGroupPage.alreadyMember')}
-                                    </p>
-                                    <p className="text-blue-600 text-sm">
-                                        {t('joinGroupPage.alreadyMemberDescription')}
-                                    </p>
+                                    <p className="text-blue-800 font-medium mb-2">{t('joinGroupPage.alreadyMember')}</p>
+                                    <p className="text-blue-600 text-sm">{t('joinGroupPage.alreadyMemberDescription')}</p>
                                 </div>
                             )}
 
@@ -197,11 +183,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             {/* Action Buttons */}
                             <Stack spacing="md">
                                 {isAlreadyMember ? (
-                                    <Button
-                                        onClick={() => navigationService.goToGroup(group.id)}
-                                        fullWidth
-                                        className="py-3"
-                                    >
+                                    <Button onClick={() => navigationService.goToGroup(group.id)} fullWidth className="py-3">
                                         {t('joinGroupPage.goToGroup')}
                                     </Button>
                                 ) : (

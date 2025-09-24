@@ -7,17 +7,12 @@ test.describe.serial('Terms of Service Page', () => {
         const context = await browser.newContext();
         const page = await context.newPage();
 
-        await setupPolicyPageTest(
-            page,
-            '/terms',
-            '**/api/policies/terms-of-service/current',
-            {
-                id: 'terms-of-service',
-                type: 'TERMS_OF_SERVICE',
-                text: 'These are the terms of service for Splitifyd. By using our service, you agree to these terms.',
-                createdAt: '2025-01-22T00:00:00Z',
-            }
-        );
+        await setupPolicyPageTest(page, '/terms', '**/api/policies/terms-of-service/current', {
+            id: 'terms-of-service',
+            type: 'TERMS_OF_SERVICE',
+            text: 'These are the terms of service for Splitifyd. By using our service, you agree to these terms.',
+            createdAt: '2025-01-22T00:00:00Z',
+        });
 
         // Store page in global for reuse
         (globalThis as any).sharedTermsPage = page;
@@ -49,11 +44,7 @@ test.describe.serial('Terms of Service Page', () => {
         const context = await browser.newContext();
         const page = await context.newPage();
 
-        await testPolicyPageError(
-            page,
-            '**/api/policies/terms-of-service/current',
-            'Error loading terms'
-        );
+        await testPolicyPageError(page, '**/api/policies/terms-of-service/current', 'Error loading terms');
 
         await page.close();
     });

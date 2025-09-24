@@ -1,10 +1,10 @@
-import {expect, Page} from '@playwright/test';
-import {BasePage} from './base.page';
-import {PooledTestUser} from '@splitifyd/shared';
-import {CreateGroupModalPage} from './create-group-modal.page.ts';
-import {GroupDetailPage, groupDetailUrlPattern} from './group-detail.page.ts';
-import {generateShortId, randomString} from "@splitifyd/test-support";
-import {JoinGroupPage} from "./join-group.page.ts";
+import { expect, Page } from '@playwright/test';
+import { BasePage } from './base.page';
+import { PooledTestUser } from '@splitifyd/shared';
+import { CreateGroupModalPage } from './create-group-modal.page.ts';
+import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
+import { generateShortId, randomString } from '@splitifyd/test-support';
+import { JoinGroupPage } from './join-group.page.ts';
 
 let i = 0;
 
@@ -21,7 +21,7 @@ export class DashboardPage extends BasePage {
         await this.waitForDomContentLoaded();
     }
 
-    async createMultiUserGroup(options: { name?: string, description?: string }, ...dashboardPages: DashboardPage[]): Promise<GroupDetailPage[]> {
+    async createMultiUserGroup(options: { name?: string; description?: string }, ...dashboardPages: DashboardPage[]): Promise<GroupDetailPage[]> {
         const groupName = options.name ?? `g-${++i} ${randomString(4)} ${randomString(6)} ${randomString(8)}`;
         const groupDescription = options.description ?? `descr for ${groupName}`;
 
@@ -45,10 +45,11 @@ export class DashboardPage extends BasePage {
                 groupDetailPages.push(memberGroupDetailPage);
                 const displayName = await dashboardPage.header.getCurrentUserDisplayName();
                 console.log(`User "${displayName}" has joined group "${groupName}" (id: ${groupId})`);
-            };
+            }
         }
 
-        for (const newGroupDetailPage of groupDetailPages) {// wait for each page to sync before adding the next user
+        for (const newGroupDetailPage of groupDetailPages) {
+            // wait for each page to sync before adding the next user
             await newGroupDetailPage.waitForPage(groupId, groupDetailPages.length);
             await newGroupDetailPage.waitForSettledUpMessage();
         }
@@ -69,7 +70,7 @@ export class DashboardPage extends BasePage {
 
         // Wait for navigation and verify URL
         await this.expectUrl(groupDetailUrlPattern());
-        await this.page.waitForLoadState('domcontentloaded', {timeout: 5000});
+        await this.page.waitForLoadState('domcontentloaded', { timeout: 5000 });
         await expect(this.page.getByRole('heading', { name })).toBeVisible();
 
         const groupDetailPage = new GroupDetailPage(this.page);
@@ -82,7 +83,7 @@ export class DashboardPage extends BasePage {
     }
 
     getCreateGroupButton() {
-        return this.page.getByRole('button', {name: /Create.*Group/i}).first();
+        return this.page.getByRole('button', { name: /Create.*Group/i }).first();
     }
 
     getBaseUrl() {
@@ -93,10 +94,10 @@ export class DashboardPage extends BasePage {
         // Simply click the first visible create group button
         const createButton = this.page
             .getByRole('button')
-            .filter({hasText: /Create.*Group/i}) //there are several
+            .filter({ hasText: /Create.*Group/i }) //there are several
             .first();
 
-        await this.clickButton(createButton, {buttonName: 'Create Group'});
+        await this.clickButton(createButton, { buttonName: 'Create Group' });
 
         // Create modal page instance first
         const createGroupModalPage = new CreateGroupModalPage(this.page, this.userInfo);
@@ -123,7 +124,7 @@ export class DashboardPage extends BasePage {
         // Wait for loading spinner to disappear (handles race condition where spinner might never appear)
         const loadingSpinner = this.page.locator('span:has-text("Loading your groups...")');
         try {
-            await loadingSpinner.waitFor({state: 'hidden', timeout: 3000});
+            await loadingSpinner.waitFor({ state: 'hidden', timeout: 3000 });
         } catch {
             // Spinner never appeared or disappeared quickly - expected behavior
         }
@@ -136,7 +137,7 @@ export class DashboardPage extends BasePage {
             const hasGroupsContainer = await groupsContainer.isVisible().catch(() => false);
 
             // Check if empty state is shown (means no groups but loading is complete)
-            const emptyState = this.page.getByRole('button', {name: /create.*first.*group/i});
+            const emptyState = this.page.getByRole('button', { name: /create.*first.*group/i });
             const hasEmptyState = await emptyState.isVisible().catch(() => false);
 
             // Check if error state is shown
@@ -169,7 +170,7 @@ export class DashboardPage extends BasePage {
 
         await expect(async () => {
             // Use exact match to avoid partial matches with updated group names
-            const groupCard = this.page.getByText(groupName, {exact: true});
+            const groupCard = this.page.getByText(groupName, { exact: true });
             const isVisible = await groupCard.isVisible();
             if (isVisible) {
                 throw new Error(`Group "${groupName}" is still visible on dashboard`);
@@ -209,8 +210,8 @@ export class DashboardPage extends BasePage {
 
         // Find the group card button and click it
         // Group cards are typically buttons containing the group name
-        const groupCard = this.page.getByRole('button').filter({hasText: groupName});
-        await this.clickButton(groupCard, {buttonName: `Group: ${groupName}`});
+        const groupCard = this.page.getByRole('button').filter({ hasText: groupName });
+        await this.clickButton(groupCard, { buttonName: `Group: ${groupName}` });
 
         // Wait for navigation to complete
         await this.waitForDomContentLoaded();

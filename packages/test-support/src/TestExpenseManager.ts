@@ -69,5 +69,4 @@ export class TestExpenseManager {
 
         return { group, expense };
     }
-
 }

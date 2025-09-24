@@ -14,7 +14,7 @@ export class MockResponseBuilder {
         this.response = {
             status: 200,
             contentType: 'application/json',
-            body: JSON.stringify({ success: true })
+            body: JSON.stringify({ success: true }),
         };
     }
 
@@ -32,7 +32,7 @@ export class MockResponseBuilder {
         this.response.status = 400;
         this.response.body = JSON.stringify({
             error: message,
-            code: code || 'GENERIC_ERROR'
+            code: code || 'GENERIC_ERROR',
         });
         return this;
     }
@@ -41,7 +41,7 @@ export class MockResponseBuilder {
         this.response.status = 500;
         this.response.body = JSON.stringify({
             error: message,
-            code: 'SERVER_ERROR'
+            code: 'SERVER_ERROR',
         });
         return this;
     }
@@ -50,7 +50,7 @@ export class MockResponseBuilder {
         this.response.status = 404;
         this.response.body = JSON.stringify({
             error: message,
-            code: 'NOT_FOUND'
+            code: 'NOT_FOUND',
         });
         return this;
     }
@@ -59,7 +59,7 @@ export class MockResponseBuilder {
         this.response.status = 401;
         this.response.body = JSON.stringify({
             error: message,
-            code: 'UNAUTHORIZED'
+            code: 'UNAUTHORIZED',
         });
         return this;
     }
@@ -68,7 +68,7 @@ export class MockResponseBuilder {
         this.response.status = 403;
         this.response.body = JSON.stringify({
             error: message,
-            code: 'FORBIDDEN'
+            code: 'FORBIDDEN',
         });
         return this;
     }
@@ -79,8 +79,8 @@ export class MockResponseBuilder {
             error: 'Validation failed',
             code: 'VALIDATION_ERROR',
             details: {
-                [field]: message
-            }
+                [field]: message,
+            },
         });
         return this;
     }
@@ -117,7 +117,7 @@ export class MockResponseBuilder {
             status: this.response.status,
             contentType: this.response.contentType,
             body: this.response.body,
-            ...(this.response.headers && { headers: this.response.headers })
+            ...(this.response.headers && { headers: this.response.headers }),
         };
     }
 

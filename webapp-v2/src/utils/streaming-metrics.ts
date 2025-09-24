@@ -60,7 +60,6 @@ class StreamingMetricsCollector {
         };
         this.refreshLatencies = [];
     }
-
 }
 
 // Export singleton instance

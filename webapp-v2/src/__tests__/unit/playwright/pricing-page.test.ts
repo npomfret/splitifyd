@@ -104,7 +104,7 @@ test.describe('PricingPage - Behavioral Tests', () => {
             // Look for sign-up buttons
             const ctaButtons = page.locator('button').filter({ hasText: /Sign Up|Join Now|Get Started/ });
 
-            if (await ctaButtons.count() > 0) {
+            if ((await ctaButtons.count()) > 0) {
                 // Tab to the first CTA button
                 await ctaButtons.first().focus();
                 await expect(ctaButtons.first()).toBeFocused();
@@ -116,17 +116,12 @@ test.describe('PricingPage - Behavioral Tests', () => {
             await page.waitForLoadState('networkidle');
 
             // Look for interactive elements on pricing page
-            const interactiveElements = [
-                'button',
-                'a[href]',
-                '[tabindex="0"]',
-                '[role="button"]',
-            ];
+            const interactiveElements = ['button', 'a[href]', '[tabindex="0"]', '[role="button"]'];
 
             for (const selector of interactiveElements) {
                 const element = page.locator(selector);
 
-                if (await element.count() > 0) {
+                if ((await element.count()) > 0) {
                     await element.first().focus();
 
                     // Check for focus indicators
@@ -139,10 +134,7 @@ test.describe('PricingPage - Behavioral Tests', () => {
                         };
                     });
 
-                    const hasFocusIndicator =
-                        focusStyles.outline !== 'none' ||
-                        focusStyles.outlineWidth !== '0px' ||
-                        focusStyles.boxShadow.includes('rgb');
+                    const hasFocusIndicator = focusStyles.outline !== 'none' || focusStyles.outlineWidth !== '0px' || focusStyles.boxShadow.includes('rgb');
 
                     expect(hasFocusIndicator).toBeTruthy();
                 }
@@ -155,7 +147,7 @@ test.describe('PricingPage - Behavioral Tests', () => {
             // Find CTA buttons
             const ctaButtons = page.locator('button').filter({ hasText: /Sign Up|Join Now|Get Started/ });
 
-            if (await ctaButtons.count() > 0) {
+            if ((await ctaButtons.count()) > 0) {
                 await ctaButtons.first().focus();
                 await expect(ctaButtons.first()).toBeFocused();
 
@@ -173,7 +165,7 @@ test.describe('PricingPage - Behavioral Tests', () => {
             // Find CTA buttons
             const ctaButtons = page.locator('button').filter({ hasText: /Sign Up|Join Now|Get Started/ });
 
-            if (await ctaButtons.count() > 0) {
+            if ((await ctaButtons.count()) > 0) {
                 await ctaButtons.first().focus();
                 await expect(ctaButtons.first()).toBeFocused();
 
@@ -195,8 +187,8 @@ test.describe('PricingPage - Behavioral Tests', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
-                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                if ((await focusedElement.count()) > 0) {
+                    const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                     expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
 
                     // If we focused on a pricing plan button, verify it's accessible
@@ -211,7 +203,7 @@ test.describe('PricingPage - Behavioral Tests', () => {
 
         test('should handle keyboard navigation in different viewport sizes', async ({ page }) => {
             const viewports = [
-                { width: 375, height: 667 },  // Mobile
+                { width: 375, height: 667 }, // Mobile
                 { width: 768, height: 1024 }, // Tablet
                 { width: 1024, height: 768 }, // Desktop
             ];
@@ -222,7 +214,7 @@ test.describe('PricingPage - Behavioral Tests', () => {
                 // CTA buttons should remain accessible across viewports
                 const ctaButtons = page.locator('button').filter({ hasText: /Sign Up|Join Now|Get Started/ });
 
-                if (await ctaButtons.count() > 0) {
+                if ((await ctaButtons.count()) > 0) {
                     await ctaButtons.first().focus();
                     await expect(ctaButtons.first()).toBeFocused();
                     await expect(ctaButtons.first()).toBeVisible();
@@ -240,7 +232,7 @@ test.describe('PricingPage - Behavioral Tests', () => {
             // Look for skip links (common accessibility pattern)
             const skipLinks = page.locator('a[href="#main"], a[href="#content"], .skip-link');
 
-            if (await skipLinks.count() > 0) {
+            if ((await skipLinks.count()) > 0) {
                 await skipLinks.first().focus();
                 await expect(skipLinks.first()).toBeFocused();
 
@@ -252,10 +244,10 @@ test.describe('PricingPage - Behavioral Tests', () => {
 
                 // Should jump to main content
                 const mainContent = page.locator('#main, #content, main').first();
-                if (await mainContent.count() > 0) {
+                if ((await mainContent.count()) > 0) {
                     // Focus should be on or near main content
                     const focusedElement = page.locator(':focus');
-                    if (await focusedElement.count() > 0) {
+                    if ((await focusedElement.count()) > 0) {
                         const mainHandle = await mainContent.elementHandle();
                         if (mainHandle) {
                             const isFocusedOnMain = await focusedElement.evaluate((focused, main) => {
@@ -272,13 +264,7 @@ test.describe('PricingPage - Behavioral Tests', () => {
             await page.waitForLoadState('networkidle');
 
             // Look for common interactive elements on pricing pages
-            const commonSelectors = [
-                'button',
-                'a[href]',
-                'input',
-                '[data-testid*="button"]',
-                '[data-testid*="link"]'
-            ];
+            const commonSelectors = ['button', 'a[href]', 'input', '[data-testid*="button"]', '[data-testid*="link"]'];
 
             const foundElements = [];
 
@@ -286,7 +272,8 @@ test.describe('PricingPage - Behavioral Tests', () => {
                 const elements = page.locator(selector);
                 const count = await elements.count();
 
-                for (let i = 0; i < Math.min(count, 5); i++) { // Check up to 5 elements of each type
+                for (let i = 0; i < Math.min(count, 5); i++) {
+                    // Check up to 5 elements of each type
                     const element = elements.nth(i);
 
                     if (await element.isVisible()) {
@@ -304,7 +291,7 @@ test.describe('PricingPage - Behavioral Tests', () => {
                 // Try basic tab navigation
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
-                if (await focusedElement.count() > 0) {
+                if ((await focusedElement.count()) > 0) {
                     console.log('✓ Tab navigation working on pricing page');
                 }
             }
@@ -317,22 +304,18 @@ test.describe('PricingPage - Behavioral Tests', () => {
             await page.waitForLoadState('networkidle');
 
             // Verify that all pricing plan sections are accessible via keyboard
-            const pricingPlanSections = [
-                'text=The "Just Getting Started" Plan',
-                'text=The "I\'m Basically a Pro" Plan',
-                'text=The "I\'m a Philanthropist" Plan'
-            ];
+            const pricingPlanSections = ['text=The "Just Getting Started" Plan', 'text=The "I\'m Basically a Pro" Plan', 'text=The "I\'m a Philanthropist" Plan'];
 
             for (const planSelector of pricingPlanSections) {
                 const planElement = page.locator(planSelector);
 
-                if (await planElement.count() > 0) {
+                if ((await planElement.count()) > 0) {
                     // Plan should be visible (important for screen readers)
                     await expect(planElement).toBeVisible();
 
                     // Look for associated CTA button for this plan
                     const nearbyButton = page.locator('button').filter({ hasText: /Sign Up|Join Now|Get Started/ });
-                    if (await nearbyButton.count() > 0) {
+                    if ((await nearbyButton.count()) > 0) {
                         await nearbyButton.first().focus();
                         await expect(nearbyButton.first()).toBeFocused();
                     }

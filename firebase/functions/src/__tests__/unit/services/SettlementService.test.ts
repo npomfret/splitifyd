@@ -80,7 +80,7 @@ describe('SettlementService - Unit Tests', () => {
                 groupId,
                 payerId: 'payer-user',
                 payeeId: 'payee-user',
-                amount: 100.50,
+                amount: 100.5,
                 currency: 'USD',
                 note: 'Test settlement',
                 date: new Date().toISOString(),
@@ -97,14 +97,14 @@ describe('SettlementService - Unit Tests', () => {
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             const payeeMembershipDoc = {
                 userId: 'payee-user',
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
@@ -117,7 +117,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Assert
             expect(result.id).toBe('new-settlement-id');
-            expect(result.amount).toBe(100.50);
+            expect(result.amount).toBe(100.5);
             expect(result.currency).toBe('USD');
             expect(result.note).toBe('Test settlement');
         });
@@ -196,7 +196,7 @@ describe('SettlementService - Unit Tests', () => {
                 groupId,
                 payerId: 'payer-user',
                 payeeId: 'payee-user',
-                amount: 50.00,
+                amount: 50.0,
                 currency: 'USD',
                 date: new Date().toISOString(),
                 // No note field
@@ -213,14 +213,14 @@ describe('SettlementService - Unit Tests', () => {
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             const payeeMembershipDoc = {
                 userId: 'payee-user',
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
@@ -233,7 +233,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Assert
             expect(result.id).toBe('new-settlement-id');
-            expect(result.amount).toBe(50.00);
+            expect(result.amount).toBe(50.0);
             expect(result.note).toBeUndefined();
         });
     });
@@ -275,14 +275,14 @@ describe('SettlementService - Unit Tests', () => {
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             const payeeMembershipDoc = {
                 userId: 'valid-payee',
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', `${groupId}_valid-payer`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_valid-payee`, payeeMembershipDoc);
@@ -319,14 +319,14 @@ describe('SettlementService - Unit Tests', () => {
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             const payeeMembershipDoc = {
                 userId: 'payee-user',
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
@@ -363,14 +363,14 @@ describe('SettlementService - Unit Tests', () => {
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             const payeeMembershipDoc = {
                 userId: 'payee-user',
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
@@ -406,7 +406,7 @@ describe('SettlementService - Unit Tests', () => {
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
@@ -443,7 +443,7 @@ describe('SettlementService - Unit Tests', () => {
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
 
@@ -509,14 +509,14 @@ describe('SettlementService - Unit Tests', () => {
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             const payeeMembershipDoc = {
                 userId: 'payee-user',
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
@@ -555,14 +555,14 @@ describe('SettlementService - Unit Tests', () => {
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             const payeeMembershipDoc = {
                 userId: 'payee-user',
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
@@ -598,14 +598,14 @@ describe('SettlementService - Unit Tests', () => {
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             const payeeMembershipDoc = {
                 userId: 'payee-user',
                 groupId: groupId,
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);

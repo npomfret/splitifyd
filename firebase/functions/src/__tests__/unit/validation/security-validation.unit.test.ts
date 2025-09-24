@@ -14,39 +14,26 @@ describe('Security Validation - Token and Input Validation', () => {
 
     describe('Authentication Token Validation', () => {
         test('should reject malformed JWT tokens', async () => {
-            const malformedTokens = [
-                'not-a-jwt-token',
-                'Bearer invalid',
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid',
-                'header.payload.invalid-signature',
-                '',
-                '   ',
-                'null',
-                'undefined'
-            ];
+            const malformedTokens = ['not-a-jwt-token', 'Bearer invalid', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid', 'header.payload.invalid-signature', '', '   ', 'null', 'undefined'];
 
             for (const token of malformedTokens) {
-                await expect(
-                    stubAuthService.verifyIdToken(token)
-                ).rejects.toThrow(/Invalid ID token/);
+                await expect(stubAuthService.verifyIdToken(token)).rejects.toThrow(/Invalid ID token/);
             }
         });
 
         test('should reject expired tokens', async () => {
             // Mock expired token (from 2020)
-            const expiredToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN2JmNDk2MmJkY2ZlODdlOGQ1ZWNhM2Y3N2JjOWZjYzA0OWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vc3BsaXRpZnlkIiwiYXVkIjoic3BsaXRpZnlkIiwiYXV0aF90aW1lIjoxNjA5NDU5MjAwLCJ1c2VyX2lkIjoidGVzdC11c2VyIiwic3ViIjoidGVzdC11c2VyIiwiaWF0IjoxNjA5NDU5MjAwLCJleHAiOjE2MDk0NjI4MDB9.invalid-signature';
+            const expiredToken =
+                'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN2JmNDk2MmJkY2ZlODdlOGQ1ZWNhM2Y3N2JjOWZjYzA0OWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vc3BsaXRpZnlkIiwiYXVkIjoic3BsaXRpZnlkIiwiYXV0aF90aW1lIjoxNjA5NDU5MjAwLCJ1c2VyX2lkIjoidGVzdC11c2VyIiwic3ViIjoidGVzdC11c2VyIiwiaWF0IjoxNjA5NDU5MjAwLCJleHAiOjE2MDk0NjI4MDB9.invalid-signature';
 
-            await expect(
-                stubAuthService.verifyIdToken(expiredToken)
-            ).rejects.toThrow(/Invalid ID token/);
+            await expect(stubAuthService.verifyIdToken(expiredToken)).rejects.toThrow(/Invalid ID token/);
         });
 
         test('should reject tokens with wrong audience/project', async () => {
-            const wrongProjectToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN2JmNDk2MmJkY2ZlODdlOGQ1ZWNhM2Y3N2JjOWZjYzA0OWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd3JvbmctcHJvamVjdCIsImF1ZCI6Indyb25nLXByb2plY3QiLCJhdXRoX3RpbWUiOjE2MDk0NTkyMDAsInVzZXJfaWQiOiJ0ZXN0LXVzZXIiLCJzdWIiOiJ0ZXN0LXVzZXIiLCJpYXQiOjE2MDk0NTkyMDAsImV4cCI6OTk5OTk5OTk5OX0.invalid-signature';
+            const wrongProjectToken =
+                'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN2JmNDk2MmJkY2ZlODdlOGQ1ZWNhM2Y3N2JjOWZjYzA0OWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd3JvbmctcHJvamVjdCIsImF1ZCI6Indyb25nLXByb2plY3QiLCJhdXRoX3RpbWUiOjE2MDk0NTkyMDAsInVzZXJfaWQiOiJ0ZXN0LXVzZXIiLCJzdWIiOiJ0ZXN0LXVzZXIiLCJpYXQiOjE2MDk0NTkyMDAsImV4cCI6OTk5OTk5OTk5OX0.invalid-signature';
 
-            await expect(
-                stubAuthService.verifyIdToken(wrongProjectToken)
-            ).rejects.toThrow(/Invalid ID token/);
+            await expect(stubAuthService.verifyIdToken(wrongProjectToken)).rejects.toThrow(/Invalid ID token/);
         });
 
         test('should accept valid token format', async () => {
@@ -60,11 +47,11 @@ describe('Security Validation - Token and Input Validation', () => {
                 user_id: 'test-user-123',
                 sub: 'test-user-123',
                 iat: Date.now() / 1000,
-                exp: (Date.now() / 1000) + 3600,
+                exp: Date.now() / 1000 + 3600,
                 firebase: {
                     identities: {},
-                    sign_in_provider: 'password'
-                }
+                    sign_in_provider: 'password',
+                },
             };
 
             stubAuthService.setDecodedToken(validToken, mockDecodedToken);
@@ -76,12 +63,7 @@ describe('Security Validation - Token and Input Validation', () => {
 
     describe('Input Injection Attack Prevention', () => {
         test('should reject SQL injection attempts in authorization header', () => {
-            const sqlInjectionTokens = [
-                "'; DROP TABLE users; --",
-                "' OR '1'='1",
-                "admin'/*",
-                "1' UNION SELECT * FROM secrets--"
-            ];
+            const sqlInjectionTokens = ["'; DROP TABLE users; --", "' OR '1'='1", "admin'/*", "1' UNION SELECT * FROM secrets--"];
 
             for (const token of sqlInjectionTokens) {
                 // These should be treated as invalid tokens
@@ -90,12 +72,7 @@ describe('Security Validation - Token and Input Validation', () => {
         });
 
         test('should reject script injection attempts in authorization header', () => {
-            const scriptInjectionTokens = [
-                '<script>alert("xss")</script>',
-                'javascript:alert(1)',
-                'vbscript:msgbox(1)',
-                'data:text/html,<script>alert(1)</script>'
-            ];
+            const scriptInjectionTokens = ['<script>alert("xss")</script>', 'javascript:alert(1)', 'vbscript:msgbox(1)', 'data:text/html,<script>alert(1)</script>'];
 
             for (const token of scriptInjectionTokens) {
                 // These should be treated as invalid tokens
@@ -112,7 +89,7 @@ describe('Security Validation - Token and Input Validation', () => {
                 '{{7*7}}',
                 '<!--#exec cmd="/bin/bash"-->',
                 '../../../etc/passwd',
-                '..\\..\\..\\windows\\system32\\cmd.exe'
+                '..\\..\\..\\windows\\system32\\cmd.exe',
             ];
 
             for (const input of maliciousInputs) {
@@ -136,7 +113,7 @@ describe('Security Validation - Token and Input Validation', () => {
                 amount: -100,
                 description: 'Test',
                 paidBy: 'user-123',
-                participants: ['user-123']
+                participants: ['user-123'],
             };
 
             expect(() => validateExpenseData(invalidExpenseData)).toThrow(/amount.*positive/i);
@@ -148,7 +125,7 @@ describe('Security Validation - Token and Input Validation', () => {
                 amount: 100,
                 description: '',
                 paidBy: '',
-                participants: []
+                participants: [],
             };
 
             expect(() => validateExpenseData(invalidExpenseData)).toThrow(/required.*field/i);
@@ -162,7 +139,7 @@ describe('Security Validation - Token and Input Validation', () => {
                 amount: 100,
                 description: longString, // Too long
                 paidBy: 'user-123',
-                participants: ['user-123']
+                participants: ['user-123'],
             };
 
             expect(() => validateExpenseData(invalidData)).toThrow(/description.*too.*long/i);
@@ -171,10 +148,10 @@ describe('Security Validation - Token and Input Validation', () => {
         test('should accept valid expense data', () => {
             const validExpenseData = {
                 groupId: 'test-group-123',
-                amount: 100.50,
+                amount: 100.5,
                 description: 'Valid expense description',
                 paidBy: 'user-123',
-                participants: ['user-123', 'user-456']
+                participants: ['user-123', 'user-456'],
             };
 
             expect(() => validateExpenseData(validExpenseData)).not.toThrow();
@@ -192,7 +169,7 @@ describe('Security Validation - Token and Input Validation', () => {
                 expenseDeletion: 'anyone',
                 memberInvitation: 'anyone',
                 memberApproval: 'automatic',
-                settingsManagement: 'anyone'
+                settingsManagement: 'anyone',
             };
 
             expect(() => validatePermissions(invalidPermissions)).toThrow(/invalid.*permission.*value/i);
@@ -204,7 +181,7 @@ describe('Security Validation - Token and Input Validation', () => {
                 expenseDeletion: 'owner-and-admin',
                 memberInvitation: 'admin-only',
                 memberApproval: 'admin-required',
-                settingsManagement: 'admin-only'
+                settingsManagement: 'admin-only',
             };
 
             expect(() => validatePermissions(validPermissions)).not.toThrow();
@@ -265,16 +242,16 @@ function validateAuthorizationHeader(token: string): void {
 
     // Check for obvious injection attempts
     const suspiciousPatterns = [
-        /[<>]/,  // HTML tags
+        /[<>]/, // HTML tags
         /javascript:/i,
         /vbscript:/i,
         /data:/i,
-        /['";]/,  // SQL injection characters
-        /\$\{.*\}/,  // Template injection
-        /\{\{.*\}\}/,  // Template injection
-        /<!--/,  // HTML comments
-        /\.\.\//,  // Path traversal
-        /\.\.\\/,  // Path traversal (Windows)
+        /['";]/, // SQL injection characters
+        /\$\{.*\}/, // Template injection
+        /\{\{.*\}\}/, // Template injection
+        /<!--/, // HTML comments
+        /\.\.\//, // Path traversal
+        /\.\.\\/, // Path traversal (Windows)
     ];
 
     for (const pattern of suspiciousPatterns) {
@@ -290,14 +267,14 @@ function sanitizeInput(input: string): string {
     }
 
     return input
-        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')  // Remove script tags
-        .replace(/javascript:/gi, '')  // Remove javascript: protocol
-        .replace(/onload=/gi, '')  // Remove onload handlers
-        .replace(/\$\{.*?\}/g, '')  // Remove template literals
-        .replace(/\{\{.*?\}\}/g, '')  // Remove handlebars/vue templates
-        .replace(/<!--.*?-->/g, '')  // Remove HTML comments
-        .replace(/\.\.\//g, '')  // Remove path traversal
-        .replace(/\.\.\\/g, '')  // Remove path traversal (Windows)
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
+        .replace(/javascript:/gi, '') // Remove javascript: protocol
+        .replace(/onload=/gi, '') // Remove onload handlers
+        .replace(/\$\{.*?\}/g, '') // Remove template literals
+        .replace(/\{\{.*?\}\}/g, '') // Remove handlebars/vue templates
+        .replace(/<!--.*?-->/g, '') // Remove HTML comments
+        .replace(/\.\.\//g, '') // Remove path traversal
+        .replace(/\.\.\\/g, '') // Remove path traversal (Windows)
         .trim();
 }
 

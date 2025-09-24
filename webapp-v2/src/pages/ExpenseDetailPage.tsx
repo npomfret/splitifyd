@@ -201,7 +201,9 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                                 {t('pages.expenseDetailPage.backButton')}
                             </Button>
                             <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                                {truncateDescription(expense.value.description)}{t('pages.expenseDetailPage.titleSeparator')}{formatCurrency(expense.value.amount, expense.value.currency)}
+                                {truncateDescription(expense.value.description)}
+                                {t('pages.expenseDetailPage.titleSeparator')}
+                                {formatCurrency(expense.value.amount, expense.value.currency)}
                             </h1>
                             <div className="w-16"></div> {/* Spacer for centered title */}
                         </div>
@@ -216,7 +218,9 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                             <Stack spacing="lg">
                                 {/* Top Section - Amount & Description */}
                                 <div className="text-center pb-4 border-b border-gray-200 dark:border-gray-700">
-                                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="expense-amount">{formatCurrency(expense.value.amount, expense.value.currency)}</h2>
+                                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="expense-amount">
+                                        {formatCurrency(expense.value.amount, expense.value.currency)}
+                                    </h2>
                                     <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">{expense.value.description}</p>
                                 </div>
 
@@ -226,7 +230,10 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                                     <div>
                                         <p className="text-sm text-gray-500 dark:text-gray-400">{t('pages.expenseDetailPage.date')}</p>
                                         <p className="font-medium text-gray-900 dark:text-white">{formatExpenseDateTime(expense.value.date)}</p>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">({formatDistanceToNow(new Date(expense.value.date))}{t('pages.expenseDetailPage.ago')})</p>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                            ({formatDistanceToNow(new Date(expense.value.date))}
+                                            {t('pages.expenseDetailPage.ago')})
+                                        </p>
                                     </div>
 
                                     {/* Category */}
@@ -290,12 +297,18 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         <Card className="bg-gray-50 dark:bg-gray-800/50">
                             <div className="text-sm text-gray-600 dark:text-gray-400">
                                 <div className="flex items-center justify-between">
-                                    <span>{t('pages.expenseDetailPage.added')}{formatDistanceToNow(new Date(expense.value.createdAt))}</span>
+                                    <span>
+                                        {t('pages.expenseDetailPage.added')}
+                                        {formatDistanceToNow(new Date(expense.value.createdAt))}
+                                    </span>
                                     <span className="text-xs">{formatLocalDateTime(expense.value.createdAt)}</span>
                                 </div>
                                 {expense.value.updatedAt !== expense.value.createdAt && (
                                     <div className="flex items-center justify-between mt-1">
-                                        <span>{t('pages.expenseDetailPage.lastUpdated')}{formatDistanceToNow(new Date(expense.value.updatedAt))}</span>
+                                        <span>
+                                            {t('pages.expenseDetailPage.lastUpdated')}
+                                            {formatDistanceToNow(new Date(expense.value.updatedAt))}
+                                        </span>
                                         <span className="text-xs">{formatLocalDateTime(expense.value.updatedAt)}</span>
                                     </div>
                                 )}
@@ -329,7 +342,12 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
-                            <img src={expense.value.receiptUrl} alt={t('pages.expenseDetailPage.receiptFullSize')} className="max-w-full max-h-full object-contain rounded-lg" onClick={(e) => e.stopPropagation()} />
+                            <img
+                                src={expense.value.receiptUrl}
+                                alt={t('pages.expenseDetailPage.receiptFullSize')}
+                                className="max-w-full max-h-full object-contain rounded-lg"
+                                onClick={(e) => e.stopPropagation()}
+                            />
                         </div>
                     </div>
                 )}

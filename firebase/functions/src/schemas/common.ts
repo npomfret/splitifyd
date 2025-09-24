@@ -56,10 +56,7 @@ export const CurrencyCodeSchema = z
     .string()
     .length(3)
     .regex(/^[A-Z]{3}$/, 'Must be a valid 3-letter currency code')
-    .refine(
-        (code) => isValidCurrency(code),
-        'Must be a valid currency code from the supported currency list'
-    );
+    .refine((code) => isValidCurrency(code), 'Must be a valid currency code from the supported currency list');
 
 /**
  * User ID validation

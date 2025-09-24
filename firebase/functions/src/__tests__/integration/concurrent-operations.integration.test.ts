@@ -3,7 +3,7 @@ import { borrowTestUsers, GroupMemberDocumentBuilder } from '@splitifyd/test-sup
 import { GroupMemberDocument, MemberRoles, SplitTypes, Group } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
-import {getAuth, getFirestore} from '../../firebase';
+import { getAuth, getFirestore } from '../../firebase';
 
 describe('Concurrent Operations Integration Tests', () => {
     const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth());

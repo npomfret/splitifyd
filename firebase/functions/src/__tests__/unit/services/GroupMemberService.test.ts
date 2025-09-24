@@ -36,7 +36,7 @@ describe('GroupMemberService Unit Tests', () => {
         name: 'Test Theme',
         pattern: 'solid' as const,
         assignedAt: new Date().toISOString(),
-        colorIndex: 0
+        colorIndex: 0,
     };
 
     beforeEach(() => {
@@ -50,10 +50,7 @@ describe('GroupMemberService Unit Tests', () => {
         groupMemberService = applicationBuilder.buildGroupMemberService();
 
         // Setup test group using builder
-        const testGroup = new FirestoreGroupBuilder()
-            .withId(testGroupId)
-            .withName('Test Group')
-            .build();
+        const testGroup = new FirestoreGroupBuilder().withId(testGroupId).withName('Test Group').build();
         stubReader.setDocument('groups', testGroupId, testGroup);
 
         vi.clearAllMocks();
@@ -67,7 +64,7 @@ describe('GroupMemberService Unit Tests', () => {
                 memberRole: 'member',
                 memberStatus: 'active',
                 theme: defaultTheme,
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
 
             stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, testMember);
@@ -111,7 +108,7 @@ describe('GroupMemberService Unit Tests', () => {
                     memberRole: 'member',
                     memberStatus: 'active',
                     theme: defaultTheme,
-                    joinedAt: new Date().toISOString()
+                    joinedAt: new Date().toISOString(),
                 },
                 {
                     userId: testUserId2,
@@ -119,7 +116,7 @@ describe('GroupMemberService Unit Tests', () => {
                     memberRole: 'member',
                     memberStatus: 'active',
                     theme: defaultTheme,
-                    joinedAt: new Date().toISOString()
+                    joinedAt: new Date().toISOString(),
                 },
                 {
                     userId: testUserId3,
@@ -127,12 +124,12 @@ describe('GroupMemberService Unit Tests', () => {
                     memberRole: 'admin',
                     memberStatus: 'active',
                     theme: defaultTheme,
-                    joinedAt: new Date().toISOString()
+                    joinedAt: new Date().toISOString(),
                 },
             ];
 
             // Set up group members in stub
-            testMembers.forEach(member => {
+            testMembers.forEach((member) => {
                 stubReader.setDocument('group-members', `${testGroupId}_${member.userId}`, member);
             });
 
@@ -166,7 +163,7 @@ describe('GroupMemberService Unit Tests', () => {
                 memberRole: 'member',
                 memberStatus: 'active',
                 theme: defaultTheme,
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
 
             stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, testMember);
@@ -209,7 +206,7 @@ describe('GroupMemberService Unit Tests', () => {
                 memberRole: 'member',
                 memberStatus: 'active',
                 theme: defaultTheme,
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
 
             stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, completeMember);
@@ -230,7 +227,7 @@ describe('GroupMemberService Unit Tests', () => {
                 memberRole: 'admin',
                 memberStatus: 'active',
                 theme: defaultTheme,
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
 
             stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, adminMember);

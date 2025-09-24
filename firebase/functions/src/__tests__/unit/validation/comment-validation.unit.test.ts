@@ -27,8 +27,8 @@ describe('Comment Validation - Unit Tests', () => {
                     'Simple comment',
                     'Comment with numbers 123',
                     'Comment with special chars!@#$%',
-                    'A',                          // minimum length
-                    'A'.repeat(500),              // maximum length
+                    'A', // minimum length
+                    'A'.repeat(500), // maximum length
                     'Multi\nline\ncomment',
                     'Comment with emojis 😀🎉',
                 ];
@@ -41,9 +41,9 @@ describe('Comment Validation - Unit Tests', () => {
 
             it('should reject invalid comment text', () => {
                 const invalidTexts = [
-                    '',                          // empty
-                    '   ',                       // whitespace only
-                    'A'.repeat(501),            // too long
+                    '', // empty
+                    '   ', // whitespace only
+                    'A'.repeat(501), // too long
                 ];
 
                 for (const text of invalidTexts) {
@@ -92,10 +92,7 @@ describe('Comment Validation - Unit Tests', () => {
 
         describe('Target Type Validation', () => {
             it('should accept valid target types', () => {
-                const validTargetTypes = [
-                    CommentTargetTypes.GROUP,
-                    CommentTargetTypes.EXPENSE,
-                ];
+                const validTargetTypes = [CommentTargetTypes.GROUP, CommentTargetTypes.EXPENSE];
 
                 for (const targetType of validTargetTypes) {
                     const data = { ...validCommentData, targetType };
@@ -104,15 +101,7 @@ describe('Comment Validation - Unit Tests', () => {
             });
 
             it('should reject invalid target types', () => {
-                const invalidTargetTypes = [
-                    'invalid',
-                    'user',
-                    'settlement',
-                    '',
-                    null,
-                    undefined,
-                    123,
-                ];
+                const invalidTargetTypes = ['invalid', 'user', 'settlement', '', null, undefined, 123];
 
                 for (const targetType of invalidTargetTypes) {
                     const data = { ...validCommentData, targetType };
@@ -152,13 +141,7 @@ describe('Comment Validation - Unit Tests', () => {
 
         describe('Target ID Validation', () => {
             it('should accept valid target IDs', () => {
-                const validTargetIds = [
-                    'group-123',
-                    'expense-456',
-                    'simple-id',
-                    'id_with_underscores',
-                    'ID-WITH-CAPS',
-                ];
+                const validTargetIds = ['group-123', 'expense-456', 'simple-id', 'id_with_underscores', 'ID-WITH-CAPS'];
 
                 for (const targetId of validTargetIds) {
                     const data = { ...validCommentData, targetId };
@@ -169,7 +152,7 @@ describe('Comment Validation - Unit Tests', () => {
             it('should reject invalid target IDs', () => {
                 const invalidTargetIds = [
                     '',
-                    '   ',          // whitespace only
+                    '   ', // whitespace only
                     null,
                     undefined,
                 ];
@@ -210,7 +193,7 @@ describe('Comment Validation - Unit Tests', () => {
                 const validGroupIds = [
                     'group-123',
                     'simple-id',
-                    undefined,      // optional field
+                    undefined, // optional field
                 ];
 
                 for (const groupId of validGroupIds) {
@@ -284,8 +267,8 @@ describe('Comment Validation - Unit Tests', () => {
                 const validQueries = [
                     { cursor: 'cursor-123' },
                     { cursor: 'simple-cursor' },
-                    {},                          // no cursor (optional)
-                    { cursor: undefined },       // undefined cursor
+                    {}, // no cursor (optional)
+                    { cursor: undefined }, // undefined cursor
                 ];
 
                 for (const query of validQueries) {
@@ -311,10 +294,10 @@ describe('Comment Validation - Unit Tests', () => {
 
             it('should reject invalid limit values', () => {
                 const invalidLimits = [
-                    0,          // too small
-                    -1,         // negative
-                    101,        // too large
-                    1.5,        // not integer
+                    0, // too small
+                    -1, // negative
+                    101, // too large
+                    1.5, // not integer
                     'not-a-number',
                     null,
                 ];
@@ -420,12 +403,7 @@ describe('Comment Validation - Unit Tests', () => {
 
     describe('validateCommentId', () => {
         it('should accept valid comment IDs', () => {
-            const validIds = [
-                'comment-123',
-                'simple-id',
-                'id_with_underscores',
-                'ID-WITH-CAPS',
-            ];
+            const validIds = ['comment-123', 'simple-id', 'id_with_underscores', 'ID-WITH-CAPS'];
 
             for (const id of validIds) {
                 expect(() => validateCommentId(id)).not.toThrow();
@@ -438,10 +416,10 @@ describe('Comment Validation - Unit Tests', () => {
                 null,
                 undefined,
                 '',
-                '   ',          // whitespace only
-                123,            // not a string
-                {},             // object
-                [],             // array
+                '   ', // whitespace only
+                123, // not a string
+                {}, // object
+                [], // array
             ];
 
             for (const id of invalidIds) {
@@ -476,14 +454,7 @@ describe('Comment Validation - Unit Tests', () => {
         });
 
         it('should handle malformed input gracefully', () => {
-            const malformedInputs = [
-                'not an object',
-                123,
-                [],
-                true,
-                null,
-                undefined,
-            ];
+            const malformedInputs = ['not an object', 123, [], true, null, undefined];
 
             for (const input of malformedInputs) {
                 expect(() => validateCreateComment(input)).toThrow();
@@ -492,16 +463,13 @@ describe('Comment Validation - Unit Tests', () => {
 
         it('should provide specific error codes for different validation failures', () => {
             // Text validation error
-            expect(() => validateCreateComment({ text: '', targetType: CommentTargetTypes.GROUP, targetId: 'group-1' }))
-                .toThrow(expect.objectContaining({ code: 'INVALID_COMMENT_TEXT' }));
+            expect(() => validateCreateComment({ text: '', targetType: CommentTargetTypes.GROUP, targetId: 'group-1' })).toThrow(expect.objectContaining({ code: 'INVALID_COMMENT_TEXT' }));
 
             // Target type validation error
-            expect(() => validateCreateComment({ text: 'Valid', targetType: 'invalid', targetId: 'group-1' }))
-                .toThrow(expect.objectContaining({ code: 'INVALID_TARGET_TYPE' }));
+            expect(() => validateCreateComment({ text: 'Valid', targetType: 'invalid', targetId: 'group-1' })).toThrow(expect.objectContaining({ code: 'INVALID_TARGET_TYPE' }));
 
             // Target ID validation error
-            expect(() => validateCreateComment({ text: 'Valid', targetType: CommentTargetTypes.GROUP, targetId: '' }))
-                .toThrow(expect.objectContaining({ code: 'INVALID_TARGET_ID' }));
+            expect(() => validateCreateComment({ text: 'Valid', targetType: CommentTargetTypes.GROUP, targetId: '' })).toThrow(expect.objectContaining({ code: 'INVALID_TARGET_ID' }));
         });
     });
 });

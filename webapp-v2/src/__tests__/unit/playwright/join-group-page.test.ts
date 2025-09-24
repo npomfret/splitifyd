@@ -134,18 +134,14 @@ test.describe('JoinGroupPage - Basic Behavioral Tests', () => {
             await page.keyboard.press('Tab');
             const focusedElement = page.locator(':focus');
 
-            if (await focusedElement.count() > 0) {
-                const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+            if ((await focusedElement.count()) > 0) {
+                const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                 expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
             }
         });
 
         test('should handle keyboard navigation with various linkId parameters', async ({ page }) => {
-            const linkIds = [
-                'simple-link',
-                'link-with-numbers-123',
-                'link-with-special-chars_test',
-            ];
+            const linkIds = ['simple-link', 'link-with-numbers-123', 'link-with-special-chars_test'];
 
             for (const linkId of linkIds) {
                 await page.goto(`/join?linkId=${linkId}`);
@@ -164,8 +160,8 @@ test.describe('JoinGroupPage - Basic Behavioral Tests', () => {
                     await page.keyboard.press('Tab');
                     const focusedElement = page.locator(':focus');
 
-                    if (await focusedElement.count() > 0) {
-                        const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                    if ((await focusedElement.count()) > 0) {
+                        const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                         expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
                     }
                 }
@@ -187,8 +183,8 @@ test.describe('JoinGroupPage - Basic Behavioral Tests', () => {
             await page.keyboard.press('Tab');
             const focusedElement = page.locator(':focus');
 
-            if (await focusedElement.count() > 0) {
-                const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+            if ((await focusedElement.count()) > 0) {
+                const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                 expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
             }
 
@@ -209,8 +205,8 @@ test.describe('JoinGroupPage - Basic Behavioral Tests', () => {
             await page.keyboard.press('Tab');
             const focusedElement = page.locator(':focus');
 
-            if (await focusedElement.count() > 0) {
-                const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+            if ((await focusedElement.count()) > 0) {
+                const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                 expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
             }
 
@@ -232,9 +228,9 @@ test.describe('JoinGroupPage - Basic Behavioral Tests', () => {
             await page.keyboard.press('Tab');
             const focusedElement = page.locator(':focus');
 
-            if (await focusedElement.count() > 0) {
+            if ((await focusedElement.count()) > 0) {
                 // Verify focused element is interactive
-                const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                 expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
 
                 // If it's a form element, it should be accessible
@@ -274,8 +270,8 @@ test.describe('JoinGroupPage - Basic Behavioral Tests', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
-                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                if ((await focusedElement.count()) > 0) {
+                    const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
 
                     if (['button', 'a', 'input'].includes(tagName)) {
                         foundInteractiveElement = true;
@@ -303,15 +299,15 @@ test.describe('JoinGroupPage - Basic Behavioral Tests', () => {
 
             // Test common accessibility keyboard patterns
             const keyPatterns = [
-                'Tab',        // Forward navigation
-                'Shift+Tab',  // Backward navigation
+                'Tab', // Forward navigation
+                'Shift+Tab', // Backward navigation
             ];
 
             for (const keyPattern of keyPatterns) {
                 await page.keyboard.press(keyPattern);
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
+                if ((await focusedElement.count()) > 0) {
                     // Element should be visible when focused
                     await expect(focusedElement).toBeVisible();
 
@@ -326,10 +322,7 @@ test.describe('JoinGroupPage - Basic Behavioral Tests', () => {
                     });
 
                     // Should have some form of focus indicator
-                    const hasFocusIndicator =
-                        focusStyles.outline !== 'none' ||
-                        focusStyles.outlineWidth !== '0px' ||
-                        focusStyles.boxShadow.includes('rgb');
+                    const hasFocusIndicator = focusStyles.outline !== 'none' || focusStyles.outlineWidth !== '0px' || focusStyles.boxShadow.includes('rgb');
 
                     expect(hasFocusIndicator).toBeTruthy();
                 }
@@ -337,11 +330,7 @@ test.describe('JoinGroupPage - Basic Behavioral Tests', () => {
         });
 
         test('should maintain keyboard accessibility across different route scenarios', async ({ page }) => {
-            const routes = [
-                '/join',
-                '/join?linkId=test-route-1',
-                '/join?linkId=test-route-2&ref=keyboard',
-            ];
+            const routes = ['/join', '/join?linkId=test-route-1', '/join?linkId=test-route-2&ref=keyboard'];
 
             for (const route of routes) {
                 await page.goto(route);

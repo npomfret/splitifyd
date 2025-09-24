@@ -11,4 +11,3 @@ import type { GroupMemberDocument } from '@splitifyd/shared';
 export const getMemberDocFromArray = (members: GroupMemberDocument[], userId: string): GroupMemberDocument | undefined => {
     return members.find((member) => member.userId === userId);
 };
-

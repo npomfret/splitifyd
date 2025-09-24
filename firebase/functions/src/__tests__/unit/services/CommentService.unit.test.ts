@@ -10,8 +10,10 @@ import type { CommentTargetType, CreateCommentRequest } from '@splitifyd/shared'
 const mockStrategy = { verifyAccess: vi.fn() };
 vi.mock('../../../services/comments/CommentStrategyFactory', () => ({
     CommentStrategyFactory: class {
-        getStrategy() { return mockStrategy; }
-    }
+        getStrategy() {
+            return mockStrategy;
+        }
+    },
 }));
 
 describe('CommentService - Unit Tests', () => {
@@ -64,7 +66,7 @@ describe('CommentService - Unit Tests', () => {
                     text: 'Test comment',
                     createdAt: Timestamp.now(),
                     updatedAt: Timestamp.now(),
-                }
+                },
             ]);
 
             const result = await commentService.createComment(targetType, targetId, commentData, userId);
@@ -104,7 +106,7 @@ describe('CommentService - Unit Tests', () => {
                     text: 'Test comment',
                     createdAt: Timestamp.now(),
                     updatedAt: Timestamp.now(),
-                }
+                },
             ]);
 
             const result = await commentService.createComment(targetType, targetId, commentData, userId);
@@ -123,11 +125,12 @@ describe('CommentService - Unit Tests', () => {
                 targetId,
             };
 
-            await expect(commentService.createComment(targetType, targetId, commentData, userId))
-                .rejects.toThrow(expect.objectContaining({
+            await expect(commentService.createComment(targetType, targetId, commentData, userId)).rejects.toThrow(
+                expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'USER_NOT_FOUND'
-                }));
+                    code: 'USER_NOT_FOUND',
+                }),
+            );
         });
 
         it('should throw error when access verification fails', async () => {
@@ -141,15 +144,14 @@ describe('CommentService - Unit Tests', () => {
             };
 
             stubAuth.setUser(userId, { uid: userId, displayName: 'Test User' });
-            mockStrategy.verifyAccess.mockRejectedValue(
-                new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'Access denied')
-            );
+            mockStrategy.verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'));
 
-            await expect(commentService.createComment(targetType, targetId, commentData, userId))
-                .rejects.toThrow(expect.objectContaining({
+            await expect(commentService.createComment(targetType, targetId, commentData, userId)).rejects.toThrow(
+                expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
-                    code: 'ACCESS_DENIED'
-                }));
+                    code: 'ACCESS_DENIED',
+                }),
+            );
         });
 
         it('should handle firestore write failures', async () => {
@@ -165,8 +167,7 @@ describe('CommentService - Unit Tests', () => {
             stubAuth.setUser(userId, { uid: userId, displayName: 'Test User' });
             stubWriter.setWriteResult('comment-123', false, 'Database error');
 
-            await expect(commentService.createComment(targetType, targetId, commentData, userId))
-                .rejects.toThrow('Database error');
+            await expect(commentService.createComment(targetType, targetId, commentData, userId)).rejects.toThrow('Database error');
         });
     });
 
@@ -194,7 +195,7 @@ describe('CommentService - Unit Tests', () => {
                     text: 'Second comment',
                     createdAt: Timestamp.now(),
                     updatedAt: Timestamp.now(),
-                }
+                },
             ];
 
             stubReader.setCommentsForTarget(targetType, targetId, mockComments);
@@ -232,15 +233,14 @@ describe('CommentService - Unit Tests', () => {
             const targetType: CommentTargetType = 'group';
             const targetId = 'group-456';
 
-            mockStrategy.verifyAccess.mockRejectedValue(
-                new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'Access denied')
-            );
+            mockStrategy.verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'));
 
-            await expect(commentService.listComments(targetType, targetId, userId))
-                .rejects.toThrow(expect.objectContaining({
+            await expect(commentService.listComments(targetType, targetId, userId)).rejects.toThrow(
+                expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
-                    code: 'ACCESS_DENIED'
-                }));
+                    code: 'ACCESS_DENIED',
+                }),
+            );
         });
     });
 
@@ -296,7 +296,7 @@ describe('CommentService - Unit Tests', () => {
                     text: 'Anonymous comment',
                     createdAt: Timestamp.now(),
                     updatedAt: Timestamp.now(),
-                }
+                },
             ]);
 
             const result = await commentService.createComment(targetType, targetId, commentData, userId);
@@ -330,7 +330,7 @@ describe('CommentService - Unit Tests', () => {
                     text: longText,
                     createdAt: Timestamp.now(),
                     updatedAt: Timestamp.now(),
-                }
+                },
             ]);
 
             const result = await commentService.createComment(targetType, targetId, commentData, userId);
@@ -366,7 +366,7 @@ describe('CommentService - Unit Tests', () => {
                     text: 'Complete comment with all data',
                     createdAt: Timestamp.now(),
                     updatedAt: Timestamp.now(),
-                }
+                },
             ]);
 
             const result = await commentService.createComment(targetType, targetId, commentData, userId);

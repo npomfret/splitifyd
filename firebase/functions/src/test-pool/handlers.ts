@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { TestUserPoolService } from './TestUserPoolService';
-import {getAuth, getFirestore, isEmulator} from '../firebase';
+import { getAuth, getFirestore, isEmulator } from '../firebase';
 import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
@@ -61,5 +61,3 @@ export async function returnTestUser(req: Request, res: Response): Promise<void>
         });
     }
 }
-
-

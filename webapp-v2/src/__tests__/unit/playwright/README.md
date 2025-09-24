@@ -252,26 +252,26 @@ We've implemented a new object-oriented approach to test data generation and API
 ### Architecture
 
 #### Builders (`./builders/`)
+
 - **GroupTestDataBuilder**: Creates consistent group test data with fluent API
 - **MockResponseBuilder**: Creates standardized API response objects
 
 #### Mock Objects (`./mocks/`)
+
 - **GroupApiMock**: Handles all group-related API endpoint mocking
 - **AuthApiMock**: Handles authentication and Firebase API mocking
 
 #### Test Objects (`./objects/`)
+
 - **TestScenarios**: Provides scenario-based test data (replaces TEST_SCENARIOS constant)
 
 ### Usage Examples
 
 #### Creating Test Groups
+
 ```typescript
 // Simple group
-const group = new GroupTestDataBuilder()
-  .withName('My Test Group')
-  .withMemberCount(3)
-  .withBalance(100.50)
-  .build();
+const group = new GroupTestDataBuilder().withName('My Test Group').withMemberCount(3).withBalance(100.5).build();
 
 // Pre-defined scenarios
 const debtGroup = new GroupTestDataBuilder().withDebtScenario().build();
@@ -280,6 +280,7 @@ const sampleGroups = GroupTestDataBuilder.sampleGroupsArray();
 ```
 
 #### API Mocking
+
 ```typescript
 // Set up group API mocking
 const groupApiMock = new GroupApiMock(page);
@@ -294,6 +295,7 @@ await authApiMock.mockInvalidCredentials(email, password);
 ```
 
 #### Test Scenarios
+
 ```typescript
 // User scenarios
 const user = TestScenarios.validUser;
@@ -308,6 +310,7 @@ const tabOrder = TestScenarios.commonTabOrders.loginForm;
 ### Migration from Old Patterns
 
 #### Before (Helper Functions)
+
 ```typescript
 // Old approach
 const mockData = { id: 'test', name: 'Test Group', ... };
@@ -318,11 +321,10 @@ const email = TEST_SCENARIOS.VALID_EMAIL;
 ```
 
 #### After (Object-Oriented)
+
 ```typescript
 // New approach
-const group = new GroupTestDataBuilder()
-  .withName('Test Group')
-  .build();
+const group = new GroupTestDataBuilder().withName('Test Group').build();
 
 const groupApiMock = new GroupApiMock(page);
 await groupApiMock.mockGetGroups([group]);

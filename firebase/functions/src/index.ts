@@ -28,7 +28,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { borrowTestUser, returnTestUser } from './test-pool/handlers';
-import {testClearPolicyAcceptances, testPromoteToAdmin} from './test/policy-handlers';
+import { testClearPolicyAcceptances, testPromoteToAdmin } from './test/policy-handlers';
 import { metrics } from './monitoring/lightweight-metrics';
 
 // Initialize ApplicationBuilder
@@ -111,14 +111,14 @@ function setupRoutes(app: express.Application): void {
                 checks.auth = {
                     status: 'unhealthy',
                     responseTime: Date.now() - authStart,
-                    error: 'Auth service not available'
+                    error: 'Auth service not available',
                 };
             }
         } catch (error) {
             checks.auth = {
                 status: 'unhealthy',
                 responseTime: Date.now() - authStart,
-                error: error instanceof Error ? error.message : 'Unknown auth error'
+                error: error instanceof Error ? error.message : 'Unknown auth error',
             };
         }
 

@@ -44,13 +44,7 @@ describe('UserService - Unit Tests', () => {
             initializeUserNotifications: vi.fn().mockResolvedValue(undefined),
         } as any;
 
-        userService = new UserService(
-            stubReader,
-            stubWriter,
-            mockValidationService,
-            mockNotificationService,
-            stubAuth,
-        );
+        userService = new UserService(stubReader, stubWriter, mockValidationService, mockNotificationService, stubAuth);
 
         // Clear all stub data
         stubAuth.clear();
@@ -107,7 +101,7 @@ describe('UserService - Unit Tests', () => {
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.CONFLICT,
                     code: 'EMAIL_ALREADY_EXISTS',
-                })
+                }),
             );
         });
 
@@ -181,13 +175,15 @@ describe('UserService - Unit Tests', () => {
             expect(profile.displayName).toBe(displayName);
             expect(profile.emailVerified).toBe(true);
             expect(profile.photoURL).toBe('https://example.com/photo.jpg');
-            expect(profile.themeColor).toEqual(expect.objectContaining({
-                light: expect.any(String),
-                dark: expect.any(String),
-                name: expect.any(String),
-                pattern: 'solid',
-                colorIndex: 0,
-            }));
+            expect(profile.themeColor).toEqual(
+                expect.objectContaining({
+                    light: expect.any(String),
+                    dark: expect.any(String),
+                    name: expect.any(String),
+                    pattern: 'solid',
+                    colorIndex: 0,
+                }),
+            );
             expect(profile.preferredLanguage).toBe('en');
             expect(profile.createdAt).toBeDefined();
             expect(profile.updatedAt).toBeDefined();
@@ -200,7 +196,7 @@ describe('UserService - Unit Tests', () => {
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                     code: 'NOT_FOUND',
-                })
+                }),
             );
         });
 
@@ -214,9 +210,7 @@ describe('UserService - Unit Tests', () => {
                 // Missing displayName
             });
 
-            await expect(userService.getUser(uid)).rejects.toThrow(
-                'User incomplete-user missing required fields: email and displayName are mandatory'
-            );
+            await expect(userService.getUser(uid)).rejects.toThrow('User incomplete-user missing required fields: email and displayName are mandatory');
         });
     });
 
@@ -229,7 +223,7 @@ describe('UserService - Unit Tests', () => {
             ];
 
             // Set up Auth users
-            users.forEach(user => {
+            users.forEach((user) => {
                 stubAuth.setUser(user.uid, user);
 
                 // Set up corresponding Firestore documents
@@ -246,7 +240,7 @@ describe('UserService - Unit Tests', () => {
                 stubReader.setDocument('users', user.uid, userDoc);
             });
 
-            const uids = users.map(u => u.uid);
+            const uids = users.map((u) => u.uid);
             const profiles = await userService.getUsers(uids);
 
             expect(profiles.size).toBe(3);
@@ -402,11 +396,11 @@ describe('UserService - Unit Tests', () => {
             await expect(
                 userService.updateProfile(nonExistentUid, {
                     displayName: 'Test',
-                })
+                }),
             ).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                })
+                }),
             );
         });
     });
@@ -451,11 +445,11 @@ describe('UserService - Unit Tests', () => {
                 userService.changePassword(nonExistentUid, {
                     currentPassword: 'OldPassword123!',
                     newPassword: 'NewPassword123!',
-                })
+                }),
             ).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                })
+                }),
             );
         });
     });
@@ -493,7 +487,7 @@ describe('UserService - Unit Tests', () => {
             await expect(stubAuth.getUser(uid)).rejects.toThrow(
                 expect.objectContaining({
                     code: 'USER_NOT_FOUND',
-                })
+                }),
             );
 
             // Note: The actual service doesn't call deleteUserNotification in the current implementation
@@ -515,7 +509,7 @@ describe('UserService - Unit Tests', () => {
             await expect(
                 userService.deleteAccount(uid, {
                     confirmDelete: false,
-                } as any)
+                } as any),
             ).rejects.toThrow('Invalid input data');
 
             // Try to delete without confirmDelete field
@@ -528,11 +522,11 @@ describe('UserService - Unit Tests', () => {
             await expect(
                 userService.deleteAccount(nonExistentUid, {
                     confirmDelete: true,
-                })
+                }),
             ).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                })
+                }),
             );
         });
     });
@@ -582,9 +576,7 @@ describe('UserService - Unit Tests', () => {
                 // email is undefined
             });
 
-            await expect(userService.getUser(uid)).rejects.toThrow(
-                'User no-email-user missing required fields: email and displayName are mandatory'
-            );
+            await expect(userService.getUser(uid)).rejects.toThrow('User no-email-user missing required fields: email and displayName are mandatory');
         });
     });
 });

@@ -42,7 +42,6 @@ export class CommentService {
         await strategy.verifyAccess(targetId, userId);
     }
 
-
     /**
      * List comments for a target with pagination
      */

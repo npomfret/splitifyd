@@ -119,5 +119,4 @@ export class TestUserPoolService {
 
         return { email, password: POOL_PASSWORD, token };
     }
-
 }

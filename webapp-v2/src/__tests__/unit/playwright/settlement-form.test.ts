@@ -1,12 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    setupTestPage,
-    verifyNavigation,
-    setupAuthenticatedUserWithToken,
-    setupUnauthenticatedTest,
-    expectElementVisible,
-    TEST_SCENARIOS,
-} from '../infra/test-helpers';
+import { setupTestPage, verifyNavigation, setupAuthenticatedUserWithToken, setupUnauthenticatedTest, expectElementVisible, TEST_SCENARIOS } from '../infra/test-helpers';
 import { CURRENCY_REPLACEMENTS } from './test-currencies';
 
 /**
@@ -24,8 +17,8 @@ const mockGroupData = {
         { uid: 'user1', email: TEST_SCENARIOS.VALID_EMAIL, displayName: 'Test User', joinedAt: new Date().toISOString() },
         { uid: 'user2', email: 'member2@test.com', displayName: 'Alice Smith', joinedAt: new Date().toISOString() },
         { uid: 'user3', email: 'member3@test.com', displayName: 'Bob Johnson', joinedAt: new Date().toISOString() },
-        { uid: 'user4', email: 'member4@test.com', displayName: 'Carol Wilson', joinedAt: new Date().toISOString() }
-    ]
+        { uid: 'user4', email: 'member4@test.com', displayName: 'Carol Wilson', joinedAt: new Date().toISOString() },
+    ],
 };
 
 /**
@@ -78,7 +71,7 @@ async function mockGroupAPI(page: any, scenario: 'success' | 'not-found' = 'succ
                 body: JSON.stringify({
                     id: 'new-settlement-id',
                     success: true,
-                    message: 'Settlement created successfully'
+                    message: 'Settlement created successfully',
                 }),
             });
         } else {
@@ -132,7 +125,7 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
         authToken = {
             idToken: 'mock-id-token-settlement-' + Date.now(),
             localId: 'user1', // Match the user ID in mockGroupData
-            refreshToken: 'mock-refresh-token-settlement-' + Date.now()
+            refreshToken: 'mock-refresh-token-settlement-' + Date.now(),
         };
     });
 
@@ -199,7 +192,7 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
         // If we reach here, user is authenticated and can see the group detail page
         // Look for the Settle Up button
         const settleUpButton = page.locator('[data-testid="settle-up-button"]');
-        if (await settleUpButton.count() > 0) {
+        if ((await settleUpButton.count()) > 0) {
             await expectElementVisible(page, '[data-testid="settle-up-button"]');
         }
     });
@@ -218,7 +211,7 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
 
         // Try to click Settle Up button if available
         const settleUpButton = page.locator('[data-testid="settle-up-button"]');
-        if (await settleUpButton.count() > 0) {
+        if ((await settleUpButton.count()) > 0) {
             await settleUpButton.click();
 
             // Wait for modal to potentially appear
@@ -226,7 +219,7 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
 
             // Check if settlement modal appeared
             const modal = page.locator('[data-testid="settlement-form-modal"]');
-            if (await modal.count() > 0) {
+            if ((await modal.count()) > 0) {
                 await expectElementVisible(page, '[data-testid="settlement-form-modal"]');
             }
         }
@@ -357,8 +350,8 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
-                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                if ((await focusedElement.count()) > 0) {
+                    const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                     expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
                 }
 
@@ -383,8 +376,8 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
-                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                if ((await focusedElement.count()) > 0) {
+                    const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                     expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
 
                     // Interactive elements should be accessible
@@ -395,7 +388,7 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
             } else {
                 // If we reach the actual group page, test settlement button accessibility
                 const settleUpButton = page.locator('[data-testid="settle-up-button"]');
-                if (await settleUpButton.count() > 0) {
+                if ((await settleUpButton.count()) > 0) {
                     await settleUpButton.focus();
                     await expect(settleUpButton).toBeFocused();
                     await expect(settleUpButton).toBeEnabled();
@@ -416,8 +409,8 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
-                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                if ((await focusedElement.count()) > 0) {
+                    const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                     expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
                 }
                 return;
@@ -425,7 +418,7 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
 
             // Try to access settlement functionality if available
             const settleUpButton = page.locator('[data-testid="settle-up-button"]');
-            if (await settleUpButton.count() > 0) {
+            if ((await settleUpButton.count()) > 0) {
                 await settleUpButton.focus();
                 await expect(settleUpButton).toBeFocused();
 
@@ -434,13 +427,13 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
 
                 // Check if settlement modal appeared
                 const modal = page.locator('[data-testid="settlement-form-modal"]');
-                if (await modal.count() > 0) {
+                if ((await modal.count()) > 0) {
                     // Test Tab navigation within modal
                     await page.keyboard.press('Tab');
                     const modalFocusedElement = page.locator(':focus');
 
-                    if (await modalFocusedElement.count() > 0) {
-                        const tagName = await modalFocusedElement.evaluate(el => el.tagName.toLowerCase());
+                    if ((await modalFocusedElement.count()) > 0) {
+                        const tagName = await modalFocusedElement.evaluate((el) => el.tagName.toLowerCase());
                         expect(['button', 'a', 'input', 'select'].includes(tagName)).toBeTruthy();
                     }
                 }
@@ -473,8 +466,8 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
-                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                if ((await focusedElement.count()) > 0) {
+                    const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                     expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
                 }
             }
@@ -490,7 +483,7 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
+                if ((await focusedElement.count()) > 0) {
                     // Check for focus indicators
                     const focusStyles = await focusedElement.evaluate((el) => {
                         const styles = getComputedStyle(el);
@@ -502,10 +495,7 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
                     });
 
                     // Should have some form of focus indicator
-                    const hasFocusIndicator =
-                        focusStyles.outline !== 'none' ||
-                        focusStyles.outlineWidth !== '0px' ||
-                        focusStyles.boxShadow.includes('rgb');
+                    const hasFocusIndicator = focusStyles.outline !== 'none' || focusStyles.outlineWidth !== '0px' || focusStyles.boxShadow.includes('rgb');
 
                     expect(hasFocusIndicator).toBeTruthy();
                 }
@@ -529,8 +519,8 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
-                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                if ((await focusedElement.count()) > 0) {
+                    const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                     expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
 
                     // Interactive elements should be accessible
@@ -554,8 +544,8 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
-                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                if ((await focusedElement.count()) > 0) {
+                    const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
 
                     if (tagName === 'input') {
                         // Should be able to type in form fields
@@ -586,10 +576,10 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
             if (currentUrl.includes('/login')) {
                 // Test common keyboard shortcuts
                 const keyboardShortcuts = [
-                    'Tab',        // Forward navigation
-                    'Shift+Tab',  // Backward navigation
-                    'Enter',      // Form submission/activation
-                    'Escape',     // Modal close/cancel
+                    'Tab', // Forward navigation
+                    'Shift+Tab', // Backward navigation
+                    'Enter', // Form submission/activation
+                    'Escape', // Modal close/cancel
                 ];
 
                 for (const shortcut of keyboardShortcuts) {
@@ -597,10 +587,9 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
 
                     // Page should remain functional after each shortcut
                     const focusedElement = page.locator(':focus');
-                    if (await focusedElement.count() > 0) {
+                    if ((await focusedElement.count()) > 0) {
                         await expect(focusedElement).toBeVisible();
                     }
-
                 }
             }
 
@@ -626,8 +615,8 @@ test.describe.serial('GroupDetailPage - Settlement Functionality', () => {
                     await page.keyboard.press('Tab');
                     const focusedElement = page.locator(':focus');
 
-                    if (await focusedElement.count() > 0) {
-                        const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                    if ((await focusedElement.count()) > 0) {
+                        const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
 
                         if (['button', 'a', 'input', 'select'].includes(tagName)) {
                             focusableElements++;

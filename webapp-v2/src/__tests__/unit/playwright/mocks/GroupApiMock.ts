@@ -24,7 +24,7 @@ export class GroupApiMock {
 
     async mockGetGroupsWithDelay(groups: any[], delayMs: number = 200): Promise<void> {
         await this.page.route('**/api/groups', async (route) => {
-            await new Promise(resolve => setTimeout(resolve, delayMs));
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
             const response = MockResponseBuilder.success(groups).build();
             route.fulfill(response);
         });
@@ -46,20 +46,14 @@ export class GroupApiMock {
 
     async mockGetGroupDeleted(groupId: string): Promise<void> {
         await this.page.route(`**/api/groups/${groupId}`, (route) => {
-            const response = MockResponseBuilder
-                .notFound('Group has been deleted')
-                .withError('Group has been deleted', 'GROUP_DELETED')
-                .build();
+            const response = MockResponseBuilder.notFound('Group has been deleted').withError('Group has been deleted', 'GROUP_DELETED').build();
             route.fulfill(response);
         });
     }
 
     async mockGetGroupUserRemoved(groupId: string): Promise<void> {
         await this.page.route(`**/api/groups/${groupId}`, (route) => {
-            const response = MockResponseBuilder
-                .forbidden('User removed from group')
-                .withError('User removed from group', 'USER_REMOVED_FROM_GROUP')
-                .build();
+            const response = MockResponseBuilder.forbidden('User removed from group').withError('User removed from group', 'USER_REMOVED_FROM_GROUP').build();
             route.fulfill(response);
         });
     }
@@ -141,13 +135,13 @@ export class GroupApiMock {
                                             id: { stringValue: member.id },
                                             email: { stringValue: member.email },
                                             displayName: { stringValue: member.displayName },
-                                            joinedAt: { timestampValue: member.joinedAt }
-                                        }
-                                    }
-                                }))
-                            }
-                        }
-                    }
+                                            joinedAt: { timestampValue: member.joinedAt },
+                                        },
+                                    },
+                                })),
+                            },
+                        },
+                    },
                 }).build();
                 route.fulfill(response);
             } else {

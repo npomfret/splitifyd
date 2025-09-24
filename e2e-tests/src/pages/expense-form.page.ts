@@ -25,7 +25,7 @@ export class ExpenseFormDataBuilder {
             currency: this.randomCurrency(),
             paidByDisplayName: '', // No default - must be explicitly set
             splitType: this.randomChoice(['equal', 'exact', 'percentage']),
-            participants: []
+            participants: [],
         };
     }
 
@@ -266,7 +266,7 @@ export class ExpenseFormPage extends BasePage {
                 availableParticipants.push(text.trim());
             }
 
-            const shouldBeChecked = participants.some(p => text?.includes(p));
+            const shouldBeChecked = participants.some((p) => text?.includes(p));
             if (shouldBeChecked && text) {
                 foundParticipants.push(text.trim());
             }
@@ -280,9 +280,7 @@ export class ExpenseFormPage extends BasePage {
         }
 
         // Verify all requested participants were found
-        const unfoundParticipants = participants.filter(p =>
-            !availableParticipants.some(available => available.includes(p))
-        );
+        const unfoundParticipants = participants.filter((p) => !availableParticipants.some((available) => available.includes(p)));
 
         if (unfoundParticipants.length > 0) {
             throw new Error(`Could not find participants: ${unfoundParticipants.join(', ')}. Available participants: ${availableParticipants.join(', ')}`);

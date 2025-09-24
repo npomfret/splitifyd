@@ -24,11 +24,7 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
             // In the real system, FirestoreReader.sanitizeGroupData() handles this
 
             // Use builder to create valid group data, then corrupt the securityPreset
-            const validGroup = new FirestoreGroupBuilder()
-                .withName('Test Group')
-                .withDescription('Group with invalid security preset')
-                .withCreatedBy('user123')
-                .build();
+            const validGroup = new FirestoreGroupBuilder().withName('Test Group').withDescription('Group with invalid security preset').withCreatedBy('user123').build();
 
             const corruptedGroup = {
                 ...validGroup,
@@ -61,11 +57,7 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
                 const groupId = `group-${description.replace(/\s+/g, '-')}`;
 
                 // Use builder for valid base data, then corrupt securityPreset
-                const validGroup = new FirestoreGroupBuilder()
-                    .withName(`Group with ${description}`)
-                    .withDescription(`Testing ${description}`)
-                    .withCreatedBy('user123')
-                    .build();
+                const validGroup = new FirestoreGroupBuilder().withName(`Group with ${description}`).withDescription(`Testing ${description}`).withCreatedBy('user123').build();
 
                 const corruptedGroup = {
                     ...validGroup,
@@ -90,11 +82,7 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
                 const groupId = `group-${validPreset}`;
 
                 // Use builder with valid securityPreset
-                const groupData = new FirestoreGroupBuilder()
-                    .withName(`Group with ${validPreset}`)
-                    .withDescription(`Testing ${validPreset} preset`)
-                    .withCreatedBy('user123')
-                    .build();
+                const groupData = new FirestoreGroupBuilder().withName(`Group with ${validPreset}`).withDescription(`Testing ${validPreset} preset`).withCreatedBy('user123').build();
 
                 // Override with specific valid preset
                 const groupWithPreset = {
@@ -116,9 +104,7 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
         it('should handle documents with missing required fields', async () => {
             // Test that the application handles incomplete documents gracefully
             // Start with builder but then remove required fields
-            const validGroup = new FirestoreGroupBuilder()
-                .withCreatedBy('user123')
-                .build();
+            const validGroup = new FirestoreGroupBuilder().withCreatedBy('user123').build();
 
             const incompleteGroup = {
                 id: 'incomplete-group',
@@ -139,11 +125,7 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
         it('should handle documents with wrong data types', async () => {
             // Test resilience to wrong data types
             // Start with valid builder data, then corrupt field types
-            const validGroup = new FirestoreGroupBuilder()
-                .withName('Valid Group')
-                .withDescription('Valid description')
-                .withCreatedBy('user123')
-                .build();
+            const validGroup = new FirestoreGroupBuilder().withName('Valid Group').withDescription('Valid description').withCreatedBy('user123').build();
 
             const malformedGroup = {
                 ...validGroup,
@@ -176,11 +158,7 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
         it('should handle invalid timestamp fields', async () => {
             // Test handling of invalid timestamp data
             // Start with valid builder data, then corrupt timestamps
-            const validGroup = new FirestoreGroupBuilder()
-                .withName('Bad Timestamps Group')
-                .withDescription('Group with invalid timestamps')
-                .withCreatedBy('user123')
-                .build();
+            const validGroup = new FirestoreGroupBuilder().withName('Bad Timestamps Group').withDescription('Group with invalid timestamps').withCreatedBy('user123').build();
 
             const groupWithBadTimestamps = {
                 ...validGroup,
@@ -201,11 +179,7 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
         it('should handle groups with mixed valid and invalid data', async () => {
             // Test a realistic scenario with partially corrupted data
             // Start with valid builder data, then corrupt specific fields
-            const validGroup = new FirestoreGroupBuilder()
-                .withName('Mixed Validity Group')
-                .withDescription('Some fields valid, some invalid')
-                .withCreatedBy('user123')
-                .build();
+            const validGroup = new FirestoreGroupBuilder().withName('Mixed Validity Group').withDescription('Some fields valid, some invalid').withCreatedBy('user123').build();
 
             const mixedValidityGroup = {
                 ...validGroup,
@@ -233,17 +207,9 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
         it('should handle bulk operations with mixed data quality', async () => {
             // Test performance with multiple groups having various data issues
             // Use builders for clean test data setup
-            const goodGroup1 = new FirestoreGroupBuilder()
-                .withName('Good Group 1')
-                .withDescription('Perfectly valid group')
-                .withCreatedBy('user123')
-                .build();
+            const goodGroup1 = new FirestoreGroupBuilder().withName('Good Group 1').withDescription('Perfectly valid group').withCreatedBy('user123').build();
 
-            const goodGroup2 = new FirestoreGroupBuilder()
-                .withName('Good Group 2')
-                .withDescription('Another valid group')
-                .withCreatedBy('user456')
-                .build();
+            const goodGroup2 = new FirestoreGroupBuilder().withName('Good Group 2').withDescription('Another valid group').withCreatedBy('user456').build();
 
             const groupData = [
                 { ...goodGroup1, id: 'good-group-1', securityPreset: SecurityPresets.OPEN },
@@ -252,7 +218,7 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
             ];
 
             // Set up all groups
-            groupData.forEach(group => {
+            groupData.forEach((group) => {
                 stubReader.setDocument('groups', group.id, group);
             });
 

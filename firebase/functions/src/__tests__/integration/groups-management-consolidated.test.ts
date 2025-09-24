@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, borrowTestUsers, generateShortId, NotificationDriver } from '@splitifyd/test-support';
 import { PooledTestUser, FirestoreCollections, MemberRoles, MemberStatuses } from '@splitifyd/shared';
-import {getAuth, getFirestore} from '../../firebase';
+import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreReader } from '../../services/firestore';
 import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
@@ -619,7 +619,6 @@ describe('Groups Management - Consolidated Tests', () => {
                 expect(fullDetailsResponse.members.members.length).toBe(2);
             });
 
-
             test('should update timestamps when leaving', async () => {
                 const testUsers = users.slice(0, 2);
                 const groupId = await createGroupWithMembers(apiDriver, testUsers);
@@ -655,7 +654,6 @@ describe('Groups Management - Consolidated Tests', () => {
                 expect(fullDetailsResponse.members.members.map((m: any) => m.uid)).not.toContain(memberToRemove.uid);
                 expect(fullDetailsResponse.members.members.length).toBe(2);
             });
-
         });
 
         describe('Complex Member Management Scenarios', () => {

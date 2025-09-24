@@ -1,6 +1,6 @@
-import {expect, Locator, Page} from '@playwright/test';
-import {BasePage} from './base.page';
-import {PooledTestUser} from '@splitifyd/shared';
+import { expect, Locator, Page } from '@playwright/test';
+import { BasePage } from './base.page';
+import { PooledTestUser } from '@splitifyd/shared';
 
 export interface SettlementData {
     payerName: string; // Display name of who paid

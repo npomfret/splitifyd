@@ -1,10 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    setupTestPage,
-    setupAuthenticatedUserWithToken,
-    fillFormField,
-    TEST_SCENARIOS,
-} from '../infra/test-helpers';
+import { setupTestPage, setupAuthenticatedUserWithToken, fillFormField, TEST_SCENARIOS } from '../infra/test-helpers';
 
 /**
  * Unit tests for settlement form validation
@@ -18,7 +13,7 @@ test.describe('Settlement Form Validation', () => {
             { id: 'user1', email: TEST_SCENARIOS.VALID_EMAIL, displayName: 'Test User', joinedAt: new Date().toISOString() },
             { id: 'user2', email: 'member2@test.com', displayName: 'Member Two', joinedAt: new Date().toISOString() },
             { id: 'user3', email: 'member3@test.com', displayName: 'Member Three', joinedAt: new Date().toISOString() },
-        ]
+        ],
     };
 
     let authToken: { idToken: string; localId: string; refreshToken: string };
@@ -76,7 +71,7 @@ test.describe('Settlement Form Validation', () => {
         // Look for settle up button
         const settleUpButton = page.locator('button:has-text("Settle Up"), button:has-text("Settle"), button[data-testid*="settle"]');
 
-        if (await settleUpButton.count() > 0) {
+        if ((await settleUpButton.count()) > 0) {
             await settleUpButton.first().click();
         } else {
             // Fallback: add modal HTML for testing
@@ -84,7 +79,7 @@ test.describe('Settlement Form Validation', () => {
                 content: `
                     .settlement-modal { display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
                                       background: white; padding: 20px; border: 1px solid #ccc; z-index: 1000; }
-                `
+                `,
             });
 
             await page.addScriptTag({
@@ -160,7 +155,7 @@ test.describe('Settlement Form Validation', () => {
                     payeeSelect.addEventListener('change', validateForm);
                     amountInput.addEventListener('input', validateForm);
                     amountInput.addEventListener('blur', validateForm);
-                `
+                `,
             });
         }
 
@@ -172,7 +167,7 @@ test.describe('Settlement Form Validation', () => {
         authToken = {
             idToken: 'mock-id-token-' + Date.now(),
             localId: 'test-user-id-' + Date.now(),
-            refreshToken: 'mock-refresh-token-' + Date.now()
+            refreshToken: 'mock-refresh-token-' + Date.now(),
         };
     });
 
@@ -228,7 +223,7 @@ test.describe('Settlement Form Validation', () => {
         const payeeSelect = page.locator('#payee-select');
         const submitButton = page.locator('#save-settlement');
 
-        if (await payerSelect.isVisible() && await payeeSelect.isVisible()) {
+        if ((await payerSelect.isVisible()) && (await payeeSelect.isVisible())) {
             // Select same person as both payer and payee
             await payerSelect.selectOption('user1');
             await payeeSelect.selectOption('user1');
@@ -381,7 +376,6 @@ test.describe('Settlement Form Validation', () => {
             await fillFormField(page, noteInput, 'Dinner settlement');
         }
 
-
         // Form should be valid and submittable
         await expect(submitButton).toBeEnabled();
     });
@@ -496,9 +490,9 @@ test.describe('Settlement Form Validation', () => {
             // Modal should close or form should reset
 
             // Either modal closes or form resets
-            if (await modal.count() > 0 && await modal.isVisible()) {
+            if ((await modal.count()) > 0 && (await modal.isVisible())) {
                 // If modal still visible, form may or may not be reset
-                if (await amountInput.count() > 0 && await amountInput.isVisible()) {
+                if ((await amountInput.count()) > 0 && (await amountInput.isVisible())) {
                     const value = await amountInput.inputValue();
                     // Either cleared, reset to 0, or unchanged is acceptable
                     expect(typeof value === 'string').toBeTruthy();
@@ -556,7 +550,7 @@ test.describe('Settlement Form Validation', () => {
         const amountInput = page.locator('input[name="amount"], #amount-input, input[type="number"]');
         const currencySelect = page.locator('#currency-select');
 
-        if (await amountInput.isVisible() && await currencySelect.isVisible()) {
+        if ((await amountInput.isVisible()) && (await currencySelect.isVisible())) {
             // Test different currencies with same amount - no conversion expected
             const testAmount = '123.45';
 
@@ -591,7 +585,7 @@ test.describe('Settlement Form Validation', () => {
             await payeeSelect.selectOption('user2');
         }
 
-        if (await currencySelect.isVisible() && await amountInput.isVisible()) {
+        if ((await currencySelect.isVisible()) && (await amountInput.isVisible())) {
             // Test that different currencies are treated separately
             await currencySelect.selectOption('USD');
             await fillFormField(page, amountInput, '50.00');
@@ -618,13 +612,13 @@ test.describe('Settlement Form Validation', () => {
         const amountLabel = page.locator('label:has-text("Amount"), label[for*="amount"]');
 
         // Labels should be present
-        if (await payerLabel.count() > 0) {
+        if ((await payerLabel.count()) > 0) {
             await expect(payerLabel).toBeVisible();
         }
-        if (await payeeLabel.count() > 0) {
+        if ((await payeeLabel.count()) > 0) {
             await expect(payeeLabel).toBeVisible();
         }
-        if (await amountLabel.count() > 0) {
+        if ((await amountLabel.count()) > 0) {
             await expect(amountLabel).toBeVisible();
         }
 

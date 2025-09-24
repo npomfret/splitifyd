@@ -23,7 +23,7 @@ simpleTest.describe('Policy Acceptance', () => {
             const policyPages = [
                 { path: '/terms', heading: /Terms of Service|Terms and Conditions/ },
                 { path: '/privacy', heading: /Privacy Policy|Privacy/ },
-                { path: '/cookies', heading: /Cookie Policy|Cookie/ }
+                { path: '/cookies', heading: /Cookie Policy|Cookie/ },
             ];
 
             for (const { path, heading } of policyPages) {

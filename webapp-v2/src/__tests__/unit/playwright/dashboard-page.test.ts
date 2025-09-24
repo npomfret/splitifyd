@@ -1,13 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    setupTestPage,
-    verifyNavigation,
-    setupAuthenticatedUser,
-    setupUnauthenticatedTest,
-    testTabOrder,
-
-
-} from '../infra/test-helpers';
+import { setupTestPage, verifyNavigation, setupAuthenticatedUser, setupUnauthenticatedTest, testTabOrder } from '../infra/test-helpers';
 import { GroupTestDataBuilder } from './builders';
 import { GroupApiMock } from './mocks';
 import { TestScenarios } from './objects';
@@ -41,11 +33,7 @@ test.describe('DashboardPage - Behavioral Tests', () => {
 
     test('should handle complex URL parameters correctly', async ({ page }) => {
         // Test various complex URL patterns that users might have
-        const testUrls = [
-            '/dashboard?tab=groups&filter=active',
-            '/dashboard?view=stats&period=monthly',
-            '/dashboard?search=vacation&sort=date',
-        ];
+        const testUrls = ['/dashboard?tab=groups&filter=active', '/dashboard?view=stats&period=monthly', '/dashboard?search=vacation&sort=date'];
 
         for (const testUrl of testUrls) {
             await page.goto(testUrl);
@@ -87,11 +75,7 @@ test.describe('DashboardPage - Behavioral Tests', () => {
 
     test('should handle malformed URL parameters gracefully', async ({ page }) => {
         // Test edge cases with unusual URL patterns
-        const malformedUrls = [
-            '/dashboard?param1=value%20with%20spaces&param2=special!@#$',
-            '/dashboard?empty=&null=null&undefined',
-            '/dashboard?unicode=café&emoji=🎉',
-        ];
+        const malformedUrls = ['/dashboard?param1=value%20with%20spaces&param2=special!@#$', '/dashboard?empty=&null=null&undefined', '/dashboard?unicode=café&emoji=🎉'];
 
         for (const malformedUrl of malformedUrls) {
             await page.goto(malformedUrl);
@@ -151,11 +135,7 @@ test.describe('DashboardPage - Behavioral Tests', () => {
 
         test('should preserve URL parameters during authentication redirect', async ({ page }) => {
             // Test various dashboard URL patterns with parameters
-            const testUrls = [
-                '/dashboard?tab=groups',
-                '/dashboard?filter=active',
-                '/dashboard?sort=recent&view=grid'
-            ];
+            const testUrls = ['/dashboard?tab=groups', '/dashboard?filter=active', '/dashboard?sort=recent&view=grid'];
 
             for (const testUrl of testUrls) {
                 await page.goto(testUrl);
@@ -242,14 +222,8 @@ test.describe('DashboardPage - Behavioral Tests', () => {
             // Test that our test data and API mocking infrastructure is properly set up
             const testUser = TestScenarios.validUser;
             const mixedGroups = [
-                new GroupTestDataBuilder()
-                    .withName('User Owned Group')
-                    .withOwner(testUser.email)
-                    .build(),
-                new GroupTestDataBuilder()
-                    .withName('Other User Group')
-                    .withOwner('other-user-456')
-                    .build(),
+                new GroupTestDataBuilder().withName('User Owned Group').withOwner(testUser.email).build(),
+                new GroupTestDataBuilder().withName('Other User Group').withOwner('other-user-456').build(),
             ];
 
             expect(mixedGroups.length).toBe(2);
@@ -270,9 +244,9 @@ test.describe('DashboardPage - Behavioral Tests', () => {
             ];
 
             expect(balanceVariationGroups.length).toBeGreaterThan(0);
-            expect(balanceVariationGroups.some(g => g.balance > 0)).toBeTruthy();
-            expect(balanceVariationGroups.some(g => g.balance < 0)).toBeTruthy();
-            expect(balanceVariationGroups.some(g => g.balance === 0)).toBeTruthy();
+            expect(balanceVariationGroups.some((g) => g.balance > 0)).toBeTruthy();
+            expect(balanceVariationGroups.some((g) => g.balance < 0)).toBeTruthy();
+            expect(balanceVariationGroups.some((g) => g.balance === 0)).toBeTruthy();
 
             // Verify auth state works with test infrastructure
             const userId = await page.evaluate(() => localStorage.getItem('USER_ID'));
@@ -285,7 +259,7 @@ test.describe('DashboardPage - Behavioral Tests', () => {
             // Test that our testing infrastructure handles different viewport sizes correctly
             const viewports = [
                 { width: 1024, height: 768, name: 'desktop' },
-                { width: 375, height: 667, name: 'mobile' }
+                { width: 375, height: 667, name: 'mobile' },
             ];
 
             for (const viewport of viewports) {
@@ -311,12 +285,7 @@ test.describe('DashboardPage - Behavioral Tests', () => {
                 await page.waitForLoadState('networkidle');
 
                 // After redirect to login, test keyboard navigation there
-                const expectedTabOrder = [
-                    '#email-input',
-                    '#password-input',
-                    '[data-testid="remember-me-checkbox"]',
-                    'button[type="submit"]',
-                ];
+                const expectedTabOrder = ['#email-input', '#password-input', '[data-testid="remember-me-checkbox"]', 'button[type="submit"]'];
 
                 // Use the helper function for tab order testing with graceful error handling
                 await testTabOrder(page, expectedTabOrder);
@@ -340,7 +309,7 @@ test.describe('DashboardPage - Behavioral Tests', () => {
                     const element = page.locator(selector);
 
                     // Only test elements that exist, are visible, and are enabled
-                    if (await element.count() > 0 && await element.isVisible() && await element.isEnabled()) {
+                    if ((await element.count()) > 0 && (await element.isVisible()) && (await element.isEnabled())) {
                         await element.focus();
 
                         // Check for focus indicators
@@ -354,10 +323,7 @@ test.describe('DashboardPage - Behavioral Tests', () => {
                         });
 
                         // Verify some form of focus indicator exists
-                        const hasFocusIndicator =
-                            focusStyles.outline !== 'none' ||
-                            focusStyles.outlineWidth !== '0px' ||
-                            focusStyles.boxShadow.includes('rgb');
+                        const hasFocusIndicator = focusStyles.outline !== 'none' || focusStyles.outlineWidth !== '0px' || focusStyles.boxShadow.includes('rgb');
 
                         expect(hasFocusIndicator).toBeTruthy();
                     }
@@ -369,19 +335,14 @@ test.describe('DashboardPage - Behavioral Tests', () => {
                 await page.waitForLoadState('networkidle');
 
                 // Test Enter key on available interactive elements that should be present
-                const interactiveElements = [
-                    'input[type="email"]',
-                    'input[type="password"]',
-                    'button[type="submit"]',
-                    'a[href]'
-                ];
+                const interactiveElements = ['input[type="email"]', 'input[type="password"]', 'button[type="submit"]', 'a[href]'];
 
                 let foundInteractiveElement = false;
 
                 for (const selector of interactiveElements) {
                     const element = page.locator(selector).first();
 
-                    if (await element.count() > 0 && await element.isVisible() && await element.isEnabled()) {
+                    if ((await element.count()) > 0 && (await element.isVisible()) && (await element.isEnabled())) {
                         await element.focus();
                         await expect(element).toBeFocused();
 
@@ -410,7 +371,7 @@ test.describe('DashboardPage - Behavioral Tests', () => {
                 // that might appear (like forgot password)
                 const forgotPasswordButton = page.locator('button:has-text("Forgot")');
 
-                if (await forgotPasswordButton.count() > 0) {
+                if ((await forgotPasswordButton.count()) > 0) {
                     await forgotPasswordButton.focus();
                     await expect(forgotPasswordButton).toBeFocused();
 
@@ -421,8 +382,8 @@ test.describe('DashboardPage - Behavioral Tests', () => {
                     await page.keyboard.press('Tab');
                     const focusedElement = page.locator(':focus');
 
-                    if (await focusedElement.count() > 0) {
-                        const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                    if ((await focusedElement.count()) > 0) {
+                        const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                         expect(['button', 'a', 'input', 'select', 'textarea'].includes(tagName)).toBeTruthy();
                     }
                 }
@@ -435,7 +396,7 @@ test.describe('DashboardPage - Behavioral Tests', () => {
                 // Test that keyboard navigation remains functional after form interactions
                 const emailInput = page.locator('#email-input');
 
-                if (await emailInput.count() > 0) {
+                if ((await emailInput.count()) > 0) {
                     // Focus and fill email field
                     await emailInput.focus();
                     await emailInput.fill(TestScenarios.validUser.email);
@@ -445,7 +406,7 @@ test.describe('DashboardPage - Behavioral Tests', () => {
                     await page.keyboard.press('Tab');
                     const passwordInput = page.locator('#password-input');
 
-                    if (await passwordInput.count() > 0) {
+                    if ((await passwordInput.count()) > 0) {
                         await expect(passwordInput).toBeFocused();
 
                         // Fill password and maintain focus
@@ -472,18 +433,13 @@ test.describe('DashboardPage - Behavioral Tests', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
+                if ((await focusedElement.count()) > 0) {
                     const isInteractive = await focusedElement.evaluate((el) => {
                         const tagName = el.tagName.toLowerCase();
                         const type = el.getAttribute('type');
                         const role = el.getAttribute('role');
 
-                        return (
-                            ['button', 'a', 'input', 'select', 'textarea'].includes(tagName) ||
-                            type === 'button' ||
-                            role === 'button' ||
-                            el.hasAttribute('tabindex')
-                        );
+                        return ['button', 'a', 'input', 'select', 'textarea'].includes(tagName) || type === 'button' || role === 'button' || el.hasAttribute('tabindex');
                     });
 
                     expect(isInteractive).toBeTruthy();
@@ -522,7 +478,7 @@ test.describe('DashboardPage - Behavioral Tests', () => {
             const viewports = [
                 { width: 320, height: 568 },
                 { width: 1024, height: 768 },
-                { width: 1920, height: 1080 }
+                { width: 1920, height: 1080 },
             ];
 
             for (const viewport of viewports) {

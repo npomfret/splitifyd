@@ -1,10 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    setupTestPage,
-    setupAuthenticatedUserWithToken,
-    fillFormField,
-    TEST_SCENARIOS,
-} from '../infra/test-helpers';
+import { setupTestPage, setupAuthenticatedUserWithToken, fillFormField, TEST_SCENARIOS } from '../infra/test-helpers';
 import { CURRENCY_REPLACEMENTS } from './test-currencies';
 
 /**
@@ -18,7 +13,7 @@ test.describe('Expense Form Validation', () => {
         members: [
             { id: 'user1', email: TEST_SCENARIOS.VALID_EMAIL, displayName: 'Test User', joinedAt: new Date().toISOString() },
             { id: 'user2', email: 'member2@test.com', displayName: 'Member Two', joinedAt: new Date().toISOString() },
-        ]
+        ],
     };
 
     let authToken: { idToken: string; localId: string; refreshToken: string };
@@ -67,7 +62,7 @@ test.describe('Expense Form Validation', () => {
         authToken = {
             idToken: 'mock-id-token-' + Date.now(),
             localId: 'test-user-id-' + Date.now(),
-            refreshToken: 'mock-refresh-token-' + Date.now()
+            refreshToken: 'mock-refresh-token-' + Date.now(),
         };
     });
 
@@ -93,7 +88,7 @@ test.describe('Expense Form Validation', () => {
                 .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
                 .participant-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
                 .participant-item { padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; background: #f8f9fa; }
-            `
+            `,
         });
 
         await page.addScriptTag({
@@ -195,7 +190,7 @@ test.describe('Expense Form Validation', () => {
 
                 // Set default date to today
                 dateInput.value = new Date().toISOString().split('T')[0];
-            `
+            `,
         });
 
         // Wait for form to be available
@@ -366,7 +361,7 @@ test.describe('Expense Form Validation', () => {
                 const newValue = await payerDropdown.inputValue();
                 expect(newValue).toBeTruthy();
             }
-        } else if (await payerButtons.count() > 0) {
+        } else if ((await payerButtons.count()) > 0) {
             // Button-based payer selection
             const firstPayerButton = payerButtons.first();
             await firstPayerButton.click();
@@ -382,7 +377,9 @@ test.describe('Expense Form Validation', () => {
         await expect(page.locator('form')).toBeVisible();
 
         const currencyDropdown = page.locator('select[name*="currency"]');
-        const currencyButtons = page.locator(`button:has-text("${CURRENCY_REPLACEMENTS.USD.acronym}"), button:has-text("${CURRENCY_REPLACEMENTS.EUR.acronym}"), button:has-text("${CURRENCY_REPLACEMENTS.GBP.acronym}")`);
+        const currencyButtons = page.locator(
+            `button:has-text("${CURRENCY_REPLACEMENTS.USD.acronym}"), button:has-text("${CURRENCY_REPLACEMENTS.EUR.acronym}"), button:has-text("${CURRENCY_REPLACEMENTS.GBP.acronym}")`,
+        );
 
         if (await currencyDropdown.isVisible()) {
             // Should have default currency
@@ -395,7 +392,7 @@ test.describe('Expense Form Validation', () => {
 
             await currencyDropdown.selectOption('GBP');
             await expect(currencyDropdown).toHaveValue('GBP');
-        } else if (await currencyButtons.count() > 0) {
+        } else if ((await currencyButtons.count()) > 0) {
             // Button-based currency selection
             const eurButton = page.locator('button:has-text("EUR")');
             if (await eurButton.isVisible()) {
@@ -413,7 +410,7 @@ test.describe('Expense Form Validation', () => {
 
         const splitTypeButtons = page.locator('button:has-text("Equal"), button:has-text("Custom"), button:has-text("Percentage")');
 
-        if (await splitTypeButtons.count() > 0) {
+        if ((await splitTypeButtons.count()) > 0) {
             // Test different split types
             const equalButton = page.locator('button:has-text("Equal")');
             if (await equalButton.isVisible()) {
@@ -428,7 +425,7 @@ test.describe('Expense Form Validation', () => {
 
                 // Custom split might show additional amount inputs
                 const customAmountInputs = page.locator('input[type="number"]:not([name*="amount"])');
-                if (await customAmountInputs.count() > 0) {
+                if ((await customAmountInputs.count()) > 0) {
                     // Should accept custom split amounts
                     await fillFormField(page, customAmountInputs.first(), '25');
                     await expect(customAmountInputs.first()).toHaveValue('25');
@@ -477,7 +474,7 @@ test.describe('Expense Form Validation', () => {
         const amountInput = page.locator('input[type="number"], input[inputmode="decimal"]').first();
 
         // Fill valid form
-        if (await descriptionInput.isVisible() && await amountInput.isVisible()) {
+        if ((await descriptionInput.isVisible()) && (await amountInput.isVisible())) {
             await fillFormField(page, descriptionInput, 'Valid expense');
             await fillFormField(page, amountInput, '25.50');
 
@@ -526,7 +523,6 @@ test.describe('Expense Form Validation', () => {
         // Select participants
         const participantCheckboxes = page.locator('input[name="participants"]');
         await participantCheckboxes.first().check();
-
 
         // Form should be valid and submittable
         await expect(submitButton).toBeEnabled();

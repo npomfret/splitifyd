@@ -19,9 +19,12 @@ export function ExpenseFormActions({ isEditMode, saving, participantsCount, hasR
             </Button>
             <Button type="submit" variant="primary" disabled={saving || participantsCount === 0 || !hasRequiredFields}>
                 {saving
-                    ? (isEditMode ? t('expenseComponents.expenseFormActions.updating') : t('expenseComponents.expenseFormActions.saving'))
-                    : (isEditMode ? t('expenseComponents.expenseFormActions.update') : t('expenseComponents.expenseFormActions.save'))
-                }
+                    ? isEditMode
+                        ? t('expenseComponents.expenseFormActions.updating')
+                        : t('expenseComponents.expenseFormActions.saving')
+                    : isEditMode
+                      ? t('expenseComponents.expenseFormActions.update')
+                      : t('expenseComponents.expenseFormActions.save')}
             </Button>
         </div>
     );

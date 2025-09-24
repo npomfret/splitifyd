@@ -65,9 +65,7 @@ class NavigationService {
             const checkNavigation = () => {
                 attempts++;
 
-                if (window.location.pathname === path ||
-                    window.location.href.split('?')[0].endsWith(path) ||
-                    attempts >= maxAttempts) {
+                if (window.location.pathname === path || window.location.href.split('?')[0].endsWith(path) || attempts >= maxAttempts) {
                     resolve();
                 } else {
                     // Check again on next tick with cleanup tracking
@@ -204,7 +202,7 @@ class NavigationService {
      * Call this in test teardown to prevent memory leaks
      */
     cleanup(): void {
-        this.pendingNavigationTimers.forEach(timer => {
+        this.pendingNavigationTimers.forEach((timer) => {
             clearTimeout(timer);
         });
         this.pendingNavigationTimers.clear();

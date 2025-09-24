@@ -1,10 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    setupTestPage,
-    setupUnauthenticatedTest,
-    expectElementVisible,
-
-} from '../infra/test-helpers';
+import { setupTestPage, setupUnauthenticatedTest, expectElementVisible } from '../infra/test-helpers';
 
 /**
  * NotFoundPage behavioral tests - Testing actual 404 error page behavior
@@ -112,7 +107,7 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
             if ((window as any).__AUTH_STORE__) {
                 (window as any).__AUTH_STORE__.user = {
                     uid: 'test-user-123',
-                    email: 'test@example.com'
+                    email: 'test@example.com',
                 };
             }
         });
@@ -151,7 +146,7 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
         await navigationButton.first().click();
 
         // Should navigate away from 404 page (either to / or /dashboard)
-        await page.waitForURL(/(\/$|\/dashboard)/, );
+        await page.waitForURL(/(\/$|\/dashboard)/);
 
         // Verify we're no longer on the 404 page
         const notFoundTitle = page.locator('[data-testid="not-found-title"]');
@@ -242,7 +237,7 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
             await page.keyboard.press('Tab');
             const actionButton = page.locator('[data-testid="go-home-link"], [data-testid="go-to-dashboard-link"], button:has-text("Go Home"), button:has-text("Go to Dashboard")');
 
-            if (await actionButton.count() > 0) {
+            if ((await actionButton.count()) > 0) {
                 await expect(actionButton.first()).toBeFocused();
             }
         });
@@ -254,7 +249,7 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
             // Find and focus on action button
             const actionButton = page.locator('[data-testid="go-home-link"], [data-testid="go-to-dashboard-link"], button:has-text("Go Home"), button:has-text("Go to Dashboard")');
 
-            if (await actionButton.count() > 0) {
+            if ((await actionButton.count()) > 0) {
                 await actionButton.first().focus();
                 await expect(actionButton.first()).toBeFocused();
 
@@ -273,7 +268,7 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
             // Find and focus on action button
             const actionButton = page.locator('[data-testid="go-home-link"], [data-testid="go-to-dashboard-link"], button:has-text("Go Home"), button:has-text("Go to Dashboard")');
 
-            if (await actionButton.count() > 0) {
+            if ((await actionButton.count()) > 0) {
                 await actionButton.first().focus();
                 await expect(actionButton.first()).toBeFocused();
 
@@ -301,7 +296,7 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
             for (const selector of interactiveElements) {
                 const element = page.locator(selector);
 
-                if (await element.count() > 0) {
+                if ((await element.count()) > 0) {
                     await element.first().focus();
 
                     // Check for focus indicators
@@ -314,10 +309,7 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
                         };
                     });
 
-                    const hasFocusIndicator =
-                        focusStyles.outline !== 'none' ||
-                        focusStyles.outlineWidth !== '0px' ||
-                        focusStyles.boxShadow.includes('rgb');
+                    const hasFocusIndicator = focusStyles.outline !== 'none' || focusStyles.outlineWidth !== '0px' || focusStyles.boxShadow.includes('rgb');
 
                     expect(hasFocusIndicator).toBeTruthy();
                 }
@@ -333,15 +325,15 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
             await page.keyboard.press('Tab');
             let focusedElement = page.locator(':focus');
 
-            if (await focusedElement.count() > 0) {
-                const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+            if ((await focusedElement.count()) > 0) {
+                const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                 expect(['button', 'a'].includes(tagName)).toBeTruthy();
             }
 
             // Test that navigation action buttons work
             const homeButton = page.locator('button:has-text("Go Home"), a[href="/"], [data-testid="go-home-link"]');
 
-            if (await homeButton.count() > 0) {
+            if ((await homeButton.count()) > 0) {
                 await homeButton.first().focus();
                 await expect(homeButton.first()).toBeFocused();
 
@@ -354,12 +346,7 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
         });
 
         test('should maintain keyboard accessibility across different 404 scenarios', async ({ page }) => {
-            const invalidRoutes = [
-                '/this-page-does-not-exist',
-                '/users/nonexistent',
-                '/admin/forbidden',
-                '/invalid-app-route',
-            ];
+            const invalidRoutes = ['/this-page-does-not-exist', '/users/nonexistent', '/admin/forbidden', '/invalid-app-route'];
 
             for (const route of invalidRoutes) {
                 await page.goto(route);
@@ -369,15 +356,15 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
-                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                if ((await focusedElement.count()) > 0) {
+                    const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                     expect(['button', 'a', 'input'].includes(tagName)).toBeTruthy();
                 }
 
                 // Should have action buttons that work with keyboard
                 const actionButton = page.locator('button, a[href]').first();
 
-                if (await actionButton.count() > 0) {
+                if ((await actionButton.count()) > 0) {
                     await actionButton.focus();
                     await expect(actionButton).toBeFocused();
                 }
@@ -394,9 +381,9 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
             await page.keyboard.press('Tab');
             const firstFocusable = page.locator(':focus');
 
-            if (await firstFocusable.count() > 0) {
+            if ((await firstFocusable.count()) > 0) {
                 // Should be either a button or link
-                const tagName = await firstFocusable.evaluate(el => el.tagName.toLowerCase());
+                const tagName = await firstFocusable.evaluate((el) => el.tagName.toLowerCase());
                 expect(['button', 'a'].includes(tagName)).toBeTruthy();
 
                 // Should have meaningful text

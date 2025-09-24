@@ -51,16 +51,11 @@ describe('GroupService - Unit Tests', () => {
             // Mock createInTransaction to return a group ID
             vi.spyOn(stubWriter, 'createInTransaction').mockResolvedValue({
                 id: expectedGroupId,
-                path: `groups/${expectedGroupId}`
+                path: `groups/${expectedGroupId}`,
             });
 
             // Mock getGroup to return the created group directly
-            const createdGroup = new FirestoreGroupBuilder()
-                .withId(expectedGroupId)
-                .withName(createGroupRequest.name)
-                .withDescription(createGroupRequest.description)
-                .withCreatedBy(userId)
-                .build();
+            const createdGroup = new FirestoreGroupBuilder().withId(expectedGroupId).withName(createGroupRequest.name).withDescription(createGroupRequest.description).withCreatedBy(userId).build();
 
             vi.spyOn(stubReader, 'getGroup').mockResolvedValue(createdGroup);
 
@@ -70,7 +65,7 @@ describe('GroupService - Unit Tests', () => {
                 groupId: expectedGroupId,
                 memberRole: 'admin',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', `${expectedGroupId}_${userId}`, membershipDoc);
 
@@ -89,12 +84,7 @@ describe('GroupService - Unit Tests', () => {
             const groupId = 'test-group-456';
 
             // Set up test group using builder
-            const testGroup = new FirestoreGroupBuilder()
-                .withId(groupId)
-                .withName('Test Group')
-                .withDescription('Test Description')
-                .withCreatedBy(userId)
-                .build();
+            const testGroup = new FirestoreGroupBuilder().withId(groupId).withName('Test Group').withDescription('Test Description').withCreatedBy(userId).build();
 
             stubReader.setDocument('groups', groupId, testGroup);
             stubWriter.setDocument('groups', groupId, testGroup);
@@ -105,7 +95,7 @@ describe('GroupService - Unit Tests', () => {
                 groupId: groupId,
                 memberRole: 'admin',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
             stubWriter.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
@@ -115,7 +105,7 @@ describe('GroupService - Unit Tests', () => {
             vi.spyOn(expenseService, 'listGroupExpenses').mockResolvedValue({
                 expenses: [],
                 count: 0,
-                hasMore: false
+                hasMore: false,
             });
 
             const result = await groupService.getGroupFullDetails(groupId, userId);
@@ -130,8 +120,7 @@ describe('GroupService - Unit Tests', () => {
             const userId = 'test-user-123';
             const nonExistentGroupId = 'non-existent-group';
 
-            await expect(groupService.getGroupFullDetails(nonExistentGroupId, userId))
-                .rejects.toThrow(ApiError);
+            await expect(groupService.getGroupFullDetails(nonExistentGroupId, userId)).rejects.toThrow(ApiError);
         });
     });
 
@@ -141,12 +130,7 @@ describe('GroupService - Unit Tests', () => {
             const groupId = 'test-group-456';
 
             // Set up existing group
-            const existingGroup = new FirestoreGroupBuilder()
-                .withId(groupId)
-                .withName('Original Name')
-                .withDescription('Original Description')
-                .withCreatedBy(userId)
-                .build();
+            const existingGroup = new FirestoreGroupBuilder().withId(groupId).withName('Original Name').withDescription('Original Description').withCreatedBy(userId).build();
 
             stubReader.setDocument('groups', groupId, existingGroup);
 
@@ -156,7 +140,7 @@ describe('GroupService - Unit Tests', () => {
                 groupId: groupId,
                 memberRole: 'admin',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
 
@@ -178,11 +162,7 @@ describe('GroupService - Unit Tests', () => {
             const groupId = 'test-group-456';
 
             // Set up existing group (not marked for deletion yet)
-            const existingGroup = new FirestoreGroupBuilder()
-                .withId(groupId)
-                .withName('Test Group')
-                .withCreatedBy(userId)
-                .build();
+            const existingGroup = new FirestoreGroupBuilder().withId(groupId).withName('Test Group').withCreatedBy(userId).build();
 
             stubReader.setDocument('groups', groupId, existingGroup);
             stubWriter.setDocument('groups', groupId, existingGroup);
@@ -193,7 +173,7 @@ describe('GroupService - Unit Tests', () => {
                 groupId: groupId,
                 memberRole: 'admin',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
 
@@ -209,11 +189,7 @@ describe('GroupService - Unit Tests', () => {
             const userId = 'test-user-123';
 
             // Set up test groups using builder
-            const group1 = new FirestoreGroupBuilder()
-                .withId('group-1')
-                .withName('Group 1')
-                .withCreatedBy(userId)
-                .build();
+            const group1 = new FirestoreGroupBuilder().withId('group-1').withName('Group 1').withCreatedBy(userId).build();
 
             stubReader.setDocument('groups', 'group-1', group1);
 

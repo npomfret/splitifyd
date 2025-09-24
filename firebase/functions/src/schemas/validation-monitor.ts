@@ -175,8 +175,7 @@ export class EnhancedValidationError extends Error {
 
         return field ? `${field}: ${message}` : message;
     }
-
- }
+}
 
 /**
  * Format ZodError into readable string

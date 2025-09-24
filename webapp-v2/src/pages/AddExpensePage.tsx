@@ -110,7 +110,11 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     const pageDescription = isCopyMode ? t('pages.addExpensePage.copyExpenseAction') : isEditMode ? t('pages.addExpensePage.editExpenseAction') : t('pages.addExpensePage.addExpenseAction');
 
     return (
-        <BaseLayout title={`${pageTitle} - ${formState.group.name}${t('pages.addExpensePage.titleSuffix')}`} description={`${pageDescription}${t('pages.addExpensePage.titleIn')}${formState.group.name}`} headerVariant="dashboard">
+        <BaseLayout
+            title={`${pageTitle} - ${formState.group.name}${t('pages.addExpensePage.titleSuffix')}`}
+            description={`${pageDescription}${t('pages.addExpensePage.titleIn')}${formState.group.name}`}
+            headerVariant="dashboard"
+        >
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
                 <ExpenseFormHeader isEditMode={isEditMode} isCopyMode={isCopyMode} groupName={formState.group.name} onCancel={formState.handleCancel} />
 

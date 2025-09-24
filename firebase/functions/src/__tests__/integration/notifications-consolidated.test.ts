@@ -657,14 +657,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             notificationDriver.clearEvents();
 
             // ACTION: Test settlement creation notification (user2 pays user1)
-            await apiDriver.createSettlement(new SettlementBuilder()
-                .withGroupId(eventGroup.id)
-                .withPayer(user2.uid)
-                .withPayee(user1.uid)
-                .withAmount(15.0)
-                .build(),
-                user2.token
-            );
+            await apiDriver.createSettlement(new SettlementBuilder().withGroupId(eventGroup.id).withPayer(user2.uid).withPayee(user1.uid).withAmount(15.0).build(), user2.token);
 
             // WAIT: Wait for settlement transaction notifications
             await user1Listener.waitForEventCount(eventGroup.id, 'transaction', 1);
@@ -808,15 +801,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             notificationDriver.clearEvents();
 
             // ACTION: Create first expense and verify notification
-            await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(recoveryGroup.id)
-                    .withPaidBy(user1.uid)
-                    .withParticipants([user1.uid])
-                    .withAmount(20.0)
-                    .build(),
-                user1.token,
-            );
+            await apiDriver.createExpense(new CreateExpenseRequestBuilder().withGroupId(recoveryGroup.id).withPaidBy(user1.uid).withParticipants([user1.uid]).withAmount(20.0).build(), user1.token);
 
             // WAIT: Wait for first transaction notification
             await user1Listener.waitForTransactionEvent(recoveryGroup.id, 1);
@@ -828,15 +813,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             notificationDriver.clearEvents();
 
             // ACTION: Simulate "network interruption recovery" by creating additional operations
-            await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(recoveryGroup.id)
-                    .withPaidBy(user1.uid)
-                    .withParticipants([user1.uid])
-                    .withAmount(35.0)
-                    .build(),
-                user1.token,
-            );
+            await apiDriver.createExpense(new CreateExpenseRequestBuilder().withGroupId(recoveryGroup.id).withPaidBy(user1.uid).withParticipants([user1.uid]).withAmount(35.0).build(), user1.token);
 
             // WAIT: Verify system continues to work after simulated recovery
             await user1Listener.waitForEventCount(recoveryGroup.id, 'transaction', 1);

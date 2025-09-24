@@ -60,17 +60,17 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                         role: MemberRoles.ADMIN,
                         status: MemberStatuses.ACTIVE,
                         joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 }
-                    }
+                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
+                    },
                 },
                 permissions: {
                     expenseEditing: 'anyone',
                     expenseDeletion: 'anyone',
                     memberInvitation: 'anyone',
                     memberApproval: 'automatic',
-                    settingsManagement: 'anyone'
+                    settingsManagement: 'anyone',
                 },
-                securityPreset: 'open'
+                securityPreset: 'open',
             };
 
             const creatorMember: GroupMemberDocument = {
@@ -80,16 +80,14 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                 memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: new Date().toISOString(),
                 theme: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0, assignedAt: new Date().toISOString() },
-                invitedBy: creatorUserId
+                invitedBy: creatorUserId,
             };
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${creatorUserId}`, creatorMember);
 
             // Act & Assert
-            await expect(
-                groupMemberService.leaveGroup(creatorUserId, testGroupId)
-            ).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.leaveGroup(creatorUserId, testGroupId)).rejects.toThrow(/Invalid input data/);
         });
 
         test('should prevent leaving with outstanding balance', async () => {
@@ -106,23 +104,23 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                         role: MemberRoles.ADMIN,
                         status: MemberStatuses.ACTIVE,
                         joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 }
+                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
                     },
                     [memberUserId]: {
                         role: MemberRoles.MEMBER,
                         status: MemberStatuses.ACTIVE,
                         joinedAt: new Date().toISOString(),
-                        color: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1 }
-                    }
+                        color: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1 },
+                    },
                 },
                 permissions: {
                     expenseEditing: 'anyone',
                     expenseDeletion: 'anyone',
                     memberInvitation: 'anyone',
                     memberApproval: 'automatic',
-                    settingsManagement: 'anyone'
+                    settingsManagement: 'anyone',
                 },
-                securityPreset: 'open'
+                securityPreset: 'open',
             };
 
             const memberDoc: GroupMemberDocument = {
@@ -132,7 +130,7 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                 memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: new Date().toISOString(),
                 theme: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1, assignedAt: new Date().toISOString() },
-                invitedBy: creatorUserId
+                invitedBy: creatorUserId,
             };
 
             // Mock balance calculation to return outstanding balance
@@ -142,19 +140,17 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                         [memberUserId]: {
                             netBalance: -50.0, // Member owes $50
                             totalPaid: 0,
-                            totalOwed: 50
-                        }
-                    }
-                }
+                            totalOwed: 50,
+                        },
+                    },
+                },
             });
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${memberUserId}`, memberDoc);
 
             // Act & Assert
-            await expect(
-                groupMemberService.leaveGroup(memberUserId, testGroupId)
-            ).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.leaveGroup(memberUserId, testGroupId)).rejects.toThrow(/Invalid input data/);
         });
 
         test('should allow member to leave when balance is settled', async () => {
@@ -171,23 +167,23 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                         role: MemberRoles.ADMIN,
                         status: MemberStatuses.ACTIVE,
                         joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 }
+                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
                     },
                     [memberUserId]: {
                         role: MemberRoles.MEMBER,
                         status: MemberStatuses.ACTIVE,
                         joinedAt: new Date().toISOString(),
-                        color: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1 }
-                    }
+                        color: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1 },
+                    },
                 },
                 permissions: {
                     expenseEditing: 'anyone',
                     expenseDeletion: 'anyone',
                     memberInvitation: 'anyone',
                     memberApproval: 'automatic',
-                    settingsManagement: 'anyone'
+                    settingsManagement: 'anyone',
                 },
-                securityPreset: 'open'
+                securityPreset: 'open',
             };
 
             const memberDoc: GroupMemberDocument = {
@@ -197,7 +193,7 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                 memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: new Date().toISOString(),
                 theme: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1, assignedAt: new Date().toISOString() },
-                invitedBy: creatorUserId
+                invitedBy: creatorUserId,
             };
 
             // Mock balance calculation to return zero balance
@@ -207,10 +203,10 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                         [memberUserId]: {
                             netBalance: 0.0, // Member has settled balance
                             totalPaid: 25,
-                            totalOwed: 25
-                        }
-                    }
-                }
+                            totalOwed: 25,
+                        },
+                    },
+                },
             });
 
             // Add another member so the group has multiple members (needed for leave validation)
@@ -221,7 +217,7 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                 memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: new Date().toISOString(),
                 theme: { light: '#0000FF', dark: '#0000FF', name: 'blue', pattern: 'solid', colorIndex: 2, assignedAt: new Date().toISOString() },
-                invitedBy: creatorUserId
+                invitedBy: creatorUserId,
             };
 
             stubReader.setDocument('groups', testGroupId, testGroup);
@@ -237,15 +233,13 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
             // Assert
             expect(result).toEqual({
                 success: true,
-                message: 'Successfully left the group'
+                message: 'Successfully left the group',
             });
         });
 
         test('should reject unauthorized leave request', async () => {
             // Act & Assert
-            await expect(
-                groupMemberService.leaveGroup('', testGroupId)
-            ).rejects.toThrow(/Authentication required/);
+            await expect(groupMemberService.leaveGroup('', testGroupId)).rejects.toThrow(/Authentication required/);
         });
 
         test('should reject leave request for non-existent group', async () => {
@@ -253,9 +247,7 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
             stubReader.setDocument('groups', testGroupId, null);
 
             // Act & Assert
-            await expect(
-                groupMemberService.leaveGroup(memberUserId, testGroupId)
-            ).rejects.toThrow(/Group not found/);
+            await expect(groupMemberService.leaveGroup(memberUserId, testGroupId)).rejects.toThrow(/Group not found/);
         });
 
         test('should reject leave request for non-member', async () => {
@@ -272,26 +264,24 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                         role: MemberRoles.ADMIN,
                         status: MemberStatuses.ACTIVE,
                         joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 }
-                    }
+                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
+                    },
                 },
                 permissions: {
                     expenseEditing: 'anyone',
                     expenseDeletion: 'anyone',
                     memberInvitation: 'anyone',
                     memberApproval: 'automatic',
-                    settingsManagement: 'anyone'
+                    settingsManagement: 'anyone',
                 },
-                securityPreset: 'open'
+                securityPreset: 'open',
             };
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${memberUserId}`, null); // Member doesn't exist
 
             // Act & Assert
-            await expect(
-                groupMemberService.leaveGroup(memberUserId, testGroupId)
-            ).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.leaveGroup(memberUserId, testGroupId)).rejects.toThrow(/Invalid input data/);
         });
     });
 
@@ -310,23 +300,23 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                         role: MemberRoles.ADMIN,
                         status: MemberStatuses.ACTIVE,
                         joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 }
+                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
                     },
                     [memberUserId]: {
                         role: MemberRoles.MEMBER,
                         status: MemberStatuses.ACTIVE,
                         joinedAt: new Date().toISOString(),
-                        color: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1 }
-                    }
+                        color: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1 },
+                    },
                 },
                 permissions: {
                     expenseEditing: 'anyone',
                     expenseDeletion: 'anyone',
                     memberInvitation: 'anyone',
                     memberApproval: 'automatic',
-                    settingsManagement: 'anyone'
+                    settingsManagement: 'anyone',
                 },
-                securityPreset: 'open'
+                securityPreset: 'open',
             };
 
             const targetMemberDoc: GroupMemberDocument = {
@@ -336,16 +326,14 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                 memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: new Date().toISOString(),
                 theme: { light: '#0000FF', dark: '#0000FF', name: 'blue', pattern: 'solid', colorIndex: 2, assignedAt: new Date().toISOString() },
-                invitedBy: creatorUserId
+                invitedBy: creatorUserId,
             };
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${otherMemberUserId}`, targetMemberDoc);
 
             // Act & Assert - Non-creator (memberUserId) trying to remove otherMemberUserId
-            await expect(
-                groupMemberService.removeGroupMember(memberUserId, testGroupId, otherMemberUserId)
-            ).rejects.toThrow(/Access denied/);
+            await expect(groupMemberService.removeGroupMember(memberUserId, testGroupId, otherMemberUserId)).rejects.toThrow(/Access denied/);
         });
 
         test('should prevent removing the group creator', async () => {
@@ -362,17 +350,17 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                         role: MemberRoles.ADMIN,
                         status: MemberStatuses.ACTIVE,
                         joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 }
-                    }
+                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
+                    },
                 },
                 permissions: {
                     expenseEditing: 'anyone',
                     expenseDeletion: 'anyone',
                     memberInvitation: 'anyone',
                     memberApproval: 'automatic',
-                    settingsManagement: 'anyone'
+                    settingsManagement: 'anyone',
                 },
-                securityPreset: 'open'
+                securityPreset: 'open',
             };
 
             const creatorMemberDoc: GroupMemberDocument = {
@@ -382,16 +370,14 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                 memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: new Date().toISOString(),
                 theme: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0, assignedAt: new Date().toISOString() },
-                invitedBy: creatorUserId
+                invitedBy: creatorUserId,
             };
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${creatorUserId}`, creatorMemberDoc);
 
             // Act & Assert
-            await expect(
-                groupMemberService.removeGroupMember(creatorUserId, testGroupId, creatorUserId)
-            ).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.removeGroupMember(creatorUserId, testGroupId, creatorUserId)).rejects.toThrow(/Invalid input data/);
         });
 
         test('should prevent removing member with outstanding balance', async () => {
@@ -408,23 +394,23 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                         role: MemberRoles.ADMIN,
                         status: MemberStatuses.ACTIVE,
                         joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 }
+                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
                     },
                     [memberUserId]: {
                         role: MemberRoles.MEMBER,
                         status: MemberStatuses.ACTIVE,
                         joinedAt: new Date().toISOString(),
-                        color: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1 }
-                    }
+                        color: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1 },
+                    },
                 },
                 permissions: {
                     expenseEditing: 'anyone',
                     expenseDeletion: 'anyone',
                     memberInvitation: 'anyone',
                     memberApproval: 'automatic',
-                    settingsManagement: 'anyone'
+                    settingsManagement: 'anyone',
                 },
-                securityPreset: 'open'
+                securityPreset: 'open',
             };
 
             const memberDoc: GroupMemberDocument = {
@@ -434,7 +420,7 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                 memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: new Date().toISOString(),
                 theme: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1, assignedAt: new Date().toISOString() },
-                invitedBy: creatorUserId
+                invitedBy: creatorUserId,
             };
 
             // Mock balance calculation to return outstanding balance
@@ -444,19 +430,17 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                         [memberUserId]: {
                             netBalance: 25.0, // Member is owed $25
                             totalPaid: 50,
-                            totalOwed: 25
-                        }
-                    }
-                }
+                            totalOwed: 25,
+                        },
+                    },
+                },
             });
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${memberUserId}`, memberDoc);
 
             // Act & Assert
-            await expect(
-                groupMemberService.removeGroupMember(creatorUserId, testGroupId, memberUserId)
-            ).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.removeGroupMember(creatorUserId, testGroupId, memberUserId)).rejects.toThrow(/Invalid input data/);
         });
 
         test('should allow creator to remove member with settled balance', async () => {
@@ -473,23 +457,23 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                         role: MemberRoles.ADMIN,
                         status: MemberStatuses.ACTIVE,
                         joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 }
+                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
                     },
                     [memberUserId]: {
                         role: MemberRoles.MEMBER,
                         status: MemberStatuses.ACTIVE,
                         joinedAt: new Date().toISOString(),
-                        color: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1 }
-                    }
+                        color: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1 },
+                    },
                 },
                 permissions: {
                     expenseEditing: 'anyone',
                     expenseDeletion: 'anyone',
                     memberInvitation: 'anyone',
                     memberApproval: 'automatic',
-                    settingsManagement: 'anyone'
+                    settingsManagement: 'anyone',
                 },
-                securityPreset: 'open'
+                securityPreset: 'open',
             };
 
             const memberDoc: GroupMemberDocument = {
@@ -499,7 +483,7 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                 memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: new Date().toISOString(),
                 theme: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1, assignedAt: new Date().toISOString() },
-                invitedBy: creatorUserId
+                invitedBy: creatorUserId,
             };
 
             // Mock balance calculation to return zero balance
@@ -509,10 +493,10 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                         [memberUserId]: {
                             netBalance: 0.0, // Member has settled balance
                             totalPaid: 25,
-                            totalOwed: 25
-                        }
-                    }
-                }
+                            totalOwed: 25,
+                        },
+                    },
+                },
             });
 
             stubReader.setDocument('groups', testGroupId, testGroup);
@@ -527,7 +511,7 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
             // Assert
             expect(result).toEqual({
                 success: true,
-                message: 'Member removed successfully'
+                message: 'Member removed successfully',
             });
         });
 
@@ -545,53 +529,43 @@ describe('GroupMemberService - Leave/Remove Validation Logic', () => {
                         role: MemberRoles.ADMIN,
                         status: MemberStatuses.ACTIVE,
                         joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 }
-                    }
+                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
+                    },
                 },
                 permissions: {
                     expenseEditing: 'anyone',
                     expenseDeletion: 'anyone',
                     memberInvitation: 'anyone',
                     memberApproval: 'automatic',
-                    settingsManagement: 'anyone'
+                    settingsManagement: 'anyone',
                 },
-                securityPreset: 'open'
+                securityPreset: 'open',
             };
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_nonexistent-user`, null); // Member doesn't exist
 
             // Act & Assert
-            await expect(
-                groupMemberService.removeGroupMember(creatorUserId, testGroupId, 'nonexistent-user')
-            ).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.removeGroupMember(creatorUserId, testGroupId, 'nonexistent-user')).rejects.toThrow(/Invalid input data/);
         });
 
         test('should require valid member ID for removal', async () => {
             // Act & Assert
-            await expect(
-                groupMemberService.removeGroupMember(creatorUserId, testGroupId, '')
-            ).rejects.toThrow(/Missing required field.*memberId/);
+            await expect(groupMemberService.removeGroupMember(creatorUserId, testGroupId, '')).rejects.toThrow(/Missing required field.*memberId/);
         });
     });
 
     describe('Authorization Edge Cases', () => {
         test('should handle empty user ID in leave request', async () => {
-            await expect(
-                groupMemberService.leaveGroup('', testGroupId)
-            ).rejects.toThrow(/Authentication required/);
+            await expect(groupMemberService.leaveGroup('', testGroupId)).rejects.toThrow(/Authentication required/);
         });
 
         test('should handle null user ID in leave request', async () => {
-            await expect(
-                groupMemberService.leaveGroup(null as any, testGroupId)
-            ).rejects.toThrow(/Authentication required/);
+            await expect(groupMemberService.leaveGroup(null as any, testGroupId)).rejects.toThrow(/Authentication required/);
         });
 
         test('should handle undefined user ID in leave request', async () => {
-            await expect(
-                groupMemberService.leaveGroup(undefined as any, testGroupId)
-            ).rejects.toThrow(/Authentication required/);
+            await expect(groupMemberService.leaveGroup(undefined as any, testGroupId)).rejects.toThrow(/Authentication required/);
         });
     });
 });

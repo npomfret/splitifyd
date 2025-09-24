@@ -60,7 +60,7 @@ describe('Focused User Validation Tests', () => {
         it('should reject invalid email formats', () => {
             const invalidEmails = ['invalid-email', 'test@', '@example.com', 'test.example.com'];
 
-            invalidEmails.forEach(email => {
+            invalidEmails.forEach((email) => {
                 expect(() => {
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                     if (!emailRegex.test(email)) {
@@ -73,7 +73,7 @@ describe('Focused User Validation Tests', () => {
         it('should accept valid email formats', () => {
             const validEmails = ['test@example.com', 'user.name@domain.co.uk', 'test+tag@example.org'];
 
-            validEmails.forEach(email => {
+            validEmails.forEach((email) => {
                 expect(() => {
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                     if (!emailRegex.test(email)) {

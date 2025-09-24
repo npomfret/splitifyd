@@ -1,9 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    setupTestPage,
-    setupAuthenticatedUserWithToken,
-
-} from '../infra/test-helpers';
+import { setupTestPage, setupAuthenticatedUserWithToken } from '../infra/test-helpers';
 import { CURRENCY_REPLACEMENTS, formatTestCurrency } from './test-currencies';
 
 /**
@@ -15,11 +11,11 @@ test.describe('Currency Formatting', () => {
 
     // Test currency data with different amounts and currencies
     const currencyTestData = [
-        { amount: 50.00, currency: CURRENCY_REPLACEMENTS.USD.acronym, symbol: CURRENCY_REPLACEMENTS.USD.symbol, expectedDisplay: formatTestCurrency(50.00, CURRENCY_REPLACEMENTS.USD) },
-        { amount: 25.50, currency: CURRENCY_REPLACEMENTS.EUR.acronym, symbol: CURRENCY_REPLACEMENTS.EUR.symbol, expectedDisplay: formatTestCurrency(25.50, CURRENCY_REPLACEMENTS.EUR) },
+        { amount: 50.0, currency: CURRENCY_REPLACEMENTS.USD.acronym, symbol: CURRENCY_REPLACEMENTS.USD.symbol, expectedDisplay: formatTestCurrency(50.0, CURRENCY_REPLACEMENTS.USD) },
+        { amount: 25.5, currency: CURRENCY_REPLACEMENTS.EUR.acronym, symbol: CURRENCY_REPLACEMENTS.EUR.symbol, expectedDisplay: formatTestCurrency(25.5, CURRENCY_REPLACEMENTS.EUR) },
         { amount: 100.75, currency: CURRENCY_REPLACEMENTS.GBP.acronym, symbol: CURRENCY_REPLACEMENTS.GBP.symbol, expectedDisplay: formatTestCurrency(100.75, CURRENCY_REPLACEMENTS.GBP) },
         { amount: 0.99, currency: CURRENCY_REPLACEMENTS.USD.acronym, symbol: CURRENCY_REPLACEMENTS.USD.symbol, expectedDisplay: formatTestCurrency(0.99, CURRENCY_REPLACEMENTS.USD) },
-        { amount: 1000.00, currency: CURRENCY_REPLACEMENTS.EUR.acronym, symbol: CURRENCY_REPLACEMENTS.EUR.symbol, expectedDisplay: formatTestCurrency(1000.00, CURRENCY_REPLACEMENTS.EUR) },
+        { amount: 1000.0, currency: CURRENCY_REPLACEMENTS.EUR.acronym, symbol: CURRENCY_REPLACEMENTS.EUR.symbol, expectedDisplay: formatTestCurrency(1000.0, CURRENCY_REPLACEMENTS.EUR) },
         { amount: 33.33, currency: CURRENCY_REPLACEMENTS.GBP.acronym, symbol: CURRENCY_REPLACEMENTS.GBP.symbol, expectedDisplay: formatTestCurrency(33.33, CURRENCY_REPLACEMENTS.GBP) },
     ];
 
@@ -38,7 +34,7 @@ test.describe('Currency Formatting', () => {
                 .balance-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
                 .amount-display { font-weight: bold; }
                 .precision-test { background: #fff3cd; padding: 10px; margin: 5px 0; }
-            `
+            `,
         });
 
         let containerHTML = '<div class="currency-test-container">';
@@ -91,8 +87,8 @@ test.describe('Currency Formatting', () => {
         const precisionTests = [
             { amount: 33.333333, currency: CURRENCY_REPLACEMENTS.USD.acronym, expected: formatTestCurrency(33.33, CURRENCY_REPLACEMENTS.USD) },
             { amount: 123.456789, currency: CURRENCY_REPLACEMENTS.EUR.acronym, expected: formatTestCurrency(123.46, CURRENCY_REPLACEMENTS.EUR) },
-            { amount: 0.001, currency: CURRENCY_REPLACEMENTS.GBP.acronym, expected: formatTestCurrency(0.00, CURRENCY_REPLACEMENTS.GBP) },
-            { amount: 99.999, currency: CURRENCY_REPLACEMENTS.USD.acronym, expected: formatTestCurrency(100.00, CURRENCY_REPLACEMENTS.USD) },
+            { amount: 0.001, currency: CURRENCY_REPLACEMENTS.GBP.acronym, expected: formatTestCurrency(0.0, CURRENCY_REPLACEMENTS.GBP) },
+            { amount: 99.999, currency: CURRENCY_REPLACEMENTS.USD.acronym, expected: formatTestCurrency(100.0, CURRENCY_REPLACEMENTS.USD) },
         ];
 
         precisionTests.forEach((item, index) => {
@@ -108,7 +104,7 @@ test.describe('Currency Formatting', () => {
         // Multi-currency section (same amounts, different currencies)
         containerHTML += '<div class="currency-section" id="multi-currency">';
         containerHTML += '<h3>Multi-Currency (Same Amount)</h3>';
-        const sameAmount = 50.00;
+        const sameAmount = 50.0;
         [CURRENCY_REPLACEMENTS.USD, CURRENCY_REPLACEMENTS.EUR, CURRENCY_REPLACEMENTS.GBP].forEach((currency, index) => {
             const cssClass = `currency-${currency.acronym.toLowerCase()}`;
             containerHTML += `
@@ -123,7 +119,7 @@ test.describe('Currency Formatting', () => {
         containerHTML += '</div>';
 
         await page.addScriptTag({
-            content: `document.body.insertAdjacentHTML('beforeend', \`${containerHTML}\`);`
+            content: `document.body.insertAdjacentHTML('beforeend', \`${containerHTML}\`);`,
         });
     }
 
@@ -131,7 +127,7 @@ test.describe('Currency Formatting', () => {
         authToken = {
             idToken: 'mock-id-token-' + Date.now(),
             localId: 'test-user-id-' + Date.now(),
-            refreshToken: 'mock-refresh-token-' + Date.now()
+            refreshToken: 'mock-refresh-token-' + Date.now(),
         };
     });
 
@@ -265,8 +261,8 @@ test.describe('Currency Formatting', () => {
         const precisionTests = [
             { selector: '[data-testid="precision-0"]', expected: formatTestCurrency(33.33, CURRENCY_REPLACEMENTS.USD) }, // 33.333333 rounds to 33.33
             { selector: '[data-testid="precision-1"]', expected: formatTestCurrency(123.46, CURRENCY_REPLACEMENTS.EUR) }, // 123.456789 rounds to 123.46
-            { selector: '[data-testid="precision-2"]', expected: formatTestCurrency(0.00, CURRENCY_REPLACEMENTS.GBP) }, // 0.001 rounds to 0.00
-            { selector: '[data-testid="precision-3"]', expected: formatTestCurrency(100.00, CURRENCY_REPLACEMENTS.USD) }, // 99.999 rounds to 100.00
+            { selector: '[data-testid="precision-2"]', expected: formatTestCurrency(0.0, CURRENCY_REPLACEMENTS.GBP) }, // 0.001 rounds to 0.00
+            { selector: '[data-testid="precision-3"]', expected: formatTestCurrency(100.0, CURRENCY_REPLACEMENTS.USD) }, // 99.999 rounds to 100.00
         ];
 
         for (const test of precisionTests) {
@@ -317,7 +313,7 @@ test.describe('Currency Formatting', () => {
                     </div>
                 \`;
                 document.body.insertAdjacentHTML('beforeend', zeroHTML);
-            `
+            `,
         });
 
         // Test zero amounts are displayed consistently
@@ -347,7 +343,7 @@ test.describe('Currency Formatting', () => {
                     </div>
                 \`;
                 document.body.insertAdjacentHTML('beforeend', largeHTML);
-            `
+            `,
         });
 
         // Test large amounts are displayed without thousand separators (or with consistent formatting)
@@ -444,7 +440,7 @@ test.describe('Currency Formatting', () => {
                     </div>
                 \`;
                 document.body.insertAdjacentHTML('beforeend', edgeHTML);
-            `
+            `,
         });
 
         // Test edge cases

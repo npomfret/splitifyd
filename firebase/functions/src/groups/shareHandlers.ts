@@ -3,7 +3,7 @@ import { ApiError } from '../utils/errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
-import {getAuth, getFirestore} from '../firebase';
+import { getAuth, getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();

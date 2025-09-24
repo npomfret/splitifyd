@@ -137,19 +137,22 @@ export class ApiInterceptor {
             fs.appendFileSync(this.logFile, responseLog, 'utf8');
 
             // Try to get response body asynchronously
-            response.text().then(body => {
-                if (body && !this.disposed) {
-                    const bodyLog = `  Body: ${body}\n`;
-                    fs.appendFileSync(this.logFile, bodyLog, 'utf8');
-                }
-                // Add separator for readability
-                fs.appendFileSync(this.logFile, '\n', 'utf8');
-            }).catch(error => {
-                if (!this.disposed) {
-                    const errorLog = `  Body read error: ${error}\n\n`;
-                    fs.appendFileSync(this.logFile, errorLog, 'utf8');
-                }
-            });
+            response
+                .text()
+                .then((body) => {
+                    if (body && !this.disposed) {
+                        const bodyLog = `  Body: ${body}\n`;
+                        fs.appendFileSync(this.logFile, bodyLog, 'utf8');
+                    }
+                    // Add separator for readability
+                    fs.appendFileSync(this.logFile, '\n', 'utf8');
+                })
+                .catch((error) => {
+                    if (!this.disposed) {
+                        const errorLog = `  Body read error: ${error}\n\n`;
+                        fs.appendFileSync(this.logFile, errorLog, 'utf8');
+                    }
+                });
         });
     }
 
@@ -181,7 +184,6 @@ export class ApiInterceptor {
         };
     }
 
-
     /**
      * Process and attach API logs to test report
      */
@@ -212,10 +214,16 @@ Responses: ${this.responses.length}
 Log file: ${this.logFile}
 
 Recent requests:
-${this.requests.slice(-5).map(req => `${req.method} ${req.url} (${req.timestamp.toISOString()})`).join('\n')}
+${this.requests
+    .slice(-5)
+    .map((req) => `${req.method} ${req.url} (${req.timestamp.toISOString()})`)
+    .join('\n')}
 
 Recent responses:
-${this.responses.slice(-5).map(res => `${res.status} ${res.url} (${res.timestamp.toISOString()})`).join('\n')}`;
+${this.responses
+    .slice(-5)
+    .map((res) => `${res.status} ${res.url} (${res.timestamp.toISOString()})`)
+    .join('\n')}`;
 
             await testInfo.attach('api-traffic-summary.txt', {
                 body: summary,

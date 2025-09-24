@@ -202,5 +202,4 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
             });
         });
     });
-
 });

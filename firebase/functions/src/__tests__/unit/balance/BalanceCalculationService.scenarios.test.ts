@@ -31,10 +31,7 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
             ]),
         };
 
-        balanceCalculationService = new BalanceCalculationService(
-            mockFirestoreReader as any,
-            mockUserService
-        );
+        balanceCalculationService = new BalanceCalculationService(mockFirestoreReader as any, mockUserService);
 
         // Setup common group and member mocks
         mockFirestoreReader.getGroup.mockResolvedValue({
@@ -105,8 +102,7 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
             expect(result.balancesByCurrency.EUR[userBob].netBalance).toBe(-10);
 
             // Conservation of money - total should equal zero
-            const total = result.balancesByCurrency.EUR[userAlice].netBalance +
-                         result.balancesByCurrency.EUR[userBob].netBalance;
+            const total = result.balancesByCurrency.EUR[userAlice].netBalance + result.balancesByCurrency.EUR[userBob].netBalance;
             expect(total).toBe(0);
 
             // Verify debt simplification
@@ -170,8 +166,7 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
             expect(result.balancesByCurrency.EUR[userBob].netBalance).toBe(0);
 
             // Conservation of money
-            const total = result.balancesByCurrency.EUR[userAlice].netBalance +
-                         result.balancesByCurrency.EUR[userBob].netBalance;
+            const total = result.balancesByCurrency.EUR[userAlice].netBalance + result.balancesByCurrency.EUR[userBob].netBalance;
             expect(total).toBe(0);
 
             // No debts in zero-sum scenario
@@ -306,44 +301,32 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
             expect(result.balancesByCurrency.GBP[userCharlie].netBalance).toBe(120);
 
             // Verify conservation of money in each currency
-            const usdTotal = result.balancesByCurrency.USD[userAlice].netBalance +
-                           result.balancesByCurrency.USD[userBob].netBalance +
-                           result.balancesByCurrency.USD[userCharlie].netBalance;
+            const usdTotal = result.balancesByCurrency.USD[userAlice].netBalance + result.balancesByCurrency.USD[userBob].netBalance + result.balancesByCurrency.USD[userCharlie].netBalance;
             expect(usdTotal).toBe(0);
 
-            const eurTotal = result.balancesByCurrency.EUR[userAlice].netBalance +
-                           result.balancesByCurrency.EUR[userBob].netBalance +
-                           result.balancesByCurrency.EUR[userCharlie].netBalance;
+            const eurTotal = result.balancesByCurrency.EUR[userAlice].netBalance + result.balancesByCurrency.EUR[userBob].netBalance + result.balancesByCurrency.EUR[userCharlie].netBalance;
             expect(eurTotal).toBe(0);
 
-            const gbpTotal = result.balancesByCurrency.GBP[userAlice].netBalance +
-                           result.balancesByCurrency.GBP[userBob].netBalance +
-                           result.balancesByCurrency.GBP[userCharlie].netBalance;
+            const gbpTotal = result.balancesByCurrency.GBP[userAlice].netBalance + result.balancesByCurrency.GBP[userBob].netBalance + result.balancesByCurrency.GBP[userCharlie].netBalance;
             expect(gbpTotal).toBe(0);
 
             // Verify separate currency debts (no cross-currency consolidation)
-            const usdDebts = result.simplifiedDebts.filter(d => d.currency === 'USD');
-            const eurDebts = result.simplifiedDebts.filter(d => d.currency === 'EUR');
-            const gbpDebts = result.simplifiedDebts.filter(d => d.currency === 'GBP');
+            const usdDebts = result.simplifiedDebts.filter((d) => d.currency === 'USD');
+            const eurDebts = result.simplifiedDebts.filter((d) => d.currency === 'EUR');
+            const gbpDebts = result.simplifiedDebts.filter((d) => d.currency === 'GBP');
 
             expect(usdDebts.length).toBeGreaterThan(0);
             expect(eurDebts.length).toBeGreaterThan(0);
             expect(gbpDebts.length).toBeGreaterThan(0);
 
             // Verify debt amounts
-            const totalUsdOwedToAlice = usdDebts
-                .filter(d => d.to.userId === userAlice)
-                .reduce((sum, d) => sum + d.amount, 0);
+            const totalUsdOwedToAlice = usdDebts.filter((d) => d.to.userId === userAlice).reduce((sum, d) => sum + d.amount, 0);
             expect(totalUsdOwedToAlice).toBe(200); // $100 from Bob + $100 from Charlie
 
-            const totalEurOwedToBob = eurDebts
-                .filter(d => d.to.userId === userBob)
-                .reduce((sum, d) => sum + d.amount, 0);
+            const totalEurOwedToBob = eurDebts.filter((d) => d.to.userId === userBob).reduce((sum, d) => sum + d.amount, 0);
             expect(totalEurOwedToBob).toBe(160); // €80 from Alice + €80 from Charlie
 
-            const totalGbpOwedToCharlie = gbpDebts
-                .filter(d => d.to.userId === userCharlie)
-                .reduce((sum, d) => sum + d.amount, 0);
+            const totalGbpOwedToCharlie = gbpDebts.filter((d) => d.to.userId === userCharlie).reduce((sum, d) => sum + d.amount, 0);
             expect(totalGbpOwedToCharlie).toBe(120); // £60 from Alice + £60 from Bob
         });
     });
@@ -363,7 +346,7 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
                     participants: [userAlice, userBob],
                     splits: [
                         { userId: userAlice, amount: 460 }, // Alice's share
-                        { userId: userBob, amount: 340 },   // Bob's share
+                        { userId: userBob, amount: 340 }, // Bob's share
                     ],
                     date: Timestamp.now(),
                     category: 'Transport',
@@ -401,8 +384,7 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
             expect(result.balancesByCurrency.EUR[userBob].netBalance).toBe(-280);
 
             // Conservation of money
-            const total = result.balancesByCurrency.EUR[userAlice].netBalance +
-                         result.balancesByCurrency.EUR[userBob].netBalance;
+            const total = result.balancesByCurrency.EUR[userAlice].netBalance + result.balancesByCurrency.EUR[userBob].netBalance;
             expect(total).toBe(0);
 
             // Verify simplified debt
@@ -446,8 +428,7 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
             expect(result.balancesByCurrency.EUR[userBob].netBalance).toBe(-30);
 
             // Verify conservation of money
-            const total = result.balancesByCurrency.EUR[userAlice].netBalance +
-                         result.balancesByCurrency.EUR[userBob].netBalance;
+            const total = result.balancesByCurrency.EUR[userAlice].netBalance + result.balancesByCurrency.EUR[userBob].netBalance;
             expect(total).toBe(0);
         });
     });
@@ -474,9 +455,7 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
                     paidBy: userAlice,
                     splitType: 'equal',
                     participants: [userAlice],
-                    splits: [
-                        { userId: userAlice, amount: 100 },
-                    ],
+                    splits: [{ userId: userAlice, amount: 100 }],
                     date: Timestamp.now(),
                     category: 'Personal',
                     createdAt: Timestamp.now(),

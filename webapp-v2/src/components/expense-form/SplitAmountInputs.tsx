@@ -75,7 +75,11 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                             }`}
                             data-financial-amount="split-total"
                         >
-                            {formatCurrency(splits.reduce((sum, s) => sum + s.amount, 0), currency)} / {formatCurrency(amount, currency)}
+                            {formatCurrency(
+                                splits.reduce((sum, s) => sum + s.amount, 0),
+                                currency,
+                            )}{' '}
+                            / {formatCurrency(amount, currency)}
                         </span>
                     </div>
                 </div>

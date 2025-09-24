@@ -26,19 +26,22 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
     const createTestGroupData = (memberIds: string[]): GroupData => ({
         id: 'test-group',
         name: 'Test Group',
-        members: memberIds.reduce((acc, id) => {
-            acc[id] = {
-                memberRole: 'member',
-                memberStatus: 'active',
-                joinedAt: '2024-01-01T00:00:00Z',
-            };
-            return acc;
-        }, {} as GroupData['members']),
+        members: memberIds.reduce(
+            (acc, id) => {
+                acc[id] = {
+                    memberRole: 'member',
+                    memberStatus: 'active',
+                    joinedAt: '2024-01-01T00:00:00Z',
+                };
+                return acc;
+            },
+            {} as GroupData['members'],
+        ),
     });
 
     const createMemberProfiles = (memberIds: string[]): Map<string, any> => {
         const profiles = new Map();
-        memberIds.forEach(id => {
+        memberIds.forEach((id) => {
             profiles.set(id, {
                 uid: id,
                 email: `user${id}@example.com`,
@@ -86,15 +89,17 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
         it('should calculate correct balances for basic two-user scenario', () => {
             // User1 pays $100, User2 owes $50
             const groupData = createTestGroupData(['user1', 'user2']);
-            const expenses = [createExpense({
-                amount: 100,
-                paidBy: 'user1',
-                participants: ['user1', 'user2'],
-                splits: [
-                    { userId: 'user1', amount: 50 },
-                    { userId: 'user2', amount: 50 },
-                ],
-            })];
+            const expenses = [
+                createExpense({
+                    amount: 100,
+                    paidBy: 'user1',
+                    participants: ['user1', 'user2'],
+                    splits: [
+                        { userId: 'user1', amount: 50 },
+                        { userId: 'user2', amount: 50 },
+                    ],
+                }),
+            ];
 
             const input: BalanceCalculationInput = {
                 groupId: 'test-group',
@@ -224,8 +229,8 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
             expect(result.balancesByCurrency.EUR.user3.netBalance).toBe(-30);
 
             // Should have simplified debts for both currencies
-            const usdDebts = result.simplifiedDebts.filter(d => d.currency === 'USD');
-            const eurDebts = result.simplifiedDebts.filter(d => d.currency === 'EUR');
+            const usdDebts = result.simplifiedDebts.filter((d) => d.currency === 'USD');
+            const eurDebts = result.simplifiedDebts.filter((d) => d.currency === 'EUR');
 
             expect(usdDebts).toHaveLength(2); // User2 and User3 owe User1
             expect(eurDebts).toHaveLength(2); // User1 and User3 owe User2
@@ -235,17 +240,19 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
     describe('Complex Split Scenarios', () => {
         it('should handle unequal splits correctly', () => {
             const groupData = createTestGroupData(['user1', 'user2', 'user3']);
-            const expenses = [createExpense({
-                amount: 100,
-                paidBy: 'user1',
-                participants: ['user1', 'user2', 'user3'],
-                splitType: 'exact',
-                splits: [
-                    { userId: 'user1', amount: 20 }, // User1 owes $20 of their own expense
-                    { userId: 'user2', amount: 30 }, // User2 owes $30
-                    { userId: 'user3', amount: 50 }, // User3 owes $50
-                ],
-            })];
+            const expenses = [
+                createExpense({
+                    amount: 100,
+                    paidBy: 'user1',
+                    participants: ['user1', 'user2', 'user3'],
+                    splitType: 'exact',
+                    splits: [
+                        { userId: 'user1', amount: 20 }, // User1 owes $20 of their own expense
+                        { userId: 'user2', amount: 30 }, // User2 owes $30
+                        { userId: 'user3', amount: 50 }, // User3 owes $50
+                    ],
+                }),
+            ];
 
             const input: BalanceCalculationInput = {
                 groupId: 'test-group',
@@ -268,22 +275,24 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
 
             // Verify simplified debts
             expect(result.simplifiedDebts).toHaveLength(2);
-            const debtAmounts = result.simplifiedDebts.map(d => d.amount).sort();
+            const debtAmounts = result.simplifiedDebts.map((d) => d.amount).sort();
             expect(debtAmounts).toEqual([30, 50]);
         });
 
         it('should handle percentage splits correctly', () => {
             const groupData = createTestGroupData(['user1', 'user2']);
-            const expenses = [createExpense({
-                amount: 200,
-                paidBy: 'user1',
-                participants: ['user1', 'user2'],
-                splitType: 'percentage',
-                splits: [
-                    { userId: 'user1', amount: 60, percentage: 30 }, // 30% = $60
-                    { userId: 'user2', amount: 140, percentage: 70 }, // 70% = $140
-                ],
-            })];
+            const expenses = [
+                createExpense({
+                    amount: 200,
+                    paidBy: 'user1',
+                    participants: ['user1', 'user2'],
+                    splitType: 'percentage',
+                    splits: [
+                        { userId: 'user1', amount: 60, percentage: 30 }, // 30% = $60
+                        { userId: 'user2', amount: 140, percentage: 70 }, // 70% = $140
+                    ],
+                }),
+            ];
 
             const input: BalanceCalculationInput = {
                 groupId: 'test-group',
@@ -311,23 +320,27 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
             const groupData = createTestGroupData(['user1', 'user2']);
 
             // User1 pays $100, User2 owes $50
-            const expenses = [createExpense({
-                amount: 100,
-                paidBy: 'user1',
-                participants: ['user1', 'user2'],
-                splits: [
-                    { userId: 'user1', amount: 50 },
-                    { userId: 'user2', amount: 50 },
-                ],
-            })];
+            const expenses = [
+                createExpense({
+                    amount: 100,
+                    paidBy: 'user1',
+                    participants: ['user1', 'user2'],
+                    splits: [
+                        { userId: 'user1', amount: 50 },
+                        { userId: 'user2', amount: 50 },
+                    ],
+                }),
+            ];
 
             // User2 settles $30 of the $50 debt
-            const settlements = [createSettlement({
-                payerId: 'user2',
-                payeeId: 'user1',
-                amount: 30,
-                currency: 'USD',
-            })];
+            const settlements = [
+                createSettlement({
+                    payerId: 'user2',
+                    payeeId: 'user1',
+                    amount: 30,
+                    currency: 'USD',
+                }),
+            ];
 
             const input: BalanceCalculationInput = {
                 groupId: 'test-group',
@@ -351,23 +364,27 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
         it('should handle complete settlement (zero final balance)', () => {
             const groupData = createTestGroupData(['user1', 'user2']);
 
-            const expenses = [createExpense({
-                amount: 100,
-                paidBy: 'user1',
-                participants: ['user1', 'user2'],
-                splits: [
-                    { userId: 'user1', amount: 50 },
-                    { userId: 'user2', amount: 50 },
-                ],
-            })];
+            const expenses = [
+                createExpense({
+                    amount: 100,
+                    paidBy: 'user1',
+                    participants: ['user1', 'user2'],
+                    splits: [
+                        { userId: 'user1', amount: 50 },
+                        { userId: 'user2', amount: 50 },
+                    ],
+                }),
+            ];
 
             // User2 settles the full $50 debt
-            const settlements = [createSettlement({
-                payerId: 'user2',
-                payeeId: 'user1',
-                amount: 50,
-                currency: 'USD',
-            })];
+            const settlements = [
+                createSettlement({
+                    payerId: 'user2',
+                    payeeId: 'user1',
+                    amount: 50,
+                    currency: 'USD',
+                }),
+            ];
 
             const input: BalanceCalculationInput = {
                 groupId: 'test-group',
@@ -447,7 +464,7 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
             expect(totalDebts).toBe(140); // Total amount owed = $50 + $90
 
             // Verify all debts are reasonable (not more than individual balance)
-            result.simplifiedDebts.forEach(debt => {
+            result.simplifiedDebts.forEach((debt) => {
                 expect(debt.amount).toBeGreaterThan(0);
                 expect(debt.amount).toBeLessThanOrEqual(90); // Max individual debt
             });
@@ -475,12 +492,14 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
 
         it('should handle single-user group correctly', () => {
             const groupData = createTestGroupData(['user1']);
-            const expenses = [createExpense({
-                amount: 100,
-                paidBy: 'user1',
-                participants: ['user1'],
-                splits: [{ userId: 'user1', amount: 100 }],
-            })];
+            const expenses = [
+                createExpense({
+                    amount: 100,
+                    paidBy: 'user1',
+                    participants: ['user1'],
+                    splits: [{ userId: 'user1', amount: 100 }],
+                }),
+            ];
 
             const input: BalanceCalculationInput = {
                 groupId: 'test-group',
@@ -499,16 +518,18 @@ describe('BalanceCalculationService - Mathematical Scenarios', () => {
 
         it('should maintain mathematical precision with decimal amounts', () => {
             const groupData = createTestGroupData(['user1', 'user2', 'user3']);
-            const expenses = [createExpense({
-                amount: 100.99, // Amount that doesn't divide evenly
-                paidBy: 'user1',
-                participants: ['user1', 'user2', 'user3'],
-                splits: [
-                    { userId: 'user1', amount: 33.66 },
-                    { userId: 'user2', amount: 33.66 },
-                    { userId: 'user3', amount: 33.67 }, // Slightly more to account for rounding
-                ],
-            })];
+            const expenses = [
+                createExpense({
+                    amount: 100.99, // Amount that doesn't divide evenly
+                    paidBy: 'user1',
+                    participants: ['user1', 'user2', 'user3'],
+                    splits: [
+                        { userId: 'user1', amount: 33.66 },
+                        { userId: 'user2', amount: 33.66 },
+                        { userId: 'user3', amount: 33.67 }, // Slightly more to account for rounding
+                    ],
+                }),
+            ];
 
             const input: BalanceCalculationInput = {
                 groupId: 'test-group',

@@ -1,10 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    setupTestPage,
-    setupAuthenticatedUserWithToken,
-    fillFormField,
-
-} from '../infra/test-helpers';
+import { setupTestPage, setupAuthenticatedUserWithToken, fillFormField } from '../infra/test-helpers';
 
 /**
  * Unit tests for modal behavior patterns
@@ -35,7 +30,7 @@ test.describe('Modal Behavior', () => {
                 .error-message { color: #ef4444; font-size: 14px; margin-top: 4px; }
                 .trigger-buttons { margin: 20px; display: flex; gap: 12px; }
                 .backdrop-close { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-            `
+            `,
         });
 
         await page.addScriptTag({
@@ -240,7 +235,7 @@ test.describe('Modal Behavior', () => {
                 document.getElementById('open-confirm-modal').onclick = function() {
                     openModal('confirm-modal', 'Confirm Action');
                 };
-            `
+            `,
         });
     }
 
@@ -248,7 +243,7 @@ test.describe('Modal Behavior', () => {
         authToken = {
             idToken: 'mock-id-token-' + Date.now(),
             localId: 'test-user-id-' + Date.now(),
-            refreshToken: 'mock-refresh-token-' + Date.now()
+            refreshToken: 'mock-refresh-token-' + Date.now(),
         };
     });
 

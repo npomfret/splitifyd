@@ -1,9 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    setupTestPage,
-    setupUnauthenticatedTest,
-    expectElementVisible
-} from '../infra/test-helpers';
+import { setupTestPage, setupUnauthenticatedTest, expectElementVisible } from '../infra/test-helpers';
 
 /**
  * High-value landing page tests that verify actual user behavior
@@ -244,7 +240,6 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
             route.continue();
         });
 
-
         // Content should still load (just slower, use first to avoid strict mode violation)
         await expect(page.locator('main').first()).toBeVisible();
         await expectElementVisible(page, 'h1');
@@ -273,7 +268,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
                 const element = page.locator(selector);
 
                 // Only test if element exists (graceful handling of page variations)
-                if (await element.count() > 0) {
+                if ((await element.count()) > 0) {
                     await expect(element.first()).toBeFocused();
                 }
             }
@@ -281,16 +276,12 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
 
         test('should activate buttons with Enter key', async () => {
             const page = (globalThis as any).sharedLandingPage;
-            const interactiveButtons = [
-                'button:has-text("Login")',
-                'button:has-text("Sign Up for Free")',
-                '[data-testid="header-signup-link"]',
-            ];
+            const interactiveButtons = ['button:has-text("Login")', 'button:has-text("Sign Up for Free")', '[data-testid="header-signup-link"]'];
 
             for (const selector of interactiveButtons) {
                 const button = page.locator(selector);
 
-                if (await button.count() > 0) {
+                if ((await button.count()) > 0) {
                     // Focus on the button
                     await button.first().focus();
                     await expect(button.first()).toBeFocused();
@@ -306,15 +297,12 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
 
         test('should activate buttons with Space key', async () => {
             const page = (globalThis as any).sharedLandingPage;
-            const buttons = [
-                'button:has-text("Login")',
-                'button:has-text("Sign Up for Free")',
-            ];
+            const buttons = ['button:has-text("Login")', 'button:has-text("Sign Up for Free")'];
 
             for (const selector of buttons) {
                 const button = page.locator(selector);
 
-                if (await button.count() > 0) {
+                if ((await button.count()) > 0) {
                     // Focus on the button
                     await button.first().focus();
                     await expect(button.first()).toBeFocused();
@@ -330,18 +318,13 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
 
         test('should have visible focus indicators on all interactive elements', async () => {
             const page = (globalThis as any).sharedLandingPage;
-            const interactiveElements = [
-                'button:has(img[alt="Splitifyd"])',
-                'button:has-text("Login")',
-                '[data-testid="header-signup-link"]',
-                'button:has-text("Sign Up for Free")',
-            ];
+            const interactiveElements = ['button:has(img[alt="Splitifyd"])', 'button:has-text("Login")', '[data-testid="header-signup-link"]', 'button:has-text("Sign Up for Free")'];
 
             for (const selector of interactiveElements) {
                 const element = page.locator(selector);
 
                 // Only test elements that exist
-                if (await element.count() > 0) {
+                if ((await element.count()) > 0) {
                     await element.first().focus();
 
                     // Check for focus indicators
@@ -355,10 +338,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
                     });
 
                     // Verify some form of focus indicator exists
-                    const hasFocusIndicator =
-                        focusStyles.outline !== 'none' ||
-                        focusStyles.outlineWidth !== '0px' ||
-                        focusStyles.boxShadow.includes('rgb');
+                    const hasFocusIndicator = focusStyles.outline !== 'none' || focusStyles.outlineWidth !== '0px' || focusStyles.boxShadow.includes('rgb');
 
                     expect(hasFocusIndicator).toBeTruthy();
                 }
@@ -373,21 +353,18 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
             // Wait for responsive changes
 
             // Test that key elements are still keyboard accessible
-            const mobileInteractiveElements = [
-                'button:has-text("Login")',
-                'button:has-text("Sign Up for Free")',
-            ];
+            const mobileInteractiveElements = ['button:has-text("Login")', 'button:has-text("Sign Up for Free")'];
 
             for (const selector of mobileInteractiveElements) {
                 const element = page.locator(selector);
 
-                if (await element.count() > 0) {
+                if ((await element.count()) > 0) {
                     // Tab to element
                     await page.keyboard.press('Tab');
 
                     // Check if it's focusable
                     const focusedElement = page.locator(':focus');
-                    const isFocused = await focusedElement.count() > 0;
+                    const isFocused = (await focusedElement.count()) > 0;
 
                     if (isFocused) {
                         const tagName = await focusedElement.evaluate((el: Element) => el.tagName.toLowerCase());
@@ -406,7 +383,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
             await page.keyboard.press('Tab');
             const firstFocused = page.locator(':focus');
 
-            if (await firstFocused.count() > 0) {
+            if ((await firstFocused.count()) > 0) {
                 await expect(firstFocused).toBeFocused();
             }
 
@@ -417,7 +394,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
             await page.keyboard.press('Tab');
             const midPageFocused = page.locator(':focus');
 
-            if (await midPageFocused.count() > 0) {
+            if ((await midPageFocused.count()) > 0) {
                 const tagName = await midPageFocused.evaluate((el: Element) => el.tagName.toLowerCase());
                 expect(['button', 'a', 'input', 'select', 'textarea'].includes(tagName)).toBeTruthy();
             }
@@ -429,7 +406,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
             await page.keyboard.press('Tab');
             const bottomFocused = page.locator(':focus');
 
-            if (await bottomFocused.count() > 0) {
+            if ((await bottomFocused.count()) > 0) {
                 const tagName = await bottomFocused.evaluate((el: Element) => el.tagName.toLowerCase());
                 expect(['button', 'a', 'input', 'select', 'textarea'].includes(tagName)).toBeTruthy();
             }
@@ -445,7 +422,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
             await page.keyboard.press('Tab'); // Main CTA
 
             const focusedElement = page.locator(':focus');
-            if (await focusedElement.count() > 0) {
+            if ((await focusedElement.count()) > 0) {
                 // Should be focused on an interactive element
                 const tagName = await focusedElement.evaluate((el: Element) => el.tagName.toLowerCase());
                 expect(['button', 'a'].includes(tagName)).toBeTruthy();
@@ -457,7 +434,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
             // Tab to the last interactive element first
             const lastButton = page.locator('button:has-text("Sign Up for Free")');
 
-            if (await lastButton.count() > 0) {
+            if ((await lastButton.count()) > 0) {
                 await lastButton.first().focus();
                 await expect(lastButton.first()).toBeFocused();
 
@@ -465,7 +442,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
                 await page.keyboard.press('Shift+Tab');
                 const previousElement = page.locator(':focus');
 
-                if (await previousElement.count() > 0) {
+                if ((await previousElement.count()) > 0) {
                     const tagName = await previousElement.evaluate((el: Element) => el.tagName.toLowerCase());
                     expect(['button', 'a', 'input'].includes(tagName)).toBeTruthy();
                 }
@@ -478,7 +455,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
             await page.setViewportSize({ width: 1200, height: 800 });
             const button = page.locator('button:has-text("Login")');
 
-            if (await button.count() > 0) {
+            if ((await button.count()) > 0) {
                 await button.first().focus();
                 await expect(button.first()).toBeFocused();
 
@@ -493,7 +470,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
                     await page.keyboard.press('Tab');
                     const focusedElement = page.locator(':focus');
 
-                    if (await focusedElement.count() > 0) {
+                    if ((await focusedElement.count()) > 0) {
                         const tagName = await focusedElement.evaluate((el: Element) => el.tagName.toLowerCase());
                         expect(['button', 'a', 'input'].includes(tagName)).toBeTruthy();
                     }
@@ -509,7 +486,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
             // Look for skip link (common patterns)
             const skipLink = page.locator('a[href="#main"], a[href="#content"], .skip-link, [data-testid="skip-link"]');
 
-            if (await skipLink.count() > 0) {
+            if ((await skipLink.count()) > 0) {
                 await expect(skipLink.first()).toBeFocused();
 
                 // Activate skip link
@@ -517,16 +494,11 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
 
                 // Verify focus moved to main content area
                 const focusedElement = page.locator(':focus');
-                if (await focusedElement.count() > 0) {
+                if ((await focusedElement.count()) > 0) {
                     const elementId = await focusedElement.getAttribute('id');
                     const tagName = await focusedElement.evaluate((el: Element) => el.tagName.toLowerCase());
 
-                    expect(
-                        elementId === 'main' ||
-                        elementId === 'content' ||
-                        tagName === 'main' ||
-                        (await focusedElement.getAttribute('role')) === 'main'
-                    ).toBeTruthy();
+                    expect(elementId === 'main' || elementId === 'content' || tagName === 'main' || (await focusedElement.getAttribute('role')) === 'main').toBeTruthy();
                 }
             }
         });
@@ -549,7 +521,7 @@ test.describe.serial('LandingPage - Behavioral Tests', () => {
 
             // Should still be able to focus elements
             const finalFocused = page.locator(':focus');
-            if (await finalFocused.count() > 0) {
+            if ((await finalFocused.count()) > 0) {
                 const tagName = await finalFocused.evaluate((el: Element) => el.tagName.toLowerCase());
                 expect(['button', 'a', 'input', 'select', 'textarea'].includes(tagName)).toBeTruthy();
             }

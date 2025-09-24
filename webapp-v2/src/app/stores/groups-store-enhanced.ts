@@ -43,8 +43,8 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     // Private signals - encapsulated within the class
     readonly #groupsSignal = signal<Group[]>([]);
     readonly #loadingSignal = signal<boolean>(false);
-    readonly #validationErrorSignal = signal<string | null>(null);  // Persists through refreshes
-    readonly #networkErrorSignal = signal<string | null>(null);     // Cleared on successful refresh
+    readonly #validationErrorSignal = signal<string | null>(null); // Persists through refreshes
+    readonly #networkErrorSignal = signal<string | null>(null); // Cleared on successful refresh
     readonly #initializedSignal = signal<boolean>(false);
     readonly #isRefreshingSignal = signal<boolean>(false);
     readonly #lastRefreshSignal = signal<number>(0);
@@ -119,7 +119,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
     async fetchGroups(): Promise<void> {
         this.#loadingSignal.value = true;
-        this.#networkErrorSignal.value = null;  // Only clear network errors, not validation errors
+        this.#networkErrorSignal.value = null; // Only clear network errors, not validation errors
 
         const startTime = Date.now();
 
@@ -365,8 +365,8 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
                             groupName,
                             oldCount: currentGroups.length,
                             newCount: filteredGroups.length,
-                            oldGroupIds: currentGroups.map(g => g.id),
-                            newGroupIds: filteredGroups.map(g => g.id),
+                            oldGroupIds: currentGroups.map((g) => g.id),
+                            newGroupIds: filteredGroups.map((g) => g.id),
                             signalValueLength: this.#groupsSignal.value.length,
                             signalPeek: this.#groupsSignal.peek().length,
                         });

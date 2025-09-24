@@ -71,7 +71,7 @@ test.describe('AddExpensePage - Unauthenticated Access', () => {
     const routeTestCases = [
         { name: 'add expense route', path: '/groups/test-group/add-expense' },
         { name: 'edit expense route', path: '/groups/test-group/add-expense?id=expense-123&edit=true' },
-        { name: 'copy expense route', path: '/groups/test-group/add-expense?copy=true&sourceId=expense-123' }
+        { name: 'copy expense route', path: '/groups/test-group/add-expense?copy=true&sourceId=expense-123' },
     ];
 
     routeTestCases.forEach(({ name, path }) => {
@@ -118,8 +118,8 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
         members: [
             { id: 'user1', email: TestScenarios.validUser.email, displayName: 'Test User', joinedAt: new Date().toISOString() },
             { id: 'user2', email: 'member2@test.com', displayName: 'Member Two', joinedAt: new Date().toISOString() },
-            { id: 'user3', email: 'member3@test.com', displayName: 'Member Three', joinedAt: new Date().toISOString() }
-        ]
+            { id: 'user3', email: 'member3@test.com', displayName: 'Member Three', joinedAt: new Date().toISOString() },
+        ],
     };
 
     let authToken: { idToken: string; localId: string; refreshToken: string };
@@ -136,7 +136,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
         await groupApiMock.mockCreateExpense('test-group', {
             id: 'new-expense-id',
             success: true,
-            message: 'Expense created successfully'
+            message: 'Expense created successfully',
         });
 
         // Mock empty expenses list
@@ -159,14 +159,14 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
             authToken = {
                 idToken: 'mock-id-token-' + Date.now(),
                 localId: 'test-user-id-' + Date.now(),
-                refreshToken: 'mock-refresh-token-' + Date.now()
+                refreshToken: 'mock-refresh-token-' + Date.now(),
             };
         } catch (error) {
             console.log('Using mock auth token due to server unavailability');
             authToken = {
                 idToken: 'mock-id-token-fallback',
                 localId: 'test-user-id-fallback',
-                refreshToken: 'mock-refresh-token-fallback'
+                refreshToken: 'mock-refresh-token-fallback',
             };
         }
     });
@@ -213,16 +213,14 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
         await expectElementVisible(page, 'form');
 
         // Look for expense form inputs
-        const inputs = await page.$$eval('input', elements =>
-            elements.map(el => ({ type: el.type, placeholder: el.placeholder }))
-        );
+        const inputs = await page.$$eval('input', (elements) => elements.map((el) => ({ type: el.type, placeholder: el.placeholder })));
 
         // Should have form inputs (description, date, amount, etc.)
         expect(inputs.length).toBeGreaterThan(0);
 
         // Form action buttons
-        const hasCancel = await page.locator('button:has-text("Cancel")').count() > 0;
-        const hasSubmit = await page.locator('button[type="submit"]').count() > 0;
+        const hasCancel = (await page.locator('button:has-text("Cancel")').count()) > 0;
+        const hasSubmit = (await page.locator('button[type="submit"]').count()) > 0;
 
         if (hasCancel) {
             await expectElementVisible(page, 'button:has-text("Cancel")');
@@ -241,7 +239,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
         // Look for description input with more specific selectors
         const descriptionInputs = page.locator('input[placeholder*="description"], input[placeholder*="Description"], input[type="text"]');
 
-        if (await descriptionInputs.count() > 0) {
+        if ((await descriptionInputs.count()) > 0) {
             const descriptionInput = descriptionInputs.first();
             await expect(descriptionInput).toBeVisible();
 
@@ -262,7 +260,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
         // Look for amount input (could be in CurrencyAmountInput component)
         const amountInputs = page.locator('input[type="number"], input[inputmode="decimal"]');
 
-        if (await amountInputs.count() > 0) {
+        if ((await amountInputs.count()) > 0) {
             const amountInput = amountInputs.first();
             await fillFormField(page, amountInput, '25.50');
             await expect(amountInput).toHaveValue('25.5');
@@ -277,11 +275,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
         await expect(page.locator('form')).toBeVisible();
 
         // Look for date input with fallback selectors
-        const dateInputSelectors = [
-            'input[type="date"]',
-            'input[placeholder*="date"]',
-            'input[placeholder*="Date"]'
-        ];
+        const dateInputSelectors = ['input[type="date"]', 'input[placeholder*="date"]', 'input[placeholder*="Date"]'];
 
         let dateInput: string | null = null;
         for (const selector of dateInputSelectors) {
@@ -334,7 +328,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
         // Look for category input (could be in CategorySuggestionInput)
         const categoryInputs = page.locator('input[placeholder*="category"], input[placeholder*="Category"]');
 
-        if (await categoryInputs.count() > 0) {
+        if ((await categoryInputs.count()) > 0) {
             const categoryInput = categoryInputs.first();
             await fillFormField(page, categoryInput, 'Food');
             await expect(categoryInput).toHaveValue('Food');
@@ -359,7 +353,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
             'input[type="text"]',
             'input[placeholder*="description"]',
             'input[placeholder*="Description"]',
-            'input:not([type="email"]):not([type="password"]):not([type="date"]):not([type="number"]):not([type="checkbox"]):not([type="radio"])'
+            'input:not([type="email"]):not([type="password"]):not([type="date"]):not([type="number"]):not([type="checkbox"]):not([type="radio"])',
         ];
 
         let textInput: string | null = null;
@@ -393,7 +387,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
             'input[type="text"]',
             'input[placeholder*="description"]',
             'input[placeholder*="Description"]',
-            'input:not([type="email"]):not([type="password"]):not([type="date"]):not([type="number"]):not([type="checkbox"]):not([type="radio"])'
+            'input:not([type="email"]):not([type="password"]):not([type="date"]):not([type="number"]):not([type="checkbox"]):not([type="radio"])',
         ];
 
         let textInput: string | null = null;
@@ -412,7 +406,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
 
         // Set amount if input is available
         const amountInputs = page.locator('input[type="number"], input[inputmode="decimal"]');
-        if (await amountInputs.count() > 0) {
+        if ((await amountInputs.count()) > 0) {
             await fillFormField(page, amountInputs.first(), '50.00');
         }
 
@@ -438,12 +432,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
         await expect(page.locator('form')).toBeVisible();
 
         // Look for cancel button with flexible selectors
-        const cancelButtonSelectors = [
-            'button:has-text("Cancel")',
-            'button:has-text("cancel")',
-            'button[type="button"]:has-text("Cancel")',
-            'a:has-text("Cancel")'
-        ];
+        const cancelButtonSelectors = ['button:has-text("Cancel")', 'button:has-text("cancel")', 'button[type="button"]:has-text("Cancel")', 'a:has-text("Cancel")'];
 
         let cancelButton = null;
         for (const selector of cancelButtonSelectors) {
@@ -480,7 +469,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
             'input[type="text"]',
             'input[placeholder*="description"]',
             'input[placeholder*="Description"]',
-            'input:not([type="email"]):not([type="password"]):not([type="date"]):not([type="number"]):not([type="checkbox"]):not([type="radio"])'
+            'input:not([type="email"]):not([type="password"]):not([type="date"]):not([type="number"]):not([type="checkbox"]):not([type="radio"])',
         ];
 
         let textInput: string | null = null;
@@ -501,7 +490,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
 
             // Interact with other elements if available
             const cancelButton = page.locator('button:has-text("Cancel")');
-            if (await cancelButton.count() > 0) {
+            if ((await cancelButton.count()) > 0) {
                 await cancelButton.focus();
             }
 
@@ -511,7 +500,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
 
         // Try date input if available
         const dateInput = page.locator('input[type="date"]');
-        if (await dateInput.count() > 0) {
+        if ((await dateInput.count()) > 0) {
             await fillFormField(page, dateInput, '2024-02-15');
             await expect(dateInput).toHaveValue('2024-02-15');
         }
@@ -553,9 +542,9 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
         // Look for split type options (if rendered)
         const splitTypeButtons = page.locator('button:has-text("Equal"), button:has-text("Custom"), button:has-text("Percentage")');
 
-        if (await splitTypeButtons.count() > 0) {
+        if ((await splitTypeButtons.count()) > 0) {
             // Test clicking different split types
-            for (let i = 0; i < await splitTypeButtons.count(); i++) {
+            for (let i = 0; i < (await splitTypeButtons.count()); i++) {
                 const button = splitTypeButtons.nth(i);
                 if (await button.isVisible()) {
                     await button.click();
@@ -604,8 +593,8 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
             await page.keyboard.press('Tab');
             const focusedElement = page.locator(':focus');
 
-            if (await focusedElement.count() > 0) {
-                const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+            if ((await focusedElement.count()) > 0) {
+                const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                 expect(['button', 'a', 'input', 'select', 'textarea'].includes(tagName)).toBeTruthy();
             }
 
@@ -617,11 +606,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
 
         test('should maintain keyboard accessibility during protected route redirects', async ({ page }) => {
             // Test various add expense URLs
-            const testUrls = [
-                '/groups/test-group/add-expense',
-                '/groups/test-group/add-expense?edit=true',
-                '/groups/test-group/add-expense?copy=expense-123',
-            ];
+            const testUrls = ['/groups/test-group/add-expense', '/groups/test-group/add-expense?edit=true', '/groups/test-group/add-expense?copy=expense-123'];
 
             for (const testUrl of testUrls) {
                 await page.goto(testUrl);
@@ -631,8 +616,8 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
-                    const isInteractive = await focusedElement.evaluate(el => {
+                if ((await focusedElement.count()) > 0) {
+                    const isInteractive = await focusedElement.evaluate((el) => {
                         const tagName = el.tagName.toLowerCase();
                         return ['button', 'a', 'input', 'select', 'textarea'].includes(tagName);
                     });
@@ -650,7 +635,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
             await setupAuthenticatedUserWithToken(page, {
                 idToken: 'mock-token',
                 localId: 'test-user-id',
-                refreshToken: 'mock-refresh-token'
+                refreshToken: 'mock-refresh-token',
             });
 
             await page.goto('/groups/test-group/add-expense');
@@ -671,12 +656,12 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
             let foundElements = 0;
             for (const selector of formElements) {
                 const element = page.locator(selector);
-                if (await element.count() > 0) {
+                if ((await element.count()) > 0) {
                     foundElements++;
 
                     // Test focus capability
                     await element.first().focus();
-                    const isFocused = await element.first().evaluate(el => el === document.activeElement);
+                    const isFocused = await element.first().evaluate((el) => el === document.activeElement);
 
                     if (isFocused) {
                         // Test keyboard interaction
@@ -699,7 +684,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
             await setupAuthenticatedUserWithToken(page, {
                 idToken: 'mock-token',
                 localId: 'test-user-id',
-                refreshToken: 'mock-refresh-token'
+                refreshToken: 'mock-refresh-token',
             });
 
             await page.goto('/groups/test-group/add-expense');
@@ -726,10 +711,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
                             };
                         });
 
-                        const hasFocusIndicator =
-                            focusStyles.outline !== 'none' ||
-                            focusStyles.outlineWidth !== '0px' ||
-                            focusStyles.boxShadow.includes('rgb');
+                        const hasFocusIndicator = focusStyles.outline !== 'none' || focusStyles.outlineWidth !== '0px' || focusStyles.boxShadow.includes('rgb');
 
                         expect(hasFocusIndicator).toBeTruthy();
                     }
@@ -751,25 +733,21 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
             await setupAuthenticatedUserWithToken(page, {
                 idToken: 'mock-token',
                 localId: 'test-user-id',
-                refreshToken: 'mock-refresh-token'
+                refreshToken: 'mock-refresh-token',
             });
 
             await page.goto('/groups/test-group/add-expense');
             await page.waitForLoadState('networkidle');
 
             // Since this redirects to login due to auth issues, test keyboard navigation on login form
-            const expectedElements = [
-                '#email-input',
-                '#password-input',
-                '[data-testid="remember-me-checkbox"]'
-            ];
+            const expectedElements = ['#email-input', '#password-input', '[data-testid="remember-me-checkbox"]'];
 
             // Use the improved keyboard navigation helper
             await testTabOrder(page, expectedElements);
 
             // Check that disabled submit button is handled properly
             const submitButton = page.locator('button[type="submit"]');
-            if (await submitButton.count() > 0) {
+            if ((await submitButton.count()) > 0) {
                 const isEnabled = await submitButton.isEnabled();
                 if (!isEnabled) {
                     console.log('Submit button is disabled (expected behavior for empty form)');
@@ -783,8 +761,8 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
             await page.keyboard.press('Tab');
             const focusedAfterSubmit = page.locator(':focus');
 
-            if (await focusedAfterSubmit.count() > 0) {
-                const tagName = await focusedAfterSubmit.evaluate(el => el.tagName.toLowerCase());
+            if ((await focusedAfterSubmit.count()) > 0) {
+                const tagName = await focusedAfterSubmit.evaluate((el) => el.tagName.toLowerCase());
                 expect(['button', 'a', 'input', 'select', 'textarea'].includes(tagName)).toBeTruthy();
             }
         });
@@ -793,7 +771,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
             await setupAuthenticatedUserWithToken(page, {
                 idToken: 'mock-token',
                 localId: 'test-user-id',
-                refreshToken: 'mock-refresh-token'
+                refreshToken: 'mock-refresh-token',
             });
 
             await page.goto('/groups/test-group/add-expense');
@@ -803,7 +781,7 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
             const descriptionInput = page.locator('input[placeholder*="description"], textarea[placeholder*="description"], input[name*="description"]');
             const amountInput = page.locator('input[type="number"], input[placeholder*="amount"], input[name*="amount"]');
 
-            if (await descriptionInput.count() > 0) {
+            if ((await descriptionInput.count()) > 0) {
                 await descriptionInput.fill('Test expense description');
 
                 // Test Enter key from description field
@@ -813,13 +791,13 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
 
                 // Should either submit form or move to next field
                 const currentFocused = page.locator(':focus');
-                if (await currentFocused.count() > 0) {
-                    const tagName = await currentFocused.evaluate(el => el.tagName.toLowerCase());
+                if ((await currentFocused.count()) > 0) {
+                    const tagName = await currentFocused.evaluate((el) => el.tagName.toLowerCase());
                     expect(['button', 'input', 'select', 'textarea'].includes(tagName)).toBeTruthy();
                 }
             }
 
-            if (await amountInput.count() > 0) {
+            if ((await amountInput.count()) > 0) {
                 await amountInput.fill('25.50');
 
                 // Test Enter key from amount field
@@ -829,8 +807,8 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
 
                 // Form should handle Enter key appropriately
                 const focusedElement = page.locator(':focus');
-                if (await focusedElement.count() > 0) {
-                    const isInteractive = await focusedElement.evaluate(el => {
+                if ((await focusedElement.count()) > 0) {
+                    const isInteractive = await focusedElement.evaluate((el) => {
                         const tagName = el.tagName.toLowerCase();
                         return ['button', 'input', 'select', 'textarea'].includes(tagName);
                     });

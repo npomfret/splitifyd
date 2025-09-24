@@ -146,7 +146,6 @@ export const ExpenseListResponseSchema = z.object({
     nextCursor: z.string().optional(),
 });
 
-
 export const SimplifiedDebtSchema = z.object({
     from: z.object({ userId: z.string() }),
     to: z.object({ userId: z.string() }),

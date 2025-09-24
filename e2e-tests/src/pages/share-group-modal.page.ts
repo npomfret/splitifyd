@@ -78,5 +78,4 @@ export class ShareGroupModalPage extends BasePage {
         // Wait for modal to close
         await expect(this.getModalDialog()).not.toBeVisible({ timeout: 3000 });
     }
-
 }

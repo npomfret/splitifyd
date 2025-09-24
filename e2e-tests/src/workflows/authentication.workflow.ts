@@ -17,7 +17,7 @@ export class AuthenticationWorkflow {
         await loginPage.navigate();
 
         // Extract password from user creation pattern - all pool users use same password
-        const {email, password} = user;
+        const { email, password } = user;
         if (!email || !password) throw Error(`inavlid user: ${JSON.stringify(user)}`);
         await loginPage.login(email, password);
 

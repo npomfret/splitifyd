@@ -185,16 +185,12 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
 
         // Wait for form processing to complete by checking for feedback
         // The Firebase mocking should have returned a success response
-        const feedbackElements = [
-            '[role="alert"]',
-            '[data-testid*="success"]',
-            '[data-testid*="error"]'
-        ];
+        const feedbackElements = ['[role="alert"]', '[data-testid*="success"]', '[data-testid*="error"]'];
 
         let feedbackFound = false;
         for (const selector of feedbackElements) {
             const element = page.locator(selector);
-            if (await element.count() > 0) {
+            if ((await element.count()) > 0) {
                 await expect(element.first()).toBeVisible();
                 feedbackFound = true;
                 break;
@@ -407,10 +403,7 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
     test.describe('Keyboard Navigation', () => {
         test('should support proper tab order through form elements', async ({ page }) => {
             // Expected tab order for reset password form
-            const expectedTabOrder = [
-                'input[type="email"]',
-                SELECTORS.SUBMIT_BUTTON,
-            ];
+            const expectedTabOrder = ['input[type="email"]', SELECTORS.SUBMIT_BUTTON];
 
             // Test forward tab navigation
             await testTabOrder(page, expectedTabOrder);
@@ -432,10 +425,7 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
         });
 
         test('should have visible focus indicators on form elements', async ({ page }) => {
-            const interactiveElements = [
-                'input[type="email"]',
-                SELECTORS.SUBMIT_BUTTON,
-            ];
+            const interactiveElements = ['input[type="email"]', SELECTORS.SUBMIT_BUTTON];
 
             await verifyFocusVisible(page, interactiveElements);
         });
@@ -473,8 +463,8 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
             await page.keyboard.press('Tab');
             const focusedElement = page.locator(':focus');
 
-            if (await focusedElement.count() > 0) {
-                const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+            if ((await focusedElement.count()) > 0) {
+                const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                 expect(['button', 'input'].includes(tagName)).toBeTruthy();
             }
         });
@@ -514,8 +504,8 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
             await page.keyboard.press('Tab');
             const focusedElement = page.locator(':focus');
 
-            if (await focusedElement.count() > 0) {
-                const isInteractive = await focusedElement.evaluate(el => {
+            if ((await focusedElement.count()) > 0) {
+                const isInteractive = await focusedElement.evaluate((el) => {
                     const tagName = el.tagName.toLowerCase();
                     return ['button', 'a', 'input'].includes(tagName);
                 });
@@ -532,12 +522,12 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
             const firstFocusedElement = page.locator(':focus');
 
             // Verify we can focus something and it's interactive
-            if (await firstFocusedElement.count() > 0) {
-                const tagName = await firstFocusedElement.evaluate(el => el.tagName.toLowerCase());
+            if ((await firstFocusedElement.count()) > 0) {
+                const tagName = await firstFocusedElement.evaluate((el) => el.tagName.toLowerCase());
                 expect(['input', 'button', 'a'].includes(tagName)).toBeTruthy();
 
                 // If it's the email input, test form interaction
-                const isEmailInput = await firstFocusedElement.evaluate(el => (el as HTMLInputElement).type === 'email');
+                const isEmailInput = await firstFocusedElement.evaluate((el) => (el as HTMLInputElement).type === 'email');
                 if (isEmailInput) {
                     // Fill form and test continued navigation
                     await firstFocusedElement.fill(TestScenarios.validUser.email);
@@ -546,8 +536,8 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
                     await page.keyboard.press('Tab');
                     const secondFocusedElement = page.locator(':focus');
 
-                    if (await secondFocusedElement.count() > 0) {
-                        const secondTagName = await secondFocusedElement.evaluate(el => el.tagName.toLowerCase());
+                    if ((await secondFocusedElement.count()) > 0) {
+                        const secondTagName = await secondFocusedElement.evaluate((el) => el.tagName.toLowerCase());
                         expect(['input', 'button', 'a'].includes(secondTagName)).toBeTruthy();
 
                         // Test reverse navigation

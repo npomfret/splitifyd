@@ -47,9 +47,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         if (!balances.value?.simplifiedDebts || !currentUser.value) return false;
 
         // Check if current user appears in any debt relationship
-        return balances.value.simplifiedDebts.some(debt =>
-            debt.from.userId === currentUser.value?.uid || debt.to.userId === currentUser.value?.uid
-        );
+        return balances.value.simplifiedDebts.some((debt) => debt.from.userId === currentUser.value?.uid || debt.to.userId === currentUser.value?.uid);
     });
     // Users can leave if they're not the owner and not the only member left
     const canLeaveGroup = useComputed(() => !isGroupOwner.value && !isLastMember.value);
@@ -198,7 +196,11 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
     // Render group detail
     return (
-        <BaseLayout title={`${group.value!.name}${t('pages.groupDetailPage.titleSuffix')}`} description={`${t('pages.groupDetailPage.manageExpensesFor')}${group.value!.name}`} headerVariant="dashboard">
+        <BaseLayout
+            title={`${group.value!.name}${t('pages.groupDetailPage.titleSuffix')}`}
+            description={`${t('pages.groupDetailPage.manageExpensesFor')}${group.value!.name}`}
+            headerVariant="dashboard"
+        >
             <GroupDetailGrid
                 leftSidebar={
                     <>

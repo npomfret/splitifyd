@@ -20,9 +20,7 @@ export const CURRENCIES: readonly Currency[] = currencyData as Currency[];
 /**
  * Currency lookup map for fast access by currency code
  */
-const currencyMap = new Map<string, Currency>(
-    CURRENCIES.map((currency) => [currency.acronym.toUpperCase(), currency])
-);
+const currencyMap = new Map<string, Currency>(CURRENCIES.map((currency) => [currency.acronym.toUpperCase(), currency]));
 
 /**
  * Get currency by code (3-letter ISO code like 'USD', 'EUR', etc.)
@@ -58,12 +56,10 @@ export function isValidCurrency(code: string): boolean {
  * @returns Array of all currency codes
  */
 export function getAllCurrencyCodes(): string[] {
-    return CURRENCIES.map(c => c.acronym);
+    return CURRENCIES.map((c) => c.acronym);
 }
 
 /**
  * Commonly used currencies for UI dropdowns
  */
-export const COMMON_CURRENCIES = [
-    'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'INR', 'MXN', 'BRL', 'ZAR'
-] as const;
+export const COMMON_CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'INR', 'MXN', 'BRL', 'ZAR'] as const;

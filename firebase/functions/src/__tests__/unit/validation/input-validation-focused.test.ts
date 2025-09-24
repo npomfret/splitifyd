@@ -30,7 +30,7 @@ describe('Focused Input Validation Tests', () => {
 
         it('should accept valid positive amounts', () => {
             expect(() => {
-                if (100.50 <= 0) throw new ApiError(400, 'INVALID_AMOUNT', 'Amount must be greater than 0');
+                if (100.5 <= 0) throw new ApiError(400, 'INVALID_AMOUNT', 'Amount must be greater than 0');
             }).not.toThrow();
         });
     });
@@ -40,11 +40,7 @@ describe('Focused Input Validation Tests', () => {
             const participants = ['user1', 'user2'];
             const amount = 100;
 
-            const splits = calculateSplits(
-                amount,
-                'equal',
-                participants,
-            );
+            const splits = calculateSplits(amount, 'equal', participants);
 
             expect(splits).toHaveLength(2);
             expect(splits[0].amount).toBe(50);
@@ -58,11 +54,7 @@ describe('Focused Input Validation Tests', () => {
             const participants = ['user1', 'user2', 'user3'];
             const amount = 10;
 
-            const splits = calculateSplits(
-                amount,
-                'equal',
-                participants,
-            );
+            const splits = calculateSplits(amount, 'equal', participants);
 
             expect(splits).toHaveLength(3);
 
@@ -214,7 +206,7 @@ describe('Focused Input Validation Tests', () => {
 
         it('should accept valid settlement amounts', () => {
             expect(() => {
-                const amount = 50.00;
+                const amount = 50.0;
                 if (amount <= 0) {
                     throw new ApiError(400, 'INVALID_AMOUNT', 'Settlement amount must be greater than 0');
                 }

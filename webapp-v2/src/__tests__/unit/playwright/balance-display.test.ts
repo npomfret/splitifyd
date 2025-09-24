@@ -1,9 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    setupTestPage,
-    setupAuthenticatedUserWithToken,
-    TEST_SCENARIOS,
-} from '../infra/test-helpers';
+import { setupTestPage, setupAuthenticatedUserWithToken, TEST_SCENARIOS } from '../infra/test-helpers';
 import { CURRENCY_REPLACEMENTS, getTestCurrency } from './test-currencies';
 
 /**
@@ -18,7 +14,7 @@ test.describe('Balance Display', () => {
             { id: 'user1', email: TEST_SCENARIOS.VALID_EMAIL, displayName: 'Test User', joinedAt: new Date().toISOString() },
             { id: 'user2', email: 'member2@test.com', displayName: 'Member Two', joinedAt: new Date().toISOString() },
             { id: 'user3', email: 'member3@test.com', displayName: 'Member Three', joinedAt: new Date().toISOString() },
-        ]
+        ],
     };
 
     // Mock balance data for different scenarios
@@ -26,39 +22,35 @@ test.describe('Balance Display', () => {
         settledUp: {
             balances: [],
             debts: [],
-            isSettledUp: true
+            isSettledUp: true,
         },
         simpleDebt: {
-            balances: [
-                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: CURRENCY_REPLACEMENTS.USD.acronym }
-            ],
-            debts: [
-                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: CURRENCY_REPLACEMENTS.USD.acronym }
-            ],
-            isSettledUp: false
+            balances: [{ from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 50.0, currency: CURRENCY_REPLACEMENTS.USD.acronym }],
+            debts: [{ debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 50.0, currency: CURRENCY_REPLACEMENTS.USD.acronym }],
+            isSettledUp: false,
         },
         multipleDebts: {
             balances: [
                 { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 75.25, currency: CURRENCY_REPLACEMENTS.USD.acronym },
-                { from: 'member3@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 30.50, currency: CURRENCY_REPLACEMENTS.EUR.acronym }
+                { from: 'member3@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 30.5, currency: CURRENCY_REPLACEMENTS.EUR.acronym },
             ],
             debts: [
                 { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 75.25, currency: CURRENCY_REPLACEMENTS.USD.acronym },
-                { debtor: 'member3@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 30.50, currency: CURRENCY_REPLACEMENTS.EUR.acronym }
+                { debtor: 'member3@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 30.5, currency: CURRENCY_REPLACEMENTS.EUR.acronym },
             ],
-            isSettledUp: false
+            isSettledUp: false,
         },
         complexThreeWay: {
             balances: [
-                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 25.00, currency: CURRENCY_REPLACEMENTS.USD.acronym },
-                { from: TEST_SCENARIOS.VALID_EMAIL, to: 'member3@test.com', amount: 15.75, currency: CURRENCY_REPLACEMENTS.USD.acronym }
+                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 25.0, currency: CURRENCY_REPLACEMENTS.USD.acronym },
+                { from: TEST_SCENARIOS.VALID_EMAIL, to: 'member3@test.com', amount: 15.75, currency: CURRENCY_REPLACEMENTS.USD.acronym },
             ],
             debts: [
-                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 25.00, currency: CURRENCY_REPLACEMENTS.USD.acronym },
-                { debtor: TEST_SCENARIOS.VALID_EMAIL, creditor: 'member3@test.com', amount: 15.75, currency: CURRENCY_REPLACEMENTS.USD.acronym }
+                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 25.0, currency: CURRENCY_REPLACEMENTS.USD.acronym },
+                { debtor: TEST_SCENARIOS.VALID_EMAIL, creditor: 'member3@test.com', amount: 15.75, currency: CURRENCY_REPLACEMENTS.USD.acronym },
             ],
-            isSettledUp: false
-        }
+            isSettledUp: false,
+        },
     };
 
     let authToken: { idToken: string; localId: string; refreshToken: string };
@@ -116,7 +108,7 @@ test.describe('Balance Display', () => {
                 .debt-currency-thb { color: #1565c0; }
                 .debt-currency-ron { color: #6a1b9a; }
                 .balance-summary { margin-top: 15px; font-size: 14px; color: #666; }
-            `
+            `,
         });
 
         let balanceHTML = '<div class="balance-section" id="balance-section">';
@@ -126,10 +118,8 @@ test.describe('Balance Display', () => {
         } else {
             balanceHTML += '<h3>Balances</h3>';
             balanceData.debts.forEach((debt, index) => {
-                const debtorName = debt.debtor === TEST_SCENARIOS.VALID_EMAIL ? 'Test User' :
-                                 debt.debtor === 'member2@test.com' ? 'Member Two' : 'Member Three';
-                const creditorName = debt.creditor === TEST_SCENARIOS.VALID_EMAIL ? 'Test User' :
-                                    debt.creditor === 'member2@test.com' ? 'Member Two' : 'Member Three';
+                const debtorName = debt.debtor === TEST_SCENARIOS.VALID_EMAIL ? 'Test User' : debt.debtor === 'member2@test.com' ? 'Member Two' : 'Member Three';
+                const creditorName = debt.creditor === TEST_SCENARIOS.VALID_EMAIL ? 'Test User' : debt.creditor === 'member2@test.com' ? 'Member Two' : 'Member Three';
 
                 const currency = getTestCurrency(debt.currency);
                 const currencySymbol = currency?.symbol || debt.currency;
@@ -145,7 +135,7 @@ test.describe('Balance Display', () => {
 
             // Add balance summary
             const totalDebts = balanceData.debts.length;
-            const currencies = [...new Set(balanceData.debts.map(d => d.currency))];
+            const currencies = [...new Set(balanceData.debts.map((d) => d.currency))];
             balanceHTML += `
                 <div class="balance-summary">
                     ${totalDebts} debt${totalDebts !== 1 ? 's' : ''} across ${currencies.length} currenc${currencies.length !== 1 ? 'ies' : 'y'}
@@ -158,7 +148,7 @@ test.describe('Balance Display', () => {
         await page.addScriptTag({
             content: `
                 document.body.insertAdjacentHTML('beforeend', \`${balanceHTML}\`);
-            `
+            `,
         });
     }
 
@@ -166,7 +156,7 @@ test.describe('Balance Display', () => {
         authToken = {
             idToken: 'mock-id-token-' + Date.now(),
             localId: 'test-user-id-' + Date.now(),
-            refreshToken: 'mock-refresh-token-' + Date.now()
+            refreshToken: 'mock-refresh-token-' + Date.now(),
         };
     });
 
@@ -300,11 +290,9 @@ test.describe('Balance Display', () => {
 
     test('should handle zero amounts correctly', async ({ page }) => {
         const zeroBalanceData = {
-            balances: [
-                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 0.00, currency: CURRENCY_REPLACEMENTS.USD.acronym }
-            ],
+            balances: [{ from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 0.0, currency: CURRENCY_REPLACEMENTS.USD.acronym }],
             debts: [],
-            isSettledUp: true
+            isSettledUp: true,
         };
 
         await page.route('**/api/groups/test-group/balances', (route: any) => {
@@ -331,13 +319,9 @@ test.describe('Balance Display', () => {
 
     test('should handle very precise decimal amounts', async ({ page }) => {
         const preciseBalanceData = {
-            balances: [
-                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 33.333333, currency: CURRENCY_REPLACEMENTS.USD.acronym }
-            ],
-            debts: [
-                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 33.333333, currency: CURRENCY_REPLACEMENTS.USD.acronym }
-            ],
-            isSettledUp: false
+            balances: [{ from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 33.333333, currency: CURRENCY_REPLACEMENTS.USD.acronym }],
+            debts: [{ debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 33.333333, currency: CURRENCY_REPLACEMENTS.USD.acronym }],
+            isSettledUp: false,
         };
 
         await page.route('**/api/groups/test-group/balances', (route: any) => {
@@ -364,7 +348,7 @@ test.describe('Balance Display', () => {
                     </div>
                 \`;
                 document.body.insertAdjacentHTML('beforeend', balanceHTML);
-            `
+            `,
         });
 
         // Should round to 2 decimal places
@@ -398,16 +382,16 @@ test.describe('Balance Display', () => {
     test('should handle different currency types separately', async ({ page }) => {
         const multiCurrencyData = {
             balances: [
-                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: CURRENCY_REPLACEMENTS.USD.acronym },
-                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: CURRENCY_REPLACEMENTS.EUR.acronym },
-                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: CURRENCY_REPLACEMENTS.GBP.acronym }
+                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 50.0, currency: CURRENCY_REPLACEMENTS.USD.acronym },
+                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 50.0, currency: CURRENCY_REPLACEMENTS.EUR.acronym },
+                { from: 'member2@test.com', to: TEST_SCENARIOS.VALID_EMAIL, amount: 50.0, currency: CURRENCY_REPLACEMENTS.GBP.acronym },
             ],
             debts: [
-                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: CURRENCY_REPLACEMENTS.USD.acronym },
-                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: CURRENCY_REPLACEMENTS.EUR.acronym },
-                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 50.00, currency: CURRENCY_REPLACEMENTS.GBP.acronym }
+                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 50.0, currency: CURRENCY_REPLACEMENTS.USD.acronym },
+                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 50.0, currency: CURRENCY_REPLACEMENTS.EUR.acronym },
+                { debtor: 'member2@test.com', creditor: TEST_SCENARIOS.VALID_EMAIL, amount: 50.0, currency: CURRENCY_REPLACEMENTS.GBP.acronym },
             ],
-            isSettledUp: false
+            isSettledUp: false,
         };
 
         await page.route('**/api/groups/test-group/balances', (route: any) => {
@@ -443,7 +427,7 @@ test.describe('Balance Display', () => {
                     </div>
                 \`;
                 document.body.insertAdjacentHTML('beforeend', balanceHTML);
-            `
+            `,
         });
 
         // Should show separate debt items for each currency

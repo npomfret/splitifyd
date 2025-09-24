@@ -95,32 +95,22 @@ describe('Input Validation Unit Tests', () => {
         // Mock GroupMemberService to return the test members
         mockGroupMemberService.getAllGroupMembers.mockResolvedValue(testMembers);
 
-
         // Mock UserService to return group members response for the ExpenseService
         mockUserService.getGroupMembersResponseFromSubcollection.mockResolvedValue({
-            members: testMembers.map(member => ({
+            members: testMembers.map((member) => ({
                 ...member,
                 profile: {
                     uid: member.userId,
                     displayName: `User ${member.userId}`,
                     email: `${member.userId}@test.com`,
-                }
+                },
             })),
             hasMore: false,
         });
 
-        expenseService = new ExpenseService(
-            mockFirestoreReader,
-            mockFirestoreWriter,
-            mockGroupMemberService as any,
-            mockUserService as any,
-        );
+        expenseService = new ExpenseService(mockFirestoreReader, mockFirestoreWriter, mockGroupMemberService as any, mockUserService as any);
 
-        settlementService = new SettlementService(
-            mockFirestoreReader,
-            mockFirestoreWriter,
-            mockGroupMemberService as any,
-        );
+        settlementService = new SettlementService(mockFirestoreReader, mockFirestoreWriter, mockGroupMemberService as any);
     });
 
     describe('Amount Validation', () => {
@@ -594,14 +584,14 @@ describe('Input Validation Unit Tests', () => {
                 groupId: testGroupId,
                 payerId: testUser1,
                 payeeId: testUser2,
-                amount: 50.00,
+                amount: 50.0,
                 currency: 'USD',
                 note: 'Valid settlement test',
             };
 
             const result = await settlementService.createSettlement(settlementData, testUser1);
 
-            expect(result.amount).toBe(50.00);
+            expect(result.amount).toBe(50.0);
             expect(result.payerId).toBe(testUser1);
             expect(result.payeeId).toBe(testUser2);
         });

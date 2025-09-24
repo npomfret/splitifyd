@@ -4,8 +4,8 @@
  * These utilities provide consistent, reliable test patterns across all page tests.
  */
 
-import {Page, expect, Locator} from '@playwright/test';
-import {generateShortId} from "@splitifyd/test-support";
+import { Page, expect, Locator } from '@playwright/test';
+import { generateShortId } from '@splitifyd/test-support';
 
 /**
  * Standard page setup with authentication and storage clearing
@@ -63,9 +63,9 @@ export async function expectButtonState(page: Page, selector: string, state: 'en
  */
 export async function verifyNavigation(page: Page, expectedUrl: string | RegExp, timeout = 500): Promise<void> {
     if (typeof expectedUrl === 'string') {
-        await expect(page).toHaveURL(expectedUrl, {timeout});
+        await expect(page).toHaveURL(expectedUrl, { timeout });
     } else {
-        await expect(page).toHaveURL(expectedUrl, {timeout});
+        await expect(page).toHaveURL(expectedUrl, { timeout });
     }
 }
 
@@ -74,12 +74,12 @@ export async function verifyNavigation(page: Page, expectedUrl: string | RegExp,
  */
 export async function waitForStorageUpdate(page: Page, key: string, expectedValue?: string): Promise<void> {
     await page.waitForFunction(
-        ({key, expectedValue}) => {
+        ({ key, expectedValue }) => {
             const value = sessionStorage.getItem(key);
             return expectedValue ? value === expectedValue : value !== null;
         },
-        {key, expectedValue},
-        {timeout: 500},
+        { key, expectedValue },
+        { timeout: 500 },
     );
 }
 
@@ -133,7 +133,7 @@ export async function verifyFormAccessibility(page: Page, fields: { selector: st
  */
 export async function expectErrorMessage(page: Page, expectedMessage?: string, timeout = 500): Promise<void> {
     const errorElement = page.locator('[data-testid="error-message"]');
-    await expect(errorElement).toBeVisible({timeout});
+    await expect(errorElement).toBeVisible({ timeout });
 
     if (expectedMessage) {
         await expect(errorElement).toContainText(expectedMessage);
@@ -194,9 +194,11 @@ export async function mockFirebaseAuthLogin(page: Page, email = someValidEmail()
                         registered: true,
                         localId: userId,
                         email: email,
-                        idToken: 'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJuYW1lIjoiQmlsbCBTcGxpdHRlciIsImVtYWlsIjoidGVzdDFAdGVzdC5jb20iLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImF1dGhfdGltZSI6MTc1ODA0NTI5MSwidXNlcl9pZCI6IkZjcmlvZHgyNXU1ZFBvZUIxa3JKMXVYUVJtRHEiLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInRlc3QxQHRlc3QuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifSwiaWF0IjoxNzU4MDQ1MjkxLCJleHAiOjE3NTgwNDg4OTEsImF1ZCI6InNwbGl0aWZ5ZCIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9zcGxpdGlmeWQiLCJzdWIiOiJGY3Jpb2R4MjV1NWRQb2VCMWtySjF1WFFSbURxIn0.',
-                        refreshToken: 'eyJfQXV0aEVtdWxhdG9yUmVmcmVzaFRva2VuIjoiRE8gTk9UIE1PRElGWSIsImxvY2FsSWQiOiJGY3Jpb2R4MjV1NWRQb2VCMWtySjF1WFFSbURxIiwicHJvdmlkZXIiOiJwYXNzd29yZCIsImV4dHJhQ2xhaW1zIjp7fSwicHJvamVjdElkIjoic3BsaXRpZnlkIn0=',
-                        expiresIn: '3600'
+                        idToken:
+                            'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJuYW1lIjoiQmlsbCBTcGxpdHRlciIsImVtYWlsIjoidGVzdDFAdGVzdC5jb20iLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImF1dGhfdGltZSI6MTc1ODA0NTI5MSwidXNlcl9pZCI6IkZjcmlvZHgyNXU1ZFBvZUIxa3JKMXVYUVJtRHEiLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInRlc3QxQHRlc3QuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifSwiaWF0IjoxNzU4MDQ1MjkxLCJleHAiOjE3NTgwNDg4OTEsImF1ZCI6InNwbGl0aWZ5ZCIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9zcGxpdGlmeWQiLCJzdWIiOiJGY3Jpb2R4MjV1NWRQb2VCMWtySjF1WFFSbURxIn0.',
+                        refreshToken:
+                            'eyJfQXV0aEVtdWxhdG9yUmVmcmVzaFRva2VuIjoiRE8gTk9UIE1PRElGWSIsImxvY2FsSWQiOiJGY3Jpb2R4MjV1NWRQb2VCMWtySjF1WFFSbURxIiwicHJvdmlkZXIiOiJwYXNzd29yZCIsImV4dHJhQ2xhaW1zIjp7fSwicHJvamVjdElkIjoic3BsaXRpZnlkIn0=',
+                        expiresIn: '3600',
                     }),
                 });
                 return;
@@ -209,12 +211,14 @@ export async function mockFirebaseAuthLogin(page: Page, email = someValidEmail()
                         error: {
                             code: 400,
                             message: 'INVALID_PASSWORD',
-                            errors: [{
-                                message: 'INVALID_PASSWORD',
-                                domain: 'global',
-                                reason: 'invalid'
-                            }]
-                        }
+                            errors: [
+                                {
+                                    message: 'INVALID_PASSWORD',
+                                    domain: 'global',
+                                    reason: 'invalid',
+                                },
+                            ],
+                        },
                     }),
                 });
                 return;
@@ -228,27 +232,31 @@ export async function mockFirebaseAuthLogin(page: Page, email = someValidEmail()
                 contentType: 'application/json',
                 body: JSON.stringify({
                     kind: 'identitytoolkit#GetAccountInfoResponse',
-                    users: [{
-                        localId: userId,
-                        email: email,
-                        emailVerified: false,
-                        displayName: 'Bill Splitter',
-                        providerUserInfo: [{
-                            providerId: 'password',
+                    users: [
+                        {
+                            localId: userId,
                             email: email,
-                            federatedId: email,
+                            emailVerified: false,
                             displayName: 'Bill Splitter',
-                            rawId: email
-                        }],
-                        photoUrl: '',
-                        passwordHash: 'redacted',
-                        passwordUpdatedAt: 1758045291000,
-                        validSince: '1758045291',
-                        disabled: false,
-                        lastLoginAt: '1758045291000',
-                        createdAt: '1758045291000',
-                        customAuth: false
-                    }]
+                            providerUserInfo: [
+                                {
+                                    providerId: 'password',
+                                    email: email,
+                                    federatedId: email,
+                                    displayName: 'Bill Splitter',
+                                    rawId: email,
+                                },
+                            ],
+                            photoUrl: '',
+                            passwordHash: 'redacted',
+                            passwordUpdatedAt: 1758045291000,
+                            validSince: '1758045291',
+                            disabled: false,
+                            lastLoginAt: '1758045291000',
+                            createdAt: '1758045291000',
+                            customAuth: false,
+                        },
+                    ],
                 }),
             });
             return;
@@ -263,7 +271,12 @@ export async function mockFirebaseAuthLogin(page: Page, email = someValidEmail()
  * Set up authenticated state using a pre-obtained auth token
  * This function properly mocks the entire Firebase auth flow to ensure tests can access protected routes
  */
-export async function setupAuthenticatedUserWithToken(page: Page, authToken: { idToken: string; localId: string; refreshToken: string }, email = someValidEmail(), displayName = 'Test User'): Promise<void> {
+export async function setupAuthenticatedUserWithToken(
+    page: Page,
+    authToken: { idToken: string; localId: string; refreshToken: string },
+    email = someValidEmail(),
+    displayName = 'Test User',
+): Promise<void> {
     const mockUrls = getMockFirebaseUrls(page);
 
     // Mock Firebase config
@@ -295,12 +308,14 @@ export async function setupAuthenticatedUserWithToken(page: Page, authToken: { i
                 contentType: 'application/json',
                 body: JSON.stringify({
                     kind: 'identitytoolkit#GetAccountInfoResponse',
-                    users: [{
-                        localId: authToken.localId,
-                        email: email,
-                        emailVerified: true,
-                        displayName: displayName
-                    }]
+                    users: [
+                        {
+                            localId: authToken.localId,
+                            email: email,
+                            emailVerified: true,
+                            displayName: displayName,
+                        },
+                    ],
                 }),
             });
             return;
@@ -311,7 +326,7 @@ export async function setupAuthenticatedUserWithToken(page: Page, authToken: { i
 
     // Set up comprehensive authentication state in the browser
     await page.evaluate(
-        ({authToken, email, displayName}) => {
+        ({ authToken, email, displayName }) => {
             // Set localStorage for auth state persistence
             localStorage.setItem('USER_ID', authToken.localId);
             localStorage.setItem('AUTH_TOKEN', authToken.idToken);
@@ -327,16 +342,18 @@ export async function setupAuthenticatedUserWithToken(page: Page, authToken: { i
                 refreshToken: authToken.refreshToken,
                 metadata: {
                     creationTime: new Date().toISOString(),
-                    lastSignInTime: new Date().toISOString()
+                    lastSignInTime: new Date().toISOString(),
                 },
-                providerData: [{
-                    providerId: 'password',
-                    uid: email,
-                    displayName: displayName,
-                    email: email,
-                    phoneNumber: null,
-                    photoURL: null
-                }]
+                providerData: [
+                    {
+                        providerId: 'password',
+                        uid: email,
+                        displayName: displayName,
+                        email: email,
+                        phoneNumber: null,
+                        photoURL: null,
+                    },
+                ],
             };
 
             // Mock the Firebase Auth object with proper initialization
@@ -347,9 +364,9 @@ export async function setupAuthenticatedUserWithToken(page: Page, authToken: { i
                         // Immediately call with the authenticated user
                         setTimeout(() => callback(mockFirebaseUser), 0);
                         return () => {}; // Unsubscribe function
-                    }
+                    },
                 },
-                initialized: true
+                initialized: true,
             };
 
             // Mock Firebase service initialization
@@ -359,7 +376,7 @@ export async function setupAuthenticatedUserWithToken(page: Page, authToken: { i
                     // Immediately trigger with authenticated user
                     setTimeout(() => callback(mockFirebaseUser), 0);
                     return () => {}; // Unsubscribe function
-                }
+                },
             };
 
             // Mock the auth store state for immediate availability
@@ -379,12 +396,12 @@ export async function setupAuthenticatedUserWithToken(page: Page, authToken: { i
                 logout: async () => Promise.resolve(),
             };
         },
-        {authToken, email, displayName}
+        { authToken, email, displayName },
     );
 
     // Add init script to ensure mocking is active for any page navigations
     await page.addInitScript(
-        ({authToken, email, displayName}) => {
+        ({ authToken, email, displayName }) => {
             // Ensure localStorage is set on every page load
             localStorage.setItem('USER_ID', authToken.localId);
 
@@ -395,7 +412,7 @@ export async function setupAuthenticatedUserWithToken(page: Page, authToken: { i
                 displayName: displayName,
                 emailVerified: true,
                 getIdToken: async () => authToken.idToken,
-                refreshToken: authToken.refreshToken
+                refreshToken: authToken.refreshToken,
             };
 
             (window as any).__FIREBASE_MOCK__ = {
@@ -404,9 +421,9 @@ export async function setupAuthenticatedUserWithToken(page: Page, authToken: { i
                     onAuthStateChanged: (callback: any) => {
                         setTimeout(() => callback(mockFirebaseUser), 0);
                         return () => {};
-                    }
+                    },
                 },
-                initialized: true
+                initialized: true,
             };
 
             (window as any).__FIREBASE_SERVICE_MOCK__ = {
@@ -414,10 +431,10 @@ export async function setupAuthenticatedUserWithToken(page: Page, authToken: { i
                 onAuthStateChanged: (callback: any) => {
                     setTimeout(() => callback(mockFirebaseUser), 0);
                     return () => {};
-                }
+                },
             };
         },
-        {authToken, email, displayName}
+        { authToken, email, displayName },
     );
 }
 
@@ -493,10 +510,7 @@ export async function mockFirebasePasswordReset(page: Page, email = someValidEma
         // Mock Firebase Auth sendOobCode endpoint (exact match to curl command)
         if (url.includes('identitytoolkit.googleapis.com/v1/accounts:sendOobCode') && url.includes('key=AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg')) {
             // Validate the request payload matches the curl command structure
-            if (requestBody?.requestType === 'PASSWORD_RESET' &&
-                requestBody?.email === email &&
-                requestBody?.clientType === 'CLIENT_TYPE_WEB') {
-
+            if (requestBody?.requestType === 'PASSWORD_RESET' && requestBody?.email === email && requestBody?.clientType === 'CLIENT_TYPE_WEB') {
                 switch (scenario) {
                     case 'success':
                         route.fulfill({
@@ -504,7 +518,7 @@ export async function mockFirebasePasswordReset(page: Page, email = someValidEma
                             contentType: 'application/json',
                             body: JSON.stringify({
                                 email: email,
-                                kind: 'identitytoolkit#GetOobConfirmationCodeResponse'
+                                kind: 'identitytoolkit#GetOobConfirmationCodeResponse',
                             }),
                         });
                         break;
@@ -562,12 +576,14 @@ export async function mockFirebasePasswordReset(page: Page, email = someValidEma
                         error: {
                             code: 400,
                             message: 'INVALID_REQUEST_PAYLOAD',
-                            errors: [{
-                                message: 'Request payload validation failed',
-                                domain: 'global',
-                                reason: 'invalid'
-                            }]
-                        }
+                            errors: [
+                                {
+                                    message: 'Request payload validation failed',
+                                    domain: 'global',
+                                    reason: 'invalid',
+                                },
+                            ],
+                        },
                     }),
                 });
                 return;
@@ -610,12 +626,13 @@ export async function mockFirebaseAuthRegister(page: Page, email = someValidEmai
         const requestBody = route.request().postDataJSON();
 
         // Check if the request matches expected registration data
-        if (requestBody?.email === email &&
+        if (
+            requestBody?.email === email &&
             requestBody?.password === password &&
             requestBody?.displayName === displayName &&
             requestBody?.termsAccepted === true &&
-            requestBody?.cookiePolicyAccepted === true) {
-
+            requestBody?.cookiePolicyAccepted === true
+        ) {
             // Mock successful registration response
             route.fulfill({
                 status: 200,
@@ -628,8 +645,10 @@ export async function mockFirebaseAuthRegister(page: Page, email = someValidEmai
                         displayName: displayName,
                         emailVerified: false,
                     },
-                    idToken: 'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJuYW1lIjoiQmlsbCBTcGxpdHRlciIsImVtYWlsIjoidGVzdDFAdGVzdC5jb20iLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImF1dGhfdGltZSI6MTc1ODA0NTI5MSwidXNlcl9pZCI6IkZjcmlvZHgyNXU1ZFBvZUIxa3JKMXVYUVJtRHEiLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInRlc3QxQHRlc3QuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifSwiaWF0IjoxNzU4MDQ1MjkxLCJleHAiOjE3NTgwNDg4OTEsImF1ZCI6InNwbGl0aWZ5ZCIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9zcGxpdGlmeWQiLCJzdWIiOiJGY3Jpb2R4MjV1NWRQb2VCMWtySjF1WFFSbURxIn0.',
-                    refreshToken: 'eyJfQXV0aEVtdWxhdG9yUmVmcmVzaFRva2VuIjoiRE8gTk9UIE1PRElGWSIsImxvY2FsSWQiOiJGY3Jpb2R4MjV1NWRQb2VCMWtySjF1WFFSbURxIiwicHJvdmlkZXIiOiJwYXNzd29yZCIsImV4dHJhQ2xhaW1zIjp7fSwicHJvamVjdElkIjoic3BsaXRpZnlkIn0=',
+                    idToken:
+                        'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJuYW1lIjoiQmlsbCBTcGxpdHRlciIsImVtYWlsIjoidGVzdDFAdGVzdC5jb20iLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImF1dGhfdGltZSI6MTc1ODA0NTI5MSwidXNlcl9pZCI6IkZjcmlvZHgyNXU1ZFBvZUIxa3JKMXVYUVJtRHEiLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInRlc3QxQHRlc3QuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifSwiaWF0IjoxNzU4MDQ1MjkxLCJleHAiOjE3NTgwNDg4OTEsImF1ZCI6InNwbGl0aWZ5ZCIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9zcGxpdGlmeWQiLCJzdWIiOiJGY3Jpb2R4MjV1NWRQb2VCMWtySjF1WFFSbURxIn0.',
+                    refreshToken:
+                        'eyJfQXV0aEVtdWxhdG9yUmVmcmVzaFRva2VuIjoiRE8gTk9UIE1PRElGWSIsImxvY2FsSWQiOiJGY3Jpb2R4MjV1NWRQb2VCMWtySjF1WFFSbURxIiwicHJvdmlkZXIiOiJwYXNzd29yZCIsImV4dHJhQ2xhaW1zIjp7fSwicHJvamVjdElkIjoic3BsaXRpZnlkIn0=',
                 }),
             });
             return;
@@ -642,12 +661,14 @@ export async function mockFirebaseAuthRegister(page: Page, email = someValidEmai
                     error: {
                         code: 400,
                         message: 'INVALID_REGISTRATION_DATA',
-                        errors: [{
-                            message: 'Registration data validation failed',
-                            domain: 'global',
-                            reason: 'invalid'
-                        }]
-                    }
+                        errors: [
+                            {
+                                message: 'Registration data validation failed',
+                                domain: 'global',
+                                reason: 'invalid',
+                            },
+                        ],
+                    },
                 }),
             });
             return;
@@ -665,27 +686,31 @@ export async function mockFirebaseAuthRegister(page: Page, email = someValidEmai
                 contentType: 'application/json',
                 body: JSON.stringify({
                     kind: 'identitytoolkit#GetAccountInfoResponse',
-                    users: [{
-                        localId: userId,
-                        email: email,
-                        emailVerified: false,
-                        displayName: displayName,
-                        providerUserInfo: [{
-                            providerId: 'password',
+                    users: [
+                        {
+                            localId: userId,
                             email: email,
-                            federatedId: email,
+                            emailVerified: false,
                             displayName: displayName,
-                            rawId: email
-                        }],
-                        photoUrl: '',
-                        passwordHash: 'redacted',
-                        passwordUpdatedAt: 1758045291000,
-                        validSince: '1758045291',
-                        disabled: false,
-                        lastLoginAt: '1758045291000',
-                        createdAt: '1758045291000',
-                        customAuth: false
-                    }]
+                            providerUserInfo: [
+                                {
+                                    providerId: 'password',
+                                    email: email,
+                                    federatedId: email,
+                                    displayName: displayName,
+                                    rawId: email,
+                                },
+                            ],
+                            photoUrl: '',
+                            passwordHash: 'redacted',
+                            passwordUpdatedAt: 1758045291000,
+                            validSince: '1758045291',
+                            disabled: false,
+                            lastLoginAt: '1758045291000',
+                            createdAt: '1758045291000',
+                            customAuth: false,
+                        },
+                    ],
                 }),
             });
             return;
@@ -800,8 +825,8 @@ export async function testKeyboardNavigationWithAuthRedirect(page: Page, expecte
             // Fallback to basic tab navigation test
             await page.keyboard.press('Tab');
             const focusedElement = page.locator(':focus');
-            if (await focusedElement.count() > 0) {
-                const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+            if ((await focusedElement.count()) > 0) {
+                const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                 expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
             }
         }
@@ -824,7 +849,7 @@ export async function testTabOrder(page: Page, selectors: string[], options: { s
 
         try {
             // Check if element exists and is visible
-            if (await element.count() > 0) {
+            if ((await element.count()) > 0) {
                 await element.waitFor({ state: 'visible', timeout: 500 });
 
                 // Check if element is enabled (disabled elements shouldn't be focusable)
@@ -861,7 +886,7 @@ export async function testReverseTabOrder(page: Page, selectors: string[]): Prom
         const element = page.locator(selectors[i]);
 
         try {
-            if (await element.count() > 0) {
+            if ((await element.count()) > 0) {
                 await element.waitFor({ state: 'visible', timeout: 500 });
 
                 // Check if element is enabled (disabled elements shouldn't be focusable)
@@ -887,7 +912,7 @@ export async function verifyFocusVisible(page: Page, selectors: string[]): Promi
     for (const selector of selectors) {
         const element = page.locator(selector);
 
-        if (await element.count() > 0) {
+        if ((await element.count()) > 0) {
             await element.focus();
 
             const focusStyles = await element.evaluate((el) => {
@@ -899,10 +924,7 @@ export async function verifyFocusVisible(page: Page, selectors: string[]): Promi
                 };
             });
 
-            const hasFocusIndicator =
-                focusStyles.outline !== 'none' ||
-                focusStyles.outlineWidth !== '0px' ||
-                focusStyles.boxShadow.includes('rgb');
+            const hasFocusIndicator = focusStyles.outline !== 'none' || focusStyles.outlineWidth !== '0px' || focusStyles.boxShadow.includes('rgb');
 
             expect(hasFocusIndicator).toBeTruthy();
         }
@@ -921,7 +943,7 @@ export async function setupPolicyPageTest(
         type: string;
         text: string;
         createdAt: string;
-    }
+    },
 ): Promise<void> {
     // Fail fast for any unmocked API calls (excluding Vite dev files)
     // This must be registered FIRST (lowest priority) so specific mocks can override it
@@ -971,11 +993,7 @@ export async function setupPolicyPageTest(
 /**
  * Test error state for policy pages by mocking API failure
  */
-export async function testPolicyPageError(
-    page: Page,
-    policyApiPath: string,
-    expectedErrorText: string
-): Promise<void> {
+export async function testPolicyPageError(page: Page, policyApiPath: string, expectedErrorText: string): Promise<void> {
     // Set up unauthenticated test first
     await setupUnauthenticatedTest(page);
 
@@ -989,9 +1007,7 @@ export async function testPolicyPageError(
     });
 
     // Navigate to the page to trigger the error (extract path from policyApiPath)
-    const policyPath = policyApiPath.includes('cookie-policy') ? '/cookies' :
-                      policyApiPath.includes('privacy-policy') ? '/privacy-policy' :
-                      '/terms-of-service';
+    const policyPath = policyApiPath.includes('cookie-policy') ? '/cookies' : policyApiPath.includes('privacy-policy') ? '/privacy-policy' : '/terms-of-service';
 
     await setupTestPage(page, policyPath);
     await page.waitForLoadState('networkidle');

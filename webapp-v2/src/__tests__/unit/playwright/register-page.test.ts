@@ -136,9 +136,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
         });
 
         // Wait for sessionStorage to be updated
-        await page.waitForFunction(
-            () => sessionStorage.getItem('register-form-name') !== null
-        );
+        await page.waitForFunction(() => sessionStorage.getItem('register-form-name') !== null);
 
         // Verify storage values
         const storedData = await page.evaluate(() => ({
@@ -385,8 +383,8 @@ test.describe('RegisterPage - Behavioral Tests', () => {
                         user: {
                             email: 'jgv499y6@bar.com',
                             displayName: 'John Doe',
-                            uid: 'test-uid-123'
-                        }
+                            uid: 'test-uid-123',
+                        },
                     }),
                 });
             });
@@ -402,12 +400,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
             await page.check(SELECTORS.COOKIES_CHECKBOX);
 
             // Test Enter key submission from various input fields
-            const inputFields = [
-                SELECTORS.FULLNAME_INPUT,
-                SELECTORS.EMAIL_INPUT,
-                SELECTORS.PASSWORD_INPUT,
-                SELECTORS.CONFIRM_PASSWORD_INPUT,
-            ];
+            const inputFields = [SELECTORS.FULLNAME_INPUT, SELECTORS.EMAIL_INPUT, SELECTORS.PASSWORD_INPUT, SELECTORS.CONFIRM_PASSWORD_INPUT];
 
             // Test only with one input field since pressing Enter will submit and navigate
             const inputField = inputFields[0];
@@ -463,8 +456,8 @@ test.describe('RegisterPage - Behavioral Tests', () => {
                         user: {
                             email: 'jgv499y6@bar.com',
                             displayName: 'John Doe',
-                            uid: 'test-uid-123'
-                        }
+                            uid: 'test-uid-123',
+                        },
                     }),
                 });
             });
@@ -534,21 +527,14 @@ test.describe('RegisterPage - Behavioral Tests', () => {
 
         test('should handle keyboard navigation with form validation states', async ({ page }) => {
             // Test tab order when form is empty (submit button disabled)
-            const tabOrder = [
-                SELECTORS.FULLNAME_INPUT,
-                SELECTORS.EMAIL_INPUT,
-                SELECTORS.PASSWORD_INPUT,
-                SELECTORS.CONFIRM_PASSWORD_INPUT,
-                SELECTORS.TERMS_CHECKBOX,
-                SELECTORS.COOKIES_CHECKBOX,
-            ];
+            const tabOrder = [SELECTORS.FULLNAME_INPUT, SELECTORS.EMAIL_INPUT, SELECTORS.PASSWORD_INPUT, SELECTORS.CONFIRM_PASSWORD_INPUT, SELECTORS.TERMS_CHECKBOX, SELECTORS.COOKIES_CHECKBOX];
 
             // Use improved helper function for keyboard navigation
             await testTabOrder(page, tabOrder);
 
             // Check submit button is disabled (which is expected)
             const submitButton = page.locator(SELECTORS.SUBMIT_BUTTON);
-            if (await submitButton.count() > 0) {
+            if ((await submitButton.count()) > 0) {
                 await expect(submitButton).toBeDisabled();
             }
         });
@@ -567,8 +553,8 @@ test.describe('RegisterPage - Behavioral Tests', () => {
                 attempts++;
 
                 const focusedElement = page.locator(':focus');
-                if (await focusedElement.count() > 0) {
-                    const elementType = await focusedElement.evaluate(el => (el as HTMLInputElement).type);
+                if ((await focusedElement.count()) > 0) {
+                    const elementType = await focusedElement.evaluate((el) => (el as HTMLInputElement).type);
 
                     if (elementType === 'checkbox') {
                         // Test keyboard interaction on this checkbox
@@ -635,7 +621,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
             for (const selector of interactiveElements) {
                 const element = page.locator(selector);
 
-                if (await element.count() > 0) {
+                if ((await element.count()) > 0) {
                     await element.focus();
 
                     // Check for focus indicators
@@ -651,10 +637,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
 
                     // Should have consistent focus indicator pattern across all elements
                     const hasFocusIndicator =
-                        focusStyles.outline !== 'none' ||
-                        focusStyles.outlineWidth !== '0px' ||
-                        focusStyles.boxShadow.includes('rgb') ||
-                        focusStyles.outlineColor !== 'rgba(0, 0, 0, 0)';
+                        focusStyles.outline !== 'none' || focusStyles.outlineWidth !== '0px' || focusStyles.boxShadow.includes('rgb') || focusStyles.outlineColor !== 'rgba(0, 0, 0, 0)';
 
                     expect(hasFocusIndicator).toBeTruthy();
                 }

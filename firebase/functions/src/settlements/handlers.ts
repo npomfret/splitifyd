@@ -5,15 +5,8 @@ import { ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { createSettlementSchema, updateSettlementSchema, settlementIdSchema, listSettlementsQuerySchema } from './validation';
-import {
-    CreateSettlementRequest,
-    UpdateSettlementRequest,
-    CreateSettlementResponse,
-    UpdateSettlementResponse,
-    DeleteSettlementResponse,
-    ListSettlementsApiResponse,
-} from '@splitifyd/shared';
-import {getAuth, getFirestore} from '../firebase';
+import { CreateSettlementRequest, UpdateSettlementRequest, CreateSettlementResponse, UpdateSettlementResponse, DeleteSettlementResponse, ListSettlementsApiResponse } from '@splitifyd/shared';
+import { getAuth, getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();

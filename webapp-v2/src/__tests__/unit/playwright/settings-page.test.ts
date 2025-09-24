@@ -1,12 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    setupTestPage,
-    verifyNavigation,
-    setupAuthenticatedUser,
-    setupUnauthenticatedTest,
-    testKeyboardNavigationWithAuthRedirect,
-    TEST_SCENARIOS,
-} from '../infra/test-helpers';
+import { setupTestPage, verifyNavigation, setupAuthenticatedUser, setupUnauthenticatedTest, testKeyboardNavigationWithAuthRedirect, TEST_SCENARIOS } from '../infra/test-helpers';
 
 /**
  * High-value settings tests that verify actual user behavior
@@ -85,11 +78,7 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
 
         test('should preserve URL parameters during authentication redirect', async ({ page }) => {
             // Test various settings URL patterns with parameters
-            const testUrls = [
-                '/settings?tab=profile',
-                '/settings?section=password',
-                '/settings?view=account&edit=true'
-            ];
+            const testUrls = ['/settings?tab=profile', '/settings?section=password', '/settings?view=account&edit=true'];
 
             for (const testUrl of testUrls) {
                 await page.goto(testUrl);
@@ -214,8 +203,8 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
-                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                if ((await focusedElement.count()) > 0) {
+                    const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                     expect(['button', 'a', 'input', 'select', 'textarea'].includes(tagName)).toBeTruthy();
                 }
 
@@ -246,9 +235,9 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
                     attempts++;
 
                     const focusedElement = page.locator(':focus');
-                    if (await focusedElement.count() > 0) {
-                        const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
-                        const elementType = await focusedElement.evaluate(el => (el as HTMLInputElement).type || '');
+                    if ((await focusedElement.count()) > 0) {
+                        const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
+                        const elementType = await focusedElement.evaluate((el) => (el as HTMLInputElement).type || '');
 
                         // Count any interactive element we find
                         if (['input', 'button', 'a'].includes(tagName)) {
@@ -298,7 +287,7 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
                 for (const selector of interactiveElements) {
                     const element = page.locator(selector);
 
-                    if (await element.count() > 0) {
+                    if ((await element.count()) > 0) {
                         await element.focus();
 
                         // Check for focus indicators
@@ -312,10 +301,7 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
                         });
 
                         // Verify some form of focus indicator exists
-                        const hasFocusIndicator =
-                            focusStyles.outline !== 'none' ||
-                            focusStyles.outlineWidth !== '0px' ||
-                            focusStyles.boxShadow.includes('rgb');
+                        const hasFocusIndicator = focusStyles.outline !== 'none' || focusStyles.outlineWidth !== '0px' || focusStyles.boxShadow.includes('rgb');
 
                         expect(hasFocusIndicator).toBeTruthy();
                     }
@@ -330,7 +316,7 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
                 // Test Space key on remember me checkbox
                 const rememberMeCheckbox = page.locator('[data-testid="remember-me-checkbox"]');
 
-                if (await rememberMeCheckbox.count() > 0) {
+                if ((await rememberMeCheckbox.count()) > 0) {
                     // Focus on checkbox
                     await rememberMeCheckbox.focus();
                     await expect(rememberMeCheckbox).toBeFocused();
@@ -366,8 +352,8 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
-                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                if ((await focusedElement.count()) > 0) {
+                    const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                     expect(['button', 'a', 'input', 'select', 'textarea'].includes(tagName)).toBeTruthy();
                 }
             });
@@ -381,7 +367,7 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
+                if ((await focusedElement.count()) > 0) {
                     // Should be able to interact with focused element
                     const isInteractive = await focusedElement.evaluate((el) => {
                         const tagName = el.tagName.toLowerCase();
@@ -404,18 +390,12 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
                 await page.waitForLoadState('networkidle');
 
                 // Find the last focusable element (skip disabled buttons)
-                const focusableElements = [
-                    '[data-testid="loginpage-signup-button"]',
-                    'button:has-text("Forgot")',
-                    '[data-testid="remember-me-checkbox"]',
-                    '#password-input',
-                    '#email-input'
-                ];
+                const focusableElements = ['[data-testid="loginpage-signup-button"]', 'button:has-text("Forgot")', '[data-testid="remember-me-checkbox"]', '#password-input', '#email-input'];
 
                 let lastFocusableElement = null;
                 for (const selector of focusableElements) {
                     const element = page.locator(selector);
-                    if (await element.count() > 0 && await element.isEnabled()) {
+                    if ((await element.count()) > 0 && (await element.isEnabled())) {
                         lastFocusableElement = element;
                         break;
                     }
@@ -429,11 +409,9 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
                     await page.keyboard.press('Shift+Tab');
                     const previousElement = page.locator(':focus');
 
-                    if (await previousElement.count() > 0) {
-                        const tagName = await previousElement.evaluate(el => el.tagName.toLowerCase());
-                        const isCheckbox = await previousElement.evaluate(el =>
-                            (el as HTMLInputElement).type === 'checkbox'
-                        );
+                    if ((await previousElement.count()) > 0) {
+                        const tagName = await previousElement.evaluate((el) => el.tagName.toLowerCase());
+                        const isCheckbox = await previousElement.evaluate((el) => (el as HTMLInputElement).type === 'checkbox');
                         expect(['button', 'a', 'input', 'checkbox'].includes(tagName) || isCheckbox).toBeTruthy();
                     }
                 }
@@ -455,8 +433,8 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
             await page.keyboard.press('Tab');
             const focusedElement = page.locator(':focus');
 
-            if (await focusedElement.count() > 0) {
-                const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+            if ((await focusedElement.count()) > 0) {
+                const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                 expect(['button', 'a', 'input', 'select', 'textarea'].includes(tagName)).toBeTruthy();
             }
 
@@ -472,18 +450,12 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
             await page.waitForLoadState('networkidle');
 
             // Verify keyboard navigation works on the redirected page
-            const interactiveElements = [
-                '#email-input',
-                '#password-input',
-                'button[type="submit"]',
-                'button:has-text("Forgot")',
-                '[data-testid="loginpage-signup-button"]',
-            ];
+            const interactiveElements = ['#email-input', '#password-input', 'button[type="submit"]', 'button:has-text("Forgot")', '[data-testid="loginpage-signup-button"]'];
 
             for (const selector of interactiveElements) {
                 const element = page.locator(selector);
 
-                if (await element.count() > 0 && await element.isEnabled()) {
+                if ((await element.count()) > 0 && (await element.isEnabled())) {
                     await element.focus();
                     await expect(element).toBeFocused();
 

@@ -1,13 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    setupTestPage,
-    setupAuthenticatedUser,
-    fillFormField,
-    TestScenarios,
-    GroupApiMock,
-    AuthApiMock,
-    GroupTestDataBuilder,
-} from '../infra/test-helpers';
+import { setupTestPage, setupAuthenticatedUser, fillFormField, TestScenarios, GroupApiMock, AuthApiMock, GroupTestDataBuilder } from '../infra/test-helpers';
 
 /**
  * Expense operations tests using real components with API mocking only
@@ -23,19 +15,19 @@ test.describe('Expense Operations', () => {
                 id: 'user1',
                 email: TestScenarios.validUser.email,
                 displayName: 'Test User',
-                joinedAt: '2024-01-01T00:00:00.000Z'
+                joinedAt: '2024-01-01T00:00:00.000Z',
             },
             {
                 id: 'user2',
                 email: 'alice@test.com',
                 displayName: 'Alice Smith',
-                joinedAt: '2024-01-01T00:00:00.000Z'
+                joinedAt: '2024-01-01T00:00:00.000Z',
             },
             {
                 id: 'user3',
                 email: 'bob@test.com',
                 displayName: 'Bob Johnson',
-                joinedAt: '2024-01-01T00:00:00.000Z'
+                joinedAt: '2024-01-01T00:00:00.000Z',
             },
         ])
         .build();

@@ -1,9 +1,7 @@
 import { Page, expect } from '@playwright/test';
 
 export class HeaderPage {
-    constructor(
-        private page: Page
-    ) {}
+    constructor(private page: Page) {}
 
     /**
      * User Menu Locators

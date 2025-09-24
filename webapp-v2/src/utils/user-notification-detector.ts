@@ -76,8 +76,7 @@ export class UserNotificationDetector {
     // Track baseline states when groups are first seen to distinguish new changes from pre-existing ones
     private baselineGroupStates = new Map<string, GroupNotificationState>();
 
-    constructor() {
-    }
+    constructor() {}
 
     /**
      * Subscribe to user notifications

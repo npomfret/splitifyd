@@ -9,6 +9,7 @@ During debugging of the password change functionality, we discovered that the `v
 **File**: `firebase/functions/src/services/auth/FirebaseAuthService.ts:572-601`
 
 The current implementation is a **development-only solution** that:
+
 - Only checks if the user exists via `getUserByEmail()`
 - Always returns `true` if user exists (doesn't actually verify password)
 - Has unused `password` parameter (causing TS6133 warning)
@@ -39,20 +40,20 @@ For production deployment, this method **MUST** be properly implemented to actua
 ### Recommended Approach
 
 1. **Firebase Auth REST API Integration**
-   - Use Firebase Auth REST API `signInWithPassword` endpoint
-   - Handle emulator vs production endpoints correctly
-   - Proper error handling for invalid credentials vs service errors
+    - Use Firebase Auth REST API `signInWithPassword` endpoint
+    - Handle emulator vs production endpoints correctly
+    - Proper error handling for invalid credentials vs service errors
 
 2. **Configuration Requirements**
-   - Proper Firebase API key configuration
-   - Environment-specific endpoint handling
-   - No fallback values that could mask configuration issues
+    - Proper Firebase API key configuration
+    - Environment-specific endpoint handling
+    - No fallback values that could mask configuration issues
 
 3. **Security Considerations**
-   - Rate limiting for password verification attempts
-   - Proper logging (without exposing passwords)
-   - Handle all Firebase Auth error scenarios
-   - Ensure no credential information leaks in error messages
+    - Rate limiting for password verification attempts
+    - Proper logging (without exposing passwords)
+    - Handle all Firebase Auth error scenarios
+    - Ensure no credential information leaks in error messages
 
 ### Example Production Implementation Structure
 
@@ -88,23 +89,23 @@ async verifyPassword(email: string, password: string): Promise<boolean> {
 ## Action Items
 
 1. **Before Production Deployment**:
-   - [ ] Implement proper password verification using Firebase Auth REST API
-   - [ ] Add comprehensive error handling for all auth scenarios
-   - [ ] Add rate limiting protection
-   - [ ] Write integration tests covering both valid/invalid credentials
-   - [ ] Remove the TS6133 warning by using the password parameter
+    - [ ] Implement proper password verification using Firebase Auth REST API
+    - [ ] Add comprehensive error handling for all auth scenarios
+    - [ ] Add rate limiting protection
+    - [ ] Write integration tests covering both valid/invalid credentials
+    - [ ] Remove the TS6133 warning by using the password parameter
 
 2. **Testing Requirements**:
-   - [ ] Test with valid credentials (should return `true`)
-   - [ ] Test with invalid password (should return `false`)
-   - [ ] Test with non-existent user (should return `false`)
-   - [ ] Test service error scenarios (should throw)
-   - [ ] Test configuration missing scenarios (should throw)
+    - [ ] Test with valid credentials (should return `true`)
+    - [ ] Test with invalid password (should return `false`)
+    - [ ] Test with non-existent user (should return `false`)
+    - [ ] Test service error scenarios (should throw)
+    - [ ] Test configuration missing scenarios (should throw)
 
 3. **Security Review**:
-   - [ ] Audit for credential leaks in logs/errors
-   - [ ] Verify rate limiting implementation
-   - [ ] Review error messages for information disclosure
+    - [ ] Audit for credential leaks in logs/errors
+    - [ ] Verify rate limiting implementation
+    - [ ] Review error messages for information disclosure
 
 ## Risk Level
 

@@ -54,12 +54,7 @@ describe('ExpenseService - Focused Unit Tests', () => {
             getUserProfiles: vi.fn().mockResolvedValue([]),
         } as any;
 
-        expenseService = new ExpenseService(
-            stubReader,
-            stubWriter,
-            mockGroupMemberService,
-            mockUserService,
-        );
+        expenseService = new ExpenseService(stubReader, stubWriter, mockGroupMemberService, mockUserService);
     });
 
     describe('Expense Access Control', () => {
@@ -172,14 +167,14 @@ describe('ExpenseService - Focused Unit Tests', () => {
                 groupId: 'test-group',
                 createdBy: userId,
                 paidBy: userId,
-                amount: 100.50,
+                amount: 100.5,
                 currency: 'USD',
                 description: 'Test expense',
                 category: 'Food',
                 date: now,
                 splitType: 'equal',
                 participants: [userId],
-                splits: [{ userId, amount: 100.50 }],
+                splits: [{ userId, amount: 100.5 }],
                 receiptUrl: 'https://example.com/receipt.jpg',
                 createdAt: now,
                 updatedAt: now,
@@ -198,14 +193,14 @@ describe('ExpenseService - Focused Unit Tests', () => {
                 groupId: 'test-group',
                 createdBy: userId,
                 paidBy: userId,
-                amount: 100.50,
+                amount: 100.5,
                 currency: 'USD',
                 description: 'Test expense',
                 category: 'Food',
                 date: expect.any(String), // ISO string
                 splitType: 'equal',
                 participants: [userId],
-                splits: [{ userId, amount: 100.50 }],
+                splits: [{ userId, amount: 100.5 }],
                 receiptUrl: 'https://example.com/receipt.jpg',
                 createdAt: expect.any(String),
                 updatedAt: expect.any(String),

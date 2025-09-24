@@ -240,7 +240,9 @@ export function CurrencySelector({
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <span className="font-medium">{selectedCurrency.symbol}</span>
-                                <span className="text-sm">{selectedCurrency.name} ({selectedCurrency.acronym})</span>
+                                <span className="text-sm">
+                                    {selectedCurrency.name} ({selectedCurrency.acronym})
+                                </span>
                             </div>
                             <svg
                                 className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}

@@ -7,17 +7,12 @@ test.describe.serial('Cookie Policy Page', () => {
         const context = await browser.newContext();
         const page = await context.newPage();
 
-        await setupPolicyPageTest(
-            page,
-            '/cookies',
-            '**/api/policies/cookie-policy/current',
-            {
-                id: 'cookie-policy',
-                type: 'COOKIE_POLICY',
-                text: 'This is our cookie policy. We use cookies to improve your experience.',
-                createdAt: '2025-01-22T00:00:00Z',
-            }
-        );
+        await setupPolicyPageTest(page, '/cookies', '**/api/policies/cookie-policy/current', {
+            id: 'cookie-policy',
+            type: 'COOKIE_POLICY',
+            text: 'This is our cookie policy. We use cookies to improve your experience.',
+            createdAt: '2025-01-22T00:00:00Z',
+        });
 
         // Store page in global for reuse
         (globalThis as any).sharedCookiePage = page;
@@ -49,11 +44,7 @@ test.describe.serial('Cookie Policy Page', () => {
         const context = await browser.newContext();
         const page = await context.newPage();
 
-        await testPolicyPageError(
-            page,
-            '**/api/policies/cookie-policy/current',
-            'Error loading cookie policy'
-        );
+        await testPolicyPageError(page, '**/api/policies/cookie-policy/current', 'Error loading cookie policy');
 
         await page.close();
     });

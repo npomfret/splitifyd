@@ -19,5 +19,4 @@ export class RemoveMemberModalPage extends BasePage {
     async waitForDialogVisible(): Promise<void> {
         await expect(this.dialog).toBeVisible();
     }
-
 }

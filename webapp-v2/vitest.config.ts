@@ -33,7 +33,7 @@ export default defineConfig({
             '@': resolve(__dirname, 'src'),
             '@test-builders': resolve(__dirname, '../firebase/functions/__tests__/support/builders'),
             // React compatibility for libraries that expect React (like react-i18next)
-            'react': 'preact/compat',
+            react: 'preact/compat',
             'react-dom': 'preact/compat',
         },
     },

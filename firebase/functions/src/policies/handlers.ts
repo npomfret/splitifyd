@@ -3,7 +3,7 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreatePolicy, validateUpdatePolicy, validatePublishPolicy } from './validation';
-import {getAuth, getFirestore} from '../firebase';
+import { getAuth, getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();

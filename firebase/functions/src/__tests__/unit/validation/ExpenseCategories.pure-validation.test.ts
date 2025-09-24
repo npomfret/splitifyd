@@ -69,8 +69,7 @@ describe('Expense Categories Pure Validation - Unit Tests', () => {
             const tooLongCategory = 'A'.repeat(51); // 51 characters - too long
             const expenseData = createValidExpenseData(tooLongCategory);
 
-            expect(() => validateCreateExpense(expenseData))
-                .toThrow(/category.*50.*character/i);
+            expect(() => validateCreateExpense(expenseData)).toThrow(/category.*50.*character/i);
         });
 
         it('should sanitize HTML content in categories', () => {
@@ -127,8 +126,7 @@ describe('Expense Categories Pure Validation - Unit Tests', () => {
             const whitespaceCategory = '   ';
             const expenseData = createValidExpenseData(whitespaceCategory);
 
-            expect(() => validateCreateExpense(expenseData))
-                .toThrow(/category.*1.*50.*character/i);
+            expect(() => validateCreateExpense(expenseData)).toThrow(/category.*1.*50.*character/i);
         });
 
         it('should handle unicode characters correctly', () => {
@@ -144,20 +142,13 @@ describe('Expense Categories Pure Validation - Unit Tests', () => {
             const expenseData = createValidExpenseData();
             delete (expenseData as any).category;
 
-            expect(() => validateCreateExpense(expenseData))
-                .toThrow(); // Just check that it throws, don't check specific message
+            expect(() => validateCreateExpense(expenseData)).toThrow(); // Just check that it throws, don't check specific message
         });
     });
 
     describe('Performance Test', () => {
         it('should validate categories quickly (performance)', () => {
-            const categories = [
-                'Food',
-                'Transportation',
-                'Custom Category',
-                'Café & Restaurant',
-                'A'.repeat(50),
-            ];
+            const categories = ['Food', 'Transportation', 'Custom Category', 'Café & Restaurant', 'A'.repeat(50)];
 
             const startTime = Date.now();
 

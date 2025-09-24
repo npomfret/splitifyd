@@ -1,10 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    setupTestPage,
-    setupAuthenticatedUserWithToken,
-    fillFormField,
-
-} from '../infra/test-helpers';
+import { setupTestPage, setupAuthenticatedUserWithToken, fillFormField } from '../infra/test-helpers';
 
 /**
  * Unit tests for group creation modal
@@ -24,7 +19,7 @@ test.describe('Group Creation Modal', () => {
                         id: 'new-group-id',
                         name: requestBody.name,
                         description: requestBody.description,
-                        success: true
+                        success: true,
                     }),
                 });
             } else if (route.request().method() === 'GET') {
@@ -55,7 +50,7 @@ test.describe('Group Creation Modal', () => {
         // Look for create group button
         const createGroupButton = page.locator('button:has-text("Create Group"), button:has-text("Create"), button[data-testid*="create"]');
 
-        if (await createGroupButton.count() > 0) {
+        if ((await createGroupButton.count()) > 0) {
             await createGroupButton.first().click();
         } else {
             // Fallback: add modal HTML for testing
@@ -71,7 +66,7 @@ test.describe('Group Creation Modal', () => {
                     .btn-primary { background: #007bff; color: white; }
                     .btn-secondary { background: #6c757d; color: white; }
                     .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
-                `
+                `,
             });
 
             await page.addScriptTag({
@@ -109,7 +104,7 @@ test.describe('Group Creation Modal', () => {
 
                     nameInput.addEventListener('input', validateForm);
                     nameInput.addEventListener('blur', validateForm);
-                `
+                `,
             });
         }
 
@@ -121,7 +116,7 @@ test.describe('Group Creation Modal', () => {
         authToken = {
             idToken: 'mock-id-token-' + Date.now(),
             localId: 'test-user-id-' + Date.now(),
-            refreshToken: 'mock-refresh-token-' + Date.now()
+            refreshToken: 'mock-refresh-token-' + Date.now(),
         };
     });
 
@@ -190,13 +185,7 @@ test.describe('Group Creation Modal', () => {
         const submitButton = page.locator('#create-group');
 
         // Test names with special characters
-        const testNames = [
-            'Coffee & Lunch',
-            'Trip to Paris 2024',
-            'Roommates - Apt 123',
-            'Family Vacation (Summer)',
-            'Work Team Building!',
-        ];
+        const testNames = ['Coffee & Lunch', 'Trip to Paris 2024', 'Roommates - Apt 123', 'Family Vacation (Summer)', 'Work Team Building!'];
 
         for (const testName of testNames) {
             await fillFormField(page, nameInput, testName);
@@ -273,9 +262,9 @@ test.describe('Group Creation Modal', () => {
         // Either modal closes or shows success state
         const modal = page.locator('.create-group-modal');
 
-        if (await modal.count() > 0 && await modal.isVisible()) {
+        if ((await modal.count()) > 0 && (await modal.isVisible())) {
             // Check for loading or disabled state during submission
-            if (await submitButton.count() > 0) {
+            if ((await submitButton.count()) > 0) {
                 expect(await submitButton.isDisabled()).toBeTruthy();
             }
         }
@@ -300,7 +289,7 @@ test.describe('Group Creation Modal', () => {
 
         // Modal should close or form should reset
 
-        if (await modal.count() > 0 && await modal.isVisible()) {
+        if ((await modal.count()) > 0 && (await modal.isVisible())) {
             // If modal still visible, either form is reset or cancel worked
             const nameValue = await nameInput.inputValue();
             // Form reset behavior may vary - either empty or unchanged is acceptable
@@ -341,10 +330,10 @@ test.describe('Group Creation Modal', () => {
         const descriptionLabel = page.locator('label[for="group-description"], label:has-text("Description")');
 
         // Labels should be present
-        if (await nameLabel.count() > 0) {
+        if ((await nameLabel.count()) > 0) {
             await expect(nameLabel).toBeVisible();
         }
-        if (await descriptionLabel.count() > 0) {
+        if ((await descriptionLabel.count()) > 0) {
             await expect(descriptionLabel).toBeVisible();
         }
 
@@ -452,7 +441,7 @@ test.describe('Group Creation Modal', () => {
 
         // Should reach submit or cancel button
         const focusedElement = page.locator(':focus');
-        const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+        const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
         expect(tagName).toBe('button');
 
         // Escape key should close modal or cancel
@@ -461,9 +450,9 @@ test.describe('Group Creation Modal', () => {
         // Modal might close or be cancelable
         const modal = page.locator('.create-group-modal');
 
-        if (await modal.count() > 0 && await modal.isVisible()) {
+        if ((await modal.count()) > 0 && (await modal.isVisible())) {
             // If still visible, form might be reset
-            if (await nameInput.count() > 0) {
+            if ((await nameInput.count()) > 0) {
                 const nameValue = await nameInput.inputValue();
                 // Either cleared or unchanged is acceptable
                 expect(typeof nameValue).toBe('string');

@@ -4,7 +4,7 @@ import { validateUserAuth } from '../auth/utils';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreateExpense, validateUpdateExpense, validateExpenseId } from './validation';
-import {getAuth, getFirestore} from '../firebase';
+import { getAuth, getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();

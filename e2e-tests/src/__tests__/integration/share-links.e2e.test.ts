@@ -1,25 +1,21 @@
-import {simpleTest, expect} from '../../fixtures';
-import {GroupDetailPage, JoinGroupPage} from '../../pages';
-import {generateNewUserDetails, generateTestGroupName} from '@splitifyd/test-support';
-import {groupDetailUrlPattern} from '../../pages/group-detail.page';
-import {getUserPool} from '../../fixtures/user-pool.fixture';
+import { simpleTest, expect } from '../../fixtures';
+import { GroupDetailPage, JoinGroupPage } from '../../pages';
+import { generateNewUserDetails, generateTestGroupName } from '@splitifyd/test-support';
+import { groupDetailUrlPattern } from '../../pages/group-detail.page';
+import { getUserPool } from '../../fixtures/user-pool.fixture';
 
 simpleTest.describe('Comprehensive Share Link Testing', () => {
     simpleTest.describe('Share Link - Already Logged In User', () => {
-
         // the 'normal' happy path is tested over and over again indirectly by the other tests
 
-        simpleTest('should show appropriate message when logged-in user is already a member', async ({createLoggedInBrowsers}) => {
+        simpleTest('should show appropriate message when logged-in user is already a member', async ({ createLoggedInBrowsers }) => {
             // Create two browser instances - User 1 and User 2
-            const [
-                {dashboardPage: user1DashboardPage},
-                {page: page2}
-            ] = await createLoggedInBrowsers(2);
+            const [{ dashboardPage: user1DashboardPage }, { page: page2 }] = await createLoggedInBrowsers(2);
 
             const groupName = generateTestGroupName(`ShareLink`);
             const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup({
                 name: groupName,
-                description: 'Testing already member scenario'
+                description: 'Testing already member scenario',
             });
             const groupId = groupDetailPage.inferGroupId();
             const shareLink = await groupDetailPage.getShareLink();
@@ -30,7 +26,7 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             await user2GroupDetailPage.waitForPage(groupId, 2);
             const user2Dashboard = await user2GroupDetailPage.navigateToDashboard();
             await user2Dashboard.waitForDashboard();
-            await user2Dashboard.waitForGroupToAppear(groupName)
+            await user2Dashboard.waitForGroupToAppear(groupName);
 
             // User2 tries to join again - join group button should be missing and OK button should be present
             const joinGroupPage = new JoinGroupPage(page2);
@@ -43,12 +39,12 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
     });
 
     simpleTest.describe('Share Link - Not Logged In User', () => {
-        simpleTest('should redirect non-logged-in user to login then to group after login', async ({createLoggedInBrowsers, newEmptyBrowser}) => {
+        simpleTest('should redirect non-logged-in user to login then to group after login', async ({ createLoggedInBrowsers, newEmptyBrowser }) => {
             // Create authenticated user to set up the group
-            const [{dashboardPage: ownerDashboardPage}] = await createLoggedInBrowsers(1);
+            const [{ dashboardPage: ownerDashboardPage }] = await createLoggedInBrowsers(1);
 
             // Create unauthenticated browser
-            const {page: unauthPage, loginPage} = await newEmptyBrowser();
+            const { page: unauthPage, loginPage } = await newEmptyBrowser();
 
             // Create group with authenticated user
             const [groupDetailPage] = await ownerDashboardPage.createMultiUserGroup({});
@@ -85,12 +81,12 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             await getUserPool().releaseUser(secondUser);
         });
 
-        simpleTest('should allow unregistered user to register and join group via share link', async ({createLoggedInBrowsers, newEmptyBrowser}) => {
+        simpleTest('should allow unregistered user to register and join group via share link', async ({ createLoggedInBrowsers, newEmptyBrowser }) => {
             // Create authenticated user to set up the group
-            const [{dashboardPage: ownerDashboardPage}] = await createLoggedInBrowsers(1);
+            const [{ dashboardPage: ownerDashboardPage }] = await createLoggedInBrowsers(1);
 
             // Create unauthenticated browser
-            const {page: unauthPage, loginPage} = await newEmptyBrowser();
+            const { page: unauthPage, loginPage } = await newEmptyBrowser();
 
             // Create group with authenticated user
             const [groupDetailPage] = await ownerDashboardPage.createMultiUserGroup({});
@@ -101,7 +97,7 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
 
             // Navigate to share link with unauthenticated user
             await unauthPage.goto(shareLink);
-            await unauthPage.waitForLoadState('domcontentloaded', {timeout: 5000});
+            await unauthPage.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Should be redirected to login page
             await expect(unauthPage).toHaveURL(/\/login/);
@@ -111,7 +107,7 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             const registerPage = await loginPage.clickSignUp();
 
             // Register new user
-            const {displayName: newUserName, email: newUserEmail, password: newUserPassword} = generateNewUserDetails();
+            const { displayName: newUserName, email: newUserEmail, password: newUserPassword } = generateNewUserDetails();
             await registerPage.fillRegistrationForm(newUserName, newUserEmail, newUserPassword);
             await registerPage.submitForm();
 
@@ -135,12 +131,12 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             await expect(unauthPage.getByText(newUserName).first()).toBeVisible();
         });
 
-        simpleTest('should allow user to login and then join group via share link', async ({createLoggedInBrowsers, newEmptyBrowser}) => {
+        simpleTest('should allow user to login and then join group via share link', async ({ createLoggedInBrowsers, newEmptyBrowser }) => {
             // Create authenticated user to set up the group
-            const [{dashboardPage: ownerDashboardPage}] = await createLoggedInBrowsers(1);
+            const [{ dashboardPage: ownerDashboardPage }] = await createLoggedInBrowsers(1);
 
             // Create unauthenticated browser
-            const {page: unauthPage, loginPage} = await newEmptyBrowser();
+            const { page: unauthPage, loginPage } = await newEmptyBrowser();
 
             // Create group with authenticated user
             const [groupDetailPage] = await ownerDashboardPage.createMultiUserGroup({});
@@ -150,11 +146,11 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             const shareLink = await groupDetailPage.getShareLink();
 
             // Get a second user to login with
-            const [{user: secondUser}] = await createLoggedInBrowsers(1);
+            const [{ user: secondUser }] = await createLoggedInBrowsers(1);
 
             // Navigate to share link with unauthenticated user
             await unauthPage.goto(shareLink);
-            await unauthPage.waitForLoadState('domcontentloaded', {timeout: 5000});
+            await unauthPage.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Should be redirected to login page with returnUrl
             await expect(unauthPage).toHaveURL(/\/login/);
@@ -186,23 +182,23 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
     });
 
     simpleTest.describe('Share Link - Error Scenarios', () => {
-        simpleTest('should handle invalid share links gracefully', {annotation: {type: 'skip-error-checking'}}, async ({createLoggedInBrowsers}) => {
-            const [{page, dashboardPage}] = await createLoggedInBrowsers(1);
+        simpleTest('should handle invalid share links gracefully', { annotation: { type: 'skip-error-checking' } }, async ({ createLoggedInBrowsers }) => {
+            const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
 
             // Get the base URL from the current page
-            await page.waitForLoadState('domcontentloaded', {timeout: 5000});
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
             const baseUrl = dashboardPage.getBaseUrl();
             const invalidShareLink = `${baseUrl}/join?linkId=invalid-group-id-12345`;
 
             await JoinGroupPage.attemptToJoinWithInvalidShareLink(page, invalidShareLink);
         });
 
-        simpleTest('should handle malformed share links', {annotation: {type: 'skip-error-checking'}}, async ({createLoggedInBrowsers}) => {
-            const [{page, dashboardPage}] = await createLoggedInBrowsers(1);
+        simpleTest('should handle malformed share links', { annotation: { type: 'skip-error-checking' } }, async ({ createLoggedInBrowsers }) => {
+            const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
 
             // Get the base URL from the current page using page object
-            await page.waitForLoadState('domcontentloaded', {timeout: 5000});
-            const baseUrl = dashboardPage.getBaseUrl()
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+            const baseUrl = dashboardPage.getBaseUrl();
 
             // Test various malformed links using page object navigation
             // When linkId is missing or empty, app now shows an error page (not redirect)

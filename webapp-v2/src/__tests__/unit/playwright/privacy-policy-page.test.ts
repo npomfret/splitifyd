@@ -7,17 +7,12 @@ test.describe.serial('Privacy Policy Page', () => {
         const context = await browser.newContext();
         const page = await context.newPage();
 
-        await setupPolicyPageTest(
-            page,
-            '/privacy-policy',
-            '**/api/policies/privacy-policy/current',
-            {
-                id: 'privacy-policy',
-                type: 'PRIVACY_POLICY',
-                text: 'This is our privacy policy. We collect and use your data responsibly.',
-                createdAt: '2025-01-22T00:00:00Z',
-            }
-        );
+        await setupPolicyPageTest(page, '/privacy-policy', '**/api/policies/privacy-policy/current', {
+            id: 'privacy-policy',
+            type: 'PRIVACY_POLICY',
+            text: 'This is our privacy policy. We collect and use your data responsibly.',
+            createdAt: '2025-01-22T00:00:00Z',
+        });
 
         // Store page in global for reuse
         (globalThis as any).sharedPolicyPage = page;
@@ -49,11 +44,7 @@ test.describe.serial('Privacy Policy Page', () => {
         const context = await browser.newContext();
         const page = await context.newPage();
 
-        await testPolicyPageError(
-            page,
-            '**/api/policies/privacy-policy/current',
-            'Error loading privacy policy'
-        );
+        await testPolicyPageError(page, '**/api/policies/privacy-policy/current', 'Error loading privacy policy');
 
         await page.close();
     });

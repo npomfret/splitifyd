@@ -2,7 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SETTINGS_SELECTORS, SETTINGS_TEXTS } from '../constants/selectors';
 import { PooledTestUser } from '@splitifyd/shared';
-import {DashboardPage} from "./dashboard.page.ts";
+import { DashboardPage } from './dashboard.page.ts';
 
 export class SettingsPage extends BasePage {
     constructor(page: Page, userInfo?: PooledTestUser) {
@@ -30,7 +30,7 @@ export class SettingsPage extends BasePage {
 
     async navigateToDashboard() {
         await this.header.navigateToDashboard();
-        return new DashboardPage(this.page, this.userInfo)
+        return new DashboardPage(this.page, this.userInfo);
     }
 
     // Profile Information Elements (using strategic data-testid approach)

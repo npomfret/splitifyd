@@ -36,13 +36,11 @@ export interface SimpleTestFixtures {
      * // Use: owner.page, owner.dashboardPage, owner.user, etc.
      */
     createLoggedInBrowsers(count: number): Promise<Array<{ page: Page; dashboardPage: DashboardPage; user: PooledTestUser }>>;
-
 }
 
 const apiDriver = new ApiDriver();
 
 export const simpleTest = base.extend<SimpleTestFixtures>({
-
     newEmptyBrowser: async ({ browser }, use, testInfo) => {
         const browserInstances: BrowserInstance[] = [];
 
@@ -114,7 +112,7 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
             }
 
             // Accept policies for all users in parallel
-            await Promise.all(users.map(user => apiDriver.acceptCurrentPublishedPolicies(user.token)));
+            await Promise.all(users.map((user) => apiDriver.acceptCurrentPublishedPolicies(user.token)));
 
             // Then create browsers and login in parallel
             const browserPromises = users.map(async (user, index) => {

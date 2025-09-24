@@ -30,9 +30,9 @@ export class GroupTestDataBuilder {
                     displayName: `Test User ${generateShortId()}`,
                     joinedAt: new Date().toISOString(),
                     role: 'admin',
-                    status: 'active'
-                }
-            ]
+                    status: 'active',
+                },
+            ],
         };
     }
 
@@ -78,7 +78,7 @@ export class GroupTestDataBuilder {
                 displayName: `Test User ${i + 1}`,
                 joinedAt: new Date().toISOString(),
                 role: i === 0 ? 'admin' : 'member',
-                status: 'active'
+                status: 'active',
             });
         }
 
@@ -108,7 +108,7 @@ export class GroupTestDataBuilder {
             displayName: member.displayName,
             joinedAt: new Date().toISOString(),
             role: member.role || (index === 0 ? 'admin' : 'member'),
-            status: member.status || 'active'
+            status: member.status || 'active',
         }));
 
         this.group.memberCount = members.length;
@@ -138,7 +138,7 @@ export class GroupTestDataBuilder {
     }
 
     withDebtScenario(): this {
-        return this.withBalance(-25.50).withMemberCount(3);
+        return this.withBalance(-25.5).withMemberCount(3);
     }
 
     withCreditScenario(): this {
@@ -163,7 +163,7 @@ export class GroupTestDataBuilder {
             const group = new GroupTestDataBuilder()
                 .withName(`Test Group ${i + 1}`)
                 .withMemberCount(this.group.memberCount)
-                .withBalance(this.group.balance + (i * 10))
+                .withBalance(this.group.balance + i * 10)
                 .withCurrency(this.group.currency)
                 .build();
             groups.push(group);
@@ -174,7 +174,7 @@ export class GroupTestDataBuilder {
     static quickGroup(overrides: Partial<any> = {}): any {
         const builder = new GroupTestDataBuilder();
 
-        Object.keys(overrides).forEach(key => {
+        Object.keys(overrides).forEach((key) => {
             if (builder.group.hasOwnProperty(key)) {
                 builder.group[key] = overrides[key];
             }
@@ -189,24 +189,9 @@ export class GroupTestDataBuilder {
 
     static sampleGroupsArray(): any[] {
         return [
-            new GroupTestDataBuilder()
-                .withName('Weekend Trip')
-                .withDescription('Vacation expenses for the beach house')
-                .withMemberCount(4)
-                .withBalance(45.50)
-                .build(),
-            new GroupTestDataBuilder()
-                .withName('Apartment Expenses')
-                .withDescription('Monthly shared costs for rent and utilities')
-                .withMemberCount(3)
-                .withBalance(-12.25)
-                .build(),
-            new GroupTestDataBuilder()
-                .withName('Dinner Club')
-                .withDescription('Weekly restaurant outings with friends')
-                .withMemberCount(6)
-                .withBalance(0)
-                .build()
+            new GroupTestDataBuilder().withName('Weekend Trip').withDescription('Vacation expenses for the beach house').withMemberCount(4).withBalance(45.5).build(),
+            new GroupTestDataBuilder().withName('Apartment Expenses').withDescription('Monthly shared costs for rent and utilities').withMemberCount(3).withBalance(-12.25).build(),
+            new GroupTestDataBuilder().withName('Dinner Club').withDescription('Weekly restaurant outings with friends').withMemberCount(6).withBalance(0).build(),
         ];
     }
 }

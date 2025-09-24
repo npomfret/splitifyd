@@ -54,13 +54,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     /**
      * Safely validate merged data, handling FieldValue operations gracefully
      */
-    private safeValidateUpdate<T>(
-        schema: any,
-        mergedData: Record<string, any>,
-        schemaName: string,
-        documentId: string,
-        collection: string,
-    ): { isValid: boolean; data?: T; skipValidation?: boolean } {
+    private safeValidateUpdate<T>(schema: any, mergedData: Record<string, any>, schemaName: string, documentId: string, collection: string): { isValid: boolean; data?: T; skipValidation?: boolean } {
         try {
             const validatedData = this.validateMergedData<T>(schema, mergedData, schemaName, documentId, collection);
             return { isValid: true, data: validatedData };
@@ -83,11 +77,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     /**
      * Fetch existing document and merge with updates for validation
      */
-    private async fetchAndMergeForValidation(
-        documentPath: string,
-        updates: Record<string, any>,
-        documentId: string,
-    ): Promise<Record<string, any>> {
+    private async fetchAndMergeForValidation(documentPath: string, updates: Record<string, any>, documentId: string): Promise<Record<string, any>> {
         const docRef = this.db.doc(documentPath);
         const docSnapshot = await docRef.get();
 
@@ -110,13 +100,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     /**
      * Validate merged document data using the appropriate schema
      */
-    private validateMergedData<T>(
-        schema: any,
-        mergedData: Record<string, any>,
-        schemaName: string,
-        documentId: string,
-        collection: string,
-    ): T {
+    private validateMergedData<T>(schema: any, mergedData: Record<string, any>, schemaName: string, documentId: string, collection: string): T {
         // For validation, replace FieldValue.serverTimestamp() with current timestamp
         const dataForValidation = { ...mergedData };
         if (dataForValidation.updatedAt && typeof dataForValidation.updatedAt === 'object') {
@@ -205,20 +189,10 @@ export class FirestoreWriter implements IFirestoreWriter {
 
                 // Always try validation first, handle FieldValue operations gracefully
                 const documentPath = `${FirestoreCollections.USERS}/${userId}`;
-                const mergedData = await this.fetchAndMergeForValidation(
-                    documentPath,
-                    finalUpdates,
-                    userId,
-                );
+                const mergedData = await this.fetchAndMergeForValidation(documentPath, finalUpdates, userId);
 
                 // Validate with graceful FieldValue handling
-                const validationResult = this.safeValidateUpdate<UserDocument>(
-                    UserDocumentSchema,
-                    mergedData,
-                    'UserDocument',
-                    userId,
-                    FirestoreCollections.USERS,
-                );
+                const validationResult = this.safeValidateUpdate<UserDocument>(UserDocumentSchema, mergedData, 'UserDocument', userId, FirestoreCollections.USERS);
 
                 // Perform the update
                 await this.db.collection(FirestoreCollections.USERS).doc(userId).update(finalUpdates);
@@ -322,20 +296,10 @@ export class FirestoreWriter implements IFirestoreWriter {
 
                 // Always try validation first, handle FieldValue operations gracefully
                 const documentPath = `${FirestoreCollections.GROUPS}/${groupId}`;
-                const mergedData = await this.fetchAndMergeForValidation(
-                    documentPath,
-                    finalUpdates,
-                    groupId,
-                );
+                const mergedData = await this.fetchAndMergeForValidation(documentPath, finalUpdates, groupId);
 
                 // Validate with graceful FieldValue handling
-                const validationResult = this.safeValidateUpdate<GroupDocument>(
-                    GroupDocumentSchema,
-                    mergedData,
-                    'GroupDocument',
-                    groupId,
-                    FirestoreCollections.GROUPS,
-                );
+                const validationResult = this.safeValidateUpdate<GroupDocument>(GroupDocumentSchema, mergedData, 'GroupDocument', groupId, FirestoreCollections.GROUPS);
 
                 // Perform the update
                 await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).update(finalUpdates);
@@ -446,20 +410,10 @@ export class FirestoreWriter implements IFirestoreWriter {
 
                 // Always try validation first, handle FieldValue operations gracefully
                 const documentPath = `${FirestoreCollections.EXPENSES}/${expenseId}`;
-                const mergedData = await this.fetchAndMergeForValidation(
-                    documentPath,
-                    finalUpdates,
-                    expenseId,
-                );
+                const mergedData = await this.fetchAndMergeForValidation(documentPath, finalUpdates, expenseId);
 
                 // Validate with graceful FieldValue handling
-                const validationResult = this.safeValidateUpdate<ExpenseDocument>(
-                    ExpenseDocumentSchema,
-                    mergedData,
-                    'ExpenseDocument',
-                    expenseId,
-                    FirestoreCollections.EXPENSES,
-                );
+                const validationResult = this.safeValidateUpdate<ExpenseDocument>(ExpenseDocumentSchema, mergedData, 'ExpenseDocument', expenseId, FirestoreCollections.EXPENSES);
 
                 // Perform the update
                 await this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId).update(finalUpdates);
@@ -566,20 +520,10 @@ export class FirestoreWriter implements IFirestoreWriter {
 
                 // Always try validation first, handle FieldValue operations gracefully
                 const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
-                const mergedData = await this.fetchAndMergeForValidation(
-                    documentPath,
-                    finalUpdates,
-                    settlementId,
-                );
+                const mergedData = await this.fetchAndMergeForValidation(documentPath, finalUpdates, settlementId);
 
                 // Validate with graceful FieldValue handling
-                const validationResult = this.safeValidateUpdate<SettlementDocument>(
-                    SettlementDocumentSchema,
-                    mergedData,
-                    'SettlementDocument',
-                    settlementId,
-                    FirestoreCollections.SETTLEMENTS,
-                );
+                const validationResult = this.safeValidateUpdate<SettlementDocument>(SettlementDocumentSchema, mergedData, 'SettlementDocument', settlementId, FirestoreCollections.SETTLEMENTS);
 
                 // Perform the update
                 await this.db.collection(FirestoreCollections.SETTLEMENTS).doc(settlementId).update(finalUpdates);
@@ -685,20 +629,10 @@ export class FirestoreWriter implements IFirestoreWriter {
 
                 // Always try validation first, handle FieldValue operations gracefully
                 const documentPath = `${collection}/${targetId}/comments/${commentId}`;
-                const mergedData = await this.fetchAndMergeForValidation(
-                    documentPath,
-                    finalUpdates,
-                    commentId,
-                );
+                const mergedData = await this.fetchAndMergeForValidation(documentPath, finalUpdates, commentId);
 
                 // Validate with graceful FieldValue handling
-                const validationResult = this.safeValidateUpdate<CommentDocument>(
-                    CommentDataSchema,
-                    mergedData,
-                    'CommentDocument',
-                    commentId,
-                    'comments',
-                );
+                const validationResult = this.safeValidateUpdate<CommentDocument>(CommentDataSchema, mergedData, 'CommentDocument', commentId, 'comments');
 
                 // Perform the update
                 await this.db.collection(collection).doc(targetId).collection('comments').doc(commentId).update(finalUpdates);
@@ -757,7 +691,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 // WARNING: Batch operations cannot be automatically validated
                 logger.warn('Batch write operation started - ensure manual validation of all writes', {
                     operation: 'batchWrite',
-                    recommendation: 'Validate all document changes before adding to batch'
+                    recommendation: 'Validate all document changes before adding to batch',
                 });
 
                 const batch = this.db.batch();
@@ -800,7 +734,7 @@ export class FirestoreWriter implements IFirestoreWriter {
             logger.warn('Bulk create operation used without individual document validation', {
                 collection,
                 documentCount: documents.length,
-                recommendation: 'Consider using individual create methods for validation'
+                recommendation: 'Consider using individual create methods for validation',
             });
 
             try {
@@ -863,7 +797,7 @@ export class FirestoreWriter implements IFirestoreWriter {
             // WARNING: Bulk operations cannot validate individual documents
             logger.warn('Bulk update operation used without individual document validation', {
                 updateCount: updates.size,
-                recommendation: 'Consider using individual update methods for validation'
+                recommendation: 'Consider using individual update methods for validation',
             });
 
             try {
@@ -977,7 +911,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         // WARNING: Transaction operations cannot be automatically validated
         logger.warn('Transaction operation started - ensure manual validation of all writes', {
             operation: operationName,
-            recommendation: 'Validate all document changes within transaction using schemas'
+            recommendation: 'Validate all document changes within transaction using schemas',
         });
 
         return measureDb(operationName, async () => {
@@ -1124,7 +1058,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 // Consider using type-specific create methods (createUser, createGroup, etc.)
                 logger.warn('Generic createDocument used without validation', {
                     documentPath,
-                    recommendation: 'Use type-specific create methods for validation'
+                    recommendation: 'Use type-specific create methods for validation',
                 });
 
                 await this.db.doc(documentPath).set(finalData);
@@ -1161,7 +1095,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 logger.warn('Generic updateDocument used without validation', {
                     documentPath,
                     fields: Object.keys(updates),
-                    recommendation: 'Use type-specific update methods for validation'
+                    recommendation: 'Use type-specific update methods for validation',
                 });
 
                 await this.db.doc(documentPath).update(finalUpdates);
@@ -1263,10 +1197,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 // Note: This method has complex FieldValue operations that need special handling
                 // Check for FieldValue operations using simple detection
                 const hasFieldValueOperations = Object.values(updates).some(
-                    (value) => value && typeof value === 'object' && (
-                        value.constructor?.name?.includes('Transform') ||
-                        value.operand !== undefined
-                    )
+                    (value) => value && typeof value === 'object' && (value.constructor?.name?.includes('Transform') || value.operand !== undefined),
                 );
 
                 if (hasFieldValueOperations) {
@@ -1556,20 +1487,10 @@ export class FirestoreWriter implements IFirestoreWriter {
 
                 // Always try validation first, handle FieldValue operations gracefully
                 const documentPath = `user-notifications/${userId}`;
-                const mergedData = await this.fetchAndMergeForValidation(
-                    documentPath,
-                    finalUpdates,
-                    userId,
-                );
+                const mergedData = await this.fetchAndMergeForValidation(documentPath, finalUpdates, userId);
 
                 // Validate with graceful FieldValue handling
-                const validationResult = this.safeValidateUpdate<CreateUserNotificationDocument>(
-                    UserNotificationDocumentSchema,
-                    mergedData,
-                    'UserNotificationDocument',
-                    userId,
-                    'user-notifications',
-                );
+                const validationResult = this.safeValidateUpdate<CreateUserNotificationDocument>(UserNotificationDocumentSchema, mergedData, 'UserNotificationDocument', userId, 'user-notifications');
 
                 await this.db.doc(`user-notifications/${userId}`).update(finalUpdates);
 
@@ -1611,13 +1532,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 let skipValidation = false;
                 if (!merge) {
                     // Full document set - validate the entire document
-                    const result = this.safeValidateUpdate<CreateUserNotificationDocument>(
-                        UserNotificationDocumentSchema,
-                        finalData,
-                        'UserNotificationDocument',
-                        userId,
-                        'user-notifications',
-                    );
+                    const result = this.safeValidateUpdate<CreateUserNotificationDocument>(UserNotificationDocumentSchema, finalData, 'UserNotificationDocument', userId, 'user-notifications');
                     skipValidation = Boolean(result.skipValidation);
                 } else {
                     // Merge operation with FieldValue - log as unvalidated but proceed
@@ -1713,20 +1628,10 @@ export class FirestoreWriter implements IFirestoreWriter {
 
                 // Always try validation first, handle FieldValue operations gracefully
                 const documentPath = `policies/${policyId}`;
-                const mergedData = await this.fetchAndMergeForValidation(
-                    documentPath,
-                    finalUpdates,
-                    policyId,
-                );
+                const mergedData = await this.fetchAndMergeForValidation(documentPath, finalUpdates, policyId);
 
                 // Validate with graceful FieldValue handling
-                const validationResult = this.safeValidateUpdate<any>(
-                    PolicyDocumentSchema,
-                    mergedData,
-                    'PolicyDocument',
-                    policyId,
-                    'policies',
-                );
+                const validationResult = this.safeValidateUpdate<any>(PolicyDocumentSchema, mergedData, 'PolicyDocument', policyId, 'policies');
 
                 await this.db.collection('policies').doc(policyId).update(finalUpdates);
 

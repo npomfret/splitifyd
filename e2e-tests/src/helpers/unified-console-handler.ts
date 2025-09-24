@@ -1,7 +1,7 @@
-import {Page, TestInfo} from '@playwright/test';
+import { Page, TestInfo } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import {PathUtils} from './path-utils';
+import { PathUtils } from './path-utils';
 
 interface ConsoleError {
     message: string;
@@ -88,7 +88,7 @@ export class UnifiedConsoleHandler {
      * Check if a console error should be ignored (e.g., Firebase connection errors)
      */
     private shouldIgnoreError(errorMessage: string): boolean {
-        return this.ignorableFirebaseErrors.some(pattern => pattern.test(errorMessage));
+        return this.ignorableFirebaseErrors.some((pattern) => pattern.test(errorMessage));
     }
 
     private attachListeners(): void {
@@ -324,7 +324,6 @@ export class UnifiedConsoleHandler {
             console.log('='.repeat(80) + '\n');
         }
     }
-
 
     /**
      * Clean up resources

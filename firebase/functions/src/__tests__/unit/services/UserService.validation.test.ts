@@ -98,13 +98,7 @@ describe('UserService Validation Tests', () => {
             },
         ]);
 
-        userService = new UserService(
-            mockFirestoreReader,
-            mockFirestoreWriter,
-            mockValidationService as any,
-            mockNotificationService as any,
-            mockAuthService as IAuthService,
-        );
+        userService = new UserService(mockFirestoreReader, mockFirestoreWriter, mockValidationService as any, mockNotificationService as any, mockAuthService as IAuthService);
     });
 
     describe('updateProfile validation', () => {

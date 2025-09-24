@@ -25,13 +25,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
 
     describe('Email Validation', () => {
         it('should accept valid email formats', () => {
-            const validEmails = [
-                'user@example.com',
-                'test.email@domain.org',
-                'user+tag@example.com',
-                'user123@test-domain.net',
-                'a@b.co',
-            ];
+            const validEmails = ['user@example.com', 'test.email@domain.org', 'user+tag@example.com', 'user123@test-domain.net', 'a@b.co'];
 
             for (const email of validEmails) {
                 const data = { ...validRegistrationData, email };
@@ -40,17 +34,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
         });
 
         it('should reject invalid email formats', () => {
-            const invalidEmails = [
-                'invalid-email',
-                '@domain.com',
-                'user@',
-                'user..double@domain.com',
-                'user@domain',
-                '',
-                'user@.com',
-                'user@domain.',
-                'user space@domain.com',
-            ];
+            const invalidEmails = ['invalid-email', '@domain.com', 'user@', 'user..double@domain.com', 'user@domain', '', 'user@.com', 'user@domain.', 'user space@domain.com'];
 
             for (const email of invalidEmails) {
                 const data = { ...validRegistrationData, email };
@@ -73,13 +57,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
 
     describe('Password Validation', () => {
         it('should accept strong passwords', () => {
-            const strongPasswords = [
-                'SecurePass123!',
-                'MyP@ssw0rd2024',
-                'Tr0ub4dor&3',
-                'Complex!Pass1',
-                'Str0ng&Secure!',
-            ];
+            const strongPasswords = ['SecurePass123!', 'MyP@ssw0rd2024', 'Tr0ub4dor&3', 'Complex!Pass1', 'Str0ng&Secure!'];
 
             for (const password of strongPasswords) {
                 const data = { ...validRegistrationData, password };
@@ -89,17 +67,17 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
 
         it('should reject weak passwords', () => {
             const weakPasswords = [
-                '123456',           // too simple
-                'password',         // no uppercase, numbers, or special chars
-                'abc',              // too short
-                '',                 // empty
-                '12345',            // too short, no letters
-                'qwerty',           // common weak password
-                'password123',      // no special chars or uppercase
-                'PASSWORD123!',     // no lowercase
-                'password!',        // no numbers or uppercase
-                'Password123',      // no special characters
-                'Pass1!',          // too short
+                '123456', // too simple
+                'password', // no uppercase, numbers, or special chars
+                'abc', // too short
+                '', // empty
+                '12345', // too short, no letters
+                'qwerty', // common weak password
+                'password123', // no special chars or uppercase
+                'PASSWORD123!', // no lowercase
+                'password!', // no numbers or uppercase
+                'Password123', // no special characters
+                'Pass1!', // too short
             ];
 
             for (const password of weakPasswords) {
@@ -108,9 +86,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                     expect.objectContaining({
                         statusCode: HTTP_STATUS.BAD_REQUEST,
                         code: expect.stringMatching(/WEAK_PASSWORD|MISSING_PASSWORD/),
-                        message: expect.stringMatching(
-                            /Password must contain at least 8 characters|Password is required/
-                        ),
+                        message: expect.stringMatching(/Password must contain at least 8 characters|Password is required/),
                     }),
                 );
             }
@@ -122,8 +98,8 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                 new ApiError(
                     HTTP_STATUS.BAD_REQUEST,
                     'WEAK_PASSWORD',
-                    'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character'
-                )
+                    'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character',
+                ),
             );
         });
     });
@@ -136,8 +112,8 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                 'Test-User',
                 'user_name',
                 'User.Name',
-                'AB',              // minimum length
-                'A'.repeat(50),    // maximum length
+                'AB', // minimum length
+                'A'.repeat(50), // maximum length
             ];
 
             for (const displayName of validNames) {
@@ -148,17 +124,17 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
 
         it('should reject invalid display names', () => {
             const invalidNames = [
-                '',                  // empty
-                'A',                 // too short
-                'A'.repeat(51),      // too long (over 50 chars)
-                'A'.repeat(256),     // way too long
-                'User@Name',         // invalid character @
-                'User#Name',         // invalid character #
-                'User$Name',         // invalid character $
-                'User%Name',         // invalid character %
-                'User&Name',         // invalid character &
-                'User*Name',         // invalid character *
-                'User(Name)',        // invalid characters ()
+                '', // empty
+                'A', // too short
+                'A'.repeat(51), // too long (over 50 chars)
+                'A'.repeat(256), // way too long
+                'User@Name', // invalid character @
+                'User#Name', // invalid character #
+                'User$Name', // invalid character $
+                'User%Name', // invalid character %
+                'User&Name', // invalid character &
+                'User*Name', // invalid character *
+                'User(Name)', // invalid characters ()
             ];
 
             for (const displayName of invalidNames) {
@@ -233,9 +209,9 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                 false,
                 null,
                 undefined,
-                'true',  // string instead of boolean
-                1,       // number instead of boolean
-                0,       // number instead of boolean
+                'true', // string instead of boolean
+                1, // number instead of boolean
+                0, // number instead of boolean
             ];
 
             for (const termsAccepted of invalidTermsValues) {
@@ -254,9 +230,9 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                 false,
                 null,
                 undefined,
-                'true',  // string instead of boolean
-                1,       // number instead of boolean
-                0,       // number instead of boolean
+                'true', // string instead of boolean
+                1, // number instead of boolean
+                0, // number instead of boolean
             ];
 
             for (const cookiePolicyAccepted of invalidCookiePolicyValues) {
@@ -307,10 +283,10 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
         it('should report the first validation error when multiple errors exist', () => {
             // Data with multiple validation errors
             const data = {
-                email: 'invalid-email',      // invalid format
-                password: 'weak',            // too weak
-                displayName: '',             // empty
-                termsAccepted: false,        // not accepted
+                email: 'invalid-email', // invalid format
+                password: 'weak', // too weak
+                displayName: '', // empty
+                termsAccepted: false, // not accepted
                 cookiePolicyAccepted: false, // not accepted
             };
 
@@ -336,9 +312,9 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
             const result = validateRegisterRequest(inputData);
 
             expect(result).toEqual({
-                email: 'test@example.com',           // normalized
-                password: 'SecurePass123!',          // unchanged
-                displayName: 'Test User',            // trimmed
+                email: 'test@example.com', // normalized
+                password: 'SecurePass123!', // unchanged
+                displayName: 'Test User', // trimmed
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
             });
@@ -353,14 +329,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
 
     describe('Security Considerations', () => {
         it('should reject common weak passwords', () => {
-            const commonWeakPasswords = [
-                'password123',
-                'admin123',
-                'qwerty123',
-                '12345678',
-                'password!',
-                'Password1',
-            ];
+            const commonWeakPasswords = ['password123', 'admin123', 'qwerty123', '12345678', 'password!', 'Password1'];
 
             for (const password of commonWeakPasswords) {
                 const data = { ...validRegistrationData, password };
@@ -376,10 +345,10 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
         it('should enforce minimum password complexity', () => {
             // Test each complexity requirement individually
             const insufficientPasswords = [
-                'ONLYUPPERCASE123!',    // no lowercase
-                'onlylowercase123!',    // no uppercase
-                'OnlyLetters!',         // no numbers
-                'OnlyAlphaNum123',      // no special characters
+                'ONLYUPPERCASE123!', // no lowercase
+                'onlylowercase123!', // no uppercase
+                'OnlyLetters!', // no numbers
+                'OnlyAlphaNum123', // no special characters
             ];
 
             for (const password of insufficientPasswords) {

@@ -153,7 +153,8 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
                         error ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                     } dark:bg-gray-700 dark:text-white`}
                 >
-                    {t('uiComponents.timeInput.at')}{inputValue.value}
+                    {t('uiComponents.timeInput.at')}
+                    {inputValue.value}
                 </button>
             ) : (
                 // Edit mode - input field

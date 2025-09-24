@@ -14,5 +14,4 @@ export class AuthApiMock {
             route.fulfill(response);
         });
     }
-
 }

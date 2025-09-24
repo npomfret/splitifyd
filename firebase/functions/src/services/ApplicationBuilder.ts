@@ -1,22 +1,22 @@
-import type {Firestore} from 'firebase-admin/firestore';
-import {FirestoreReader, type IFirestoreReader, type IFirestoreWriter} from './firestore';
-import {FirestoreWriter} from './firestore';
-import {UserService} from './UserService2';
-import {GroupService} from './GroupService';
-import {ExpenseService} from './ExpenseService';
-import {SettlementService} from './SettlementService';
-import {CommentService} from './CommentService';
-import {PolicyService} from './PolicyService';
-import {UserPolicyService} from './UserPolicyService';
-import {GroupMemberService} from './GroupMemberService';
-import {GroupPermissionService} from './GroupPermissionService';
-import {GroupShareService} from './GroupShareService';
-import {ExpenseMetadataService} from './expenseMetadataService';
-import {FirestoreValidationService} from './FirestoreValidationService';
-import {NotificationService} from './notification-service';
-import {IAuthService} from './auth';
-import {FirebaseAuthService} from './auth';
-import * as admin from "firebase-admin";
+import type { Firestore } from 'firebase-admin/firestore';
+import { FirestoreReader, type IFirestoreReader, type IFirestoreWriter } from './firestore';
+import { FirestoreWriter } from './firestore';
+import { UserService } from './UserService2';
+import { GroupService } from './GroupService';
+import { ExpenseService } from './ExpenseService';
+import { SettlementService } from './SettlementService';
+import { CommentService } from './CommentService';
+import { PolicyService } from './PolicyService';
+import { UserPolicyService } from './UserPolicyService';
+import { GroupMemberService } from './GroupMemberService';
+import { GroupPermissionService } from './GroupPermissionService';
+import { GroupShareService } from './GroupShareService';
+import { ExpenseMetadataService } from './expenseMetadataService';
+import { FirestoreValidationService } from './FirestoreValidationService';
+import { NotificationService } from './notification-service';
+import { IAuthService } from './auth';
+import { FirebaseAuthService } from './auth';
+import * as admin from 'firebase-admin';
 
 export class ApplicationBuilder {
     // Base infrastructure - created once
@@ -35,8 +35,11 @@ export class ApplicationBuilder {
     private expenseMetadataService?: ExpenseMetadataService;
     private notificationService?: NotificationService;
 
-    constructor(private firestoreReader: IFirestoreReader, private firestoreWriter: IFirestoreWriter, private authService: IAuthService) {
-    }
+    constructor(
+        private firestoreReader: IFirestoreReader,
+        private firestoreWriter: IFirestoreWriter,
+        private authService: IAuthService,
+    ) {}
 
     static createApplicationBuilder(firestore: Firestore, auth: admin.auth.Auth) {
         const firestoreReader = new FirestoreReader(firestore);
@@ -86,35 +89,21 @@ export class ApplicationBuilder {
 
     buildExpenseService(): ExpenseService {
         if (!this.expenseService) {
-            this.expenseService = new ExpenseService(
-                this.buildFirestoreReader(),
-                this.buildFirestoreWriter(),
-                this.buildGroupMemberService(),
-                this.buildUserService()
-            );
+            this.expenseService = new ExpenseService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService(), this.buildUserService());
         }
         return this.expenseService;
     }
 
     buildSettlementService(): SettlementService {
         if (!this.settlementService) {
-            this.settlementService = new SettlementService(
-                this.buildFirestoreReader(),
-                this.buildFirestoreWriter(),
-                this.buildGroupMemberService()
-            );
+            this.settlementService = new SettlementService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService());
         }
         return this.settlementService;
     }
 
     buildCommentService(): CommentService {
         if (!this.commentService) {
-            this.commentService = new CommentService(
-                this.buildFirestoreReader(),
-                this.buildFirestoreWriter(),
-                this.buildGroupMemberService(),
-                this.buildAuthService()
-            );
+            this.commentService = new CommentService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService(), this.buildAuthService());
         }
         return this.commentService;
     }
@@ -135,11 +124,7 @@ export class ApplicationBuilder {
 
     buildGroupMemberService(): GroupMemberService {
         if (!this.groupMemberService) {
-            this.groupMemberService = new GroupMemberService(
-                this.buildFirestoreReader(),
-                this.buildFirestoreWriter(),
-                this.buildUserService(),
-            );
+            this.groupMemberService = new GroupMemberService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildUserService());
         }
         return this.groupMemberService;
     }
@@ -153,11 +138,7 @@ export class ApplicationBuilder {
 
     buildGroupShareService(): GroupShareService {
         if (!this.groupShareService) {
-            this.groupShareService = new GroupShareService(
-                this.buildFirestoreReader(),
-                this.buildFirestoreWriter(),
-                this.buildGroupMemberService()
-            );
+            this.groupShareService = new GroupShareService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService());
         }
         return this.groupShareService;
     }

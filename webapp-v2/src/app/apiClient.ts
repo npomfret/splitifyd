@@ -381,12 +381,17 @@ export class ApiClient {
                     else if (typeof parsedError.error === 'string') {
                         const simpleError = parsedError as { error: string; field?: string };
                         const code = simpleError.field ? `VALIDATION_${simpleError.field.toUpperCase()}` : 'VALIDATION_ERROR';
-                        throw new ApiError(simpleError.error, code, { field: simpleError.field }, {
-                            url,
-                            method: options.method,
-                            status: response.status,
-                            statusText: response.statusText,
-                        });
+                        throw new ApiError(
+                            simpleError.error,
+                            code,
+                            { field: simpleError.field },
+                            {
+                                url,
+                                method: options.method,
+                                status: response.status,
+                                statusText: response.statusText,
+                            },
+                        );
                     }
                 }
 

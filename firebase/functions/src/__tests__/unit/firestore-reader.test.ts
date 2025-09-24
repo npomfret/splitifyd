@@ -7,7 +7,7 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { FirestoreReader } from '../../services/firestore';
 import { MockFirestoreReader } from '../test-utils/MockFirestoreReader';
-import {getAuth, getFirestore} from '../../firebase';
+import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 
 describe('FirestoreReader', () => {

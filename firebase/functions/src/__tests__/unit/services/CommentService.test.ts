@@ -59,7 +59,7 @@ describe('CommentService', () => {
                 groupId: 'test-group',
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
@@ -94,7 +94,7 @@ describe('CommentService', () => {
                 groupId: 'test-group',
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
@@ -131,7 +131,7 @@ describe('CommentService', () => {
                 groupId: 'test-group',
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
@@ -165,7 +165,7 @@ describe('CommentService', () => {
                 groupId: 'test-group',
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
@@ -213,7 +213,7 @@ describe('CommentService', () => {
                 groupId: 'test-group',
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
@@ -232,7 +232,12 @@ describe('CommentService', () => {
             });
             stubReader.getComment = vi.fn().mockResolvedValue(createdComment);
 
-            const result = await commentService.createComment(CommentTargetTypes.GROUP, 'test-group', {text: 'New test comment', targetType: CommentTargetTypes.GROUP, targetId: 'test-group'}, 'user-id');
+            const result = await commentService.createComment(
+                CommentTargetTypes.GROUP,
+                'test-group',
+                { text: 'New test comment', targetType: CommentTargetTypes.GROUP, targetId: 'test-group' },
+                'user-id',
+            );
 
             expect(result.id).toBe('new-comment-id');
             expect(result.text).toBe('New test comment');
@@ -252,7 +257,7 @@ describe('CommentService', () => {
                 groupId: 'test-group',
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
@@ -264,7 +269,7 @@ describe('CommentService', () => {
             stubReader.getComment = vi.fn().mockResolvedValue(null); // Simulate creation failure
 
             await expect(
-                commentService.createComment(CommentTargetTypes.GROUP, 'test-group', {text: 'Test comment', targetType: CommentTargetTypes.GROUP, targetId: 'test-group'}, 'user-id'),
+                commentService.createComment(CommentTargetTypes.GROUP, 'test-group', { text: 'Test comment', targetType: CommentTargetTypes.GROUP, targetId: 'test-group' }, 'user-id'),
             ).rejects.toThrow(ApiError);
         });
 
@@ -272,7 +277,7 @@ describe('CommentService', () => {
             // Don't set up any group data - it will be null by default in stubs
 
             await expect(
-                commentService.createComment(CommentTargetTypes.GROUP, 'nonexistent-group', {text: 'Test comment', targetType: CommentTargetTypes.GROUP, targetId: 'nonexistent-group'}, 'user-id'),
+                commentService.createComment(CommentTargetTypes.GROUP, 'nonexistent-group', { text: 'Test comment', targetType: CommentTargetTypes.GROUP, targetId: 'nonexistent-group' }, 'user-id'),
             ).rejects.toThrow(ApiError);
         });
     });
@@ -290,7 +295,7 @@ describe('CommentService', () => {
                 groupId: 'test-group',
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
@@ -313,7 +318,7 @@ describe('CommentService', () => {
                 groupId: 'test-group',
                 memberRole: 'member',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 

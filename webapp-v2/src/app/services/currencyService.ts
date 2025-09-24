@@ -177,5 +177,4 @@ export class CurrencyService {
     getFlatCurrencyArray(groupedCurrencies: GroupedCurrencies): Currency[] {
         return [...groupedCurrencies.recent, ...groupedCurrencies.common, ...groupedCurrencies.others];
     }
-
 }

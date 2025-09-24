@@ -80,10 +80,18 @@ export class StubFirestoreReader implements IFirestoreReader {
     }
 
     // Minimal implementations for other required methods
-    async getUsersById(): Promise<UserDocument[]> { return []; }
-    async getGroupsForUser(): Promise<any> { return { data: [], hasMore: false }; }
-    async getGroupsForUserV2(): Promise<any> { return { data: [], hasMore: false }; }
-    async getGroupMembers(): Promise<GroupMemberDocument[]> { return []; }
+    async getUsersById(): Promise<UserDocument[]> {
+        return [];
+    }
+    async getGroupsForUser(): Promise<any> {
+        return { data: [], hasMore: false };
+    }
+    async getGroupsForUserV2(): Promise<any> {
+        return { data: [], hasMore: false };
+    }
+    async getGroupMembers(): Promise<GroupMemberDocument[]> {
+        return [];
+    }
     async getGroupMember(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
         return this.documents.get(`group-members/${groupId}_${userId}`) || null;
     }
@@ -96,23 +104,57 @@ export class StubFirestoreReader implements IFirestoreReader {
         }
         return members;
     }
-    async getAllGroupMemberIds(): Promise<string[]> { return []; }
-    async getExpensesForGroup(): Promise<ExpenseDocument[]> { return []; }
-    async getUserExpenses(): Promise<any> { return { expenses: [], hasMore: false }; }
-    async getExpenseHistory(): Promise<any> { return { history: [], count: 0 }; }
-    async getExpensesForGroupPaginated(): Promise<any> { return { expenses: [], hasMore: false }; }
-    async getSettlementsForGroup(): Promise<SettlementDocument[]> { return []; }
-    async getGroupInTransaction(): Promise<GroupDocument | null> { return null; }
-    async getUserInTransaction(): Promise<UserDocument | null> { return null; }
-    async getMultipleInTransaction(): Promise<any[]> { return []; }
-    async documentExists(): Promise<boolean> { return false; }
-    async getSystemDocument(): Promise<any | null> { return null; }
-    async getHealthCheckDocument(): Promise<any | null> { return null; }
-    async getUserNotification(): Promise<UserNotificationDocument | null> { return null; }
-    async userNotificationExists(): Promise<boolean> { return false; }
-    async findShareLinkByToken(): Promise<any | null> { return null; }
-    async getShareLinksForGroup(): Promise<ParsedShareLink[]> { return []; }
-    async getShareLink(): Promise<ParsedShareLink | null> { return null; }
+    async getAllGroupMemberIds(): Promise<string[]> {
+        return [];
+    }
+    async getExpensesForGroup(): Promise<ExpenseDocument[]> {
+        return [];
+    }
+    async getUserExpenses(): Promise<any> {
+        return { expenses: [], hasMore: false };
+    }
+    async getExpenseHistory(): Promise<any> {
+        return { history: [], count: 0 };
+    }
+    async getExpensesForGroupPaginated(): Promise<any> {
+        return { expenses: [], hasMore: false };
+    }
+    async getSettlementsForGroup(): Promise<SettlementDocument[]> {
+        return [];
+    }
+    async getGroupInTransaction(): Promise<GroupDocument | null> {
+        return null;
+    }
+    async getUserInTransaction(): Promise<UserDocument | null> {
+        return null;
+    }
+    async getMultipleInTransaction(): Promise<any[]> {
+        return [];
+    }
+    async documentExists(): Promise<boolean> {
+        return false;
+    }
+    async getSystemDocument(): Promise<any | null> {
+        return null;
+    }
+    async getHealthCheckDocument(): Promise<any | null> {
+        return null;
+    }
+    async getUserNotification(): Promise<UserNotificationDocument | null> {
+        return null;
+    }
+    async userNotificationExists(): Promise<boolean> {
+        return false;
+    }
+    async findShareLinkByToken(): Promise<any | null> {
+        return null;
+    }
+    async getShareLinksForGroup(): Promise<ParsedShareLink[]> {
+        return [];
+    }
+    async getShareLink(): Promise<ParsedShareLink | null> {
+        return null;
+    }
     // Helper method for tests to set up comments for a target
     setCommentsForTarget(targetType: CommentTargetType, targetId: string, comments: any[]) {
         sharedCommentStorage.set(`${targetType}:${targetId}`, comments);
@@ -124,47 +166,97 @@ export class StubFirestoreReader implements IFirestoreReader {
     }
     async getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<ParsedComment | null> {
         const comments = sharedCommentStorage.get(`${targetType}:${targetId}`) || [];
-        return comments.find(c => c.id === commentId) || null;
+        return comments.find((c) => c.id === commentId) || null;
     }
-    async getCommentByReference(): Promise<ParsedComment | null> { return null; }
-    async getAvailableTestUser(): Promise<any | null> { return null; }
-    async getTestUser(): Promise<any | null> { return null; }
-    async getTestUserPoolStatus(): Promise<any> { return { available: 0, borrowed: 0, total: 0 }; }
-    async getBorrowedTestUsers(): Promise<any[]> { return []; }
-    async getOldDocuments(): Promise<any[]> { return []; }
-    async getOldDocumentsByField(): Promise<any[]> { return []; }
-    async getDocumentsBatch(): Promise<any[]> { return []; }
-    async getMetricsDocuments(): Promise<any[]> { return []; }
-    async getCollectionSize(): Promise<number> { return 0; }
+    async getCommentByReference(): Promise<ParsedComment | null> {
+        return null;
+    }
+    async getAvailableTestUser(): Promise<any | null> {
+        return null;
+    }
+    async getTestUser(): Promise<any | null> {
+        return null;
+    }
+    async getTestUserPoolStatus(): Promise<any> {
+        return { available: 0, borrowed: 0, total: 0 };
+    }
+    async getBorrowedTestUsers(): Promise<any[]> {
+        return [];
+    }
+    async getOldDocuments(): Promise<any[]> {
+        return [];
+    }
+    async getOldDocumentsByField(): Promise<any[]> {
+        return [];
+    }
+    async getDocumentsBatch(): Promise<any[]> {
+        return [];
+    }
+    async getMetricsDocuments(): Promise<any[]> {
+        return [];
+    }
+    async getCollectionSize(): Promise<number> {
+        return 0;
+    }
     async getGroupDeletionData(): Promise<any> {
         return {
             expenses: { size: 0, docs: [] },
             settlements: { size: 0, docs: [] },
             shareLinks: { size: 0, docs: [] },
             groupComments: { size: 0, docs: [] },
-            expenseComments: []
+            expenseComments: [],
         };
     }
     async getDocumentForTesting(collection: string, id: string): Promise<any | null> {
         return this.documents.get(`${collection}/${id}`) || null;
     }
-    async verifyDocumentExists(): Promise<boolean> { return false; }
-    async getSettlementsForGroupPaginated(): Promise<any> { return { settlements: [], hasMore: false }; }
+    async verifyDocumentExists(): Promise<boolean> {
+        return false;
+    }
+    async getSettlementsForGroupPaginated(): Promise<any> {
+        return { settlements: [], hasMore: false };
+    }
 
     // Missing methods from interface
-    async getSystemMetrics(): Promise<any | null> { return null; }
-    async addSystemMetrics(): Promise<string> { return 'metric-id'; }
-    async verifyGroupMembership(): Promise<boolean> { return false; }
-    async getSubcollectionDocument(): Promise<any | null> { return null; }
-    async getTestUsersByStatus(): Promise<any[]> { return []; }
-    async getTestUserInTransaction(): Promise<any | null> { return null; }
-    async queryWithComplexFilters(): Promise<any[]> { return []; }
-    async getUserLanguagePreference(): Promise<string | null> { return null; }
-    async findShareLinkByTokenInTransaction(): Promise<any | null> { return null; }
-    async getGroupMembershipsInTransaction(): Promise<any> { return { docs: [], size: 0, empty: true }; }
-    async getRawDocument(): Promise<any | null> { return null; }
-    async getRawDocumentInTransaction(): Promise<any | null> { return null; }
-    async getRawDocumentInTransactionWithRef(): Promise<any | null> { return null; }
+    async getSystemMetrics(): Promise<any | null> {
+        return null;
+    }
+    async addSystemMetrics(): Promise<string> {
+        return 'metric-id';
+    }
+    async verifyGroupMembership(): Promise<boolean> {
+        return false;
+    }
+    async getSubcollectionDocument(): Promise<any | null> {
+        return null;
+    }
+    async getTestUsersByStatus(): Promise<any[]> {
+        return [];
+    }
+    async getTestUserInTransaction(): Promise<any | null> {
+        return null;
+    }
+    async queryWithComplexFilters(): Promise<any[]> {
+        return [];
+    }
+    async getUserLanguagePreference(): Promise<string | null> {
+        return null;
+    }
+    async findShareLinkByTokenInTransaction(): Promise<any | null> {
+        return null;
+    }
+    async getGroupMembershipsInTransaction(): Promise<any> {
+        return { docs: [], size: 0, empty: true };
+    }
+    async getRawDocument(): Promise<any | null> {
+        return null;
+    }
+    async getRawDocumentInTransaction(): Promise<any | null> {
+        return null;
+    }
+    async getRawDocumentInTransactionWithRef(): Promise<any | null> {
+        return null;
+    }
     async getRawExpenseDocumentInTransaction(transaction: any, expenseId: string): Promise<any | null> {
         const expenseData = this.documents.get(`expenses/${expenseId}`);
         if (!expenseData) return null;
@@ -175,7 +267,9 @@ export class StubFirestoreReader implements IFirestoreReader {
             ref: { id: expenseId, path: `expenses/${expenseId}` },
         };
     }
-    async getRawGroupDocument(): Promise<any | null> { return null; }
+    async getRawGroupDocument(): Promise<any | null> {
+        return null;
+    }
     async getRawGroupDocumentInTransaction(transaction: any, groupId: string): Promise<any | null> {
         const groupData = this.documents.get(`groups/${groupId}`);
         if (!groupData) {
@@ -189,10 +283,15 @@ export class StubFirestoreReader implements IFirestoreReader {
             ref: { id: groupId, path: `groups/${groupId}` },
         };
     }
-    async getRawSettlementDocumentInTransaction(): Promise<any | null> { return null; }
-    async getRawUserDocumentInTransaction(): Promise<any | null> { return null; }
-    async getSystemDocumentInTransaction(): Promise<any | null> { return null; }
-
+    async getRawSettlementDocumentInTransaction(): Promise<any | null> {
+        return null;
+    }
+    async getRawUserDocumentInTransaction(): Promise<any | null> {
+        return null;
+    }
+    async getSystemDocumentInTransaction(): Promise<any | null> {
+        return null;
+    }
 }
 
 /**
@@ -252,7 +351,9 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     }
 
     // Minimal implementations for other required methods
-    async createUser(): Promise<WriteResult> { return { id: 'user', success: true, timestamp: Timestamp.now() }; }
+    async createUser(): Promise<WriteResult> {
+        return { id: 'user', success: true, timestamp: Timestamp.now() };
+    }
     async updateUser(userId: string, updates: any): Promise<WriteResult> {
         // Update the document in memory
         const existing = this.documents.get(`users/${userId}`);
@@ -261,16 +362,36 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         }
         return { id: userId, success: true, timestamp: Timestamp.now() };
     }
-    async deleteUser(): Promise<WriteResult> { return { id: 'user', success: true, timestamp: Timestamp.now() }; }
-    async createGroup(): Promise<WriteResult> { return { id: 'group', success: true, timestamp: Timestamp.now() }; }
-    async updateGroup(): Promise<WriteResult> { return { id: 'group', success: true, timestamp: Timestamp.now() }; }
-    async deleteGroup(): Promise<WriteResult> { return { id: 'group', success: true, timestamp: Timestamp.now() }; }
-    async createExpense(): Promise<WriteResult> { return { id: 'expense', success: true, timestamp: Timestamp.now() }; }
-    async updateExpense(): Promise<WriteResult> { return { id: 'expense', success: true, timestamp: Timestamp.now() }; }
-    async deleteExpense(): Promise<WriteResult> { return { id: 'expense', success: true, timestamp: Timestamp.now() }; }
-    async createSettlement(): Promise<WriteResult> { return { id: 'settlement', success: true, timestamp: Timestamp.now() }; }
-    async updateSettlement(): Promise<WriteResult> { return { id: 'settlement', success: true, timestamp: Timestamp.now() }; }
-    async deleteSettlement(): Promise<WriteResult> { return { id: 'settlement', success: true, timestamp: Timestamp.now() }; }
+    async deleteUser(): Promise<WriteResult> {
+        return { id: 'user', success: true, timestamp: Timestamp.now() };
+    }
+    async createGroup(): Promise<WriteResult> {
+        return { id: 'group', success: true, timestamp: Timestamp.now() };
+    }
+    async updateGroup(): Promise<WriteResult> {
+        return { id: 'group', success: true, timestamp: Timestamp.now() };
+    }
+    async deleteGroup(): Promise<WriteResult> {
+        return { id: 'group', success: true, timestamp: Timestamp.now() };
+    }
+    async createExpense(): Promise<WriteResult> {
+        return { id: 'expense', success: true, timestamp: Timestamp.now() };
+    }
+    async updateExpense(): Promise<WriteResult> {
+        return { id: 'expense', success: true, timestamp: Timestamp.now() };
+    }
+    async deleteExpense(): Promise<WriteResult> {
+        return { id: 'expense', success: true, timestamp: Timestamp.now() };
+    }
+    async createSettlement(): Promise<WriteResult> {
+        return { id: 'settlement', success: true, timestamp: Timestamp.now() };
+    }
+    async updateSettlement(): Promise<WriteResult> {
+        return { id: 'settlement', success: true, timestamp: Timestamp.now() };
+    }
+    async deleteSettlement(): Promise<WriteResult> {
+        return { id: 'settlement', success: true, timestamp: Timestamp.now() };
+    }
     async addComment(targetType: CommentTargetType, targetId: string, commentData: any): Promise<WriteResult> {
         const id = `comment-${Date.now()}`;
         const result = this.getLastWriteResult() || { id, success: true, timestamp: Timestamp.now() };
@@ -290,21 +411,51 @@ export class StubFirestoreWriter implements IFirestoreWriter {
 
         return result;
     }
-    async updateComment(): Promise<WriteResult> { return { id: 'comment', success: true, timestamp: Timestamp.now() }; }
-    async deleteComment(): Promise<WriteResult> { return { id: 'comment', success: true, timestamp: Timestamp.now() }; }
-    async batchWrite(): Promise<any> { return { successCount: 0, failureCount: 0, results: [] }; }
-    async bulkCreate(): Promise<any> { return { successCount: 0, failureCount: 0, results: [] }; }
-    async bulkUpdate(): Promise<any> { return { successCount: 0, failureCount: 0, results: [] }; }
-    async bulkDelete(): Promise<any> { return { successCount: 0, failureCount: 0, results: [] }; }
-    createShareLinkInTransaction(): any { return { id: 'link', path: 'shareLinks/link' }; }
-    async updateGroupInTransaction(): Promise<WriteResult> { return { id: 'group', success: true, timestamp: Timestamp.now() }; }
-    async updateUserNotifications(): Promise<WriteResult> { return { id: 'notification', success: true, timestamp: Timestamp.now() }; }
-    async setUserNotifications(): Promise<WriteResult> { return { id: 'notification', success: true, timestamp: Timestamp.now() }; }
-    async createUserNotification(): Promise<WriteResult> { return { id: 'notification', success: true, timestamp: Timestamp.now() }; }
-    async updateUserNotification(): Promise<WriteResult> { return { id: 'notification', success: true, timestamp: Timestamp.now() }; }
-    async setUserNotificationGroup(): Promise<WriteResult> { return { id: 'notification', success: true, timestamp: Timestamp.now() }; }
-    async removeUserNotificationGroup(): Promise<WriteResult> { return { id: 'notification', success: true, timestamp: Timestamp.now() }; }
-    async setUserNotificationGroupInTransaction(): Promise<WriteResult> { return { id: 'notification', success: true, timestamp: Timestamp.now() }; }
+    async updateComment(): Promise<WriteResult> {
+        return { id: 'comment', success: true, timestamp: Timestamp.now() };
+    }
+    async deleteComment(): Promise<WriteResult> {
+        return { id: 'comment', success: true, timestamp: Timestamp.now() };
+    }
+    async batchWrite(): Promise<any> {
+        return { successCount: 0, failureCount: 0, results: [] };
+    }
+    async bulkCreate(): Promise<any> {
+        return { successCount: 0, failureCount: 0, results: [] };
+    }
+    async bulkUpdate(): Promise<any> {
+        return { successCount: 0, failureCount: 0, results: [] };
+    }
+    async bulkDelete(): Promise<any> {
+        return { successCount: 0, failureCount: 0, results: [] };
+    }
+    createShareLinkInTransaction(): any {
+        return { id: 'link', path: 'shareLinks/link' };
+    }
+    async updateGroupInTransaction(): Promise<WriteResult> {
+        return { id: 'group', success: true, timestamp: Timestamp.now() };
+    }
+    async updateUserNotifications(): Promise<WriteResult> {
+        return { id: 'notification', success: true, timestamp: Timestamp.now() };
+    }
+    async setUserNotifications(): Promise<WriteResult> {
+        return { id: 'notification', success: true, timestamp: Timestamp.now() };
+    }
+    async createUserNotification(): Promise<WriteResult> {
+        return { id: 'notification', success: true, timestamp: Timestamp.now() };
+    }
+    async updateUserNotification(): Promise<WriteResult> {
+        return { id: 'notification', success: true, timestamp: Timestamp.now() };
+    }
+    async setUserNotificationGroup(): Promise<WriteResult> {
+        return { id: 'notification', success: true, timestamp: Timestamp.now() };
+    }
+    async removeUserNotificationGroup(): Promise<WriteResult> {
+        return { id: 'notification', success: true, timestamp: Timestamp.now() };
+    }
+    async setUserNotificationGroupInTransaction(): Promise<WriteResult> {
+        return { id: 'notification', success: true, timestamp: Timestamp.now() };
+    }
     async runTransaction(transactionFn: (transaction: any) => Promise<any>): Promise<any> {
         const mockTransaction = {
             get: vi.fn().mockImplementation((docRef: any) => {
@@ -356,30 +507,64 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     updateInTransaction = vi.fn().mockImplementation(async (): Promise<WriteResult> => {
         return { id: 'doc', success: true, timestamp: Timestamp.now() };
     });
-    async deleteInTransaction(): Promise<WriteResult> { return { id: 'doc', success: true, timestamp: Timestamp.now() }; }
-    async createDocument(): Promise<WriteResult> { return { id: 'doc', success: true, timestamp: Timestamp.now() }; }
-    async updateDocument(): Promise<WriteResult> { return { id: 'doc', success: true, timestamp: Timestamp.now() }; }
-    async deleteDocument(): Promise<WriteResult> { return { id: 'doc', success: true, timestamp: Timestamp.now() }; }
-    generateDocumentId(): string { return 'generated-id'; }
-    async addSystemMetrics(): Promise<WriteResult> { return { id: 'metrics', success: true, timestamp: Timestamp.now() }; }
-    async performHealthCheck(): Promise<{ success: boolean; responseTime: number }> { return { success: true, responseTime: 50 }; }
-    async createTestUser(): Promise<WriteResult> { return { id: 'test-user', success: true, timestamp: Timestamp.now() }; }
-    async updateTestUserStatus(): Promise<WriteResult> { return { id: 'test-user', success: true, timestamp: Timestamp.now() }; }
-    async bulkDeleteInTransaction(): Promise<any> { return { successCount: 0, failureCount: 0, results: [] }; }
-    async queryAndUpdateInTransaction(): Promise<any> { return { successCount: 0, failureCount: 0, results: [] }; }
-    batchCreateInTransaction(): any[] { return []; }
-    async getMultipleByPathsInTransaction(): Promise<any> { return []; }
+    async deleteInTransaction(): Promise<WriteResult> {
+        return { id: 'doc', success: true, timestamp: Timestamp.now() };
+    }
+    async createDocument(): Promise<WriteResult> {
+        return { id: 'doc', success: true, timestamp: Timestamp.now() };
+    }
+    async updateDocument(): Promise<WriteResult> {
+        return { id: 'doc', success: true, timestamp: Timestamp.now() };
+    }
+    async deleteDocument(): Promise<WriteResult> {
+        return { id: 'doc', success: true, timestamp: Timestamp.now() };
+    }
+    generateDocumentId(): string {
+        return 'generated-id';
+    }
+    async addSystemMetrics(): Promise<WriteResult> {
+        return { id: 'metrics', success: true, timestamp: Timestamp.now() };
+    }
+    async performHealthCheck(): Promise<{ success: boolean; responseTime: number }> {
+        return { success: true, responseTime: 50 };
+    }
+    async createTestUser(): Promise<WriteResult> {
+        return { id: 'test-user', success: true, timestamp: Timestamp.now() };
+    }
+    async updateTestUserStatus(): Promise<WriteResult> {
+        return { id: 'test-user', success: true, timestamp: Timestamp.now() };
+    }
+    async bulkDeleteInTransaction(): Promise<any> {
+        return { successCount: 0, failureCount: 0, results: [] };
+    }
+    async queryAndUpdateInTransaction(): Promise<any> {
+        return { successCount: 0, failureCount: 0, results: [] };
+    }
+    batchCreateInTransaction(): any[] {
+        return [];
+    }
+    async getMultipleByPathsInTransaction(): Promise<any> {
+        return [];
+    }
     getDocumentReferenceInTransaction(transaction: any, collection: string, documentId: string): any {
         return {
             id: documentId,
             path: `${collection}/${documentId}`,
-            collection: { id: collection }
+            collection: { id: collection },
         };
     }
-    async queryGroupsByDeletionStatus(): Promise<any> { return []; }
-    async getSingleDocument(): Promise<any> { return null; }
-    async deleteMemberAndNotifications(): Promise<any> { return { successCount: 1, failureCount: 0, results: [] }; }
-    async leaveGroupAtomic(): Promise<any> { return { successCount: 1, failureCount: 0, results: [] }; }
+    async queryGroupsByDeletionStatus(): Promise<any> {
+        return [];
+    }
+    async getSingleDocument(): Promise<any> {
+        return null;
+    }
+    async deleteMemberAndNotifications(): Promise<any> {
+        return { successCount: 1, failureCount: 0, results: [] };
+    }
+    async leaveGroupAtomic(): Promise<any> {
+        return { successCount: 1, failureCount: 0, results: [] };
+    }
 }
 
 /**
@@ -584,14 +769,14 @@ export class StubAuthService implements IAuthService {
     }
 
     async listUsers(maxResults?: number, pageToken?: string): Promise<ListUsersResult> {
-        const allUsers = Array.from(this.users.values()).filter(user => !this.deletedUsers.has(user.uid));
+        const allUsers = Array.from(this.users.values()).filter((user) => !this.deletedUsers.has(user.uid));
         const limit = maxResults || 1000;
         const start = pageToken ? parseInt(pageToken, 10) : 0;
         const users = allUsers.slice(start, start + limit);
 
         return {
             users,
-            pageToken: (start + limit < allUsers.length) ? (start + limit).toString() : undefined,
+            pageToken: start + limit < allUsers.length ? (start + limit).toString() : undefined,
         };
     }
 

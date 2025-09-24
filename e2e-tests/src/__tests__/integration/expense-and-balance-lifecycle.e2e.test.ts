@@ -18,12 +18,8 @@ import { groupDetailUrlPattern } from '../../pages/group-detail.page';
  */
 
 simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration', () => {
-
     simpleTest('should handle complete expense lifecycle with balance calculations and settlement', async ({ createLoggedInBrowsers }) => {
-        const [
-            { dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+        const [{ dashboardPage: user1DashboardPage }, { dashboardPage: user2DashboardPage }] = await createLoggedInBrowsers(2);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -37,14 +33,17 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // Step 2: Create expense with EUR currency and verify balance calculation
         const expenseDescription = `Lifecycle Test ${generateShortId()}`;
-        await groupDetailPage1.addExpense({
-            description: expenseDescription,
-            amount: 100,
-            paidByDisplayName: user1DisplayName,
-            currency: 'EUR',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName]
-        }, 2);
+        await groupDetailPage1.addExpense(
+            {
+                description: expenseDescription,
+                amount: 100,
+                paidByDisplayName: user1DisplayName,
+                currency: 'EUR',
+                splitType: 'equal',
+                participants: [user1DisplayName, user2DisplayName],
+            },
+            2,
+        );
 
         // Verify expense appears and balance is calculated correctly (€50 each)
         await groupDetailPage1.waitForExpense(expenseDescription);
@@ -71,13 +70,16 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // Step 4: Record partial settlement and verify balance update
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
-        await settlementForm.submitSettlement({
-            payerName: user2DisplayName,
-            payeeName: user1DisplayName,
-            amount: '50.25',
-            currency: 'EUR',
-            note: 'Partial settlement test',
-        }, 2);
+        await settlementForm.submitSettlement(
+            {
+                payerName: user2DisplayName,
+                payeeName: user1DisplayName,
+                amount: '50.25',
+                currency: 'EUR',
+                note: 'Partial settlement test',
+            },
+            2,
+        );
 
         // Verify partial settlement reduces debt (€75.25 - €50.25 = €25.00)
         await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€25.00');
@@ -99,10 +101,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
     });
 
     simpleTest('should handle comprehensive multi-currency expenses with precision and cross-currency settlements', async ({ createLoggedInBrowsers }) => {
-        const [
-            { dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+        const [{ dashboardPage: user1DashboardPage }, { dashboardPage: user2DashboardPage }] = await createLoggedInBrowsers(2);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -111,34 +110,43 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const uniqueId = generateShortId();
 
         // PHASE 1: Test JPY (0 decimals) with rounding
-        await groupDetailPage.addExpense({
-            description: `Multi-currency JPY ${uniqueId}`,
-            amount: 123, // Should split as ¥62 each (123/2 = 61.5 rounds up)
-            paidByDisplayName: user1DisplayName,
-            currency: 'JPY',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName]
-        }, 2);
+        await groupDetailPage.addExpense(
+            {
+                description: `Multi-currency JPY ${uniqueId}`,
+                amount: 123, // Should split as ¥62 each (123/2 = 61.5 rounds up)
+                paidByDisplayName: user1DisplayName,
+                currency: 'JPY',
+                splitType: 'equal',
+                participants: [user1DisplayName, user2DisplayName],
+            },
+            2,
+        );
 
         // PHASE 2: Test BHD (3 decimals) - add to same group
-        await groupDetailPage.addExpense({
-            description: `Multi-currency BHD ${uniqueId}`,
-            amount: 30.5,
-            paidByDisplayName: user1DisplayName,
-            currency: 'BHD',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName]
-        }, 2);
+        await groupDetailPage.addExpense(
+            {
+                description: `Multi-currency BHD ${uniqueId}`,
+                amount: 30.5,
+                paidByDisplayName: user1DisplayName,
+                currency: 'BHD',
+                splitType: 'equal',
+                participants: [user1DisplayName, user2DisplayName],
+            },
+            2,
+        );
 
         // PHASE 3: Test KWD (3 decimals) - comprehensive currency test
-        await groupDetailPage.addExpense({
-            description: `Multi-currency KWD ${uniqueId}`,
-            amount: 5.5,
-            paidByDisplayName: user1DisplayName,
-            currency: 'KWD',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName]
-        }, 2);
+        await groupDetailPage.addExpense(
+            {
+                description: `Multi-currency KWD ${uniqueId}`,
+                amount: 5.5,
+                paidByDisplayName: user1DisplayName,
+                currency: 'KWD',
+                splitType: 'equal',
+                participants: [user1DisplayName, user2DisplayName],
+            },
+            2,
+        );
 
         // Verify all currency amounts are displayed with correct precision
         await expect(groupDetailPage.page.getByText('¥123').first()).toBeVisible();
@@ -172,13 +180,16 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // PHASE 4: Test cross-currency settlement (settle with different currency)
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
-        await settlementForm.submitSettlement({
-            payerName: user2DisplayName,
-            payeeName: user1DisplayName,
-            amount: '25',
-            currency: 'EUR',
-            note: 'Cross-currency settlement test',
-        }, 2);
+        await settlementForm.submitSettlement(
+            {
+                payerName: user2DisplayName,
+                payeeName: user1DisplayName,
+                amount: '25',
+                currency: 'EUR',
+                note: 'Cross-currency settlement test',
+            },
+            2,
+        );
 
         // Verify cross-currency settlement recorded while original debts remain
         await groupDetailPage.verifySettlementDetails({ note: 'Cross-currency settlement test' });
@@ -189,9 +200,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
     });
 
     simpleTest('should handle expense creation with custom date, time, and immediate balance impact', async ({ createLoggedInBrowsers }) => {
-        const [
-            { page, dashboardPage }
-        ] = await createLoggedInBrowsers(1);
+        const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
 
         const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
         const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
@@ -251,10 +260,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
     });
 
     simpleTest('should handle complex multi-expense net balance calculations with settlements', async ({ createLoggedInBrowsers }) => {
-        const [
-            { dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+        const [{ dashboardPage: user1DashboardPage }, { dashboardPage: user2DashboardPage }] = await createLoggedInBrowsers(2);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -264,27 +270,33 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // Scenario: Complex expense and settlement flow to test net calculations
 
         // User1 pays €300 (each owes €150)
-        await groupDetailPage.addExpense({
-            description: 'Large User1 Payment',
-            amount: 300,
-            paidByDisplayName: user1DisplayName,
-            currency: 'EUR',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName]
-        }, 2);
+        await groupDetailPage.addExpense(
+            {
+                description: 'Large User1 Payment',
+                amount: 300,
+                paidByDisplayName: user1DisplayName,
+                currency: 'EUR',
+                splitType: 'equal',
+                participants: [user1DisplayName, user2DisplayName],
+            },
+            2,
+        );
 
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€150.00');
         await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€150.00');
 
         // User2 pays €100 (each owes €50, net: User2 owes €100)
-        await groupDetailPage2.addExpense({
-            description: 'Small User2 Payment',
-            amount: 100,
-            paidByDisplayName: user2DisplayName,
-            currency: 'EUR',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName]
-        }, 2);
+        await groupDetailPage2.addExpense(
+            {
+                description: 'Small User2 Payment',
+                amount: 100,
+                paidByDisplayName: user2DisplayName,
+                currency: 'EUR',
+                splitType: 'equal',
+                participants: [user1DisplayName, user2DisplayName],
+            },
+            2,
+        );
 
         // Net calculation: User2 owes €150 - €50 = €100
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€100.00');
@@ -292,13 +304,16 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // User2 makes partial settlement of €60
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
-        await settlementForm.submitSettlement({
-            payerName: user2DisplayName,
-            payeeName: user1DisplayName,
-            amount: '60.00',
-            currency: 'EUR',
-            note: 'Partial settlement in complex scenario',
-        }, 2);
+        await settlementForm.submitSettlement(
+            {
+                payerName: user2DisplayName,
+                payeeName: user1DisplayName,
+                amount: '60.00',
+                currency: 'EUR',
+                note: 'Partial settlement in complex scenario',
+            },
+            2,
+        );
 
         // Final balance: €100 - €60 = €40
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€40.00');
@@ -309,14 +324,17 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await groupDetailPage2.verifySettlementDetails({ note: 'Partial settlement in complex scenario' });
 
         // Add one more expense to test continued calculation
-        await groupDetailPage.addExpense({
-            description: 'Final Test Expense',
-            amount: 50,
-            paidByDisplayName: user1DisplayName,
-            currency: 'EUR',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName]
-        }, 2);
+        await groupDetailPage.addExpense(
+            {
+                description: 'Final Test Expense',
+                amount: 50,
+                paidByDisplayName: user1DisplayName,
+                currency: 'EUR',
+                splitType: 'equal',
+                participants: [user1DisplayName, user2DisplayName],
+            },
+            2,
+        );
 
         // Final net: €40 + €25 = €65
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€65.00');
@@ -326,11 +344,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
     simpleTest('should handle comprehensive multi-user settlement scenarios with real-time updates', async ({ createLoggedInBrowsers }) => {
         const memberCount = 3;
 
-        const [
-            { dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage },
-            { dashboardPage: user3DashboardPage }
-        ] = await createLoggedInBrowsers(memberCount);
+        const [{ dashboardPage: user1DashboardPage }, { dashboardPage: user2DashboardPage }, { dashboardPage: user3DashboardPage }] = await createLoggedInBrowsers(memberCount);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -343,14 +357,17 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // Create expense for ¥120, split 3 ways (¥40 each)
         // Result: User2 owes ¥40, User3 owes ¥40 to User1
         const expenseDescription = 'Group dinner expense';
-        await groupDetailPage1.addExpense({
-            description: expenseDescription,
-            amount: 120,
-            paidByDisplayName: user1DisplayName,
-            currency: 'JPY',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName, user3DisplayName]
-        }, memberCount);
+        await groupDetailPage1.addExpense(
+            {
+                description: expenseDescription,
+                amount: 120,
+                paidByDisplayName: user1DisplayName,
+                currency: 'JPY',
+                splitType: 'equal',
+                participants: [user1DisplayName, user2DisplayName, user3DisplayName],
+            },
+            memberCount,
+        );
 
         // Verify initial state across all pages
         for (const page of pages) {
@@ -362,17 +379,20 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // PHASE 1: User2 makes partial settlement of ¥30 (leaving ¥10 debt)
         const settlementNote1 = 'Partial payment from user2';
-        await groupDetailPage1.recordSettlement({
-            payerName: user2DisplayName,
-            payeeName: user1DisplayName,
-            amount: '30',
-            currency: 'JPY',
-            note: settlementNote1,
-        }, memberCount);
+        await groupDetailPage1.recordSettlement(
+            {
+                payerName: user2DisplayName,
+                payeeName: user1DisplayName,
+                amount: '30',
+                currency: 'JPY',
+                note: settlementNote1,
+            },
+            memberCount,
+        );
 
         // Verify real-time updates for partial settlement
         for (const page of pages) {
-            await page.verifySettlementDetails({note: settlementNote1});
+            await page.verifySettlementDetails({ note: settlementNote1 });
             await page.waitForPage(groupId, memberCount);
             await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥10'); // 40 - 30 = 10
             await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40'); // unchanged
@@ -380,17 +400,20 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // PHASE 2: User2 makes final settlement of ¥10 (fully settled)
         const settlementNote2 = 'Final payment from user2 - all settled!';
-        await groupDetailPage1.recordSettlement({
-            payerName: user2DisplayName,
-            payeeName: user1DisplayName,
-            amount: '10',
-            currency: 'JPY',
-            note: settlementNote2,
-        }, memberCount);
+        await groupDetailPage1.recordSettlement(
+            {
+                payerName: user2DisplayName,
+                payeeName: user1DisplayName,
+                amount: '10',
+                currency: 'JPY',
+                note: settlementNote2,
+            },
+            memberCount,
+        );
 
         // Verify real-time updates for final settlement
         for (const page of pages) {
-            await page.verifySettlementDetails({note: settlementNote2});
+            await page.verifySettlementDetails({ note: settlementNote2 });
             await page.waitForPage(groupId, memberCount);
             await expect(page.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible(); // User2 fully settled
             await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40'); // User3 still owes
@@ -398,17 +421,20 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // PHASE 3: Test additional real-time scenarios - User3 partial settlement
         const settlementNote3 = 'User3 partial payment';
-        await groupDetailPage1.recordSettlement({
-            payerName: user3DisplayName,
-            payeeName: user1DisplayName,
-            amount: '25',
-            currency: 'JPY',
-            note: settlementNote3,
-        }, memberCount);
+        await groupDetailPage1.recordSettlement(
+            {
+                payerName: user3DisplayName,
+                payeeName: user1DisplayName,
+                amount: '25',
+                currency: 'JPY',
+                note: settlementNote3,
+            },
+            memberCount,
+        );
 
         // Verify final real-time state
         for (const page of pages) {
-            await page.verifySettlementDetails({note: settlementNote3});
+            await page.verifySettlementDetails({ note: settlementNote3 });
             await page.waitForPage(groupId, memberCount);
             await expect(page.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible(); // User2 still fully settled
             await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥15'); // 40 - 25 = 15
@@ -421,5 +447,4 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             await page.verifySettlementDetails({ note: settlementNote3 });
         }
     });
-
 });

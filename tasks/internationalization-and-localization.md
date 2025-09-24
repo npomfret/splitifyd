@@ -140,32 +140,40 @@ This plan will bridge the identified gaps and deliver a complete i18n system.
 The following is a list of hardcoded text found in the `webapp-v2` `.tsx` files that needs to be internationalized.
 
 ### `/src/components/auth/EmailInput.tsx`
+
 - "Enter your email" (placeholder)
 
 ### `/src/components/auth/PasswordInput.tsx`
+
 - "Enter your password" (placeholder)
 - "Password" (label)
 
 ### `/src/components/comments/CommentInput.tsx`
+
 - "Comment text" (aria-label)
 - "Send comment" (aria-label)
 
 ### `/src/components/comments/CommentItem.tsx`
+
 - "just now"
 
 ### `/src/components/dashboard/GroupCard.tsx`
+
 - "You're owed "
 - "You owe "
 
 ### `/src/components/expense-form/ExpenseBasicFields.tsx`
-- "*" (required indicator)
+
+- "\*" (required indicator)
 - "0.00" (placeholder)
 
 ### `/src/components/expense-form/PayerSelector.tsx`
+
 - "Who paid?"
-- "*" (required indicator)
+- "\*" (required indicator)
 
 ### `/src/components/expense-form/SplitAmountInputs.tsx`
+
 - "Enter exact amounts for each person:"
 - "Unknown"
 - "Total:"
@@ -174,12 +182,14 @@ The following is a list of hardcoded text found in the `webapp-v2` `.tsx` files 
 - "Each person pays:"
 
 ### `/src/components/expense-form/SplitTypeSelector.tsx`
+
 - "How to split"
 - "Equal"
 - "Exact amounts"
 - "Percentage"
 
 ### `/src/components/expense/ExpenseActions.tsx`
+
 - "Edit"
 - "Copy expense" (ariaLabel)
 - "Copy"
@@ -188,6 +198,7 @@ The following is a list of hardcoded text found in the `webapp-v2` `.tsx` files 
 - "Failed to delete expense"
 
 ### `/src/components/expense/SplitBreakdown.tsx`
+
 - "Split Equally"
 - "Exact Amounts"
 - "By Percentage"
@@ -196,39 +207,48 @@ The following is a list of hardcoded text found in the `webapp-v2` `.tsx` files 
 - "Unknown"
 - "Paid"
 - "Owes {memberMap[expense.paidBy]?.displayName || 'Unknown'}"
-- "Total: {expense.splits.reduce((sum, s) => sum + (s.amount / expense.amount) * 100, 0).toFixed(1)}%"
+- "Total: {expense.splits.reduce((sum, s) => sum + (s.amount / expense.amount) \* 100, 0).toFixed(1)}%"
 
 ### `/src/components/group/BalanceSummary.tsx`
+
 - "Unknown"
 
 ### `/src/components/group/EditGroupModal.tsx`
+
 - "⚠️"
 
 ### `/src/components/group/ExpenseItem.tsx`
+
 - "Unknown"
 
 ### `/src/components/group/MembersList.tsx`
+
 - "Unknown User"
 
 ### `/src/components/group/MembersListWithManagement.tsx`
+
 - "User"
 
 ### `/src/components/join-group/GroupPreview.tsx`
+
 - "Member" / "Members"
 - "Active"
 - "Group"
 - "You've been invited to join this group"
 
 ### `/src/components/join-group/MembersPreview.tsx`
+
 - "Group Size"
 - "member" / "members"
 
 ### `/src/components/landing/CTASection.tsx`
+
 - "Ready to Simplify Your Shared Expenses?"
 - "Join thousands who are already making group payments stress-free and transparent. Get started today!"
 - "Sign Up for Free"
 
 ### `/src/components/landing/FeaturesGrid.tsx`
+
 - "Smart Group Management"
 - "Create groups for any occasion. Easily add members and track shared expenses in one place, keeping everyone on the same page."
 - "Flexible Splitting"
@@ -244,18 +264,22 @@ The following is a list of hardcoded text found in the `webapp-v2` `.tsx` files 
 - "Everything You Need, Nothing You Don't"
 
 ### `/src/components/landing/Globe.tsx`
+
 - "Unable to load 3D globe"
 
 ### `/src/components/landing/HeroSection.tsx`
+
 - "Effortless Bill Splitting,
-Simplified & Smart."
+  Simplified & Smart."
 - "Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent. It's 100% free, with no ads and no limits. Focus on what matters, not on the math."
 - "Splitifyd App Screenshot" (alt text)
 
 ### `/src/components/layout/Header.tsx`
+
 - "..." (fallback)
 
 ### `/src/components/policy/PolicyAcceptanceModal.tsx`
+
 - "Accept Updated Policies"
 - "Policy {currentPolicyIndex + 1} of {policies.length}: {currentPolicy.policyName}"
 - "Progress"
@@ -273,25 +297,31 @@ Simplified & Smart."
 - "Failed to accept policies: {err instanceof Error ? err.message : 'Unknown error'}"
 
 ### `/src/components/settlements/SettlementForm.tsx`
+
 - "Unknown User"
 
 ### `/src/components/ui/Alert.tsx`
+
 - "Dismiss alert"
 
 ### `/src/components/ui/Button.tsx`
+
 - "Button"
 
 ### `/src/components/ui/ConfirmDialog.tsx`
+
 - "Confirm"
 - "Cancel"
 
 ### `/src/components/ui/CurrencyAmountInput.tsx`
+
 - "?"
 - "Search currencies"
 
 ### `/src/components/ui/CurrencySelector.tsx`
+
 - "Select currency..."
-- "*"
+- "\*"
 - "Search currencies..."
 - "No currencies found"
 - "Recent"
@@ -299,22 +329,27 @@ Simplified & Smart."
 - "All Currencies"
 
 ### `/src/components/ui/Input.tsx`
-- "*"
+
+- "\*"
 
 ### `/src/pages/JoinGroupPage.tsx`
+
 - "Loading..."
 
 ### `/src/pages/LandingPage.tsx`
+
 - "Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent. It's 100% free, with no ads and no limits."
 - "This is a tool for tracking expenses, not for making payments. To save and manage your expenses, you'll need a free account. We will never ask for sensitive financial details."
 
 ### `/src/pages/static/CookiePolicyPage.tsx`
+
 - "Cookie Policy"
 - "Cookie Policy for Splitifyd - Learn about how we use cookies and similar technologies."
 - "Last updated: "
 - "Error loading cookie policy"
 
 ### `/src/pages/static/PricingPage.tsx`
+
 - "Pricing (It's Free, Seriously)"
 - "Simple, transparent pricing for Splitifyd. Split bills with friends for free."
 - "Choose Your Adventure"
@@ -343,12 +378,14 @@ Simplified & Smart."
 - "Disclaimer: All plans are, and always will be, absolutely free. We just like making fancy tables. No hidden fees, no premium features, no secret handshake required. Just pure, unadulterated free expense splitting. You're welcome."
 
 ### `/src/pages/static/PrivacyPolicyPage.tsx`
+
 - "Privacy Policy"
 - "Privacy Policy for Splitifyd - Learn about how we collect, use, and protect your information."
 - "Last updated: "
 - "Error loading privacy policy"
 
 ### `/src/pages/static/TermsOfServicePage.tsx`
+
 - "Terms of Service"
 - "Terms of Service for Splitifyd - Read about our policies and user agreements."
 - "Last updated: "

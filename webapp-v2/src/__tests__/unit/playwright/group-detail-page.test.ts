@@ -1,12 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { generateShortId } from '@splitifyd/test-support';
-import {
-    setupTestPage,
-    verifyNavigation,
-    setupAuthenticatedUser,
-    setupUnauthenticatedTest,
-    testTabOrder,
-} from '../infra/test-helpers';
+import { setupTestPage, verifyNavigation, setupAuthenticatedUser, setupUnauthenticatedTest, testTabOrder } from '../infra/test-helpers';
 import { GroupTestDataBuilder } from './builders';
 import { GroupApiMock } from './mocks';
 
@@ -161,11 +155,7 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
         test('should handle successful group load with API mocking', async ({ page }) => {
             const groupId = generateTestGroupId();
 
-            const testGroup = new GroupTestDataBuilder()
-                .withId(groupId)
-                .withName('Test Group')
-                .withDescription('A test group')
-                .build();
+            const testGroup = new GroupTestDataBuilder().withId(groupId).withName('Test Group').withDescription('A test group').build();
 
             const groupApiMock = new GroupApiMock(page);
             await groupApiMock.mockGetGroup(groupId, testGroup);
@@ -231,11 +221,7 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
         });
 
         test('should handle malformed group IDs gracefully', async ({ page }) => {
-            const malformedGroupIds = [
-                'group/with/slashes',
-                'group?with=query&params=true',
-                'group with spaces',
-            ];
+            const malformedGroupIds = ['group/with/slashes', 'group?with=query&params=true', 'group with spaces'];
 
             for (const groupId of malformedGroupIds) {
                 await page.goto(`/groups/${encodeURIComponent(groupId)}`);
@@ -268,8 +254,8 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
             await page.keyboard.press('Tab');
             const focusedElement = page.locator(':focus');
 
-            if (await focusedElement.count() > 0) {
-                const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+            if ((await focusedElement.count()) > 0) {
+                const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                 expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
             }
 
@@ -279,11 +265,7 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
         });
 
         test('should handle keyboard navigation with special character group IDs', async ({ page }) => {
-            const specialGroupIds = [
-                'group-with-dashes',
-                'group_with_underscores',
-                'group123numbers',
-            ];
+            const specialGroupIds = ['group-with-dashes', 'group_with_underscores', 'group123numbers'];
 
             for (const groupId of specialGroupIds) {
                 await page.goto(`/groups/${groupId}`);
@@ -303,8 +285,8 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
                     await page.keyboard.press('Tab');
                     const focusedElement = page.locator(':focus');
 
-                    if (await focusedElement.count() > 0) {
-                        const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                    if ((await focusedElement.count()) > 0) {
+                        const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                         expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
                     }
                 }
@@ -342,8 +324,8 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
-                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                if ((await focusedElement.count()) > 0) {
+                    const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                     expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
                 }
             }
@@ -351,10 +333,7 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
 
         test('should handle keyboard navigation with malformed group IDs', async ({ page }) => {
             // Test various malformed group IDs that might cause navigation issues
-            const malformedIds = [
-                'group/with/slashes',
-                'group?with=query',
-            ];
+            const malformedIds = ['group/with/slashes', 'group?with=query'];
 
             for (const groupId of malformedIds) {
                 await page.goto(`/groups/${encodeURIComponent(groupId)}`);
@@ -370,8 +349,8 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
                     await page.keyboard.press('Tab');
                     const focusedElement = page.locator(':focus');
 
-                    if (await focusedElement.count() > 0) {
-                        const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                    if ((await focusedElement.count()) > 0) {
+                        const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                         expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
                     }
                 }
@@ -395,8 +374,8 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
                     await page.keyboard.press('Tab');
                     const focusedElement = page.locator(':focus');
 
-                    if (await focusedElement.count() > 0) {
-                        const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                    if ((await focusedElement.count()) > 0) {
+                        const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
 
                         if (['button', 'a', 'input'].includes(tagName)) {
                             foundInteractiveElement = true;
@@ -428,7 +407,7 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
+                if ((await focusedElement.count()) > 0) {
                     // Check for focus indicators
                     const focusStyles = await focusedElement.evaluate((el) => {
                         const styles = getComputedStyle(el);
@@ -440,10 +419,7 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
                     });
 
                     // Should have some form of focus indicator
-                    const hasFocusIndicator =
-                        focusStyles.outline !== 'none' ||
-                        focusStyles.outlineWidth !== '0px' ||
-                        focusStyles.boxShadow.includes('rgb');
+                    const hasFocusIndicator = focusStyles.outline !== 'none' || focusStyles.outlineWidth !== '0px' || focusStyles.boxShadow.includes('rgb');
 
                     expect(hasFocusIndicator).toBeTruthy();
                 }
@@ -467,8 +443,8 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
                 await page.keyboard.press('Tab');
                 const focusedElement = page.locator(':focus');
 
-                if (await focusedElement.count() > 0) {
-                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                if ((await focusedElement.count()) > 0) {
+                    const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                     expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
 
                     // Interactive elements should be accessible
@@ -511,8 +487,8 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
                     await page.keyboard.press('Tab');
                     const focusedElement = page.locator(':focus');
 
-                    if (await focusedElement.count() > 0) {
-                        const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                    if ((await focusedElement.count()) > 0) {
+                        const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                         expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
                     }
 
@@ -539,8 +515,8 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
                     await page.keyboard.press(keyPattern);
                     const focusedElement = page.locator(':focus');
 
-                    if (await focusedElement.count() > 0) {
-                        const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                    if ((await focusedElement.count()) > 0) {
+                        const tagName = await focusedElement.evaluate((el) => el.tagName.toLowerCase());
                         expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
 
                         // Element should be visible when focused
@@ -579,7 +555,7 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
             await mockSettlementsAPI(page, groupId, [
                 {
                     id: 'settlement-1',
-                    amount: 50.00,
+                    amount: 50.0,
                     note: 'Test payment',
                     payerId: 'user-1',
                     payeeId: 'user-2',

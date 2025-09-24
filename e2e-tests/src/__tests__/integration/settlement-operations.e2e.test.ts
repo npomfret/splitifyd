@@ -1,5 +1,5 @@
-import {simpleTest} from '../../fixtures';
-import {SettlementData} from '../../pages/settlement-form.page';
+import { simpleTest } from '../../fixtures';
+import { SettlementData } from '../../pages/settlement-form.page';
 
 /**
  * Settlement CRUD Operations E2E Tests
@@ -15,10 +15,7 @@ import {SettlementData} from '../../pages/settlement-form.page';
 
 simpleTest.describe('Settlement CRUD Operations', () => {
     simpleTest('should create settlements with comprehensive display and permissions', async ({ createLoggedInBrowsers }) => {
-        const [
-            { dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+        const [{ dashboardPage: user1DashboardPage }, { dashboardPage: user2DashboardPage }] = await createLoggedInBrowsers(2);
 
         const payerName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const payeeName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -37,14 +34,14 @@ simpleTest.describe('Settlement CRUD Operations', () => {
 
         await settlementForm1.submitSettlement(settlementData1, 2);
         await groupDetailPage.openHistoryIfClosed();
-        await groupDetailPage.verifySettlementDetails({note: settlementData1.note});
+        await groupDetailPage.verifySettlementDetails({ note: settlementData1.note });
         await groupDetailPage.verifySettlementDetails(settlementData1);
 
         // Test 2: Settlement where creator is payee (different permissions scenario)
         const settlementForm2 = await groupDetailPage.clickSettleUpButton(2);
         const settlementData2: SettlementData = {
-            payerName: payeeName,  // Other user pays
-            payeeName: payerName,  // Creator receives
+            payerName: payeeName, // Other user pays
+            payeeName: payerName, // Creator receives
             amount: '75.00',
             currency: 'JPY',
             note: 'Creator receives payment',
@@ -52,7 +49,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
 
         await settlementForm2.submitSettlement(settlementData2, 2);
         await groupDetailPage.openHistoryIfClosed();
-        await groupDetailPage.verifySettlementDetails({note: settlementData2.note});
+        await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
         await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
 
         // Verify creator can edit/delete even when they're the payee
@@ -61,10 +58,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
     });
 
     simpleTest('should edit settlements with comprehensive validation and form handling', async ({ createLoggedInBrowsers }) => {
-        const [
-            { dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+        const [{ dashboardPage: user1DashboardPage }, { dashboardPage: user2DashboardPage }] = await createLoggedInBrowsers(2);
 
         const payerName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const payeeName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -82,7 +76,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         };
 
         await settlementForm.submitSettlement(initialData, 2);
-        await groupDetailPage.verifySettlementDetails({note: initialData.note});
+        await groupDetailPage.verifySettlementDetails({ note: initialData.note });
 
         // Test successful edit flow
         await groupDetailPage.openHistoryIfClosed();
@@ -130,10 +124,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
     });
 
     simpleTest('should delete settlements with confirmation and cancellation flows', async ({ createLoggedInBrowsers }) => {
-        const [
-            { dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+        const [{ dashboardPage: user1DashboardPage }, { dashboardPage: user2DashboardPage }] = await createLoggedInBrowsers(2);
 
         const payerName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const payeeName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -151,7 +142,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         };
 
         await settlementForm1.submitSettlement(settlementData1, 2);
-        await groupDetailPage.verifySettlementDetails({note: settlementData1.note});
+        await groupDetailPage.verifySettlementDetails({ note: settlementData1.note });
 
         const settlementForm2 = await groupDetailPage.clickSettleUpButton(2);
         const settlementData2: SettlementData = {
@@ -163,7 +154,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         };
 
         await settlementForm2.submitSettlement(settlementData2, 2);
-        await groupDetailPage.verifySettlementDetails({note: settlementData2.note});
+        await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
 
         // Test 1: Successful deletion with confirmation
         await groupDetailPage.openHistoryIfClosed();

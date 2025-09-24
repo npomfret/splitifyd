@@ -9,18 +9,24 @@ const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&\s]{8,}$/;
 
 const registerSchema = Joi.object({
-    email: Joi.string().trim().min(1).pattern(EMAIL_REGEX).custom((value, helpers) => {
-        if (value.includes('..')) {
-            return helpers.error('string.invalidEmail');
-        }
-        return value;
-    }).required().messages({
-        'string.pattern.base': 'Invalid email format',
-        'string.invalidEmail': 'Invalid email format',
-        'string.empty': 'Email is required',
-        'string.min': 'Email is required',
-        'any.required': 'Email is required',
-    }),
+    email: Joi.string()
+        .trim()
+        .min(1)
+        .pattern(EMAIL_REGEX)
+        .custom((value, helpers) => {
+            if (value.includes('..')) {
+                return helpers.error('string.invalidEmail');
+            }
+            return value;
+        })
+        .required()
+        .messages({
+            'string.pattern.base': 'Invalid email format',
+            'string.invalidEmail': 'Invalid email format',
+            'string.empty': 'Email is required',
+            'string.min': 'Email is required',
+            'any.required': 'Email is required',
+        }),
     password: Joi.string().pattern(PASSWORD_REGEX).required().messages({
         'string.pattern.base': 'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character',
         'string.empty': 'Password is required',

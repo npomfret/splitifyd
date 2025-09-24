@@ -1,8 +1,8 @@
-import {expect, simpleTest as test} from '../../fixtures/simple-test.fixture';
-import {CreateGroupModalPage, LoginPage} from '../../pages';
-import {TIMEOUT_CONTEXTS, TIMEOUTS} from '../../config/timeouts';
-import {SELECTORS} from '../../constants/selectors';
-import {generateTestGroupName} from '@splitifyd/test-support';
+import { expect, simpleTest as test } from '../../fixtures/simple-test.fixture';
+import { CreateGroupModalPage, LoginPage } from '../../pages';
+import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../config/timeouts';
+import { SELECTORS } from '../../constants/selectors';
+import { generateTestGroupName } from '@splitifyd/test-support';
 
 /**
  * Comprehensive Error Handling E2E Tests
@@ -212,7 +212,7 @@ test.describe('Network & Server Error Handling', () => {
         // Test 2: Server validation errors (within same test)
         test.info().annotations.push({
             type: 'skip-error-checking',
-            description: 'Expected: Failed to load resource: the server responded with a status of 400 (Bad Request)'
+            description: 'Expected: Failed to load resource: the server responded with a status of 400 (Bad Request)',
         });
 
         // Intercept to simulate server validation error
@@ -351,7 +351,7 @@ test.describe('Security & Access Control Errors', () => {
         const groupId = groupDetailPage.inferGroupId();
 
         // Navigate back to dashboard and log out
-        dashboardPage = await groupDetailPage.navigateToDashboard()
+        dashboardPage = await groupDetailPage.navigateToDashboard();
         await dashboardPage.header.logout();
 
         // Try to access the group page directly while logged out
@@ -364,14 +364,11 @@ test.describe('Security & Access Control Errors', () => {
     test('should prevent unauthorized access to other users groups', async ({ createLoggedInBrowsers }) => {
         test.info().annotations.push({
             type: 'skip-error-checking',
-            description: 'Expected 404 errors when unauthorized user tries to access private group'
+            description: 'Expected 404 errors when unauthorized user tries to access private group',
         });
 
         // Create two browser instances - User 1 and User 2
-        const [
-            { dashboardPage },
-            { page: page2 }
-        ] = await createLoggedInBrowsers(2);
+        const [{ dashboardPage }, { page: page2 }] = await createLoggedInBrowsers(2);
 
         // User 1 creates a private group using the efficient helper
         const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});

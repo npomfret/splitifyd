@@ -57,7 +57,11 @@ export function CommentsSection({ targetType, targetId, maxHeight = '400px', cla
 
             {/* Comment input */}
             <div className="border-t pt-4 dark:border-gray-700">
-                <CommentInput onSubmit={handleSubmit} disabled={submitting.value} placeholder={targetType === 'group' ? t('comments.commentsSection.placeholderGroup') : t('comments.commentsSection.placeholderExpense')} />
+                <CommentInput
+                    onSubmit={handleSubmit}
+                    disabled={submitting.value}
+                    placeholder={targetType === 'group' ? t('comments.commentsSection.placeholderGroup') : t('comments.commentsSection.placeholderExpense')}
+                />
             </div>
         </div>
     );

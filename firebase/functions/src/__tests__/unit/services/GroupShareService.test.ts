@@ -77,10 +77,7 @@ describe('GroupShareService', () => {
             const userId = 'owner-id';
 
             // Set up test group using builder
-            const testGroup = new FirestoreGroupBuilder()
-                .withId(groupId)
-                .withCreatedBy(userId)
-                .build();
+            const testGroup = new FirestoreGroupBuilder().withId(groupId).withCreatedBy(userId).build();
 
             stubReader.setDocument('groups', groupId, testGroup);
 
@@ -90,7 +87,7 @@ describe('GroupShareService', () => {
                 groupId: groupId,
                 memberRole: 'admin',
                 memberStatus: 'active',
-                joinedAt: new Date().toISOString()
+                joinedAt: new Date().toISOString(),
             };
             stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
 

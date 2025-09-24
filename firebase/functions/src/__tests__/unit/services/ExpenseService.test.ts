@@ -46,7 +46,7 @@ vi.mock('../../../expenses/validation', () => ({
         participants.map((userId: string) => ({
             userId,
             amount: amount / participants.length,
-        }))
+        })),
     ),
 }));
 
@@ -73,12 +73,7 @@ describe('ExpenseService - Unit Tests', () => {
 
         mockUserService = {} as any;
 
-        expenseService = new ExpenseService(
-            stubReader,
-            stubWriter,
-            mockGroupMemberService,
-            mockUserService,
-        );
+        expenseService = new ExpenseService(stubReader, stubWriter, mockGroupMemberService, mockUserService);
     });
 
     describe('Data Transformation and Validation', () => {
@@ -93,7 +88,7 @@ describe('ExpenseService - Unit Tests', () => {
                 groupId: 'test-group-id',
                 createdBy: 'creator-id',
                 paidBy: 'payer-id',
-                amount: 100.50,
+                amount: 100.5,
                 currency: 'USD',
                 description: 'Test expense',
                 category: 'Food',
@@ -123,7 +118,7 @@ describe('ExpenseService - Unit Tests', () => {
                 groupId: 'test-group-id',
                 createdBy: 'creator-id',
                 paidBy: 'payer-id',
-                amount: 100.50,
+                amount: 100.5,
                 currency: 'USD',
                 description: 'Test expense',
                 category: 'Food',
@@ -466,10 +461,11 @@ describe('ExpenseService - Unit Tests', () => {
             });
 
             // Act & Assert
-            await expect(expenseService.createExpense('user1', mockExpenseRequest))
-                .rejects.toThrow(expect.objectContaining({
+            await expect(expenseService.createExpense('user1', mockExpenseRequest)).rejects.toThrow(
+                expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                }));
+                }),
+            );
         });
 
         it('should validate currency format', async () => {
@@ -494,10 +490,11 @@ describe('ExpenseService - Unit Tests', () => {
             });
 
             // Act & Assert
-            await expect(expenseService.createExpense('user1', mockExpenseRequest))
-                .rejects.toThrow(expect.objectContaining({
+            await expect(expenseService.createExpense('user1', mockExpenseRequest)).rejects.toThrow(
+                expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                }));
+                }),
+            );
         });
     });
 
@@ -611,13 +608,10 @@ describe('ExpenseService - Unit Tests', () => {
             const userId = 'test-user-id';
 
             // Mock the reader to throw an error
-            stubReader.getExpense = vi.fn().mockRejectedValue(
-                new Error('Database connection failed')
-            );
+            stubReader.getExpense = vi.fn().mockRejectedValue(new Error('Database connection failed'));
 
             // Act & Assert
-            await expect(expenseService.getExpense(expenseId, userId))
-                .rejects.toThrow('Database connection failed');
+            await expect(expenseService.getExpense(expenseId, userId)).rejects.toThrow('Database connection failed');
         });
     });
 });

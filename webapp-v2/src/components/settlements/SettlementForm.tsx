@@ -65,9 +65,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
                 // First try: get currency from existing debts involving current user
                 if (balances?.simplifiedDebts && balances.simplifiedDebts.length > 0) {
-                    const userDebt = balances.simplifiedDebts.find((debt: SimplifiedDebt) =>
-                        debt.from.userId === currentUser.uid || debt.to.userId === currentUser.uid
-                    );
+                    const userDebt = balances.simplifiedDebts.find((debt: SimplifiedDebt) => debt.from.userId === currentUser.uid || debt.to.userId === currentUser.uid);
                     if (userDebt) {
                         detectedCurrency = userDebt.currency;
                     }

@@ -185,13 +185,13 @@ export class ExpenseDetailPage extends BasePage {
     /**
      * Get the current currency amount from the page
      */
-        private async getCurrentCurrencyAmount(): Promise<string> {
-            // Use the specific data-testid for the main expense amount display
-            const expenseAmountElement = this.page.getByTestId('expense-amount');
-            const amountText = await expenseAmountElement.textContent();
-            // Normalize non-breaking spaces to regular spaces for easier test matching
-            return amountText?.trim().replace(/\u00A0/g, ' ') || 'expense amount not found';
-        }
+    private async getCurrentCurrencyAmount(): Promise<string> {
+        // Use the specific data-testid for the main expense amount display
+        const expenseAmountElement = this.page.getByTestId('expense-amount');
+        const amountText = await expenseAmountElement.textContent();
+        // Normalize non-breaking spaces to regular spaces for easier test matching
+        return amountText?.trim().replace(/\u00A0/g, ' ') || 'expense amount not found';
+    }
 
     /**
      * Wait for expense description to be visible (polls until found)

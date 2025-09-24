@@ -1,5 +1,5 @@
 import { simpleTest, expect } from '../../fixtures';
-import {generateShortId} from "@splitifyd/test-support";
+import { generateShortId } from '@splitifyd/test-support';
 
 /**
  * Expense Feature-Specific E2E Tests
@@ -15,7 +15,6 @@ import {generateShortId} from "@splitifyd/test-support";
  * For form validation and error handling tests,
  * see error-handling-comprehensive.e2e.test.ts
  */
-
 
 simpleTest.describe('Date and Time Selection', () => {
     simpleTest('should handle date convenience buttons and time input', async ({ createLoggedInBrowsers }) => {
@@ -79,17 +78,13 @@ simpleTest.describe('Date and Time Selection', () => {
         await expenseFormPage.getTimeSuggestion('3:00 PM').click();
         await expect(expenseFormPage.getTimeSuggestion('at 3:00 PM')).toBeVisible();
     });
-
 });
 
 simpleTest.describe('Real-time Comments', () => {
     simpleTest('should support real-time expense comments', async ({ createLoggedInBrowsers }, testInfo) => {
         testInfo.setTimeout(20000); // 20 seconds
         // Create two browser instances - Alice and Bob
-        const [
-            { dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage },
-        ] = await createLoggedInBrowsers(2);
+        const [{ dashboardPage: user1DashboardPage }, { dashboardPage: user2DashboardPage }] = await createLoggedInBrowsers(2);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();

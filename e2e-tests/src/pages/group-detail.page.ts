@@ -1,13 +1,13 @@
-import {expect, Locator, Page} from '@playwright/test';
-import {BasePage} from './base.page';
-import {ExpenseFormData, ExpenseFormPage} from './expense-form.page';
-import {ExpenseDetailPage} from './expense-detail.page';
-import {SettlementData, SettlementFormPage} from './settlement-form.page';
-import {EditGroupModalPage} from './edit-group-modal.page';
-import {LeaveGroupModalPage} from './leave-group-modal.page';
-import {RemoveMemberModalPage} from './remove-member-modal.page';
-import {ShareGroupModalPage} from './share-group-modal.page';
-import {DashboardPage} from "./dashboard.page.ts";
+import { expect, Locator, Page } from '@playwright/test';
+import { BasePage } from './base.page';
+import { ExpenseFormData, ExpenseFormPage } from './expense-form.page';
+import { ExpenseDetailPage } from './expense-detail.page';
+import { SettlementData, SettlementFormPage } from './settlement-form.page';
+import { EditGroupModalPage } from './edit-group-modal.page';
+import { LeaveGroupModalPage } from './leave-group-modal.page';
+import { RemoveMemberModalPage } from './remove-member-modal.page';
+import { ShareGroupModalPage } from './share-group-modal.page';
+import { DashboardPage } from './dashboard.page.ts';
 
 export class GroupDetailPage extends BasePage {
     constructor(page: Page) {
@@ -18,7 +18,7 @@ export class GroupDetailPage extends BasePage {
         await this.header.navigateToDashboard();
         const dashboardPage = new DashboardPage(this.page, this.userInfo);
         await dashboardPage.waitForDashboard();
-        return dashboardPage
+        return dashboardPage;
     }
 
     inferGroupId() {
@@ -49,7 +49,7 @@ export class GroupDetailPage extends BasePage {
         // Fallback: use role and name for robustness
         return this.page
             .locator('[data-testid="add-expense-button"]')
-            .or(this.page.getByRole('button', {name: /add expense/i}))
+            .or(this.page.getByRole('button', { name: /add expense/i }))
             .first();
     }
 
@@ -60,7 +60,7 @@ export class GroupDetailPage extends BasePage {
         // Get button and click it (clickButton will handle attachment wait internally)
         const settleButton = this.getSettleUpButton();
 
-        await this.clickButton(settleButton, {buttonName: 'Settle up'});
+        await this.clickButton(settleButton, { buttonName: 'Settle up' });
 
         // Verify modal opened
         const settlementFormPage = new SettlementFormPage(this.page, this.userInfo);
@@ -74,7 +74,7 @@ export class GroupDetailPage extends BasePage {
     }
 
     getSettleUpButton(): Locator {
-        return this.page.getByRole('button', {name: /settle up/i});
+        return this.page.getByRole('button', { name: /settle up/i });
     }
 
     /**
@@ -85,10 +85,10 @@ export class GroupDetailPage extends BasePage {
         const addButton = this.getAddExpenseButton();
 
         // Wait for button to be visible
-        await expect(addButton).toBeVisible({timeout});
+        await expect(addButton).toBeVisible({ timeout });
 
         // Wait for button to be enabled
-        await expect(addButton).toBeEnabled({timeout});
+        await expect(addButton).toBeEnabled({ timeout });
     }
 
     async clickAddExpenseButton(expectedMemberCount: number): Promise<ExpenseFormPage> {
@@ -138,7 +138,7 @@ export class GroupDetailPage extends BasePage {
 
         // Button readiness is already checked in clickAddExpenseButton
         // Trust that the button is ready when this method is called
-        await this.clickButton(addButton, {buttonName: 'Add Expense'});
+        await this.clickButton(addButton, { buttonName: 'Add Expense' });
 
         // Wait for navigation to expense form
         await expect(this.page).toHaveURL(expectedUrlPattern);
@@ -155,8 +155,8 @@ export class GroupDetailPage extends BasePage {
         const loadingText = this.page.getByText('Loading expense form...');
 
         if ((await loadingSpinner.count()) > 0 || (await loadingText.count()) > 0) {
-            await expect(loadingSpinner).not.toBeVisible({timeout: 5000});
-            await expect(loadingText).not.toBeVisible({timeout: 5000});
+            await expect(loadingSpinner).not.toBeVisible({ timeout: 5000 });
+            await expect(loadingText).not.toBeVisible({ timeout: 5000 });
         }
 
         // Verify we're still on the correct page
@@ -174,7 +174,7 @@ export class GroupDetailPage extends BasePage {
 
     // Share functionality accessors
     getShareButton() {
-        return this.page.getByRole('button', {name: /invite others/i}).first();
+        return this.page.getByRole('button', { name: /invite others/i }).first();
     }
 
     /**
@@ -211,8 +211,8 @@ export class GroupDetailPage extends BasePage {
                 const memberNames = await this.getMemberNames();
                 throw new Error(
                     `Member count mismatch. Expected: ${expectedCount}, ` +
-                    `Text shows: ${textCount}, Actual items: ${actualItems}. ` +
-                    `Members: [${memberNames.join(', ')}]. URL: ${this.page.url()}`
+                        `Text shows: ${textCount}, Actual items: ${actualItems}. ` +
+                        `Members: [${memberNames.join(', ')}]. URL: ${this.page.url()}`,
                 );
             }
         }).toPass({ timeout });
@@ -238,11 +238,11 @@ export class GroupDetailPage extends BasePage {
 
         // Wait for balances section to be visible
         const balancesSection = this.getBalancesSection();
-        await expect(balancesSection).toBeVisible({timeout: 3000});
+        await expect(balancesSection).toBeVisible({ timeout: 3000 });
 
         // Wait for any loading text to disappear if present
         try {
-            await expect(balancesSection.getByText('Loading balances...')).not.toBeVisible({timeout: 2000});
+            await expect(balancesSection.getByText('Loading balances...')).not.toBeVisible({ timeout: 2000 });
         } catch (e) {
             // Loading text might not be present, that's okay
         }
@@ -252,7 +252,7 @@ export class GroupDetailPage extends BasePage {
         const targetGroupUrl = `/groups/${groupId}`;
         await this.sanityCheckPageUrl(this.page.url(), targetGroupUrl);
 
-        await this.header.getCurrentUserDisplayName();// just a sanity check - top right by the menu
+        await this.header.getCurrentUserDisplayName(); // just a sanity check - top right by the menu
 
         await this.waitForMemberCount(expectedMemberCount);
         await this.sanityCheckPageUrl(this.page.url(), targetGroupUrl);
@@ -296,7 +296,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Record settlement using proper page object composition
      */
-    async recordSettlement(settlementOptions: SettlementData, expectedMemberCount: number,): Promise<void> {
+    async recordSettlement(settlementOptions: SettlementData, expectedMemberCount: number): Promise<void> {
         const settlementFormPage = await this.clickSettleUpButton(expectedMemberCount);
         await settlementFormPage.submitSettlement(settlementOptions, expectedMemberCount);
     }
@@ -309,7 +309,7 @@ export class GroupDetailPage extends BasePage {
         return this.page
             .locator('.bg-white')
             .filter({
-                has: this.page.getByRole('heading', {name: 'Balances'}),
+                has: this.page.getByRole('heading', { name: 'Balances' }),
             })
             .first();
     }
@@ -343,7 +343,7 @@ export class GroupDetailPage extends BasePage {
      */
     async openShareGroupModal(): Promise<ShareGroupModalPage> {
         const shareButton = this.getShareButton();
-        await this.clickButton(shareButton, {buttonName: 'Invite Others'});
+        await this.clickButton(shareButton, { buttonName: 'Invite Others' });
 
         // Create and return the ShareGroupModalPage instance
         const shareModal = new ShareGroupModalPage(this.page, this.userInfo);
@@ -372,12 +372,11 @@ export class GroupDetailPage extends BasePage {
         return balancesSection.getByText(`${debtorName} → ${creditorName}`).or(balancesSection.getByText(`${debtorName} owes ${creditorName}`));
     }
 
-
     /**
      * Gets the settings button (only visible for group owner)
      */
     getSettingsButton() {
-        return this.page.getByRole('button', {name: /group settings/i}).first();
+        return this.page.getByRole('button', { name: /group settings/i }).first();
     }
 
     /**
@@ -385,7 +384,7 @@ export class GroupDetailPage extends BasePage {
      */
     async openEditGroupModal(): Promise<EditGroupModalPage> {
         const settingsButton = this.getSettingsButton();
-        await this.clickButton(settingsButton, {buttonName: 'Group Settings'});
+        await this.clickButton(settingsButton, { buttonName: 'Group Settings' });
 
         // Create and return the EditGroupModalPage instance
         const editModal = new EditGroupModalPage(this.page);
@@ -411,7 +410,7 @@ export class GroupDetailPage extends BasePage {
      */
     async getCurrentMemberCount(): Promise<number> {
         const memberCountElement = this.getMemberCountElement();
-        await expect(memberCountElement).toBeVisible({timeout: 1000});
+        await expect(memberCountElement).toBeVisible({ timeout: 1000 });
 
         const memberText = await memberCountElement.textContent();
         if (!memberText) {
@@ -431,8 +430,7 @@ export class GroupDetailPage extends BasePage {
      * Get actual member items displayed in the members list
      */
     getActualMemberItems() {
-        return this.getMembersContainer()
-            .locator('[data-testid="member-item"]:visible');
+        return this.getMembersContainer().locator('[data-testid="member-item"]:visible');
     }
 
     /**
@@ -460,7 +458,7 @@ export class GroupDetailPage extends BasePage {
     private getMembersContainer(): Locator {
         // Find the visible Members container (either sidebar div or Card)
         // Use the specific classes from the TSX: sidebar has "border rounded-lg bg-white p-4"
-        return this.page.locator('.border.rounded-lg.bg-white, .p-6').filter({has: this.page.getByText('Members')});
+        return this.page.locator('.border.rounded-lg.bg-white, .p-6').filter({ has: this.page.getByText('Members') });
     }
 
     /**
@@ -471,7 +469,7 @@ export class GroupDetailPage extends BasePage {
         // Find the SidebarCard containing "Payment History" heading
         // Based on SidebarCard structure: bg-white rounded-lg shadow-sm border border-gray-200 p-4
         return this.page.locator('.bg-white.rounded-lg.shadow-sm.border.border-gray-200.p-4').filter({
-            has: this.page.locator('h3').filter({hasText: 'Payment History'})
+            has: this.page.locator('h3').filter({ hasText: 'Payment History' }),
         });
     }
 
@@ -483,10 +481,9 @@ export class GroupDetailPage extends BasePage {
         // Find the main content area containing "Expenses" heading
         // The expenses are in the main content area, not a sidebar card
         return this.page.locator('main, .main-content, [role="main"]').filter({
-            has: this.page.getByRole('heading', {name: 'Expenses'})
+            has: this.page.getByRole('heading', { name: 'Expenses' }),
         });
     }
-
 
     async verifyExpenseInList(description: string, amount?: string) {
         await expect(this.getExpenseByDescription(description)).toBeVisible();
@@ -501,11 +498,9 @@ export class GroupDetailPage extends BasePage {
      */
     private getSettlementHistoryEntry(settlementNote: string | RegExp) {
         const paymentHistoryContainer = this.getPaymentHistoryContainer();
-        const hasTextPattern = typeof settlementNote === 'string'
-            ? new RegExp(settlementNote, 'i')
-            : settlementNote;
+        const hasTextPattern = typeof settlementNote === 'string' ? new RegExp(settlementNote, 'i') : settlementNote;
         return paymentHistoryContainer.locator('[data-testid="settlement-item"]').filter({
-            hasText: hasTextPattern
+            hasText: hasTextPattern,
         });
     }
 
@@ -538,17 +533,17 @@ export class GroupDetailPage extends BasePage {
 
         // Assert the edit button exists and is enabled
         const editButton = this.getSettlementEditButton(settlementNote);
-        await expect(editButton).toBeVisible({timeout: 2000});
+        await expect(editButton).toBeVisible({ timeout: 2000 });
         await expect(editButton).toBeEnabled();
 
-        await this.clickButton(editButton, {buttonName: 'Edit Settlement'});
+        await this.clickButton(editButton, { buttonName: 'Edit Settlement' });
 
         // Wait for settlement form modal to open in edit mode
         const modal = this.page.getByRole('dialog');
-        await expect(modal).toBeVisible({timeout: 3000});
+        await expect(modal).toBeVisible({ timeout: 3000 });
 
         // Verify we're in edit mode by checking for "Update Payment" title
-        await expect(modal.getByRole('heading', {name: 'Update Payment'})).toBeVisible();
+        await expect(modal.getByRole('heading', { name: 'Update Payment' })).toBeVisible();
 
         const expectedMemberCount = await this.getCurrentMemberCount();
 
@@ -644,8 +639,8 @@ export class GroupDetailPage extends BasePage {
         // Assert we're on the group detail page
         await expect(this.page).toHaveURL(groupDetailUrlPattern());
 
-        const showHistoryButton = this.page.getByRole('button', {name: 'Show History'});
-        const hideHistoryButton = this.page.getByRole('button', {name: 'Hide History'});
+        const showHistoryButton = this.page.getByRole('button', { name: 'Show History' });
+        const hideHistoryButton = this.page.getByRole('button', { name: 'Hide History' });
 
         // Check if history is already open
         const isHistoryOpen = await hideHistoryButton.isVisible();
@@ -689,30 +684,30 @@ export class GroupDetailPage extends BasePage {
 
         // Assert the delete button exists and is enabled
         const deleteButton = this.getSettlementDeleteButton(note);
-        await expect(deleteButton).toBeVisible({timeout: 2000});
+        await expect(deleteButton).toBeVisible({ timeout: 2000 });
         await expect(deleteButton).toBeEnabled();
 
-        await this.clickButton(deleteButton, {buttonName: 'Delete Settlement'});
+        await this.clickButton(deleteButton, { buttonName: 'Delete Settlement' });
 
         // Wait for confirmation dialog - it uses data-testid, not role="dialog"
         const confirmDialog = this.page.locator('[data-testid="confirmation-dialog"]');
-        await expect(confirmDialog).toBeVisible({timeout: 3000});
+        await expect(confirmDialog).toBeVisible({ timeout: 3000 });
 
         // Verify it's the correct dialog
         await expect(confirmDialog.locator('h3')).toHaveText('Delete Payment');
 
         if (confirm) {
             const deleteButton = confirmDialog.locator('[data-testid="confirm-button"]');
-            await this.clickButton(deleteButton, {buttonName: 'Delete'});
+            await this.clickButton(deleteButton, { buttonName: 'Delete' });
 
             // Wait for dialog to close
-            await expect(confirmDialog).not.toBeVisible({timeout: 3000});
+            await expect(confirmDialog).not.toBeVisible({ timeout: 3000 });
         } else {
             const cancelButton = confirmDialog.locator('[data-testid="cancel-button"]');
-            await this.clickButton(cancelButton, {buttonName: 'Cancel'});
+            await this.clickButton(cancelButton, { buttonName: 'Cancel' });
 
             // Wait for dialog to close
-            await expect(confirmDialog).not.toBeVisible({timeout: 3000});
+            await expect(confirmDialog).not.toBeVisible({ timeout: 3000 });
         }
     }
 
@@ -720,7 +715,7 @@ export class GroupDetailPage extends BasePage {
         return this.page
             .locator('.bg-white')
             .filter({
-                has: this.page.getByRole('heading', {name: 'Balances'}),
+                has: this.page.getByRole('heading', { name: 'Balances' }),
             })
             .first();
     }
@@ -732,21 +727,18 @@ export class GroupDetailPage extends BasePage {
 
             // Find all debt relationship spans with the expected text pattern
             const debtRelationshipSpans = balancesSection.locator('span').filter({
-                hasText: new RegExp(`${debtorName}\\s*→\\s*${creditorName}`)
+                hasText: new RegExp(`${debtorName}\\s*→\\s*${creditorName}`),
             });
 
             const count = await debtRelationshipSpans.count();
             if (count === 0) {
-                throw new Error(
-                    `Debt relationship not found: ${debtorName} → ${creditorName}\n` +
-                    `Check if both users are in the group and have expenses.`
-                );
+                throw new Error(`Debt relationship not found: ${debtorName} → ${creditorName}\n` + `Check if both users are in the group and have expenses.`);
             }
 
             // Check each relationship to find one with the matching amount
             let foundMatchingAmount = false;
             let actualAmounts: string[] = [];
-            let debugInfo: Array<{ amount: string, trimmed: string, length: number, charCodes: number[] }> = [];
+            let debugInfo: Array<{ amount: string; trimmed: string; length: number; charCodes: number[] }> = [];
 
             for (let i = 0; i < count; i++) {
                 const relationshipSpan = debtRelationshipSpans.nth(i);
@@ -766,7 +758,7 @@ export class GroupDetailPage extends BasePage {
                         amount: actualAmount,
                         trimmed: normalizedActual,
                         length: normalizedActual.length,
-                        charCodes: Array.from(normalizedActual).map(c => c.charCodeAt(0))
+                        charCodes: Array.from(normalizedActual).map((c) => c.charCodeAt(0)),
                     });
 
                     if (normalizedActual === trimmedExpected) {
@@ -782,15 +774,15 @@ export class GroupDetailPage extends BasePage {
                     amount: expectedAmount,
                     trimmed: expectedTrimmed,
                     length: expectedTrimmed.length,
-                    charCodes: Array.from(expectedTrimmed).map(c => c.charCodeAt(0))
+                    charCodes: Array.from(expectedTrimmed).map((c) => c.charCodeAt(0)),
                 };
 
                 throw new Error(
                     `Debt amount mismatch for ${debtorName} → ${creditorName}\n` +
-                    `Expected: "${expectedAmount}" (trimmed: "${expectedTrimmed}", length: ${expectedDebugInfo.length}, chars: [${expectedDebugInfo.charCodes.join(',')}])\n` +
-                    `Found amounts: ${actualAmounts.map((amt, idx) =>
-                        `"${amt}" (trimmed: "${debugInfo[idx].trimmed}", length: ${debugInfo[idx].length}, chars: [${debugInfo[idx].charCodes.join(',')}])`
-                    ).join(', ')}`
+                        `Expected: "${expectedAmount}" (trimmed: "${expectedTrimmed}", length: ${expectedDebugInfo.length}, chars: [${expectedDebugInfo.charCodes.join(',')}])\n` +
+                        `Found amounts: ${actualAmounts
+                            .map((amt, idx) => `"${amt}" (trimmed: "${debugInfo[idx].trimmed}", length: ${debugInfo[idx].length}, chars: [${debugInfo[idx].charCodes.join(',')}])`)
+                            .join(', ')}`,
                 );
             }
 
@@ -827,7 +819,7 @@ export class GroupDetailPage extends BasePage {
      */
     async verifyAllSettledUp(groupId: string): Promise<void> {
         // Assert we're on the correct group page
-        const currentUrl = this.page.url();// todo: remove this
+        const currentUrl = this.page.url(); // todo: remove this
         if (!currentUrl.includes(`/groups/${groupId}`)) {
             throw new Error(`verifyAllSettledUp called but not on correct group page. Expected: /groups/${groupId}, Got: ${currentUrl}`);
         }
@@ -876,7 +868,7 @@ export class GroupDetailPage extends BasePage {
     // Member management actions
     async clickLeaveGroup(): Promise<LeaveGroupModalPage> {
         const leaveButton = this.getLeaveGroupButton();
-        await this.clickButton(leaveButton, {buttonName: 'Leave Group'});
+        await this.clickButton(leaveButton, { buttonName: 'Leave Group' });
 
         // Create and return the LeaveGroupModalPage instance
         const leaveModal = new LeaveGroupModalPage(this.page);
@@ -887,13 +879,13 @@ export class GroupDetailPage extends BasePage {
 
     async waitForRedirectAwayFromGroup(groupId: string): Promise<void> {
         // Use proper web-first assertion to wait for URL change
-        await expect(this.page).not.toHaveURL(new RegExp(`/groups/${groupId}`), {timeout: 5000});
+        await expect(this.page).not.toHaveURL(new RegExp(`/groups/${groupId}`), { timeout: 5000 });
     }
 
     async clickRemoveMember(memberName: string): Promise<RemoveMemberModalPage> {
         const memberItem = this.getMemberItem(memberName);
         try {
-            await expect(memberItem).toBeVisible({timeout: 5000});
+            await expect(memberItem).toBeVisible({ timeout: 5000 });
         } catch (e) {
             // Only get visible member items for error message
             const visibleMemberItems = await this.page.locator('[data-testid="member-item"]:visible').all();
@@ -908,7 +900,7 @@ export class GroupDetailPage extends BasePage {
         }
 
         const removeButton = this.getRemoveMemberButton(memberName);
-        await this.clickButton(removeButton, {buttonName: `Remove ${memberName}`});
+        await this.clickButton(removeButton, { buttonName: `Remove ${memberName}` });
 
         // Create and return the RemoveMemberModalPage instance
         const removeModal = new RemoveMemberModalPage(this.page);

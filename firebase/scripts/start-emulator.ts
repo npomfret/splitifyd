@@ -31,8 +31,9 @@ export async function startEmulator(config: EmulatorConfig): Promise<ChildProces
         const output = data.toString();
 
         // Filter out noisy hosting logs for static assets and HTTP access logs.
-        const staticAssetLogPattern = /hosting: \d+\.\d+\.\d+\.\d+ - - \[.*\] "(GET|POST|PUT|DELETE|HEAD|OPTIONS) \/.*\.(js|css|svg|png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot|map|webmanifest|json|xml|txt)" HTTP/;
-        const generalAccessLogPattern = /hosting: \d+\.\d+\.\d+\.\d+ - - \[.*\] "(GET|POST|PUT|DELETE|HEAD|OPTIONS) \// ;
+        const staticAssetLogPattern =
+            /hosting: \d+\.\d+\.\d+\.\d+ - - \[.*\] "(GET|POST|PUT|DELETE|HEAD|OPTIONS) \/.*\.(js|css|svg|png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot|map|webmanifest|json|xml|txt)" HTTP/;
+        const generalAccessLogPattern = /hosting: \d+\.\d+\.\d+\.\d+ - - \[.*\] "(GET|POST|PUT|DELETE|HEAD|OPTIONS) \//;
 
         const lines = output.split('\n');
         const filteredLines = lines.filter((line) => {

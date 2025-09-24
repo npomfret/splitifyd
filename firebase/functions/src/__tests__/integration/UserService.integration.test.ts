@@ -18,11 +18,7 @@ describe('UserService - Integration Tests (Essential Firebase Behavior)', () => 
         test('should create user in both Firebase Auth and Firestore with real coordination', async () => {
             // This test verifies the actual Firebase Auth + Firestore coordination
             // that cannot be stubbed - ensuring both systems are properly linked
-            const userData = new UserRegistrationBuilder()
-                .withEmail(`e2e-test-${generateShortId()}@example.com`)
-                .withPassword('SecurePass123!')
-                .withDisplayName('E2E Test User')
-                .build();
+            const userData = new UserRegistrationBuilder().withEmail(`e2e-test-${generateShortId()}@example.com`).withPassword('SecurePass123!').withDisplayName('E2E Test User').build();
 
             const result = await userService.registerUser({
                 email: userData.email,

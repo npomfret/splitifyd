@@ -118,7 +118,8 @@ export class JoinGroupPage extends BasePage {
             }
 
             // Look for user-specific UI elements that indicate login
-            const userMenuVisible = await this.header.getUserMenuButton()
+            const userMenuVisible = await this.header
+                .getUserMenuButton()
                 .isVisible({ timeout: 1000 })
                 .catch(() => false);
 
@@ -247,8 +248,13 @@ export class JoinGroupPage extends BasePage {
         await expect(async () => {
             const currentUrl = this.page.url();
             const isOnGroupPage = currentUrl.match(groupDetailUrlPattern());
-            const hasError = await this.getErrorMessage().isVisible().catch(() => false);
-            const hasSuccessScreen = await this.page.locator('[data-join-success="true"]').isVisible().catch(() => false);
+            const hasError = await this.getErrorMessage()
+                .isVisible()
+                .catch(() => false);
+            const hasSuccessScreen = await this.page
+                .locator('[data-join-success="true"]')
+                .isVisible()
+                .catch(() => false);
 
             if (isOnGroupPage) {
                 return; // Success - direct navigation

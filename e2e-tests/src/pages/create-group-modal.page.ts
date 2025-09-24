@@ -1,8 +1,8 @@
-import {expect, Locator, Page} from '@playwright/test';
-import {BasePage} from './base.page';
-import {ARIA_ROLES, SELECTORS} from '../constants/selectors';
-import {PooledTestUser} from '@splitifyd/shared';
-import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with {type: 'json'};
+import { expect, Locator, Page } from '@playwright/test';
+import { BasePage } from './base.page';
+import { ARIA_ROLES, SELECTORS } from '../constants/selectors';
+import { PooledTestUser } from '@splitifyd/shared';
+import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 
 export class CreateGroupModalPage extends BasePage {
     readonly modalTitle = translationEn.createGroupModal.title;
@@ -132,7 +132,6 @@ export class CreateGroupModalPage extends BasePage {
      * Updated to target the specific error message element in CreateGroupModal
      */
     getErrorMessage(pattern?: string | RegExp): Locator {
-
         const allErrors = this.page.locator('[data-testid="create-group-error-message"], [role="alert"], [data-testid*="error"], .error-message, [role="dialog"] [role="alert"]');
 
         if (pattern) {

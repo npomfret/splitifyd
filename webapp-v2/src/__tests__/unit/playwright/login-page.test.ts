@@ -16,8 +16,6 @@ import {
     testTabOrder,
     testReverseTabOrder,
     verifyFocusVisible,
-
-
 } from '../infra/test-helpers';
 
 /**
@@ -278,10 +276,7 @@ test.describe('LoginPage - Behavioral Tests', () => {
         });
 
         test('should activate buttons with Enter key', async ({ page }) => {
-            const buttonSelectors = [
-                SELECTORS.FORGOT_PASSWORD_BUTTON,
-                SELECTORS.SIGNUP_BUTTON,
-            ];
+            const buttonSelectors = [SELECTORS.FORGOT_PASSWORD_BUTTON, SELECTORS.SIGNUP_BUTTON];
 
             let foundButton = false;
 
@@ -289,7 +284,7 @@ test.describe('LoginPage - Behavioral Tests', () => {
                 const button = page.locator(selector);
 
                 // Only test if button exists, is visible, and is enabled
-                if (await button.count() > 0 && await button.isVisible() && await button.isEnabled()) {
+                if ((await button.count()) > 0 && (await button.isVisible()) && (await button.isEnabled())) {
                     // Focus on the button
                     await button.focus();
                     await expect(button).toBeFocused();
@@ -309,7 +304,7 @@ test.describe('LoginPage - Behavioral Tests', () => {
             if (!foundButton) {
                 // If no interactive buttons were found, at least verify basic form elements respond to Enter
                 const emailInput = page.locator(SELECTORS.EMAIL_INPUT);
-                if (await emailInput.count() > 0 && await emailInput.isVisible()) {
+                if ((await emailInput.count()) > 0 && (await emailInput.isVisible())) {
                     await emailInput.focus();
                     await page.keyboard.press('Enter');
                     await expect(page.locator('body')).toBeVisible();
@@ -349,11 +344,7 @@ test.describe('LoginPage - Behavioral Tests', () => {
 
         test('should handle keyboard navigation with empty fields gracefully', async ({ page }) => {
             // Test tab order when fields are empty
-            const tabOrder = [
-                SELECTORS.EMAIL_INPUT,
-                SELECTORS.PASSWORD_INPUT,
-                SELECTORS.REMEMBER_ME_CHECKBOX,
-            ];
+            const tabOrder = [SELECTORS.EMAIL_INPUT, SELECTORS.PASSWORD_INPUT, SELECTORS.REMEMBER_ME_CHECKBOX];
 
             // Use improved helper function for keyboard navigation
             await testTabOrder(page, tabOrder);

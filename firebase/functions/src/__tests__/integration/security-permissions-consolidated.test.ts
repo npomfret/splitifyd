@@ -68,7 +68,6 @@ describe('Security and Permissions - Consolidated Tests', () => {
                 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN2JmNDk2MmJkY2ZlODdlOGQ1ZWNhM2Y3N2JjOWZjYzA0OWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd3JvbmctcHJvamVjdCIsImF1ZCI6Indyb25nLXByb2plY3QiLCJhdXRoX3RpbWUiOjE2MDk0NTkyMDAsInVzZXJfaWQiOiJ0ZXN0LXVzZXIiLCJzdWIiOiJ0ZXN0LXVzZXIiLCJpYXQiOjE2MDk0NTkyMDAsImV4cCI6OTk5OTk5OTk5OX0.invalid-signature';
             await expect(apiDriver.listGroups(wrongProjectToken)).rejects.toThrow(/401|unauthorized|invalid|audience/i);
         });
-
     });
 
     describe('Cross-User Data Access Control', () => {
@@ -152,7 +151,6 @@ describe('Security and Permissions - Consolidated Tests', () => {
                 }),
             ).rejects.toThrow(/failed with status (401|403)/);
         });
-
     });
 
     describe('Permission System and Role Management', () => {
@@ -190,7 +188,6 @@ describe('Security and Permissions - Consolidated Tests', () => {
             };
             await expect(apiDriver.updateGroupPermissions(roleTestGroup.id, memberUser.token, openPermissions)).rejects.toThrow('failed with status 403');
         });
-
     });
 
     describe('Security Preset Validation and Data Integrity', () => {
@@ -199,7 +196,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
             const testUser = await apiDriver.createUser(new UserRegistrationBuilder().withEmail(`test-invalid-${Date.now()}@test.com`).withDisplayName('Test User Invalid').build());
 
             // Create valid group first
-            await apiDriver.createGroup({name: 'Valid Group Test ' + Date.now(), description: 'Testing valid security preset',}, testUser.token);
+            await apiDriver.createGroup({ name: 'Valid Group Test ' + Date.now(), description: 'Testing valid security preset' }, testUser.token);
 
             // Insert group with invalid securityPreset directly via Firestore
             const invalidGroupId = 'invalid-group-' + Date.now();

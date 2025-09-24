@@ -26,7 +26,7 @@ describe('Group Validation - Unit Tests', () => {
             it('should accept valid group names', () => {
                 const validNames = [
                     'Test Group',
-                    'A',                          // minimum length
+                    'A', // minimum length
                     'Group 123',
                     'My-Group_Name',
                     'Group with spaces',
@@ -41,8 +41,8 @@ describe('Group Validation - Unit Tests', () => {
 
             it('should reject invalid group names', () => {
                 const invalidNames = [
-                    '',                                                      // empty
-                    '   ',                                                   // whitespace only
+                    '', // empty
+                    '   ', // whitespace only
                     'A'.repeat(VALIDATION_LIMITS.MAX_GROUP_NAME_LENGTH + 1), // too long
                 ];
 
@@ -93,10 +93,10 @@ describe('Group Validation - Unit Tests', () => {
             it('should accept valid descriptions', () => {
                 const validDescriptions = [
                     'A simple description',
-                    '',                                                           // empty allowed
+                    '', // empty allowed
                     'Description with numbers 123',
                     'Special chars: !@#$%^&*()',
-                    'A'.repeat(VALIDATION_LIMITS.MAX_GROUP_DESCRIPTION_LENGTH),   // maximum length
+                    'A'.repeat(VALIDATION_LIMITS.MAX_GROUP_DESCRIPTION_LENGTH), // maximum length
                 ];
 
                 for (const description of validDescriptions) {
@@ -129,7 +129,6 @@ describe('Group Validation - Unit Tests', () => {
                 expect(() => validateCreateGroup(dataWithoutDescription)).not.toThrow();
             });
         });
-
 
         describe('Complete Validation Scenarios', () => {
             it('should accept valid complete group data', () => {
@@ -164,11 +163,7 @@ describe('Group Validation - Unit Tests', () => {
     describe('validateUpdateGroup', () => {
         describe('Update Name Validation', () => {
             it('should accept valid name updates', () => {
-                const validUpdates = [
-                    { name: 'Updated Group Name' },
-                    { name: 'A' },
-                    { name: 'A'.repeat(VALIDATION_LIMITS.MAX_GROUP_NAME_LENGTH) },
-                ];
+                const validUpdates = [{ name: 'Updated Group Name' }, { name: 'A' }, { name: 'A'.repeat(VALIDATION_LIMITS.MAX_GROUP_NAME_LENGTH) }];
 
                 for (const update of validUpdates) {
                     expect(() => validateUpdateGroup(update)).not.toThrow();
@@ -176,11 +171,7 @@ describe('Group Validation - Unit Tests', () => {
             });
 
             it('should reject invalid name updates', () => {
-                const invalidUpdates = [
-                    { name: '' },
-                    { name: '   ' },
-                    { name: 'A'.repeat(VALIDATION_LIMITS.MAX_GROUP_NAME_LENGTH + 1) },
-                ];
+                const invalidUpdates = [{ name: '' }, { name: '   ' }, { name: 'A'.repeat(VALIDATION_LIMITS.MAX_GROUP_NAME_LENGTH + 1) }];
 
                 for (const update of invalidUpdates) {
                     expect(() => validateUpdateGroup(update)).toThrow(
@@ -200,11 +191,7 @@ describe('Group Validation - Unit Tests', () => {
 
         describe('Update Description Validation', () => {
             it('should accept valid description updates', () => {
-                const validUpdates = [
-                    { description: 'Updated description' },
-                    { description: '' },
-                    { description: 'A'.repeat(VALIDATION_LIMITS.MAX_GROUP_DESCRIPTION_LENGTH) },
-                ];
+                const validUpdates = [{ description: 'Updated description' }, { description: '' }, { description: 'A'.repeat(VALIDATION_LIMITS.MAX_GROUP_DESCRIPTION_LENGTH) }];
 
                 for (const update of validUpdates) {
                     expect(() => validateUpdateGroup(update)).not.toThrow();
@@ -266,14 +253,7 @@ describe('Group Validation - Unit Tests', () => {
 
     describe('validateGroupId', () => {
         it('should accept valid group IDs', () => {
-            const validIds = [
-                'group-123',
-                'abc123',
-                'simple-id',
-                'id_with_underscores',
-                'ID-WITH-CAPS',
-                '12345',
-            ];
+            const validIds = ['group-123', 'abc123', 'simple-id', 'id_with_underscores', 'ID-WITH-CAPS', '12345'];
 
             for (const id of validIds) {
                 expect(() => validateGroupId(id)).not.toThrow();
@@ -286,11 +266,11 @@ describe('Group Validation - Unit Tests', () => {
                 null,
                 undefined,
                 '',
-                '   ',          // whitespace only
-                123,            // not a string
-                {},             // object
-                [],             // array
-                false,          // boolean
+                '   ', // whitespace only
+                123, // not a string
+                {}, // object
+                [], // array
+                false, // boolean
             ];
 
             for (const id of invalidIds) {
@@ -323,13 +303,7 @@ describe('Group Validation - Unit Tests', () => {
         });
 
         it('should handle malformed input gracefully', () => {
-            const malformedInputs = [
-                'not an object',
-                123,
-                [],
-                true,
-                Symbol('test'),
-            ];
+            const malformedInputs = ['not an object', 123, [], true, Symbol('test')];
 
             for (const input of malformedInputs) {
                 expect(() => validateCreateGroup(input)).toThrow();

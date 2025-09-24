@@ -28,23 +28,23 @@ describe('Firestore Security Rules (Production)', () => {
             firestore: {
                 rules,
                 host: '127.0.0.1',
-                port: 8004
-            }
+                port: 8004,
+            },
         });
 
         // Create authenticated contexts for test users
         user1Context = testEnv.authenticatedContext('user1-id', {
-            email: 'user1@example.com'
+            email: 'user1@example.com',
         });
         user1Db = user1Context.firestore();
 
         user2Context = testEnv.authenticatedContext('user2-id', {
-            email: 'user2@example.com'
+            email: 'user2@example.com',
         });
         user2Db = user2Context.firestore();
 
         user3Context = testEnv.authenticatedContext('user3-id', {
-            email: 'user3@example.com'
+            email: 'user3@example.com',
         });
         user3Db = user3Context.firestore();
 
@@ -70,9 +70,9 @@ describe('Firestore Security Rules (Production)', () => {
                     name: 'Test Group',
                     description: 'A test group',
                     createdBy: 'user1-id',
-                    memberIds: ['user1-id', 'user2-id'],  // Critical: memberIds controls access
+                    memberIds: ['user1-id', 'user2-id'], // Critical: memberIds controls access
                     createdAt: new Date(),
-                    updatedAt: new Date()
+                    updatedAt: new Date(),
                 });
             });
         });
@@ -96,7 +96,7 @@ describe('Firestore Security Rules (Production)', () => {
 
         it('should deny all client writes to groups', async () => {
             const updateData = {
-                name: 'Updated Group Name'
+                name: 'Updated Group Name',
             };
 
             // Even group members cannot write
@@ -130,14 +130,14 @@ describe('Firestore Security Rules (Production)', () => {
                     amount: 100,
                     createdBy: 'user1-id',
                     paidBy: 'user1-id',
-                    memberIds: ['user1-id', 'user2-id'],  // Critical: memberIds controls access
+                    memberIds: ['user1-id', 'user2-id'], // Critical: memberIds controls access
                     participants: ['user1-id', 'user2-id'],
                     splits: [
                         { userId: 'user1-id', amount: 50 },
-                        { userId: 'user2-id', amount: 50 }
+                        { userId: 'user2-id', amount: 50 },
                     ],
                     createdAt: new Date(),
-                    updatedAt: new Date()
+                    updatedAt: new Date(),
                 });
             });
         });
@@ -157,7 +157,7 @@ describe('Firestore Security Rules (Production)', () => {
 
         it('should deny all client writes to expenses', async () => {
             const updateData = {
-                description: 'Updated Expense'
+                description: 'Updated Expense',
             };
 
             // Even group members cannot write
@@ -180,9 +180,9 @@ describe('Firestore Security Rules (Production)', () => {
                     toUserId: 'user1-id',
                     amount: 50,
                     currency: 'USD',
-                    memberIds: ['user1-id', 'user2-id'],  // Critical: memberIds controls access
+                    memberIds: ['user1-id', 'user2-id'], // Critical: memberIds controls access
                     createdAt: new Date(),
-                    updatedAt: new Date()
+                    updatedAt: new Date(),
                 });
             });
         });
@@ -202,7 +202,7 @@ describe('Firestore Security Rules (Production)', () => {
 
         it('should deny all client writes to settlements', async () => {
             const updateData = {
-                amount: 75
+                amount: 75,
             };
 
             // No clients can write settlements
@@ -224,13 +224,13 @@ describe('Firestore Security Rules (Production)', () => {
                 await setDoc(doc(db, 'groups', groupId), {
                     name: 'Group with Comments',
                     memberIds: ['user1-id', 'user2-id'],
-                    createdAt: new Date()
+                    createdAt: new Date(),
                 });
 
                 await setDoc(doc(db, 'groups', groupId, 'comments', groupCommentId), {
                     text: 'A group comment',
                     userId: 'user1-id',
-                    createdAt: new Date()
+                    createdAt: new Date(),
                 });
 
                 // Create expense with comments
@@ -238,13 +238,13 @@ describe('Firestore Security Rules (Production)', () => {
                     description: 'Expense with Comments',
                     memberIds: ['user1-id', 'user2-id'],
                     amount: 100,
-                    createdAt: new Date()
+                    createdAt: new Date(),
                 });
 
                 await setDoc(doc(db, 'expenses', expenseId, 'comments', expenseCommentId), {
                     text: 'An expense comment',
                     userId: 'user1-id',
-                    createdAt: new Date()
+                    createdAt: new Date(),
                 });
             });
         });
@@ -269,7 +269,7 @@ describe('Firestore Security Rules (Production)', () => {
             const newComment = {
                 text: 'New comment',
                 userId: 'user1-id',
-                createdAt: new Date()
+                createdAt: new Date(),
             };
 
             // No clients can write comments directly
@@ -289,16 +289,16 @@ describe('Firestore Security Rules (Production)', () => {
                     groups: {
                         'test-group-1': {
                             lastTransactionChange: new Date(),
-                            transactionChangeCount: 5
-                        }
+                            transactionChangeCount: 5,
+                        },
                     },
-                    lastModified: new Date()
+                    lastModified: new Date(),
                 });
 
                 await setDoc(doc(db, 'user-notifications', 'user2-id'), {
                     changeVersion: 1,
                     groups: {},
-                    lastModified: new Date()
+                    lastModified: new Date(),
                 });
             });
         });
@@ -321,7 +321,7 @@ describe('Firestore Security Rules (Production)', () => {
 
         it('should deny all client writes to notifications', async () => {
             const updateData = {
-                changeVersion: 2
+                changeVersion: 2,
             };
 
             // Users cannot write to their own notifications
@@ -340,8 +340,8 @@ describe('Firestore Security Rules (Production)', () => {
                 await setDoc(doc(db, 'transaction-changes', changeId), {
                     groupId: 'test-group-1',
                     type: 'expense',
-                    users: ['user1-id', 'user2-id'],  // Controls who can read this change
-                    createdAt: new Date()
+                    users: ['user1-id', 'user2-id'], // Controls who can read this change
+                    createdAt: new Date(),
                 });
             });
         });
@@ -372,7 +372,7 @@ describe('Firestore Security Rules (Production)', () => {
                     type: 'privacy',
                     version: '1.0.0',
                     content: 'Privacy policy content...',
-                    createdAt: new Date()
+                    createdAt: new Date(),
                 });
             });
         });
@@ -390,7 +390,7 @@ describe('Firestore Security Rules (Production)', () => {
 
         it('should deny all client writes to policies', async () => {
             const updateData = {
-                version: '2.0.0'
+                version: '2.0.0',
             };
 
             // No clients can write policies
@@ -410,9 +410,9 @@ describe('Firestore Security Rules (Production)', () => {
                     groupId: groupId,
                     balances: {
                         'user1-id': { USD: 50 },
-                        'user2-id': { USD: -50 }
+                        'user2-id': { USD: -50 },
                     },
-                    lastUpdated: new Date()
+                    lastUpdated: new Date(),
                 });
             });
         });
@@ -426,7 +426,7 @@ describe('Firestore Security Rules (Production)', () => {
 
         it('should deny all client writes to group balances', async () => {
             const updateData = {
-                lastUpdated: new Date()
+                lastUpdated: new Date(),
             };
 
             // No clients can write balances
@@ -448,7 +448,7 @@ describe('Firestore Security Rules (Production)', () => {
                 (error) => {
                     // Should not error for authenticated users
                     expect(error).toBeUndefined();
-                }
+                },
             );
 
             // Clean up
@@ -466,7 +466,7 @@ describe('Firestore Security Rules (Production)', () => {
                 (error) => {
                     // Should not error for own notifications
                     expect(error).toBeUndefined();
-                }
+                },
             );
 
             // Clean up
@@ -479,7 +479,7 @@ describe('Firestore Security Rules (Production)', () => {
             const userData = {
                 email: 'user1@example.com',
                 displayName: 'User One',
-                role: 'user'
+                role: 'user',
             };
 
             // User should be able to write to their own document
@@ -494,7 +494,7 @@ describe('Firestore Security Rules (Production)', () => {
                 const userData = {
                     email: 'other@example.com',
                     displayName: 'Other User',
-                    role: 'user'
+                    role: 'user',
                 };
                 await setDoc(doc(context.firestore(), 'users', 'other-user-id'), userData);
             });
@@ -512,8 +512,8 @@ describe('Firestore Security Rules (Production)', () => {
                 // Create a group with empty memberIds
                 await setDoc(doc(db, 'groups', 'empty-members-group'), {
                     name: 'Empty Members Group',
-                    memberIds: [],  // Empty array
-                    createdAt: new Date()
+                    memberIds: [], // Empty array
+                    createdAt: new Date(),
                 });
             });
 
@@ -529,7 +529,7 @@ describe('Firestore Security Rules (Production)', () => {
                 // Create a group without memberIds field
                 await setDoc(doc(db, 'groups', 'no-members-field'), {
                     name: 'No Members Field Group',
-                    createdAt: new Date()
+                    createdAt: new Date(),
                     // memberIds is missing
                 });
             });

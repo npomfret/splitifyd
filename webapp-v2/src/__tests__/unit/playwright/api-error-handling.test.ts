@@ -1,11 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    setupTestPage,
-    setupAuthenticatedUserWithToken,
-
-
-
-} from '../infra/test-helpers';
+import { setupTestPage, setupAuthenticatedUserWithToken } from '../infra/test-helpers';
 
 /**
  * Unit tests for API error handling and error message display
@@ -19,43 +13,43 @@ test.describe('API Error Handling', () => {
         networkError: {
             status: 0,
             message: 'Network error - please check your connection',
-            type: 'network'
+            type: 'network',
         },
         badRequest: {
             status: 400,
             message: 'Invalid request data',
-            body: { error: 'Validation failed', details: 'Missing required fields' }
+            body: { error: 'Validation failed', details: 'Missing required fields' },
         },
         unauthorized: {
             status: 401,
             message: 'Authentication required',
-            body: { error: 'Unauthorized access' }
+            body: { error: 'Unauthorized access' },
         },
         forbidden: {
             status: 403,
             message: 'Access denied',
-            body: { error: 'Insufficient permissions' }
+            body: { error: 'Insufficient permissions' },
         },
         notFound: {
             status: 404,
             message: 'Resource not found',
-            body: { error: 'Group not found' }
+            body: { error: 'Group not found' },
         },
         conflict: {
             status: 409,
             message: 'Conflict occurred',
-            body: { error: 'Resource already exists' }
+            body: { error: 'Resource already exists' },
         },
         serverError: {
             status: 500,
             message: 'Server error - please try again later',
-            body: { error: 'Internal server error' }
+            body: { error: 'Internal server error' },
         },
         timeout: {
             status: 408,
             message: 'Request timeout - please try again',
-            body: { error: 'Request timed out' }
-        }
+            body: { error: 'Request timed out' },
+        },
     };
 
     async function mockErrorAPI(page: any, scenario: keyof typeof errorScenarios, endpoint: string = '**/api/**') {
@@ -93,52 +87,57 @@ test.describe('API Error Handling', () => {
                 .btn-primary { background: #3b82f6; color: white; }
                 .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
                 .retry-button { background: #f59e0b; color: white; }
-            `
+            `,
         });
 
         await page.evaluate(() => {
-            const errorHTML = '<div class="error-container">' +
+            const errorHTML =
+                '<div class="error-container">' +
                 '<h2>Error Handling Tests</h2>' +
                 '<div class="form-section">' +
-                    '<h3>Test Form</h3>' +
-                    '<form id="test-form">' +
-                        '<div class="form-group">' +
-                            '<label for="test-input">Test Input</label>' +
-                            '<input type="text" id="test-input" placeholder="Enter test data" />' +
-                        '</div>' +
-                        '<div class="button-group">' +
-                            '<button type="submit" id="submit-btn" class="btn btn-primary">Submit</button>' +
-                            '<button type="button" id="retry-btn" class="btn retry-button" style="display:none;">Retry</button>' +
-                        '</div>' +
-                    '</form>' +
+                '<h3>Test Form</h3>' +
+                '<form id="test-form">' +
+                '<div class="form-group">' +
+                '<label for="test-input">Test Input</label>' +
+                '<input type="text" id="test-input" placeholder="Enter test data" />' +
+                '</div>' +
+                '<div class="button-group">' +
+                '<button type="submit" id="submit-btn" class="btn btn-primary">Submit</button>' +
+                '<button type="button" id="retry-btn" class="btn retry-button" style="display:none;">Retry</button>' +
+                '</div>' +
+                '</form>' +
                 '</div>' +
                 '<div id="message-container">' +
-                    '<!-- Error messages will appear here -->' +
+                '<!-- Error messages will appear here -->' +
                 '</div>' +
                 '<div class="form-section">' +
-                    '<h3>Error Trigger Buttons</h3>' +
-                    '<button type="button" id="trigger-400" class="btn">Trigger 400 Error</button>' +
-                    '<button type="button" id="trigger-401" class="btn">Trigger 401 Error</button>' +
-                    '<button type="button" id="trigger-404" class="btn">Trigger 404 Error</button>' +
-                    '<button type="button" id="trigger-500" class="btn">Trigger 500 Error</button>' +
-                    '<button type="button" id="trigger-network" class="btn">Trigger Network Error</button>' +
+                '<h3>Error Trigger Buttons</h3>' +
+                '<button type="button" id="trigger-400" class="btn">Trigger 400 Error</button>' +
+                '<button type="button" id="trigger-401" class="btn">Trigger 401 Error</button>' +
+                '<button type="button" id="trigger-404" class="btn">Trigger 404 Error</button>' +
+                '<button type="button" id="trigger-500" class="btn">Trigger 500 Error</button>' +
+                '<button type="button" id="trigger-network" class="btn">Trigger Network Error</button>' +
                 '</div>' +
-            '</div>';
+                '</div>';
             document.body.insertAdjacentHTML('beforeend', errorHTML);
 
             // Add error display functions
-            window.showError = function(message, details) {
+            window.showError = function (message, details) {
                 const container = document.getElementById('message-container');
                 if (!container) return;
-                container.innerHTML = '<div class="error-message" id="error-display">' +
+                container.innerHTML =
+                    '<div class="error-message" id="error-display">' +
                     '<div class="error-heading">Something went wrong</div>' +
-                    '<div class="error-details">' + message + (details ? ' - ' + details : '') + '</div>' +
+                    '<div class="error-details">' +
+                    message +
+                    (details ? ' - ' + details : '') +
+                    '</div>' +
                     '</div>';
                 const retryBtn = document.getElementById('retry-btn');
                 if (retryBtn) retryBtn.style.display = 'inline-block';
             };
 
-            window.showSuccess = function(message) {
+            window.showSuccess = function (message) {
                 const container = document.getElementById('message-container');
                 if (!container) return;
                 container.innerHTML = '<div class="success-message" id="success-display">' + message + '</div>';
@@ -146,13 +145,13 @@ test.describe('API Error Handling', () => {
                 if (retryBtn) retryBtn.style.display = 'none';
             };
 
-            window.showLoading = function() {
+            window.showLoading = function () {
                 const container = document.getElementById('message-container');
                 if (!container) return;
                 container.innerHTML = '<div class="loading-message" id="loading-display">Processing request...</div>';
             };
 
-            window.clearMessages = function() {
+            window.clearMessages = function () {
                 const container = document.getElementById('message-container');
                 const retryBtn = document.getElementById('retry-btn');
                 if (container) container.innerHTML = '';
@@ -165,7 +164,7 @@ test.describe('API Error Handling', () => {
         authToken = {
             idToken: 'mock-id-token-' + Date.now(),
             localId: 'test-user-id-' + Date.now(),
-            refreshToken: 'mock-refresh-token-' + Date.now()
+            refreshToken: 'mock-refresh-token-' + Date.now(),
         };
     });
 
@@ -311,7 +310,6 @@ test.describe('API Error Handling', () => {
             }, 500);
         });
 
-
         const successMessage = page.locator('#success-display');
         await expect(successMessage).toBeVisible();
         await expect(successMessage).toContainText('completed successfully');
@@ -327,7 +325,8 @@ test.describe('API Error Handling', () => {
         // Create simple test elements and error display functionality
         await page.evaluate(() => {
             // Create form elements
-            const formHTML = '<div id="test-form-container">' +
+            const formHTML =
+                '<div id="test-form-container">' +
                 '<input type="text" id="test-input" placeholder="Enter test data" />' +
                 '<button type="submit" id="submit-btn">Submit</button>' +
                 '<div id="message-container"></div>' +
@@ -335,16 +334,20 @@ test.describe('API Error Handling', () => {
             document.body.insertAdjacentHTML('beforeend', formHTML);
 
             // Add error display function
-            window.showError = function(message, details) {
+            window.showError = function (message, details) {
                 const container = document.getElementById('message-container');
                 if (!container) return;
-                container.innerHTML = '<div class="error-message" id="error-display" style="color: red; padding: 10px; border: 1px solid red;">' +
+                container.innerHTML =
+                    '<div class="error-message" id="error-display" style="color: red; padding: 10px; border: 1px solid red;">' +
                     '<div class="error-heading">Something went wrong</div>' +
-                    '<div class="error-details">' + message + (details ? ' - ' + details : '') + '</div>' +
+                    '<div class="error-details">' +
+                    message +
+                    (details ? ' - ' + details : '') +
+                    '</div>' +
                     '</div>';
             };
 
-            window.clearMessages = function() {
+            window.clearMessages = function () {
                 const container = document.getElementById('message-container');
                 if (container) container.innerHTML = '';
             };
@@ -402,7 +405,6 @@ test.describe('API Error Handling', () => {
                 window.showSuccess('Request succeeded on retry');
             }, 300);
         });
-
 
         const successMessage = page.locator('#success-display');
         await expect(successMessage).toBeVisible();
@@ -481,7 +483,6 @@ test.describe('API Error Handling', () => {
                 window.showError('Multiple errors occurred', 'Several requests failed simultaneously');
             }, 100);
         });
-
 
         const errorMessage = page.locator('#error-display');
         await expect(errorMessage).toBeVisible();

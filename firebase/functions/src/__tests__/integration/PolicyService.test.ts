@@ -68,5 +68,4 @@ describe('PolicyService - Integration Tests (Essential Firebase Operations Only)
             expect(updatedPolicy.currentVersionHash).toBe(updateResult.currentVersionHash);
         });
     });
-
 });
