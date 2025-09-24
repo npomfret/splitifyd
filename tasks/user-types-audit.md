@@ -10,49 +10,36 @@ This document outlines the key findings and proposes a phased refactoring plan t
 
 The audit identified multiple, slightly different definitions for the same core concepts of a "user" and a "group member".
 
-### Finding 1: Redundant Core User Types
+### Finding 1: Redundant Core User Types (Partially Resolved)
 
-The concept of a "user profile" is defined in at least four different places with minor variations:
+The concept of a "user profile" was previously defined in at least four different places with minor variations. Phase 1 of the refactoring has addressed most of this duplication:
 
-- **`@splitifyd/shared`**: `RegisteredUser` - The intended canonical type for a user's Firestore document.
-- **`firebase/functions/src/services/UserService2.ts`**: `UserProfile` - An internal, slightly different representation used only within this service.
-- **`webapp-v2/src/types/auth.ts`**: `User` - The type used by the frontend authentication store, again with minor differences.
-- **`firebase/functions/src/auth/middleware.ts`**: An anonymous type on `AuthenticatedRequest['user']` which is another variation.
+- **`@splitifyd/shared`**: `RegisteredUser` - Now firmly established as the canonical type for a user's Firestore document.
+- **`firebase/functions/src/services/UserService2.ts`**: The internal `UserProfile` interface has been successfully removed, and the service now uses the shared `RegisteredUser` type.
+- **`webapp-v2/src/types/auth.ts`**: The local `User` type has been replaced with `ClientUser` from the shared package. However, the `auth.ts` file itself is now largely redundant.
+- **`firebase/functions/src/auth/middleware.ts`**: The anonymous type on `AuthenticatedRequest['user']` has been replaced with the lean `AuthenticatedUser` type from the shared package.
 
-This duplication forces constant mapping between layers and makes it difficult to maintain a consistent data model.
+While the core duplication is resolved, there is still an opportunity to clean up the remaining type definition file in `webapp-v2`.
 
-### Finding 2: Inconsistent Property Naming
+### Finding 2: Inconsistent Property Naming (Mostly Resolved)
 
-- **`uid` vs. `userId`**: The unique identifier for a user is inconsistently named across different interfaces. While the `UserId` branded type provides type safety, the property name itself should be standardized. `uid` is the standard from Firebase Auth.
+- **`uid` vs. `userId`**: The unique identifier for a user is now consistently named `uid` across most new and refactored interfaces, aligning with the Firebase Auth standard. The `UserId` branded type is used for type safety. A full audit to eliminate any remaining instances of `userId` is still recommended as part of the final cleanup phase.
 
 ### Finding 3: Over-exposure of Data in API Responses
 
-- The `getGroupMembersResponseFromSubcollection` method in `UserService2.ts` returns an array of `GroupMemberWithProfile` objects. This type extends the full `RegisteredUser` Firestore model, meaning sensitive or unnecessary data (like `acceptedPolicies`, `termsAcceptedAt`, etc.) is exposed to the client when simply listing group members.
+- The `getGroupMembersResponseFromSubcollection` method in `UserService2.ts` still returns an array of `GroupMemberWithProfile` objects. This type extends the full `RegisteredUser` Firestore model, meaning sensitive or unnecessary data (like `acceptedPolicies`, `termsAcceptedAt`, etc.) is exposed to the client when simply listing group members. This is the primary focus of **Phase 2**.
 
-### Finding 4: Lack of a Single Source of Truth
+### Finding 4: Lack of a Single Source of Truth (Resolved)
 
-- Although `@splitifyd/shared` is the designated location for shared types, services and frontend stores often define their own local versions, which have drifted over time. `UserService2.ts` and `webapp-v2/src/types/auth.ts` are the primary examples.
+- The previous issue of services and frontend stores defining their own local versions of user types has been resolved. `@splitifyd/shared` is now the definitive source of truth for all user-related types.
 
 ## 3. Refactoring & Unification Plan
 
 To address these issues, a phased refactoring approach is recommended.
 
-### Phase 1: Unify the Core `User` Type
+### Phase 1: Unify the Core `User` Type (COMPLETED)
 
-The highest priority is to establish a single, canonical representation for a user's profile.
-
-1.  **Establish `RegisteredUser` as the Source of Truth**: The `RegisteredUser` interface in `@splitifyd/shared/src/shared-types.ts` will be the definitive type for a user's full profile data, representing the Firestore document.
-
-2.  **Refactor `UserService2.ts`**:
-    - Remove the internal `UserProfile` interface.
-    - Update all methods (`getUser`, `getUsers`, `updateProfile`, etc.) to use and return the `RegisteredUser` type from the shared package.
-
-3.  **Refactor `webapp-v2` Auth Store**:
-    - Remove the local `User` type definition in `webapp-v2/src/types/auth.ts`.
-    - Update the `auth-store` to use the `RegisteredUser` type from the shared package for its user state.
-
-4.  **Standardize Authenticated Request**:
-    - Update the `AuthenticatedRequest` interface in `firebase/functions/src/auth/middleware.ts` so that the `user` property is of type `RegisteredUser`.
+This phase has been successfully implemented, establishing `RegisteredUser` as the canonical user type.
 
 ### Phase 2: Introduce Lean Data Transfer Objects (DTOs)
 
@@ -60,23 +47,26 @@ To prevent over-exposing data, we will create specific DTOs for API responses.
 
 1.  **Create `GroupMemberDTO`**:
     - In `@splitifyd/shared/src/shared-types.ts`, define a new `GroupMemberDTO` interface.
-    - This DTO will contain only the fields necessary for displaying a user in a group list: `uid`, `displayName`, `email`, `photoURL`, `initials`, `themeColor`, and `memberRole`.
+    - This DTO will contain only the fields necessary for displaying a user in a group list: `uid`, `displayName`, `email`, `photoURL`, `initials`, and `themeColor`.
 
 2.  **Update `UserService2.ts`**:
     - Modify the `getGroupMembersResponseFromSubcollection` method.
     - Instead of returning `GroupMemberWithProfile[]`, it will now fetch the necessary data and map it to the new `GroupMemberDTO[]`, returning only the essential fields to the client.
 
 3.  **Update Frontend Components**:
-    - Refactor components in `webapp-v2` that consume the group members list (e.g., `MembersList.tsx`) to use the new `GroupMemberDTO` type.
+    - Refactor components in `webapp-v2` that consume the group members list (e.g., `MembersList.tsx`) to use the new `GroupMemberDTO` type. This will improve frontend performance and reduce data over-fetching.
 
-### Phase 3: Standardize on `uid` and Clean Up
+### Phase 3: Standardize and Clean Up
 
 1.  **Standardize `uid`**:
-    - Audit all user-related interfaces and ensure the property for the user's unique identifier is consistently named `uid`.
+    - Audit all remaining user-related interfaces and ensure the property for the user's unique identifier is consistently named `uid`.
     - Continue to use the `UserId` branded type for this property.
 
 2.  **Refactor Test Data Builders**:
     - Update `UserProfileBuilder` and any other test data builders to use and generate objects conforming to the new unified `RegisteredUser` and `GroupMemberDTO` types. This will ensure that tests are aligned with the new, stricter data models.
+
+3.  **Remove Redundant Type Files**:
+    - Delete the `webapp-v2/src/types/auth.ts` file and update all imports to point directly to `@splitifyd/shared`.
 
 ## 4. Implementation Status
 
