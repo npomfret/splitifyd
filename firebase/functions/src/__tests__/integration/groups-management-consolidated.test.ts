@@ -23,7 +23,7 @@ describe('Groups Management - Consolidated Tests', () => {
 
     describe('Group Creation and Basic Operations', () => {
         // NOTE: Group creation business logic (validation, default settings, permissions)
-        // is now comprehensively tested in unit tests: GroupService.unit.test.ts
+        // is now comprehensively tested in unit tests: GroupService.test.ts
         // This integration test focuses only on API endpoint and Firebase Auth integration
         test('should create groups via API with proper authentication', async () => {
             const groupData = new CreateGroupRequestBuilder().withName(`Test Group ${uuidv4()}`).withDescription('A test group for API testing').build();
@@ -42,8 +42,7 @@ describe('Groups Management - Consolidated Tests', () => {
         });
 
         // NOTE: Group validation logic is now comprehensively tested in unit tests:
-        // firebase/functions/src/__tests__/unit/validation/group-validation.unit.test.ts
-        // This integration test focuses on Firebase Auth integration only
+        // GroupService.test.ts - This integration test focuses on Firebase Auth integration only
         test('should require authentication for group creation', async () => {
             await expect(apiDriver.createGroup({ name: 'Test' }, '')).rejects.toThrow(/401|unauthorized/i);
         });
@@ -169,7 +168,7 @@ describe('Groups Management - Consolidated Tests', () => {
             testGroup = await apiDriver.createGroupWithMembers(`Management Test Group ${generateShortId()}`, [users[0], users[1]], users[0].token);
         });
 
-        // NOTE: Group update business logic and authorization is now tested in unit tests
+        // NOTE: Group update business logic, validation, and authorization are now tested in unit tests: GroupService.test.ts
         // This integration test focuses on API endpoints and Firebase transaction behavior
         test('should handle group updates via API with transaction consistency', async () => {
             const updateData = {

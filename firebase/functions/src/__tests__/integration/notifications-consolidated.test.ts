@@ -68,6 +68,8 @@ describe('Notifications Management - Consolidated Tests', () => {
     });
 
     describe('Core Notification Document Operations', () => {
+        // NOTE: Notification business logic (batch updates, field mapping, validation) is now tested in unit tests: NotificationService.unit.test.ts
+        // This integration test focuses on real-time Firebase behavior and trigger integration
         test('should create and update notification documents for basic operations', async () => {
             // Set up listeners for all users before any operations
             const [user1Listener, user2Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
@@ -187,6 +189,8 @@ describe('Notifications Management - Consolidated Tests', () => {
     });
 
     describe('Multi-User Notification Distribution', () => {
+        // NOTE: Multi-user batch notification logic is now tested in unit tests: NotificationService.unit.test.ts
+        // This integration test focuses on real-time distribution behavior via Firebase
         test('should notify all group members when operations occur', async () => {
             // Set up listeners for all users before any operations
             const [user1Listener, user2Listener, user3Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid, user3.uid]);
