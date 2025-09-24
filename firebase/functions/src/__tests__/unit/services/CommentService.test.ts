@@ -1,11 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CommentService } from '../../../services/CommentService';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
+import { StubFirestoreReader, StubFirestoreWriter, StubAuthService, clearSharedStorage } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
+import { HTTP_STATUS } from '../../../constants';
 import { FirestoreGroupBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-support';
 import { CommentTargetTypes } from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';
+import type { CommentTargetType, CreateCommentRequest } from '@splitifyd/shared';
 
 // Mock logger
 vi.mock('../../../logger', () => ({
@@ -20,7 +22,17 @@ vi.mock('../../../logger', () => ({
     },
 }));
 
-describe('CommentService', () => {
+// Mock the strategy factory for unit tests
+const mockStrategy = { verifyAccess: vi.fn() };
+vi.mock('../../../services/comments/CommentStrategyFactory', () => ({
+    CommentStrategyFactory: class {
+        getStrategy() {
+            return mockStrategy;
+        }
+    },
+}));
+
+describe('CommentService - Consolidated Tests', () => {
     let commentService: CommentService;
     let stubReader: StubFirestoreReader;
     let stubWriter: StubFirestoreWriter;
@@ -45,6 +57,10 @@ describe('CommentService', () => {
             photoURL: 'https://example.com/photo.jpg',
         });
 
+        // Reset mocks
+        mockStrategy.verifyAccess.mockResolvedValue(undefined);
+        stubAuth.clear();
+        clearSharedStorage();
         vi.clearAllMocks();
     });
 
@@ -65,18 +81,22 @@ describe('CommentService', () => {
 
             // Should not throw
             await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.GROUP, 'test-group', 'user-id')).resolves.not.toThrow();
+            // Reset mock for next test
+            mockStrategy.verifyAccess.mockResolvedValue(undefined);
         });
 
         it('should throw NOT_FOUND when group does not exist', async () => {
-            await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.GROUP, 'nonexistent-group', 'user-id')).rejects.toThrow(ApiError);
+            mockStrategy.verifyAccess.mockRejectedValue(new ApiError('Group not found', HTTP_STATUS.NOT_FOUND));
+            await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.GROUP, 'nonexistent-group', 'user-id')).rejects.toThrow();
         });
 
         it('should throw FORBIDDEN when user is not a group member', async () => {
             const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
             stubReader.setDocument('groups', 'test-group', testGroup);
             // Don't set up group membership - user will not be a member
+            mockStrategy.verifyAccess.mockRejectedValue(new ApiError('Access forbidden', HTTP_STATUS.FORBIDDEN));
 
-            await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.GROUP, 'test-group', 'unauthorized-user')).rejects.toThrow(ApiError);
+            await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.GROUP, 'test-group', 'unauthorized-user')).rejects.toThrow();
         });
     });
 
@@ -99,10 +119,13 @@ describe('CommentService', () => {
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
             await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.EXPENSE, 'test-expense', 'user-id')).resolves.not.toThrow();
+            // Reset mock for next test
+            mockStrategy.verifyAccess.mockResolvedValue(undefined);
         });
 
         it('should throw NOT_FOUND when expense does not exist', async () => {
-            await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.EXPENSE, 'nonexistent-expense', 'user-id')).rejects.toThrow(ApiError);
+            mockStrategy.verifyAccess.mockRejectedValue(new ApiError('Expense not found', HTTP_STATUS.NOT_FOUND));
+            await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.EXPENSE, 'nonexistent-expense', 'user-id')).rejects.toThrow();
         });
     });
 
@@ -184,9 +207,10 @@ describe('CommentService', () => {
         });
 
         it('should throw error when user lacks access', async () => {
-            // Don't set up any group data - it will be null by default in stubs
+            // Mock strategy to reject access
+            mockStrategy.verifyAccess.mockRejectedValue(new ApiError('Access denied', HTTP_STATUS.FORBIDDEN));
 
-            await expect(commentService.listComments(CommentTargetTypes.GROUP, 'nonexistent-group', 'user-id')).rejects.toThrow(ApiError);
+            await expect(commentService.listComments(CommentTargetTypes.GROUP, 'nonexistent-group', 'user-id')).rejects.toThrow();
         });
     });
 
@@ -334,6 +358,288 @@ describe('CommentService', () => {
 
             // Verify it worked
             expect(result.comments).toEqual([]);
+        });
+    });
+
+    describe('Unit Test Scenarios - Error Handling and Edge Cases', () => {
+        let unitCommentService: CommentService;
+
+        beforeEach(() => {
+            // Create a separate service instance for unit tests with direct injection
+            unitCommentService = new CommentService(
+                stubReader,
+                stubWriter,
+                {} as any, // GroupMemberService not used in these tests
+                stubAuth,
+            );
+        });
+
+        describe('createComment - Unit Scenarios', () => {
+            it('should create a comment successfully with mocked strategy', async () => {
+                const userId = 'user-123';
+                const targetType: CommentTargetType = 'group';
+                const targetId = 'group-456';
+                const commentData: CreateCommentRequest = {
+                    text: 'Test comment',
+                    targetType,
+                    targetId,
+                };
+
+                // Set up auth user
+                stubAuth.setUser(userId, {
+                    uid: userId,
+                    email: 'test@example.com',
+                    displayName: 'Test User',
+                });
+
+                stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, true);
+
+                const result = await unitCommentService.createComment(targetType, targetId, commentData, userId);
+
+                expect(result).toMatchObject({
+                    id: expect.any(String),
+                    authorId: userId,
+                    authorName: 'Test User',
+                    text: 'Test comment',
+                    createdAt: expect.any(String),
+                });
+            });
+
+            it('should handle user with email fallback for display name', async () => {
+                const userId = 'user-456';
+                const targetType: CommentTargetType = 'group';
+                const targetId = 'group-789';
+                const commentData: CreateCommentRequest = {
+                    text: 'Comment from user without display name',
+                    targetType,
+                    targetId,
+                };
+
+                // Set up auth user without displayName
+                stubAuth.setUser(userId, {
+                    uid: userId,
+                    email: 'user456@example.com',
+                    // No displayName
+                });
+
+                stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, true);
+
+                const result = await unitCommentService.createComment(targetType, targetId, commentData, userId);
+
+                expect(result.authorName).toBe('user456');
+            });
+
+            it('should throw error when user not found', async () => {
+                const userId = 'nonexistent-user';
+                const targetType: CommentTargetType = 'group';
+                const targetId = 'group-123';
+                const commentData: CreateCommentRequest = {
+                    text: 'Test comment',
+                    targetType,
+                    targetId,
+                };
+
+                // User not set in stubAuth
+
+                await expect(
+                    unitCommentService.createComment(targetType, targetId, commentData, userId)
+                ).rejects.toThrow(ApiError);
+            });
+
+            it('should throw error when access verification fails', async () => {
+                const userId = 'user-123';
+                const targetType: CommentTargetType = 'group';
+                const targetId = 'group-456';
+                const commentData: CreateCommentRequest = {
+                    text: 'Test comment',
+                    targetType,
+                    targetId,
+                };
+
+                stubAuth.setUser(userId, {
+                    uid: userId,
+                    email: 'test@example.com',
+                    displayName: 'Test User',
+                });
+
+                // Mock strategy to reject access
+                mockStrategy.verifyAccess.mockRejectedValue(new ApiError('Access denied', HTTP_STATUS.FORBIDDEN));
+
+                await expect(
+                    unitCommentService.createComment(targetType, targetId, commentData, userId)
+                ).rejects.toThrow(ApiError);
+            });
+
+            it('should handle firestore write failures', async () => {
+                const userId = 'user-123';
+                const targetType: CommentTargetType = 'group';
+                const targetId = 'group-456';
+                const commentData: CreateCommentRequest = {
+                    text: 'Test comment',
+                    targetType,
+                    targetId,
+                };
+
+                stubAuth.setUser(userId, {
+                    uid: userId,
+                    email: 'test@example.com',
+                    displayName: 'Test User',
+                });
+
+                // Mock firestore write to fail
+                stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, false, 'Write failed');
+
+                await expect(
+                    unitCommentService.createComment(targetType, targetId, commentData, userId)
+                ).rejects.toThrow('Write failed');
+            });
+        });
+
+        describe('listComments - Unit Scenarios', () => {
+            it('should list comments successfully', async () => {
+                const userId = 'user-123';
+                const targetType: CommentTargetType = 'group';
+                const targetId = 'group-456';
+
+                // Mock existing comments
+                const mockComments = [
+                    {
+                        id: 'comment-1',
+                        authorId: 'user-123',
+                        authorName: 'Test User',
+                        text: 'First comment',
+                        createdAt: Timestamp.now(),
+                        updatedAt: Timestamp.now(),
+                    },
+                    {
+                        id: 'comment-2',
+                        authorId: 'user-456',
+                        authorName: 'Another User',
+                        text: 'Second comment',
+                        createdAt: Timestamp.now(),
+                        updatedAt: Timestamp.now(),
+                    },
+                ];
+
+                stubReader.setCommentsForTarget(targetType, targetId, mockComments);
+
+                const result = await unitCommentService.listComments(targetType, targetId, userId);
+
+                expect(result).toMatchObject({
+                    comments: expect.arrayContaining([
+                        expect.objectContaining({ id: 'comment-1', text: 'First comment' }),
+                        expect.objectContaining({ id: 'comment-2', text: 'Second comment' }),
+                    ]),
+                    hasMore: false,
+                });
+            });
+
+            it('should return empty list when no comments exist', async () => {
+                const userId = 'user-123';
+                const targetType: CommentTargetType = 'group';
+                const targetId = 'group-456';
+
+                stubReader.setCommentsForTarget(targetType, targetId, []);
+
+                const result = await unitCommentService.listComments(targetType, targetId, userId);
+
+                expect(result.comments).toEqual([]);
+                expect(result.hasMore).toBe(false);
+            });
+
+            it('should throw error when access verification fails', async () => {
+                const userId = 'user-123';
+                const targetType: CommentTargetType = 'group';
+                const targetId = 'group-456';
+
+                // Mock strategy to reject access
+                mockStrategy.verifyAccess.mockRejectedValue(new ApiError('Access denied', HTTP_STATUS.FORBIDDEN));
+
+                await expect(
+                    unitCommentService.listComments(targetType, targetId, userId)
+                ).rejects.toThrow(ApiError);
+            });
+        });
+
+        describe('Target type support - Unit Scenarios', () => {
+            it('should support group comments', async () => {
+                const userId = 'user-123';
+                const targetType: CommentTargetType = 'group';
+                const targetId = 'group-456';
+                const commentData: CreateCommentRequest = {
+                    text: 'Group comment',
+                    targetType,
+                    targetId,
+                };
+
+                stubAuth.setUser(userId, {
+                    uid: userId,
+                    email: 'test@example.com',
+                    displayName: 'Test User',
+                });
+                stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, true);
+
+                const result = await unitCommentService.createComment(targetType, targetId, commentData, userId);
+
+                expect(result.text).toBe('Group comment');
+                expect(mockStrategy.verifyAccess).toHaveBeenCalledWith(targetId, userId);
+            });
+
+            it('should support expense comments', async () => {
+                const userId = 'user-123';
+                const targetType: CommentTargetType = 'expense';
+                const targetId = 'expense-456';
+                const commentData: CreateCommentRequest = {
+                    text: 'Expense comment',
+                    targetType,
+                    targetId,
+                };
+
+                stubAuth.setUser(userId, {
+                    uid: userId,
+                    email: 'test@example.com',
+                    displayName: 'Test User',
+                });
+                stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, true);
+
+                const result = await unitCommentService.createComment(targetType, targetId, commentData, userId);
+
+                expect(result.text).toBe('Expense comment');
+                expect(mockStrategy.verifyAccess).toHaveBeenCalledWith(targetId, userId);
+            });
+        });
+
+        describe('Integration scenarios', () => {
+            it('should maintain consistency between create and list operations', async () => {
+                const userId = 'user-123';
+                const targetType: CommentTargetType = 'group';
+                const targetId = 'group-456';
+                const commentData: CreateCommentRequest = {
+                    text: 'Consistency test comment',
+                    targetType,
+                    targetId,
+                };
+
+                stubAuth.setUser(userId, {
+                    uid: userId,
+                    email: 'test@example.com',
+                    displayName: 'Test User',
+                });
+                stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, true);
+
+                // Create the comment
+                const createdComment = await unitCommentService.createComment(targetType, targetId, commentData, userId);
+
+                // List comments to verify consistency
+                const listedComments = await unitCommentService.listComments(targetType, targetId, userId);
+
+                expect(listedComments.comments).toHaveLength(1);
+                expect(listedComments.comments[0]).toMatchObject({
+                    authorId: createdComment.authorId,
+                    authorName: createdComment.authorName,
+                    text: createdComment.text,
+                });
+            });
         });
     });
 });

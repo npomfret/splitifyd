@@ -50,7 +50,7 @@ vi.mock('../../../expenses/validation', () => ({
     ),
 }));
 
-describe('ExpenseService - Unit Tests', () => {
+describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;
     let stubReader: StubFirestoreReader;
     let stubWriter: StubFirestoreWriter;
@@ -612,6 +612,193 @@ describe('ExpenseService - Unit Tests', () => {
 
             // Act & Assert
             await expect(expenseService.getExpense(expenseId, userId)).rejects.toThrow('Database connection failed');
+        });
+    });
+
+    describe('Focused Access Control Scenarios', () => {
+        it('should allow participants to access expense (focused)', async () => {
+            // Arrange
+            const participantId = 'participant-user';
+            const expenseId = 'test-expense';
+
+            const expenseData = {
+                id: expenseId,
+                groupId: 'test-group',
+                createdBy: participantId,
+                paidBy: participantId,
+                amount: 100,
+                currency: 'USD',
+                description: 'Test expense',
+                category: 'Food',
+                date: Timestamp.now(),
+                splitType: 'equal',
+                participants: [participantId],
+                splits: [{ userId: participantId, amount: 100 }],
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
+                deletedAt: null,
+                deletedBy: null,
+            };
+
+            stubReader.setDocument('expenses', expenseId, expenseData);
+
+            // Act
+            const result = await expenseService.getExpense(expenseId, participantId);
+
+            // Assert
+            expect(result).toBeDefined();
+            expect(result.id).toBe(expenseId);
+            expect(result.description).toBe('Test expense');
+        });
+
+        it('should deny access to non-participants (focused)', async () => {
+            // Arrange
+            const participantId = 'participant-user';
+            const outsiderId = 'outsider-user';
+            const expenseId = 'test-expense';
+
+            const expenseData = {
+                id: expenseId,
+                groupId: 'test-group',
+                createdBy: participantId,
+                paidBy: participantId,
+                amount: 100,
+                currency: 'USD',
+                description: 'Private expense',
+                category: 'Food',
+                date: Timestamp.now(),
+                splitType: 'equal',
+                participants: [participantId], // Only one participant
+                splits: [{ userId: participantId, amount: 100 }],
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
+                deletedAt: null,
+                deletedBy: null,
+            };
+
+            stubReader.setDocument('expenses', expenseId, expenseData);
+
+            // Act & Assert
+            await expect(expenseService.getExpense(expenseId, outsiderId)).rejects.toThrow(ApiError);
+        });
+
+        it('should handle soft-deleted expenses correctly (focused)', async () => {
+            // Arrange
+            const userId = 'test-user';
+            const expenseId = 'deleted-expense';
+
+            const deletedExpense = {
+                id: expenseId,
+                groupId: 'test-group',
+                createdBy: userId,
+                paidBy: userId,
+                amount: 100,
+                currency: 'USD',
+                description: 'Deleted expense',
+                category: 'Food',
+                date: Timestamp.now(),
+                splitType: 'equal',
+                participants: [userId],
+                splits: [{ userId, amount: 100 }],
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
+                deletedAt: Timestamp.now(), // Soft deleted
+                deletedBy: userId,
+            };
+
+            stubReader.setDocument('expenses', expenseId, deletedExpense);
+
+            // Act & Assert
+            await expect(expenseService.getExpense(expenseId, userId)).rejects.toThrow();
+        });
+    });
+
+    describe('Focused Data Transformation Scenarios', () => {
+        it('should transform expense data correctly (focused)', async () => {
+            // Arrange
+            const userId = 'test-user';
+            const expenseId = 'test-expense';
+            const now = Timestamp.now();
+
+            const expenseData = {
+                id: expenseId,
+                groupId: 'test-group',
+                createdBy: userId,
+                paidBy: userId,
+                amount: 100.5,
+                currency: 'USD',
+                description: 'Test expense',
+                category: 'Food',
+                date: now,
+                splitType: 'equal',
+                participants: [userId],
+                splits: [{ userId, amount: 100.5 }],
+                receiptUrl: 'https://example.com/receipt.jpg',
+                createdAt: now,
+                updatedAt: now,
+                deletedAt: null,
+                deletedBy: null,
+            };
+
+            stubReader.setDocument('expenses', expenseId, expenseData);
+
+            // Act
+            const result = await expenseService.getExpense(expenseId, userId);
+
+            // Assert
+            expect(result).toEqual({
+                id: expenseId,
+                groupId: 'test-group',
+                createdBy: userId,
+                paidBy: userId,
+                amount: 100.5,
+                currency: 'USD',
+                description: 'Test expense',
+                category: 'Food',
+                date: expect.any(String), // ISO string
+                splitType: 'equal',
+                participants: [userId],
+                splits: [{ userId, amount: 100.5 }],
+                receiptUrl: 'https://example.com/receipt.jpg',
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+                deletedAt: null,
+                deletedBy: null,
+            });
+        });
+
+        it('should handle expense without receipt URL (focused)', async () => {
+            // Arrange
+            const userId = 'test-user';
+            const expenseId = 'test-expense';
+
+            const expenseData = {
+                id: expenseId,
+                groupId: 'test-group',
+                createdBy: userId,
+                paidBy: userId,
+                amount: 100,
+                currency: 'USD',
+                description: 'Test expense',
+                category: 'Food',
+                date: Timestamp.now(),
+                splitType: 'equal',
+                participants: [userId],
+                splits: [{ userId, amount: 100 }],
+                // No receiptUrl
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
+                deletedAt: null,
+                deletedBy: null,
+            };
+
+            stubReader.setDocument('expenses', expenseId, expenseData);
+
+            // Act
+            const result = await expenseService.getExpense(expenseId, userId);
+
+            // Assert
+            expect(result.receiptUrl).toBeUndefined();
         });
     });
 });
