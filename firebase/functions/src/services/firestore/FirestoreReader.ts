@@ -4,6 +4,10 @@
  * Centralized service for all Firestore read operations with:
  * - Zod schema validation for type safety
  * - Consistent error handling and logging
+ *
+ * Note: This class implements IFirestoreReader interface which contains several
+ * deprecated methods. See individual method deprecation comments in the interface
+ * for migration guidance.
  */
 
 import type { Firestore, Transaction, DocumentReference } from 'firebase-admin/firestore';
