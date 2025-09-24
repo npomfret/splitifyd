@@ -1,7 +1,6 @@
-import { describe, it, expect, beforeEach, vi, type MockedFunction } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NotificationService, type ChangeType } from '../../../services/notification-service';
 import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
-import { FieldValue } from 'firebase-admin/firestore';
 
 // Mock logger
 vi.mock('firebase-functions', () => ({
