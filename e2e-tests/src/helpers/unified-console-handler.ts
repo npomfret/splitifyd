@@ -74,9 +74,10 @@ export class UnifiedConsoleHandler {
         const userSuffix = userEmail ? userEmail.replace(/\s+/g, '-') : `user-${userIndex}`;
         this.logFile = path.join(testDir, `${userSuffix}-console.log`);
 
-        // Ensure directory exists
-        if (!fs.existsSync(testDir)) {
-            fs.mkdirSync(testDir, { recursive: true });
+        // Ensure directory exists (including all parent directories)
+        const logDir = path.dirname(this.logFile);
+        if (!fs.existsSync(logDir)) {
+            fs.mkdirSync(logDir, { recursive: true });
         }
 
         // Initialize log file
