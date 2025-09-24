@@ -375,7 +375,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
             await testReverseTabOrder(page, expectedTabOrder);
         });
 
-        test('should submit form with Enter key from any input field', async ({ page }) => {
+        test('should not submit form when Enter key is pressed in input fields', async ({ page }) => {
             // Mock the register API endpoint
             await page.route('**/api/register', (route) => {
                 route.fulfill({
@@ -405,7 +405,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
             // Test Enter key submission from various input fields
             const inputFields = [SELECTORS.FULLNAME_INPUT, SELECTORS.EMAIL_INPUT, SELECTORS.PASSWORD_INPUT, SELECTORS.CONFIRM_PASSWORD_INPUT];
 
-            // Test only with one input field since pressing Enter will submit and navigate
+            // Test with one input field to verify Enter doesn't submit
             const inputField = inputFields[0];
 
             // Focus on input field

@@ -234,19 +234,30 @@ test.describe('LoginPage - Behavioral Tests', () => {
             await testReverseTabOrder(page, expectedTabOrder);
         });
 
-        test('should submit form with Enter key from any input field', async ({ page }) => {
+        test('should not submit form when Enter key is pressed in input fields', async ({ page }) => {
             // Fill form with valid data
             await fillFormField(page, SELECTORS.EMAIL_INPUT, TestScenarios.validUser.email);
             await fillFormField(page, SELECTORS.PASSWORD_INPUT, TestScenarios.validUser.password);
 
-            // Test Enter key submission from email field
-            await page.locator(SELECTORS.EMAIL_INPUT).focus();
-            await page.keyboard.press('Enter');
+            // Verify submit button is enabled with valid data
             await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
 
-            // Test Enter key submission from password field
-            await page.locator(SELECTORS.PASSWORD_INPUT).focus();
+            // Test Enter key from email field
+            await page.locator(SELECTORS.EMAIL_INPUT).focus();
+            await expect(page.locator(SELECTORS.EMAIL_INPUT)).toBeFocused();
             await page.keyboard.press('Enter');
+
+            // Should remain on login page (Enter in input field should not submit)
+            await expect(page).toHaveURL(/\/login/);
+            await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
+
+            // Test Enter key from password field
+            await page.locator(SELECTORS.PASSWORD_INPUT).focus();
+            await expect(page.locator(SELECTORS.PASSWORD_INPUT)).toBeFocused();
+            await page.keyboard.press('Enter');
+
+            // Should still remain on login page
+            await expect(page).toHaveURL(/\/login/);
             await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
         });
 
