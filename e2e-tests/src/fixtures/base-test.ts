@@ -1,7 +1,10 @@
 import { test as base } from '@playwright/test';
-import { attachConsoleHandler, attachApiInterceptor, ApiInterceptor } from '../helpers';
+import { attachApiInterceptor, attachConsoleHandler, ApiInterceptor } from '../helpers';
 
-// Extend base test to inject Playwright flag, i18n language setting, and unified console handling
+// Global counter for browser instances across all tests
+let globalBrowserIndex = 0;
+
+// Extend base test to inject Playwright flag, i18n language setting, and console handling
 export const baseTest = base.extend<{ apiInterceptor: ApiInterceptor }>({
     apiInterceptor: async ({ page }, use, testInfo) => {
         // Create the API interceptor
@@ -11,6 +14,9 @@ export const baseTest = base.extend<{ apiInterceptor: ApiInterceptor }>({
     },
 
     page: async ({ page }, use, testInfo) => {
+        // Assign unique browser index
+        const browserIndex = globalBrowserIndex++;
+
         // Inject __PLAYWRIGHT__ flag and i18n language setting before any page script executes.
         await page.addInitScript(() => {
             // This flag is used to disable heavy animations (like the Three.js globe)
@@ -23,21 +29,15 @@ export const baseTest = base.extend<{ apiInterceptor: ApiInterceptor }>({
             localStorage.setItem('i18nextLng', 'en');
         });
 
-        // Attach unified console handler for automatic error detection and logging
-        const consoleHandler = attachConsoleHandler(page, { testInfo });
-
-        // Attach API interceptor for request/response logging
-        const apiInterceptor = attachApiInterceptor(page, { testInfo });
+        // Attach console handler for automatic error detection and logging
+        const consoleHandler = attachConsoleHandler(page, { testInfo, userIndex: browserIndex });
 
         try {
             await use(page);
         } finally {
             // Process any errors that occurred during the test
             await consoleHandler.processErrors(testInfo);
-            await apiInterceptor.processLogs(testInfo);
-
             consoleHandler.dispose();
-            apiInterceptor.dispose();
         }
     },
 });

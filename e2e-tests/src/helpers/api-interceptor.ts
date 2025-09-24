@@ -57,8 +57,8 @@ export class ApiInterceptor {
 
         // Create log file path
         const testDir = testInfo?.outputDir || path.join(process.cwd(), 'e2e-tests', 'playwright-report', 'output');
-        const userSuffix = userEmail ? userEmail.replace(/\s+/g, '-') : `user-${userIndex}`;
-        this.logFile = path.join(testDir, `${userSuffix}-api.log`);
+        const browserSuffix = `browser-${userIndex + 1}`;
+        this.logFile = path.join(testDir, `${browserSuffix}-api.log`);
 
         // Ensure directory exists
         if (!fs.existsSync(testDir)) {
@@ -66,7 +66,7 @@ export class ApiInterceptor {
         }
 
         // Initialize log file
-        const header = `API requests/responses for ${userEmail || `User ${userIndex}`}\n`;
+        const header = `API requests/responses for Browser ${userIndex + 1}\n`;
         fs.writeFileSync(this.logFile, header, 'utf8');
     }
 

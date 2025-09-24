@@ -45,7 +45,7 @@ function getTestCommand(scriptType, packageName) {
             test: 'npm run test:unit && npm run test:integration',
             'test:unit': 'npm run build && jest src/__tests__/unit',
             'test:integration':
-                'npm run build && JAVA_TOOL_OPTIONS="-Xmx4g" PLAYWRIGHT_HTML_REPORT=playwright-report/integration PLAYWRIGHT_HTML_OPEN=never npx playwright test --workers=1 --project=chromium --reporter=html src/__tests__/integration',
+                'npm run build && JAVA_TOOL_OPTIONS="-Xmx4g" PLAYWRIGHT_HTML_REPORT=playwright-report/integration-report PLAYWRIGHT_TEST_OUTPUT_DIR=playwright-report/integration-output PLAYWRIGHT_HTML_OPEN=never npx playwright test --workers=1 --project=chromium --reporter=html src/__tests__/integration',
         },
         '@splitifyd/shared': {
             test: 'npm run test:unit && npm run test:integration',

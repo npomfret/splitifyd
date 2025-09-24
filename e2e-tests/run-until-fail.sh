@@ -18,11 +18,12 @@
 
 # edit these to pick your test cases
 TEST_FILE="src/__tests__/integration/expense-and-balance-lifecycle.e2e.test.ts"
-TEST_FILTER="should handle comprehensive multi-user settlement scenarios with real-time updates"
+TEST_FILTER="Copy Expense Feature"
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+E2E_TESTS_DIR="$SCRIPT_DIR"
 
 # Change to project root if we're not already there
 if [ "$(pwd)" != "$PROJECT_ROOT" ]; then
@@ -55,15 +56,15 @@ else
     echo "🖥️ Browser mode: HEADLESS (background execution, workers=$WORKERS)"
 fi
 
-# Clean up any existing screenshots in the ad-hoc folder
-rm -f e2e-tests/playwright-report/ad-hoc/*.png 2>/dev/null
+# Clean up any existing artifacts in the ad-hoc folders
+rm -rf "$E2E_TESTS_DIR/playwright-report/ad-hoc-report" "$E2E_TESTS_DIR/playwright-report/ad-hoc-output" 2>/dev/null
 
 echo "🚀 Starting repeated test runs for: $TEST_FILE"
 if [ -n "$TEST_FILTER" ]; then
     echo "🎯 Test filter: '$TEST_FILTER'"
 fi
-echo "📊 Results will be stored in: e2e-tests/playwright-report/ad-hoc/"
-echo "📸 Screenshots on failure: e2e-tests/playwright-report/ad-hoc/data/"
+echo "📊 HTML report will be stored in: $E2E_TESTS_DIR/playwright-report/ad-hoc-report/"
+echo "📸 Screenshots and artifacts: $E2E_TESTS_DIR/playwright-report/ad-hoc-output/"
 echo ""
 
 while [ $SUCCESS_COUNT -lt $MAX_SUCCESSES ]; do
@@ -77,9 +78,9 @@ while [ $SUCCESS_COUNT -lt $MAX_SUCCESSES ]; do
     
     # Run the test
     if [ -n "$TEST_FILTER" ]; then
-        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT=e2e-tests/playwright-report/ad-hoc npx playwright test -c e2e-tests/playwright.config.ts --workers=$WORKERS $HEADED_FLAG --project=chromium --reporter=html --trace on "$TEST_FILE" --grep "$TEST_FILTER"
+        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT="$E2E_TESTS_DIR/playwright-report/ad-hoc-report" PLAYWRIGHT_TEST_OUTPUT_DIR="$E2E_TESTS_DIR/playwright-report/ad-hoc-output" npx playwright test -c e2e-tests/playwright.config.ts --workers=$WORKERS $HEADED_FLAG --project=chromium --reporter=html --trace on "$TEST_FILE" --grep "$TEST_FILTER"
     else
-        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT=e2e-tests/playwright-report/ad-hoc npx playwright test -c e2e-tests/playwright.config.ts --workers=$WORKERS $HEADED_FLAG --project=chromium --reporter=html --trace on "$TEST_FILE"
+        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT="$E2E_TESTS_DIR/playwright-report/ad-hoc-report" PLAYWRIGHT_TEST_OUTPUT_DIR="$E2E_TESTS_DIR/playwright-report/ad-hoc-output" npx playwright test -c e2e-tests/playwright.config.ts --workers=$WORKERS $HEADED_FLAG --project=chromium --reporter=html --trace on "$TEST_FILE"
     fi
 
     # Check exit code
@@ -93,7 +94,7 @@ while [ $SUCCESS_COUNT -lt $MAX_SUCCESSES ]; do
         echo "🏁 Stopped at: $(date)"
         echo ""
         echo "To view the report and trace, run the following command:"
-        echo "open -a \"Google Chrome\" \"e2e-tests/playwright-report/ad-hoc/index.html\""
+        echo "open -a \"Google Chrome\" \"$E2E_TESTS_DIR/playwright-report/ad-hoc-report/index.html\""
         exit 1
     fi
     
@@ -111,7 +112,7 @@ while [ $SUCCESS_COUNT -lt $MAX_SUCCESSES ]; do
         echo "🏁 Stopped at: $(date)"
         echo ""
         echo "To view the report and trace of the last successful run, run the following command:"
-        echo "open -a \"Google Chrome\" \"e2e-tests/playwright-report/ad-hoc/index.html\""
+        echo "open -a \"Google Chrome\" \"$E2E_TESTS_DIR/playwright-report/ad-hoc-report/index.html\""
         exit 0
     fi
     

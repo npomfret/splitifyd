@@ -4,15 +4,15 @@ import { getUserPool } from './user-pool.fixture';
 import { AuthenticationWorkflow } from '../workflows';
 import { LoginPage, DashboardPage } from '../pages';
 import { PooledTestUser } from '@splitifyd/shared';
-import { attachConsoleHandler, attachApiInterceptor, ApiInterceptor } from '../helpers';
+import { attachApiInterceptor, attachScreenshotHandler, ApiInterceptor, ScreenshotHandler } from '../helpers';
 import { ApiDriver } from '@splitifyd/test-support';
 
 interface BrowserInstance {
     page: Page;
     context: BrowserContext;
     user?: PooledTestUser;
-    consoleHandler: ReturnType<typeof attachConsoleHandler>;
     apiInterceptor: ApiInterceptor;
+    screenshotHandler: ScreenshotHandler;
 }
 
 export interface SimpleTestFixtures {
@@ -49,12 +49,12 @@ export const simpleTest = baseTest.extend<SimpleTestFixtures>({
             const context = await browser.newContext();
             const page = await context.newPage();
 
-            // Set up console handling with user index
-            const userIndex = browserInstances.length; // Use current length as index for this user
-            const consoleHandler = attachConsoleHandler(page, { testInfo, userIndex });
-
             // Set up API interceptor
+            const userIndex = browserInstances.length; // Use current length as index for this user
             const apiInterceptor = attachApiInterceptor(page, { testInfo, userIndex });
+
+            // Set up screenshot handler
+            const screenshotHandler = attachScreenshotHandler(page, { testInfo, userIndex });
 
             // Navigate to login page
             const loginPage = new LoginPage(page);
@@ -64,8 +64,8 @@ export const simpleTest = baseTest.extend<SimpleTestFixtures>({
             const browserInstance: BrowserInstance = {
                 page,
                 context,
-                consoleHandler,
                 apiInterceptor,
+                screenshotHandler,
             };
             browserInstances.push(browserInstance);
 
@@ -78,11 +78,14 @@ export const simpleTest = baseTest.extend<SimpleTestFixtures>({
         await Promise.all(
             browserInstances.map(async (instance) => {
                 try {
-                    // Process any errors that occurred during the test
-                    await instance.consoleHandler.processErrors(testInfo);
+                    // Take error screenshot if test failed
+                    if (testInfo.status === 'failed' || testInfo.status === 'timedOut') {
+                        await instance.screenshotHandler.takeErrorScreenshot(testInfo);
+                    }
+
+                    // Process any logs that occurred during the test
                     await instance.apiInterceptor.processLogs(testInfo);
 
-                    instance.consoleHandler.dispose();
                     instance.apiInterceptor.dispose();
 
                     // Close context
@@ -120,18 +123,17 @@ export const simpleTest = baseTest.extend<SimpleTestFixtures>({
                 const context = await browser.newContext();
                 const page = await context.newPage();
 
-                // Set up console handling with user index
-                const userIndex = browserInstances.length + index; // Use current length + index for this user
-                const consoleHandler = attachConsoleHandler(page, { testInfo, userIndex });
-
                 // Set up API interceptor
+                const userIndex = browserInstances.length + index; // Use current length + index for this user
                 const apiInterceptor = attachApiInterceptor(page, { testInfo, userIndex });
+
+                // Set up screenshot handler
+                const screenshotHandler = attachScreenshotHandler(page, { testInfo, userIndex });
 
                 const authWorkflow = new AuthenticationWorkflow(page);
                 await authWorkflow.loginExistingUser(user);
 
-                // Update console handler and API interceptor with user email now that we have it
-                consoleHandler.updateUserInfo({ userEmail: user.email });
+                // Update API interceptor with user email now that we have it
                 apiInterceptor.updateUserInfo({ userEmail: user.email });
 
                 // Create dashboard page
@@ -145,8 +147,8 @@ export const simpleTest = baseTest.extend<SimpleTestFixtures>({
                     page,
                     context,
                     user,
-                    consoleHandler,
                     apiInterceptor,
+                    screenshotHandler,
                 };
 
                 const displayName = await dashboardPage.header.getCurrentUserDisplayName();
@@ -173,11 +175,14 @@ export const simpleTest = baseTest.extend<SimpleTestFixtures>({
         await Promise.all(
             browserInstances.map(async (instance) => {
                 try {
-                    // Process any errors that occurred during the test
-                    await instance.consoleHandler.processErrors(testInfo);
+                    // Take error screenshot if test failed
+                    if (testInfo.status === 'failed' || testInfo.status === 'timedOut') {
+                        await instance.screenshotHandler.takeErrorScreenshot(testInfo);
+                    }
+
+                    // Process any logs that occurred during the test
                     await instance.apiInterceptor.processLogs(testInfo);
 
-                    instance.consoleHandler.dispose();
                     instance.apiInterceptor.dispose();
 
                     // Release user back to pool

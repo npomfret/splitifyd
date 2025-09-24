@@ -71,8 +71,8 @@ export class UnifiedConsoleHandler {
 
         // Create log file path
         const testDir = testInfo?.outputDir || path.join(process.cwd(), 'e2e-tests', 'playwright-report', 'output');
-        const userSuffix = userEmail ? userEmail.replace(/\s+/g, '-') : `user-${userIndex}`;
-        this.logFile = path.join(testDir, `${userSuffix}-console.log`);
+        const browserSuffix = `browser-${userIndex + 1}`;
+        this.logFile = path.join(testDir, `${browserSuffix}-console.log`);
 
         // Ensure directory exists (including all parent directories)
         const logDir = path.dirname(this.logFile);
@@ -81,7 +81,7 @@ export class UnifiedConsoleHandler {
         }
 
         // Initialize log file
-        const header = `Console logs for ${userEmail || `User ${userIndex}`}\n`;
+        const header = `Console logs for ${userEmail || `Browser ${userIndex + 1}`}\n`;
         fs.writeFileSync(this.logFile, header, 'utf8');
     }
 
@@ -167,7 +167,7 @@ export class UnifiedConsoleHandler {
 
         const parts = [];
         if (userInfo.userIndex !== undefined) {
-            parts.push(`User ${userInfo.userIndex + 1}`);
+            parts.push(`Browser ${userInfo.userIndex + 1}`);
         }
         if (userInfo.userEmail) {
             parts.push(`(${userInfo.userEmail})`);
