@@ -1,5 +1,5 @@
 import { Page, BrowserContext } from '@playwright/test';
-import { test as base } from './base-test';
+import { baseTest } from './base-test';
 import { getUserPool } from './user-pool.fixture';
 import { AuthenticationWorkflow } from '../workflows';
 import { LoginPage, DashboardPage } from '../pages';
@@ -40,7 +40,7 @@ export interface SimpleTestFixtures {
 
 const apiDriver = new ApiDriver();
 
-export const simpleTest = base.extend<SimpleTestFixtures>({
+export const simpleTest = baseTest.extend<SimpleTestFixtures>({
     newEmptyBrowser: async ({ browser }, use, testInfo) => {
         const browserInstances: BrowserInstance[] = [];
 

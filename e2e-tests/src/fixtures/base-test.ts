@@ -2,7 +2,7 @@ import { test as base } from '@playwright/test';
 import { attachConsoleHandler, attachApiInterceptor, ApiInterceptor } from '../helpers';
 
 // Extend base test to inject Playwright flag, i18n language setting, and unified console handling
-export const test = base.extend<{ apiInterceptor: ApiInterceptor }>({
+export const baseTest = base.extend<{ apiInterceptor: ApiInterceptor }>({
     apiInterceptor: async ({ page }, use, testInfo) => {
         // Create the API interceptor
         const apiInterceptor = attachApiInterceptor(page, { testInfo });
