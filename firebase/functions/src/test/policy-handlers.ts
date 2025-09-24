@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import { logger } from '../logger';
-import { getFirestore } from '../firebase';
+import {getAuth, getFirestore} from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { getConfig } from '../client-config';
 import { FirestoreCollections, SystemUserRoles } from '@splitifyd/shared';
 
 const firestore = getFirestore();
-const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
 const authService = applicationBuilder.buildAuthService();
 
 /**

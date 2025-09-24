@@ -17,12 +17,11 @@ import {NotificationService} from './notification-service';
 import {IAuthService} from './auth';
 import {FirebaseAuthService} from './auth';
 import {getAuth} from '../firebase';
+import * as admin from "firebase-admin";
 
 export class ApplicationBuilder {
     // Base infrastructure - created once
     private validationService?: FirestoreValidationService;
-    private authService?: IAuthService;
-
     // Services - created lazily but cached
     private userService?: UserService;
     private groupService?: GroupService;
@@ -37,14 +36,19 @@ export class ApplicationBuilder {
     private expenseMetadataService?: ExpenseMetadataService;
     private notificationService?: NotificationService;
 
-    constructor(private firestoreReader: IFirestoreReader, private firestoreWriter: IFirestoreWriter,) {
+    constructor(private firestoreReader: IFirestoreReader, private firestoreWriter: IFirestoreWriter, private authService: IAuthService) {
     }
 
-    static createApplicationBuilder(firestore: Firestore) {
+    static createApplicationBuilder(firestore: Firestore, auth: admin.auth.Auth) {
         const firestoreReader = new FirestoreReader(firestore);
         const firestoreWriter = new FirestoreWriter(firestore);
+        const firebaseAuthService = new FirebaseAuthService(
+            auth,
+            true, // enableValidation
+            true, // enableMetrics
+        );
 
-        return new ApplicationBuilder(firestoreReader, firestoreWriter);
+        return new ApplicationBuilder(firestoreReader, firestoreWriter, firebaseAuthService);
     }
 
     // ========================================================================
@@ -189,13 +193,6 @@ export class ApplicationBuilder {
     }
 
     buildAuthService(): IAuthService {
-        if (!this.authService) {
-            this.authService = new FirebaseAuthService(
-                getAuth(),
-                true, // enableValidation
-                true, // enableMetrics
-            );
-        }
-        return this.authService!;
+        return this.authService;
     }
 }

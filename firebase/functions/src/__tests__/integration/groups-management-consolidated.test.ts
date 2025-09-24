@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, borrowTestUsers, generateShortId, NotificationDriver } from '@splitifyd/test-support';
 import { SecurityPresets, PooledTestUser, FirestoreCollections, MemberRoles, MemberStatuses } from '@splitifyd/shared';
-import { getFirestore } from '../../firebase';
+import {getAuth, getFirestore} from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreReader } from '../../services/firestore';
 import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
@@ -10,7 +10,7 @@ import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 describe('Groups Management - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();
     const notificationDriver = new NotificationDriver(getFirestore());
-    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore());
+    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth());
     const groupService = applicationBuilder.buildGroupService();
     const groupMemberService = applicationBuilder.buildGroupMemberService();
     const groupShareService = applicationBuilder.buildGroupShareService();

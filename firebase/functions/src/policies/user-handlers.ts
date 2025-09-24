@@ -3,11 +3,11 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 import { validateAcceptMultiplePolicies } from './validation';
-import { getFirestore } from '../firebase';
+import {getAuth, getFirestore} from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
-const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
 const userPolicyService = applicationBuilder.buildUserPolicyService();
 
 /**

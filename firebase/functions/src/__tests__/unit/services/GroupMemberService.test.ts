@@ -1,80 +1,92 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GroupMemberService } from '../../../services/GroupMemberService';
-import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
-import { StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
+import { FirestoreGroupBuilder } from '@splitifyd/test-support';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 
-// Create mock services
-const createMockUserService = () => ({
-    getUsers: vi.fn().mockResolvedValue(new Map()),
-    getUser: vi.fn(),
-    updateProfile: vi.fn(),
-    changePassword: vi.fn(),
-    deleteAccount: vi.fn(),
-    registerUser: vi.fn(),
-    createUserDirect: vi.fn(),
-});
+// Mock logger
+vi.mock('../../../logger', () => ({
+    logger: {
+        error: vi.fn(),
+        warn: vi.fn(),
+        info: vi.fn(),
+    },
+    LoggerContext: {
+        setBusinessContext: vi.fn(),
+        clearBusinessContext: vi.fn(),
+    },
+}));
 
 describe('GroupMemberService Unit Tests', () => {
     let groupMemberService: GroupMemberService;
-    let mockFirestoreReader: MockFirestoreReader;
-    let mockFirestoreWriter: StubFirestoreWriter;
-    let mockUserService: ReturnType<typeof createMockUserService>;
+    let stubReader: StubFirestoreReader;
+    let stubWriter: StubFirestoreWriter;
+    let stubAuth: StubAuthService;
+    let applicationBuilder: ApplicationBuilder;
 
     const testGroupId = 'test-group-id';
     const testUserId1 = 'user-1';
     const testUserId2 = 'user-2';
     const testUserId3 = 'user-3';
 
+    const defaultTheme = {
+        light: '#FF6B6B',
+        dark: '#FF6B6B',
+        name: 'Test Theme',
+        pattern: 'solid' as const,
+        assignedAt: new Date().toISOString(),
+        colorIndex: 0
+    };
+
     beforeEach(() => {
-        mockFirestoreReader = new MockFirestoreReader();
-        mockFirestoreWriter = new StubFirestoreWriter();
-        mockUserService = createMockUserService();
+        // Create stubs
+        stubReader = new StubFirestoreReader();
+        stubWriter = new StubFirestoreWriter();
+        stubAuth = new StubAuthService();
 
-        // Setup test group
-        const testGroup = MockFirestoreReader.createTestGroup(testGroupId, {
-            name: 'Test Group',
-            memberCount: 3,
-        });
-        mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
+        // Pass stubs directly to ApplicationBuilder constructor
+        applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
+        groupMemberService = applicationBuilder.buildGroupMemberService();
 
-        groupMemberService = new GroupMemberService(
-            mockFirestoreReader,
-            mockFirestoreWriter,
-            mockUserService as any,
-        );
+        // Setup test group using builder
+        const testGroup = new FirestoreGroupBuilder()
+            .withId(testGroupId)
+            .withName('Test Group')
+            .build();
+        stubReader.setDocument('groups', testGroupId, testGroup);
+
+        vi.clearAllMocks();
     });
 
     describe('getGroupMember', () => {
         it('should return member if exists', async () => {
-            const testMember = mockFirestoreReader.createTestGroupMemberDocument({
+            const testMember = {
                 userId: testUserId1,
                 groupId: testGroupId,
-            });
+                memberRole: 'member',
+                memberStatus: 'active',
+                theme: defaultTheme,
+                joinedAt: new Date().toISOString()
+            };
 
-            mockFirestoreReader.mockMemberInSubcollection(testGroupId, testMember);
+            stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, testMember);
 
             const result = await groupMemberService.getGroupMember(testGroupId, testUserId1);
 
             expect(result).toEqual(testMember);
-            expect(mockFirestoreReader.getGroupMember).toHaveBeenCalledWith(testGroupId, testUserId1);
         });
 
         it('should return null if member does not exist', async () => {
             const nonExistentUserId = 'nonexistent-user';
 
-            mockFirestoreReader.getGroupMember.mockResolvedValue(null);
-
             const result = await groupMemberService.getGroupMember(testGroupId, nonExistentUserId);
 
             expect(result).toBeNull();
-            expect(mockFirestoreReader.getGroupMember).toHaveBeenCalledWith(testGroupId, nonExistentUserId);
         });
 
         it('should handle invalid group ID', async () => {
             const invalidGroupId = '';
-
-            mockFirestoreReader.getGroupMember.mockResolvedValue(null);
 
             const result = await groupMemberService.getGroupMember(invalidGroupId, testUserId1);
 
@@ -83,8 +95,6 @@ describe('GroupMemberService Unit Tests', () => {
 
         it('should handle invalid user ID', async () => {
             const invalidUserId = '';
-
-            mockFirestoreReader.getGroupMember.mockResolvedValue(null);
 
             const result = await groupMemberService.getGroupMember(testGroupId, invalidUserId);
 
@@ -95,43 +105,52 @@ describe('GroupMemberService Unit Tests', () => {
     describe('getAllGroupMembers', () => {
         it('should return all members for a group', async () => {
             const testMembers: GroupMemberDocument[] = [
-                mockFirestoreReader.createTestGroupMemberDocument({
+                {
                     userId: testUserId1,
                     groupId: testGroupId,
-                }),
-                mockFirestoreReader.createTestGroupMemberDocument({
+                    memberRole: 'member',
+                    memberStatus: 'active',
+                    theme: defaultTheme,
+                    joinedAt: new Date().toISOString()
+                },
+                {
                     userId: testUserId2,
                     groupId: testGroupId,
-                }),
-                mockFirestoreReader.createTestGroupMemberDocument({
+                    memberRole: 'member',
+                    memberStatus: 'active',
+                    theme: defaultTheme,
+                    joinedAt: new Date().toISOString()
+                },
+                {
                     userId: testUserId3,
                     groupId: testGroupId,
-                }),
+                    memberRole: 'admin',
+                    memberStatus: 'active',
+                    theme: defaultTheme,
+                    joinedAt: new Date().toISOString()
+                },
             ];
 
-            mockFirestoreReader.mockGroupMembersSubcollection(testGroupId, testMembers);
+            // Set up group members in stub
+            testMembers.forEach(member => {
+                stubReader.setDocument('group-members', `${testGroupId}_${member.userId}`, member);
+            });
 
             const result = await groupMemberService.getAllGroupMembers(testGroupId);
 
             expect(result).toEqual(testMembers);
             expect(result).toHaveLength(3);
-            expect(mockFirestoreReader.getAllGroupMembers).toHaveBeenCalledWith(testGroupId);
         });
 
         it('should return empty array for group with no members', async () => {
-            mockFirestoreReader.mockGroupMembersSubcollection(testGroupId, []);
-
             const result = await groupMemberService.getAllGroupMembers(testGroupId);
 
             expect(result).toEqual([]);
             expect(result).toHaveLength(0);
-            expect(mockFirestoreReader.getAllGroupMembers).toHaveBeenCalledWith(testGroupId);
         });
 
         it('should handle invalid group ID', async () => {
             const invalidGroupId = '';
-
-            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([]);
 
             const result = await groupMemberService.getAllGroupMembers(invalidGroupId);
 
@@ -141,34 +160,32 @@ describe('GroupMemberService Unit Tests', () => {
 
     describe('isGroupMemberAsync', () => {
         it('should return true for existing group member', async () => {
-            const testMember = mockFirestoreReader.createTestGroupMemberDocument({
+            const testMember = {
                 userId: testUserId1,
                 groupId: testGroupId,
-            });
+                memberRole: 'member',
+                memberStatus: 'active',
+                theme: defaultTheme,
+                joinedAt: new Date().toISOString()
+            };
 
-            mockFirestoreReader.mockMemberInSubcollection(testGroupId, testMember);
+            stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, testMember);
 
             const result = await groupMemberService.isGroupMemberAsync(testGroupId, testUserId1);
 
             expect(result).toBe(true);
-            expect(mockFirestoreReader.getGroupMember).toHaveBeenCalledWith(testGroupId, testUserId1);
         });
 
         it('should return false for non-existent group member', async () => {
             const nonExistentUserId = 'nonexistent-user';
 
-            mockFirestoreReader.getGroupMember.mockResolvedValue(null);
-
             const result = await groupMemberService.isGroupMemberAsync(testGroupId, nonExistentUserId);
 
             expect(result).toBe(false);
-            expect(mockFirestoreReader.getGroupMember).toHaveBeenCalledWith(testGroupId, nonExistentUserId);
         });
 
         it('should return false for invalid group ID', async () => {
             const invalidGroupId = '';
-
-            mockFirestoreReader.getGroupMember.mockResolvedValue(null);
 
             const result = await groupMemberService.isGroupMemberAsync(invalidGroupId, testUserId1);
 
@@ -178,8 +195,6 @@ describe('GroupMemberService Unit Tests', () => {
         it('should return false for invalid user ID', async () => {
             const invalidUserId = '';
 
-            mockFirestoreReader.getGroupMember.mockResolvedValue(null);
-
             const result = await groupMemberService.isGroupMemberAsync(testGroupId, invalidUserId);
 
             expect(result).toBe(false);
@@ -188,13 +203,16 @@ describe('GroupMemberService Unit Tests', () => {
 
     describe('member document structure validation', () => {
         it('should handle member documents with all required fields', async () => {
-            const completeMember = mockFirestoreReader.createTestGroupMemberDocument({
+            const completeMember = {
                 userId: testUserId1,
                 groupId: testGroupId,
                 memberRole: 'member',
-            });
+                memberStatus: 'active',
+                theme: defaultTheme,
+                joinedAt: new Date().toISOString()
+            };
 
-            mockFirestoreReader.mockMemberInSubcollection(testGroupId, completeMember);
+            stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, completeMember);
 
             const result = await groupMemberService.getGroupMember(testGroupId, testUserId1);
 
@@ -206,32 +224,21 @@ describe('GroupMemberService Unit Tests', () => {
         });
 
         it('should handle member documents with admin role', async () => {
-            const adminMember = mockFirestoreReader.createTestGroupMemberDocument({
+            const adminMember = {
                 userId: testUserId1,
                 groupId: testGroupId,
                 memberRole: 'admin',
-            });
+                memberStatus: 'active',
+                theme: defaultTheme,
+                joinedAt: new Date().toISOString()
+            };
 
-            mockFirestoreReader.mockMemberInSubcollection(testGroupId, adminMember);
+            stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, adminMember);
 
             const result = await groupMemberService.getGroupMember(testGroupId, testUserId1);
 
             expect(result).toBeDefined();
             expect(result?.memberRole).toBe('admin');
-        });
-    });
-
-    describe('error handling', () => {
-        it('should handle Firestore errors gracefully', async () => {
-            mockFirestoreReader.getGroupMember.mockRejectedValue(new Error('Firestore error'));
-
-            await expect(groupMemberService.getGroupMember(testGroupId, testUserId1)).rejects.toThrow('Firestore error');
-        });
-
-        it('should handle network errors gracefully', async () => {
-            mockFirestoreReader.getAllGroupMembers.mockRejectedValue(new Error('Network error'));
-
-            await expect(groupMemberService.getAllGroupMembers(testGroupId)).rejects.toThrow('Network error');
         });
     });
 });

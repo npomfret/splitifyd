@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Errors, sendError } from '../utils/errors';
-import { getFirestore } from '../firebase';
+import {getAuth, getFirestore} from '../firebase';
 import { logger } from '../logger';
 import { AUTH } from '../constants';
 import { SystemUserRoles } from '@splitifyd/shared';
@@ -8,7 +8,7 @@ import { LoggerContext } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
-const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
 const firestoreReader = applicationBuilder.buildFirestoreReader();
 const authService = applicationBuilder.buildAuthService();
 

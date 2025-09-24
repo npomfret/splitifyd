@@ -7,10 +7,10 @@ import { applyCacheControl } from '../middleware/cache-control';
 import { LoggerContext } from '../logger';
 import { detectLanguageFromHeader, getTranslationFunction, initializeI18n, LocalizedRequest } from './i18n';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
-import { getFirestore } from '../firebase';
+import {getAuth, getFirestore} from '../firebase';
 
 // Initialize services
-const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore());
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth());
 const firestoreReader = applicationBuilder.buildFirestoreReader();
 
 /**

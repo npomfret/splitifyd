@@ -3,11 +3,11 @@ import { ApiError } from '../utils/errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { getFirestore } from '../firebase';
+import {getAuth, getFirestore} from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
-const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
 const groupShareService = applicationBuilder.buildGroupShareService();
 
 export async function generateShareableLink(req: AuthenticatedRequest, res: Response): Promise<void> {

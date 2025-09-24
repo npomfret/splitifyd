@@ -1,11 +1,11 @@
 import type { Request, Response } from 'express';
 import { TestUserPoolService } from './TestUserPoolService';
-import { getFirestore, isEmulator } from '../firebase';
+import {getAuth, getFirestore, isEmulator} from '../firebase';
 import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
-const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
 const firestoreReader = applicationBuilder.buildFirestoreReader();
 const firestoreWriter = applicationBuilder.buildFirestoreWriter();
 const userService = applicationBuilder.buildUserService();

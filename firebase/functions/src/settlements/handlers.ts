@@ -13,11 +13,11 @@ import {
     DeleteSettlementResponse,
     ListSettlementsApiResponse,
 } from '@splitifyd/shared';
-import { getFirestore } from '../firebase';
+import {getAuth, getFirestore} from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
-const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
 const settlementService = applicationBuilder.buildSettlementService();
 
 export const createSettlement = async (req: AuthenticatedRequest, res: Response): Promise<void> => {

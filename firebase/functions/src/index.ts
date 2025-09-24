@@ -40,7 +40,7 @@ let appBuilder: ApplicationBuilder | null = null;
 // Export function to get the initialized ApplicationBuilder
 export function getAppBuilder(): ApplicationBuilder {
     if (!appBuilder) {
-        appBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore());
+        appBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth());
     }
     return appBuilder;
 }

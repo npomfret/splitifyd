@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GroupShareService } from '../../../services/GroupShareService';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { FirestoreGroupBuilder } from '@splitifyd/test-support';
@@ -23,15 +23,17 @@ describe('GroupShareService', () => {
     let groupShareService: GroupShareService;
     let stubReader: StubFirestoreReader;
     let stubWriter: StubFirestoreWriter;
+    let stubAuth: StubAuthService;
     let applicationBuilder: ApplicationBuilder;
 
     beforeEach(() => {
         // Create stubs
         stubReader = new StubFirestoreReader();
         stubWriter = new StubFirestoreWriter();
+        stubAuth = new StubAuthService();
 
         // Pass stubs directly to ApplicationBuilder constructor
-        applicationBuilder = new ApplicationBuilder(stubReader, stubWriter);
+        applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
         groupShareService = applicationBuilder.buildGroupShareService();
 
         vi.clearAllMocks();

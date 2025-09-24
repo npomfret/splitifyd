@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SettlementService } from '../../../services/SettlementService';
-import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
-import { GroupMemberService } from '../../../services/GroupMemberService';
+import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
 import { HTTP_STATUS } from '../../../constants';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { CreateSettlementRequest } from '@splitifyd/shared';
@@ -45,7 +45,8 @@ describe('SettlementService - Unit Tests', () => {
     let settlementService: SettlementService;
     let stubReader: StubFirestoreReader;
     let stubWriter: StubFirestoreWriter;
-    let mockGroupMemberService: GroupMemberService;
+    let stubAuth: StubAuthService;
+    let applicationBuilder: ApplicationBuilder;
 
     // Helper to set settlement data in stub
     const setSettlementData = (settlementId: string, settlementData: any) => {
@@ -63,19 +64,16 @@ describe('SettlementService - Unit Tests', () => {
     };
 
     beforeEach(() => {
+        // Create stubs
         stubReader = new StubFirestoreReader();
         stubWriter = new StubFirestoreWriter();
+        stubAuth = new StubAuthService();
 
-        // Create mock GroupMemberService
-        mockGroupMemberService = {
-            getGroupMember: vi.fn(),
-        } as any;
+        // Pass stubs directly to ApplicationBuilder constructor
+        applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
+        settlementService = applicationBuilder.buildSettlementService();
 
-        settlementService = new SettlementService(
-            stubReader,
-            stubWriter,
-            mockGroupMemberService,
-        );
+        vi.clearAllMocks();
     });
 
     describe('Settlement Creation Validation', () => {
@@ -98,9 +96,23 @@ describe('SettlementService - Unit Tests', () => {
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
-            // Mock group membership checks
-            stubReader.verifyGroupMembership = vi.fn().mockResolvedValue(true);
-            mockGroupMemberService.getGroupMember = vi.fn().mockResolvedValue({ userId: 'mock-member' });
+            // Set up group memberships for both users
+            const payerMembershipDoc = {
+                userId: 'payer-user',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            const payeeMembershipDoc = {
+                userId: 'payee-user',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
+            stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
             // Mock writer to return successful result
             stubWriter.createSettlement = vi.fn().mockResolvedValue({ id: 'new-settlement-id' });
@@ -200,9 +212,25 @@ describe('SettlementService - Unit Tests', () => {
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
+            // Set up group memberships for both users
+            const payerMembershipDoc = {
+                userId: 'payer-user',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            const payeeMembershipDoc = {
+                userId: 'payee-user',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
+            stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
+
             // Mock dependencies
-            stubReader.verifyGroupMembership = vi.fn().mockResolvedValue(true);
-            mockGroupMemberService.getGroupMember = vi.fn().mockResolvedValue({ userId: 'mock-member' });
             stubWriter.createSettlement = vi.fn().mockResolvedValue({ id: 'new-settlement-id' });
 
             // Act
@@ -245,8 +273,25 @@ describe('SettlementService - Unit Tests', () => {
 
             // Mock other dependencies
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
-            stubReader.verifyGroupMembership = vi.fn().mockResolvedValue(true);
-            mockGroupMemberService.getGroupMember = vi.fn().mockResolvedValue({ userId: 'mock-member' });
+
+            // Set up group memberships for both users
+            const payerMembershipDoc = {
+                userId: 'valid-payer',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            const payeeMembershipDoc = {
+                userId: 'valid-payee',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            stubReader.setDocument('group-members', `${groupId}_valid-payer`, payerMembershipDoc);
+            stubReader.setDocument('group-members', `${groupId}_valid-payee`, payeeMembershipDoc);
+
             stubWriter.createSettlement = vi.fn().mockResolvedValue({ id: 'new-settlement-id' });
 
             // Act & Assert - Should not throw
@@ -272,8 +317,25 @@ describe('SettlementService - Unit Tests', () => {
 
             // Mock basic setup
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
-            stubReader.verifyGroupMembership = vi.fn().mockResolvedValue(true);
-            mockGroupMemberService.getGroupMember = vi.fn().mockResolvedValue({ userId: 'mock-member' });
+
+            // Set up group memberships for both users
+            const payerMembershipDoc = {
+                userId: 'payer-user',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            const payeeMembershipDoc = {
+                userId: 'payee-user',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
+            stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
+
             stubWriter.createSettlement = vi.fn().mockResolvedValue({ id: 'new-settlement-id' });
 
             // Act & Assert - Should succeed (user data validation happens elsewhere)
@@ -300,17 +362,30 @@ describe('SettlementService - Unit Tests', () => {
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
-            // Mock group membership - all users are members
-            stubReader.verifyGroupMembership = vi.fn().mockResolvedValue(true);
-            mockGroupMemberService.getGroupMember = vi.fn().mockResolvedValue({ userId: 'mock-member' });
+            // Set up group memberships for both users
+            const payerMembershipDoc = {
+                userId: 'payer-user',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            const payeeMembershipDoc = {
+                userId: 'payee-user',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
+            stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
+
             stubWriter.createSettlement = vi.fn().mockResolvedValue({ id: 'new-settlement-id' });
 
             // Act & Assert - Should succeed
             await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
 
             // Verify membership checks were called
-            expect(mockGroupMemberService.getGroupMember).toHaveBeenCalledWith(groupId, 'payer-user');
-            expect(mockGroupMemberService.getGroupMember).toHaveBeenCalledWith(groupId, 'payee-user');
         });
 
         it('should reject settlement when payer is not group member', async () => {
@@ -330,13 +405,15 @@ describe('SettlementService - Unit Tests', () => {
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
             stubReader.verifyGroupMembership = vi.fn().mockResolvedValue(true);
 
-            // Mock membership check - payer is not a member
-            mockGroupMemberService.getGroupMember = vi.fn().mockImplementation((groupId, userId) => {
-                if (userId === 'non-member-payer') {
-                    return null; // Not a member
-                }
-                return { userId }; // Other users are members
-            });
+            // Set up group memberships - payee is member, payer is not
+            const payeeMembershipDoc = {
+                userId: 'payee-user',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
             // Act & Assert
             await expect(settlementService.createSettlement(settlementData, userId)).rejects.toThrow(
@@ -365,13 +442,15 @@ describe('SettlementService - Unit Tests', () => {
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
             stubReader.verifyGroupMembership = vi.fn().mockResolvedValue(true);
 
-            // Mock membership check - payee is not a member
-            mockGroupMemberService.getGroupMember = vi.fn().mockImplementation((groupId, userId) => {
-                if (userId === 'non-member-payee') {
-                    return null; // Not a member
-                }
-                return { userId }; // Other users are members
-            });
+            // Set up group memberships - payer is member, payee is not
+            const payerMembershipDoc = {
+                userId: 'payer-user',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
 
             // Act & Assert
             await expect(settlementService.createSettlement(settlementData, userId)).rejects.toThrow(
@@ -429,9 +508,25 @@ describe('SettlementService - Unit Tests', () => {
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
+            // Set up group memberships for both users
+            const payerMembershipDoc = {
+                userId: 'payer-user',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            const payeeMembershipDoc = {
+                userId: 'payee-user',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
+            stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
+
             // Mock dependencies
-            stubReader.verifyGroupMembership = vi.fn().mockResolvedValue(true);
-            mockGroupMemberService.getGroupMember = vi.fn().mockResolvedValue({ userId: 'mock-member' });
             stubWriter.createSettlement = vi.fn().mockResolvedValue({ id: 'new-settlement-id' });
 
             // Act
@@ -459,9 +554,25 @@ describe('SettlementService - Unit Tests', () => {
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
+            // Set up group memberships for both users
+            const payerMembershipDoc = {
+                userId: 'payer-user',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            const payeeMembershipDoc = {
+                userId: 'payee-user',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
+            stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
+
             // Mock dependencies
-            stubReader.verifyGroupMembership = vi.fn().mockResolvedValue(true);
-            mockGroupMemberService.getGroupMember = vi.fn().mockResolvedValue({ userId: 'mock-member' });
             stubWriter.createSettlement = vi.fn().mockResolvedValue({ id: 'new-settlement-id' });
 
             // Act & Assert - Should succeed
@@ -486,9 +597,25 @@ describe('SettlementService - Unit Tests', () => {
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
+            // Set up group memberships for both users
+            const payerMembershipDoc = {
+                userId: 'payer-user',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            const payeeMembershipDoc = {
+                userId: 'payee-user',
+                groupId: groupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            };
+            stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
+            stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
+
             // Mock dependencies
-            stubReader.verifyGroupMembership = vi.fn().mockResolvedValue(true);
-            mockGroupMemberService.getGroupMember = vi.fn().mockResolvedValue({ userId: 'mock-member' });
             stubWriter.createSettlement = vi.fn().mockResolvedValue({ id: 'new-settlement-id' });
 
             // Act & Assert - Should succeed

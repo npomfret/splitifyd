@@ -9,12 +9,12 @@ import { describe, test, expect, beforeEach } from 'vitest';
 import { borrowTestUsers } from '@splitifyd/test-support';
 import { GroupMemberDocument, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
-import { getFirestore } from '../../firebase';
+import {getAuth, getFirestore} from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 
 describe('GroupMember Subcollection - Integration Tests (Essential Firestore Behavior)', () => {
     const firestore = getFirestore();
-    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
+    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
     const groupService = applicationBuilder.buildGroupService();
     const groupMemberService = applicationBuilder.buildGroupMemberService();
     const groupShareService = applicationBuilder.buildGroupShareService();

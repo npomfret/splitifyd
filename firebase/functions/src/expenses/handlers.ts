@@ -4,11 +4,11 @@ import { validateUserAuth } from '../auth/utils';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreateExpense, validateUpdateExpense, validateExpenseId } from './validation';
-import { getFirestore } from '../firebase';
+import {getAuth, getFirestore} from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
-const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
 const expenseService = applicationBuilder.buildExpenseService();
 
 export const createExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {

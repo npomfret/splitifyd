@@ -5,11 +5,11 @@ import { FirestoreCollections } from '@splitifyd/shared';
 import { DocumentSnapshot } from 'firebase-admin/firestore';
 import { ParamsOf } from 'firebase-functions';
 import { measureTrigger } from '../monitoring/measure';
-import { getFirestore } from '../firebase';
+import {getAuth, getFirestore} from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
-const appBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
+const appBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
 const firestoreReader = appBuilder.buildFirestoreReader();
 const notificationService = appBuilder.buildNotificationService();
 

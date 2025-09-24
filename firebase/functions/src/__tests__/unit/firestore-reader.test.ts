@@ -7,12 +7,12 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { FirestoreReader } from '../../services/firestore';
 import { MockFirestoreReader } from '../test-utils/MockFirestoreReader';
-import { getFirestore } from '../../firebase';
+import {getAuth, getFirestore} from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 
 describe('FirestoreReader', () => {
     const firestore = getFirestore();
-    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore);
+    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
     const firestoreReader = applicationBuilder.buildFirestoreReader();
 
     test('should be instantiable', () => {
