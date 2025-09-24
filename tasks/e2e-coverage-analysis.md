@@ -68,12 +68,18 @@ An analysis of the codebase was performed to determine the test coverage for the
 
 -   **Percentage Splits:** ✅ **Excellent coverage.** The backend has dedicated unit tests for the `PercentageSplitStrategy` that validate the total percentage, reject negative values, and ensure calculations are correct.
 -   **Equal Splits:** ✅ **Good coverage.** This strategy is used in numerous backend integration and scenario tests. Its correct behavior is implicitly verified by the success of these broader balance and settlement tests.
--   **Exact Amount Splits:** ❌ **Weak/Incomplete coverage.** A significant gap was identified here. The existing backend unit test for the `ExactSplitStrategy` is minimal and, most importantly, **lacks validation to ensure the provided amounts sum up to the total expense amount.**
+-   **Exact Amount Splits:** ✅ **COMPLETED - Comprehensive unit test coverage implemented.**
 
-#### Recommendation: Add Backend Unit Tests
+#### Implementation Status: COMPLETED
 -   **Feature:** `ExactAmountSplitStrategy` Validation
--   **Recommended Strategy:** **Unit Test**.
--   **Justification:** The validation logic for the exact amount split strategy is a critical piece of business logic that lives on the backend. It can and should be tested with fast and reliable unit tests to cover various scenarios (correct sum, incorrect sum, negative numbers, etc.).
+-   **Status:** **DONE** - Enhanced existing unit test with 31 comprehensive test cases covering:
+    - **Core validation logic:** Sum validation, tolerance testing (0.01), missing/null amounts
+    - **Edge cases:** Negative amounts (refunds), zero amounts, single participant scenarios
+    - **Data integrity:** Duplicate users, invalid participants, wrong split counts
+    - **Currency support:** Zero-decimal currencies (JPY, KRW, VND), floating-point precision
+    - **Financial scenarios:** Large amounts, small amounts, boundary testing
+-   **Key Discovery:** The ExactSplitStrategy **already included proper sum validation** - the original analysis was incorrect. The implementation validates that split amounts sum to total within 0.01 tolerance.
+-   **Test Results:** All 31 tests pass, TypeScript build successful, no errors.
 
 ## Summary Table
 
@@ -87,7 +93,7 @@ An analysis of the codebase was performed to determine the test coverage for the
 | Share Link Regeneration | E2E Test | ❌ Not implemented |
 | Real-time Connectivity Indicator | **Unit & Component Test** | ❌ Not implemented |
 | Settlement Editing/Deletion | E2E Test | ❌ Not implemented |
-| Expense Split Logic (Exact Amount) | **Unit Test** | ❌ Not implemented |
+| Expense Split Logic (Exact Amount) | **Unit Test** | ✅ **COMPLETED** |
 
 ## Implementation Details
 
@@ -117,10 +123,34 @@ An analysis of the codebase was performed to determine the test coverage for the
 
 Based on this analysis, it is recommended to prioritize creating unit and component tests for the identified gaps first, as they are typically faster to write and provide a high degree of confidence in the core logic. Following that, new E2E tests should be written for the critical user flows. This balanced approach will improve test coverage and application quality most effectively.
 
+### Exact Amount Split Strategy Unit Tests Implementation (COMPLETED)
+
+**Files Modified:**
+- `firebase/functions/src/__tests__/unit/services/splits/ExactSplitStrategy.test.ts` - Enhanced from 10 to 31 comprehensive test cases
+
+**Key Implementation Notes:**
+- **Corrected Analysis:** The original assessment was wrong - ExactSplitStrategy already included proper validation logic
+- **Comprehensive Coverage:** Added 21 new test cases covering all critical edge cases and business scenarios
+- **Currency Testing:** Special attention to zero-decimal currencies (JPY, KRW, VND) as requested
+- **Financial Precision:** Thorough testing of floating-point precision and rounding tolerance (0.01)
+- **Data Integrity:** Complete validation of user duplicates, missing participants, and invalid data states
+
+**Test Results:**
+- 31/31 tests passing
+- TypeScript build successful
+- No runtime errors or type issues
+- Covers all identified business logic scenarios
+
+**Business Impact:**
+- Prevents financial calculation errors in production
+- Ensures accurate expense splitting across all supported currencies
+- Validates data integrity for multi-user expense scenarios
+- Documents expected behavior for edge cases and error conditions
+
 **Priority Order for Remaining Gaps:**
 1. **Unit Tests** (fastest to implement):
+   - ✅ ~~Exact Amount Split validation~~ **COMPLETED**
    - Expense Form Drafts logic
-   - Exact Amount Split validation
 2. **Component Tests** (moderate effort):
    - Recent Amounts / Category Suggestions UI
    - Real-time Connectivity Indicator
