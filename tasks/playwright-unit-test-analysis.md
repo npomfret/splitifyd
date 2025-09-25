@@ -78,6 +78,69 @@ These should be replaced with true component or E2E tests that interact with the
 
 The inability to test authenticated routes is the biggest gap. A robust, reliable method for mocking the Firebase Auth state for Playwright must be implemented. This is the key to unlocking meaningful test coverage for the application's core features.
 
+#### Proposed Solution: Mocking Firebase Auth via `page.addInitScript()`
+
+Best practices indicate the most effective way to solve this is to replace the real Firebase SDK with a controlled, in-memory mock *before* the application code loads. Playwright's `page.addInitScript()` method is the ideal tool for this.
+
+**Core Strategy:**
+
+1.  **Create a Mock SDK:** Develop a JavaScript object that mimics the interface of the Firebase Auth service your application uses (e.g., `onAuthStateChanged`, `currentUser`, `signInWithEmailAndPassword`).
+2.  **Use a Playwright Fixture:** Extend the base Playwright `test` object to create a custom fixture (e.g., `authenticatedPage`). This fixture will be responsible for setting up the mock and providing helper methods to control the auth state for each test.
+3.  **Inject the Mock:** Inside the fixture, use `page.addInitScript()` to execute a script that replaces the global `firebase.auth()` instance with your mock object. This ensures that when your application code runs, it receives the mock instead of the real SDK.
+4.  **Control State from Tests:** The fixture should expose simple helper methods to the test function (e.g., `login(user)`, `logout()`), allowing each test to deterministically set the required authentication state before navigating to the page.
+
+**Conceptual Example:**
+
+```typescript
+// In a test helper or fixture file
+import { test as baseTest } from '@playwright/test';
+
+const mockUser = { uid: 'mock-uid-123', email: 'test@example.com' };
+
+export const test = baseTest.extend<{
+  authenticatedPage: (user: typeof mockUser | null) => Promise<void>;
+}>({
+  authenticatedPage: async ({ page }, use) => {
+    const setAuthState = async (user: typeof mockUser | null) => {
+      // Use addInitScript to set up the mock before the page loads
+      await page.addInitScript((injectedUser) => {
+        // This code runs in the browser, replacing the real Firebase Auth
+        window.firebase = {
+          auth: () => ({
+            onAuthStateChanged: (callback) => {
+              callback(injectedUser); // Immediately invoke with the desired state
+              return () => {}; // Return an empty unsubscribe function
+            },
+            currentUser: injectedUser,
+          }),
+        };
+      }, user);
+    };
+    await use(setAuthState);
+  },
+});
+
+// In a test file (e.g., dashboard.test.ts)
+import { test, expect } from './test-helpers';
+
+test('should display welcome message for an authenticated user', async ({ page, authenticatedPage }) => {
+  // 1. Set the authenticated state *before* navigating
+  await authenticatedPage(mockUser);
+
+  // 2. Navigate to the page
+  await page.goto('/dashboard');
+
+  // 3. Assert that the page shows authenticated content (no redirect)
+  await expect(page.getByText('Welcome, Test User')).toBeVisible();
+});
+```
+
+**Benefits of this Approach:**
+
+*   **True Isolation:** Tests are fast, deterministic, and completely isolated from the real Firebase backend.
+*   **Full Control:** Allows for precise control over the auth state for every test scenario.
+*   **Unlocks Real Testing:** Solves the core problem of being unable to test authenticated components, finally allowing for meaningful coverage of the application's primary features.
+
 ### Recommendation 3: Refactor to Use Page Objects and Fixtures
 
 The project's own `e2e-testing.md` guide recommends using the Page Object Model (POM) and fixtures. This should be enforced.
