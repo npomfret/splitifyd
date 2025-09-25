@@ -74,72 +74,77 @@ The tests that inject their own DOM are providing negative value. They should be
 
 These should be replaced with true component or E2E tests that interact with the real application components.
 
-### Recommendation 2: Fix Authentication Testing (Highest Priority)
+### Recommendation 2: Fix Authentication by Using the Firebase Emulator
 
-The inability to test authenticated routes is the biggest gap. A robust, reliable method for mocking the Firebase Auth state for Playwright must be implemented. This is the key to unlocking meaningful test coverage for the application's core features.
+The most robust and high-fidelity solution is to shift these Playwright tests from "unit tests" to "integration tests" by running them against the **Firebase Emulator Suite**.
 
-#### Proposed Solution: Mocking Firebase Auth via `page.addInitScript()`
+This approach uses the real Firebase SDK in the app, making real network calls to a local, fully-featured Firebase backend (the emulator). This perfectly mimics the production environment and avoids all the complexities and brittleness of client-side mocking.
 
-Best practices indicate the most effective way to solve this is to replace the real Firebase SDK with a controlled, in-memory mock *before* the application code loads. Playwright's `page.addInitScript()` method is the ideal tool for this.
+#### The Strategy: Real App, Real SDK, Emulator Backend
 
-**Core Strategy:**
+1.  **Run the Firebase Emulator:** The test environment must have the emulator running (via `npm run dev`), which is already a standard procedure for this project.
+2.  **Configure the App for the Emulator:** The web application needs to be configured to connect to the emulator's host and port when in a test environment. The Firebase SDK provides a `connectAuthEmulator` function for this purpose. This is typically done in the app's main Firebase initialization file, gated by an environment variable.
+3.  **Create Test Users via REST API:** Before a test runs, a unique test user must be created directly in the Auth Emulator. This is best handled in a `beforeEach` block or a custom Playwright fixture using the emulator's REST API. This gives each test a clean, known user to work with.
+4.  **Perform a Real Login:** The test will navigate to the login page, enter the email and password of the test user created in the previous step, and perform a real login.
+5.  **Test the Feature:** After the login is successful, the test can navigate to the protected route and test the actual feature.
 
-1.  **Create a Mock SDK:** Develop a JavaScript object that mimics the interface of the Firebase Auth service your application uses (e.g., `onAuthStateChanged`, `currentUser`, `signInWithEmailAndPassword`).
-2.  **Use a Playwright Fixture:** Extend the base Playwright `test` object to create a custom fixture (e.g., `authenticatedPage`). This fixture will be responsible for setting up the mock and providing helper methods to control the auth state for each test.
-3.  **Inject the Mock:** Inside the fixture, use `page.addInitScript()` to execute a script that replaces the global `firebase.auth()` instance with your mock object. This ensures that when your application code runs, it receives the mock instead of the real SDK.
-4.  **Control State from Tests:** The fixture should expose simple helper methods to the test function (e.g., `login(user)`, `logout()`), allowing each test to deterministically set the required authentication state before navigating to the page.
-
-**Conceptual Example:**
+#### Conceptual Example
 
 ```typescript
 // In a test helper or fixture file
 import { test as baseTest } from '@playwright/test';
+import { execSync } from 'child_process';
 
-const mockUser = { uid: 'mock-uid-123', email: 'test@example.com' };
+// Helper to create a user in the emulator via its REST API
+const createEmulatorUser = (email, password) => {
+  const FIREBASE_PROJECT_ID = 'splitifyd'; // from firebase.json
+  const AUTH_EMULATOR_URL = 'http://localhost:9099'; // from firebase.json
+  const endpoint = `${AUTH_EMULATOR_URL}/identitytoolkit.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/accounts`;
 
-export const test = baseTest.extend<{
-  authenticatedPage: (user: typeof mockUser | null) => Promise<void>;
-}>({
-  authenticatedPage: async ({ page }, use) => {
-    const setAuthState = async (user: typeof mockUser | null) => {
-      // Use addInitScript to set up the mock before the page loads
-      await page.addInitScript((injectedUser) => {
-        // This code runs in the browser, replacing the real Firebase Auth
-        window.firebase = {
-          auth: () => ({
-            onAuthStateChanged: (callback) => {
-              callback(injectedUser); // Immediately invoke with the desired state
-              return () => {}; // Return an empty unsubscribe function
-            },
-            currentUser: injectedUser,
-          }),
-        };
-      }, user);
-    };
-    await use(setAuthState);
-  },
-});
+  // Use a shell command or Node's http module to make the POST request
+  // This is a simplified example
+  execSync(`curl -s -X POST -H "Content-Type: application/json" -d '{"email":"${email}","password":"${password}"}' ${endpoint}`);
+
+  return { email, password };
+};
 
 // In a test file (e.g., dashboard.test.ts)
-import { test, expect } from './test-helpers';
+test.describe('Dashboard - Authenticated', () => {
+  let testUser;
 
-test('should display welcome message for an authenticated user', async ({ page, authenticatedPage }) => {
-  // 1. Set the authenticated state *before* navigating
-  await authenticatedPage(mockUser);
+  test.beforeEach(async ({ page }) => {
+    // Create a fresh user for each test to ensure isolation
+    testUser = createEmulatorUser('test-user@example.com', 'password123');
 
-  // 2. Navigate to the page
-  await page.goto('/dashboard');
+    // The app must be configured to use the auth emulator
+    await page.goto('/login');
+    await page.getByLabel('Email').fill(testUser.email);
+    await page.getByLabel('Password').fill(testUser.password);
+    await page.getByRole('button', { name: 'Login' }).click();
 
-  // 3. Assert that the page shows authenticated content (no redirect)
-  await expect(page.getByText('Welcome, Test User')).toBeVisible();
+    // Wait for login to complete and redirect to dashboard
+    await expect(page).toHaveURL(/.*dashboard/);
+  });
+
+  test('should display dashboard content', async ({ page }) => {
+    // The user is now logged in for real (against the emulator)
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  });
 });
 ```
 
 **Benefits of this Approach:**
 
-*   **True Isolation:** Tests are fast, deterministic, and completely isolated from the real Firebase backend.
-*   **Full Control:** Allows for precise control over the auth state for every test scenario.
-*   **Unlocks Real Testing:** Solves the core problem of being unable to test authenticated components, finally allowing for meaningful coverage of the application's primary features.
+*   **Highest Fidelity:** You are testing the exact same code and SDK that runs in production.
+*   **No Architectural Changes:** The application code does not need to be refactored for dependency injection.
+*   **Robust:** Not subject to breakages from SDK updates, as you are using the official emulator.
+
+**Trade-offs:**
+
+*   **Slower Tests:** Each test now involves a real login flow, which is slower than a pure unit test with mocks.
+*   **Test Category:** These are now officially *integration tests*, not *unit tests*, and should be treated as such in the test suite organization.
+
+This is the definitive way to achieve stable, reliable tests for authenticated routes without changing the application's architecture.
 
 ### Recommendation 3: Refactor to Use Page Objects and Fixtures
 
