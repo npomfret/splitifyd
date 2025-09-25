@@ -455,3 +455,33 @@ Once Phase 3 is complete, consider:
 - **Component-level tests** for complex UI interactions not covered by E2E
 - **Visual regression testing** integration with existing infrastructure
 - **Systematic review** of all test names vs. implementations to prevent similar contradictions
+
+## 7. Additional Analysis of Playwright Unit Tests (2025-09-25)
+
+A deeper dive into the remaining Playwright unit tests (after the "Fake DOM" tests were removed) revealed further systemic issues. While these tests interact with the real application components, they are fundamentally broken due to an incorrect approach to authentication, leading to a significant lack of meaningful test coverage.
+
+### Finding 6: Widespread 'Fake' Authenticated Route Tests
+
+This is the most critical finding. The vast majority of tests for pages that require authentication do not actually test the page's features. Instead, they inadvertently test the application's `ProtectedRoute` component.
+
+-   **Problem**: The tests attempt to set up an authenticated user, but the method is ineffective for the client-side Firebase SDK. The application correctly identifies the user as unauthenticated and redirects to the `/login` page. The tests then assert that this redirect happened, rather than failing.
+-   **Files Affected**: This pattern was observed across all files for authenticated routes, including `dashboard-page.test.ts`, `add-expense-page.test.ts`, `group-detail-page.test.ts`, `settings-page.test.ts`, and `settlement-form.test.ts`.
+-   **Why it's Bullshit**: This creates a deceptive and dangerous illusion of test coverage. For instance, `add-expense-page.test.ts` has over 20 tests, but not a single one verifies the functionality of the expense form. They all simply confirm the redirect to login. Core user workflows are completely untested. The `join-group-page.test.ts` file even contains a `TODO` comment admitting the tests are incomplete and miss "~80% of actual join group functionality."
+
+### Finding 7: Systemic Violations of Documented Best Practices
+
+Beyond the flawed authentication strategy, numerous other violations of the project's own testing guides (`end-to-end_testing.md`) were identified.
+
+1.  **Forbidden Conditional Logic**: The documentation strictly forbids `if/else` for control flow in tests to ensure deterministic paths. However, the tests are filled with conditional logic, often to handle the broken authentication.
+    *   **Example from `add-expense-page.test.ts`**: `if ((await descriptionInputs.count()) > 0)` makes the test non-deterministic. A test should know what state to expect and assert it directly.
+
+2.  **Bogus `try/catch` Blocks**: `add-expense-page.test.ts` uses a `try/catch` block when acquiring a mock auth token. The `catch` block simply logs a message and uses a fallback. This hides potential setup failures and violates the "let it break" philosophy.
+
+3.  **Brittle and Duplicated Selectors**: Instead of using a Page Object Model as recommended, tests use fragile and duplicated selectors.
+    *   **Example from `add-expense-page.test.ts`**: An array of fallback selectors (`cancelButtonSelectors`) is used to find a simple cancel button. This is a maintenance nightmare and a clear sign of a brittle test.
+
+4.  **Violation of Test Isolation**: Several files (`landing-page.test.ts`, `privacy-policy-page.test.ts`, etc.) use `test.beforeAll` and a global `sharedPage` variable (`(globalThis as any).sharedPage`) to share a single page instance across all tests in a file. This is a direct violation of the "Test Isolation" principle and can cause difficult-to-debug, cascading test failures.
+
+### Summary of New Findings
+
+The current Playwright unit test suite, while extensive, is in a state of disrepair. The core authentication testing strategy is flawed, rendering most tests for authenticated features useless. The suite also suffers from widespread violations of the project's own documented best practices, including forbidden conditional logic, poor selector strategy, and a lack of test isolation. A complete overhaul is required, starting with implementing a reliable method for mocking authentication for client-side tests.
