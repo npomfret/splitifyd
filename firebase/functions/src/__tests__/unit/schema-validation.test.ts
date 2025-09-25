@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeAll } from 'vitest';
 import { z } from 'zod';
-import { Group, GroupMemberWithProfile, MemberRoles, MemberStatuses, SecurityPresets, PermissionLevels, UserThemeColor } from '@splitifyd/shared';
+import { Group, GroupMemberDTO, MemberRoles, MemberStatuses, SecurityPresets, PermissionLevels, UserThemeColor } from '@splitifyd/shared';
 
 // Import webapp Zod schemas for validation
 // Note: These are the actual schemas used by the frontend to validate API responses
@@ -54,31 +54,28 @@ const UserThemeColorSchema = z.object({
     colorIndex: z.number().int().min(0),
 });
 
-const GroupMemberWithProfileSchema = z.object({
-    // RegisteredUser properties
+const GroupMemberDTOSchema = z.object({
+    // User identification
     uid: z.string().min(1),
-    email: z.string().email(),
     displayName: z.string().min(1),
-    role: z.enum(['system_admin', 'system_user']).optional(),
+    email: z.string().email(),
     initials: z.string().min(1),
 
-    // GroupMember properties (with renames to avoid conflicts)
-    joinedAt: z.string(),
+    // User display properties
+    photoURL: z.string().url().nullable().optional(),
+    themeColor: UserThemeColorSchema,
+
+    // Group membership metadata (required for permissions)
     memberRole: z.enum(['admin', 'member', 'viewer']),
     memberStatus: z.enum(['active', 'pending']),
+    joinedAt: z.string().datetime(),
     invitedBy: z.string().optional(),
-    lastPermissionChange: z.string().optional(),
-
-    // Deprecated but may still appear
-    name: z.string().optional(),
-
-    // Theme is inherited from RegisteredUser.themeColor
-    themeColor: UserThemeColorSchema.optional(),
+    lastPermissionChange: z.string().datetime().optional(),
 });
 
 describe('Cross-Service Schema Validation', () => {
     let mockGroup: Group;
-    let mockGroupMember: GroupMemberWithProfile;
+    let mockGroupMember: GroupMemberDTO;
     let mockTheme: UserThemeColor;
 
     beforeAll(() => {
@@ -121,14 +118,13 @@ describe('Cross-Service Schema Validation', () => {
             uid: 'user-456',
             email: 'test@example.com',
             displayName: 'Test User',
-            emailVerified: true,
-            photoURL: null,
             initials: 'TU',
+            photoURL: null,
+            themeColor: mockTheme,
             joinedAt: '2024-01-01T00:00:00.000Z',
             memberRole: MemberRoles.MEMBER,
             memberStatus: MemberStatuses.ACTIVE,
             invitedBy: 'user-123',
-            themeColor: mockTheme,
         };
     });
 
@@ -223,12 +219,12 @@ describe('Cross-Service Schema Validation', () => {
         });
     });
 
-    describe('GroupMemberWithProfile Schema Validation', () => {
-        test('should validate GroupMemberWithProfile interface against frontend expectations', () => {
+    describe('GroupMemberDTO Schema Validation', () => {
+        test('should validate GroupMemberDTO interface against frontend expectations', () => {
             // This should not throw - verifies interface matches frontend expectations
-            expect(() => GroupMemberWithProfileSchema.parse(mockGroupMember)).not.toThrow();
+            expect(() => GroupMemberDTOSchema.parse(mockGroupMember)).not.toThrow();
 
-            const parsed = GroupMemberWithProfileSchema.parse(mockGroupMember);
+            const parsed = GroupMemberDTOSchema.parse(mockGroupMember);
             expect(parsed.uid).toBe(mockGroupMember.uid);
             expect(parsed.memberRole).toBe('member');
             expect(parsed.memberStatus).toBe('active');
@@ -241,16 +237,16 @@ describe('Cross-Service Schema Validation', () => {
                 memberRole: 'super-admin', // Not a valid MemberRole
             };
 
-            expect(() => GroupMemberWithProfileSchema.parse(memberWithInvalidRole)).toThrow();
+            expect(() => GroupMemberDTOSchema.parse(memberWithInvalidRole)).toThrow();
         });
 
         test('should detect member schema drift - wrong status enum', () => {
             const memberWithInvalidStatus = {
                 ...mockGroupMember,
-                memberStatus: 'inactive', // Not a valid MemberStatus in current system
+                memberStatus: 'banned', // Not a valid MemberStatus in current system
             };
 
-            expect(() => GroupMemberWithProfileSchema.parse(memberWithInvalidStatus)).toThrow();
+            expect(() => GroupMemberDTOSchema.parse(memberWithInvalidStatus)).toThrow();
         });
 
         test('should handle optional fields correctly', () => {
@@ -259,13 +255,14 @@ describe('Cross-Service Schema Validation', () => {
                 email: 'test@example.com',
                 displayName: 'Test User',
                 initials: 'TU',
+                themeColor: mockTheme,
                 joinedAt: '2024-01-01T00:00:00.000Z',
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE,
-                // Optional fields omitted
+                // Optional fields omitted: photoURL, invitedBy, lastPermissionChange
             };
 
-            expect(() => GroupMemberWithProfileSchema.parse(minimalMember)).not.toThrow();
+            expect(() => GroupMemberDTOSchema.parse(minimalMember)).not.toThrow();
         });
     });
 

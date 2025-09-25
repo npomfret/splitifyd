@@ -1,7 +1,7 @@
 import type { GroupMemberDocument } from '@splitifyd/shared';
 
 /**
- * Helper functions for working with GroupMemberWithProfile arrays
+ * Helper functions for working with GroupMemberDocument arrays
  * Used to migrate from group.members object structure to array structure
  */
 

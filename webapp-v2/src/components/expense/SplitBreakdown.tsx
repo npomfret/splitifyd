@@ -1,12 +1,12 @@
 import { Avatar } from '../ui/Avatar';
 import { Stack } from '../ui/Stack';
-import type { ExpenseData, RegisteredUser } from '@splitifyd/shared';
+import type { ExpenseData, GroupMemberDTO } from '@splitifyd/shared';
 import { SplitTypes } from '@splitifyd/shared';
 import { formatCurrency } from '@/utils/currency';
 
 interface SplitBreakdownProps {
     expense: ExpenseData;
-    members: RegisteredUser[];
+    members: GroupMemberDTO[];
 }
 
 export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
@@ -15,7 +15,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
             acc[member.uid] = member;
             return acc;
         },
-        {} as Record<string, RegisteredUser>,
+        {} as Record<string, GroupMemberDTO>,
     );
 
     const getSplitTypeLabel = (type: string) => {

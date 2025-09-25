@@ -374,6 +374,34 @@ export type GroupMemberWithProfile = RegisteredUser &
     };
 
 /**
+ * Lean DTO for API responses containing only essential fields for group member display.
+ * Prevents over-exposure of sensitive user data (acceptedPolicies, timestamps, etc.)
+ *
+ * Used in:
+ * - Group member lists
+ * - Permissions calculations
+ * - UI components requiring basic user info
+ */
+export interface GroupMemberDTO {
+    // User identification
+    uid: string;
+    displayName: string;
+    email: string;
+    initials: string;
+
+    // User display properties
+    photoURL?: string | null;
+    themeColor: UserThemeColor;
+
+    // Group membership metadata (required for permissions)
+    memberRole: MemberRole;
+    memberStatus: MemberStatus;
+    joinedAt: string; // ISO string
+    invitedBy?: string; // UID of the user who invited this member
+    lastPermissionChange?: string; // ISO string - Track permission updates
+}
+
+/**
  * Document structure for storing members in the subcollection: groups/{groupId}/members/{userId}
  * This replaces the embedded members map for scalable queries
  */
@@ -486,7 +514,7 @@ export interface ListGroupsResponse {
 
 // Group members response
 export interface GroupMembersResponse {
-    members: GroupMemberWithProfile[];
+    members: GroupMemberDTO[];
     hasMore: boolean;
     nextCursor?: string;
 }
@@ -585,7 +613,7 @@ export interface SettlementListItem {
 
 export interface GroupFullDetails {
     group: Group;
-    members: { members: GroupMemberWithProfile[] };
+    members: { members: GroupMemberDTO[] };
     expenses: { expenses: ExpenseData[]; hasMore: boolean; nextCursor?: string };
     balances: GroupBalances;
     settlements: { settlements: SettlementListItem[]; hasMore: boolean; nextCursor?: string };
@@ -594,7 +622,7 @@ export interface GroupFullDetails {
 export interface ExpenseFullDetails {
     expense: ExpenseData;
     group: Group;
-    members: { members: GroupMemberWithProfile[] };
+    members: { members: GroupMemberDTO[] };
 }
 
 export interface ListSettlementsResponse {

@@ -1,14 +1,14 @@
 import { signal, batch } from '@preact/signals';
 import { UserNotificationDetector } from '@/utils/user-notification-detector';
 import { logError, logInfo } from '@/utils/browser-logger';
-import type { ExpenseData, Group, GroupBalances, GroupMemberWithProfile, SettlementListItem } from '@splitifyd/shared';
+import type { ExpenseData, Group, GroupBalances, GroupMemberDTO, SettlementListItem } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
 import { permissionsStore } from '@/stores/permissions-store.ts';
 
 export interface EnhancedGroupDetailStore {
     // State
     group: Group | null;
-    members: GroupMemberWithProfile[];
+    members: GroupMemberDTO[];
     expenses: ExpenseData[];
     balances: GroupBalances | null;
     settlements: SettlementListItem[];
@@ -36,7 +36,7 @@ export interface EnhancedGroupDetailStore {
 class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     // Private signals
     readonly #groupSignal = signal<Group | null>(null);
-    readonly #membersSignal = signal<GroupMemberWithProfile[]>([]);
+    readonly #membersSignal = signal<GroupMemberDTO[]>([]);
     readonly #expensesSignal = signal<ExpenseData[]>([]);
     readonly #balancesSignal = signal<GroupBalances | null>(null);
     readonly #settlementsSignal = signal<SettlementListItem[]>([]);

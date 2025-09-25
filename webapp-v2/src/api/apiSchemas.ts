@@ -159,20 +159,29 @@ export const GroupBalancesSchema = z.object({
     lastUpdated: z.string(),
 });
 
+// Group member DTO schema - validates the lean DTO returned by API
+export const GroupMemberDTOSchema = z.object({
+    // User identification
+    uid: z.string().min(1),
+    displayName: z.string().min(1),
+    email: z.string().email(),
+    initials: z.string().min(1),
+
+    // User display properties
+    photoURL: z.string().url().nullable().optional(),
+    themeColor: UserThemeColorSchema,
+
+    // Group membership metadata (required for permissions)
+    memberRole: z.enum(['admin', 'member', 'viewer']),
+    memberStatus: z.enum(['active', 'pending']),
+    joinedAt: z.string().datetime(),
+    invitedBy: z.string().optional(),
+    lastPermissionChange: z.string().datetime().optional(),
+});
+
 // Group members response schema
 export const GroupMembersResponseSchema = z.object({
-    members: z.array(
-        z.object({
-            uid: z.string().min(1),
-            email: z.string().email(),
-            displayName: z.string().min(1),
-            role: z.enum(['system_admin', 'system_user']).optional(),
-            termsAcceptedAt: z.any().optional(),
-            cookiePolicyAcceptedAt: z.any().optional(),
-            acceptedPolicies: z.record(z.string(), z.string()).optional(),
-            themeColor: UserThemeColorSchema.optional(),
-        }),
-    ),
+    members: z.array(GroupMemberDTOSchema),
     hasMore: z.boolean(),
     nextCursor: z.string().optional(),
 });

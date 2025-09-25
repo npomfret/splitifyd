@@ -3,6 +3,7 @@ import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebas
 import { collection, getDocs, doc, setDoc, getDoc, onSnapshot, query, limit } from 'firebase/firestore';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { getFirestorePort } from '@splitifyd/test-support';
 
 // Security rules test to verify production rules work correctly
 describe('Firestore Security Rules (Production)', () => {
@@ -28,7 +29,7 @@ describe('Firestore Security Rules (Production)', () => {
             firestore: {
                 rules,
                 host: '127.0.0.1',
-                port: 8004,
+                port: getFirestorePort(),
             },
         });
 

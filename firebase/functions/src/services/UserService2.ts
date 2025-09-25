@@ -16,7 +16,7 @@ import { FirestoreValidationService } from './FirestoreValidationService';
 import { NotificationService } from './notification-service';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import type { IAuthService } from './auth';
-import { type GroupMemberDocument, GroupMembersResponse, GroupMemberWithProfile } from '@splitifyd/shared/src';
+import { type GroupMemberDocument, GroupMembersResponse, GroupMemberDTO } from '@splitifyd/shared/src';
 
 
 /**
@@ -396,7 +396,7 @@ export class UserService {
 
         const memberProfiles = await this.getUsers(memberIds);
 
-        const members: GroupMemberWithProfile[] = memberDocs.map((memberDoc: GroupMemberDocument): GroupMemberWithProfile => {
+        const members: GroupMemberDTO[] = memberDocs.map((memberDoc: GroupMemberDocument): GroupMemberDTO => {
             const profile = memberProfiles.get(memberDoc.userId);
 
             if (!profile) {
@@ -405,7 +405,6 @@ export class UserService {
                     initials: '?',
                     email: '',
                     displayName: 'Unknown User',
-                    emailVerified: false, // Default for unknown users
                     photoURL: null,
                     themeColor: memberDoc.theme,
                     // Group membership metadata
@@ -422,17 +421,9 @@ export class UserService {
                 initials: this.getInitials(profile.displayName),
                 email: profile.email,
                 displayName: profile.displayName,
-                emailVerified: profile.emailVerified,
                 photoURL: profile.photoURL,
-                role: profile.role,
-                termsAcceptedAt: profile.termsAcceptedAt,
-                cookiePolicyAcceptedAt: profile.cookiePolicyAcceptedAt,
-                acceptedPolicies: profile.acceptedPolicies,
                 themeColor: (typeof profile.themeColor === 'object' ? profile.themeColor : memberDoc.theme) as UserThemeColor,
-                preferredLanguage: profile.preferredLanguage,
-                createdAt: profile.createdAt,
-                updatedAt: profile.updatedAt,
-                // Group membership metadata
+                // Group membership metadata (required for permissions)
                 joinedAt: memberDoc.joinedAt,
                 memberRole: memberDoc.memberRole,
                 invitedBy: memberDoc.invitedBy,
