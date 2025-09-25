@@ -265,57 +265,6 @@ export class MockFirestoreReader implements IFirestoreReader {
         };
     }
 
-    /**
-     * Mock group members data
-     */
-    public mockGroupMembersSubcollection(groupId: string, members: GroupMemberDocument[]): void {
-        this.getAllGroupMembers.mockImplementation(async (id) => {
-            return id === groupId ? members : [];
-        });
-
-        this.getAllGroupMemberIds.mockImplementation(async (id) => {
-            return id === groupId ? members.map((m) => m.userId) : [];
-        });
-
-        this.getGroupMember.mockImplementation(async (id, userId) => {
-            if (id === groupId) {
-                return members.find((m) => m.userId === userId) || null;
-            }
-            return null;
-        });
-    }
-
-    /**
-     * Mock a single member in a group
-     */
-    public mockMemberInSubcollection(groupId: string, member: GroupMemberDocument): void {
-        this.getGroupMember.mockImplementation(async (id, userId) => {
-            return id === groupId && userId === member.userId ? member : null;
-        });
-    }
-
-    /**
-     * Create a test GroupMemberDocument with default values
-     */
-    public createTestGroupMemberDocument(overrides: Partial<GroupMemberDocument> = {}): GroupMemberDocument {
-        return {
-            userId: 'test-user',
-            groupId: 'test-group',
-            memberRole: 'member' as any,
-            theme: {
-                light: '#007bff',
-                dark: '#0066cc',
-                name: 'Blue',
-                pattern: 'solid' as any,
-                assignedAt: new Date().toISOString(),
-                colorIndex: 0,
-            },
-            joinedAt: new Date().toISOString(),
-            memberStatus: 'active' as any,
-            ...overrides,
-        };
-    }
-
     // Note: Group changes mock helpers removed as GROUP_CHANGES collection was unused
 
     // ========================================================================
