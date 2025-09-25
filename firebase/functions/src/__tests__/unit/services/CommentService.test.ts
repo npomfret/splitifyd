@@ -87,7 +87,7 @@ describe('CommentService - Consolidated Tests', () => {
         });
 
         it('should throw NOT_FOUND when group does not exist', async () => {
-            mockStrategy.verifyAccess.mockRejectedValue(new ApiError('Group not found', HTTP_STATUS.NOT_FOUND));
+            mockStrategy.verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found'));
             await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.GROUP, 'nonexistent-group', 'user-id')).rejects.toThrow();
         });
 
@@ -95,7 +95,7 @@ describe('CommentService - Consolidated Tests', () => {
             const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
             stubReader.setDocument('groups', 'test-group', testGroup);
             // Don't set up group membership - user will not be a member
-            mockStrategy.verifyAccess.mockRejectedValue(new ApiError('Access forbidden', HTTP_STATUS.FORBIDDEN));
+            mockStrategy.verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_FORBIDDEN', 'Access forbidden'));
 
             await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.GROUP, 'test-group', 'unauthorized-user')).rejects.toThrow();
         });
@@ -125,7 +125,7 @@ describe('CommentService - Consolidated Tests', () => {
         });
 
         it('should throw NOT_FOUND when expense does not exist', async () => {
-            mockStrategy.verifyAccess.mockRejectedValue(new ApiError('Expense not found', HTTP_STATUS.NOT_FOUND));
+            mockStrategy.verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found'));
             await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.EXPENSE, 'nonexistent-expense', 'user-id')).rejects.toThrow();
         });
     });
@@ -209,7 +209,7 @@ describe('CommentService - Consolidated Tests', () => {
 
         it('should throw error when user lacks access', async () => {
             // Mock strategy to reject access
-            mockStrategy.verifyAccess.mockRejectedValue(new ApiError('Access denied', HTTP_STATUS.FORBIDDEN));
+            mockStrategy.verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'));
 
             await expect(commentService.listComments(CommentTargetTypes.GROUP, 'nonexistent-group', 'user-id')).rejects.toThrow();
         });
@@ -464,7 +464,7 @@ describe('CommentService - Consolidated Tests', () => {
                 });
 
                 // Mock strategy to reject access
-                mockStrategy.verifyAccess.mockRejectedValue(new ApiError('Access denied', HTTP_STATUS.FORBIDDEN));
+                mockStrategy.verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'));
 
                 await expect(
                     unitCommentService.createComment(targetType, targetId, commentData, userId)
@@ -554,7 +554,7 @@ describe('CommentService - Consolidated Tests', () => {
                 const targetId = 'group-456';
 
                 // Mock strategy to reject access
-                mockStrategy.verifyAccess.mockRejectedValue(new ApiError('Access denied', HTTP_STATUS.FORBIDDEN));
+                mockStrategy.verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'));
 
                 await expect(
                     unitCommentService.listComments(targetType, targetId, userId)
