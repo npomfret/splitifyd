@@ -13,7 +13,7 @@
 
 import { vi } from 'vitest';
 import type { IFirestoreReader } from '../../services/firestore';
-import type { PaginatedResult } from '../../types/firestore-reader-types';
+import type { PaginatedResult } from '../../services/firestore/IFirestoreReader';
 
 // Import types for proper typing
 import type { UserDocument, GroupDocument } from '../../schemas';

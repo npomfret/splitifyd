@@ -1,8 +1,9 @@
 import { UserBalance } from '@splitifyd/shared';
-import { Expense, CurrencyBalances } from './types';
+import { CurrencyBalances } from './types';
+import type { ExpenseDocument } from '../../schemas';
 
 export class ExpenseProcessor {
-    processExpenses(expenses: Expense[], memberIds: string[]): CurrencyBalances {
+    processExpenses(expenses: ExpenseDocument[], memberIds: string[]): CurrencyBalances {
         const balancesByCurrency: CurrencyBalances = {};
 
         for (const expense of expenses) {
@@ -31,7 +32,7 @@ export class ExpenseProcessor {
         return balancesByCurrency;
     }
 
-    private processExpenseForCurrency(expense: Expense, userBalances: Record<string, UserBalance>): void {
+    private processExpenseForCurrency(expense: ExpenseDocument, userBalances: Record<string, UserBalance>): void {
         const payerId = expense.paidBy;
 
         // Process each split in the expense

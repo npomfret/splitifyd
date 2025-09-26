@@ -1,5 +1,7 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { BalanceCalculationResult, BalanceCalculationInput, Expense, Settlement, GroupData, GroupMember } from './types';
+import { BalanceCalculationResult, BalanceCalculationInput, CurrencyBalances, GroupData, GroupMember } from './types';
+import type { ExpenseDocument, SettlementDocument } from '../../schemas';
+import type { GroupMemberDocument } from '@splitifyd/shared';
 import { ExpenseProcessor } from './ExpenseProcessor';
 import { SettlementProcessor } from './SettlementProcessor';
 import { DebtSimplificationService } from './DebtSimplificationService';
@@ -110,56 +112,20 @@ export class BalanceCalculationService {
         };
     }
 
-    private async fetchExpenses(groupId: string): Promise<Expense[]> {
+    private async fetchExpenses(groupId: string): Promise<ExpenseDocument[]> {
         // Use FirestoreReader for validated data - it handles the Zod parsing and validation
         const expenseDocuments = await this.firestoreReader.getExpensesForGroup(groupId);
 
-        // Transform ExpenseDocument to local Expense interface
-        const expenses: Expense[] = expenseDocuments.map((expenseDoc) => {
-            // Transform to match local Expense interface - convert Timestamp to ISO string and extract required fields
-            return {
-                id: expenseDoc.id,
-                groupId: expenseDoc.groupId,
-                description: expenseDoc.description,
-                amount: expenseDoc.amount,
-                currency: expenseDoc.currency,
-                paidBy: expenseDoc.paidBy,
-                splitType: expenseDoc.splitType,
-                participants: expenseDoc.participants,
-                splits: expenseDoc.splits,
-                date: timestampToISO(expenseDoc.date),
-                category: expenseDoc.category,
-                receiptUrl: expenseDoc.receiptUrl || undefined,
-                createdAt: expenseDoc.createdAt ? timestampToISO(expenseDoc.createdAt) : undefined,
-                deletedAt: expenseDoc.deletedAt ? timestampToISO(expenseDoc.deletedAt) : undefined,
-            } satisfies Expense;
-        });
-
-        // Filter out soft-deleted expenses - FirestoreReader already does this filtering
-        return expenses.filter((expense) => !expense[DELETED_AT_FIELD as keyof typeof expense]);
+        // No transformation needed - use canonical ExpenseDocument directly
+        return expenseDocuments;
     }
 
-    private async fetchSettlements(groupId: string): Promise<Settlement[]> {
+    private async fetchSettlements(groupId: string): Promise<SettlementDocument[]> {
         // Use FirestoreReader for validated data - it handles the Zod parsing and validation
         const settlementDocuments = await this.firestoreReader.getSettlementsForGroup(groupId);
 
-        // Transform SettlementDocument to local Settlement interface
-        const settlements: Settlement[] = settlementDocuments.map((settlementDoc) => {
-            // Transform to match local Settlement interface - extract required fields only
-            return {
-                id: settlementDoc.id,
-                groupId: settlementDoc.groupId,
-                payerId: settlementDoc.payerId,
-                payeeId: settlementDoc.payeeId,
-                amount: settlementDoc.amount,
-                currency: settlementDoc.currency,
-                date: settlementDoc.date ? timestampToISO(settlementDoc.date) : undefined,
-                note: settlementDoc.note,
-                createdAt: settlementDoc.createdAt ? timestampToISO(settlementDoc.createdAt) : undefined,
-            } satisfies Settlement;
-        });
-
-        return settlements;
+        // No transformation needed - use canonical SettlementDocument directly
+        return settlementDocuments;
     }
 
     private async fetchGroupData(groupId: string): Promise<GroupData> {

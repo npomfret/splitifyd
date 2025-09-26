@@ -1,8 +1,9 @@
 import { UserBalance } from '@splitifyd/shared';
-import { Settlement, CurrencyBalances } from './types';
+import { CurrencyBalances } from './types';
+import type { SettlementDocument } from '../../schemas';
 
 export class SettlementProcessor {
-    processSettlements(settlements: Settlement[], balancesByCurrency: CurrencyBalances): void {
+    processSettlements(settlements: SettlementDocument[], balancesByCurrency: CurrencyBalances): void {
         for (const settlement of settlements) {
             if (!settlement.currency) {
                 throw new Error(`Settlement ${settlement.id} is missing currency - invalid state`);
@@ -19,7 +20,7 @@ export class SettlementProcessor {
         }
     }
 
-    private processSettlementForCurrency(settlement: Settlement, userBalances: Record<string, UserBalance>): void {
+    private processSettlementForCurrency(settlement: SettlementDocument, userBalances: Record<string, UserBalance>): void {
         const payerId = settlement.payerId;
         const payeeId = settlement.payeeId;
         const amount = settlement.amount;

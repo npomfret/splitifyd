@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { FirestoreTimestampSchema } from './common';
+import { ExpenseDocumentSchema } from './expense';
+import { SettlementDocumentSchema } from './settlement';
 
 // Schema for ExpenseSplit
 export const ExpenseSplitSchema = z.object({
@@ -82,8 +84,8 @@ export const CurrencyBalancesSchema = z.record(
 // Schema for BalanceCalculationInput
 export const BalanceCalculationInputSchema = z.object({
     groupId: z.string(),
-    expenses: z.array(ExpenseBalanceSchema),
-    settlements: z.array(SettlementBalanceSchema),
+    expenses: z.array(ExpenseDocumentSchema),
+    settlements: z.array(SettlementDocumentSchema),
     groupData: GroupDataBalanceSchema,
     memberProfiles: z.any(), // Map<string, UserProfile> - skip validation for now
 });

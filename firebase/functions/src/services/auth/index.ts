@@ -24,7 +24,6 @@ export type {
     AuthOperationContext,
     AuthServiceMetrics,
     PasswordPolicy,
-    UserProfile,
 } from './auth-types';
 
 export { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';

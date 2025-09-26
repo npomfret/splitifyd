@@ -37,7 +37,7 @@ import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument, 
 import type { GroupMemberDocument, TopLevelGroupMemberDocument } from '@splitifyd/shared';
 import type { ParsedGroupMemberDocument } from '../../schemas';
 import type { IFirestoreReader } from './IFirestoreReader';
-import type { QueryOptions, GroupMemberQueryOptions, PaginatedResult, GroupsPaginationCursor, OrderBy, BatchGroupFetchOptions } from '../../types/firestore-reader-types';
+import type { QueryOptions, GroupMemberQueryOptions, PaginatedResult, GroupsPaginationCursor, OrderBy, BatchGroupFetchOptions } from './IFirestoreReader';
 
 export class FirestoreReader implements IFirestoreReader {
     constructor(private readonly db: Firestore) {}

@@ -3,7 +3,7 @@ import { Errors } from '../utils/errors';
 import { sanitizeString } from '../utils/security';
 import { VALIDATION_LIMITS } from '../constants';
 import { CreateGroupRequest } from '@splitifyd/shared';
-import { UpdateGroupRequest } from '../types/group-types';
+import { UpdateGroupRequest } from '../types/server-types';
 
 /**
  * Schema for create group request

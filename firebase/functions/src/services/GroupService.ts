@@ -1,6 +1,7 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { Errors } from '../utils/errors';
-import { Group, UpdateGroupRequest } from '../types/group-types';
+import { Group } from '@splitifyd/shared';
+import { UpdateGroupRequest } from '../types/server-types';
 import { CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets } from '@splitifyd/shared';
 import { BalanceCalculationResultSchema, BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupDataSchema, GroupDocument } from '../schemas';
 import { BalanceCalculationService } from './balance';

@@ -144,30 +144,8 @@ export interface PasswordPolicy {
     disallowedPasswords?: string[];
 }
 
-/**
- * User profile data extracted from UserRecord
- */
-export interface UserProfile {
-    uid: string;
-    email: string | undefined;
-    displayName: string | undefined;
-    photoURL: string | undefined;
-    emailVerified: boolean;
-    disabled: boolean;
-    metadata: {
-        creationTime: string;
-        lastSignInTime: string | undefined;
-        lastRefreshTime: string | undefined;
-    };
-    customClaims?: { [key: string]: any };
-    providerData: Array<{
-        uid: string;
-        displayName: string | undefined;
-        email: string | undefined;
-        photoURL: string | undefined;
-        providerId: string;
-    }>;
-}
+// Note: UserProfile interface removed - use RegisteredUser from @splitifyd/shared instead
+// for application user data, or Firebase UserRecord for auth-specific data
 
 /**
  * Auth error codes specific to our application

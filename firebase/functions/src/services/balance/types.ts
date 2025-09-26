@@ -1,40 +1,8 @@
 import { UserBalance, SimplifiedDebt, RegisteredUser } from '@splitifyd/shared';
+import type { ExpenseDocument, SettlementDocument } from '../../schemas';
 
-// Core entity interfaces - properly typed versions of data from Firestore
-export interface Expense {
-    id: string;
-    groupId: string;
-    description: string;
-    amount: number;
-    currency: string;
-    paidBy: string;
-    splitType: 'equal' | 'exact' | 'percentage';
-    participants: string[];
-    splits: ExpenseSplit[];
-    date: string;
-    category: string;
-    receiptUrl?: string;
-    createdAt?: string;
-    deletedAt?: string;
-}
-
-export interface Settlement {
-    id: string;
-    groupId: string;
-    payerId: string;
-    payeeId: string;
-    amount: number;
-    currency: string;
-    date?: string;
-    note?: string;
-    createdAt?: string;
-}
-
-export interface ExpenseSplit {
-    uid: string;
-    amount: number;
-    percentage?: number;
-}
+// Note: Core entity interfaces (Expense, Settlement, ExpenseSplit) now come from canonical schemas
+// Use ExpenseDocument and SettlementDocument from ../../schemas instead
 
 export interface GroupData {
     id: string;
@@ -51,8 +19,8 @@ export interface GroupMember {
 // Processing interfaces - intermediate data structures used during calculation
 export interface BalanceCalculationInput {
     groupId: string;
-    expenses: Expense[];
-    settlements: Settlement[];
+    expenses: ExpenseDocument[];
+    settlements: SettlementDocument[];
     groupData: GroupData;
     memberProfiles: Map<string, RegisteredUser>;
 }

@@ -14,7 +14,58 @@
  */
 
 import type { Transaction } from 'firebase-admin/firestore';
-import { QueryOptions, GroupMemberQueryOptions, PaginatedResult } from '../../types/firestore-reader-types';
+import { FirestoreTimestamp, MemberRole, MemberStatus } from '@splitifyd/shared';
+
+// FirestoreReader query and pagination types
+export interface PaginationOptions {
+    limit?: number;
+    offset?: number;
+    cursor?: string;
+}
+
+export interface FilterOptions {
+    includeDeleted?: boolean;
+    dateRange?: {
+        start?: FirestoreTimestamp;
+        end?: FirestoreTimestamp;
+    };
+}
+
+export interface GroupMemberQueryOptions {
+    includeInactive?: boolean;
+    roles?: MemberRole[];
+    statuses?: MemberStatus[];
+}
+
+export interface QueryOptions extends PaginationOptions, FilterOptions {
+    orderBy?: {
+        field: string;
+        direction: 'asc' | 'desc';
+    };
+}
+
+export interface PaginatedResult<T> {
+    data: T;
+    hasMore: boolean;
+    nextCursor?: string;
+    totalEstimate?: number;
+}
+
+export interface GroupsPaginationCursor {
+    lastGroupId: string;
+    lastUpdatedAt: string;
+    membershipCursor?: string;
+}
+
+export interface OrderBy {
+    field: string;
+    direction: 'asc' | 'desc';
+}
+
+export interface BatchGroupFetchOptions {
+    orderBy: OrderBy;
+    limit: number;
+}
 
 // Import parsed types from schemas
 import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument, PolicyDocument } from '../../schemas';
