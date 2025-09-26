@@ -43,7 +43,3 @@ export async function borrowTestUsers(count: number): Promise<PooledTestUser[]> 
 
     return users;
 }
-
-export async function borrowTestUser(): Promise<PooledTestUser> {
-    return (await borrowTestUsers(1))[0];
-}

@@ -366,13 +366,6 @@ export interface GroupMember {
     lastPermissionChange?: string; // ISO string - Track permission updates
 }
 
-export type GroupMemberWithProfile = RegisteredUser &
-    GroupMember & {
-        // Additional user display properties for UI
-        initials: string; // Auto-generated from displayName
-        // Note: theme is inherited from RegisteredUser.themeColor, not duplicated
-    };
-
 /**
  * Lean DTO for API responses containing only essential fields for group member display.
  * Prevents over-exposure of sensitive user data (acceptedPolicies, timestamps, etc.)

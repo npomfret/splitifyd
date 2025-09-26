@@ -1,15 +1,15 @@
-import { vi } from 'vitest';
-import { Timestamp } from 'firebase-admin/firestore';
-import type { UserRecord, UpdateRequest, CreateRequest, GetUsersResult, DecodedIdToken, ListUsersResult, DeleteUsersResult } from 'firebase-admin/auth';
-import type { IFirestoreReader } from '../../../services/firestore';
-import type { IFirestoreWriter, WriteResult } from '../../../services/firestore/IFirestoreWriter';
-import type { IAuthService } from '../../../services/auth';
-import type { PolicyDocument, UserDocument, GroupDocument, ExpenseDocument, SettlementDocument } from '../../../schemas';
-import type { GroupMemberDocument, CommentTargetType } from '@splitifyd/shared';
-import type { UserNotificationDocument } from '../../../schemas/user-notifications';
-import type { ParsedShareLink, ParsedComment } from '../../../schemas';
-import { ApiError } from '../../../utils/errors';
-import { HTTP_STATUS } from '../../../constants';
+import {vi} from 'vitest';
+import {Timestamp} from 'firebase-admin/firestore';
+import type {UserRecord, UpdateRequest, CreateRequest, GetUsersResult, DecodedIdToken, ListUsersResult, DeleteUsersResult} from 'firebase-admin/auth';
+import type {IFirestoreReader} from '../../../services/firestore';
+import type {IFirestoreWriter, WriteResult} from '../../../services/firestore/IFirestoreWriter';
+import type {IAuthService} from '../../../services/auth';
+import type {PolicyDocument, UserDocument, GroupDocument, ExpenseDocument, SettlementDocument} from '../../../schemas';
+import type {GroupMemberDocument, CommentTargetType} from '@splitifyd/shared';
+import type {UserNotificationDocument} from '../../../schemas/user-notifications';
+import type {ParsedShareLink, ParsedComment} from '../../../schemas';
+import {ApiError} from '../../../utils/errors';
+import {HTTP_STATUS} from '../../../constants';
 
 // Shared storage for comments between reader and writer
 const sharedCommentStorage = new Map<string, any[]>();
@@ -36,7 +36,7 @@ export class StubFirestoreReader implements IFirestoreReader {
                 exists: !!data,
                 data: () => data,
                 get: (field: string) => data?.[field],
-                ref: { id, path: `policies/${id}` },
+                ref: {id, path: `policies/${id}`},
                 readTime: Timestamp.now(),
                 isEqual: (other: any) => other?.id === id,
             });
@@ -90,15 +90,19 @@ export class StubFirestoreReader implements IFirestoreReader {
         }
         return users;
     }
+
     async getGroupsForUserV2(): Promise<any> {
-        return { data: [], hasMore: false };
+        return {data: [], hasMore: false};
     }
+
     async getGroupMembers(): Promise<GroupMemberDocument[]> {
         return [];
     }
+
     async getGroupMember(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
         return this.documents.get(`group-members/${groupId}_${userId}`) || null;
     }
+
     async getAllGroupMembers(groupId: string): Promise<GroupMemberDocument[]> {
         const members: GroupMemberDocument[] = [];
         for (const [key, value] of this.documents.entries()) {
@@ -108,9 +112,11 @@ export class StubFirestoreReader implements IFirestoreReader {
         }
         return members;
     }
+
     async getAllGroupMemberIds(): Promise<string[]> {
         return [];
     }
+
     async getExpensesForGroup(groupId: string): Promise<ExpenseDocument[]> {
         const expenses: ExpenseDocument[] = [];
         for (const [key, value] of this.documents.entries()) {
@@ -120,39 +126,51 @@ export class StubFirestoreReader implements IFirestoreReader {
         }
         return expenses;
     }
+
     async getExpenseHistory(): Promise<any> {
-        return { history: [], count: 0 };
+        return {history: [], count: 0};
     }
+
     async getExpensesForGroupPaginated(): Promise<any> {
-        return { expenses: [], hasMore: false };
+        return {expenses: [], hasMore: false};
     }
+
     async getSettlementsForGroup(): Promise<SettlementDocument[]> {
         return [];
     }
+
     async getGroupInTransaction(): Promise<GroupDocument | null> {
         return null;
     }
+
     async getUserInTransaction(): Promise<UserDocument | null> {
         return null;
     }
+
     async documentExists(): Promise<boolean> {
         return false;
     }
+
     async getUserNotification(): Promise<UserNotificationDocument | null> {
         return null;
     }
+
     async userNotificationExists(): Promise<boolean> {
         return false;
     }
+
     async findShareLinkByToken(): Promise<any | null> {
         return null;
     }
+
     async getShareLinksForGroup(): Promise<ParsedShareLink[]> {
         return [];
     }
+
     async getShareLink(): Promise<ParsedShareLink | null> {
         return null;
     }
+
     // Helper method for tests to set up comments for a target
     setCommentsForTarget(targetType: CommentTargetType, targetId: string, comments: any[]) {
         sharedCommentStorage.set(`${targetType}:${targetId}`, comments);
@@ -160,38 +178,45 @@ export class StubFirestoreReader implements IFirestoreReader {
 
     async getCommentsForTarget(targetType: CommentTargetType, targetId: string, options?: any): Promise<any> {
         const comments = sharedCommentStorage.get(`${targetType}:${targetId}`) || [];
-        return { comments, hasMore: false, nextCursor: null };
+        return {comments, hasMore: false, nextCursor: null};
     }
+
     async getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<ParsedComment | null> {
         const comments = sharedCommentStorage.get(`${targetType}:${targetId}`) || [];
         return comments.find((c) => c.id === commentId) || null;
     }
+
     async getCommentByReference(): Promise<ParsedComment | null> {
         return null;
     }
+
     async getGroupDeletionData(): Promise<any> {
         return {
-            expenses: { size: 0, docs: [] },
-            settlements: { size: 0, docs: [] },
-            shareLinks: { size: 0, docs: [] },
-            groupComments: { size: 0, docs: [] },
+            expenses: {size: 0, docs: []},
+            settlements: {size: 0, docs: []},
+            shareLinks: {size: 0, docs: []},
+            groupComments: {size: 0, docs: []},
             expenseComments: [],
         };
     }
+
     async getSettlementsForGroupPaginated(): Promise<any> {
-        return { settlements: [], hasMore: false };
+        return {settlements: [], hasMore: false};
     }
 
     // Missing methods from interface
     async verifyGroupMembership(): Promise<boolean> {
         return false;
     }
+
     async getGroupMembershipsInTransaction(): Promise<any> {
-        return { docs: [], size: 0, empty: true };
+        return {docs: [], size: 0, empty: true};
     }
+
     async getRawDocumentInTransaction(): Promise<any | null> {
         return null;
     }
+
     async getRawExpenseDocumentInTransaction(transaction: any, expenseId: string): Promise<any | null> {
         const expenseData = this.documents.get(`expenses/${expenseId}`);
         if (!expenseData) return null;
@@ -199,12 +224,14 @@ export class StubFirestoreReader implements IFirestoreReader {
         return {
             exists: true,
             data: () => expenseData,
-            ref: { id: expenseId, path: `expenses/${expenseId}` },
+            ref: {id: expenseId, path: `expenses/${expenseId}`},
         };
     }
+
     async getRawGroupDocument(): Promise<any | null> {
         return null;
     }
+
     async getRawGroupDocumentInTransaction(transaction: any, groupId: string): Promise<any | null> {
         const groupData = this.documents.get(`groups/${groupId}`);
         if (!groupData) {
@@ -215,12 +242,14 @@ export class StubFirestoreReader implements IFirestoreReader {
             exists: true,
             data: () => groupData,
             get: (field: string) => groupData?.[field],
-            ref: { id: groupId, path: `groups/${groupId}` },
+            ref: {id: groupId, path: `groups/${groupId}`},
         };
     }
+
     async getRawSettlementDocumentInTransaction(): Promise<any | null> {
         return null;
     }
+
     async getRawUserDocumentInTransaction(): Promise<any | null> {
         return null;
     }
@@ -272,7 +301,7 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     async updatePolicy(policyId: string, updates: any): Promise<WriteResult> {
         const existing = this.documents.get(`policies/${policyId}`);
         if (existing) {
-            this.documents.set(`policies/${policyId}`, { ...existing, ...updates });
+            this.documents.set(`policies/${policyId}`, {...existing, ...updates});
         }
         const result = this.getLastWriteResult() || {
             id: policyId,
@@ -284,49 +313,61 @@ export class StubFirestoreWriter implements IFirestoreWriter {
 
     // Minimal implementations for other required methods
     async createUser(): Promise<WriteResult> {
-        return { id: 'user', success: true, timestamp: Timestamp.now() };
+        return {id: 'user', success: true, timestamp: Timestamp.now()};
     }
+
     async updateUser(userId: string, updates: any): Promise<WriteResult> {
         // Update the document in memory
         const existing = this.documents.get(`users/${userId}`);
         if (existing) {
-            this.documents.set(`users/${userId}`, { ...existing, ...updates });
+            this.documents.set(`users/${userId}`, {...existing, ...updates});
         }
-        return { id: userId, success: true, timestamp: Timestamp.now() };
+        return {id: userId, success: true, timestamp: Timestamp.now()};
     }
+
     async deleteUser(): Promise<WriteResult> {
-        return { id: 'user', success: true, timestamp: Timestamp.now() };
+        return {id: 'user', success: true, timestamp: Timestamp.now()};
     }
+
     async createGroup(): Promise<WriteResult> {
-        return { id: 'group', success: true, timestamp: Timestamp.now() };
+        return {id: 'group', success: true, timestamp: Timestamp.now()};
     }
+
     async updateGroup(): Promise<WriteResult> {
-        return { id: 'group', success: true, timestamp: Timestamp.now() };
+        return {id: 'group', success: true, timestamp: Timestamp.now()};
     }
+
     async deleteGroup(): Promise<WriteResult> {
-        return { id: 'group', success: true, timestamp: Timestamp.now() };
+        return {id: 'group', success: true, timestamp: Timestamp.now()};
     }
+
     async createExpense(): Promise<WriteResult> {
-        return { id: 'expense', success: true, timestamp: Timestamp.now() };
+        return {id: 'expense', success: true, timestamp: Timestamp.now()};
     }
+
     async updateExpense(): Promise<WriteResult> {
-        return { id: 'expense', success: true, timestamp: Timestamp.now() };
+        return {id: 'expense', success: true, timestamp: Timestamp.now()};
     }
+
     async deleteExpense(): Promise<WriteResult> {
-        return { id: 'expense', success: true, timestamp: Timestamp.now() };
+        return {id: 'expense', success: true, timestamp: Timestamp.now()};
     }
+
     async createSettlement(): Promise<WriteResult> {
-        return { id: 'settlement', success: true, timestamp: Timestamp.now() };
+        return {id: 'settlement', success: true, timestamp: Timestamp.now()};
     }
+
     async updateSettlement(): Promise<WriteResult> {
-        return { id: 'settlement', success: true, timestamp: Timestamp.now() };
+        return {id: 'settlement', success: true, timestamp: Timestamp.now()};
     }
+
     async deleteSettlement(): Promise<WriteResult> {
-        return { id: 'settlement', success: true, timestamp: Timestamp.now() };
+        return {id: 'settlement', success: true, timestamp: Timestamp.now()};
     }
+
     async addComment(targetType: CommentTargetType, targetId: string, commentData: any): Promise<WriteResult> {
         const id = `comment-${Date.now()}`;
-        const result = this.getLastWriteResult() || { id, success: true, timestamp: Timestamp.now() };
+        const result = this.getLastWriteResult() || {id, success: true, timestamp: Timestamp.now()};
 
         if (!result.success) {
             throw new Error(result.error || 'Write failed');
@@ -343,36 +384,47 @@ export class StubFirestoreWriter implements IFirestoreWriter {
 
         return result;
     }
+
     async updateComment(): Promise<WriteResult> {
-        return { id: 'comment', success: true, timestamp: Timestamp.now() };
+        return {id: 'comment', success: true, timestamp: Timestamp.now()};
     }
+
     async deleteComment(): Promise<WriteResult> {
-        return { id: 'comment', success: true, timestamp: Timestamp.now() };
+        return {id: 'comment', success: true, timestamp: Timestamp.now()};
     }
+
     createShareLinkInTransaction(): any {
-        return { id: 'link', path: 'shareLinks/link' };
+        return {id: 'link', path: 'shareLinks/link'};
     }
+
     async updateGroupInTransaction(): Promise<WriteResult> {
-        return { id: 'group', success: true, timestamp: Timestamp.now() };
+        return {id: 'group', success: true, timestamp: Timestamp.now()};
     }
+
     async createUserNotification(): Promise<WriteResult> {
-        return { id: 'notification', success: true, timestamp: Timestamp.now() };
+        return {id: 'notification', success: true, timestamp: Timestamp.now()};
     }
+
     async updateUserNotification(): Promise<WriteResult> {
-        return { id: 'notification', success: true, timestamp: Timestamp.now() };
+        return {id: 'notification', success: true, timestamp: Timestamp.now()};
     }
+
     async setUserNotificationGroup(): Promise<WriteResult> {
-        return { id: 'notification', success: true, timestamp: Timestamp.now() };
+        return {id: 'notification', success: true, timestamp: Timestamp.now()};
     }
+
     async removeUserNotificationGroup(): Promise<WriteResult> {
-        return { id: 'notification', success: true, timestamp: Timestamp.now() };
+        return {id: 'notification', success: true, timestamp: Timestamp.now()};
     }
+
     async setUserNotifications(): Promise<WriteResult> {
-        return { id: 'notification', success: true, timestamp: Timestamp.now() };
+        return {id: 'notification', success: true, timestamp: Timestamp.now()};
     }
+
     async setUserNotificationGroupInTransaction(): Promise<WriteResult> {
-        return { id: 'notification', success: true, timestamp: Timestamp.now() };
+        return {id: 'notification', success: true, timestamp: Timestamp.now()};
     }
+
     async runTransaction(transactionFn: (transaction: any) => Promise<any>): Promise<any> {
         const mockTransaction = {
             get: vi.fn().mockImplementation((docRef: any) => {
@@ -402,7 +454,7 @@ export class StubFirestoreWriter implements IFirestoreWriter {
                 // Update the document in our mock storage
                 const path = docRef.path || docRef.id || '';
                 const existingData = this.documents.get(path) || {};
-                this.documents.set(path, { ...existingData, ...data });
+                this.documents.set(path, {...existingData, ...data});
             }),
             set: vi.fn().mockImplementation((docRef: any, data: any) => {
                 // Set the document in our mock storage
@@ -417,37 +469,46 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         };
         return await transactionFn(mockTransaction);
     }
+
     createInTransaction(transaction: any, collection: string, documentId: string | null, data: any): any {
         const id = documentId || this.generateDocumentId();
-        return { id, path: `${collection}/${id}` };
+        return {id, path: `${collection}/${id}`};
     }
+
     updateInTransaction = vi.fn().mockImplementation(async (): Promise<WriteResult> => {
-        return { id: 'doc', success: true, timestamp: Timestamp.now() };
+        return {id: 'doc', success: true, timestamp: Timestamp.now()};
     });
+
     async deleteInTransaction(): Promise<WriteResult> {
-        return { id: 'doc', success: true, timestamp: Timestamp.now() };
+        return {id: 'doc', success: true, timestamp: Timestamp.now()};
     }
+
     generateDocumentId(): string {
         return 'generated-id';
     }
+
     async performHealthCheck(): Promise<{ success: boolean; responseTime: number }> {
-        return { success: true, responseTime: 50 };
+        return {success: true, responseTime: 50};
     }
+
     async bulkDeleteInTransaction(): Promise<any> {
-        return { successCount: 0, failureCount: 0, results: [] };
+        return {successCount: 0, failureCount: 0, results: []};
     }
+
     getDocumentReferenceInTransaction(transaction: any, collection: string, documentId: string): any {
         return {
             id: documentId,
             path: `${collection}/${documentId}`,
-            collection: { id: collection },
+            collection: {id: collection},
         };
     }
+
     async deleteMemberAndNotifications(): Promise<any> {
-        return { successCount: 1, failureCount: 0, results: [] };
+        return {successCount: 1, failureCount: 0, results: []};
     }
+
     async leaveGroupAtomic(): Promise<any> {
-        return { successCount: 1, failureCount: 0, results: [] };
+        return {successCount: 1, failureCount: 0, results: []};
     }
 }
 
@@ -561,16 +622,16 @@ export class StubAuthService implements IAuthService {
         const users: UserRecord[] = [];
         const notFound: { uid: string }[] = [];
 
-        for (const { uid } of uids) {
+        for (const {uid} of uids) {
             const user = this.users.get(uid);
             if (user && !this.deletedUsers.has(uid)) {
                 users.push(user);
             } else {
-                notFound.push({ uid });
+                notFound.push({uid});
             }
         }
 
-        return { users, notFound };
+        return {users, notFound};
     }
 
     async updateUser(uid: string, updates: UpdateRequest): Promise<UserRecord> {
@@ -673,7 +734,7 @@ export class StubAuthService implements IAuthService {
                 await this.deleteUser(uid);
                 successCount++;
             } catch (error) {
-                errors.push({ index: uids.indexOf(uid), error });
+                errors.push({index: uids.indexOf(uid), error});
             }
         }
 
@@ -708,7 +769,7 @@ export class StubAuthService implements IAuthService {
         this.customClaims.set(uid, customClaims);
 
         // Update the user record with custom claims
-        const updatedUser = { ...user, customClaims, toJSON: () => ({}) };
+        const updatedUser = {...user, customClaims, toJSON: () => ({})};
         this.users.set(uid, updatedUser);
     }
 

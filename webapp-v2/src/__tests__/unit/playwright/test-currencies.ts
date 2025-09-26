@@ -75,16 +75,3 @@ export const CURRENCY_REPLACEMENTS = {
     EUR: SECONDARY_TEST_CURRENCY, // ฿ instead of €
     GBP: TERTIARY_TEST_CURRENCY, // lei instead of £
 } as const;
-
-// Helper function to get test currency by acronym
-export const getTestCurrency = (acronym: string): TestCurrency | undefined => {
-    return TEST_CURRENCIES.find((c) => c.acronym === acronym);
-};
-
-// Helper function to format currency amount for testing
-export const formatTestCurrency = (amount: number, currency: TestCurrency): string => {
-    if (currency.decimal_digits === 0) {
-        return `${currency.symbol}${Math.round(amount)}`;
-    }
-    return `${currency.symbol}${amount.toFixed(currency.decimal_digits)}`;
-};

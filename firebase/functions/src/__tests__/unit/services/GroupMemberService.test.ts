@@ -67,7 +67,6 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         // For basic tests: use ApplicationBuilder
         applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
-        const basicGroupMemberService = applicationBuilder.buildGroupMemberService();
 
         // For validation tests: use direct constructor with mocked UserService
         const validationGroupMemberService = new GroupMemberService(stubReader, stubWriter, mockUserService);

@@ -113,9 +113,4 @@ export class ShareGroupModalPage extends BasePage {
             }
         }).toPass({ timeout });
     }
-
-    async getNewShareLinkAfterRegeneration(previousLink: string): Promise<string> {
-        await this.waitForNewShareLink(previousLink);
-        return await this.getShareLink();
-    }
 }

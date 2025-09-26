@@ -53,13 +53,6 @@ export class ScreenshotHandler {
     async takeErrorScreenshot(testInfo: TestInfo): Promise<void> {
         await this.takeScreenshot(testInfo, 'error');
     }
-
-    /**
-     * Take a screenshot for debugging purposes
-     */
-    async takeDebugScreenshot(testInfo: TestInfo, debugContext: string): Promise<void> {
-        await this.takeScreenshot(testInfo, `debug-${debugContext}`);
-    }
 }
 
 /**

@@ -6,16 +6,3 @@ export interface UpdateGroupRequest {
     name?: string;
     description?: string;
 }
-
-export interface GroupWithBalance extends Group {
-    balance: GroupBalance;
-}
-
-export interface GroupData {
-    name: string;
-    description?: string;
-    members: Record<string, any>;
-    createdBy: string;
-    createdAt: string;
-    updatedAt: string;
-}

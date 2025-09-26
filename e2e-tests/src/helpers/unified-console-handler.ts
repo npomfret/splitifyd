@@ -177,13 +177,6 @@ export class UnifiedConsoleHandler {
     }
 
     /**
-     * Update user information for better error reporting
-     */
-    updateUserInfo(userInfo: { userIndex?: number; userEmail?: string }): void {
-        this.options = { ...this.options, ...userInfo };
-    }
-
-    /**
      * Process errors and potentially fail test
      */
     async processErrors(testInfo: TestInfo): Promise<void> {

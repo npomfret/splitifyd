@@ -53,7 +53,7 @@ export class ApiInterceptor {
     }
 
     private setupLogFile(): void {
-        const { userIndex = 0, userEmail, testInfo } = this.options;
+        const { userIndex = 0, testInfo } = this.options;
 
         // Create log file path
         const testDir = testInfo?.outputDir || path.join(process.cwd(), 'e2e-tests', 'playwright-report', 'output');

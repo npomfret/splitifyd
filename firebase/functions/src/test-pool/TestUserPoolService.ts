@@ -24,16 +24,15 @@ export class TestUserPoolService {
     private static instance: TestUserPoolService;
     private readonly db = getFirestore();
 
-    private constructor(
-        private readonly firestoreReader: IFirestoreReader,
+    constructor(
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly userService: UserService,
         private readonly authService: IAuthService,
     ) {}
 
-    static getInstance(firestoreReader: IFirestoreReader, firestoreWriter: IFirestoreWriter, userService: UserService, authService: IAuthService): TestUserPoolService {
+    static getInstance(firestoreWriter: IFirestoreWriter, userService: UserService, authService: IAuthService): TestUserPoolService {
         if (!TestUserPoolService.instance) {
-            TestUserPoolService.instance = new TestUserPoolService(firestoreReader, firestoreWriter, userService, authService);
+            TestUserPoolService.instance = new TestUserPoolService(firestoreWriter, userService, authService);
         }
         return TestUserPoolService.instance;
     }
