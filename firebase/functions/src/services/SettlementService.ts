@@ -2,12 +2,12 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
-import { createOptimisticTimestamp, safeParseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
+import * as dateHelpers from '../utils/dateHelpers';
 import { getUpdatedAtTimestamp } from '../utils/optimistic-locking';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
+import * as measure from '../monitoring/measure';
 import { Settlement, CreateSettlementRequest, UpdateSettlementRequest, SettlementListItem, RegisteredUser, FirestoreCollections } from '@splitifyd/shared';
-import { measureDb } from '../monitoring/measure';
 import { SettlementDocumentSchema } from '../schemas';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
@@ -31,11 +31,28 @@ const UserDataSchema = z
  * Service for managing settlement operations
  */
 export class SettlementService {
+    // Injected dependencies or defaults
+    private readonly dateHelpers: typeof import('../utils/dateHelpers');
+    private readonly logger: typeof import('../logger').logger;
+    private readonly loggerContext: typeof import('../utils/logger-context').LoggerContext;
+    private readonly measure: typeof import('../monitoring/measure');
+
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly groupMemberService: GroupMemberService,
-    ) {}
+        // Optional dependencies for testing
+        injectedDateHelpers?: typeof import('../utils/dateHelpers'),
+        injectedLogger?: typeof import('../logger').logger,
+        injectedLoggerContext?: typeof import('../utils/logger-context').LoggerContext,
+        injectedMeasure?: typeof import('../monitoring/measure')
+    ) {
+        // Use injected dependencies or fall back to imports
+        this.dateHelpers = injectedDateHelpers || dateHelpers;
+        this.logger = injectedLogger || logger;
+        this.loggerContext = injectedLoggerContext || LoggerContext;
+        this.measure = injectedMeasure || measure;
+    }
 
     /**
      * Verify that specified users are members of the group using subcollection
@@ -88,7 +105,7 @@ export class SettlementService {
             };
         } catch (error) {
             // Zod validation failed - user document is corrupted
-            logger.error('User document validation failed', error, { userId });
+            this.logger.error('User document validation failed', error, { userId });
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_USER_DATA', `User ${userId} has invalid data structure`);
         }
     }
@@ -112,7 +129,7 @@ export class SettlementService {
         hasMore: boolean;
         nextCursor?: string;
     }> {
-        return measureDb('SettlementService.listSettlements', async () => this._listSettlements(groupId, userId, options));
+        return this.measure.measureDb('SettlementService.listSettlements', async () => this._listSettlements(groupId, userId, options));
     }
 
     private async _listSettlements(
@@ -131,8 +148,8 @@ export class SettlementService {
         hasMore: boolean;
         nextCursor?: string;
     }> {
-        LoggerContext.setBusinessContext({ groupId });
-        LoggerContext.update({ userId, operation: 'list-settlements' });
+        this.loggerContext.setBusinessContext({ groupId });
+        this.loggerContext.update({ userId, operation: 'list-settlements' });
 
         await this.firestoreReader.verifyGroupMembership(groupId, userId);
 
@@ -143,12 +160,12 @@ export class SettlementService {
      * Create a new settlement
      */
     async createSettlement(settlementData: CreateSettlementRequest, userId: string): Promise<Settlement> {
-        return measureDb('SettlementService.createSettlement', async () => this._createSettlement(settlementData, userId));
+        return this.measure.measureDb('SettlementService.createSettlement', async () => this._createSettlement(settlementData, userId));
     }
 
     private async _createSettlement(settlementData: CreateSettlementRequest, userId: string): Promise<Settlement> {
-        LoggerContext.setBusinessContext({ groupId: settlementData.groupId });
-        LoggerContext.update({ userId, operation: 'create-settlement', amount: settlementData.amount });
+        this.loggerContext.setBusinessContext({ groupId: settlementData.groupId });
+        this.loggerContext.update({ userId, operation: 'create-settlement', amount: settlementData.amount });
 
         // Validate amount
         if (settlementData.amount <= 0) {
@@ -161,8 +178,8 @@ export class SettlementService {
         await this.firestoreReader.verifyGroupMembership(settlementData.groupId, userId);
         await this.verifyUsersInGroup(settlementData.groupId, [settlementData.payerId, settlementData.payeeId]);
 
-        const now = createOptimisticTimestamp();
-        const settlementDate = settlementData.date ? safeParseISOToTimestamp(settlementData.date) : now;
+        const now = this.dateHelpers.createOptimisticTimestamp();
+        const settlementDate = settlementData.date ? this.dateHelpers.safeParseISOToTimestamp(settlementData.date) : now;
 
         const settlementDataToCreate: any = {
             groupId: settlementData.groupId,
@@ -186,7 +203,7 @@ export class SettlementService {
         const settlementId = createResult.id;
 
         // Update context with the created settlement ID
-        LoggerContext.setBusinessContext({ settlementId });
+        this.loggerContext.setBusinessContext({ settlementId });
 
         // Build the complete settlement object for the response
         const settlement = {
@@ -196,9 +213,9 @@ export class SettlementService {
 
         return {
             ...settlement,
-            date: timestampToISO(settlementDate),
-            createdAt: timestampToISO(now),
-            updatedAt: timestampToISO(now),
+            date: this.dateHelpers.timestampToISO(settlementDate),
+            createdAt: this.dateHelpers.timestampToISO(now),
+            updatedAt: this.dateHelpers.timestampToISO(now),
         };
     }
 
@@ -206,12 +223,12 @@ export class SettlementService {
      * Update an existing settlement
      */
     async updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementListItem> {
-        return measureDb('SettlementService.updateSettlement', async () => this._updateSettlement(settlementId, updateData, userId));
+        return this.measure.measureDb('SettlementService.updateSettlement', async () => this._updateSettlement(settlementId, updateData, userId));
     }
 
     private async _updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementListItem> {
-        LoggerContext.setBusinessContext({ settlementId });
-        LoggerContext.update({ userId, operation: 'update-settlement' });
+        this.loggerContext.setBusinessContext({ settlementId });
+        this.loggerContext.update({ userId, operation: 'update-settlement' });
 
         const settlementData = await this.firestoreReader.getSettlement(settlementId);
 
@@ -229,7 +246,7 @@ export class SettlementService {
         }
 
         const updates: any = {
-            updatedAt: createOptimisticTimestamp(),
+            updatedAt: this.dateHelpers.createOptimisticTimestamp(),
         };
 
         if (updateData.amount !== undefined) {
@@ -241,7 +258,7 @@ export class SettlementService {
         }
 
         if (updateData.date !== undefined) {
-            updates.date = safeParseISOToTimestamp(updateData.date);
+            updates.date = this.dateHelpers.safeParseISOToTimestamp(updateData.date);
         }
 
         if (updateData.note !== undefined) {
@@ -264,7 +281,7 @@ export class SettlementService {
                 const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
                 this.firestoreWriter.updateInTransaction(transaction, documentPath, {
                     ...updates,
-                    updatedAt: createOptimisticTimestamp(),
+                    updatedAt: this.dateHelpers.createOptimisticTimestamp(),
                 });
             },
             {
@@ -290,9 +307,9 @@ export class SettlementService {
             payee: payeeData,
             amount: updatedSettlement!.amount,
             currency: updatedSettlement!.currency,
-            date: timestampToISO(updatedSettlement!.date),
+            date: this.dateHelpers.timestampToISO(updatedSettlement!.date),
             note: updatedSettlement!.note,
-            createdAt: timestampToISO(updatedSettlement!.createdAt),
+            createdAt: this.dateHelpers.timestampToISO(updatedSettlement!.createdAt),
         };
     }
 
@@ -300,12 +317,12 @@ export class SettlementService {
      * Delete a settlement
      */
     async deleteSettlement(settlementId: string, userId: string): Promise<void> {
-        return measureDb('SettlementService.deleteSettlement', async () => this._deleteSettlement(settlementId, userId));
+        return this.measure.measureDb('SettlementService.deleteSettlement', async () => this._deleteSettlement(settlementId, userId));
     }
 
     private async _deleteSettlement(settlementId: string, userId: string): Promise<void> {
-        LoggerContext.setBusinessContext({ settlementId });
-        LoggerContext.update({ userId, operation: 'delete-settlement' });
+        this.loggerContext.setBusinessContext({ settlementId });
+        this.loggerContext.update({ userId, operation: 'delete-settlement' });
 
         const settlementData = await this.firestoreReader.getSettlement(settlementId);
 
@@ -375,8 +392,8 @@ export class SettlementService {
         hasMore: boolean;
         nextCursor?: string;
     }> {
-        LoggerContext.setBusinessContext({ groupId });
-        LoggerContext.update({ operation: 'get-group-settlements-data', limit: options.limit || 50 });
+        this.loggerContext.setBusinessContext({ groupId });
+        this.loggerContext.update({ operation: 'get-group-settlements-data', limit: options.limit || 50 });
 
         const limit = options.limit || 50;
         const cursor = options.cursor;
@@ -403,9 +420,9 @@ export class SettlementService {
                     payee: payeeData,
                     amount: settlement.amount,
                     currency: settlement.currency,
-                    date: timestampToISO(settlement.date),
+                    date: this.dateHelpers.timestampToISO(settlement.date),
                     note: settlement.note,
-                    createdAt: timestampToISO(settlement.createdAt),
+                    createdAt: this.dateHelpers.timestampToISO(settlement.createdAt),
                 } as SettlementListItem;
             }),
         );

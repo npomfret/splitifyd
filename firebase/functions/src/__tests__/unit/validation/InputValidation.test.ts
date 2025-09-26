@@ -1,39 +1,33 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { ExpenseService } from '../../../services/ExpenseService';
 import { SettlementService } from '../../../services/SettlementService';
-import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { StubFirestoreReader, StubFirestoreWriter, StubPermissionEngine, StubLogger, StubLoggerContext, StubMeasure, StubDateHelpers, StubExpenseValidation } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import type { CreateExpenseRequest, CreateSettlementRequest } from '@splitifyd/shared';
 
-// Mock the PermissionEngineAsync module
-vi.mock('../../../permissions/permission-engine-async', () => ({
-    PermissionEngineAsync: {
-        checkPermission: vi.fn().mockResolvedValue(true),
-    },
-}));
 
-// Simplified stub services - much cleaner than complex mocks
+// Stub services using simple objects instead of vi.fn()
 const createStubUserService = () => ({
-    getUsers: vi.fn().mockResolvedValue(new Map()),
-    getUser: vi.fn().mockResolvedValue({
+    getUsers: () => Promise.resolve(new Map()),
+    getUser: () => Promise.resolve({
         uid: 'test-user',
         email: 'test@example.com',
         displayName: 'Test User',
         emailVerified: true,
     }),
-    updateProfile: vi.fn(),
-    changePassword: vi.fn(),
-    deleteAccount: vi.fn(),
-    registerUser: vi.fn(),
-    createUserDirect: vi.fn(),
-    getGroupMembersResponseFromSubcollection: vi.fn(),
+    updateProfile: () => Promise.resolve(),
+    changePassword: () => Promise.resolve(),
+    deleteAccount: () => Promise.resolve(),
+    registerUser: () => Promise.resolve(),
+    createUserDirect: () => Promise.resolve(),
+    getGroupMembersResponseFromSubcollection: () => Promise.resolve({ members: [] as any[], hasMore: false }),
 });
 
 const createStubGroupMemberService = () => ({
-    isGroupMemberAsync: vi.fn().mockResolvedValue(true),
-    getGroupMember: vi.fn(),
-    getAllGroupMembers: vi.fn(),
-    getGroupMembersResponseFromSubcollection: vi.fn(),
+    isGroupMemberAsync: () => Promise.resolve(true),
+    getGroupMember: (groupId: string, uid: string) => Promise.resolve(null as any),
+    getAllGroupMembers: () => Promise.resolve([] as any[]),
+    getGroupMembersResponseFromSubcollection: () => Promise.resolve({ members: [] as any[], hasMore: false }),
 });
 
 describe('Input Validation Unit Tests', () => {
@@ -43,6 +37,13 @@ describe('Input Validation Unit Tests', () => {
     let stubFirestoreWriter: StubFirestoreWriter;
     let stubUserService: ReturnType<typeof createStubUserService>;
     let stubGroupMemberService: ReturnType<typeof createStubGroupMemberService>;
+    let stubDateHelpers: StubDateHelpers;
+    let stubLogger: StubLogger;
+    let stubLoggerContext: StubLoggerContext;
+    let stubMeasure: StubMeasure;
+    let stubMeasureModule: any;
+    let stubPermissionEngine: StubPermissionEngine;
+    let stubExpenseValidation: StubExpenseValidation;
 
     const testGroupId = 'test-group-id';
     const testUser1 = 'user1';
@@ -54,6 +55,14 @@ describe('Input Validation Unit Tests', () => {
         stubFirestoreWriter = new StubFirestoreWriter();
         stubUserService = createStubUserService();
         stubGroupMemberService = createStubGroupMemberService();
+        stubDateHelpers = new StubDateHelpers();
+        stubLogger = new StubLogger();
+        stubLoggerContext = new StubLoggerContext();
+        stubMeasure = new StubMeasure();
+        // Create a module-like object that matches the measure import pattern
+        stubMeasureModule = StubMeasure;
+        stubPermissionEngine = new StubPermissionEngine();
+        stubExpenseValidation = new StubExpenseValidation();
 
         // Set up test group with simple stub data
         stubFirestoreReader.setDocument('groups', testGroupId, {
@@ -74,19 +83,41 @@ describe('Input Validation Unit Tests', () => {
 
         // Set up service mocks with simple responses
         const testMembers = [
-            { uid: testUser1, groupId: testGroupId },
-            { uid: testUser2, groupId: testGroupId },
-            { uid: testUser3, groupId: testGroupId },
+            {
+                uid: testUser1,
+                groupId: testGroupId,
+                memberRole: 'admin',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString(),
+                theme: { primary: '#000000', secondary: '#ffffff' }
+            },
+            {
+                uid: testUser2,
+                groupId: testGroupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString(),
+                theme: { primary: '#000000', secondary: '#ffffff' }
+            },
+            {
+                uid: testUser3,
+                groupId: testGroupId,
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString(),
+                theme: { primary: '#000000', secondary: '#ffffff' }
+            },
         ];
 
-        stubGroupMemberService.getAllGroupMembers.mockResolvedValue(testMembers);
+        // Update stub implementations to return test data
+        stubGroupMemberService.getAllGroupMembers = () => Promise.resolve(testMembers);
 
         // Set up getGroupMember to return the appropriate member for each user
-        stubGroupMemberService.getGroupMember.mockImplementation(async (groupId: string, uid: string) => {
+        stubGroupMemberService.getGroupMember = async (groupId: string, uid: string) => {
             return testMembers.find(member => member.uid === uid) || null;
-        });
+        };
 
-        stubUserService.getGroupMembersResponseFromSubcollection.mockResolvedValue({
+        stubUserService.getGroupMembersResponseFromSubcollection = () => Promise.resolve({
             members: testMembers.map((member) => ({
                 ...member,
                 profile: {
@@ -98,9 +129,29 @@ describe('Input Validation Unit Tests', () => {
             hasMore: false,
         });
 
-        expenseService = new ExpenseService(stubFirestoreReader, stubFirestoreWriter, stubGroupMemberService as any, stubUserService as any);
+        // Use real validation instead of stub to ensure proper business logic validation
+        expenseService = new ExpenseService(
+            stubFirestoreReader,
+            stubFirestoreWriter,
+            stubGroupMemberService as any,
+            stubUserService as any,
+            stubDateHelpers,
+            stubLogger,
+            StubLoggerContext,
+            StubPermissionEngine as any,
+            stubMeasureModule
+            // No injected validator - let it use the real validation module
+        );
 
-        settlementService = new SettlementService(stubFirestoreReader, stubFirestoreWriter, stubGroupMemberService as any);
+        settlementService = new SettlementService(
+            stubFirestoreReader,
+            stubFirestoreWriter,
+            stubGroupMemberService as any,
+            stubDateHelpers,
+            stubLogger,
+            StubLoggerContext,
+            stubMeasureModule
+        );
     });
 
     describe('Amount Validation', () => {

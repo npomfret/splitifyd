@@ -1131,6 +1131,430 @@ export function createMockPolicyDocument(overrides: Partial<PolicyDocument> = {}
 }
 
 /**
+ * Stub implementation for date helpers to replace vi.mock()
+ */
+export class StubDateHelpers {
+    private mockTime?: Timestamp;
+    private mockReturnOptimistic = true;
+
+    setMockTime(time: Timestamp) {
+        this.mockTime = time;
+    }
+
+    setReturnOptimistic(returnOptimistic: boolean) {
+        this.mockReturnOptimistic = returnOptimistic;
+    }
+
+    createOptimisticTimestamp(): Timestamp {
+        return this.mockTime || Timestamp.now();
+    }
+
+    createTrueServerTimestamp(): any {
+        // Return mock timestamp or FieldValue.serverTimestamp() equivalent
+        return this.mockTime || { _methodName: 'FieldValue.serverTimestamp' };
+    }
+
+    parseISOToTimestamp(isoString: string): Timestamp | null {
+        try {
+            const date = new Date(isoString);
+            if (isNaN(date.getTime())) {
+                return null;
+            }
+            return Timestamp.fromDate(date);
+        } catch {
+            return null;
+        }
+    }
+
+    timestampToISO(timestamp: any): string {
+        if (timestamp?.toDate) {
+            return timestamp.toDate().toISOString();
+        }
+        return new Date().toISOString();
+    }
+
+    safeParseISOToTimestamp(isoString: string | undefined): Timestamp {
+        if (!isoString) {
+            return this.createOptimisticTimestamp();
+        }
+
+        const parsed = this.parseISOToTimestamp(isoString);
+        return parsed || this.createOptimisticTimestamp();
+    }
+
+    isDateInValidRange(date: Date, maxYearsAgo: number = 10): boolean {
+        const now = new Date();
+        const maxAge = new Date(now.getFullYear() - maxYearsAgo, now.getMonth(), now.getDate());
+        return date >= maxAge && date <= now;
+    }
+
+    getRelativeTime(timestamp: Timestamp): string {
+        return 'a few seconds ago';
+    }
+
+    dateToTimestamp(date: Date | null | undefined): Timestamp {
+        if (!date) return this.createOptimisticTimestamp();
+        return Timestamp.fromDate(date);
+    }
+
+    formatForLog(timestamp: Timestamp): string {
+        return timestamp.toDate().toISOString();
+    }
+
+    isInDateRange(timestamp: Timestamp, startDate?: Date, endDate?: Date): boolean {
+        const date = timestamp.toDate();
+        if (startDate && date < startDate) return false;
+        if (endDate && date > endDate) return false;
+        return true;
+    }
+
+    getStartOfDay(date?: Date): Timestamp {
+        const d = date || new Date();
+        d.setHours(0, 0, 0, 0);
+        return Timestamp.fromDate(d);
+    }
+
+    getEndOfDay(date?: Date): Timestamp {
+        const d = date || new Date();
+        d.setHours(23, 59, 59, 999);
+        return Timestamp.fromDate(d);
+    }
+
+    isUTCFormat(isoString: string): boolean {
+        return isoString.endsWith('Z') || isoString.includes('+');
+    }
+
+    parseUTCOnly(isoString: string): Timestamp | null {
+        if (!this.isUTCFormat(isoString)) return null;
+        return this.parseISOToTimestamp(isoString);
+    }
+
+    assertTimestamp(value: unknown, fieldName: string): Timestamp {
+        if (value instanceof Timestamp) return value;
+        throw new Error(`${fieldName} must be a Timestamp`);
+    }
+
+    assertTimestampAndConvert(value: unknown, fieldName: string): string {
+        const timestamp = this.assertTimestamp(value, fieldName);
+        return this.timestampToISO(timestamp);
+    }
+
+    validateUTCDate(isoString: string, maxYearsAgo: number = 10): { valid: boolean; error?: string } {
+        if (!this.isUTCFormat(isoString)) {
+            return { valid: false, error: 'Date must be in UTC format' };
+        }
+        const timestamp = this.parseUTCOnly(isoString);
+        if (!timestamp) {
+            return { valid: false, error: 'Invalid date format' };
+        }
+        const date = timestamp.toDate();
+        if (!this.isDateInValidRange(date, maxYearsAgo)) {
+            return { valid: false, error: 'Date is outside valid range' };
+        }
+        return { valid: true };
+    }
+
+    clear() {
+        this.mockTime = undefined;
+        this.mockReturnOptimistic = true;
+    }
+}
+
+/**
+ * Stub implementation for permission engine to replace vi.mock()
+ */
+export class StubPermissionEngine {
+    private static permissions = new Map<string, boolean>();
+    private static defaultPermission = true;
+
+    static setPermission(action: string, groupId: string, userId: string, allowed: boolean) {
+        const key = `${action}:${groupId}:${userId}`;
+        StubPermissionEngine.permissions.set(key, allowed);
+    }
+
+    static setDefaultPermission(allowed: boolean) {
+        StubPermissionEngine.defaultPermission = allowed;
+    }
+
+    static async checkPermission(
+        firestoreReader: any,
+        group: any,
+        userId: string,
+        action: string,
+        options: any = {}
+    ): Promise<boolean> {
+        const key = `${action}:${group.id}:${userId}`;
+        return StubPermissionEngine.permissions.get(key) ?? StubPermissionEngine.defaultPermission;
+    }
+
+    private static evaluatePermission(permission: any, userRole: any, userId: string, options: any): boolean {
+        return true;
+    }
+
+    static async canChangeRole(
+        firestoreReader: any,
+        group: any,
+        currentUserRole: any,
+        targetUserRole: any,
+        targetUserId: string
+    ): Promise<boolean> {
+        return true;
+    }
+
+    static async getUserPermissions(firestoreReader: any, group: any, userId: string): Promise<Record<string, boolean>> {
+        return {};
+    }
+
+    static getDefaultPermissions(preset: any): any {
+        return {};
+    }
+
+    static clear() {
+        StubPermissionEngine.permissions.clear();
+        StubPermissionEngine.defaultPermission = true;
+    }
+}
+
+/**
+ * Stub implementation for logger to replace vi.mock()
+ */
+export class StubLogger {
+    public logs: Array<{level: string, message: string, context?: any}> = [];
+
+    info(message: string, context?: any) {
+        this.logs.push({level: 'info', message, context});
+    }
+
+    error(message: string, context?: any) {
+        this.logs.push({level: 'error', message, context});
+    }
+
+    warn(message: string, context?: any) {
+        this.logs.push({level: 'warn', message, context});
+    }
+
+    debug(message: string, context?: any) {
+        this.logs.push({level: 'debug', message, context});
+    }
+
+    getLogsForLevel(level: string) {
+        return this.logs.filter(log => log.level === level);
+    }
+
+    child(context: any): StubLogger {
+        const childLogger = new StubLogger();
+        childLogger.logs = [...this.logs];
+        return childLogger;
+    }
+
+    clear() {
+        this.logs = [];
+    }
+}
+
+/**
+ * Stub implementation for logger context to replace vi.mock()
+ */
+export class StubLoggerContext {
+    private static context: Record<string, any> = {};
+
+    static run<T>(context: any, fn: () => T): T {
+        const oldContext = StubLoggerContext.context;
+        StubLoggerContext.context = { ...oldContext, ...context };
+        try {
+            return fn();
+        } finally {
+            StubLoggerContext.context = oldContext;
+        }
+    }
+
+    static get(): any {
+        return StubLoggerContext.context;
+    }
+
+    static update(updates: Record<string, any>) {
+        StubLoggerContext.context = { ...StubLoggerContext.context, ...updates };
+    }
+
+    static setUser(userId: string, email?: string, role?: string) {
+        StubLoggerContext.context.userId = userId;
+        if (email) StubLoggerContext.context.userEmail = email;
+        if (role) StubLoggerContext.context.userRole = role;
+    }
+
+    static setBusinessContext(context: Record<string, any>) {
+        StubLoggerContext.context = { ...StubLoggerContext.context, ...context };
+    }
+
+    static child(additionalContext: any): any {
+        return { ...StubLoggerContext.context, ...additionalContext };
+    }
+
+    static clear(...fields: string[]) {
+        if (fields.length === 0) {
+            StubLoggerContext.context = {};
+        } else {
+            fields.forEach(field => {
+                delete StubLoggerContext.context[field];
+            });
+        }
+    }
+
+    // Legacy instance methods for backward compatibility
+    setBusinessContext(context: Record<string, any>) {
+        StubLoggerContext.setBusinessContext(context);
+    }
+
+    clearBusinessContext() {
+        StubLoggerContext.clear();
+    }
+
+    update(updates: Record<string, any>) {
+        StubLoggerContext.update(updates);
+    }
+
+    getContext() {
+        return StubLoggerContext.get();
+    }
+
+    clear() {
+        StubLoggerContext.clear();
+    }
+}
+
+/**
+ * Stub implementation for monitoring/measure to replace vi.mock()
+ */
+export class StubMeasure {
+    public static measurements: Array<{name: string, duration?: number, result?: any}> = [];
+
+    static async measure<T>(type: string, operation: string, fn: () => Promise<T>): Promise<T> {
+        const start = Date.now();
+        const result = await fn();
+        const duration = Date.now() - start;
+        StubMeasure.measurements.push({name: `${type}:${operation}`, duration, result});
+        return result;
+    }
+
+    static async measureDb<T>(operation: string, fn: () => Promise<T>): Promise<T> {
+        return StubMeasure.measure('db', operation, fn);
+    }
+
+    static async measureTrigger<T>(operation: string, fn: () => Promise<T>): Promise<T> {
+        return StubMeasure.measure('trigger', operation, fn);
+    }
+
+    static getMeasurements() {
+        return [...StubMeasure.measurements];
+    }
+
+    static clear() {
+        StubMeasure.measurements = [];
+    }
+}
+
+/**
+ * Stub implementation for validation helpers to replace vi.mock()
+ */
+export class StubExpenseValidation {
+    private validationResults = new Map<string, any>();
+    private splitResults = new Map<string, any>();
+    private validationError: Error | null = null;
+
+    setValidationResult(key: string, result: any) {
+        this.validationResults.set(key, result);
+    }
+
+    setValidationError(error: Error) {
+        this.validationError = error;
+    }
+
+    setSplitResult(key: string, result: any) {
+        this.splitResults.set(key, result);
+    }
+
+    validateCreateExpense(data: any): any {
+        if (this.validationError) {
+            throw this.validationError;
+        }
+        const key = JSON.stringify(data);
+        return this.validationResults.get(key) || data;
+    }
+
+    calculateSplits(amount: number, splitType: string, participants: string[]): any[] {
+        const key = `${amount}:${splitType}:${participants.join(',')}`;
+        return this.splitResults.get(key) || participants.map((uid: string) => ({
+            uid,
+            amount: amount / participants.length,
+        }));
+    }
+
+    static validateCreateExpense(data: any): any {
+        return data;
+    }
+
+    static calculateSplits(amount: number, splitType: string, participants: string[]): any[] {
+        return participants.map((uid: string) => ({
+            uid,
+            amount: amount / participants.length,
+        }));
+    }
+
+    clear() {
+        this.validationResults.clear();
+        this.splitResults.clear();
+    }
+
+    static validateExpenseId(id: any): string {
+        if (typeof id !== 'string' || !id.trim()) {
+            throw new Error('Invalid expense ID');
+        }
+        return id;
+    }
+
+    static validateUpdateExpense(body: any): any {
+        return body;
+    }
+}
+
+/**
+ * Stub implementation for optimistic locking to replace vi.mock()
+ */
+export class StubOptimisticLocking {
+    private shouldSucceed = true;
+    private versionUpdates = new Map<string, number>();
+
+    setShouldSucceed(succeed: boolean) {
+        this.shouldSucceed = succeed;
+    }
+
+    setDocumentVersion(docId: string, version: number) {
+        this.versionUpdates.set(docId, version);
+    }
+
+    async verifyAndUpdate(docRef: any, currentVersion: any, updates: any): Promise<any> {
+        if (!this.shouldSucceed) {
+            throw new Error('Optimistic locking failure - document was modified');
+        }
+
+        const docId = docRef.id || docRef.path;
+        const newVersion = this.versionUpdates.get(docId) || (currentVersion + 1);
+
+        return {
+            ...updates,
+            version: newVersion,
+            updatedAt: Timestamp.now(),
+        };
+    }
+
+    clear() {
+        this.shouldSucceed = true;
+        this.versionUpdates.clear();
+    }
+}
+
+
+/**
  * Clear all shared storage for tests
  */
 export function clearSharedStorage() {

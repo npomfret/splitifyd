@@ -2,15 +2,16 @@ import { DocumentReference } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import { ApiError, Errors } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
-import { createOptimisticTimestamp, parseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
+import * as dateHelpers from '../utils/dateHelpers';
 import { logger, LoggerContext } from '../logger';
 import type { Group, GroupPermissions } from '@splitifyd/shared';
 import { CreateExpenseRequest, DELETED_AT_FIELD, FirestoreCollections, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
-import { calculateSplits, validateCreateExpense, Expense } from '../expenses/validation';
+import * as expenseValidation from '../expenses/validation';
+import type { Expense } from '../expenses/validation';
 import { getMemberDocFromArray } from '../utils/memberHelpers';
 import { PermissionEngineAsync } from '../permissions/permission-engine-async';
 import { ExpenseDocumentSchema, ExpenseSplitSchema } from '../schemas';
-import { measureDb } from '../monitoring/measure';
+import * as measure from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import type { GroupDocument } from '../schemas';
@@ -34,12 +35,35 @@ function toGroup(groupDoc: GroupDocument): Group {
 }
 
 export class ExpenseService {
+    // Injected dependencies or defaults
+    private readonly dateHelpers: typeof import('../utils/dateHelpers');
+    private readonly logger: typeof import('../logger').logger;
+    private readonly loggerContext: typeof import('../logger').LoggerContext;
+    private readonly permissionEngine: typeof PermissionEngineAsync;
+    private readonly measure: typeof import('../monitoring/measure');
+    private readonly validator: typeof import('../expenses/validation');
+
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly groupMemberService: GroupMemberService,
         private readonly userService: UserService,
-    ) {}
+        // Optional dependencies for testing
+        injectedDateHelpers?: typeof import('../utils/dateHelpers'),
+        injectedLogger?: typeof import('../logger').logger,
+        injectedLoggerContext?: typeof import('../logger').LoggerContext,
+        injectedPermissionEngine?: typeof PermissionEngineAsync,
+        injectedMeasure?: typeof import('../monitoring/measure'),
+        injectedValidator?: typeof import('../expenses/validation')
+    ) {
+        // Use injected dependencies or fall back to imports
+        this.dateHelpers = injectedDateHelpers || dateHelpers;
+        this.logger = injectedLogger || logger;
+        this.loggerContext = injectedLoggerContext || LoggerContext;
+        this.permissionEngine = injectedPermissionEngine || PermissionEngineAsync;
+        this.measure = injectedMeasure || measure;
+        this.validator = injectedValidator || expenseValidation;
+    }
 
     /**
      * Fetch and validate an expense document
@@ -64,7 +88,7 @@ export class ExpenseService {
                 receiptUrl: validatedData.receiptUrl || undefined,
             };
         } catch (error) {
-            logger.error('Invalid expense document structure', error as Error, {
+            this.logger.error('Invalid expense document structure', error as Error, {
                 expenseId,
                 validationErrors: error instanceof z.ZodError ? error.issues : undefined,
             });
@@ -102,14 +126,14 @@ export class ExpenseService {
             currency: expense.currency,
             description: expense.description,
             category: expense.category,
-            date: timestampToISO(expense.date),
+            date: expense.date ? this.dateHelpers.timestampToISO(expense.date) : undefined,
             splitType: expense.splitType,
             participants: expense.participants,
             splits: expense.splits,
             receiptUrl: expense.receiptUrl,
-            createdAt: timestampToISO(expense.createdAt),
-            updatedAt: timestampToISO(expense.updatedAt),
-            deletedAt: expense.deletedAt ? timestampToISO(expense.deletedAt) : null,
+            createdAt: expense.createdAt ? this.dateHelpers.timestampToISO(expense.createdAt) : undefined,
+            updatedAt: expense.updatedAt ? this.dateHelpers.timestampToISO(expense.updatedAt) : undefined,
+            deletedAt: expense.deletedAt ? this.dateHelpers.timestampToISO(expense.deletedAt) : null,
             deletedBy: expense.deletedBy,
         };
     }
@@ -118,7 +142,7 @@ export class ExpenseService {
      * Get a single expense by ID
      */
     async getExpense(expenseId: string, userId: string): Promise<any> {
-        return measureDb('ExpenseService.getExpense', async () => this._getExpense(expenseId, userId));
+        return this.measure.measureDb('ExpenseService.getExpense', async () => this._getExpense(expenseId, userId));
     }
 
     private async _getExpense(expenseId: string, userId: string): Promise<any> {
@@ -137,12 +161,12 @@ export class ExpenseService {
      * Create a new expense
      */
     async createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<any> {
-        return measureDb('ExpenseService.createExpense', async () => this._createExpense(userId, expenseData));
+        return this.measure.measureDb('ExpenseService.createExpense', async () => this._createExpense(userId, expenseData));
     }
 
     private async _createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<any> {
         // Validate the input data early
-        const validatedExpenseData = validateCreateExpense(expenseData);
+        const validatedExpenseData = this.validator.validateCreateExpense(expenseData);
 
         // Verify user is a member of the group
         await this.firestoreReader.verifyGroupMembership(validatedExpenseData.groupId, userId);
@@ -157,7 +181,7 @@ export class ExpenseService {
         const group = toGroup(groupData);
 
         // Check if user can create expenses in this group
-        const canCreateExpense = await PermissionEngineAsync.checkPermission(this.firestoreReader, group, userId, 'expenseEditing');
+        const canCreateExpense = await this.permissionEngine.checkPermission(this.firestoreReader, group, userId, 'expenseEditing');
         if (!canCreateExpense) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to create expenses in this group');
         }
@@ -176,13 +200,13 @@ export class ExpenseService {
         }
 
         // Create the expense document
-        const now = createOptimisticTimestamp();
+        const now = this.dateHelpers.createOptimisticTimestamp();
 
         // Generate a unique ID for the expense
         const expenseId = this.firestoreWriter.generateDocumentId(FirestoreCollections.EXPENSES);
 
         // Calculate splits based on split type
-        const splits = calculateSplits(validatedExpenseData.amount, validatedExpenseData.splitType, validatedExpenseData.participants, validatedExpenseData.splits);
+        const splits = this.validator.calculateSplits(validatedExpenseData.amount, validatedExpenseData.splitType, validatedExpenseData.participants, validatedExpenseData.splits);
 
         const expense: Expense = {
             id: expenseId,
@@ -193,7 +217,7 @@ export class ExpenseService {
             currency: validatedExpenseData.currency,
             description: validatedExpenseData.description,
             category: validatedExpenseData.category,
-            date: parseISOToTimestamp(validatedExpenseData.date)!,
+            date: this.dateHelpers.parseISOToTimestamp(validatedExpenseData.date)!,
             splitType: validatedExpenseData.splitType,
             participants: validatedExpenseData.participants,
             splits,
@@ -212,14 +236,14 @@ export class ExpenseService {
         try {
             ExpenseDocumentSchema.parse(expense);
         } catch (error) {
-            logger.error('Invalid expense document to write', error as Error, {
+            this.logger.error('Invalid expense document to write', error as Error, {
                 validationErrors: error instanceof z.ZodError ? error.issues : undefined,
             });
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPENSE_DATA', 'Invalid expense data format');
         }
 
         // DEBUGGING: Log the participants before saving to Firestore
-        logger.info('ExpenseService creating expense with participants', {
+        this.logger.info('ExpenseService creating expense with participants', {
             expenseId: expenseId,
             groupId: validatedExpenseData.groupId,
             paidBy: validatedExpenseData.paidBy,
@@ -258,8 +282,8 @@ export class ExpenseService {
         }
 
         // Set business context for logging
-        LoggerContext.setBusinessContext({ groupId: expenseData.groupId, expenseId: createdExpenseRef.id });
-        logger.info('expense-created', { id: createdExpenseRef.id, groupId: expenseData.groupId });
+        this.loggerContext.setBusinessContext({ groupId: expenseData.groupId, expenseId: createdExpenseRef.id });
+        this.logger.info('expense-created', { id: createdExpenseRef.id, groupId: expenseData.groupId });
 
         // Return the expense in response format
         return this.transformExpenseToResponse(expense);
@@ -269,7 +293,7 @@ export class ExpenseService {
      * Update an existing expense
      */
     async updateExpense(expenseId: string, userId: string, updateData: UpdateExpenseRequest): Promise<any> {
-        return measureDb('ExpenseService.updateExpense', async () => this._updateExpense(expenseId, userId, updateData));
+        return this.measure.measureDb('ExpenseService.updateExpense', async () => this._updateExpense(expenseId, userId, updateData));
     }
 
     private async _updateExpense(expenseId: string, userId: string, updateData: UpdateExpenseRequest): Promise<any> {
@@ -312,12 +336,12 @@ export class ExpenseService {
         // with Firestore-specific fields (timestamps) that have different types
         const updates: any = {
             ...updateData,
-            updatedAt: createOptimisticTimestamp(),
+            updatedAt: this.dateHelpers.createOptimisticTimestamp(),
         };
 
         // Handle date conversion
         if (updateData.date) {
-            updates.date = parseISOToTimestamp(updateData.date);
+            updates.date = this.dateHelpers.parseISOToTimestamp(updateData.date);
         }
 
         // Handle split recalculation if needed
@@ -338,7 +362,7 @@ export class ExpenseService {
                 }
             }
 
-            updates.splits = calculateSplits(amount, finalSplitType, participants, splits);
+            updates.splits = this.validator.calculateSplits(amount, finalSplitType, participants, splits);
             updates.splitType = finalSplitType;
         }
 
@@ -371,7 +395,7 @@ export class ExpenseService {
 
                 const historyEntry = {
                     ...cleanExpenseData,
-                    modifiedAt: createOptimisticTimestamp(),
+                    modifiedAt: this.dateHelpers.createOptimisticTimestamp(),
                     modifiedBy: userId,
                     changeType: 'update' as const,
                     changes: Object.keys(updateData),
@@ -424,7 +448,7 @@ export class ExpenseService {
         hasMore: boolean;
         nextCursor?: string;
     }> {
-        return measureDb('ExpenseService.listGroupExpenses', async () => this._listGroupExpenses(groupId, userId, options));
+        return this.measure.measureDb('ExpenseService.listGroupExpenses', async () => this._listGroupExpenses(groupId, userId, options));
     }
 
     private async _listGroupExpenses(
@@ -468,7 +492,7 @@ export class ExpenseService {
      * Delete an expense (soft delete)
      */
     async deleteExpense(expenseId: string, userId: string): Promise<void> {
-        return measureDb('ExpenseService.deleteExpense', async () => this._deleteExpense(expenseId, userId));
+        return this.measure.measureDb('ExpenseService.deleteExpense', async () => this._deleteExpense(expenseId, userId));
     }
 
     private async _deleteExpense(expenseId: string, userId: string): Promise<void> {
@@ -523,9 +547,9 @@ export class ExpenseService {
 
                     // Step 3: Now do ALL writes - soft delete the expense
                     this.firestoreWriter.updateInTransaction(transaction, expenseDoc.ref.path, {
-                        [DELETED_AT_FIELD]: createOptimisticTimestamp(),
+                        [DELETED_AT_FIELD]: this.dateHelpers.createOptimisticTimestamp(),
                         deletedBy: userId,
-                        updatedAt: createOptimisticTimestamp(), // Update the timestamp for optimistic locking
+                        updatedAt: this.dateHelpers.createOptimisticTimestamp(), // Update the timestamp for optimistic locking
                     });
 
                     // Note: Group metadata/balance updates will be handled by the balance aggregation trigger

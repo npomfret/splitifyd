@@ -1,51 +1,29 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { SettlementService } from '../../../services/SettlementService';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
+import {
+    StubFirestoreReader,
+    StubFirestoreWriter,
+    StubAuthService,
+    StubDateHelpers,
+    StubLogger,
+    StubLoggerContext,
+    StubMeasure
+} from '../mocks/firestore-stubs';
 import { HTTP_STATUS } from '../../../constants';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { CreateSettlementRequest } from '@splitifyd/shared';
 
-// Mock dependencies
-vi.mock('../../../utils/dateHelpers', () => ({
-    createOptimisticTimestamp: () => Timestamp.now(),
-    safeParseISOToTimestamp: (date: string) => Timestamp.fromDate(new Date(date)),
-    timestampToISO: (timestamp: any) => {
-        if (timestamp?.toDate) {
-            return timestamp.toDate().toISOString();
-        }
-        return new Date().toISOString();
-    },
-    getUpdatedAtTimestamp: () => Timestamp.now(),
-}));
-
-vi.mock('../../../utils/optimistic-locking', () => ({
-    getUpdatedAtTimestamp: () => Timestamp.now(),
-}));
-
-vi.mock('../../../logger', () => ({
-    logger: {
-        info: vi.fn(),
-        error: vi.fn(),
-    },
-}));
-
-vi.mock('../../../utils/logger-context', () => ({
-    LoggerContext: {
-        setBusinessContext: vi.fn(),
-        update: vi.fn(),
-    },
-}));
-
-vi.mock('../../../monitoring/measure', () => ({
-    measureDb: vi.fn((name, fn) => fn()),
-}));
 
 describe('SettlementService - Unit Tests', () => {
     let settlementService: SettlementService;
     let stubReader: StubFirestoreReader;
     let stubWriter: StubFirestoreWriter;
     let stubAuth: StubAuthService;
+    let stubDateHelpers: StubDateHelpers;
+    let stubLogger: StubLogger;
+    let stubLoggerContext: StubLoggerContext;
+    let stubMeasure: StubMeasure;
     let applicationBuilder: ApplicationBuilder;
 
     // Helper to set user data in stub
@@ -63,12 +41,26 @@ describe('SettlementService - Unit Tests', () => {
         stubReader = new StubFirestoreReader();
         stubWriter = new StubFirestoreWriter();
         stubAuth = new StubAuthService();
+        stubDateHelpers = new StubDateHelpers();
+        stubLogger = new StubLogger();
+        stubLoggerContext = new StubLoggerContext();
+        stubMeasure = new StubMeasure();
 
-        // Pass stubs directly to ApplicationBuilder constructor
+        // Create ApplicationBuilder for group member service
         applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
-        settlementService = applicationBuilder.buildSettlementService();
+        const groupMemberService = applicationBuilder.buildGroupMemberService();
 
-        vi.clearAllMocks();
+        // Create SettlementService with dependency injection
+        settlementService = new SettlementService(
+            stubReader,
+            stubWriter,
+            groupMemberService,
+            // Inject stub dependencies
+            stubDateHelpers,      // injectedDateHelpers
+            stubLogger,           // injectedLogger
+            StubLoggerContext,    // injectedLoggerContext
+            StubMeasure           // injectedMeasure
+        );
     });
 
     describe('Settlement Creation Validation', () => {
@@ -110,7 +102,7 @@ describe('SettlementService - Unit Tests', () => {
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
             // Mock writer to return successful result
-            stubWriter.createSettlement = vi.fn().mockResolvedValue({ id: 'new-settlement-id' });
+            stubWriter.createSettlement = () => Promise.resolve({ id: 'new-settlement-id', success: true });
 
             // Act
             const result = await settlementService.createSettlement(validSettlementData, userId);
@@ -226,7 +218,7 @@ describe('SettlementService - Unit Tests', () => {
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
             // Mock dependencies
-            stubWriter.createSettlement = vi.fn().mockResolvedValue({ id: 'new-settlement-id' });
+            stubWriter.createSettlement = () => Promise.resolve({ id: 'new-settlement-id', success: true });
 
             // Act
             const result = await settlementService.createSettlement(settlementDataWithoutNote, userId);
@@ -287,7 +279,7 @@ describe('SettlementService - Unit Tests', () => {
             stubReader.setDocument('group-members', `${groupId}_valid-payer`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_valid-payee`, payeeMembershipDoc);
 
-            stubWriter.createSettlement = vi.fn().mockResolvedValue({ id: 'new-settlement-id' });
+            stubWriter.createSettlement = () => Promise.resolve({ id: 'new-settlement-id', success: true });
 
             // Act & Assert - Should not throw
             await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
@@ -331,7 +323,7 @@ describe('SettlementService - Unit Tests', () => {
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
-            stubWriter.createSettlement = vi.fn().mockResolvedValue({ id: 'new-settlement-id' });
+            stubWriter.createSettlement = () => Promise.resolve({ id: 'new-settlement-id', success: true });
 
             // Act & Assert - Should succeed (user data validation happens elsewhere)
             await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
@@ -375,7 +367,7 @@ describe('SettlementService - Unit Tests', () => {
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
-            stubWriter.createSettlement = vi.fn().mockResolvedValue({ id: 'new-settlement-id' });
+            stubWriter.createSettlement = () => Promise.resolve({ id: 'new-settlement-id', success: true });
 
             // Act & Assert - Should succeed
             await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
@@ -398,7 +390,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Mock group and user data
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
-            stubReader.verifyGroupMembership = vi.fn().mockResolvedValue(true);
+            stubReader.verifyGroupMembership = () => Promise.resolve(true);
 
             // Set up group memberships - payee is member, payer is not
             const payeeMembershipDoc = {
@@ -435,7 +427,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Mock group data
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
-            stubReader.verifyGroupMembership = vi.fn().mockResolvedValue(true);
+            stubReader.verifyGroupMembership = () => Promise.resolve(true);
 
             // Set up group memberships - payer is member, payee is not
             const payerMembershipDoc = {
@@ -471,7 +463,7 @@ describe('SettlementService - Unit Tests', () => {
             };
 
             // Don't set group data (simulating non-existent group)
-            stubReader.verifyGroupMembership = vi.fn().mockResolvedValue(true);
+            stubReader.verifyGroupMembership = () => Promise.resolve(true);
 
             // Act & Assert
             await expect(settlementService.createSettlement(settlementData, userId)).rejects.toThrow(
@@ -522,7 +514,7 @@ describe('SettlementService - Unit Tests', () => {
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
             // Mock dependencies
-            stubWriter.createSettlement = vi.fn().mockResolvedValue({ id: 'new-settlement-id' });
+            stubWriter.createSettlement = () => Promise.resolve({ id: 'new-settlement-id', success: true });
 
             // Act
             const result = await settlementService.createSettlement(settlementData, userId);
@@ -568,7 +560,7 @@ describe('SettlementService - Unit Tests', () => {
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
             // Mock dependencies
-            stubWriter.createSettlement = vi.fn().mockResolvedValue({ id: 'new-settlement-id' });
+            stubWriter.createSettlement = () => Promise.resolve({ id: 'new-settlement-id', success: true });
 
             // Act & Assert - Should succeed
             await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
@@ -611,7 +603,7 @@ describe('SettlementService - Unit Tests', () => {
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
             // Mock dependencies
-            stubWriter.createSettlement = vi.fn().mockResolvedValue({ id: 'new-settlement-id' });
+            stubWriter.createSettlement = () => Promise.resolve({ id: 'new-settlement-id', success: true });
 
             // Act & Assert - Should succeed
             await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();

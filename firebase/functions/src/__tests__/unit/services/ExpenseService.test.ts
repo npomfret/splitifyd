@@ -1,61 +1,18 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { ExpenseService } from '../../../services/ExpenseService';
-import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
-import { GroupMemberService } from '../../../services/GroupMemberService';
-import { UserService } from '../../../services/UserService2';
+import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { CreateExpenseRequest } from '@splitifyd/shared';
 
-// Mock dependencies that aren't part of core business logic testing
-vi.mock('../../../utils/dateHelpers', () => ({
-    createOptimisticTimestamp: () => Timestamp.now(),
-    parseISOToTimestamp: (date: string) => Timestamp.fromDate(new Date(date)),
-    timestampToISO: (timestamp: any) => {
-        if (timestamp?.toDate) {
-            return timestamp.toDate().toISOString();
-        }
-        return new Date().toISOString();
-    },
-}));
-
-vi.mock('../../../logger', () => ({
-    logger: {
-        info: vi.fn(),
-        error: vi.fn(),
-    },
-    LoggerContext: {
-        setBusinessContext: vi.fn(),
-    },
-}));
-
-vi.mock('../../../monitoring/measure', () => ({
-    measureDb: vi.fn((name, fn) => fn()),
-}));
-
-vi.mock('../../../permissions/permission-engine-async', () => ({
-    PermissionEngineAsync: {
-        checkPermission: vi.fn().mockResolvedValue(true),
-    },
-}));
-
-vi.mock('../../../expenses/validation', () => ({
-    validateCreateExpense: vi.fn((data) => data),
-    calculateSplits: vi.fn((amount, splitType, participants) =>
-        participants.map((uid: string) => ({
-            uid,
-            amount: amount / participants.length,
-        })),
-    ),
-}));
-
 describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;
     let stubReader: StubFirestoreReader;
     let stubWriter: StubFirestoreWriter;
-    let mockGroupMemberService: GroupMemberService;
-    let mockUserService: UserService;
+    let applicationBuilder: ApplicationBuilder;
+    let stubAuthService: StubAuthService;
 
     // Helper to set expense data in stub
     const setExpenseData = (expenseId: string, expenseData: any) => {
@@ -63,17 +20,14 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     };
 
     beforeEach(() => {
+        // Only stub the Firestore layer and Auth service - everything else uses real implementations
         stubReader = new StubFirestoreReader();
         stubWriter = new StubFirestoreWriter();
+        stubAuthService = new StubAuthService();
 
-        // Create mock services
-        mockGroupMemberService = {
-            getAllGroupMembers: vi.fn(),
-        } as any;
-
-        mockUserService = {} as any;
-
-        expenseService = new ExpenseService(stubReader, stubWriter, mockGroupMemberService, mockUserService);
+        // Use ApplicationBuilder to create properly wired ExpenseService
+        applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuthService);
+        expenseService = applicationBuilder.buildExpenseService();
     });
 
     describe('Data Transformation and Validation', () => {
@@ -441,7 +395,6 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Validation Logic - Business Logic', () => {
         it('should require positive expense amount', async () => {
             // Arrange
-            const { validateCreateExpense } = await import('../../../expenses/validation');
 
             const mockExpenseRequest: CreateExpenseRequest = {
                 groupId: 'test-group',
@@ -455,12 +408,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 date: new Date().toISOString(),
             };
 
-            // Mock validation to reject negative amounts
-            (validateCreateExpense as any).mockImplementation(() => {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT', 'Amount must be positive');
-            });
-
-            // Act & Assert
+            // Act & Assert - Real validation should reject negative amounts
             await expect(expenseService.createExpense('user1', mockExpenseRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
@@ -470,7 +418,6 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         it('should validate currency format', async () => {
             // Arrange
-            const { validateCreateExpense } = await import('../../../expenses/validation');
 
             const mockExpenseRequest: CreateExpenseRequest = {
                 groupId: 'test-group',
@@ -484,12 +431,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 date: new Date().toISOString(),
             };
 
-            // Mock validation to reject invalid currency
-            (validateCreateExpense as any).mockImplementation(() => {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CURRENCY', 'Invalid currency code');
-            });
-
-            // Act & Assert
+            // Act & Assert - Real validation should reject invalid currency
             await expect(expenseService.createExpense('user1', mockExpenseRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
@@ -607,8 +549,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'failing-expense';
             const userId = 'test-user-id';
 
-            // Mock the reader to throw an error
-            stubReader.getExpense = vi.fn().mockRejectedValue(new Error('Database connection failed'));
+            // Make the reader throw an error
+            stubReader.getExpense = () => Promise.reject(new Error('Database connection failed'));
 
             // Act & Assert
             await expect(expenseService.getExpense(expenseId, userId)).rejects.toThrow('Database connection failed');
