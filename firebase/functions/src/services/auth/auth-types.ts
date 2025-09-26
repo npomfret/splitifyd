@@ -1,86 +1,9 @@
 /**
  * Auth Service Types
  *
- * Type definitions and interfaces specific to the auth service implementation.
- * These types complement Firebase Admin Auth types with application-specific needs.
+ * Core auth error codes and mappings shared across the auth service.
+ * Internal implementation types are now co-located within FirebaseAuthService.ts.
  */
-
-
-// Note: Internal result and validated request types moved to FirebaseAuthService.ts as private implementation details
-
-/**
- * Options for listing users
- */
-export interface ListUsersOptions {
-    maxResults?: number;
-    pageToken?: string;
-}
-
-/**
- * Token verification options
- */
-export interface TokenVerificationOptions {
-    checkRevoked?: boolean;
-    clockSkewSeconds?: number;
-}
-
-/**
- * Custom claims for user roles and permissions
- */
-export interface CustomUserClaims {
-    role?: string;
-    permissions?: string[];
-    groupIds?: string[];
-    [key: string]: any;
-}
-
-/**
- * Auth service configuration options
- */
-export interface AuthServiceConfig {
-    validateInput?: boolean;
-    enableLogging?: boolean;
-    enableMetrics?: boolean;
-    defaultTimeout?: number;
-}
-
-/**
- * Auth operation context for logging and debugging
- */
-export interface AuthOperationContext {
-    operation: string;
-    userId?: string;
-    correlationId?: string;
-    requestId?: string;
-    userAgent?: string;
-    ipAddress?: string;
-}
-
-/**
- * Auth service performance metrics
- */
-export interface AuthServiceMetrics {
-    operationName: string;
-    duration: number;
-    success: boolean;
-    timestamp: Date;
-    context?: AuthOperationContext;
-}
-
-/**
- * Password policy configuration
- */
-export interface PasswordPolicy {
-    minLength: number;
-    requireUppercase: boolean;
-    requireLowercase: boolean;
-    requireNumbers: boolean;
-    requireSpecialChars: boolean;
-    disallowedPasswords?: string[];
-}
-
-// Note: UserProfile interface removed - use RegisteredUser from @splitifyd/shared instead
-// for application user data, or Firebase UserRecord for auth-specific data
 
 /**
  * Auth error codes specific to our application

@@ -10,15 +10,7 @@ export { IAuthService } from './IAuthService';
 export { FirebaseAuthService } from './FirebaseAuthService';
 
 // Types and interfaces (only shared/public types)
-export type {
-    ListUsersOptions,
-    TokenVerificationOptions,
-    CustomUserClaims,
-    AuthServiceConfig,
-    AuthOperationContext,
-    AuthServiceMetrics,
-    PasswordPolicy,
-} from './auth-types';
+// Note: Internal implementation types are now co-located within FirebaseAuthService.ts
 
 export { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
 
