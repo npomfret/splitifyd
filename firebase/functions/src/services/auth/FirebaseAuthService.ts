@@ -17,12 +17,33 @@ import type { Auth } from 'firebase-admin/auth';
 import type { UserRecord, UpdateRequest, CreateRequest, GetUsersResult, DecodedIdToken, ListUsersResult, DeleteUsersResult } from 'firebase-admin/auth';
 
 import { IAuthService } from './IAuthService';
+
+// Internal types used only by FirebaseAuthService for validated data casting
+interface ValidatedCreateUserRequest extends CreateRequest {
+    email: string;
+    password: string;
+    displayName: string;
+    emailVerified?: boolean;
+    phoneNumber?: string;
+    photoURL?: string;
+    disabled?: boolean;
+}
+
+interface ValidatedUpdateUserRequest extends UpdateRequest {
+    displayName?: string;
+    email?: string;
+    phoneNumber?: string | null;
+    photoURL?: string | null;
+    password?: string;
+    emailVerified?: boolean;
+    disabled?: boolean;
+}
 import { logger } from '../../logger';
 import { LoggerContext } from '../../utils/logger-context';
 import { ApiError, Errors } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
 import { measureDb } from '../../monitoring/measure';
-import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP, type AuthOperationContext, type ValidatedCreateUserRequest, type ValidatedUpdateUserRequest } from './auth-types';
+import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP, type AuthOperationContext } from './auth-types';
 import {
     validateCreateUser,
     validateUpdateUser,

@@ -5,73 +5,8 @@
  * These types complement Firebase Admin Auth types with application-specific needs.
  */
 
-import type { UserRecord, CreateRequest, UpdateRequest } from 'firebase-admin/auth';
 
-/**
- * Result of a user creation operation
- */
-export interface CreateUserResult {
-    success: boolean;
-    user: UserRecord;
-    error?: string;
-}
-
-/**
- * Result of a user update operation
- */
-export interface UpdateUserResult {
-    success: boolean;
-    user: UserRecord;
-    error?: string;
-}
-
-/**
- * Result of a user deletion operation
- */
-export interface DeleteUserResult {
-    success: boolean;
-    uid: string;
-    error?: string;
-}
-
-/**
- * Batch operation result for multiple user operations
- */
-export interface BatchUserOperationResult {
-    successCount: number;
-    failureCount: number;
-    results: Array<{
-        uid: string;
-        success: boolean;
-        error?: string;
-    }>;
-}
-
-/**
- * Enhanced user creation request with validation
- */
-export interface ValidatedCreateUserRequest extends CreateRequest {
-    email: string;
-    password: string;
-    displayName: string;
-    emailVerified?: boolean;
-    phoneNumber?: string;
-    photoURL?: string;
-    disabled?: boolean;
-}
-
-/**
- * Enhanced user update request with validation
- */
-export interface ValidatedUpdateUserRequest extends UpdateRequest {
-    displayName?: string;
-    email?: string;
-    phoneNumber?: string | null;
-    photoURL?: string | null;
-    password?: string;
-    emailVerified?: boolean;
-    disabled?: boolean;
-}
+// Note: Internal result and validated request types moved to FirebaseAuthService.ts as private implementation details
 
 /**
  * Options for listing users

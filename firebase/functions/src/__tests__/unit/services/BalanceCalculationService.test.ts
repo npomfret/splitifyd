@@ -55,8 +55,8 @@ describe('BalanceCalculationService', () => {
                 expect(result.groupId).toBe(groupId);
                 expect(result.expenses).toHaveLength(0); // No expenses set up
                 expect(result.settlements).toHaveLength(0); // No settlements set up
-                expect(result.groupData.id).toBe(groupId);
-                expect(result.groupData.name).toBe('Test Group');
+                expect(result.groupDoc.id).toBe(groupId);
+                expect(result.groupDoc.name).toBe('Test Group');
                 expect(result.memberProfiles).toHaveLength(2);
             });
 
@@ -108,7 +108,7 @@ describe('BalanceCalculationService', () => {
                 // Verify - this test originally verified expense filtering, but since we didn't set up any expenses,
                 // we just verify the basic structure works
                 expect(result.expenses).toHaveLength(0); // No expenses set up
-                expect(result.groupData.id).toBe(groupId);
+                expect(result.groupDoc.id).toBe(groupId);
                 expect(result.memberProfiles).toHaveLength(1);
             });
         });

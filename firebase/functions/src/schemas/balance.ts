@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { FirestoreTimestampSchema } from './common';
 import { ExpenseDocumentSchema } from './expense';
 import { SettlementDocumentSchema } from './settlement';
+import { GroupDocumentSchema } from './group';
 
 // Schema for ExpenseSplit
 export const ExpenseSplitSchema = z.object({
@@ -10,19 +11,7 @@ export const ExpenseSplitSchema = z.object({
     percentage: z.number().optional(),
 });
 
-// Schema for GroupMember (for balance calculations)
-export const GroupMemberBalanceSchema = z.object({
-    memberRole: z.enum(['admin', 'member', 'viewer']),
-    memberStatus: z.enum(['active', 'pending']),
-    joinedAt: z.string().optional(),
-});
-
-// Schema for GroupData used in balance calculations
-export const GroupDataBalanceSchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    members: z.record(z.string(), GroupMemberBalanceSchema),
-});
+// Note: GroupMember and GroupData schemas removed - use canonical GroupDocument and GroupMemberDocument from schemas/group.ts and @splitifyd/shared
 
 // Schema for Expense entity used in balance calculations
 export const ExpenseBalanceSchema = z.object({
@@ -86,7 +75,8 @@ export const BalanceCalculationInputSchema = z.object({
     groupId: z.string(),
     expenses: z.array(ExpenseDocumentSchema),
     settlements: z.array(SettlementDocumentSchema),
-    groupData: GroupDataBalanceSchema,
+    groupDoc: GroupDocumentSchema,
+    memberDocs: z.array(z.any()), // GroupMemberDocument[] - skip validation for now as it's from @splitifyd/shared
     memberProfiles: z.any(), // Map<string, UserProfile> - skip validation for now
 });
 
@@ -112,7 +102,6 @@ export const BalanceDisplaySchema = z.object({
 });
 
 // Export inferred types
-export type ParsedGroupDataBalance = z.infer<typeof GroupDataBalanceSchema>;
 export type ParsedExpenseBalance = z.infer<typeof ExpenseBalanceSchema>;
 export type ParsedSettlementBalance = z.infer<typeof SettlementBalanceSchema>;
 export type ParsedUserBalance = z.infer<typeof UserBalanceSchema>;

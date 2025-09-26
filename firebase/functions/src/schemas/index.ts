@@ -68,7 +68,6 @@ export {
     CurrencyBalanceDisplaySchema,
     ExpenseBalanceSchema,
     SettlementBalanceSchema,
-    GroupDataBalanceSchema,
     type ParsedBalanceCalculationResult,
     type ParsedBalanceCalculationInput,
     type ParsedCurrencyBalances,
@@ -78,5 +77,4 @@ export {
     type ParsedCurrencyBalanceDisplay,
     type ParsedExpenseBalance,
     type ParsedSettlementBalance,
-    type ParsedGroupDataBalance,
 } from './balance';

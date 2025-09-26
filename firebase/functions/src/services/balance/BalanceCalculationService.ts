@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { BalanceCalculationResult, BalanceCalculationInput, CurrencyBalances, GroupData, GroupMember } from './types';
-import type { ExpenseDocument, SettlementDocument } from '../../schemas';
+import { BalanceCalculationResult, BalanceCalculationInput, CurrencyBalances } from './types';
+import type { ExpenseDocument, SettlementDocument, GroupDocument } from '../../schemas';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import { ExpenseProcessor } from './ExpenseProcessor';
 import { SettlementProcessor } from './SettlementProcessor';
@@ -49,7 +49,7 @@ export class BalanceCalculationService {
         const startTime = Date.now();
 
         // 1. Extract member IDs for initialization
-        const memberIds = Object.keys(validatedInput.groupData.members);
+        const memberIds = validatedInput.memberDocs.map(member => member.uid);
 
         // 2. Process expenses to calculate initial balances by currency
         const expenseProcessingStart = Date.now();
@@ -97,17 +97,18 @@ export class BalanceCalculationService {
 
     async fetchBalanceCalculationData(groupId: string): Promise<BalanceCalculationInput> {
         // Fetch all required data in parallel for better performance
-        const [expenses, settlements, groupData] = await Promise.all([this.fetchExpenses(groupId), this.fetchSettlements(groupId), this.fetchGroupData(groupId)]);
+        const [expenses, settlements, { groupDoc, memberDocs }] = await Promise.all([this.fetchExpenses(groupId), this.fetchSettlements(groupId), this.fetchGroupData(groupId)]);
 
         // Fetch member profiles after we have group data
-        const memberIds = Object.keys(groupData.members);
+        const memberIds = memberDocs.map(member => member.uid);
         const memberProfiles = await this.userService.getUsers(memberIds);
 
         return {
             groupId,
             expenses,
             settlements,
-            groupData,
+            groupDoc,
+            memberDocs,
             memberProfiles,
         };
     }
@@ -128,7 +129,7 @@ export class BalanceCalculationService {
         return settlementDocuments;
     }
 
-    private async fetchGroupData(groupId: string): Promise<GroupData> {
+    private async fetchGroupData(groupId: string): Promise<{ groupDoc: GroupDocument; memberDocs: GroupMemberDocument[] }> {
         // Use FirestoreReader for validated data
         const groupDoc = await this.firestoreReader.getGroup(groupId);
 
@@ -142,20 +143,9 @@ export class BalanceCalculationService {
             throw new Error(`Group ${groupId} has no members for balance calculation`);
         }
 
-        // Convert GroupMemberDocument[] to Record<string, GroupMember> for compatibility
-        const members: Record<string, GroupMember> = {};
-        for (const memberDoc of memberDocs) {
-            members[memberDoc.uid] = {
-                memberRole: memberDoc.memberRole,
-                memberStatus: memberDoc.memberStatus,
-                joinedAt: memberDoc.joinedAt,
-            };
-        }
-
         return {
-            id: groupId,
-            name: groupDoc.name,
-            members,
+            groupDoc,
+            memberDocs,
         };
     }
 }

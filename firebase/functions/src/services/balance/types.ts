@@ -1,27 +1,16 @@
-import { UserBalance, SimplifiedDebt, RegisteredUser } from '@splitifyd/shared';
-import type { ExpenseDocument, SettlementDocument } from '../../schemas';
+import { UserBalance, SimplifiedDebt, RegisteredUser, GroupMemberDocument } from '@splitifyd/shared';
+import type { ExpenseDocument, SettlementDocument, GroupDocument } from '../../schemas';
 
-// Note: Core entity interfaces (Expense, Settlement, ExpenseSplit) now come from canonical schemas
-// Use ExpenseDocument and SettlementDocument from ../../schemas instead
-
-export interface GroupData {
-    id: string;
-    name: string;
-    members: Record<string, GroupMember>;
-}
-
-export interface GroupMember {
-    memberRole: 'admin' | 'member' | 'viewer';
-    memberStatus: 'active' | 'pending';
-    joinedAt?: string;
-}
+// Note: Core entity interfaces (Expense, Settlement, GroupData, GroupMember) now come from canonical schemas
+// Use ExpenseDocument, SettlementDocument, GroupDocument from ../../schemas and GroupMemberDocument from @splitifyd/shared
 
 // Processing interfaces - intermediate data structures used during calculation
 export interface BalanceCalculationInput {
     groupId: string;
     expenses: ExpenseDocument[];
     settlements: SettlementDocument[];
-    groupData: GroupData;
+    groupDoc: GroupDocument;
+    memberDocs: GroupMemberDocument[];
     memberProfiles: Map<string, RegisteredUser>;
 }
 

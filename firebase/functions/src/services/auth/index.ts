@@ -9,14 +9,8 @@
 export { IAuthService } from './IAuthService';
 export { FirebaseAuthService } from './FirebaseAuthService';
 
-// Types and interfaces
+// Types and interfaces (only shared/public types)
 export type {
-    CreateUserResult,
-    UpdateUserResult,
-    DeleteUserResult,
-    BatchUserOperationResult,
-    ValidatedCreateUserRequest,
-    ValidatedUpdateUserRequest,
     ListUsersOptions,
     TokenVerificationOptions,
     CustomUserClaims,
