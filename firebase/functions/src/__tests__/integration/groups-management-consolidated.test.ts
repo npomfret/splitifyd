@@ -765,7 +765,6 @@ describe('Groups Management - Consolidated Tests', () => {
 
         test('should support ordering', async () => {
             // Create an additional group with a slight delay to ensure different timestamps
-            await new Promise((resolve) => setTimeout(resolve, 100));
             const latestGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`Latest Group ${uuidv4()}`).build(), users[0].token);
 
             const responseDesc = await apiDriver.listGroups(users[0].token, { order: 'desc' });
