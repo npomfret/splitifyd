@@ -1316,9 +1316,6 @@ describe('Groups Management - Consolidated Tests', () => {
             await apiDriver.createExpenseComment(expenses[2].id, 'Expense comment 2', member1.token);
             await apiDriver.createExpenseComment(expenses[3].id, 'Another expense comment', member2.token);
 
-            // Wait to ensure all data has been created and change documents generated
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
             // Use FirestoreReader for proper verification
             const firestore = getFirestore();
             const firestoreReader = new FirestoreReader(firestore);
