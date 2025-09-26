@@ -235,17 +235,18 @@ describe('PermissionEngineAsync', () => {
 
     describe('canChangeRole', () => {
         test('should return false if actor member not found', async () => {
-            stubFirestoreReader.getGroupMember
-                .mockResolvedValueOnce(null) // Actor not found
-                .mockResolvedValueOnce({
-                    // Target found
-                    uid: 'target123',
-                    groupId: testGroupId,
-                    memberRole: MemberRoles.MEMBER,
-                    memberStatus: MemberStatuses.ACTIVE,
-                    joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
-                });
+            // Actor not found (testUserId) - use setNotFound
+            stubFirestoreReader.setNotFound('group-members', `${testGroupId}_${testUserId}`);
+
+            // Target found (target123) - set member data
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_target123`, {
+                uid: 'target123',
+                groupId: testGroupId,
+                memberRole: MemberRoles.MEMBER,
+                memberStatus: MemberStatuses.ACTIVE,
+                joinedAt: '2023-01-01T00:00:00Z',
+                theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
+            });
 
             const result = await PermissionEngineAsync.canChangeRole(stubFirestoreReader, testGroupId, 'creator123', testUserId, 'target123', MemberRoles.ADMIN);
 
@@ -253,17 +254,18 @@ describe('PermissionEngineAsync', () => {
         });
 
         test('should return false if target member not found', async () => {
-            stubFirestoreReader.getGroupMember
-                .mockResolvedValueOnce({
-                    // Actor found
-                    uid: testUserId,
-                    groupId: testGroupId,
-                    memberRole: MemberRoles.ADMIN,
-                    memberStatus: MemberStatuses.ACTIVE,
-                    joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
-                })
-                .mockResolvedValueOnce(null); // Target not found
+            // Actor found (testUserId) - set member data
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, {
+                uid: testUserId,
+                groupId: testGroupId,
+                memberRole: MemberRoles.ADMIN,
+                memberStatus: MemberStatuses.ACTIVE,
+                joinedAt: '2023-01-01T00:00:00Z',
+                theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
+            });
+
+            // Target not found (target123) - use setNotFound
+            stubFirestoreReader.setNotFound('group-members', `${testGroupId}_target123`);
 
             const result = await PermissionEngineAsync.canChangeRole(stubFirestoreReader, testGroupId, 'creator123', testUserId, 'target123', MemberRoles.ADMIN);
 
@@ -271,25 +273,25 @@ describe('PermissionEngineAsync', () => {
         });
 
         test('should return false if actor is not admin', async () => {
-            stubFirestoreReader.getGroupMember
-                .mockResolvedValueOnce({
-                    // Actor (not admin)
-                    uid: testUserId,
-                    groupId: testGroupId,
-                    memberRole: MemberRoles.MEMBER,
-                    memberStatus: MemberStatuses.ACTIVE,
-                    joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
-                })
-                .mockResolvedValueOnce({
-                    // Target
-                    uid: 'target123',
-                    groupId: testGroupId,
-                    memberRole: MemberRoles.MEMBER,
-                    memberStatus: MemberStatuses.ACTIVE,
-                    joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
-                });
+            // Actor (not admin) - set member data
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, {
+                uid: testUserId,
+                groupId: testGroupId,
+                memberRole: MemberRoles.MEMBER,
+                memberStatus: MemberStatuses.ACTIVE,
+                joinedAt: '2023-01-01T00:00:00Z',
+                theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
+            });
+
+            // Target - set member data
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_target123`, {
+                uid: 'target123',
+                groupId: testGroupId,
+                memberRole: MemberRoles.MEMBER,
+                memberStatus: MemberStatuses.ACTIVE,
+                joinedAt: '2023-01-01T00:00:00Z',
+                theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
+            });
 
             const result = await PermissionEngineAsync.canChangeRole(stubFirestoreReader, testGroupId, 'creator123', testUserId, 'target123', MemberRoles.ADMIN);
 
@@ -297,37 +299,18 @@ describe('PermissionEngineAsync', () => {
         });
 
         test('should prevent last admin from demoting themselves', async () => {
-            stubFirestoreReader.getGroupMember
-                .mockResolvedValueOnce({
-                    // Actor (admin)
-                    uid: testUserId,
-                    groupId: testGroupId,
-                    memberRole: MemberRoles.ADMIN,
-                    memberStatus: MemberStatuses.ACTIVE,
-                    joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
-                })
-                .mockResolvedValueOnce({
-                    // Target (same as actor)
-                    uid: testUserId,
-                    groupId: testGroupId,
-                    memberRole: MemberRoles.ADMIN,
-                    memberStatus: MemberStatuses.ACTIVE,
-                    joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
-                });
+            // Set up the single admin member (both actor and target are the same user)
+            const adminMember = {
+                uid: testUserId,
+                groupId: testGroupId,
+                memberRole: MemberRoles.ADMIN,
+                memberStatus: MemberStatuses.ACTIVE,
+                joinedAt: '2023-01-01T00:00:00Z',
+                theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
+            };
 
-            // Mock getAllGroupMembers to return only one admin
-            stubFirestoreReader.getAllGroupMembers.mockResolvedValue([
-                {
-                    uid: testUserId,
-                    groupId: testGroupId,
-                    memberRole: MemberRoles.ADMIN,
-                    memberStatus: MemberStatuses.ACTIVE,
-                    joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
-                },
-            ]);
+            // Set the member data (both calls will return the same member since actor = target)
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, adminMember);
 
             const result = await PermissionEngineAsync.canChangeRole(
                 stubFirestoreReader,
@@ -346,25 +329,26 @@ describe('PermissionEngineAsync', () => {
 
         test('should prevent changing creator to viewer', async () => {
             const creatorId = 'creator123';
-            stubFirestoreReader.getGroupMember
-                .mockResolvedValueOnce({
-                    // Actor (admin)
-                    uid: testUserId,
-                    groupId: testGroupId,
-                    memberRole: MemberRoles.ADMIN,
-                    memberStatus: MemberStatuses.ACTIVE,
-                    joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
-                })
-                .mockResolvedValueOnce({
-                    // Target (creator)
-                    uid: creatorId,
-                    groupId: testGroupId,
-                    memberRole: MemberRoles.ADMIN,
-                    memberStatus: MemberStatuses.ACTIVE,
-                    joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
-                });
+
+            // Actor (admin) - set member data
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, {
+                uid: testUserId,
+                groupId: testGroupId,
+                memberRole: MemberRoles.ADMIN,
+                memberStatus: MemberStatuses.ACTIVE,
+                joinedAt: '2023-01-01T00:00:00Z',
+                theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
+            });
+
+            // Target (creator) - set member data
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${creatorId}`, {
+                uid: creatorId,
+                groupId: testGroupId,
+                memberRole: MemberRoles.ADMIN,
+                memberStatus: MemberStatuses.ACTIVE,
+                joinedAt: '2023-01-01T00:00:00Z',
+                theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
+            });
 
             const result = await PermissionEngineAsync.canChangeRole(
                 stubFirestoreReader,
@@ -382,25 +366,25 @@ describe('PermissionEngineAsync', () => {
         });
 
         test('should allow valid role change', async () => {
-            stubFirestoreReader.getGroupMember
-                .mockResolvedValueOnce({
-                    // Actor (admin)
-                    uid: testUserId,
-                    groupId: testGroupId,
-                    memberRole: MemberRoles.ADMIN,
-                    memberStatus: MemberStatuses.ACTIVE,
-                    joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
-                })
-                .mockResolvedValueOnce({
-                    // Target
-                    uid: 'target123',
-                    groupId: testGroupId,
-                    memberRole: MemberRoles.MEMBER,
-                    memberStatus: MemberStatuses.ACTIVE,
-                    joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
-                });
+            // Actor (admin) - set member data
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, {
+                uid: testUserId,
+                groupId: testGroupId,
+                memberRole: MemberRoles.ADMIN,
+                memberStatus: MemberStatuses.ACTIVE,
+                joinedAt: '2023-01-01T00:00:00Z',
+                theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
+            });
+
+            // Target - set member data
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_target123`, {
+                uid: 'target123',
+                groupId: testGroupId,
+                memberRole: MemberRoles.MEMBER,
+                memberStatus: MemberStatuses.ACTIVE,
+                joinedAt: '2023-01-01T00:00:00Z',
+                theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
+            });
 
             const result = await PermissionEngineAsync.canChangeRole(stubFirestoreReader, testGroupId, 'creator123', testUserId, 'target123', MemberRoles.ADMIN);
 

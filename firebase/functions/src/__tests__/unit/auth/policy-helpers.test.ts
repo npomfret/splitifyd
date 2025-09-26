@@ -129,7 +129,7 @@ describe('Policy Helpers', () => {
 
         it('should throw ApiError when FirestoreReader fails', async () => {
             const firestoreError = new Error('Firestore connection failed');
-            stubFirestoreReader.getAllPolicies.mockRejectedValue(firestoreError);
+            stubFirestoreReader.setMethodError('getAllPolicies', firestoreError);
 
             await expect(getCurrentPolicyVersions(stubFirestoreReader)).rejects.toThrow(ApiError);
 
@@ -145,7 +145,7 @@ describe('Policy Helpers', () => {
 
         it('should log error when FirestoreReader fails', async () => {
             const firestoreError = new Error('Firestore connection failed');
-            stubFirestoreReader.getAllPolicies.mockRejectedValue(firestoreError);
+            stubFirestoreReader.setMethodError('getAllPolicies', firestoreError);
 
             try {
                 await getCurrentPolicyVersions(stubFirestoreReader);
@@ -159,21 +159,20 @@ describe('Policy Helpers', () => {
 
         it('should handle null policies in the array', async () => {
             // This shouldn't happen in practice due to validation, but test defensive coding
-            const mockPolicies = [
-                createMockPolicyDocument({
-                    id: 'policy1',
-                    policyName: 'Terms of Service',
-                    currentVersionHash: 'hash1',
-                }),
-                null as any, // Null policy
-                createMockPolicyDocument({
-                    id: 'policy3',
-                    policyName: 'Cookie Policy',
-                    currentVersionHash: 'hash3',
-                }),
-            ].filter(Boolean); // This would normally filter out null values
+            const policy1 = createMockPolicyDocument({
+                id: 'policy1',
+                policyName: 'Terms of Service',
+                currentVersionHash: 'hash1',
+            });
+            const policy3 = createMockPolicyDocument({
+                id: 'policy3',
+                policyName: 'Cookie Policy',
+                currentVersionHash: 'hash3',
+            });
 
-            stubFirestoreReader.getAllPolicies.mockResolvedValue(mockPolicies);
+            // Set up only the valid policies (null policies filtered out)
+            stubFirestoreReader.setDocument('policies', 'policy1', policy1);
+            stubFirestoreReader.setDocument('policies', 'policy3', policy3);
 
             const result = await getCurrentPolicyVersions(stubFirestoreReader);
 

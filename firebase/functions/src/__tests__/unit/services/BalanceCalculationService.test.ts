@@ -37,8 +37,8 @@ describe('BalanceCalculationService', () => {
                     },
                 });
 
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, { uid: userId1 });
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId2}`, { uid: userId2 });
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, { uid: userId1, groupId: groupId });
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId2}`, { uid: userId2, groupId: groupId });
 
                 // Set up user records in Auth service (required for UserService2)
                 stubAuthService.setUser(userId1, { uid: userId1, email: 'user1@test.com', displayName: 'User 1' });
@@ -94,7 +94,7 @@ describe('BalanceCalculationService', () => {
                     },
                 });
 
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, { uid: userId1 });
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, { uid: userId1, groupId: groupId });
 
                 // Set up user record in Auth service (required for UserService2)
                 stubAuthService.setUser(userId1, { uid: userId1, email: 'user1@test.com', displayName: 'User 1' });
@@ -161,8 +161,8 @@ describe('BalanceCalculationService', () => {
                 // Set up stub data using builders - the stub works by exact method calls
                 stubFirestoreReader.setDocument('groups', groupId, testGroup);
                 stubFirestoreReader.setDocument('expenses', testExpense.id, testExpense);
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, { uid: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE });
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId2}`, { uid: userId2, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE });
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, { uid: userId1, groupId: groupId, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE });
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId2}`, { uid: userId2, groupId: groupId, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE });
 
                 // Set up user records in Auth service (required for UserService2)
                 userProfiles.forEach(profile => {
@@ -227,16 +227,19 @@ describe('BalanceCalculationService', () => {
             stubFirestoreReader.setDocument('groups', testGroupId, testGroup);
             stubFirestoreReader.setDocument('group-members', `${testGroupId}_${userAlice}`, {
                 uid: userAlice,
+                groupId: testGroupId,
                 memberRole: MemberRoles.ADMIN,
                 memberStatus: MemberStatuses.ACTIVE
             });
             stubFirestoreReader.setDocument('group-members', `${testGroupId}_${userBob}`, {
                 uid: userBob,
+                groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE
             });
             stubFirestoreReader.setDocument('group-members', `${testGroupId}_${userCharlie}`, {
                 uid: userCharlie,
+                groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE
             });

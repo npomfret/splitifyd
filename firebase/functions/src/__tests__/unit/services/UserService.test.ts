@@ -660,21 +660,19 @@ describe('UserService - Consolidated Unit Tests', () => {
                 photoURL: null,
             });
 
-            // Setup mock policies for registration
-            mockFirestoreReader.getAllPolicies.mockResolvedValue([
-                {
-                    id: 'terms',
-                    currentVersionHash: 'terms-v1-hash',
-                    policyName: 'Terms of Service',
-                    versions: {},
-                },
-                {
-                    id: 'privacy',
-                    currentVersionHash: 'privacy-v1-hash',
-                    policyName: 'Privacy Policy',
-                    versions: {},
-                },
-            ]);
+            // Setup policies for registration
+            mockFirestoreReader.setDocument('policies', 'terms', {
+                id: 'terms',
+                currentVersionHash: 'terms-v1-hash',
+                policyName: 'Terms of Service',
+                versions: {},
+            });
+            mockFirestoreReader.setDocument('policies', 'privacy', {
+                id: 'privacy',
+                currentVersionHash: 'privacy-v1-hash',
+                policyName: 'Privacy Policy',
+                versions: {},
+            });
 
             validationUserService = new UserService(mockFirestoreReader, mockFirestoreWriter, mockValidationService as any, mockNotificationService as any, mockAuthService as IAuthService);
         });
@@ -745,7 +743,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     emailVerified: true,
                     preferredLanguage: 'en',
                 });
-                mockFirestoreReader.getUser.mockResolvedValue(updatedUserDoc);
+                mockFirestoreReader.setDocument('users', testUserId, updatedUserDoc);
 
                 const result = await validationUserService.updateProfile(testUserId, updateData);
 
@@ -799,7 +797,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             it('should throw NOT_FOUND for non-existent user', async () => {
                 const nonExistentUserId = 'non-existent-user';
-                mockFirestoreReader.getUser.mockResolvedValue(null);
+                mockFirestoreReader.setNotFound('users', nonExistentUserId);
                 const authError = new Error('User not found');
                 (authError as any).code = 'auth/user-not-found';
                 mockAuthService.updateUser.mockRejectedValue(authError);
@@ -929,7 +927,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             it('should throw NOT_FOUND for non-existent user', async () => {
                 const nonExistentUserId = 'non-existent-user';
-                mockFirestoreReader.getUser.mockResolvedValue(null);
+                mockFirestoreReader.setNotFound('users', nonExistentUserId);
 
                 const authError = new Error('User not found');
                 (authError as any).code = 'auth/user-not-found';
@@ -983,7 +981,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     emailVerified: true,
                 });
                 mockFirestoreReader.mockUserExists(testUserId, createTestUser(testUserId));
-                mockFirestoreReader.getGroupsForUserV2.mockResolvedValue({ data: [], hasMore: false });
+                mockFirestoreReader.mockGroupsForUser(testUserId, [], false);
                 mockAuthService.deleteUser.mockResolvedValue(undefined);
 
                 const result = await validationUserService.deleteAccount(testUserId, deleteData);
@@ -1001,15 +999,15 @@ describe('UserService - Consolidated Unit Tests', () => {
                     name: 'Test Group',
                     members: [testUserId],
                 });
-                mockFirestoreReader.getGroupsForUserV2.mockResolvedValue({ data: [testGroup], hasMore: false });
+                mockFirestoreReader.mockGroupsForUser(testUserId, [testGroup], false);
 
                 await expect(validationUserService.deleteAccount(testUserId, deleteData)).rejects.toThrow(ApiError);
             });
 
             it('should throw NOT_FOUND for non-existent user', async () => {
                 const nonExistentUserId = 'non-existent-user';
-                mockFirestoreReader.getUser.mockResolvedValue(null);
-                mockFirestoreReader.getGroupsForUserV2.mockResolvedValue({ data: [], hasMore: false });
+                mockFirestoreReader.setNotFound('users', nonExistentUserId);
+                mockFirestoreReader.mockGroupsForUser(testUserId, [], false);
 
                 const deleteData = {
                     confirmDelete: true,

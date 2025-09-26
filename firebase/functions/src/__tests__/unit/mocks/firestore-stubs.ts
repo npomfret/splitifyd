@@ -24,7 +24,7 @@ export class StubFirestoreReader implements IFirestoreReader {
     private userGroups = new Map<string, any>(); // userId -> pagination result or groups[]
     private paginationBehavior = new Map<string, { groups: any[], pageSize: number }>(); // userId -> pagination config
     private methodErrors = new Map<string, Error>(); // methodName -> error to throw
-    private methodReturnValues = new Map<string, any[]>(); // methodName -> array of return values
+    private notFoundDocuments = new Set<string>(); // Track which docs should return null
 
     // Helper methods to set up test data
     setDocument(collection: string, id: string, data: any) {
@@ -46,12 +46,33 @@ export class StubFirestoreReader implements IFirestoreReader {
     }
 
     // Error injection helpers
-    setMethodError(methodName: string, error: Error) {
-        this.methodErrors.set(methodName, error);
+    setMethodError(methodName: string, error: Error | string) {
+        if (typeof error === 'string') {
+            // Create appropriate error based on string
+            if (error === 'NOT_FOUND') {
+                this.methodErrors.set(methodName, new ApiError(HTTP_STATUS.NOT_FOUND, 'NOT_FOUND', 'Document not found'));
+            } else if (error === 'PERMISSION_DENIED') {
+                this.methodErrors.set(methodName, new ApiError(HTTP_STATUS.FORBIDDEN, 'PERMISSION_DENIED', 'Permission denied'));
+            } else if (error === 'FIRESTORE_ERROR') {
+                this.methodErrors.set(methodName, new Error('Firestore connection failed'));
+            } else {
+                this.methodErrors.set(methodName, new Error(error));
+            }
+        } else {
+            this.methodErrors.set(methodName, error);
+        }
     }
 
     clearMethodError(methodName: string) {
         this.methodErrors.delete(methodName);
+    }
+
+    setNotFound(collection: string, id: string) {
+        this.notFoundDocuments.add(`${collection}/${id}`);
+    }
+
+    clearNotFound(collection: string, id: string) {
+        this.notFoundDocuments.delete(`${collection}/${id}`);
     }
 
     // Mock helpers for compatibility
@@ -80,35 +101,12 @@ export class StubFirestoreReader implements IFirestoreReader {
         }
     }
 
-    // Mock-like methods for compatibility with test patterns
-    // These add a mock interface to StubFirestoreReader methods
-    getAllPolicies = Object.assign(
-        async (): Promise<PolicyDocument[]> => {
-            const error = this.methodErrors.get('getAllPolicies');
-            if (error) {
-                throw error;
-            }
+    async getAllPolicies(): Promise<PolicyDocument[]> {
+        const error = this.methodErrors.get('getAllPolicies');
+        if (error) throw error;
 
-            const policies: PolicyDocument[] = [];
-            for (const [key, value] of Array.from(this.documents.entries())) {
-                if (key.startsWith('policies/')) {
-                    policies.push(value);
-                }
-            }
-            return policies;
-        },
-        {
-            mockRejectedValue: (error: Error) => this.setMethodError('getAllPolicies', error),
-            mockResolvedValue: (value: PolicyDocument[]) => {
-                this.clearMethodError('getAllPolicies');
-                // Store the resolved value by clearing documents and setting policies
-                this.documents.clear();
-                value.forEach((policy, index) => {
-                    this.setDocument('policies', policy.id || `policy-${index}`, policy);
-                });
-            }
-        }
-    );
+        return this.filterCollection<PolicyDocument>('policies');
+    }
 
     // Reset helper for test cleanup
     resetAllMocks() {
@@ -117,8 +115,44 @@ export class StubFirestoreReader implements IFirestoreReader {
         this.documents.clear();
         this.rawDocuments.clear();
         this.methodErrors.clear();
-        this.methodReturnValues.clear();
+        this.notFoundDocuments.clear();
         sharedCommentStorage.clear();
+    }
+
+    // Helper method for filtering collections with ordering and limiting
+    private filterCollection<T>(
+        collectionPrefix: string,
+        filter?: (doc: T) => boolean,
+        orderBy?: { field: string; direction: 'asc' | 'desc' },
+        limit?: number
+    ): T[] {
+        let results: T[] = [];
+
+        // Get all documents from collection
+        for (const [key, value] of this.documents.entries()) {
+            if (key.startsWith(`${collectionPrefix}/`)) {
+                if (!filter || filter(value)) {
+                    results.push(value);
+                }
+            }
+        }
+
+        // Apply ordering
+        if (orderBy) {
+            results.sort((a: any, b: any) => {
+                const aVal = a[orderBy.field];
+                const bVal = b[orderBy.field];
+                const comparison = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+                return orderBy.direction === 'asc' ? comparison : -comparison;
+            });
+        }
+
+        // Apply limit
+        if (limit && limit > 0) {
+            results = results.slice(0, limit);
+        }
+
+        return results;
     }
 
     setRawDocument(id: string, data: any) {
@@ -138,42 +172,64 @@ export class StubFirestoreReader implements IFirestoreReader {
     }
 
     // Document Read Operations
-    // Mock-enabled getUser
-    getUser = Object.assign(
-        async (userId: string): Promise<UserDocument | null> => {
-            const error = this.methodErrors.get('getUser');
-            if (error) {
-                throw error;
-            }
-            return this.documents.get(`users/${userId}`) || null;
-        },
-        {
-            mockResolvedValue: (value: UserDocument | null) => {
-                this.clearMethodError('getUser');
-                // Note: This is a simplified mock that doesn't handle specific userIds
-                // For more complex scenarios, store the value in a temporary state
-                if (value) {
-                    this.setDocument('users', value.id, value);
-                }
-            },
-            mockRejectedValue: (error: Error) => this.setMethodError('getUser', error)
+    async getUser(userId: string): Promise<UserDocument | null> {
+        const error = this.methodErrors.get('getUser');
+        if (error) throw error;
+
+        const key = `users/${userId}`;
+        if (this.notFoundDocuments.has(key)) {
+            return null;
         }
-    );
+
+        return this.documents.get(key) || null;
+    }
 
     async getGroup(groupId: string): Promise<GroupDocument | null> {
-        return this.documents.get(`groups/${groupId}`) || null;
+        const error = this.methodErrors.get('getGroup');
+        if (error) throw error;
+
+        const key = `groups/${groupId}`;
+        if (this.notFoundDocuments.has(key)) {
+            return null;
+        }
+
+        return this.documents.get(key) || null;
     }
 
     async getExpense(expenseId: string): Promise<ExpenseDocument | null> {
-        return this.documents.get(`expenses/${expenseId}`) || null;
+        const error = this.methodErrors.get('getExpense');
+        if (error) throw error;
+
+        const key = `expenses/${expenseId}`;
+        if (this.notFoundDocuments.has(key)) {
+            return null;
+        }
+
+        return this.documents.get(key) || null;
     }
 
     async getSettlement(settlementId: string): Promise<SettlementDocument | null> {
-        return this.documents.get(`settlements/${settlementId}`) || null;
+        const error = this.methodErrors.get('getSettlement');
+        if (error) throw error;
+
+        const key = `settlements/${settlementId}`;
+        if (this.notFoundDocuments.has(key)) {
+            return null;
+        }
+
+        return this.documents.get(key) || null;
     }
 
     async getPolicy(policyId: string): Promise<PolicyDocument | null> {
-        return this.documents.get(`policies/${policyId}`) || null;
+        const error = this.methodErrors.get('getPolicy');
+        if (error) throw error;
+
+        const key = `policies/${policyId}`;
+        if (this.notFoundDocuments.has(key)) {
+            return null;
+        }
+
+        return this.documents.get(key) || null;
     }
 
 
@@ -194,162 +250,146 @@ export class StubFirestoreReader implements IFirestoreReader {
         return users;
     }
     // Mock-enabled getGroupsForUserV2
-    getGroupsForUserV2 = Object.assign(
-        async (userId: string, options?: any): Promise<any> => {
-            const error = this.methodErrors.get('getGroupsForUserV2');
-            if (error) {
-                throw error;
-            }
+    async getGroupsForUserV2(userId: string, options?: any): Promise<any> {
+        const error = this.methodErrors.get('getGroupsForUserV2');
+        if (error) throw error;
 
-            // Check for simple mock setup first
-            const userGroupsData = this.userGroups.get(userId);
-            if (userGroupsData) {
-                return userGroupsData;
-            }
-
-            // Check for pagination behavior setup
-            const paginationConfig = this.paginationBehavior.get(userId);
-            if (paginationConfig) {
-                const { groups: allGroups, pageSize } = paginationConfig;
-                const limit = options?.limit || pageSize;
-                const cursor = options?.cursor;
-
-                let startIndex = 0;
-                if (cursor) {
-                    try {
-                        const cursorData = JSON.parse(Buffer.from(cursor, 'base64').toString());
-                        const cursorIndex = allGroups.findIndex((group) => group.id === cursorData.lastGroupId);
-                        if (cursorIndex >= 0) {
-                            startIndex = cursorIndex + 1;
-                        }
-                    } catch (error) {
-                        // Invalid cursor, start from beginning
-                    }
-                }
-
-                const endIndex = startIndex + limit;
-                const pageData = allGroups.slice(startIndex, endIndex);
-                const hasMore = endIndex < allGroups.length;
-
-                let nextCursor: string | undefined;
-                if (hasMore && pageData.length > 0) {
-                    const lastGroup = pageData[pageData.length - 1];
-                    const cursorData = {
-                        lastGroupId: lastGroup.id,
-                        lastUpdatedAt: lastGroup.updatedAt,
-                    };
-                    nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
-                }
-
-                return {
-                    data: pageData,
-                    hasMore,
-                    nextCursor,
-                    totalEstimate: allGroups.length,
-                };
-            }
-
-            return { data: [], hasMore: false };
-        },
-        {
-            mockResolvedValue: (value: any) => {
-                this.clearMethodError('getGroupsForUserV2');
-                // Store the resolved value for the next call
-                // Since we don't know the userId context, this is a simplified mock
-            },
-            mockRejectedValue: (error: Error) => this.setMethodError('getGroupsForUserV2', error)
+        // Check for simple mock setup first
+        const userGroupsData = this.userGroups.get(userId);
+        if (userGroupsData) {
+            return userGroupsData;
         }
-    );
+
+        // Check for pagination behavior setup
+        const paginationConfig = this.paginationBehavior.get(userId);
+        if (paginationConfig) {
+            const { groups: allGroups, pageSize } = paginationConfig;
+            const limit = options?.limit || pageSize;
+            const cursor = options?.cursor;
+
+            let startIndex = 0;
+            if (cursor) {
+                try {
+                    const cursorData = JSON.parse(Buffer.from(cursor, 'base64').toString());
+                    const cursorIndex = allGroups.findIndex((group) => group.id === cursorData.lastGroupId);
+                    if (cursorIndex >= 0) {
+                        startIndex = cursorIndex + 1;
+                    }
+                } catch (error) {
+                    // Invalid cursor, start from beginning
+                }
+            }
+
+            const endIndex = startIndex + limit;
+            const pageData = allGroups.slice(startIndex, endIndex);
+            const hasMore = endIndex < allGroups.length;
+
+            let nextCursor: string | undefined;
+            if (hasMore && pageData.length > 0) {
+                const lastGroup = pageData[pageData.length - 1];
+                const cursorData = {
+                    lastGroupId: lastGroup.id,
+                    lastUpdatedAt: lastGroup.updatedAt,
+                };
+                nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
+            }
+
+            return {
+                data: pageData,
+                hasMore,
+                nextCursor,
+                totalEstimate: allGroups.length,
+            };
+        }
+
+        return { data: [], hasMore: false };
+    }
 
     async getGroupMembers(): Promise<GroupMemberDocument[]> {
         return [];
     }
 
-    // Mock-enabled getGroupMember with chaining support
-    getGroupMember = Object.assign(
-        async (groupId: string, userId: string): Promise<GroupMemberDocument | null> => {
-            const error = this.methodErrors.get('getGroupMember');
-            if (error) {
-                throw error;
-            }
+    async getGroupMember(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
+        const error = this.methodErrors.get('getGroupMember');
+        if (error) throw error;
 
-            // Check for queued return values
-            const returnValues = this.methodReturnValues.get('getGroupMember');
-            if (returnValues && returnValues.length > 0) {
-                return returnValues.shift(); // Remove and return first value
-            }
+        const docId = `group-members/${groupId}_${userId}`;
+        if (this.notFoundDocuments.has(docId)) return null;
 
-            return this.documents.get(`group-members/${groupId}_${userId}`) || null;
-        },
-        {
-            mockResolvedValueOnce: (value: GroupMemberDocument | null) => {
-                const existing = this.methodReturnValues.get('getGroupMember') || [];
-                existing.push(value);
-                this.methodReturnValues.set('getGroupMember', existing);
-                return this.getGroupMember; // Return self for chaining
-            },
-            mockRejectedValue: (error: Error) => this.setMethodError('getGroupMember', error),
-            mockResolvedValue: (value: GroupMemberDocument | null) => {
-                this.clearMethodError('getGroupMember');
-                // This sets a permanent return value
-                this.methodReturnValues.set('getGroupMember', [value]);
-            }
-        }
-    );
+        return this.documents.get(docId) || null;
+    }
 
     // Mock-enabled getAllGroupMembers
-    getAllGroupMembers = Object.assign(
-        async (groupId: string): Promise<GroupMemberDocument[]> => {
-            const error = this.methodErrors.get('getAllGroupMembers');
-            if (error) {
-                throw error;
-            }
-            const members: GroupMemberDocument[] = [];
-            for (const [key, value] of Array.from(this.documents.entries())) {
-                if (key.startsWith(`group-members/${groupId}_`)) {
-                    members.push(value);
-                }
-            }
-            return members;
-        },
-        {
-            mockResolvedValue: (value: GroupMemberDocument[]) => {
-                this.clearMethodError('getAllGroupMembers');
-                // Store resolved value by clearing existing and setting new members
-                const existingKeys = Array.from(this.documents.keys()).filter(key => key.startsWith('group-members/'));
-                existingKeys.forEach(key => this.documents.delete(key));
-                value.forEach((member, index) => {
-                    this.setDocument('group-members', `${member.groupId}_${member.uid}`, member);
-                });
-            },
-            mockRejectedValue: (error: Error) => this.setMethodError('getAllGroupMembers', error)
-        }
-    );
+    async getAllGroupMembers(groupId: string): Promise<GroupMemberDocument[]> {
+        const error = this.methodErrors.get('getAllGroupMembers');
+        if (error) throw error;
+
+        return this.filterCollection<GroupMemberDocument>(
+            'group-members',
+            doc => doc.groupId === groupId
+        );
+    }
 
     async getAllGroupMemberIds(): Promise<string[]> {
         return [];
     }
 
-    async getExpensesForGroup(groupId: string): Promise<ExpenseDocument[]> {
-        const expenses: ExpenseDocument[] = [];
-        for (const [key, value] of Array.from(this.documents.entries())) {
-            if (key.startsWith(`expenses/`) && value.groupId === groupId) {
-                expenses.push(value);
-            }
-        }
-        return expenses;
+    async getExpensesForGroup(groupId: string, options?: any): Promise<ExpenseDocument[]> {
+        const error = this.methodErrors.get('getExpensesForGroup');
+        if (error) throw error;
+
+        return this.filterCollection<ExpenseDocument>(
+            'expenses',
+            doc => doc.groupId === groupId && (doc.deletedAt == null || !!options?.includeDeleted),
+            options?.orderBy,
+            options?.limit
+        );
     }
 
     async getExpenseHistory(): Promise<any> {
         return {history: [], count: 0};
     }
 
-    async getExpensesForGroupPaginated(): Promise<any> {
-        return {expenses: [], hasMore: false};
+    async getExpensesForGroupPaginated(
+        groupId: string,
+        options?: { limit?: number; cursor?: string; includeDeleted?: boolean }
+    ): Promise<{ expenses: ExpenseDocument[]; hasMore: boolean; nextCursor?: string }> {
+        const error = this.methodErrors.get('getExpensesForGroupPaginated');
+        if (error) throw error;
+
+        const limit = options?.limit || 20;
+
+        let expenses = this.filterCollection<ExpenseDocument>(
+            'expenses',
+            doc => doc.groupId === groupId && (doc.deletedAt == null || !!options?.includeDeleted),
+            { field: 'createdAt', direction: 'desc' } // Default ordering by creation date
+        );
+
+        // Handle cursor-based pagination
+        if (options?.cursor) {
+            const cursorIndex = expenses.findIndex(e => e.id === options.cursor);
+            if (cursorIndex >= 0) {
+                expenses = expenses.slice(cursorIndex + 1);
+            }
+        }
+
+        const hasMore = expenses.length > limit;
+        const results = expenses.slice(0, limit);
+        const nextCursor = hasMore && results.length > 0 ? results[results.length - 1]?.id : undefined;
+
+        return { expenses: results, hasMore, nextCursor };
     }
 
-    async getSettlementsForGroup(): Promise<SettlementDocument[]> {
-        return [];
+    async getSettlementsForGroup(groupId: string, options?: any): Promise<SettlementDocument[]> {
+        const error = this.methodErrors.get('getSettlementsForGroup');
+        if (error) throw error;
+
+        return this.filterCollection<SettlementDocument>(
+            'settlements',
+            doc => doc.groupId === groupId && (doc.deletedAt == null || !!options?.includeDeleted),
+            options?.orderBy,
+            options?.limit
+        );
     }
 
     async getGroupInTransaction(): Promise<GroupDocument | null> {

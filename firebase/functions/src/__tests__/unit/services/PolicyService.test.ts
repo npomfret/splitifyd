@@ -1139,9 +1139,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             stubReader.setDocument('policies', 'list-test-1', policy1);
             stubReader.setDocument('policies', 'list-test-2', policy2);
 
-            // Mock getAllPolicies to return our test policies
-            const mockPolicies = [policy1, policy2];
-            stubReader.getAllPolicies.mockResolvedValue(mockPolicies);
+            // getAllPolicies will automatically return the documents set via setDocument
 
             // Test listPolicies
             const listResult = await policyService.listPolicies();
