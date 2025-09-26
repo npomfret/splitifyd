@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { BalanceCalculationResult, BalanceCalculationInput } from './types';
+import type { ParsedBalanceCalculationResult as BalanceCalculationResult, ParsedBalanceCalculationInput as BalanceCalculationInput } from '../../schemas';
 import type { ExpenseDocument, SettlementDocument, GroupDocument } from '../../schemas';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import { ExpenseProcessor } from './ExpenseProcessor';

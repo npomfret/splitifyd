@@ -1,5 +1,5 @@
 import { UserBalance } from '@splitifyd/shared';
-import { CurrencyBalances } from './types';
+import type { ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
 import type { ExpenseDocument } from '../../schemas';
 
 export class ExpenseProcessor {
