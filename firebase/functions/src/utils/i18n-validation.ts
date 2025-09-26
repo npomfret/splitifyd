@@ -1,21 +1,16 @@
-import { ValidationError } from 'joi';
+import { ZodError, ZodIssue } from 'zod';
 import { translate } from './i18n';
 
 /**
- * Map common Joi validation error types to translation keys
+ * Map common Zod validation error types to translation keys
  */
 const errorTypeToTranslationKey: Record<string, string> = {
-    'string.empty': 'validation.common.required',
-    'string.min': 'validation.common.tooShort',
-    'string.max': 'validation.common.tooLong',
-    'any.required': 'validation.common.required',
-    'string.email': 'validation.email.invalid',
-    'number.base': 'validation.common.invalid',
-    'number.positive': 'validation.common.invalid',
-    'number.min': 'validation.common.tooSmall',
-    'number.max': 'validation.common.tooLarge',
-    'date.base': 'validation.common.invalid',
-    'any.only': 'validation.common.invalid',
+    'invalid_string': 'validation.common.invalid',
+    'too_small': 'validation.common.tooShort',
+    'too_big': 'validation.common.tooLong',
+    'invalid_type': 'validation.common.invalid',
+    'invalid_email_format': 'validation.email.invalid',
+    'custom': 'validation.common.invalid',
 };
 
 /**
@@ -41,32 +36,22 @@ const fieldPathToTranslationPrefix: Record<string, string> = {
 /**
  * Create specific translation key based on field and error type
  */
-function getSpecificTranslationKey(fieldPath: string, errorType: string): string | null {
+function getSpecificTranslationKey(fieldPath: string, errorCode: string): string | null {
     const fieldPrefix = fieldPathToTranslationPrefix[fieldPath];
 
     if (!fieldPrefix) return null;
 
     // Map specific error types to field-specific keys
-    switch (errorType) {
-        case 'string.empty':
-        case 'any.required':
-            return `${fieldPrefix}Required`;
-        case 'string.min':
+    switch (errorCode) {
+        case 'too_small':
             return `${fieldPrefix}TooShort`;
-        case 'string.max':
+        case 'too_big':
             return `${fieldPrefix}TooLong`;
-        case 'string.email':
+        case 'invalid_email_format':
+        case 'invalid_string':
+        case 'invalid_type':
             return `${fieldPrefix}Invalid`;
-        case 'number.positive':
-        case 'number.min':
-            return `${fieldPrefix}TooSmall`;
-        case 'number.max':
-            return `${fieldPrefix}TooLarge`;
-        case 'number.base':
-            return `${fieldPrefix}Invalid`;
-        case 'date.base':
-            return `${fieldPrefix}Invalid`;
-        case 'any.only':
+        case 'custom':
             return `${fieldPrefix}Invalid`;
         default:
             return null;
@@ -74,14 +59,14 @@ function getSpecificTranslationKey(fieldPath: string, errorType: string): string
 }
 
 /**
- * Translate a single Joi validation error
+ * Translate a single Zod validation error
  */
-function translateValidationError(error: ValidationError['details'][0], language: string): string {
-    const fieldPath = error.path.join('.');
-    const errorType = error.type;
+function translateValidationError(issue: ZodIssue, language: string): string {
+    const fieldPath = issue.path.join('.');
+    const errorCode = issue.code;
 
     // Try to get field-specific translation key first
-    const specificKey = getSpecificTranslationKey(fieldPath, errorType);
+    const specificKey = getSpecificTranslationKey(fieldPath, errorCode);
     if (specificKey) {
         const translated = translate(specificKey, language);
         // If translation exists (not the key itself), use it
@@ -91,7 +76,7 @@ function translateValidationError(error: ValidationError['details'][0], language
     }
 
     // Fall back to generic error type translation
-    const genericKey = errorTypeToTranslationKey[errorType];
+    const genericKey = errorTypeToTranslationKey[errorCode];
     if (genericKey) {
         const translated = translate(genericKey, language);
         if (translated !== genericKey) {
@@ -100,17 +85,31 @@ function translateValidationError(error: ValidationError['details'][0], language
     }
 
     // Last resort: use the original message
-    return error.message;
+    return issue.message;
 }
 
 /**
- * Translate Joi validation error and return localized message
+ * Translate Zod validation error and return localized message
  */
-export function translateJoiError(error: ValidationError, language: string = 'en'): string {
-    if (!error.details || error.details.length === 0) {
+export function translateZodError(error: ZodError, language: string = 'en'): string {
+    if (!error.issues || error.issues.length === 0) {
         return translate('errors.server.internalError', language);
     }
 
     // Return the first error, translated
-    return translateValidationError(error.details[0], language);
+    return translateValidationError(error.issues[0], language);
+}
+
+/**
+ * Legacy function name for backwards compatibility
+ * @deprecated Use translateZodError instead
+ */
+export function translateJoiError(error: any, language: string = 'en'): string {
+    // If it's a ZodError, use the new function
+    if (error instanceof ZodError) {
+        return translateZodError(error, language);
+    }
+
+    // For any other error type, return a generic message
+    return translate('errors.server.internalError', language);
 }

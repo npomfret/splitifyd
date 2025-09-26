@@ -472,7 +472,7 @@ export class ApiDriver {
             const baseContent = `${policyName} base version reset at ${timestamp}.`;
 
             try {
-                await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', { text: baseContent, publish: true }, adminToken);
+                await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', { content: baseContent, publish: true }, adminToken);
                 console.log(`✓ Reset policy ${policyId} to base content`);
             } catch (error) {
                 console.warn(`Failed to reset policy ${policyId}:`, error);
@@ -511,13 +511,21 @@ export class ApiDriver {
     async updatePolicy(policyId: string, text: string, publish: boolean = true, adminToken?: string): Promise<any> {
         // Try with the adminToken first, then fall back to regular token
         const token = adminToken;
-        return await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', { text, publish }, token);
+        return await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', {
+            content: text,
+            version: `${Date.now()}`,
+            publish
+        }, token);
     }
 
     async createPolicy(policyName: string, text: string, adminToken?: string): Promise<any> {
         // Try with the adminToken first, then fall back to regular token
         const token = adminToken;
-        return await this.apiRequest('/admin/policies', 'POST', { policyName, text }, token);
+        return await this.apiRequest('/admin/policies', 'POST', {
+            type: policyName,
+            content: text,
+            version: `${Date.now()}`
+        }, token);
     }
 
     // Internal policy methods that bypass HTTP validation (for testing)

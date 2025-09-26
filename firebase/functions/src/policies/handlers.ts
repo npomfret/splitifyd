@@ -88,8 +88,9 @@ export const getPolicyVersion = async (req: AuthenticatedRequest, res: Response)
 export const updatePolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const { id } = req.params;
 
-    // Validate request body using Joi
-    const { text, publish = false } = validateUpdatePolicy(req.body);
+    // Validate request body using Zod
+    const validatedData = validateUpdatePolicy(req.body);
+    const { content: text, version, publish = false } = validatedData;
 
     try {
         const result = await policyService.updatePolicy(id, text, publish);
@@ -104,8 +105,8 @@ export const updatePolicy = async (req: AuthenticatedRequest, res: Response): Pr
         const response: UpdatePolicyResponse = {
             success: true,
             versionHash: result.versionHash,
-            published: publish,
             currentVersionHash: result.currentVersionHash,
+            published: publish,
             message: publish ? 'Policy updated and published' : 'Draft version saved',
         };
         res.json(response);
@@ -156,8 +157,9 @@ export const publishPolicy = async (req: AuthenticatedRequest, res: Response): P
  * POST /admin/policies - Create new policy
  */
 export const createPolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    // Validate request body using Joi
-    const { policyName, text } = validateCreatePolicy(req.body);
+    // Validate request body using Zod
+    const validatedData = validateCreatePolicy(req.body);
+    const { type: policyName, content: text } = validatedData;
 
     try {
         const result = await policyService.createPolicy(policyName, text);

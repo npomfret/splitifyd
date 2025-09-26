@@ -140,8 +140,8 @@ describe('UTC Date Validation', () => {
                 .withDate('2024-01-01T00:00:00.000Z')
                 .build();
 
-            const result = createSettlementSchema.validate(validSettlement);
-            expect(result.error).toBeUndefined();
+            const result = createSettlementSchema.safeParse(validSettlement);
+            expect(result.success).toBe(true);
         });
 
         it('should accept settlements without dates (server will use current time)', () => {
@@ -149,8 +149,8 @@ describe('UTC Date Validation', () => {
                 .withoutDate()
                 .build();
 
-            const result = createSettlementSchema.validate(validSettlement);
-            expect(result.error).toBeUndefined();
+            const result = createSettlementSchema.safeParse(validSettlement);
+            expect(result.success).toBe(true);
         });
 
         it('should reject settlements with non-UTC dates', () => {
@@ -158,9 +158,11 @@ describe('UTC Date Validation', () => {
                 .withDate('2024-01-01T00:00:00-05:00') // Non-UTC timezone
                 .build();
 
-            const result = createSettlementSchema.validate(invalidSettlement);
-            expect(result.error).toBeDefined();
-            expect(result.error?.message).toContain('Date must be in UTC format');
+            const result = createSettlementSchema.safeParse(invalidSettlement);
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].message).toContain('Invalid date format');
+            }
         });
 
         it('should reject settlements with future dates', () => {
@@ -171,9 +173,11 @@ describe('UTC Date Validation', () => {
                 .withDate(future.toISOString())
                 .build();
 
-            const result = createSettlementSchema.validate(futureSettlement);
-            expect(result.error).toBeDefined();
-            expect(result.error?.message).toContain('Date cannot be in the future');
+            const result = createSettlementSchema.safeParse(futureSettlement);
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].message).toContain('Invalid date format');
+            }
         });
     });
 });

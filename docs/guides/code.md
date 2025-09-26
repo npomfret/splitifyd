@@ -69,9 +69,9 @@ The backend is built on Firebase Functions using Express.js.
 
 ### Data Validation
 
-- **Joi**: All incoming request bodies are strictly validated using **Joi** schemas.
+- **Zod**: All incoming request bodies are strictly validated using **Zod** schemas.
 - **Location**: Validation schemas are co-located with their feature handlers (e.g., `groups/validation.ts`).
-- **Rule**: Any new API endpoint that accepts a request body **must** have a corresponding Joi schema to validate the input.
+- **Rule**: Any new API endpoint that accepts a request body **must** have a corresponding Zod schema to validate the input.
 
 ### Error Handling
 
