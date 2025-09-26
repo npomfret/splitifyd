@@ -2,7 +2,6 @@ import type { IAuthService } from './auth';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { createOptimisticTimestamp, assertTimestampAndConvert } from '../utils/dateHelpers';
-import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import { Comment, CommentApiResponse, CommentTargetType, CreateCommentRequest, ListCommentsResponse } from '@splitifyd/shared';
 import { measureDb } from '../monitoring/measure';

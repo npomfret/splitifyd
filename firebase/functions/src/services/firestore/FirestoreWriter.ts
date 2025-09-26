@@ -9,7 +9,7 @@
  * - Audit logging for write operations
  */
 
-import type { Firestore, Transaction, WriteBatch, DocumentReference } from 'firebase-admin/firestore';
+import type { Firestore, Transaction, DocumentReference } from 'firebase-admin/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../../logger';
 import { FirestoreCollections, CommentTargetTypes, type CommentTargetType } from '@splitifyd/shared';

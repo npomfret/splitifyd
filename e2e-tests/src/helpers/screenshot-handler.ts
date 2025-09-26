@@ -1,5 +1,4 @@
 import { Page, TestInfo } from '@playwright/test';
-import * as path from 'path';
 
 interface ScreenshotHandlerOptions {
     userIndex?: number;

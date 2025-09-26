@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { setupTestPage, setupAuthenticatedUser, fillFormField, TestScenarios, GroupApiMock, AuthApiMock, GroupTestDataBuilder } from '../infra/test-helpers';
+import { setupTestPage, fillFormField, TestScenarios, GroupApiMock, AuthApiMock, GroupTestDataBuilder } from '../infra/test-helpers';
 
 /**
  * Expense operations tests using real components with API mocking only

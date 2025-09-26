@@ -14,7 +14,7 @@
  * - Performance monitoring with sampling
  */
 
-import type { Transaction, WriteBatch, DocumentReference, Timestamp } from 'firebase-admin/firestore';
+import type { Transaction, DocumentReference, Timestamp } from 'firebase-admin/firestore';
 import type { CommentTargetType } from '@splitifyd/shared';
 
 /**

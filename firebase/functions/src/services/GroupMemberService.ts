@@ -1,5 +1,4 @@
 import { Errors, ApiError } from '../utils/errors';
-import { UserService } from './UserService2';
 import { logger, LoggerContext } from '../logger';
 import { FirestoreCollections } from '@splitifyd/shared';
 import type { GroupMemberDocument } from '@splitifyd/shared';

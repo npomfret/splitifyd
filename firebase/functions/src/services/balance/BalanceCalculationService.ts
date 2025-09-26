@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { BalanceCalculationResult, BalanceCalculationInput, CurrencyBalances } from './types';
+import { BalanceCalculationResult, BalanceCalculationInput } from './types';
 import type { ExpenseDocument, SettlementDocument, GroupDocument } from '../../schemas';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import { ExpenseProcessor } from './ExpenseProcessor';
@@ -11,7 +11,6 @@ import { logger } from '../../logger';
 import { timestampToISO } from '../../utils/dateHelpers';
 import type { IFirestoreReader } from '../firestore';
 import { UserService } from '../UserService2';
-import { DELETED_AT_FIELD } from '@splitifyd/shared';
 
 export class BalanceCalculationService {
     private expenseProcessor: ExpenseProcessor;

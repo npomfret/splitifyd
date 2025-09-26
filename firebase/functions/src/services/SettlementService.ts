@@ -8,7 +8,7 @@ import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import { Settlement, CreateSettlementRequest, UpdateSettlementRequest, SettlementListItem, RegisteredUser, FirestoreCollections } from '@splitifyd/shared';
 import { measureDb } from '../monitoring/measure';
-import { SettlementDocumentSchema, UserDocument } from '../schemas';
+import { SettlementDocumentSchema } from '../schemas';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';

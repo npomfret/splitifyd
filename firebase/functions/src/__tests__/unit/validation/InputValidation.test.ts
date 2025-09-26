@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ExpenseService } from '../../../services/ExpenseService';
 import { SettlementService } from '../../../services/SettlementService';
-import { GroupMemberService } from '../../../services/GroupMemberService';
 import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import type { CreateExpenseRequest, CreateSettlementRequest } from '@splitifyd/shared';

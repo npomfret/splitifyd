@@ -18,7 +18,6 @@ import type { PaginatedResult } from '../../services/firestore/IFirestoreReader'
 // Import types for proper typing
 import type { UserDocument, GroupDocument } from '../../schemas';
 import type { PolicyDocument } from '@splitifyd/shared';
-import type { GroupMemberDocument } from '@splitifyd/shared';
 
 export class MockFirestoreReader implements IFirestoreReader {
     // ========================================================================

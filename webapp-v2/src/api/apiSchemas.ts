@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { SplitTypes, SystemUserRoles } from '@splitifyd/shared';
+import { SplitTypes } from '@splitifyd/shared';
 
 // Base schemas
 export const UserThemeColorSchema = z.object({
