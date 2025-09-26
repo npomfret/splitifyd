@@ -95,7 +95,7 @@ export const listSettlementsQuerySchema = Joi.object({
     groupId: Joi.string().required(),
     limit: Joi.number().integer().min(1).max(100).default(20),
     cursor: Joi.string().optional(),
-    userId: Joi.string().optional(),
+    uid: Joi.string().optional(),
     startDate: Joi.date().iso().optional(),
     endDate: Joi.date().iso().optional(),
 }).custom((value, helpers) => {

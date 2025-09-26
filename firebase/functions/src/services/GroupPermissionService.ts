@@ -161,7 +161,7 @@ export class GroupPermissionService {
         userId: string,
         groupId: string,
     ): Promise<{
-        userId: string;
+        uid: string;
         role: any;
         permissions: any;
         groupSecurityPreset: any;
@@ -189,7 +189,7 @@ export class GroupPermissionService {
         const permissions = this.calculateUserPermissions(toGroup(group), userMember);
 
         return {
-            userId,
+            uid: userId,
             role: userRole,
             permissions,
             groupSecurityPreset: group.securityPreset,
@@ -233,11 +233,11 @@ export class GroupPermissionService {
         const permissions = group.permissions;
 
         return {
-            canEditAnyExpense: this.checkPermissionLevel(permissions.expenseEditing, member.memberRole, group.createdBy, member.userId),
-            canDeleteAnyExpense: this.checkPermissionLevel(permissions.expenseDeletion, member.memberRole, group.createdBy, member.userId),
-            canInviteMembers: this.checkPermissionLevel(permissions.memberInvitation, member.memberRole, group.createdBy, member.userId),
-            canManageSettings: this.checkPermissionLevel(permissions.settingsManagement, member.memberRole, group.createdBy, member.userId),
-            canApproveMembers: this.checkPermissionLevel(permissions.memberApproval, member.memberRole, group.createdBy, member.userId),
+            canEditAnyExpense: this.checkPermissionLevel(permissions.expenseEditing, member.memberRole, group.createdBy, member.uid),
+            canDeleteAnyExpense: this.checkPermissionLevel(permissions.expenseDeletion, member.memberRole, group.createdBy, member.uid),
+            canInviteMembers: this.checkPermissionLevel(permissions.memberInvitation, member.memberRole, group.createdBy, member.uid),
+            canManageSettings: this.checkPermissionLevel(permissions.settingsManagement, member.memberRole, group.createdBy, member.uid),
+            canApproveMembers: this.checkPermissionLevel(permissions.memberApproval, member.memberRole, group.createdBy, member.uid),
             canViewGroup: true, // All active members can view
         };
     }

@@ -61,39 +61,39 @@ describe('Input Validation Unit Tests', () => {
             id: testGroupId,
             name: 'Test Group',
             members: {
-                [testUser1]: { userId: testUser1, memberRole: 'admin', memberStatus: 'active' },
-                [testUser2]: { userId: testUser2, memberRole: 'member', memberStatus: 'active' },
-                [testUser3]: { userId: testUser3, memberRole: 'member', memberStatus: 'active' },
+                [testUser1]: { uid: testUser1, memberRole: 'admin', memberStatus: 'active' },
+                [testUser2]: { uid: testUser2, memberRole: 'member', memberStatus: 'active' },
+                [testUser3]: { uid: testUser3, memberRole: 'member', memberStatus: 'active' },
             },
             memberCount: 3,
         });
 
         // Set up group members
-        stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUser1}`, { userId: testUser1, groupId: testGroupId });
-        stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUser2}`, { userId: testUser2, groupId: testGroupId });
-        stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUser3}`, { userId: testUser3, groupId: testGroupId });
+        stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUser1}`, { uid: testUser1, groupId: testGroupId });
+        stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUser2}`, { uid: testUser2, groupId: testGroupId });
+        stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUser3}`, { uid: testUser3, groupId: testGroupId });
 
         // Set up service mocks with simple responses
         const testMembers = [
-            { userId: testUser1, groupId: testGroupId },
-            { userId: testUser2, groupId: testGroupId },
-            { userId: testUser3, groupId: testGroupId },
+            { uid: testUser1, groupId: testGroupId },
+            { uid: testUser2, groupId: testGroupId },
+            { uid: testUser3, groupId: testGroupId },
         ];
 
         stubGroupMemberService.getAllGroupMembers.mockResolvedValue(testMembers);
 
         // Set up getGroupMember to return the appropriate member for each user
-        stubGroupMemberService.getGroupMember.mockImplementation(async (groupId: string, userId: string) => {
-            return testMembers.find(member => member.userId === userId) || null;
+        stubGroupMemberService.getGroupMember.mockImplementation(async (groupId: string, uid: string) => {
+            return testMembers.find(member => member.uid === uid) || null;
         });
 
         stubUserService.getGroupMembersResponseFromSubcollection.mockResolvedValue({
             members: testMembers.map((member) => ({
                 ...member,
                 profile: {
-                    uid: member.userId,
-                    displayName: `User ${member.userId}`,
-                    email: `${member.userId}@test.com`,
+                    uid: member.uid,
+                    displayName: `User ${member.uid}`,
+                    email: `${member.uid}@test.com`,
                 },
             })),
             hasMore: false,
@@ -269,8 +269,8 @@ describe('Input Validation Unit Tests', () => {
                     participants: [testUser1, testUser2],
                     splitType: 'exact',
                     splits: [
-                        { userId: testUser1, amount: 60 },
-                        { userId: testUser2, amount: 30 }, // Only adds up to 90, not 100
+                        { uid: testUser1, amount: 60 },
+                        { uid: testUser2, amount: 30 }, // Only adds up to 90, not 100
                     ],
                     category: 'other',
                     currency: 'USD',
@@ -289,9 +289,9 @@ describe('Input Validation Unit Tests', () => {
                     participants: [testUser1, testUser2, testUser3],
                     splitType: 'exact',
                     splits: [
-                        { userId: testUser1, amount: 33.33 },
-                        { userId: testUser2, amount: 33.33 },
-                        { userId: testUser3, amount: 33.34 }, // Total: 100.00
+                        { uid: testUser1, amount: 33.33 },
+                        { uid: testUser2, amount: 33.33 },
+                        { uid: testUser3, amount: 33.34 }, // Total: 100.00
                     ],
                     category: 'other',
                     currency: 'USD',
@@ -313,8 +313,8 @@ describe('Input Validation Unit Tests', () => {
                     participants: [testUser1, testUser2],
                     splitType: 'exact',
                     splits: [
-                        { userId: testUser1, amount: 50.0 },
-                        { userId: testUser2, amount: 49.0 }, // Total: 99.00
+                        { uid: testUser1, amount: 50.0 },
+                        { uid: testUser2, amount: 49.0 }, // Total: 99.00
                     ],
                     category: 'other',
                     currency: 'USD',
@@ -333,8 +333,8 @@ describe('Input Validation Unit Tests', () => {
                     participants: [testUser1, testUser2],
                     splitType: 'exact',
                     splits: [
-                        { userId: testUser1, amount: 120 },
-                        { userId: testUser2, amount: -20 }, // Negative amount
+                        { uid: testUser1, amount: 120 },
+                        { uid: testUser2, amount: -20 }, // Negative amount
                     ],
                     category: 'other',
                     currency: 'USD',
@@ -353,8 +353,8 @@ describe('Input Validation Unit Tests', () => {
                     participants: [testUser1, testUser2],
                     splitType: 'exact',
                     splits: [
-                        { userId: testUser1, amount: 100 },
-                        { userId: testUser2, amount: 0 }, // Zero amount
+                        { uid: testUser1, amount: 100 },
+                        { uid: testUser2, amount: 0 }, // Zero amount
                     ],
                     category: 'other',
                     currency: 'USD',
@@ -373,8 +373,8 @@ describe('Input Validation Unit Tests', () => {
                     participants: [testUser1, testUser2],
                     splitType: 'exact',
                     splits: [
-                        { userId: testUser1, amount: 50 },
-                        { userId: testUser1, amount: 50 }, // Duplicate user
+                        { uid: testUser1, amount: 50 },
+                        { uid: testUser1, amount: 50 }, // Duplicate user
                     ],
                     category: 'other',
                     currency: 'USD',
@@ -393,8 +393,8 @@ describe('Input Validation Unit Tests', () => {
                     participants: [testUser1], // Only user1 is a participant
                     splitType: 'exact',
                     splits: [
-                        { userId: testUser1, amount: 50 },
-                        { userId: testUser2, amount: 50 }, // User2 is not a participant
+                        { uid: testUser1, amount: 50 },
+                        { uid: testUser2, amount: 50 }, // User2 is not a participant
                     ],
                     category: 'other',
                     currency: 'USD',
@@ -413,8 +413,8 @@ describe('Input Validation Unit Tests', () => {
                     participants: [testUser1, testUser2, testUser3], // 3 participants
                     splitType: 'exact',
                     splits: [
-                        { userId: testUser1, amount: 50 },
-                        { userId: testUser2, amount: 50 }, // Missing split for user3
+                        { uid: testUser1, amount: 50 },
+                        { uid: testUser2, amount: 50 }, // Missing split for user3
                     ],
                     category: 'other',
                     currency: 'USD',
@@ -435,8 +435,8 @@ describe('Input Validation Unit Tests', () => {
                     participants: [testUser1, testUser2],
                     splitType: 'percentage',
                     splits: [
-                        { userId: testUser1, amount: 60, percentage: 60 },
-                        { userId: testUser2, amount: 30, percentage: 30 }, // Only adds up to 90%
+                        { uid: testUser1, amount: 60, percentage: 60 },
+                        { uid: testUser2, amount: 30, percentage: 30 }, // Only adds up to 90%
                     ],
                     category: 'other',
                     currency: 'USD',
@@ -455,9 +455,9 @@ describe('Input Validation Unit Tests', () => {
                     participants: [testUser1, testUser2, testUser3],
                     splitType: 'percentage',
                     splits: [
-                        { userId: testUser1, amount: 33.33, percentage: 33.33 },
-                        { userId: testUser2, amount: 33.33, percentage: 33.33 },
-                        { userId: testUser3, amount: 33.34, percentage: 33.34 }, // Total: 100.00%
+                        { uid: testUser1, amount: 33.33, percentage: 33.33 },
+                        { uid: testUser2, amount: 33.33, percentage: 33.33 },
+                        { uid: testUser3, amount: 33.34, percentage: 33.34 }, // Total: 100.00%
                     ],
                     category: 'other',
                     currency: 'USD',
@@ -479,8 +479,8 @@ describe('Input Validation Unit Tests', () => {
                     participants: [testUser1, testUser2],
                     splitType: 'percentage',
                     splits: [
-                        { userId: testUser1, amount: 120, percentage: 120 },
-                        { userId: testUser2, amount: -20, percentage: -20 }, // Negative percentage
+                        { uid: testUser1, amount: 120, percentage: 120 },
+                        { uid: testUser2, amount: -20, percentage: -20 }, // Negative percentage
                     ],
                     category: 'other',
                     currency: 'USD',
@@ -499,7 +499,7 @@ describe('Input Validation Unit Tests', () => {
                     participants: [testUser1],
                     splitType: 'percentage',
                     splits: [
-                        { userId: testUser1, amount: 100, percentage: 150 }, // 150% is over limit
+                        { uid: testUser1, amount: 100, percentage: 150 }, // 150% is over limit
                     ],
                     category: 'other',
                     currency: 'USD',
@@ -518,7 +518,7 @@ describe('Input Validation Unit Tests', () => {
                     participants: [testUser1, testUser2], // 2 participants
                     splitType: 'percentage',
                     splits: [
-                        { userId: testUser1, amount: 100, percentage: 100 }, // Missing split for user2
+                        { uid: testUser1, amount: 100, percentage: 100 }, // Missing split for user2
                     ],
                     category: 'other',
                     currency: 'USD',

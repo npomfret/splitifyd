@@ -20,7 +20,7 @@ export class EqualSplitStrategy implements ISplitStrategy {
         const splitAmount = totalAmount / participants.length;
 
         return participants.map((userId) => ({
-            userId,
+            uid: userId,
             amount: Math.round(splitAmount * 100) / 100,
         }));
     }

@@ -29,7 +29,7 @@ export interface Expense {
 }
 
 const expenseSplitSchema = Joi.object({
-    userId: Joi.string().required(),
+    uid: Joi.string().required(),
     amount: Joi.number().positive().required(),
     percentage: Joi.number().min(0).max(100).optional(),
 });

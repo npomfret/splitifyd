@@ -34,7 +34,7 @@ export class ExactSplitStrategy implements ISplitStrategy {
         }
 
         // Validate no duplicate users
-        const splitUserIds = splits.map((s: ExpenseSplit) => s.userId);
+        const splitUserIds = splits.map((s: ExpenseSplit) => s.uid);
         const uniqueSplitUserIds = new Set(splitUserIds);
         if (splitUserIds.length !== uniqueSplitUserIds.size) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'DUPLICATE_SPLIT_USERS', 'Each participant can only appear once in splits');
@@ -57,7 +57,7 @@ export class ExactSplitStrategy implements ISplitStrategy {
         // For exact splits, we just return the provided splits as they already contain the exact amounts
         return splits.map((split) => {
             const result: ExpenseSplit = {
-                userId: split.userId,
+                uid: split.uid,
                 amount: split.amount!,
             };
 

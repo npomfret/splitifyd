@@ -1,6 +1,6 @@
 // UserBalance interface from firebase functions
 interface UserBalance {
-    userId: string;
+    uid: string;
     owes: Record<string, number>;
     owedBy: Record<string, number>;
     netBalance: number;
@@ -12,14 +12,14 @@ interface UserBalance {
  */
 export class UserBalanceBuilder {
     private userBalance: UserBalance = {
-        userId: 'user1',
+        uid: 'user1',
         owes: {},
         owedBy: {},
         netBalance: 0,
     };
 
     withUserId(userId: string): UserBalanceBuilder {
-        this.userBalance.userId = userId;
+        this.userBalance.uid = userId;
         return this;
     }
 

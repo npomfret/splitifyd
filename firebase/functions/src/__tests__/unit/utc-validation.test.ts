@@ -111,8 +111,8 @@ describe('UTC Date Validation', () => {
                 splitType: 'equal',
                 participants: ['user123', 'user456'],
                 splits: [
-                    { userId: 'user123', amount: 25 },
-                    { userId: 'user456', amount: 25 },
+                    { uid: 'user123', amount: 25 },
+                    { uid: 'user456', amount: 25 },
                 ],
             };
 
@@ -131,8 +131,8 @@ describe('UTC Date Validation', () => {
                 splitType: 'equal',
                 participants: ['user123', 'user456'],
                 splits: [
-                    { userId: 'user123', amount: 25 },
-                    { userId: 'user456', amount: 25 },
+                    { uid: 'user123', amount: 25 },
+                    { uid: 'user456', amount: 25 },
                 ],
             };
 
@@ -154,8 +154,8 @@ describe('UTC Date Validation', () => {
                 splitType: 'equal',
                 participants: ['user123', 'user456'],
                 splits: [
-                    { userId: 'user123', amount: 25 },
-                    { userId: 'user456', amount: 25 },
+                    { uid: 'user123', amount: 25 },
+                    { uid: 'user456', amount: 25 },
                 ],
             };
 

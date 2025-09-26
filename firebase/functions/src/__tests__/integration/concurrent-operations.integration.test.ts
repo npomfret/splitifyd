@@ -53,7 +53,7 @@ describe('Concurrent Operations Integration Tests', () => {
             const finalMembers = await groupMemberService.getAllGroupMembers(testGroup.id);
             expect(finalMembers).toHaveLength(4); // testUser1 (admin) + 3 new members
 
-            const memberIds = finalMembers.map((m) => m.userId);
+            const memberIds = finalMembers.map((m) => m.uid);
             expect(memberIds).toContain(testUser1.uid);
             expect(memberIds).toContain(testUser2.uid);
             expect(memberIds).toContain(testUser3.uid);
@@ -278,7 +278,7 @@ describe('Concurrent Operations Integration Tests', () => {
 
             // All members should have valid data structure
             finalMembers.forEach((member) => {
-                expect(member.userId).toBeDefined();
+                expect(member.uid).toBeDefined();
                 expect(member.groupId).toBe(testGroup.id);
                 expect(member.memberRole).toBeDefined();
                 expect(member.memberStatus).toBeDefined();
@@ -366,7 +366,7 @@ describe('Concurrent Operations Integration Tests', () => {
             // System should still be in valid state
             const finalMembers = await groupMemberService.getAllGroupMembers(testGroup.id);
             expect(Array.isArray(finalMembers)).toBe(true);
-            expect(finalMembers.some((m) => m.userId === testUser2.uid)).toBe(true);
+            expect(finalMembers.some((m) => m.uid === testUser2.uid)).toBe(true);
         });
     });
 });

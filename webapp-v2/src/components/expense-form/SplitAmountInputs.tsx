@@ -7,7 +7,7 @@ interface Member {
 }
 
 interface Split {
-    userId: string;
+    uid: string;
     amount: number;
     percentage?: number;
 }
@@ -19,8 +19,8 @@ interface SplitAmountInputsProps {
     participants: string[];
     splits: Split[];
     members: Member[];
-    updateSplitAmount: (userId: string, amount: number) => void;
-    updateSplitPercentage: (userId: string, percentage: number) => void;
+    updateSplitAmount: (uid: string, amount: number) => void;
+    updateSplitPercentage: (uid: string, percentage: number) => void;
 }
 
 export function SplitAmountInputs({ splitType, amount, currency, participants, splits, members, updateSplitAmount, updateSplitPercentage }: SplitAmountInputsProps) {
@@ -42,7 +42,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                 <p className="text-sm text-gray-600 dark:text-gray-400">Enter exact amounts for each person:</p>
                 {participants.map((participantId) => {
                     const member = memberMap[participantId];
-                    const split = splits.find((s) => s.userId === participantId);
+                    const split = splits.find((s) => s.uid === participantId);
                     return (
                         <div key={participantId} className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2 flex-1">
@@ -93,7 +93,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                 <p className="text-sm text-gray-600 dark:text-gray-400">Enter percentage for each person:</p>
                 {participants.map((participantId) => {
                     const member = memberMap[participantId];
-                    const split = splits.find((s) => s.userId === participantId);
+                    const split = splits.find((s) => s.uid === participantId);
                     return (
                         <div key={participantId} className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2 flex-1">
@@ -141,11 +141,11 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Each person pays:</p>
                 <div className="space-y-1">
                     {splits.map((split) => {
-                        const member = memberMap[split.userId];
+                        const member = memberMap[split.uid];
                         return (
-                            <div key={split.userId} className="flex items-center justify-between gap-2">
+                            <div key={split.uid} className="flex items-center justify-between gap-2">
                                 <div className="flex items-center gap-2">
-                                    <Avatar displayName={member?.displayName || 'Unknown'} userId={split.userId} size="sm" />
+                                    <Avatar displayName={member?.displayName || 'Unknown'} userId={split.uid} size="sm" />
                                     <span className="text-sm text-gray-600 dark:text-gray-400">{member?.displayName || 'Unknown'}</span>
                                 </div>
                                 <span className="text-sm font-medium text-gray-900 dark:text-white">{formatCurrency(split.amount, currency)}</span>

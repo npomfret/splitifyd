@@ -57,8 +57,8 @@ describe('Expenses Management - Consolidated Tests', () => {
                 .withSplitType('exact')
                 .withParticipants([users[0].uid, users[1].uid])
                 .withSplits([
-                    { userId: users[0].uid, amount: 60 },
-                    { userId: users[1].uid, amount: 40 },
+                    { uid: users[0].uid, amount: 60 },
+                    { uid: users[1].uid, amount: 40 },
                 ])
                 .build();
 
@@ -313,9 +313,9 @@ describe('Expenses Management - Consolidated Tests', () => {
                     .withParticipants([users[0].uid, users[1].uid, users[2].uid])
                     .withSplitType('exact')
                     .withSplits([
-                        { userId: users[0].uid, amount: 30 },
-                        { userId: users[1].uid, amount: 40 },
-                        { userId: users[2].uid, amount: 30 },
+                        { uid: users[0].uid, amount: 30 },
+                        { uid: users[1].uid, amount: 40 },
+                        { uid: users[2].uid, amount: 30 },
                     ])
                     .build(),
                 users[0].token,
@@ -324,9 +324,9 @@ describe('Expenses Management - Consolidated Tests', () => {
             const fullDetails = await apiDriver.getExpenseFullDetails(complexExpense.id, users[1].token);
 
             expect(fullDetails.expense.splitType).toBe('exact');
-            expect(fullDetails.expense.splits.find((s: any) => s.userId === users[0].uid)?.amount).toBe(30);
-            expect(fullDetails.expense.splits.find((s: any) => s.userId === users[1].uid)?.amount).toBe(40);
-            expect(fullDetails.expense.splits.find((s: any) => s.userId === users[2].uid)?.amount).toBe(30);
+            expect(fullDetails.expense.splits.find((s: any) => s.uid === users[0].uid)?.amount).toBe(30);
+            expect(fullDetails.expense.splits.find((s: any) => s.uid === users[1].uid)?.amount).toBe(40);
+            expect(fullDetails.expense.splits.find((s: any) => s.uid === users[2].uid)?.amount).toBe(30);
         });
 
         test('should enforce access control for full details endpoint', async () => {

@@ -45,10 +45,10 @@ export interface ExpenseFormStore {
     // Actions
     updateField<K extends keyof ExpenseFormData>(field: K, value: ExpenseFormData[K]): void;
     setParticipants(participants: string[]): void;
-    toggleParticipant(userId: string): void;
+    toggleParticipant(uid: string): void;
     calculateEqualSplits(): void;
-    updateSplitAmount(userId: string, amount: number): void;
-    updateSplitPercentage(userId: string, percentage: number): void;
+    updateSplitAmount(uid: string, amount: number): void;
+    updateSplitPercentage(uid: string, percentage: number): void;
     validateForm(): boolean;
     saveExpense(groupId: string): Promise<ExpenseData>;
     updateExpense(groupId: string, expenseId: string): Promise<ExpenseData>;
@@ -449,19 +449,19 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         this.#validationErrorsSignal.value = errors;
     }
 
-    toggleParticipant(userId: string): void {
+    toggleParticipant(uid: string): void {
         const current = this.#participantsSignal.value;
-        const isIncluded = current.includes(userId);
+        const isIncluded = current.includes(uid);
 
         // Don't allow removing the payer
-        if (userId === this.#paidBySignal.value && isIncluded) {
+        if (uid === this.#paidBySignal.value && isIncluded) {
             return;
         }
 
         if (isIncluded) {
-            this.#participantsSignal.value = current.filter((id) => id !== userId);
+            this.#participantsSignal.value = current.filter((id) => id !== uid);
         } else {
-            this.#participantsSignal.value = [...current, userId];
+            this.#participantsSignal.value = [...current, uid];
         }
 
         // Recalculate splits based on current type
@@ -482,22 +482,22 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         const remainder = amount - splitAmount * participants.length;
 
         // Create splits
-        const splits: ExpenseSplit[] = participants.map((userId, index) => ({
-            userId,
+        const splits: ExpenseSplit[] = participants.map((uid, index) => ({
+            uid,
             amount: index === 0 ? splitAmount + remainder : splitAmount,
         }));
 
         this.#splitsSignal.value = splits;
     }
 
-    updateSplitAmount(userId: string, amount: number): void {
+    updateSplitAmount(uid: string, amount: number): void {
         const currentSplits = [...this.#splitsSignal.value];
-        const splitIndex = currentSplits.findIndex((s) => s.userId === userId);
+        const splitIndex = currentSplits.findIndex((s) => s.uid === uid);
 
         if (splitIndex >= 0) {
             currentSplits[splitIndex] = { ...currentSplits[splitIndex], amount };
         } else {
-            currentSplits.push({ userId, amount });
+            currentSplits.push({ uid, amount });
         }
 
         this.#splitsSignal.value = currentSplits;
@@ -513,9 +513,9 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         this.#validationErrorsSignal.value = errors;
     }
 
-    updateSplitPercentage(userId: string, percentage: number): void {
+    updateSplitPercentage(uid: string, percentage: number): void {
         const currentSplits = [...this.#splitsSignal.value];
-        const splitIndex = currentSplits.findIndex((s) => s.userId === userId);
+        const splitIndex = currentSplits.findIndex((s) => s.uid === uid);
 
         if (splitIndex >= 0) {
             const amount = this.#amountSignal.value;
@@ -527,7 +527,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         } else {
             const amount = this.#amountSignal.value;
             currentSplits.push({
-                userId,
+                uid,
                 percentage,
                 amount: (amount * percentage) / 100,
             });
@@ -563,8 +563,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             case SplitTypes.EXACT:
                 // Initialize with equal amounts as a starting point
                 const exactAmount = amount / participants.length;
-                this.#splitsSignal.value = participants.map((userId) => ({
-                    userId,
+                this.#splitsSignal.value = participants.map((uid) => ({
+                    uid,
                     amount: exactAmount,
                 }));
                 break;
@@ -572,8 +572,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             case SplitTypes.PERCENTAGE:
                 // Initialize with equal percentages
                 const equalPercentage = 100 / participants.length;
-                this.#splitsSignal.value = participants.map((userId) => ({
-                    userId,
+                this.#splitsSignal.value = participants.map((uid) => ({
+                    uid,
                     percentage: equalPercentage,
                     amount: (amount * equalPercentage) / 100,
                 }));

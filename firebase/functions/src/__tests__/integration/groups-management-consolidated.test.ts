@@ -1395,7 +1395,7 @@ describe('Groups Management - Consolidated Tests', () => {
                 });
 
                 const memberDoc = {
-                    userId: users[1].uid,
+                    uid: users[1].uid,
                     groupId: testGroup.id,
                     memberRole: MemberRoles.MEMBER,
                     theme: groupShareService.getThemeColorForMember(1),
@@ -1409,7 +1409,7 @@ describe('Groups Management - Consolidated Tests', () => {
                 // Verify member was created
                 const retrievedMember = await groupMemberService.getGroupMember(testGroup.id, users[1].uid);
                 expect(retrievedMember).toBeDefined();
-                expect(retrievedMember?.userId).toBe(users[1].uid);
+                expect(retrievedMember?.uid).toBe(users[1].uid);
                 expect(retrievedMember?.groupId).toBe(testGroup.id);
                 expect(retrievedMember?.memberRole).toBe(MemberRoles.MEMBER);
                 expect(retrievedMember?.memberStatus).toBe(MemberStatuses.ACTIVE);
@@ -1439,7 +1439,7 @@ describe('Groups Management - Consolidated Tests', () => {
 
                 // Add second member
                 const memberDoc = {
-                    userId: users[1].uid,
+                    uid: users[1].uid,
                     groupId: testGroup.id,
                     memberRole: MemberRoles.MEMBER,
                     theme: groupShareService.getThemeColorForMember(1),
@@ -1453,11 +1453,11 @@ describe('Groups Management - Consolidated Tests', () => {
                 const members = await groupMemberService.getAllGroupMembers(testGroup.id);
 
                 expect(members).toHaveLength(2); // users[0] (creator) + users[1]
-                const userIds = members.map((m: any) => m.userId);
+                const userIds = members.map((m: any) => m.uid);
                 expect(userIds).toContain(users[0].uid);
                 expect(userIds).toContain(users[1].uid);
 
-                const creator = members.find((m: any) => m.userId === users[0].uid);
+                const creator = members.find((m: any) => m.uid === users[0].uid);
                 expect(creator?.memberRole).toBe(MemberRoles.ADMIN);
             });
 
@@ -1484,7 +1484,7 @@ describe('Groups Management - Consolidated Tests', () => {
 
                 // Add member first
                 const memberDoc = {
-                    userId: users[1].uid,
+                    uid: users[1].uid,
                     groupId: testGroup.id,
                     memberRole: MemberRoles.MEMBER,
                     theme: groupShareService.getThemeColorForMember(1),
@@ -1504,7 +1504,7 @@ describe('Groups Management - Consolidated Tests', () => {
                 const updatedMember = await groupMemberService.getGroupMember(testGroup.id, users[1].uid);
                 expect(updatedMember?.memberRole).toBe(MemberRoles.ADMIN);
                 expect(updatedMember?.memberStatus).toBe(MemberStatuses.PENDING);
-                expect(updatedMember?.userId).toBe(users[1].uid); // Other fields unchanged
+                expect(updatedMember?.uid).toBe(users[1].uid); // Other fields unchanged
             });
         });
 
@@ -1517,7 +1517,7 @@ describe('Groups Management - Consolidated Tests', () => {
 
                 // Add member first
                 const memberDoc = {
-                    userId: users[1].uid,
+                    uid: users[1].uid,
                     groupId: testGroup.id,
                     memberRole: MemberRoles.MEMBER,
                     theme: groupShareService.getThemeColorForMember(1),

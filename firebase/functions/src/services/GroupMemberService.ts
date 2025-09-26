@@ -141,7 +141,7 @@ export class GroupMemberService {
      */
     async createMember(groupId: string, memberDoc: GroupMemberDocument): Promise<void> {
         return measureDb('CREATE_MEMBER', async () => {
-            const topLevelDocId = getTopLevelMembershipDocId(memberDoc.userId, groupId);
+            const topLevelDocId = getTopLevelMembershipDocId(memberDoc.uid, groupId);
             const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, new Date().toISOString());
 
             await this.firestoreWriter.runTransaction(async (transaction) => {
@@ -150,7 +150,7 @@ export class GroupMemberService {
 
             logger.info('Member added to top-level collection', {
                 groupId,
-                userId: memberDoc.userId,
+                userId: memberDoc.uid,
                 memberRole: memberDoc.memberRole,
             });
         });

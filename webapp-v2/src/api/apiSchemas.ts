@@ -114,7 +114,7 @@ export const ListGroupsResponseSchema = z.object({
 
 // Expense schemas
 export const ExpenseSplitSchema = z.object({
-    userId: z.string().min(1),
+    uid: z.string().min(1),
     amount: z.number(),
     percentage: z.number().optional(),
     userName: z.string().min(1).optional(),
@@ -147,8 +147,8 @@ export const ExpenseListResponseSchema = z.object({
 });
 
 export const SimplifiedDebtSchema = z.object({
-    from: z.object({ userId: z.string() }),
-    to: z.object({ userId: z.string() }),
+    from: z.object({ uid: z.string() }),
+    to: z.object({ uid: z.string() }),
     amount: z.number(),
     currency: z.string().length(3),
 });

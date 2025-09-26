@@ -48,8 +48,8 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 setDate(settlementToEdit.date.split('T')[0]);
                 setNote(settlementToEdit.note || '');
             } else if (preselectedDebt && currentUser) {
-                setPayerId(preselectedDebt.from.userId);
-                setPayeeId(preselectedDebt.to.userId);
+                setPayerId(preselectedDebt.from.uid);
+                setPayeeId(preselectedDebt.to.uid);
                 setAmount(preselectedDebt.amount.toFixed(2));
                 setCurrency(preselectedDebt.currency);
                 setDate(new Date().toISOString().split('T')[0]);
@@ -65,7 +65,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
                 // First try: get currency from existing debts involving current user
                 if (balances?.simplifiedDebts && balances.simplifiedDebts.length > 0) {
-                    const userDebt = balances.simplifiedDebts.find((debt: SimplifiedDebt) => debt.from.userId === currentUser.uid || debt.to.userId === currentUser.uid);
+                    const userDebt = balances.simplifiedDebts.find((debt: SimplifiedDebt) => debt.from.uid === currentUser.uid || debt.to.uid === currentUser.uid);
                     if (userDebt) {
                         detectedCurrency = userDebt.currency;
                     }

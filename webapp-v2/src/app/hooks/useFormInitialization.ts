@@ -56,16 +56,16 @@ export function useFormInitialization({ groupId, expenseId, isEditMode, isCopyMo
         expenseFormStore.updateField('splitType', expense.splitType);
 
         // Set participants from expense splits
-        const participantIds = expense.splits.map((split) => split.userId);
+        const participantIds = expense.splits.map((split) => split.uid);
         expenseFormStore.setParticipants(participantIds);
 
         // Set splits based on split type
         expense.splits.forEach((split) => {
             if (expense.splitType === 'exact') {
-                expenseFormStore.updateSplitAmount(split.userId, split.amount);
+                expenseFormStore.updateSplitAmount(split.uid, split.amount);
             } else if (expense.splitType === 'percentage') {
                 const percentage = (split.amount / expense.amount) * 100;
-                expenseFormStore.updateSplitPercentage(split.userId, percentage);
+                expenseFormStore.updateSplitPercentage(split.uid, percentage);
             }
         });
     };
@@ -88,16 +88,16 @@ export function useFormInitialization({ groupId, expenseId, isEditMode, isCopyMo
         expenseFormStore.updateField('splitType', sourceExpense.splitType);
 
         // Set participants from expense splits
-        const participantIds = sourceExpense.splits.map((split) => split.userId);
+        const participantIds = sourceExpense.splits.map((split) => split.uid);
         expenseFormStore.setParticipants(participantIds);
 
         // Set splits based on split type
         sourceExpense.splits.forEach((split) => {
             if (sourceExpense.splitType === 'exact') {
-                expenseFormStore.updateSplitAmount(split.userId, split.amount);
+                expenseFormStore.updateSplitAmount(split.uid, split.amount);
             } else if (sourceExpense.splitType === 'percentage') {
                 const percentage = (split.amount / sourceExpense.amount) * 100;
-                expenseFormStore.updateSplitPercentage(split.userId, percentage);
+                expenseFormStore.updateSplitPercentage(split.uid, percentage);
             }
         });
     };

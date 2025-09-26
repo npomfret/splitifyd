@@ -19,7 +19,7 @@ interface ValidationError {
     operation: 'read' | 'write' | 'update';
     collection?: string;
     timestamp: Date;
-    userId?: string;
+    uid?: string;
     additionalContext?: Record<string, any>;
 }
 
@@ -86,7 +86,7 @@ export function validateWithMonitoring<T extends z.ZodSchema>(
         operation: 'read' | 'write' | 'update';
         documentId?: string;
         collection?: string;
-        userId?: string;
+        uid?: string;
         logger?: ContextualLogger;
         additionalContext?: Record<string, any>;
     },
@@ -127,7 +127,7 @@ export function validateWithMonitoring<T extends z.ZodSchema>(
                 operation: context.operation,
                 collection: context.collection,
                 timestamp: new Date(),
-                userId: context.userId,
+                uid: context.uid,
                 additionalContext: context.additionalContext,
             };
 

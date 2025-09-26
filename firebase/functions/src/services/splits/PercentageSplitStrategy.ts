@@ -34,7 +34,7 @@ export class PercentageSplitStrategy implements ISplitStrategy {
         }
 
         // Validate no duplicate users
-        const splitUserIds = splits.map((s: ExpenseSplit) => s.userId);
+        const splitUserIds = splits.map((s: ExpenseSplit) => s.uid);
         const uniqueSplitUserIds = new Set(splitUserIds);
         if (splitUserIds.length !== uniqueSplitUserIds.size) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'DUPLICATE_SPLIT_USERS', 'Each participant can only appear once in splits');
@@ -55,7 +55,7 @@ export class PercentageSplitStrategy implements ISplitStrategy {
         }
 
         return splits.map((split) => ({
-            userId: split.userId,
+            uid: split.uid,
             amount: Math.round(((totalAmount * (split.percentage ?? 0)) / 100) * 100) / 100,
             percentage: split.percentage,
         }));

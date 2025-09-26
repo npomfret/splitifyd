@@ -2,7 +2,7 @@ import { createContext } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import type { ComponentChildren } from 'preact';
-import type { AuthStore } from '@/types/auth.ts';
+import type { AuthStore } from '../stores/auth-store';
 import { getAuthStore } from '../stores/auth-store';
 import { LoadingSpinner } from '@/components/ui';
 import { logError } from '@/utils/browser-logger.ts';

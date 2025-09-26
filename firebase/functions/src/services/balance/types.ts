@@ -31,7 +31,7 @@ export interface Settlement {
 }
 
 export interface ExpenseSplit {
-    userId: string;
+    uid: string;
     amount: number;
     percentage?: number;
 }

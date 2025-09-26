@@ -38,7 +38,7 @@ class ContextualLoggerImpl implements ContextualLogger {
         }
 
         // Add context fields if they exist
-        if (context.userId) logData.userId = context.userId;
+        if (context.uid) logData.uid = context.uid;
         if (context.correlationId) logData.correlationId = context.correlationId;
         if (context.groupId) logData.groupId = context.groupId;
         if (context.expenseId) logData.expenseId = context.expenseId;
@@ -55,7 +55,7 @@ class ContextualLoggerImpl implements ContextualLogger {
         // Add any additional data fields (excluding already handled ones)
         if (data) {
             Object.keys(data).forEach((key) => {
-                if (key !== 'id' && key !== 'userId' && key !== 'correlationId') {
+                if (key !== 'id' && key !== 'uid' && key !== 'correlationId') {
                     logData[key] = data[key];
                 }
             });

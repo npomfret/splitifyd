@@ -95,7 +95,7 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
         test('should handle large subcollection results without memory issues', async () => {
             // Mock large result set (1000 members) through MockFirestoreReader
             const largeMemberSet = Array.from({ length: 1000 }, (_, i) => ({
-                userId: `user-${i}`,
+                uid: `user-${i}`,
                 groupId: 'large-group',
                 memberRole: 'member',
                 memberStatus: 'active',
@@ -109,8 +109,8 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
             const members = await groupMemberService.getAllGroupMembers('large-group-id');
 
             expect(members).toHaveLength(1000);
-            expect(members[0].userId).toBe('user-0');
-            expect(members[999].userId).toBe('user-999');
+            expect(members[0].uid).toBe('user-0');
+            expect(members[999].uid).toBe('user-999');
         });
 
         test('should handle corrupted subcollection documents', async () => {
@@ -120,7 +120,7 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
                 {
                     id: 'user-1',
                     data: () => ({
-                        userId: 'user-1',
+                        uid: 'user-1',
                         groupId: 'group-123',
                         memberRole: 'member',
                         memberStatus: 'active',
@@ -136,7 +136,7 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
                     id: 'user-3',
                     data: () => ({
                         // Missing required fields
-                        userId: 'user-3',
+                        uid: 'user-3',
                         // Missing groupId, role, etc.
                     }),
                 },
@@ -165,9 +165,9 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
             const mockService = {
                 getGroupMember: vi
                     .fn()
-                    .mockResolvedValueOnce({ userId: 'user1', memberRole: 'member' }) // Success
+                    .mockResolvedValueOnce({ uid: 'user1', memberRole: 'member' }) // Success
                     .mockRejectedValueOnce(new Error('Network error')) // Failure
-                    .mockResolvedValueOnce({ userId: 'user3', memberRole: 'admin' }), // Success
+                    .mockResolvedValueOnce({ uid: 'user3', memberRole: 'admin' }), // Success
             };
 
             // Verify the mock is set up correctly for partial failure patterns

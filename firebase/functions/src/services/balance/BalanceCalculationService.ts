@@ -179,7 +179,7 @@ export class BalanceCalculationService {
         // Convert GroupMemberDocument[] to Record<string, GroupMember> for compatibility
         const members: Record<string, GroupMember> = {};
         for (const memberDoc of memberDocs) {
-            members[memberDoc.userId] = {
+            members[memberDoc.uid] = {
                 memberRole: memberDoc.memberRole,
                 memberStatus: memberDoc.memberStatus,
                 joinedAt: memberDoc.joinedAt,

@@ -91,7 +91,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     describe('getGroupMember', () => {
         it('should return member if exists', async () => {
             const testMember = {
-                userId: testUserId1,
+                uid: testUserId1,
                 groupId: testGroupId,
                 memberRole: 'member',
                 memberStatus: 'active',
@@ -135,7 +135,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         it('should return all members for a group', async () => {
             const testMembers: GroupMemberDocument[] = [
                 {
-                    userId: testUserId1,
+                    uid: testUserId1,
                     groupId: testGroupId,
                     memberRole: 'member',
                     memberStatus: 'active',
@@ -143,7 +143,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                     joinedAt: new Date().toISOString(),
                 },
                 {
-                    userId: testUserId2,
+                    uid: testUserId2,
                     groupId: testGroupId,
                     memberRole: 'member',
                     memberStatus: 'active',
@@ -151,7 +151,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                     joinedAt: new Date().toISOString(),
                 },
                 {
-                    userId: testUserId3,
+                    uid: testUserId3,
                     groupId: testGroupId,
                     memberRole: 'admin',
                     memberStatus: 'active',
@@ -162,7 +162,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
             // Set up group members in stub
             testMembers.forEach((member) => {
-                stubReader.setDocument('group-members', `${testGroupId}_${member.userId}`, member);
+                stubReader.setDocument('group-members', `${testGroupId}_${member.uid}`, member);
             });
 
             const result = await groupMemberService.getAllGroupMembers(testGroupId);
@@ -190,7 +190,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     describe('isGroupMemberAsync', () => {
         it('should return true for existing group member', async () => {
             const testMember = {
-                userId: testUserId1,
+                uid: testUserId1,
                 groupId: testGroupId,
                 memberRole: 'member',
                 memberStatus: 'active',
@@ -233,7 +233,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     describe('member document structure validation', () => {
         it('should handle member documents with all required fields', async () => {
             const completeMember = {
-                userId: testUserId1,
+                uid: testUserId1,
                 groupId: testGroupId,
                 memberRole: 'member',
                 memberStatus: 'active',
@@ -246,7 +246,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const result = await groupMemberService.getGroupMember(testGroupId, testUserId1);
 
             expect(result).toBeDefined();
-            expect(result?.userId).toBe(testUserId1);
+            expect(result?.uid).toBe(testUserId1);
             expect(result?.groupId).toBe(testGroupId);
             expect(result?.memberRole).toBe('member');
             expect(result?.joinedAt).toBeDefined();
@@ -254,7 +254,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         it('should handle member documents with admin role', async () => {
             const adminMember = {
-                userId: testUserId1,
+                uid: testUserId1,
                 groupId: testGroupId,
                 memberRole: 'admin',
                 memberStatus: 'active',
@@ -304,7 +304,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             };
 
             const creatorMember: GroupMemberDocument = {
-                userId: creatorUserId,
+                uid: creatorUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.ADMIN,
                 memberStatus: MemberStatuses.ACTIVE,
@@ -354,7 +354,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             };
 
             const memberDoc: GroupMemberDocument = {
-                userId: memberUserId,
+                uid: memberUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE,
@@ -417,7 +417,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             };
 
             const memberDoc: GroupMemberDocument = {
-                userId: memberUserId,
+                uid: memberUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE,
@@ -441,7 +441,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
             // Add another member so the group has multiple members (needed for leave validation)
             const otherMemberDoc: GroupMemberDocument = {
-                userId: otherMemberUserId,
+                uid: otherMemberUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE,
@@ -550,7 +550,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             };
 
             const targetMemberDoc: GroupMemberDocument = {
-                userId: otherMemberUserId,
+                uid: otherMemberUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE,
@@ -594,7 +594,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             };
 
             const creatorMemberDoc: GroupMemberDocument = {
-                userId: creatorUserId,
+                uid: creatorUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.ADMIN,
                 memberStatus: MemberStatuses.ACTIVE,
@@ -644,7 +644,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             };
 
             const memberDoc: GroupMemberDocument = {
-                userId: memberUserId,
+                uid: memberUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE,
@@ -707,7 +707,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             };
 
             const memberDoc: GroupMemberDocument = {
-                userId: memberUserId,
+                uid: memberUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE,

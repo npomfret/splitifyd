@@ -79,11 +79,11 @@ export function BalanceSummary({ variant = 'default' }: BalanceSummaryProps) {
                                 <div className={variant === 'sidebar' ? 'flex flex-col gap-1' : 'flex justify-between items-center w-full'}>
                                     <span
                                         className={variant === 'sidebar' ? 'text-xs text-gray-600' : 'font-medium text-gray-700'}
-                                        data-testid={`debt-relationship-${debt.from.userId}-${debt.to.userId}`}
+                                        data-testid={`debt-relationship-${debt.from.uid}-${debt.to.uid}`}
                                     >
-                                        {getUserName(debt.from.userId)}
+                                        {getUserName(debt.from.uid)}
                                         {t('balanceSummary.debtArrow')}
-                                        {getUserName(debt.to.userId)}
+                                        {getUserName(debt.to.uid)}
                                     </span>
                                     <span className={variant === 'sidebar' ? 'text-sm font-bold text-red-600' : 'text-lg font-bold text-red-600'} data-financial-amount="debt">
                                         {formatCurrency(debt.amount, debt.currency)}

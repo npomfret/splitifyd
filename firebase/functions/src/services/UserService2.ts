@@ -234,7 +234,7 @@ export class UserService {
                 this.validationService.validateBeforeWrite(UserDataSchema, firestoreUpdate, 'UserData', {
                     documentId: userId,
                     collection: 'users',
-                    userId,
+                    uid: userId,
                     operation: 'updateProfile',
                 });
             } catch (error) {
@@ -392,16 +392,16 @@ export class UserService {
 
     async getGroupMembersResponseFromSubcollection(groupId: string): Promise<GroupMembersResponse> {
         const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
-        const memberIds = memberDocs.map((doc) => doc.userId);
+        const memberIds = memberDocs.map((doc) => doc.uid);
 
         const memberProfiles = await this.getUsers(memberIds);
 
         const members: GroupMemberDTO[] = memberDocs.map((memberDoc: GroupMemberDocument): GroupMemberDTO => {
-            const profile = memberProfiles.get(memberDoc.userId);
+            const profile = memberProfiles.get(memberDoc.uid);
 
             if (!profile) {
                 return {
-                    uid: memberDoc.userId,
+                    uid: memberDoc.uid,
                     initials: '?',
                     email: '',
                     displayName: 'Unknown User',
@@ -417,7 +417,7 @@ export class UserService {
             }
 
             return {
-                uid: memberDoc.userId,
+                uid: memberDoc.uid,
                 initials: this.getInitials(profile.displayName),
                 email: profile.email,
                 displayName: profile.displayName,
@@ -522,7 +522,7 @@ export class UserService {
                 validationService.validateBeforeWrite(UserDataSchema, userDoc, 'UserData', {
                     documentId: userRecord.uid,
                     collection: 'users',
-                    userId: userRecord.uid,
+                    uid: userRecord.uid,
                     operation: 'registerUser',
                 });
             } catch (error) {

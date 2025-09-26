@@ -358,7 +358,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             // Build query with database-level ordering by groupUpdatedAt
             const orderDirection = options?.orderBy?.direction || 'desc';
-            let query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('userId', '==', userId).orderBy('groupUpdatedAt', orderDirection);
+            let query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('uid', '==', userId).orderBy('groupUpdatedAt', orderDirection);
 
             // Apply cursor pagination
             if (options?.cursor) {
@@ -436,11 +436,16 @@ export class FirestoreReader implements IFirestoreReader {
 
             for (const doc of snapshot.docs) {
                 try {
-                    const topLevelData = doc.data() as TopLevelGroupMemberDocument;
+                    const topLevelData = doc.data() as any; // Use any to handle legacy data
+                    // Handle backward compatibility: support both uid and legacy userId fields
+                    const uid = topLevelData.uid || (topLevelData as any).userId;
+                    if (!uid) {
+                        throw new Error(`Group member document ${doc.id} is missing uid field`);
+                    }
                     // Convert top-level document back to GroupMemberDocument format
                     const memberData = GroupMemberDocumentSchema.parse({
-                        id: topLevelData.userId, // Use userId as the document ID
-                        userId: topLevelData.userId,
+                        id: uid, // Use uid as the document ID
+                        uid: uid,
                         groupId: topLevelData.groupId,
                         memberRole: topLevelData.memberRole,
                         memberStatus: topLevelData.memberStatus,
@@ -476,11 +481,16 @@ export class FirestoreReader implements IFirestoreReader {
                 return null;
             }
 
-            const topLevelData = memberDoc.data() as TopLevelGroupMemberDocument;
+            const topLevelData = memberDoc.data() as any; // Use any to handle legacy data
+            // Handle backward compatibility: support both uid and legacy userId fields
+            const uid = topLevelData.uid || (topLevelData as any).userId;
+            if (!uid) {
+                throw new Error(`Group member document ${memberDoc.id} is missing uid field`);
+            }
             // Convert top-level document back to GroupMemberDocument format
             const parsedMember = GroupMemberDocumentSchema.parse({
-                id: topLevelData.userId, // Use userId as the document ID
-                userId: topLevelData.userId,
+                id: uid, // Use uid as the document ID
+                uid: uid,
                 groupId: topLevelData.groupId,
                 memberRole: topLevelData.memberRole,
                 memberStatus: topLevelData.memberStatus,
@@ -497,11 +507,15 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getAllGroupMemberIds(groupId: string): Promise<string[]> {
         return measureDb('GET_MEMBER_IDS', async () => {
-            // Single optimized query with ID-only projection
-            const membersQuery = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('groupId', '==', groupId).select('userId'); // Only fetch userId field
+            // Single optimized query - fetch both uid and userId for backward compatibility
+            const membersQuery = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('groupId', '==', groupId).select('uid', 'userId');
 
             const snapshot = await membersQuery.get();
-            return snapshot.docs.map((doc) => doc.data().userId);
+            return snapshot.docs.map((doc) => {
+                const data = doc.data();
+                // Handle backward compatibility: support both uid and legacy userId fields
+                return data.uid || data.userId;
+            }).filter(Boolean); // Remove any undefined values
         });
     }
 
@@ -515,11 +529,16 @@ export class FirestoreReader implements IFirestoreReader {
 
             for (const doc of snapshot.docs) {
                 try {
-                    const topLevelData = doc.data() as TopLevelGroupMemberDocument;
+                    const topLevelData = doc.data() as any; // Use any to handle legacy data
+                    // Handle backward compatibility: support both uid and legacy userId fields
+                    const uid = topLevelData.uid || (topLevelData as any).userId;
+                    if (!uid) {
+                        throw new Error(`Group member document ${doc.id} is missing uid field`);
+                    }
                     // Convert top-level document back to GroupMemberDocument format
                     const memberData = GroupMemberDocumentSchema.parse({
-                        id: topLevelData.userId, // Use userId as the document ID
-                        userId: topLevelData.userId,
+                        id: uid, // Use uid as the document ID
+                        uid: uid,
                         groupId: topLevelData.groupId,
                         memberRole: topLevelData.memberRole,
                         memberStatus: topLevelData.memberStatus,

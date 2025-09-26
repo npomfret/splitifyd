@@ -218,7 +218,7 @@ export class GroupShareService {
         const memberIndex = existingMembers.length;
 
         const memberDoc: GroupMemberDocument = {
-            userId: userId,
+            uid: userId,
             groupId: groupId,
             memberRole: MemberRoles.MEMBER,
             theme: this.getThemeColorForMember(memberIndex),

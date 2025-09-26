@@ -373,7 +373,7 @@ export class GroupService {
             // Collect all member IDs and create mapping
             groups.forEach((group: Group, index: number) => {
                 const memberDocs = membersArrays[index];
-                const memberIds = memberDocs.map((memberDoc: GroupMemberDocument) => memberDoc.userId);
+                const memberIds = memberDocs.map((memberDoc: GroupMemberDocument) => memberDoc.uid);
                 membersByGroup.set(group.id, memberIds);
                 memberIds.forEach((memberId: string) => allMemberIds.add(memberId));
             });
@@ -609,7 +609,7 @@ export class GroupService {
         // Pre-calculate member data outside transaction for speed
 
         const memberDoc: GroupMemberDocument = {
-            userId: userId,
+            uid: userId,
             groupId: groupId,
             memberRole: MemberRoles.ADMIN,
             theme: this.groupShareService.getThemeColorForMember(0),
@@ -929,7 +929,7 @@ export class GroupService {
 
         // Get member list BEFORE deletion for change tracking
         const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
-        const memberIds = memberDocs ? memberDocs.map((doc) => doc.userId) : [];
+        const memberIds = memberDocs ? memberDocs.map((doc) => doc.uid) : [];
 
         logger.info('Initiating atomic group deletion', {
             groupId,
@@ -994,7 +994,7 @@ export class GroupService {
             const membershipPaths: string[] = [];
             if (memberDocs) {
                 memberDocs.forEach((memberDoc) => {
-                    const topLevelDocId = getTopLevelMembershipDocId(memberDoc.userId, groupId);
+                    const topLevelDocId = getTopLevelMembershipDocId(memberDoc.uid, groupId);
                     const topLevelPath = `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`;
                     membershipPaths.push(topLevelPath);
                 });

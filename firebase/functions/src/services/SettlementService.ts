@@ -102,7 +102,7 @@ export class SettlementService {
         options: {
             limit?: number;
             cursor?: string;
-            userId?: string;
+            uid?: string;
             startDate?: string;
             endDate?: string;
         } = {},
@@ -121,7 +121,7 @@ export class SettlementService {
         options: {
             limit?: number;
             cursor?: string;
-            userId?: string;
+            uid?: string;
             startDate?: string;
             endDate?: string;
         } = {},
@@ -365,7 +365,7 @@ export class SettlementService {
         options: {
             limit?: number;
             cursor?: string;
-            userId?: string;
+            uid?: string;
             startDate?: string;
             endDate?: string;
         } = {},
@@ -380,7 +380,7 @@ export class SettlementService {
 
         const limit = options.limit || 50;
         const cursor = options.cursor;
-        const filterUserId = options.userId;
+        const filterUserId = options.uid;
         const startDate = options.startDate;
         const endDate = options.endDate;
 

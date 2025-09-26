@@ -49,7 +49,7 @@ export class CreateExpenseRequestBuilder {
         return this;
     }
 
-    withSplits(splits: Array<{ userId: string; amount: number; percentage?: number }>): this {
+    withSplits(splits: Array<{ uid: string; amount: number; percentage?: number }>): this {
         this.expense.splits = [...splits];
         return this;
     }
@@ -81,14 +81,14 @@ export class CreateExpenseRequestBuilder {
             if (this.expense.splitType === 'equal') {
                 const splitAmount = this.expense.amount / this.expense.participants.length;
                 splits = this.expense.participants.map((userId: string) => ({
-                    userId,
+                    uid: userId,
                     amount: splitAmount,
                 }));
             } else if (this.expense.splitType === 'exact') {
                 // For exact splits, distribute evenly as default
                 const splitAmount = this.expense.amount / this.expense.participants.length;
                 splits = this.expense.participants.map((userId: string) => ({
-                    userId,
+                    uid: userId,
                     amount: splitAmount,
                 }));
             } else if (this.expense.splitType === 'percentage') {
@@ -96,7 +96,7 @@ export class CreateExpenseRequestBuilder {
                 const percentage = 100 / this.expense.participants.length;
                 const splitAmount = (this.expense.amount * percentage) / 100;
                 splits = this.expense.participants.map((userId: string) => ({
-                    userId,
+                    uid: userId,
                     amount: splitAmount,
                     percentage: percentage,
                 }));

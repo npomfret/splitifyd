@@ -46,7 +46,7 @@ describe('PermissionEngineAsync', () => {
 
         test('should return false if user is inactive', async () => {
             mockFirestoreReader.getGroupMember.mockResolvedValue({
-                userId: testUserId,
+                uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.PENDING,
@@ -61,7 +61,7 @@ describe('PermissionEngineAsync', () => {
 
         test('should allow inactive users to view group', async () => {
             mockFirestoreReader.getGroupMember.mockResolvedValue({
-                userId: testUserId,
+                uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.PENDING,
@@ -76,7 +76,7 @@ describe('PermissionEngineAsync', () => {
 
         test('should allow active users to view group', async () => {
             mockFirestoreReader.getGroupMember.mockResolvedValue({
-                userId: testUserId,
+                uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE,
@@ -91,7 +91,7 @@ describe('PermissionEngineAsync', () => {
 
         test('should deny viewers from expense editing', async () => {
             mockFirestoreReader.getGroupMember.mockResolvedValue({
-                userId: testUserId,
+                uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.VIEWER,
                 memberStatus: MemberStatuses.ACTIVE,
@@ -106,7 +106,7 @@ describe('PermissionEngineAsync', () => {
 
         test('should allow member with ANYONE permission', async () => {
             mockFirestoreReader.getGroupMember.mockResolvedValue({
-                userId: testUserId,
+                uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE,
@@ -121,7 +121,7 @@ describe('PermissionEngineAsync', () => {
 
         test('should allow admin with ADMIN_ONLY permission', async () => {
             mockFirestoreReader.getGroupMember.mockResolvedValue({
-                userId: testUserId,
+                uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.ADMIN,
                 memberStatus: MemberStatuses.ACTIVE,
@@ -136,7 +136,7 @@ describe('PermissionEngineAsync', () => {
 
         test('should deny member with ADMIN_ONLY permission', async () => {
             mockFirestoreReader.getGroupMember.mockResolvedValue({
-                userId: testUserId,
+                uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE,
@@ -151,7 +151,7 @@ describe('PermissionEngineAsync', () => {
 
         test('should allow admin with OWNER_AND_ADMIN permission', async () => {
             mockFirestoreReader.getGroupMember.mockResolvedValue({
-                userId: testUserId,
+                uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.ADMIN,
                 memberStatus: MemberStatuses.ACTIVE,
@@ -166,7 +166,7 @@ describe('PermissionEngineAsync', () => {
 
         test('should allow expense owner with OWNER_AND_ADMIN permission', async () => {
             mockFirestoreReader.getGroupMember.mockResolvedValue({
-                userId: testUserId,
+                uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE,
@@ -188,7 +188,7 @@ describe('PermissionEngineAsync', () => {
                 splitType: 'equal' as const,
                 paidBy: testUserId,
                 participants: [testUserId],
-                splits: [{ userId: testUserId, amount: 100 }],
+                splits: [{ uid: testUserId, amount: 100 }],
                 deletedAt: null,
                 deletedBy: null,
             };
@@ -201,7 +201,7 @@ describe('PermissionEngineAsync', () => {
         test('should throw error if group missing permissions', async () => {
             const groupWithoutPermissions = { ...testGroup, permissions: undefined as any };
             mockFirestoreReader.getGroupMember.mockResolvedValue({
-                userId: testUserId,
+                uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE,
@@ -220,7 +220,7 @@ describe('PermissionEngineAsync', () => {
                 permissions: { ...testGroup.permissions, expenseEditing: undefined as any },
             };
             mockFirestoreReader.getGroupMember.mockResolvedValue({
-                userId: testUserId,
+                uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE,
@@ -240,7 +240,7 @@ describe('PermissionEngineAsync', () => {
                 .mockResolvedValueOnce(null) // Actor not found
                 .mockResolvedValueOnce({
                     // Target found
-                    userId: 'target123',
+                    uid: 'target123',
                     groupId: testGroupId,
                     memberRole: MemberRoles.MEMBER,
                     memberStatus: MemberStatuses.ACTIVE,
@@ -257,7 +257,7 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getGroupMember
                 .mockResolvedValueOnce({
                     // Actor found
-                    userId: testUserId,
+                    uid: testUserId,
                     groupId: testGroupId,
                     memberRole: MemberRoles.ADMIN,
                     memberStatus: MemberStatuses.ACTIVE,
@@ -275,7 +275,7 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getGroupMember
                 .mockResolvedValueOnce({
                     // Actor (not admin)
-                    userId: testUserId,
+                    uid: testUserId,
                     groupId: testGroupId,
                     memberRole: MemberRoles.MEMBER,
                     memberStatus: MemberStatuses.ACTIVE,
@@ -284,7 +284,7 @@ describe('PermissionEngineAsync', () => {
                 })
                 .mockResolvedValueOnce({
                     // Target
-                    userId: 'target123',
+                    uid: 'target123',
                     groupId: testGroupId,
                     memberRole: MemberRoles.MEMBER,
                     memberStatus: MemberStatuses.ACTIVE,
@@ -301,7 +301,7 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getGroupMember
                 .mockResolvedValueOnce({
                     // Actor (admin)
-                    userId: testUserId,
+                    uid: testUserId,
                     groupId: testGroupId,
                     memberRole: MemberRoles.ADMIN,
                     memberStatus: MemberStatuses.ACTIVE,
@@ -310,7 +310,7 @@ describe('PermissionEngineAsync', () => {
                 })
                 .mockResolvedValueOnce({
                     // Target (same as actor)
-                    userId: testUserId,
+                    uid: testUserId,
                     groupId: testGroupId,
                     memberRole: MemberRoles.ADMIN,
                     memberStatus: MemberStatuses.ACTIVE,
@@ -321,7 +321,7 @@ describe('PermissionEngineAsync', () => {
             // Mock getAllGroupMembers to return only one admin
             mockFirestoreReader.getAllGroupMembers.mockResolvedValue([
                 {
-                    userId: testUserId,
+                    uid: testUserId,
                     groupId: testGroupId,
                     memberRole: MemberRoles.ADMIN,
                     memberStatus: MemberStatuses.ACTIVE,
@@ -350,7 +350,7 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getGroupMember
                 .mockResolvedValueOnce({
                     // Actor (admin)
-                    userId: testUserId,
+                    uid: testUserId,
                     groupId: testGroupId,
                     memberRole: MemberRoles.ADMIN,
                     memberStatus: MemberStatuses.ACTIVE,
@@ -359,7 +359,7 @@ describe('PermissionEngineAsync', () => {
                 })
                 .mockResolvedValueOnce({
                     // Target (creator)
-                    userId: creatorId,
+                    uid: creatorId,
                     groupId: testGroupId,
                     memberRole: MemberRoles.ADMIN,
                     memberStatus: MemberStatuses.ACTIVE,
@@ -386,7 +386,7 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getGroupMember
                 .mockResolvedValueOnce({
                     // Actor (admin)
-                    userId: testUserId,
+                    uid: testUserId,
                     groupId: testGroupId,
                     memberRole: MemberRoles.ADMIN,
                     memberStatus: MemberStatuses.ACTIVE,
@@ -395,7 +395,7 @@ describe('PermissionEngineAsync', () => {
                 })
                 .mockResolvedValueOnce({
                     // Target
-                    userId: 'target123',
+                    uid: 'target123',
                     groupId: testGroupId,
                     memberRole: MemberRoles.MEMBER,
                     memberStatus: MemberStatuses.ACTIVE,
@@ -412,7 +412,7 @@ describe('PermissionEngineAsync', () => {
     describe('getUserPermissions', () => {
         test('should return user permissions for admin', async () => {
             mockFirestoreReader.getGroupMember.mockResolvedValue({
-                userId: testUserId,
+                uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.ADMIN,
                 memberStatus: MemberStatuses.ACTIVE,
@@ -434,7 +434,7 @@ describe('PermissionEngineAsync', () => {
 
         test('should return limited permissions for member', async () => {
             mockFirestoreReader.getGroupMember.mockResolvedValue({
-                userId: testUserId,
+                uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE,

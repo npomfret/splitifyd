@@ -1,6 +1,5 @@
 import {ReadonlySignal, signal} from '@preact/signals';
-import type {AuthStore} from '@/types/auth.ts';
-import {mapFirebaseUser} from '@/types/auth.ts';
+import type {User as FirebaseUser} from 'firebase/auth';
 import {firebaseService} from '../firebase';
 import {apiClient} from '../apiClient';
 import {USER_ID_KEY} from '@/constants.ts';
@@ -13,6 +12,39 @@ import {createUserScopedStorage} from '@/utils/userScopedStorage.ts';
 import {CurrencyService} from '../services/currencyService';
 import {expenseFormStore} from './expense-form-store';
 import type {ClientUser} from "@splitifyd/shared";
+
+// Auth types - moved from types/auth.ts
+export interface AuthState {
+    user: ClientUser | null;
+    loading: boolean;
+    error: string | null;
+    initialized: boolean;
+    isUpdatingProfile?: boolean;
+}
+
+export interface AuthActions {
+    login: (email: string, password: string) => Promise<void>;
+    register: (email: string, password: string, displayName: string, termsAccepted: boolean, cookiePolicyAccepted: boolean) => Promise<void>;
+    logout: () => Promise<void>;
+    resetPassword: (email: string) => Promise<void>;
+    updateUserProfile: (updates: { displayName?: string }) => Promise<void>;
+    clearError: () => void;
+    refreshAuthToken: () => Promise<string>;
+}
+
+export interface AuthStore extends AuthState, AuthActions {}
+
+export function mapFirebaseUser(firebaseUser: FirebaseUser): ClientUser {
+    return {
+        uid: firebaseUser.uid!,
+        email: firebaseUser.email!,
+        displayName: firebaseUser.displayName!,
+        emailVerified: firebaseUser.emailVerified,
+        photoURL: firebaseUser.photoURL,
+        // Note: themeColor and preferredLanguage will be populated from backend API
+        // when user data is fetched from Firestore
+    };
+}
 
 class AuthStoreImpl implements AuthStore {
     // Private signals - encapsulated within the class

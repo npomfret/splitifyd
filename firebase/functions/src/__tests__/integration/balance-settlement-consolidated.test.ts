@@ -312,8 +312,8 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             const initialBalances = await apiDriver.getGroupBalances(group.id, users[0].token);
             expect(initialBalances.simplifiedDebts).toHaveLength(1);
             expect(initialBalances.simplifiedDebts[0].amount).toBe(100);
-            expect(initialBalances.simplifiedDebts[0].from.userId).toBe(users[1].uid);
-            expect(initialBalances.simplifiedDebts[0].to.userId).toBe(users[0].uid);
+            expect(initialBalances.simplifiedDebts[0].from.uid).toBe(users[1].uid);
+            expect(initialBalances.simplifiedDebts[0].to.uid).toBe(users[0].uid);
 
             // Partial settlement 1: Bob pays Alice €40 (40% of debt)
             const partialSettlement1 = new SettlementBuilder()
@@ -404,7 +404,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             // Verify debt: Bob owes Alice $60
             const initialBalances = await apiDriver.getGroupBalances(group.id, users[0].token);
             expect(initialBalances.simplifiedDebts[0].amount).toBe(60);
-            expect(initialBalances.simplifiedDebts[0].from.userId).toBe(users[1].uid);
+            expect(initialBalances.simplifiedDebts[0].from.uid).toBe(users[1].uid);
 
             // Overpayment: Bob pays Alice €100 (exceeds €60 debt)
             const overpayment = new SettlementBuilder()
@@ -421,8 +421,8 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             const finalBalances = await apiDriver.getGroupBalances(group.id, users[0].token);
             expect(finalBalances.simplifiedDebts).toHaveLength(1);
             expect(finalBalances.simplifiedDebts[0].amount).toBe(40);
-            expect(finalBalances.simplifiedDebts[0].from.userId).toBe(users[0].uid);
-            expect(finalBalances.simplifiedDebts[0].to.userId).toBe(users[1].uid);
+            expect(finalBalances.simplifiedDebts[0].from.uid).toBe(users[0].uid);
+            expect(finalBalances.simplifiedDebts[0].to.uid).toBe(users[1].uid);
 
             // Verify net balances are correct
             expect(finalBalances.balancesByCurrency.EUR[users[0].uid].netBalance).toBe(-40); // Alice owes
@@ -469,9 +469,9 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             const eurDebt = initialBalances.simplifiedDebts.find((d) => d.currency === 'EUR');
             const usdDebt = initialBalances.simplifiedDebts.find((d) => d.currency === 'USD');
 
-            expect(usdDebt?.from.userId).toBe(users[1].uid);
+            expect(usdDebt?.from.uid).toBe(users[1].uid);
             expect(usdDebt?.amount).toBe(100);
-            expect(eurDebt?.from.userId).toBe(users[0].uid);
+            expect(eurDebt?.from.uid).toBe(users[0].uid);
             expect(eurDebt?.amount).toBe(75);
 
             // Partial settlement in USD: Bob pays Alice $60 USD

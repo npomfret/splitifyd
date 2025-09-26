@@ -17,7 +17,7 @@ export class ExpenseProcessor {
                 // Initialize all members for this currency
                 for (const memberId of memberIds) {
                     balancesByCurrency[expense.currency][memberId] = {
-                        userId: memberId,
+                        uid: memberId,
                         owes: {},
                         owedBy: {},
                         netBalance: 0,
@@ -36,13 +36,13 @@ export class ExpenseProcessor {
 
         // Process each split in the expense
         for (const split of expense.splits) {
-            const splitUserId = split.userId;
+            const splitUserId = split.uid;
             const splitAmount = split.amount;
 
             // Initialize user balances if they don't exist
             if (!userBalances[splitUserId]) {
                 userBalances[splitUserId] = {
-                    userId: splitUserId,
+                    uid: splitUserId,
                     owes: {},
                     owedBy: {},
                     netBalance: 0,
@@ -51,7 +51,7 @@ export class ExpenseProcessor {
 
             if (!userBalances[payerId]) {
                 userBalances[payerId] = {
-                    userId: payerId,
+                    uid: payerId,
                     owes: {},
                     owedBy: {},
                     netBalance: 0,

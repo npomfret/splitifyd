@@ -43,8 +43,8 @@ vi.mock('../../../permissions/permission-engine-async', () => ({
 vi.mock('../../../expenses/validation', () => ({
     validateCreateExpense: vi.fn((data) => data),
     calculateSplits: vi.fn((amount, splitType, participants) =>
-        participants.map((userId: string) => ({
-            userId,
+        participants.map((uid: string) => ({
+            uid,
             amount: amount / participants.length,
         })),
     ),
@@ -96,8 +96,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 splitType: 'equal',
                 participants: [userId, 'other-user'],
                 splits: [
-                    { userId: userId, amount: 50.25 },
-                    { userId: 'other-user', amount: 50.25 },
+                    { uid: userId, amount: 50.25 },
+                    { uid: 'other-user', amount: 50.25 },
                 ],
                 receiptUrl: 'https://example.com/receipt.jpg',
                 createdAt: now,
@@ -126,8 +126,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 splitType: 'equal',
                 participants: [userId, 'other-user'],
                 splits: [
-                    { userId: userId, amount: 50.25 },
-                    { userId: 'other-user', amount: 50.25 },
+                    { uid: userId, amount: 50.25 },
+                    { uid: 'other-user', amount: 50.25 },
                 ],
                 receiptUrl: 'https://example.com/receipt.jpg',
                 createdAt: expect.any(String),
@@ -154,7 +154,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 date: Timestamp.now(),
                 splitType: 'equal',
                 participants: [userId],
-                splits: [{ userId: userId, amount: 100 }],
+                splits: [{ uid: userId, amount: 100 }],
                 // No receiptUrl
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now(),
@@ -191,7 +191,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 date: Timestamp.now(),
                 splitType: 'equal',
                 participants: [participantId], // Only one participant
-                splits: [{ userId: participantId, amount: 100 }],
+                splits: [{ uid: participantId, amount: 100 }],
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now(),
                 deletedAt: null,
@@ -228,8 +228,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 splitType: 'equal',
                 participants: [participant1, participant2],
                 splits: [
-                    { userId: participant1, amount: 50 },
-                    { userId: participant2, amount: 50 },
+                    { uid: participant1, amount: 50 },
+                    { uid: participant2, amount: 50 },
                 ],
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now(),
@@ -267,7 +267,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 date: Timestamp.now(),
                 splitType: 'equal',
                 participants: [userId],
-                splits: [{ userId: userId, amount: 100 }],
+                splits: [{ uid: userId, amount: 100 }],
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now(),
                 deletedAt: Timestamp.now(), // Soft deleted
@@ -420,7 +420,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 date: Timestamp.now(),
                 splitType: 'equal',
                 participants: [userId],
-                splits: [{ userId: userId, amount: 100.33 }],
+                splits: [{ uid: userId, amount: 100.33 }],
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now(),
                 deletedAt: null,
@@ -633,7 +633,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 date: Timestamp.now(),
                 splitType: 'equal',
                 participants: [participantId],
-                splits: [{ userId: participantId, amount: 100 }],
+                splits: [{ uid: participantId, amount: 100 }],
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now(),
                 deletedAt: null,
@@ -669,7 +669,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 date: Timestamp.now(),
                 splitType: 'equal',
                 participants: [participantId], // Only one participant
-                splits: [{ userId: participantId, amount: 100 }],
+                splits: [{ uid: participantId, amount: 100 }],
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now(),
                 deletedAt: null,

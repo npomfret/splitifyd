@@ -332,7 +332,7 @@ export interface PolicyDocument extends Policy, BaseDocument {}
 // ========================================================================
 
 export interface UserBalance {
-    userId: string;
+    uid: string;
     owes: Record<string, number>;
     owedBy: Record<string, number>;
     netBalance: number;
@@ -406,7 +406,7 @@ export interface GroupMemberDTO {
  * This replaces the embedded members map for scalable queries
  */
 export interface GroupMemberDocument {
-    userId: string;
+    uid: string;
     groupId: string; // For collectionGroup queries
     memberRole: MemberRole;
     theme: UserThemeColor;
@@ -422,7 +422,7 @@ export interface GroupMemberDocument {
  */
 export interface TopLevelGroupMemberDocument {
     // Core membership data (identical to subcollection)
-    userId: string;
+    uid: string;
     groupId: string;
     memberRole: MemberRole;
     memberStatus: MemberStatus;
@@ -524,7 +524,7 @@ export interface GroupMembersResponse {
 // ========================================================================
 
 export interface ExpenseSplit {
-    userId: string;
+    uid: string;
     amount: number;
     percentage?: number;
 }
@@ -754,10 +754,10 @@ export interface ListSettlementsApiResponse {
 
 export interface SimplifiedDebt {
     from: {
-        userId: string;
+        uid: string;
     };
     to: {
-        userId: string;
+        uid: string;
     };
     amount: number;
     currency: string;

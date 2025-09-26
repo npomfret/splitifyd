@@ -1,30 +1,25 @@
 import { randomString, randomBoolean, randomChoice, randomEmail, randomUrl, generateShortId } from '../test-helpers';
-
-// Import UserProfile from the functions package - this is the source of truth
-type UserProfile = {
-    uid: string;
-    email: string;
-    displayName: string;
-    photoURL: string | null;
-    emailVerified: boolean;
-    themeColor?: string;
-    preferredLanguage?: string;
-    createdAt?: any; // Using any to avoid firebase-admin dependency
-    updatedAt?: any; // Using any to avoid firebase-admin dependency
-};
+import type { RegisteredUser } from '@splitifyd/shared';
 
 /**
- * Builder for creating UserProfile objects for testing
+ * Builder for creating RegisteredUser objects for testing
  * Used for creating mock user data in balance calculation and other tests
  */
 export class UserProfileBuilder {
-    private user: UserProfile = {
+    private user: RegisteredUser = {
         uid: `user-${generateShortId()}`,
         displayName: `${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(4)}`,
         email: randomEmail(),
         photoURL: randomBoolean() ? randomUrl() : null,
         emailVerified: randomBoolean(),
-        themeColor: randomChoice(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']),
+        themeColor: {
+            light: randomChoice(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']),
+            dark: randomChoice(['#1E3A8A', '#065F46', '#1F2937', '#7C2D12', '#831843', '#581C87']),
+            name: randomChoice(['Red', 'Teal', 'Blue', 'Green', 'Yellow', 'Purple']),
+            pattern: randomChoice(['solid', 'dots', 'stripes', 'diagonal']),
+            assignedAt: new Date().toISOString(),
+            colorIndex: Math.floor(Math.random() * 10)
+        },
         preferredLanguage: randomChoice(['en', 'es', 'fr', 'de', 'it', 'pt']),
     };
 
@@ -53,8 +48,8 @@ export class UserProfileBuilder {
         return this;
     }
 
-    withThemeColor(color: string): UserProfileBuilder {
-        this.user.themeColor = color;
+    withThemeColor(themeColor: any): UserProfileBuilder {
+        this.user.themeColor = themeColor;
         return this;
     }
 
@@ -63,7 +58,7 @@ export class UserProfileBuilder {
         return this;
     }
 
-    build(): UserProfile {
+    build(): RegisteredUser {
         return { ...this.user };
     }
 }

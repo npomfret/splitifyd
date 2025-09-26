@@ -29,14 +29,14 @@ describe('GroupPermissionService', () => {
 
             // Set up member data
             stubFirestoreReader.setDocument('group-members', `${groupId}_${userId}`, {
-                userId,
+                uid: userId,
                 groupId,
                 memberRole: 'member',
             });
 
             const result = await groupPermissionService.getUserPermissions(userId, groupId);
 
-            expect(result.userId).toBe(userId);
+            expect(result.uid).toBe(userId);
             expect(result.role).toBe('member');
             expect(result.groupSecurityPreset).toBe('open');
         });

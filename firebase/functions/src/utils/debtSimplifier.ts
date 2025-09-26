@@ -1,7 +1,7 @@
 import { SimplifiedDebt, UserBalance } from '@splitifyd/shared';
 
 export interface NetBalance {
-    userId: string;
+    uid: string;
     netAmount: number;
 }
 
@@ -32,8 +32,8 @@ function calculateNetBalances(balances: Record<string, UserBalance>): Record<str
 
         // Only include users with significant balances (avoid floating-point precision issues)
         if (Math.abs(netAmount) > 0.01) {
-            netBalances[user.userId] = {
-                userId: user.userId,
+            netBalances[user.uid] = {
+                uid: user.uid,
                 netAmount: netAmount,
             };
         }
@@ -70,10 +70,10 @@ function createOptimalTransactions(netBalances: Record<string, NetBalance>, curr
         if (transferAmount > 0.01) {
             transactions.push({
                 from: {
-                    userId: debtor.userId,
+                    uid: debtor.uid,
                 },
                 to: {
-                    userId: creditor.userId,
+                    uid: creditor.uid,
                 },
                 amount: transferAmount,
                 currency: currency,

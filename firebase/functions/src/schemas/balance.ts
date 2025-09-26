@@ -3,7 +3,7 @@ import { FirestoreTimestampSchema } from './common';
 
 // Schema for ExpenseSplit
 export const ExpenseSplitSchema = z.object({
-    userId: z.string(),
+    uid: z.string(),
     amount: z.number(),
     percentage: z.number().optional(),
 });
@@ -55,7 +55,7 @@ export const SettlementBalanceSchema = z.object({
 
 // Schema for UserBalance (from @splitifyd/shared)
 export const UserBalanceSchema = z.object({
-    userId: z.string(),
+    uid: z.string(),
     owes: z.record(z.string(), z.number()),
     owedBy: z.record(z.string(), z.number()),
     netBalance: z.number(),
@@ -64,10 +64,10 @@ export const UserBalanceSchema = z.object({
 // Schema for SimplifiedDebt (from @splitifyd/shared)
 export const SimplifiedDebtSchema = z.object({
     from: z.object({
-        userId: z.string(),
+        uid: z.string(),
     }),
     to: z.object({
-        userId: z.string(),
+        uid: z.string(),
     }),
     amount: z.number(),
     currency: z.string(),

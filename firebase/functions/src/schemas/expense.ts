@@ -6,7 +6,7 @@ import { FirestoreTimestampSchema, AuditFieldsSchema, SoftDeletionFieldsSchema, 
  * Zod schema for expense splits
  */
 export const ExpenseSplitSchema = z.object({
-    userId: UserIdSchema,
+    uid: UserIdSchema,
     amount: z.number().positive('Split amount must be positive'),
     percentage: z.number().min(0).max(100).optional(),
 });

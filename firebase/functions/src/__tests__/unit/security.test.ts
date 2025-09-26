@@ -102,7 +102,7 @@ describe('Security Utils', () => {
         it('should allow safe property names', () => {
             expect(isDangerousProperty('name')).toBe(false);
             expect(isDangerousProperty('email')).toBe(false);
-            expect(isDangerousProperty('userId')).toBe(false);
+            expect(isDangerousProperty('uid')).toBe(false);
             expect(isDangerousProperty('createdAt')).toBe(false);
         });
     });

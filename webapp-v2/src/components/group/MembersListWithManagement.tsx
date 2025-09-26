@@ -53,7 +53,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
         if (!currentBalances?.simplifiedDebts) return false;
 
         // Check if current user appears in any debt relationship
-        return currentBalances.simplifiedDebts.some((debt) => debt.from.userId === currentUserId || debt.to.userId === currentUserId);
+        return currentBalances.simplifiedDebts.some((debt) => debt.from.uid === currentUserId || debt.to.uid === currentUserId);
     });
 
     // Check if a specific member has outstanding balance using simplifiedDebts
@@ -61,7 +61,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
         if (!balances.value?.simplifiedDebts) return false;
 
         // Check if member appears in any debt relationship
-        return balances.value.simplifiedDebts.some((debt) => debt.from.userId === memberId || debt.to.userId === memberId);
+        return balances.value.simplifiedDebts.some((debt) => debt.from.uid === memberId || debt.to.uid === memberId);
     };
 
     // If parent provides handler, let parent control the dialog

@@ -102,7 +102,7 @@ const UserThemeColorSchema = z.object({
  */
 export const GroupMemberDocumentSchema = z
     .object({
-        userId: UserIdSchema,
+        uid: UserIdSchema,
         groupId: z.string(), // For collectionGroup queries
         memberRole: z.nativeEnum(MemberRoles),
         theme: UserThemeColorSchema,

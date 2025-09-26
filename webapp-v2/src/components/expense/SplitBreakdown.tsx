@@ -55,18 +55,18 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
 
             <div className="space-y-3">
                 {expense.splits.map((split) => {
-                    const member = memberMap[split.userId];
+                    const member = memberMap[split.uid];
                     const percentage = (split.amount / expense.amount) * 100;
-                    const isPayer = expense.paidBy === split.userId;
+                    const isPayer = expense.paidBy === split.uid;
                     const owesAmount = isPayer ? 0 : split.amount;
                     const isOwing = owesAmount > 0;
 
                     return (
-                        <div key={split.userId} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
+                        <div key={split.uid} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
                             <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-3">
                                     <div className="relative">
-                                        <Avatar displayName={member?.displayName || 'Unknown'} userId={split.userId} size="md" />
+                                        <Avatar displayName={member?.displayName || 'Unknown'} userId={split.uid} size="md" />
                                         {isPayer && (
                                             <div className="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-0.5">
                                                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">

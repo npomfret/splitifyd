@@ -41,7 +41,7 @@ export function validateBeforeWrite<T extends z.ZodSchema>(
     context: {
         documentId?: string;
         collection?: string;
-        userId?: string;
+        uid?: string;
         logger?: ContextualLogger;
     },
 ): z.infer<T> {
@@ -62,7 +62,7 @@ export function validateUpdate<T extends z.ZodSchema>(
     context: {
         documentId?: string;
         collection?: string;
-        userId?: string;
+        uid?: string;
         logger?: ContextualLogger;
     },
 ): z.infer<T> {

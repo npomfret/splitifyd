@@ -27,7 +27,7 @@ export class SettlementProcessor {
         // Initialize user balances if they don't exist
         if (!userBalances[payerId]) {
             userBalances[payerId] = {
-                userId: payerId,
+                uid: payerId,
                 owes: {},
                 owedBy: {},
                 netBalance: 0,
@@ -36,7 +36,7 @@ export class SettlementProcessor {
 
         if (!userBalances[payeeId]) {
             userBalances[payeeId] = {
-                userId: payeeId,
+                uid: payeeId,
                 owes: {},
                 owedBy: {},
                 netBalance: 0,
@@ -53,8 +53,8 @@ export class SettlementProcessor {
     }
 
     private processSettlementBetweenUsers(payerBalance: UserBalance, payeeBalance: UserBalance, settlementAmount: number): void {
-        const payerId = payerBalance.userId;
-        const payeeId = payeeBalance.userId;
+        const payerId = payerBalance.uid;
+        const payeeId = payeeBalance.uid;
 
         // How much does payer currently owe payee?
         const currentDebt = payerBalance.owes[payeeId] || 0;

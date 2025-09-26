@@ -49,7 +49,7 @@ export class FirestoreValidationService {
         context: {
             documentId?: string;
             collection?: string;
-            userId?: string;
+            uid?: string;
             operation?: string;
             additionalContext?: Record<string, any>;
         } = {},
@@ -61,14 +61,14 @@ export class FirestoreValidationService {
             collection: context.collection,
         });
 
-        if (context.userId) {
-            LoggerContext.update({ userId: context.userId });
+        if (context.uid) {
+            LoggerContext.update({ uid: context.uid });
         }
 
         return validateBeforeWrite(schema, data, schemaName, {
             documentId: context.documentId,
             collection: context.collection,
-            userId: context.userId,
+            uid: context.uid,
             logger: this.logger,
         });
     }

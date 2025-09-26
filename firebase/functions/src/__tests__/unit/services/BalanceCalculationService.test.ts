@@ -32,13 +32,13 @@ describe('BalanceCalculationService', () => {
                     id: groupId,
                     name: 'Test Group',
                     members: {
-                        [userId1]: { userId: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
-                        [userId2]: { userId: userId2, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
+                        [userId1]: { uid: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
+                        [userId2]: { uid: userId2, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
                     },
                 });
 
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, { userId: userId1 });
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId2}`, { userId: userId2 });
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, { uid: userId1 });
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId2}`, { uid: userId2 });
 
                 // Set up user records in Auth service (required for UserService2)
                 stubAuthService.setUser(userId1, { uid: userId1, email: 'user1@test.com', displayName: 'User 1' });
@@ -90,11 +90,11 @@ describe('BalanceCalculationService', () => {
                 stubFirestoreReader.setDocument('groups', groupId, {
                     id: groupId,
                     members: {
-                        [userId1]: { userId: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
+                        [userId1]: { uid: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
                     },
                 });
 
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, { userId: userId1 });
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, { uid: userId1 });
 
                 // Set up user record in Auth service (required for UserService2)
                 stubAuthService.setUser(userId1, { uid: userId1, email: 'user1@test.com', displayName: 'User 1' });
@@ -161,8 +161,8 @@ describe('BalanceCalculationService', () => {
                 // Set up stub data using builders - the stub works by exact method calls
                 stubFirestoreReader.setDocument('groups', groupId, testGroup);
                 stubFirestoreReader.setDocument('expenses', testExpense.id, testExpense);
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, { userId: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE });
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId2}`, { userId: userId2, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE });
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, { uid: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE });
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId2}`, { uid: userId2, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE });
 
                 // Set up user records in Auth service (required for UserService2)
                 userProfiles.forEach(profile => {
@@ -212,9 +212,9 @@ describe('BalanceCalculationService', () => {
 
             // Add members with correct enum values
             testGroup.members = {
-                [userAlice]: { userId: userAlice, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
-                [userBob]: { userId: userBob, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
-                [userCharlie]: { userId: userCharlie, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
+                [userAlice]: { uid: userAlice, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
+                [userBob]: { uid: userBob, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
+                [userCharlie]: { uid: userCharlie, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
             };
 
             const userProfiles = [
@@ -226,17 +226,17 @@ describe('BalanceCalculationService', () => {
             // Set up common stub data
             stubFirestoreReader.setDocument('groups', testGroupId, testGroup);
             stubFirestoreReader.setDocument('group-members', `${testGroupId}_${userAlice}`, {
-                userId: userAlice,
+                uid: userAlice,
                 memberRole: MemberRoles.ADMIN,
                 memberStatus: MemberStatuses.ACTIVE
             });
             stubFirestoreReader.setDocument('group-members', `${testGroupId}_${userBob}`, {
-                userId: userBob,
+                uid: userBob,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE
             });
             stubFirestoreReader.setDocument('group-members', `${testGroupId}_${userCharlie}`, {
-                userId: userCharlie,
+                uid: userCharlie,
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE
             });
@@ -295,9 +295,9 @@ describe('BalanceCalculationService', () => {
                 .withSplitType('exact')
                 .withParticipants([userAlice, userBob, userCharlie])
                 .withSplits([
-                    { userId: userAlice, amount: 25 },
-                    { userId: userBob, amount: 25 },
-                    { userId: userCharlie, amount: 50 },
+                    { uid: userAlice, amount: 25 },
+                    { uid: userBob, amount: 25 },
+                    { uid: userCharlie, amount: 50 },
                 ])
                 .withCreatedBy(userBob)
                 .build();

@@ -10,7 +10,7 @@ export class GroupMemberDocumentBuilder {
     constructor(userId: string, groupId: string) {
         // Default member document with sensible defaults
         this.memberDoc = {
-            userId,
+            uid: userId,
             groupId,
             memberRole: MemberRoles.MEMBER,
             memberStatus: MemberStatuses.ACTIVE,

@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { simplifyDebts } from '../../utils/debtSimplifier';
 import { DebtScenarios } from '@splitifyd/test-support';
 
@@ -20,8 +21,8 @@ describe('simplifyDebts', () => {
 
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
-            from: { userId: 'user1' },
-            to: { userId: 'user2' },
+            from: { uid: 'user1' },
+            to: { uid: 'user2' },
             amount: 50,
             currency: 'USD',
         });
@@ -34,8 +35,8 @@ describe('simplifyDebts', () => {
 
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual({
-            from: { userId: 'user1' },
-            to: { userId: 'user2' },
+            from: { uid: 'user1' },
+            to: { uid: 'user2' },
             amount: 20,
             currency: 'USD',
         });
@@ -90,15 +91,15 @@ describe('simplifyDebts', () => {
 
         expect(result).toHaveLength(2);
 
-        const sortedResult = result.sort((a, b) => a.to.userId.localeCompare(b.to.userId));
+        const sortedResult = result.sort((a, b) => a.to.uid.localeCompare(b.to.uid));
 
-        expect(sortedResult[0].from.userId).toBe('user1');
-        expect(sortedResult[0].to.userId).toBe('user3');
+        expect(sortedResult[0].from.uid).toBe('user1');
+        expect(sortedResult[0].to.uid).toBe('user3');
         expect(sortedResult[0].amount).toBe(50);
         expect(sortedResult[0].currency).toBe('USD');
 
-        expect(sortedResult[1].from.userId).toBe('user1');
-        expect(sortedResult[1].to.userId).toBe('user4');
+        expect(sortedResult[1].from.uid).toBe('user1');
+        expect(sortedResult[1].to.uid).toBe('user4');
         expect(sortedResult[1].amount).toBe(50);
         expect(sortedResult[1].currency).toBe('USD');
     });
@@ -132,7 +133,7 @@ describe('simplifyDebts', () => {
 
         // Verify no self-transactions
         result.forEach((transaction) => {
-            expect(transaction.from.userId).not.toBe(transaction.to.userId);
+            expect(transaction.from.uid).not.toBe(transaction.to.uid);
         });
 
         // The simplified network should have fewer transactions than the original relationships
@@ -157,7 +158,7 @@ describe('simplifyDebts', () => {
         // Verify all amounts are positive and users are distinct
         result.forEach((transaction) => {
             expect(transaction.amount).toBeGreaterThan(0);
-            expect(transaction.from.userId).not.toBe(transaction.to.userId);
+            expect(transaction.from.uid).not.toBe(transaction.to.uid);
         });
 
         // Verify total amounts balance
@@ -206,16 +207,16 @@ describe('simplifyDebts', () => {
         // Verify all transactions are valid
         result.forEach((transaction) => {
             expect(transaction.amount).toBeGreaterThan(0);
-            expect(transaction.from.userId).not.toBe(transaction.to.userId);
+            expect(transaction.from.uid).not.toBe(transaction.to.uid);
         });
 
         // The key test: user4 should receive exactly $100 total (50+30+20)
-        const paymentsToUser4 = result.filter((t) => t.to.userId === 'user4');
+        const paymentsToUser4 = result.filter((t) => t.to.uid === 'user4');
         const totalToUser4 = paymentsToUser4.reduce((sum, t) => sum + t.amount, 0);
         expect(totalToUser4).toBe(100); // 50+30+20
 
         // Verify the payments come from user1, user2, user3 in some form
-        const payersToUser4 = new Set(paymentsToUser4.map((t) => t.from.userId));
+        const payersToUser4 = new Set(paymentsToUser4.map((t) => t.from.uid));
         expect(payersToUser4.size).toBeGreaterThan(0);
         payersToUser4.forEach((payer) => {
             expect(['user1', 'user2', 'user3', 'whale']).toContain(payer);

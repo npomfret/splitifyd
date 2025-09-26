@@ -95,7 +95,7 @@ export const listSettlements = async (req: AuthenticatedRequest, res: Response):
     const result = await settlementService.listSettlements(groupId, userId, {
         limit,
         cursor,
-        userId: filterUserId,
+        uid: filterUserId,
         startDate,
         endDate,
     });

@@ -19,7 +19,7 @@ const UserThemeColorSchema = z.object({
  * Used for top-level group-memberships collection documents
  */
 export const TopLevelGroupMemberSchema = z.object({
-    userId: UserIdSchema,
+    uid: UserIdSchema,
     groupId: z.string(),
     memberRole: z.nativeEnum(MemberRoles),
     memberStatus: z.nativeEnum(MemberStatuses),

@@ -39,7 +39,7 @@ describe('Mixed Currency Settlements - API Integration', () => {
         expect(initialBalances.simplifiedDebts).toBeDefined();
         expect(Array.isArray(initialBalances.simplifiedDebts)).toBe(true);
 
-        const initialDebt = initialBalances.simplifiedDebts.find((debt) => debt.from.userId === user2.uid && debt.to.userId === user1.uid);
+        const initialDebt = initialBalances.simplifiedDebts.find((debt) => debt.from.uid === user2.uid && debt.to.uid === user1.uid);
         expect(initialDebt).toBeDefined();
         expect(initialDebt?.amount).toBe(100);
         expect(initialDebt?.currency).toBe('USD');
@@ -69,9 +69,9 @@ describe('Mixed Currency Settlements - API Integration', () => {
         // 1. User2 → User1: $100.00 USD (original debt unchanged)
         // 2. User1 → User2: €75.00 EUR (new debt from EUR settlement)
 
-        const usdDebtAfterSettlement = finalBalances.simplifiedDebts?.find((debt) => debt.from.userId === user2.uid && debt.to.userId === user1.uid && debt.currency === 'USD');
+        const usdDebtAfterSettlement = finalBalances.simplifiedDebts?.find((debt) => debt.from.uid === user2.uid && debt.to.uid === user1.uid && debt.currency === 'USD');
 
-        const eurDebtAfterSettlement = finalBalances.simplifiedDebts?.find((debt) => debt.from.userId === user1.uid && debt.to.userId === user2.uid && debt.currency === 'EUR');
+        const eurDebtAfterSettlement = finalBalances.simplifiedDebts?.find((debt) => debt.from.uid === user1.uid && debt.to.uid === user2.uid && debt.currency === 'EUR');
 
         // Assert: USD debt should still exist at full amount (no conversion)
         expect(usdDebtAfterSettlement).toBeDefined();
@@ -129,7 +129,7 @@ describe('Mixed Currency Settlements - API Integration', () => {
 
         // If the application is incorrectly converting currencies,
         // we would see a reduced USD debt (e.g., $25 instead of $100)
-        const remainingUsdDebt = finalBalances.simplifiedDebts?.find((debt) => debt.from.userId === user2.uid && debt.to.userId === user1.uid && debt.currency === 'USD');
+        const remainingUsdDebt = finalBalances.simplifiedDebts?.find((debt) => debt.from.uid === user2.uid && debt.to.uid === user1.uid && debt.currency === 'USD');
 
         if (remainingUsdDebt && remainingUsdDebt.amount !== 100) {
             console.warn(`CURRENCY CONVERSION BUG DETECTED!`);
@@ -172,7 +172,7 @@ describe('Mixed Currency Settlements - API Integration', () => {
         console.log('E2E REPLICA - Initial balances:', JSON.stringify(initialBalances, null, 2));
 
         // Verify User2 owes User1 $100 USD
-        const initialDebt = initialBalances.simplifiedDebts.find((debt) => debt.from.userId === user2.uid && debt.to.userId === user1.uid);
+        const initialDebt = initialBalances.simplifiedDebts.find((debt) => debt.from.uid === user2.uid && debt.to.uid === user1.uid);
         expect(initialDebt).toBeDefined();
         expect(initialDebt?.amount).toBe(100);
         expect(initialDebt?.currency).toBe('USD');
@@ -197,9 +197,9 @@ describe('Mixed Currency Settlements - API Integration', () => {
         console.log('E2E REPLICA - Final balances:', JSON.stringify(finalBalances, null, 2));
 
         // The e2e test expects $100 but finds $25 - let's see what we get here
-        const usdDebtAfterSettlement = finalBalances.simplifiedDebts?.find((debt) => debt.from.userId === user2.uid && debt.to.userId === user1.uid && debt.currency === 'USD');
+        const usdDebtAfterSettlement = finalBalances.simplifiedDebts?.find((debt) => debt.from.uid === user2.uid && debt.to.uid === user1.uid && debt.currency === 'USD');
 
-        const eurDebtAfterSettlement = finalBalances.simplifiedDebts?.find((debt) => debt.from.userId === user1.uid && debt.to.userId === user2.uid && debt.currency === 'EUR');
+        const eurDebtAfterSettlement = finalBalances.simplifiedDebts?.find((debt) => debt.from.uid === user1.uid && debt.to.uid === user2.uid && debt.currency === 'EUR');
 
         console.log('USD debt after settlement:', usdDebtAfterSettlement);
         console.log('EUR debt after settlement:', eurDebtAfterSettlement);

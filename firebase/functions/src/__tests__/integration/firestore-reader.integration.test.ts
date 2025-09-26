@@ -2,7 +2,7 @@
  * FirestoreReader Integration Tests
  *
  * Tests that would have caught the groups API bug where getGroupsForUser
- * was using the old members.userId query instead of subcollection architecture.
+ * was using the old members.uid query instead of subcollection architecture.
  *
  * These tests use the Firebase emulator to verify actual Firestore operations.
  */

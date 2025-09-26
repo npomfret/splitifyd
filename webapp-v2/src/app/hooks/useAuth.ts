@@ -1,6 +1,6 @@
 import { useContext } from 'preact/hooks';
 import { AuthContext } from '../providers/AuthProvider';
-import type { AuthStore } from '@/types/auth.ts';
+import type { AuthStore } from '../stores/auth-store';
 
 export function useAuth(): AuthStore | null {
     const authStore = useContext(AuthContext);
