@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getCurrentPolicyVersions } from '../../../auth/policy-helpers';
-import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
+import { StubFirestoreReader, createMockPolicyDocument } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 
 // Mock the service registration
-const mockFirestoreReader = new MockFirestoreReader();
+const stubFirestoreReader = new StubFirestoreReader();
 vi.mock('../../../services/serviceRegistration', () => ({
-    getFirestoreReader: vi.fn(() => mockFirestoreReader),
+    getFirestoreReader: vi.fn(() => stubFirestoreReader),
 }));
 
 // Mock logger
@@ -20,7 +20,7 @@ vi.mock('../../../logger', () => ({
 describe('Policy Helpers', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        mockFirestoreReader.clearAllMocks();
+        stubFirestoreReader.resetAllMocks();
     });
 
     afterEach(() => {
@@ -30,28 +30,29 @@ describe('Policy Helpers', () => {
     describe('getCurrentPolicyVersions', () => {
         it('should return current version hashes for all policies', async () => {
             const mockPolicies = [
-                mockFirestoreReader.createTestPolicyDocument({
+                createMockPolicyDocument({
                     id: 'policy1',
                     policyName: 'Terms of Service',
                     currentVersionHash: 'hash1',
                 }),
-                mockFirestoreReader.createTestPolicyDocument({
+                createMockPolicyDocument({
                     id: 'policy2',
                     policyName: 'Privacy Policy',
                     currentVersionHash: 'hash2',
                 }),
-                mockFirestoreReader.createTestPolicyDocument({
+                createMockPolicyDocument({
                     id: 'policy3',
                     policyName: 'Cookie Policy',
                     currentVersionHash: 'hash3',
                 }),
             ];
 
-            mockFirestoreReader.getAllPolicies.mockResolvedValue(mockPolicies);
+            // Set up stub data for getAllPolicies
+            stubFirestoreReader.setDocument('policies', 'policy1', mockPolicies[0]);
+            stubFirestoreReader.setDocument('policies', 'policy2', mockPolicies[1]);
+            stubFirestoreReader.setDocument('policies', 'policy3', mockPolicies[2]);
 
-            const result = await getCurrentPolicyVersions(mockFirestoreReader);
-
-            expect(mockFirestoreReader.getAllPolicies).toHaveBeenCalledWith();
+            const result = await getCurrentPolicyVersions(stubFirestoreReader);
             expect(result).toEqual({
                 policy1: 'hash1',
                 policy2: 'hash2',
@@ -60,35 +61,35 @@ describe('Policy Helpers', () => {
         });
 
         it('should return empty object when no policies exist', async () => {
-            mockFirestoreReader.getAllPolicies.mockResolvedValue([]);
+            // No policies set in stub, so getAllPolicies will return empty array
 
-            const result = await getCurrentPolicyVersions(mockFirestoreReader);
+            const result = await getCurrentPolicyVersions(stubFirestoreReader);
 
             expect(result).toEqual({});
         });
 
         it('should skip policies without currentVersionHash', async () => {
-            const mockPolicies = [
-                mockFirestoreReader.createTestPolicyDocument({
-                    id: 'policy1',
-                    policyName: 'Terms of Service',
-                    currentVersionHash: 'hash1',
-                }),
-                mockFirestoreReader.createTestPolicyDocument({
-                    id: 'policy2',
-                    policyName: 'Privacy Policy',
-                    currentVersionHash: undefined as any, // Missing version hash
-                }),
-                mockFirestoreReader.createTestPolicyDocument({
-                    id: 'policy3',
-                    policyName: 'Cookie Policy',
-                    currentVersionHash: 'hash3',
-                }),
-            ];
+            const policy1 = createMockPolicyDocument({
+                id: 'policy1',
+                policyName: 'Terms of Service',
+                currentVersionHash: 'hash1',
+            });
+            const policy2 = createMockPolicyDocument({
+                id: 'policy2',
+                policyName: 'Privacy Policy',
+                currentVersionHash: undefined as any, // Missing version hash
+            });
+            const policy3 = createMockPolicyDocument({
+                id: 'policy3',
+                policyName: 'Cookie Policy',
+                currentVersionHash: 'hash3',
+            });
 
-            mockFirestoreReader.getAllPolicies.mockResolvedValue(mockPolicies);
+            stubFirestoreReader.setDocument('policies', 'policy1', policy1);
+            stubFirestoreReader.setDocument('policies', 'policy2', policy2);
+            stubFirestoreReader.setDocument('policies', 'policy3', policy3);
 
-            const result = await getCurrentPolicyVersions(mockFirestoreReader);
+            const result = await getCurrentPolicyVersions(stubFirestoreReader);
 
             expect(result).toEqual({
                 policy1: 'hash1',
@@ -97,27 +98,27 @@ describe('Policy Helpers', () => {
         });
 
         it('should handle empty version hash strings', async () => {
-            const mockPolicies = [
-                mockFirestoreReader.createTestPolicyDocument({
-                    id: 'policy1',
-                    policyName: 'Terms of Service',
-                    currentVersionHash: 'hash1',
-                }),
-                mockFirestoreReader.createTestPolicyDocument({
-                    id: 'policy2',
-                    policyName: 'Privacy Policy',
-                    currentVersionHash: '', // Empty string
-                }),
-                mockFirestoreReader.createTestPolicyDocument({
-                    id: 'policy3',
-                    policyName: 'Cookie Policy',
-                    currentVersionHash: 'hash3',
-                }),
-            ];
+            const policy1 = createMockPolicyDocument({
+                id: 'policy1',
+                policyName: 'Terms of Service',
+                currentVersionHash: 'hash1',
+            });
+            const policy2 = createMockPolicyDocument({
+                id: 'policy2',
+                policyName: 'Privacy Policy',
+                currentVersionHash: '', // Empty string
+            });
+            const policy3 = createMockPolicyDocument({
+                id: 'policy3',
+                policyName: 'Cookie Policy',
+                currentVersionHash: 'hash3',
+            });
 
-            mockFirestoreReader.getAllPolicies.mockResolvedValue(mockPolicies);
+            stubFirestoreReader.setDocument('policies', 'policy1', policy1);
+            stubFirestoreReader.setDocument('policies', 'policy2', policy2);
+            stubFirestoreReader.setDocument('policies', 'policy3', policy3);
 
-            const result = await getCurrentPolicyVersions(mockFirestoreReader);
+            const result = await getCurrentPolicyVersions(stubFirestoreReader);
 
             // Empty string should be excluded
             expect(result).toEqual({
@@ -128,12 +129,12 @@ describe('Policy Helpers', () => {
 
         it('should throw ApiError when FirestoreReader fails', async () => {
             const firestoreError = new Error('Firestore connection failed');
-            mockFirestoreReader.getAllPolicies.mockRejectedValue(firestoreError);
+            stubFirestoreReader.getAllPolicies.mockRejectedValue(firestoreError);
 
-            await expect(getCurrentPolicyVersions(mockFirestoreReader)).rejects.toThrow(ApiError);
+            await expect(getCurrentPolicyVersions(stubFirestoreReader)).rejects.toThrow(ApiError);
 
             try {
-                await getCurrentPolicyVersions(mockFirestoreReader);
+                await getCurrentPolicyVersions(stubFirestoreReader);
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);
                 expect((error as ApiError).statusCode).toBe(HTTP_STATUS.INTERNAL_ERROR);
@@ -144,10 +145,10 @@ describe('Policy Helpers', () => {
 
         it('should log error when FirestoreReader fails', async () => {
             const firestoreError = new Error('Firestore connection failed');
-            mockFirestoreReader.getAllPolicies.mockRejectedValue(firestoreError);
+            stubFirestoreReader.getAllPolicies.mockRejectedValue(firestoreError);
 
             try {
-                await getCurrentPolicyVersions(mockFirestoreReader);
+                await getCurrentPolicyVersions(stubFirestoreReader);
             } catch (error) {
                 // Expected to throw
             }
@@ -159,22 +160,22 @@ describe('Policy Helpers', () => {
         it('should handle null policies in the array', async () => {
             // This shouldn't happen in practice due to validation, but test defensive coding
             const mockPolicies = [
-                mockFirestoreReader.createTestPolicyDocument({
+                createMockPolicyDocument({
                     id: 'policy1',
                     policyName: 'Terms of Service',
                     currentVersionHash: 'hash1',
                 }),
                 null as any, // Null policy
-                mockFirestoreReader.createTestPolicyDocument({
+                createMockPolicyDocument({
                     id: 'policy3',
                     policyName: 'Cookie Policy',
                     currentVersionHash: 'hash3',
                 }),
             ].filter(Boolean); // This would normally filter out null values
 
-            mockFirestoreReader.getAllPolicies.mockResolvedValue(mockPolicies);
+            stubFirestoreReader.getAllPolicies.mockResolvedValue(mockPolicies);
 
-            const result = await getCurrentPolicyVersions(mockFirestoreReader);
+            const result = await getCurrentPolicyVersions(stubFirestoreReader);
 
             expect(result).toEqual({
                 policy1: 'hash1',

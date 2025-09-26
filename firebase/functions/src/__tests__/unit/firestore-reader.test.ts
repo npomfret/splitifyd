@@ -6,10 +6,9 @@
 
 import { describe, test, expect, beforeEach } from 'vitest';
 import { FirestoreReader } from '../../services/firestore';
-import { MockFirestoreReader } from '../test-utils/MockFirestoreReader';
+import { StubFirestoreReader, createTestUser, createTestGroup, createTestExpense } from './mocks/firestore-stubs';
 import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
-import { StubFirestoreReader } from './mocks/firestore-stubs';
 import { SecurityPresets } from '@splitifyd/shared';
 import { FirestoreGroupBuilder } from '@splitifyd/test-support';
 
@@ -55,57 +54,57 @@ describe('FirestoreReader', () => {
     });
 });
 
-describe('MockFirestoreReader', () => {
-    let mockReader: MockFirestoreReader;
+describe('StubFirestoreReader', () => {
+    let stubReader: StubFirestoreReader;
 
     beforeEach(() => {
-        mockReader = new MockFirestoreReader();
+        stubReader = new StubFirestoreReader();
     });
 
     test('should be instantiable', () => {
-        expect(mockReader).toBeDefined();
+        expect(stubReader).toBeDefined();
     });
 
     test('should have all mocked methods', () => {
-        expect(mockReader.getUser).toBeDefined();
-        expect(mockReader.getGroup).toBeDefined();
-        expect(mockReader.getExpense).toBeDefined();
-        expect(mockReader.getUsersById).toBeDefined();
+        expect(stubReader.getUser).toBeDefined();
+        expect(stubReader.getGroup).toBeDefined();
+        expect(stubReader.getExpense).toBeDefined();
+        expect(stubReader.getUsersById).toBeDefined();
     });
 
     test('should provide test utilities', () => {
-        expect(typeof mockReader.resetAllMocks).toBe('function');
-        expect(typeof mockReader.clearAllMocks).toBe('function');
-        expect(typeof mockReader.mockUserExists).toBe('function');
-        expect(typeof mockReader.mockGroupExists).toBe('function');
+        expect(typeof stubReader.resetAllMocks).toBe('function');
+        expect(typeof stubReader.clearAllMocks).toBe('function');
+        expect(typeof stubReader.mockUserExists).toBe('function');
+        expect(typeof stubReader.mockGroupExists).toBe('function');
     });
 
     test('should provide static test builders', () => {
-        expect(typeof MockFirestoreReader.createTestUser).toBe('function');
-        expect(typeof MockFirestoreReader.createTestGroup).toBe('function');
-        expect(typeof MockFirestoreReader.createTestExpense).toBe('function');
+        expect(typeof createTestUser).toBe('function');
+        expect(typeof createTestGroup).toBe('function');
+        expect(typeof createTestExpense).toBe('function');
     });
 
     test('static builders should create valid test objects', () => {
-        const testUser = MockFirestoreReader.createTestUser('user123');
+        const testUser = createTestUser('user123');
         expect(testUser.id).toBe('user123');
         expect(testUser.email).toContain('@test.com');
 
-        const testGroup = MockFirestoreReader.createTestGroup('group456');
+        const testGroup = createTestGroup('group456');
         expect(testGroup.id).toBe('group456');
         expect(testGroup.name).toContain('Test Group');
 
-        const testExpense = MockFirestoreReader.createTestExpense('expense789');
+        const testExpense = createTestExpense('expense789');
         expect(testExpense.id).toBe('expense789');
         expect(testExpense.amount).toBe(10.0);
     });
 
     test('should allow mocking user existence', () => {
-        const testUser = MockFirestoreReader.createTestUser('test-user');
-        mockReader.mockUserExists('test-user', testUser);
+        const testUser = createTestUser('test-user');
+        stubReader.mockUserExists('test-user', testUser);
 
         // Mock is configured, can verify it was set up
-        expect(mockReader.getUser).toBeDefined();
+        expect(stubReader.getUser).toBeDefined();
     });
 });
 

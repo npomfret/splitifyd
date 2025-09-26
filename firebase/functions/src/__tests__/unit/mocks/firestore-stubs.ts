@@ -21,10 +21,104 @@ const sharedCommentStorage = new Map<string, any[]>();
 export class StubFirestoreReader implements IFirestoreReader {
     private documents = new Map<string, any>();
     private rawDocuments = new Map<string, any>();
+    private userGroups = new Map<string, any>(); // userId -> pagination result or groups[]
+    private paginationBehavior = new Map<string, { groups: any[], pageSize: number }>(); // userId -> pagination config
+    private methodErrors = new Map<string, Error>(); // methodName -> error to throw
+    private methodReturnValues = new Map<string, any[]>(); // methodName -> array of return values
 
     // Helper methods to set up test data
     setDocument(collection: string, id: string, data: any) {
         this.documents.set(`${collection}/${id}`, data);
+    }
+
+    // Helper methods for pagination testing (similar to MockFirestoreReader)
+    mockGroupsForUser(userId: string, groups: any[], hasMore: boolean = false, nextCursor?: string) {
+        this.userGroups.set(userId, {
+            data: groups,
+            hasMore,
+            nextCursor,
+            totalEstimate: groups.length + (hasMore ? 10 : 0),
+        });
+    }
+
+    mockPaginatedGroups(userId: string, allGroups: any[], pageSize: number = 10) {
+        this.paginationBehavior.set(userId, { groups: allGroups, pageSize });
+    }
+
+    // Error injection helpers
+    setMethodError(methodName: string, error: Error) {
+        this.methodErrors.set(methodName, error);
+    }
+
+    clearMethodError(methodName: string) {
+        this.methodErrors.delete(methodName);
+    }
+
+    // Mock helpers for compatibility
+    clearAllMocks() {
+        this.resetAllMocks();
+    }
+
+    mockUserExists(userId: string, existsOrUserDoc: boolean | any = true) {
+        if (typeof existsOrUserDoc === 'boolean') {
+            if (existsOrUserDoc) {
+                this.setDocument('users', userId, createTestUser(userId));
+            } else {
+                this.documents.delete(`users/${userId}`);
+            }
+        } else {
+            // Second parameter is a user document
+            this.setDocument('users', userId, existsOrUserDoc);
+        }
+    }
+
+    mockGroupExists(groupId: string, exists: boolean = true) {
+        if (exists) {
+            this.setDocument('groups', groupId, createTestGroup(groupId));
+        } else {
+            this.documents.delete(`groups/${groupId}`);
+        }
+    }
+
+    // Mock-like methods for compatibility with test patterns
+    // These add a mock interface to StubFirestoreReader methods
+    getAllPolicies = Object.assign(
+        async (): Promise<PolicyDocument[]> => {
+            const error = this.methodErrors.get('getAllPolicies');
+            if (error) {
+                throw error;
+            }
+
+            const policies: PolicyDocument[] = [];
+            for (const [key, value] of Array.from(this.documents.entries())) {
+                if (key.startsWith('policies/')) {
+                    policies.push(value);
+                }
+            }
+            return policies;
+        },
+        {
+            mockRejectedValue: (error: Error) => this.setMethodError('getAllPolicies', error),
+            mockResolvedValue: (value: PolicyDocument[]) => {
+                this.clearMethodError('getAllPolicies');
+                // Store the resolved value by clearing documents and setting policies
+                this.documents.clear();
+                value.forEach((policy, index) => {
+                    this.setDocument('policies', policy.id || `policy-${index}`, policy);
+                });
+            }
+        }
+    );
+
+    // Reset helper for test cleanup
+    resetAllMocks() {
+        this.userGroups.clear();
+        this.paginationBehavior.clear();
+        this.documents.clear();
+        this.rawDocuments.clear();
+        this.methodErrors.clear();
+        this.methodReturnValues.clear();
+        sharedCommentStorage.clear();
     }
 
     setRawDocument(id: string, data: any) {
@@ -44,9 +138,27 @@ export class StubFirestoreReader implements IFirestoreReader {
     }
 
     // Document Read Operations
-    async getUser(userId: string): Promise<UserDocument | null> {
-        return this.documents.get(`users/${userId}`) || null;
-    }
+    // Mock-enabled getUser
+    getUser = Object.assign(
+        async (userId: string): Promise<UserDocument | null> => {
+            const error = this.methodErrors.get('getUser');
+            if (error) {
+                throw error;
+            }
+            return this.documents.get(`users/${userId}`) || null;
+        },
+        {
+            mockResolvedValue: (value: UserDocument | null) => {
+                this.clearMethodError('getUser');
+                // Note: This is a simplified mock that doesn't handle specific userIds
+                // For more complex scenarios, store the value in a temporary state
+                if (value) {
+                    this.setDocument('users', value.id, value);
+                }
+            },
+            mockRejectedValue: (error: Error) => this.setMethodError('getUser', error)
+        }
+    );
 
     async getGroup(groupId: string): Promise<GroupDocument | null> {
         return this.documents.get(`groups/${groupId}`) || null;
@@ -64,15 +176,6 @@ export class StubFirestoreReader implements IFirestoreReader {
         return this.documents.get(`policies/${policyId}`) || null;
     }
 
-    async getAllPolicies(): Promise<PolicyDocument[]> {
-        const policies: PolicyDocument[] = [];
-        for (const [key, value] of this.documents.entries()) {
-            if (key.startsWith('policies/')) {
-                policies.push(value);
-            }
-        }
-        return policies;
-    }
 
     // Raw document operations (used by PolicyService)
     async getRawPolicyDocument(policyId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
@@ -90,28 +193,138 @@ export class StubFirestoreReader implements IFirestoreReader {
         }
         return users;
     }
+    // Mock-enabled getGroupsForUserV2
+    getGroupsForUserV2 = Object.assign(
+        async (userId: string, options?: any): Promise<any> => {
+            const error = this.methodErrors.get('getGroupsForUserV2');
+            if (error) {
+                throw error;
+            }
 
-    async getGroupsForUserV2(): Promise<any> {
-        return {data: [], hasMore: false};
-    }
+            // Check for simple mock setup first
+            const userGroupsData = this.userGroups.get(userId);
+            if (userGroupsData) {
+                return userGroupsData;
+            }
+
+            // Check for pagination behavior setup
+            const paginationConfig = this.paginationBehavior.get(userId);
+            if (paginationConfig) {
+                const { groups: allGroups, pageSize } = paginationConfig;
+                const limit = options?.limit || pageSize;
+                const cursor = options?.cursor;
+
+                let startIndex = 0;
+                if (cursor) {
+                    try {
+                        const cursorData = JSON.parse(Buffer.from(cursor, 'base64').toString());
+                        const cursorIndex = allGroups.findIndex((group) => group.id === cursorData.lastGroupId);
+                        if (cursorIndex >= 0) {
+                            startIndex = cursorIndex + 1;
+                        }
+                    } catch (error) {
+                        // Invalid cursor, start from beginning
+                    }
+                }
+
+                const endIndex = startIndex + limit;
+                const pageData = allGroups.slice(startIndex, endIndex);
+                const hasMore = endIndex < allGroups.length;
+
+                let nextCursor: string | undefined;
+                if (hasMore && pageData.length > 0) {
+                    const lastGroup = pageData[pageData.length - 1];
+                    const cursorData = {
+                        lastGroupId: lastGroup.id,
+                        lastUpdatedAt: lastGroup.updatedAt,
+                    };
+                    nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
+                }
+
+                return {
+                    data: pageData,
+                    hasMore,
+                    nextCursor,
+                    totalEstimate: allGroups.length,
+                };
+            }
+
+            return { data: [], hasMore: false };
+        },
+        {
+            mockResolvedValue: (value: any) => {
+                this.clearMethodError('getGroupsForUserV2');
+                // Store the resolved value for the next call
+                // Since we don't know the userId context, this is a simplified mock
+            },
+            mockRejectedValue: (error: Error) => this.setMethodError('getGroupsForUserV2', error)
+        }
+    );
 
     async getGroupMembers(): Promise<GroupMemberDocument[]> {
         return [];
     }
 
-    async getGroupMember(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
-        return this.documents.get(`group-members/${groupId}_${userId}`) || null;
-    }
+    // Mock-enabled getGroupMember with chaining support
+    getGroupMember = Object.assign(
+        async (groupId: string, userId: string): Promise<GroupMemberDocument | null> => {
+            const error = this.methodErrors.get('getGroupMember');
+            if (error) {
+                throw error;
+            }
 
-    async getAllGroupMembers(groupId: string): Promise<GroupMemberDocument[]> {
-        const members: GroupMemberDocument[] = [];
-        for (const [key, value] of this.documents.entries()) {
-            if (key.startsWith(`group-members/${groupId}_`)) {
-                members.push(value);
+            // Check for queued return values
+            const returnValues = this.methodReturnValues.get('getGroupMember');
+            if (returnValues && returnValues.length > 0) {
+                return returnValues.shift(); // Remove and return first value
+            }
+
+            return this.documents.get(`group-members/${groupId}_${userId}`) || null;
+        },
+        {
+            mockResolvedValueOnce: (value: GroupMemberDocument | null) => {
+                const existing = this.methodReturnValues.get('getGroupMember') || [];
+                existing.push(value);
+                this.methodReturnValues.set('getGroupMember', existing);
+                return this.getGroupMember; // Return self for chaining
+            },
+            mockRejectedValue: (error: Error) => this.setMethodError('getGroupMember', error),
+            mockResolvedValue: (value: GroupMemberDocument | null) => {
+                this.clearMethodError('getGroupMember');
+                // This sets a permanent return value
+                this.methodReturnValues.set('getGroupMember', [value]);
             }
         }
-        return members;
-    }
+    );
+
+    // Mock-enabled getAllGroupMembers
+    getAllGroupMembers = Object.assign(
+        async (groupId: string): Promise<GroupMemberDocument[]> => {
+            const error = this.methodErrors.get('getAllGroupMembers');
+            if (error) {
+                throw error;
+            }
+            const members: GroupMemberDocument[] = [];
+            for (const [key, value] of Array.from(this.documents.entries())) {
+                if (key.startsWith(`group-members/${groupId}_`)) {
+                    members.push(value);
+                }
+            }
+            return members;
+        },
+        {
+            mockResolvedValue: (value: GroupMemberDocument[]) => {
+                this.clearMethodError('getAllGroupMembers');
+                // Store resolved value by clearing existing and setting new members
+                const existingKeys = Array.from(this.documents.keys()).filter(key => key.startsWith('group-members/'));
+                existingKeys.forEach(key => this.documents.delete(key));
+                value.forEach((member, index) => {
+                    this.setDocument('group-members', `${member.groupId}_${member.uid}`, member);
+                });
+            },
+            mockRejectedValue: (error: Error) => this.setMethodError('getAllGroupMembers', error)
+        }
+    );
 
     async getAllGroupMemberIds(): Promise<string[]> {
         return [];
@@ -119,7 +332,7 @@ export class StubFirestoreReader implements IFirestoreReader {
 
     async getExpensesForGroup(groupId: string): Promise<ExpenseDocument[]> {
         const expenses: ExpenseDocument[] = [];
-        for (const [key, value] of this.documents.entries()) {
+        for (const [key, value] of Array.from(this.documents.entries())) {
             if (key.startsWith(`expenses/`) && value.groupId === groupId) {
                 expenses.push(value);
             }
@@ -802,6 +1015,61 @@ export class StubAuthService implements IAuthService {
 /**
  * Helper functions to create mock data for testing
  */
+export function createTestUser(id: string, overrides: any = {}): any {
+    return {
+        id,
+        email: `${id}@test.com`,
+        displayName: `Test User ${id}`,
+        photoURL: null,
+        emailVerified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        ...overrides,
+    };
+}
+
+export function createTestGroup(id: string, overrides: any = {}): any {
+    return {
+        id,
+        name: `Test Group ${id}`,
+        description: 'A test group',
+        createdBy: 'test-user',
+        members: {},
+        securityPreset: 'open',
+        permissions: {
+            expenseEditing: 'anyone',
+            expenseDeletion: 'anyone',
+            memberInvitation: 'anyone',
+            memberApproval: 'automatic',
+            settingsManagement: 'anyone',
+        },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+        ...overrides,
+    };
+}
+
+export function createTestExpense(id: string, overrides: any = {}): any {
+    return {
+        id,
+        groupId: 'test-group',
+        description: 'Test expense',
+        amount: 10.0,
+        currency: 'USD',
+        category: 'general',
+        paidBy: 'test-user',
+        createdBy: 'test-user',
+        date: new Date(),
+        splitType: 'equal',
+        splits: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+        ...overrides,
+    };
+}
+
 export function createMockPolicyDocument(overrides: Partial<PolicyDocument> = {}): PolicyDocument {
     const defaultHash = '4205e9e6ac39b586be85ca281f9eb22a12765bac87ca095f7ebfee54083063e3';
     const defaultTimestamp = Timestamp.now();

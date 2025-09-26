@@ -1,7 +1,8 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { GroupMemberService } from '../../../services/GroupMemberService';
-import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
+import { StubFirestoreReader } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
+import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
 
 // Mock logger
 vi.mock('../../../logger', () => ({
@@ -37,7 +38,7 @@ const createMockGroupMemberService = () => ({
 });
 
 describe('Service-Level Error Handling - Subcollection Queries', () => {
-    let mockFirestoreReader: MockFirestoreReader;
+    let stubFirestoreReader: StubFirestoreReader;
     let groupMemberService: GroupMemberService;
     let mockUserService: ReturnType<typeof createMockUserService>;
     let mockNotificationService: ReturnType<typeof createMockNotificationService>;
@@ -45,12 +46,12 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        mockFirestoreReader = new MockFirestoreReader();
+        stubFirestoreReader = new StubFirestoreReader();
         mockUserService = createMockUserService();
         mockNotificationService = createMockNotificationService();
         mockGroupMemberServiceRef = createMockGroupMemberService();
         groupMemberService = new GroupMemberService(
-            mockFirestoreReader,
+            stubFirestoreReader,
             {} as any, // mockFirestoreWriter
             mockUserService as any,
         );
@@ -62,19 +63,19 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
     describe('GroupMemberService - empty subcollection handling', () => {
         test('should handle empty member subcollection gracefully', async () => {
             // Mock empty subcollection through MockFirestoreReader
-            vi.spyOn(mockFirestoreReader, 'getAllGroupMembers').mockResolvedValue([]);
+            vi.spyOn(stubFirestoreReader, 'getAllGroupMembers').mockResolvedValue([]);
 
             // Should return empty array, not throw
             const members = await groupMemberService.getAllGroupMembers('empty-group-id');
 
             expect(members).toEqual([]);
-            expect(mockFirestoreReader.getAllGroupMembers).toHaveBeenCalledWith('empty-group-id');
+            expect(stubFirestoreReader.getAllGroupMembers).toHaveBeenCalledWith('empty-group-id');
         });
 
         test('should handle subcollection query timeout', async () => {
             // Mock query timeout through MockFirestoreReader
             const timeoutError = new Error('Query timed out after 30 seconds');
-            vi.spyOn(mockFirestoreReader, 'getAllGroupMembers').mockRejectedValue(timeoutError);
+            vi.spyOn(stubFirestoreReader, 'getAllGroupMembers').mockRejectedValue(timeoutError);
 
             // Should let timeout errors bubble up
             await expect(groupMemberService.getAllGroupMembers('timeout-group-id')).rejects.toThrow('Query timed out after 30 seconds');
@@ -84,7 +85,7 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
             // Mock permission denied error through MockFirestoreReader
             const permissionError = new Error('Missing or insufficient permissions');
             permissionError.name = 'FirebaseError';
-            vi.spyOn(mockFirestoreReader, 'getAllGroupMembers').mockRejectedValue(permissionError);
+            vi.spyOn(stubFirestoreReader, 'getAllGroupMembers').mockRejectedValue(permissionError);
 
             // Should let permission errors bubble up
             await expect(groupMemberService.getAllGroupMembers('protected-group-id')).rejects.toThrow('Missing or insufficient permissions');
@@ -97,13 +98,13 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
             const largeMemberSet = Array.from({ length: 1000 }, (_, i) => ({
                 uid: `user-${i}`,
                 groupId: 'large-group',
-                memberRole: 'member',
-                memberStatus: 'active',
+                memberRole: MemberRoles.MEMBER,
+                memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: '2024-01-01T00:00:00.000Z',
-                theme: { name: 'Blue', colorIndex: i % 10 },
+                theme: { name: 'Blue', colorIndex: i % 10, light: '#0000FF', dark: '#000080', pattern: 'solid' as const, assignedAt: '2024-01-01T00:00:00Z' },
             }));
 
-            vi.spyOn(mockFirestoreReader, 'getAllGroupMembers').mockResolvedValue(largeMemberSet);
+            vi.spyOn(stubFirestoreReader, 'getAllGroupMembers').mockResolvedValue(largeMemberSet);
 
             // Should handle large result sets efficiently
             const members = await groupMemberService.getAllGroupMembers('large-group-id');
@@ -116,41 +117,32 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
         test('should handle corrupted subcollection documents', async () => {
             // Mock mixed valid and corrupted documents through MockFirestoreReader
             // The MockFirestoreReader should handle validation, so we just return what it would process
-            const validMembers = [
+            const mixedMembers = [
                 {
-                    id: 'user-1',
-                    data: () => ({
-                        uid: 'user-1',
-                        groupId: 'group-123',
-                        memberRole: 'member',
-                        memberStatus: 'active',
-                        joinedAt: '2024-01-01T00:00:00.000Z',
-                        theme: { name: 'Blue', colorIndex: 0 },
-                    }),
+                    uid: 'user-1',
+                    groupId: 'group-123',
+                    memberRole: MemberRoles.MEMBER,
+                    memberStatus: MemberStatuses.ACTIVE,
+                    joinedAt: '2024-01-01T00:00:00.000Z',
+                    theme: { name: 'Blue', colorIndex: 0, light: '#0000FF', dark: '#000080', pattern: 'solid' as const, assignedAt: '2024-01-01T00:00:00Z' },
                 },
+                // Simulate a partially corrupted document
                 {
-                    id: 'user-2',
-                    data: () => null, // Corrupted document
-                },
-                {
-                    id: 'user-3',
-                    data: () => ({
-                        // Missing required fields
-                        uid: 'user-3',
-                        // Missing groupId, role, etc.
-                    }),
-                },
+                    uid: 'user-3',
+                    groupId: 'group-123',
+                    // Missing memberRole and other required fields
+                } as any,
             ];
 
-            vi.spyOn(mockFirestoreReader, 'getAllGroupMembers').mockResolvedValue(validMembers);
+            vi.spyOn(stubFirestoreReader, 'getAllGroupMembers').mockResolvedValue(mixedMembers);
 
             // Should handle corrupted documents gracefully
             const members = await groupMemberService.getAllGroupMembers('group-with-corruption');
 
             // Verify that the method doesn't crash with corrupted data
             expect(Array.isArray(members)).toBe(true);
-            // At least the valid document should be processable
-            expect(members.length).toBeGreaterThan(0);
+            // Should return the data as-is (service layer handles validation, not the stub)
+            expect(members.length).toBe(2);
         });
     });
 

@@ -1141,7 +1141,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
             // Mock getAllPolicies to return our test policies
             const mockPolicies = [policy1, policy2];
-            stubReader.getAllPolicies = async () => mockPolicies;
+            stubReader.getAllPolicies.mockResolvedValue(mockPolicies);
 
             // Test listPolicies
             const listResult = await policyService.listPolicies();

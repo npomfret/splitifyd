@@ -3,8 +3,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { UserService } from '../../../services/UserService2';
 import { FirestoreValidationService } from '../../../services/FirestoreValidationService';
 import { NotificationService } from '../../../services/notification-service';
-import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
-import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
+import { StubFirestoreReader, StubFirestoreWriter, StubAuthService, createTestUser, createTestGroup } from '../mocks/firestore-stubs';
 import { HTTP_STATUS } from '../../../constants';
 import { SystemUserRoles, type UserThemeColor } from '@splitifyd/shared';
 import { USER_COLORS } from '@splitifyd/shared';
@@ -591,7 +590,7 @@ describe('UserService - Consolidated Unit Tests', () => {
     });
 
     describe('Input Validation Tests', () => {
-        let mockFirestoreReader: MockFirestoreReader;
+        let mockFirestoreReader: StubFirestoreReader;
         let mockFirestoreWriter: StubFirestoreWriter;
         let mockAuthService: any;
         let mockNotificationService: any;
@@ -638,14 +637,14 @@ describe('UserService - Consolidated Unit Tests', () => {
         });
 
         beforeEach(() => {
-            mockFirestoreReader = new MockFirestoreReader();
+            mockFirestoreReader = new StubFirestoreReader();
             mockFirestoreWriter = new StubFirestoreWriter();
             mockAuthService = createMockAuthService();
             mockNotificationService = createMockNotificationService();
             mockValidationService = createMockValidationService();
 
             // Setup test user in Firestore
-            const testUserDoc = MockFirestoreReader.createTestUser(testUserId, {
+            const testUserDoc = createTestUser(testUserId, {
                 email: testUserEmail,
                 displayName: 'Test User',
                 emailVerified: true,
@@ -667,11 +666,13 @@ describe('UserService - Consolidated Unit Tests', () => {
                     id: 'terms',
                     currentVersionHash: 'terms-v1-hash',
                     policyName: 'Terms of Service',
+                    versions: {},
                 },
                 {
                     id: 'privacy',
                     currentVersionHash: 'privacy-v1-hash',
                     policyName: 'Privacy Policy',
+                    versions: {},
                 },
             ]);
 
@@ -738,7 +739,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     preferredLanguage: 'en',
                 };
 
-                const updatedUserDoc = MockFirestoreReader.createTestUser(testUserId, {
+                const updatedUserDoc = createTestUser(testUserId, {
                     email: testUserEmail,
                     displayName: 'Test User',
                     emailVerified: true,
@@ -826,7 +827,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     photoURL: 'https://example.com/photo.jpg',
                 });
 
-                const updatedUserDoc = MockFirestoreReader.createTestUser(testUserId, {
+                const updatedUserDoc = createTestUser(testUserId, {
                     email: testUserEmail,
                     displayName: 'Valid Name',
                     emailVerified: true,
@@ -974,6 +975,14 @@ describe('UserService - Consolidated Unit Tests', () => {
                     confirmDelete: true,
                 };
 
+                // Set up user to exist in both Auth and Firestore
+                mockAuthService.getUser.mockResolvedValue({
+                    uid: testUserId,
+                    email: testUserEmail,
+                    displayName: 'Test User',
+                    emailVerified: true,
+                });
+                mockFirestoreReader.mockUserExists(testUserId, createTestUser(testUserId));
                 mockFirestoreReader.getGroupsForUserV2.mockResolvedValue({ data: [], hasMore: false });
                 mockAuthService.deleteUser.mockResolvedValue(undefined);
 
@@ -988,7 +997,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     confirmDelete: true,
                 };
 
-                const testGroup = MockFirestoreReader.createTestGroup('test-group', {
+                const testGroup = createTestGroup('test-group', {
                     name: 'Test Group',
                     members: [testUserId],
                 });
@@ -1135,7 +1144,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     photoURL: null,
                 });
 
-                const updatedUserDoc = MockFirestoreReader.createTestUser(testUserId, {
+                const updatedUserDoc = createTestUser(testUserId, {
                     email: testUserEmail,
                     displayName: 'Trimmed Name',
                     emailVerified: true,
@@ -1161,7 +1170,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     photoURL: null,
                 });
 
-                const updatedUserDoc = MockFirestoreReader.createTestUser(testUserId, {
+                const updatedUserDoc = createTestUser(testUserId, {
                     email: testUserEmail,
                     displayName: 'Name with émojis 🎉 and açcénts',
                     emailVerified: true,

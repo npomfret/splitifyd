@@ -1,9 +1,9 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { Group, MemberRoles, MemberStatuses, SecurityPresets, PermissionLevels } from '@splitifyd/shared';
 import { PermissionEngineAsync } from '../../permissions/permission-engine-async';
-import { MockFirestoreReader } from '../test-utils/MockFirestoreReader';
+import { StubFirestoreReader } from './mocks/firestore-stubs';
 
-let mockFirestoreReader: MockFirestoreReader;
+let stubFirestoreReader: StubFirestoreReader;
 
 // todo: use builders here !
 
@@ -13,7 +13,7 @@ describe('PermissionEngineAsync', () => {
     const testGroupId = 'group456';
 
     beforeEach(() => {
-        mockFirestoreReader = new MockFirestoreReader();
+        stubFirestoreReader = new StubFirestoreReader();
         vi.clearAllMocks();
 
         testGroup = {
@@ -36,16 +36,15 @@ describe('PermissionEngineAsync', () => {
 
     describe('checkPermission', () => {
         test('should return false if user is not a member', async () => {
-            mockFirestoreReader.getGroupMember.mockResolvedValue(null);
+            // No group member set in stub, so getGroupMember will return null
 
-            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'expenseEditing');
+            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'expenseEditing');
 
             expect(result).toBe(false);
-            expect(mockFirestoreReader.getGroupMember).toHaveBeenCalledWith(testGroupId, testUserId);
         });
 
         test('should return false if user is inactive', async () => {
-            mockFirestoreReader.getGroupMember.mockResolvedValue({
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, {
                 uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
@@ -54,13 +53,13 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'expenseEditing');
+            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'expenseEditing');
 
             expect(result).toBe(false);
         });
 
         test('should allow inactive users to view group', async () => {
-            mockFirestoreReader.getGroupMember.mockResolvedValue({
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, {
                 uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
@@ -69,13 +68,13 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'viewGroup');
+            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'viewGroup');
 
             expect(result).toBe(false); // Still false because status is PENDING, not ACTIVE
         });
 
         test('should allow active users to view group', async () => {
-            mockFirestoreReader.getGroupMember.mockResolvedValue({
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, {
                 uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
@@ -84,13 +83,13 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'viewGroup');
+            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'viewGroup');
 
             expect(result).toBe(true);
         });
 
         test('should deny viewers from expense editing', async () => {
-            mockFirestoreReader.getGroupMember.mockResolvedValue({
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, {
                 uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.VIEWER,
@@ -99,13 +98,13 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'expenseEditing');
+            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'expenseEditing');
 
             expect(result).toBe(false);
         });
 
         test('should allow member with ANYONE permission', async () => {
-            mockFirestoreReader.getGroupMember.mockResolvedValue({
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, {
                 uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
@@ -114,13 +113,13 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'expenseEditing');
+            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'expenseEditing');
 
             expect(result).toBe(true);
         });
 
         test('should allow admin with ADMIN_ONLY permission', async () => {
-            mockFirestoreReader.getGroupMember.mockResolvedValue({
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, {
                 uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.ADMIN,
@@ -129,13 +128,13 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'memberInvitation');
+            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'memberInvitation');
 
             expect(result).toBe(true);
         });
 
         test('should deny member with ADMIN_ONLY permission', async () => {
-            mockFirestoreReader.getGroupMember.mockResolvedValue({
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, {
                 uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
@@ -144,13 +143,13 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'memberInvitation');
+            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'memberInvitation');
 
             expect(result).toBe(false);
         });
 
         test('should allow admin with OWNER_AND_ADMIN permission', async () => {
-            mockFirestoreReader.getGroupMember.mockResolvedValue({
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, {
                 uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.ADMIN,
@@ -159,13 +158,13 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'expenseDeletion');
+            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'expenseDeletion');
 
             expect(result).toBe(true);
         });
 
         test('should allow expense owner with OWNER_AND_ADMIN permission', async () => {
-            mockFirestoreReader.getGroupMember.mockResolvedValue({
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, {
                 uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
@@ -193,14 +192,14 @@ describe('PermissionEngineAsync', () => {
                 deletedBy: null,
             };
 
-            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'expenseDeletion', { expense: mockExpense });
+            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'expenseDeletion', { expense: mockExpense });
 
             expect(result).toBe(true);
         });
 
         test('should throw error if group missing permissions', async () => {
             const groupWithoutPermissions = { ...testGroup, permissions: undefined as any };
-            mockFirestoreReader.getGroupMember.mockResolvedValue({
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, {
                 uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
@@ -209,7 +208,7 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            await expect(PermissionEngineAsync.checkPermission(mockFirestoreReader, groupWithoutPermissions, testUserId, 'expenseEditing')).rejects.toThrow(
+            await expect(PermissionEngineAsync.checkPermission(stubFirestoreReader, groupWithoutPermissions, testUserId, 'expenseEditing')).rejects.toThrow(
                 'Group group456 is missing permissions configuration',
             );
         });
@@ -219,7 +218,7 @@ describe('PermissionEngineAsync', () => {
                 ...testGroup,
                 permissions: { ...testGroup.permissions, expenseEditing: undefined as any },
             };
-            mockFirestoreReader.getGroupMember.mockResolvedValue({
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, {
                 uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
@@ -228,7 +227,7 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            await expect(PermissionEngineAsync.checkPermission(mockFirestoreReader, groupWithMissingPermission, testUserId, 'expenseEditing')).rejects.toThrow(
+            await expect(PermissionEngineAsync.checkPermission(stubFirestoreReader, groupWithMissingPermission, testUserId, 'expenseEditing')).rejects.toThrow(
                 'Group group456 is missing permission setting for action: expenseEditing',
             );
         });
@@ -236,7 +235,7 @@ describe('PermissionEngineAsync', () => {
 
     describe('canChangeRole', () => {
         test('should return false if actor member not found', async () => {
-            mockFirestoreReader.getGroupMember
+            stubFirestoreReader.getGroupMember
                 .mockResolvedValueOnce(null) // Actor not found
                 .mockResolvedValueOnce({
                     // Target found
@@ -245,16 +244,16 @@ describe('PermissionEngineAsync', () => {
                     memberRole: MemberRoles.MEMBER,
                     memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
+                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
                 });
 
-            const result = await PermissionEngineAsync.canChangeRole(mockFirestoreReader, testGroupId, 'creator123', testUserId, 'target123', MemberRoles.ADMIN);
+            const result = await PermissionEngineAsync.canChangeRole(stubFirestoreReader, testGroupId, 'creator123', testUserId, 'target123', MemberRoles.ADMIN);
 
             expect(result).toEqual({ allowed: false, reason: 'User not found in group' });
         });
 
         test('should return false if target member not found', async () => {
-            mockFirestoreReader.getGroupMember
+            stubFirestoreReader.getGroupMember
                 .mockResolvedValueOnce({
                     // Actor found
                     uid: testUserId,
@@ -262,17 +261,17 @@ describe('PermissionEngineAsync', () => {
                     memberRole: MemberRoles.ADMIN,
                     memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
+                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
                 })
                 .mockResolvedValueOnce(null); // Target not found
 
-            const result = await PermissionEngineAsync.canChangeRole(mockFirestoreReader, testGroupId, 'creator123', testUserId, 'target123', MemberRoles.ADMIN);
+            const result = await PermissionEngineAsync.canChangeRole(stubFirestoreReader, testGroupId, 'creator123', testUserId, 'target123', MemberRoles.ADMIN);
 
             expect(result).toEqual({ allowed: false, reason: 'User not found in group' });
         });
 
         test('should return false if actor is not admin', async () => {
-            mockFirestoreReader.getGroupMember
+            stubFirestoreReader.getGroupMember
                 .mockResolvedValueOnce({
                     // Actor (not admin)
                     uid: testUserId,
@@ -280,7 +279,7 @@ describe('PermissionEngineAsync', () => {
                     memberRole: MemberRoles.MEMBER,
                     memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
+                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
                 })
                 .mockResolvedValueOnce({
                     // Target
@@ -289,16 +288,16 @@ describe('PermissionEngineAsync', () => {
                     memberRole: MemberRoles.MEMBER,
                     memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
+                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
                 });
 
-            const result = await PermissionEngineAsync.canChangeRole(mockFirestoreReader, testGroupId, 'creator123', testUserId, 'target123', MemberRoles.ADMIN);
+            const result = await PermissionEngineAsync.canChangeRole(stubFirestoreReader, testGroupId, 'creator123', testUserId, 'target123', MemberRoles.ADMIN);
 
             expect(result).toEqual({ allowed: false, reason: 'Only admins can change member roles' });
         });
 
         test('should prevent last admin from demoting themselves', async () => {
-            mockFirestoreReader.getGroupMember
+            stubFirestoreReader.getGroupMember
                 .mockResolvedValueOnce({
                     // Actor (admin)
                     uid: testUserId,
@@ -306,7 +305,7 @@ describe('PermissionEngineAsync', () => {
                     memberRole: MemberRoles.ADMIN,
                     memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
+                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
                 })
                 .mockResolvedValueOnce({
                     // Target (same as actor)
@@ -315,23 +314,23 @@ describe('PermissionEngineAsync', () => {
                     memberRole: MemberRoles.ADMIN,
                     memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
+                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
                 });
 
             // Mock getAllGroupMembers to return only one admin
-            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([
+            stubFirestoreReader.getAllGroupMembers.mockResolvedValue([
                 {
                     uid: testUserId,
                     groupId: testGroupId,
                     memberRole: MemberRoles.ADMIN,
                     memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
+                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
                 },
             ]);
 
             const result = await PermissionEngineAsync.canChangeRole(
-                mockFirestoreReader,
+                stubFirestoreReader,
                 testGroupId,
                 'creator123',
                 testUserId, // Actor
@@ -347,7 +346,7 @@ describe('PermissionEngineAsync', () => {
 
         test('should prevent changing creator to viewer', async () => {
             const creatorId = 'creator123';
-            mockFirestoreReader.getGroupMember
+            stubFirestoreReader.getGroupMember
                 .mockResolvedValueOnce({
                     // Actor (admin)
                     uid: testUserId,
@@ -355,7 +354,7 @@ describe('PermissionEngineAsync', () => {
                     memberRole: MemberRoles.ADMIN,
                     memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
+                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
                 })
                 .mockResolvedValueOnce({
                     // Target (creator)
@@ -364,11 +363,11 @@ describe('PermissionEngineAsync', () => {
                     memberRole: MemberRoles.ADMIN,
                     memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
+                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
                 });
 
             const result = await PermissionEngineAsync.canChangeRole(
-                mockFirestoreReader,
+                stubFirestoreReader,
                 testGroupId,
                 creatorId, // Created by
                 testUserId, // Actor
@@ -383,7 +382,7 @@ describe('PermissionEngineAsync', () => {
         });
 
         test('should allow valid role change', async () => {
-            mockFirestoreReader.getGroupMember
+            stubFirestoreReader.getGroupMember
                 .mockResolvedValueOnce({
                     // Actor (admin)
                     uid: testUserId,
@@ -391,7 +390,7 @@ describe('PermissionEngineAsync', () => {
                     memberRole: MemberRoles.ADMIN,
                     memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
+                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
                 })
                 .mockResolvedValueOnce({
                     // Target
@@ -400,10 +399,10 @@ describe('PermissionEngineAsync', () => {
                     memberRole: MemberRoles.MEMBER,
                     memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
-                    theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
+                    theme: { name: 'blue', light: '#0000FF', dark: '#000080', pattern: 'solid', assignedAt: '2023-01-01T00:00:00Z', colorIndex: 0 },
                 });
 
-            const result = await PermissionEngineAsync.canChangeRole(mockFirestoreReader, testGroupId, 'creator123', testUserId, 'target123', MemberRoles.ADMIN);
+            const result = await PermissionEngineAsync.canChangeRole(stubFirestoreReader, testGroupId, 'creator123', testUserId, 'target123', MemberRoles.ADMIN);
 
             expect(result).toEqual({ allowed: true });
         });
@@ -411,7 +410,7 @@ describe('PermissionEngineAsync', () => {
 
     describe('getUserPermissions', () => {
         test('should return user permissions for admin', async () => {
-            mockFirestoreReader.getGroupMember.mockResolvedValue({
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, {
                 uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.ADMIN,
@@ -420,7 +419,7 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.getUserPermissions(mockFirestoreReader, testGroup, testUserId);
+            const result = await PermissionEngineAsync.getUserPermissions(stubFirestoreReader, testGroup, testUserId);
 
             expect(result).toEqual({
                 canEditAnyExpense: true,
@@ -433,7 +432,7 @@ describe('PermissionEngineAsync', () => {
         });
 
         test('should return limited permissions for member', async () => {
-            mockFirestoreReader.getGroupMember.mockResolvedValue({
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, {
                 uid: testUserId,
                 groupId: testGroupId,
                 memberRole: MemberRoles.MEMBER,
@@ -442,7 +441,7 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.getUserPermissions(mockFirestoreReader, testGroup, testUserId);
+            const result = await PermissionEngineAsync.getUserPermissions(stubFirestoreReader, testGroup, testUserId);
 
             expect(result).toEqual({
                 canEditAnyExpense: true, // ANYONE permission

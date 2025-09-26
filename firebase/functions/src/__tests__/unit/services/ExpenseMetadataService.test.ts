@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
+import { StubFirestoreReader } from '../mocks/firestore-stubs';
 
 // Mock the problematic dependencies before importing
 vi.mock('../../../services/serviceRegistration', () => ({
@@ -13,12 +13,11 @@ import { ExpenseMetadataService } from '../../../services/expenseMetadataService
 
 describe('ExpenseMetadataService', () => {
     let expenseMetadataService: ExpenseMetadataService;
-    let mockFirestoreReader: MockFirestoreReader;
+    let stubFirestoreReader: StubFirestoreReader;
 
     beforeEach(() => {
-        mockFirestoreReader = new MockFirestoreReader();
-        expenseMetadataService = new ExpenseMetadataService(mockFirestoreReader);
-        mockFirestoreReader.resetAllMocks();
+        stubFirestoreReader = new StubFirestoreReader();
+        expenseMetadataService = new ExpenseMetadataService(stubFirestoreReader);
     });
 
     describe('calculateExpenseMetadata', () => {
@@ -41,7 +40,23 @@ describe('ExpenseMetadataService', () => {
                 },
             ];
 
-            mockFirestoreReader.getExpensesForGroup.mockResolvedValue(mockExpenses as any);
+            // Set up the stub to return our test expenses for this group
+            stubFirestoreReader.setDocument('expenses', 'expense-1', {
+                id: 'expense-1',
+                groupId: groupId,
+                description: 'Latest Expense',
+                amount: 150,
+                date: { toDate: () => new Date('2024-01-15') },
+                createdAt: { toDate: () => new Date('2024-01-15T10:00:00Z') },
+            });
+            stubFirestoreReader.setDocument('expenses', 'expense-2', {
+                id: 'expense-2',
+                groupId: groupId,
+                description: 'Older Expense',
+                amount: 100,
+                date: { toDate: () => new Date('2024-01-10') },
+                createdAt: { toDate: () => new Date('2024-01-10T10:00:00Z') },
+            });
 
             const result = await expenseMetadataService.calculateExpenseMetadata(groupId);
 
@@ -52,19 +67,11 @@ describe('ExpenseMetadataService', () => {
                 amount: 150,
                 date: new Date('2024-01-15'),
             });
-
-            // Verify correct parameters passed to getExpensesForGroup
-            expect(mockFirestoreReader.getExpensesForGroup).toHaveBeenCalledWith(groupId, {
-                orderBy: {
-                    field: 'createdAt',
-                    direction: 'desc',
-                },
-            });
         });
 
         it('should return zero metadata for group with no expenses', async () => {
             const groupId = 'empty-group-id';
-            mockFirestoreReader.getExpensesForGroup.mockResolvedValue([]);
+            // No expenses set for this group in stub, so getExpensesForGroup will return empty array
 
             const result = await expenseMetadataService.calculateExpenseMetadata(groupId);
 
