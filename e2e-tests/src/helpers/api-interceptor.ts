@@ -174,17 +174,6 @@ export class ApiInterceptor {
     }
 
     /**
-     * Get summary of recorded API traffic
-     */
-    getSummary(): { requestCount: number; responseCount: number; logFile: string } {
-        return {
-            requestCount: this.requests.length,
-            responseCount: this.responses.length,
-            logFile: this.logFile,
-        };
-    }
-
-    /**
      * Process and attach API logs to test report
      */
     async processLogs(testInfo: TestInfo): Promise<void> {
