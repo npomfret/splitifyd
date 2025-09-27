@@ -1,4 +1,4 @@
-import type { IFirestoreReader, IFirestoreWriter } from '../services/firestore';
+import type { IFirestoreWriter } from '../services/firestore';
 import { UserService } from '../services/UserService2';
 import type { IAuthService } from '../services/auth';
 import { getFirestore } from '../firebase';

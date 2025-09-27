@@ -11,7 +11,6 @@ import {
     StubMeasure
 } from '../mocks/firestore-stubs';
 import { HTTP_STATUS } from '../../../constants';
-import { Timestamp } from 'firebase-admin/firestore';
 import type { CreateSettlementRequest } from '@splitifyd/shared';
 
 
