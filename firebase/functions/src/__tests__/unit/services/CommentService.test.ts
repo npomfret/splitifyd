@@ -1,7 +1,16 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CommentService } from '../../../services/CommentService';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { StubFirestoreReader, StubFirestoreWriter, StubAuthService, clearSharedStorage } from '../mocks/firestore-stubs';
+import {
+    StubFirestoreReader,
+    StubFirestoreWriter,
+    StubAuthService,
+    StubCommentStrategyFactory,
+    StubDateHelpers,
+    StubLoggerContext,
+    StubMeasure,
+    clearSharedStorage
+} from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { FirestoreGroupBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-support';
@@ -10,34 +19,15 @@ import { Timestamp } from 'firebase-admin/firestore';
 import type { CommentTargetType, CreateCommentRequest } from '@splitifyd/shared';
 import { validateCreateComment, validateListCommentsQuery, validateTargetId, validateCommentId } from '../../../comments/validation';
 
-// Mock logger
-vi.mock('../../../logger', () => ({
-    logger: {
-        error: vi.fn(),
-        warn: vi.fn(),
-        info: vi.fn(),
-    },
-    LoggerContext: {
-        setBusinessContext: vi.fn(),
-        clearBusinessContext: vi.fn(),
-    },
-}));
-
-// Mock the strategy factory for unit tests
-const mockStrategy = { verifyAccess: vi.fn() };
-vi.mock('../../../services/comments/CommentStrategyFactory', () => ({
-    CommentStrategyFactory: class {
-        getStrategy() {
-            return mockStrategy;
-        }
-    },
-}));
-
 describe('CommentService - Consolidated Tests', () => {
     let commentService: CommentService;
     let stubReader: StubFirestoreReader;
     let stubWriter: StubFirestoreWriter;
     let stubAuth: StubAuthService;
+    let stubStrategyFactory: StubCommentStrategyFactory;
+    let stubDateHelpers: StubDateHelpers;
+    let stubLoggerContext: StubLoggerContext;
+    let stubMeasure: StubMeasure;
     let applicationBuilder: ApplicationBuilder;
 
     beforeEach(() => {
@@ -45,10 +35,27 @@ describe('CommentService - Consolidated Tests', () => {
         stubReader = new StubFirestoreReader();
         stubWriter = new StubFirestoreWriter();
         stubAuth = new StubAuthService();
+        stubStrategyFactory = new StubCommentStrategyFactory();
+        stubDateHelpers = new StubDateHelpers();
+        stubLoggerContext = new StubLoggerContext();
+        stubMeasure = new StubMeasure();
 
-        // Pass stubs directly to ApplicationBuilder constructor
+        // Create ApplicationBuilder to get dependent services
         applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
-        commentService = applicationBuilder.buildCommentService();
+        const groupMemberService = applicationBuilder.buildGroupMemberService();
+
+        // Create CommentService with dependency injection
+        commentService = new CommentService(
+            stubReader,
+            stubWriter,
+            groupMemberService,
+            stubAuth,
+            // Inject stub dependencies
+            stubStrategyFactory as any,    // injectedStrategyFactory (cast to any for testing)
+            stubDateHelpers,        // injectedDateHelpers
+            StubLoggerContext,      // injectedLoggerContext
+            StubMeasure            // injectedMeasure
+        );
 
         // Set up test user in auth stub
         stubAuth.setUser('user-id', {
@@ -59,7 +66,7 @@ describe('CommentService - Consolidated Tests', () => {
         });
 
         // Reset mocks
-        mockStrategy.verifyAccess.mockResolvedValue(undefined);
+        stubStrategyFactory.getMockStrategy().verifyAccess.mockResolvedValue(undefined);
         stubAuth.clear();
         clearSharedStorage();
         vi.clearAllMocks();
@@ -83,11 +90,11 @@ describe('CommentService - Consolidated Tests', () => {
             // Should not throw
             await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.GROUP, 'test-group', 'user-id')).resolves.not.toThrow();
             // Reset mock for next test
-            mockStrategy.verifyAccess.mockResolvedValue(undefined);
+            stubStrategyFactory.getMockStrategy().verifyAccess.mockResolvedValue(undefined);
         });
 
         it('should throw NOT_FOUND when group does not exist', async () => {
-            mockStrategy.verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found'));
+            stubStrategyFactory.getMockStrategy().verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found'));
             await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.GROUP, 'nonexistent-group', 'user-id')).rejects.toThrow();
         });
 
@@ -95,7 +102,7 @@ describe('CommentService - Consolidated Tests', () => {
             const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
             stubReader.setDocument('groups', 'test-group', testGroup);
             // Don't set up group membership - user will not be a member
-            mockStrategy.verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_FORBIDDEN', 'Access forbidden'));
+            stubStrategyFactory.getMockStrategy().verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_FORBIDDEN', 'Access forbidden'));
 
             await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.GROUP, 'test-group', 'unauthorized-user')).rejects.toThrow();
         });
@@ -121,11 +128,11 @@ describe('CommentService - Consolidated Tests', () => {
 
             await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.EXPENSE, 'test-expense', 'user-id')).resolves.not.toThrow();
             // Reset mock for next test
-            mockStrategy.verifyAccess.mockResolvedValue(undefined);
+            stubStrategyFactory.getMockStrategy().verifyAccess.mockResolvedValue(undefined);
         });
 
         it('should throw NOT_FOUND when expense does not exist', async () => {
-            mockStrategy.verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found'));
+            stubStrategyFactory.getMockStrategy().verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found'));
             await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.EXPENSE, 'nonexistent-expense', 'user-id')).rejects.toThrow();
         });
     });
@@ -209,7 +216,7 @@ describe('CommentService - Consolidated Tests', () => {
 
         it('should throw error when user lacks access', async () => {
             // Mock strategy to reject access
-            mockStrategy.verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'));
+            stubStrategyFactory.getMockStrategy().verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'));
 
             await expect(commentService.listComments(CommentTargetTypes.GROUP, 'nonexistent-group', 'user-id')).rejects.toThrow();
         });
@@ -372,6 +379,11 @@ describe('CommentService - Consolidated Tests', () => {
                 stubWriter,
                 {} as any, // GroupMemberService not used in these tests
                 stubAuth,
+                // Inject stub dependencies for unit tests
+                stubStrategyFactory as any,    // injectedStrategyFactory
+                stubDateHelpers,        // injectedDateHelpers
+                StubLoggerContext,      // injectedLoggerContext
+                StubMeasure            // injectedMeasure
             );
         });
 
@@ -464,7 +476,7 @@ describe('CommentService - Consolidated Tests', () => {
                 });
 
                 // Mock strategy to reject access
-                mockStrategy.verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'));
+                stubStrategyFactory.getMockStrategy().verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'));
 
                 await expect(
                     unitCommentService.createComment(targetType, targetId, commentData, userId)
@@ -554,7 +566,7 @@ describe('CommentService - Consolidated Tests', () => {
                 const targetId = 'group-456';
 
                 // Mock strategy to reject access
-                mockStrategy.verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'));
+                stubStrategyFactory.getMockStrategy().verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'));
 
                 await expect(
                     unitCommentService.listComments(targetType, targetId, userId)
@@ -583,7 +595,7 @@ describe('CommentService - Consolidated Tests', () => {
                 const result = await unitCommentService.createComment(targetType, targetId, commentData, userId);
 
                 expect(result.text).toBe('Group comment');
-                expect(mockStrategy.verifyAccess).toHaveBeenCalledWith(targetId, userId);
+                expect(stubStrategyFactory.getMockStrategy().verifyAccess).toHaveBeenCalledWith(targetId, userId);
             });
 
             it('should support expense comments', async () => {
@@ -606,7 +618,7 @@ describe('CommentService - Consolidated Tests', () => {
                 const result = await unitCommentService.createComment(targetType, targetId, commentData, userId);
 
                 expect(result.text).toBe('Expense comment');
-                expect(mockStrategy.verifyAccess).toHaveBeenCalledWith(targetId, userId);
+                expect(stubStrategyFactory.getMockStrategy().verifyAccess).toHaveBeenCalledWith(targetId, userId);
             });
         });
 

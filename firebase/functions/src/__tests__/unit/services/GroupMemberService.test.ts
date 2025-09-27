@@ -1,31 +1,27 @@
 import { describe, it, test, expect, beforeEach, vi } from 'vitest';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
+import {
+    StubFirestoreReader,
+    StubFirestoreWriter,
+    StubAuthService,
+    StubLogger,
+    StubLoggerContext,
+    StubMeasure
+} from '../mocks/firestore-stubs';
 import { FirestoreGroupBuilder } from '@splitifyd/test-support';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import type { GroupDocument } from '../../../schemas';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
-
-// Mock logger
-vi.mock('../../../logger', () => ({
-    logger: {
-        error: vi.fn(),
-        warn: vi.fn(),
-        info: vi.fn(),
-    },
-    LoggerContext: {
-        setBusinessContext: vi.fn(),
-        clearBusinessContext: vi.fn(),
-        update: vi.fn(),
-    },
-}));
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {
     let groupMemberService: GroupMemberService;
     let stubReader: StubFirestoreReader;
     let stubWriter: StubFirestoreWriter;
     let stubAuth: StubAuthService;
+    let stubLogger: StubLogger;
+    let stubLoggerContext: StubLoggerContext;
+    let stubMeasure: StubMeasure;
     let applicationBuilder: ApplicationBuilder;
     let mockUserService: any;
     let mockBalanceService: any;
@@ -53,6 +49,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         stubReader = new StubFirestoreReader();
         stubWriter = new StubFirestoreWriter();
         stubAuth = new StubAuthService();
+        stubLogger = new StubLogger();
+        stubLoggerContext = new StubLoggerContext();
+        stubMeasure = new StubMeasure();
 
         // Mock UserService
         mockUserService = {
@@ -65,20 +64,21 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             createUserDirect: vi.fn(),
         };
 
-        // For basic tests: use ApplicationBuilder
-        applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
-
-        // For validation tests: use direct constructor with mocked UserService
-        const validationGroupMemberService = new GroupMemberService(stubReader, stubWriter, mockUserService);
-
-        // Mock the balance service that gets created internally
+        // Mock the balance service
         mockBalanceService = {
             calculateGroupBalances: vi.fn(),
         };
-        (validationGroupMemberService as any).balanceService = mockBalanceService;
 
-        // Use the validation service for all tests (it has more complete mocking)
-        groupMemberService = validationGroupMemberService;
+        // Create GroupMemberService with dependency injection
+        groupMemberService = new GroupMemberService(
+            stubReader,
+            stubWriter,
+            mockBalanceService,
+            // Inject stub dependencies
+            stubLogger,           // injectedLogger
+            StubLoggerContext,    // injectedLoggerContext
+            StubMeasure          // injectedMeasure
+        );
 
         // Setup test group using builder
         const testGroup = new FirestoreGroupBuilder().withId(testGroupId).withName('Test Group').build();

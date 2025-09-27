@@ -1,29 +1,28 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GroupShareService } from '../../../services/GroupShareService';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
+import {
+    StubFirestoreReader,
+    StubFirestoreWriter,
+    StubAuthService,
+    StubLogger,
+    StubLoggerContext,
+    StubDateHelpers,
+    StubMeasure
+} from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { FirestoreGroupBuilder } from '@splitifyd/test-support';
-
-// Mock logger
-vi.mock('../../../logger', () => ({
-    logger: {
-        error: vi.fn(),
-        warn: vi.fn(),
-        info: vi.fn(),
-    },
-    LoggerContext: {
-        setBusinessContext: vi.fn(),
-        clearBusinessContext: vi.fn(),
-    },
-}));
 
 describe('GroupShareService', () => {
     let groupShareService: GroupShareService;
     let stubReader: StubFirestoreReader;
     let stubWriter: StubFirestoreWriter;
     let stubAuth: StubAuthService;
+    let stubLogger: StubLogger;
+    let stubLoggerContext: StubLoggerContext;
+    let stubDateHelpers: StubDateHelpers;
+    let stubMeasure: StubMeasure;
     let applicationBuilder: ApplicationBuilder;
 
     beforeEach(() => {
@@ -31,10 +30,26 @@ describe('GroupShareService', () => {
         stubReader = new StubFirestoreReader();
         stubWriter = new StubFirestoreWriter();
         stubAuth = new StubAuthService();
+        stubLogger = new StubLogger();
+        stubLoggerContext = new StubLoggerContext();
+        stubDateHelpers = new StubDateHelpers();
+        stubMeasure = new StubMeasure();
 
-        // Pass stubs directly to ApplicationBuilder constructor
+        // Create ApplicationBuilder to get dependent services
         applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
-        groupShareService = applicationBuilder.buildGroupShareService();
+        const groupMemberService = applicationBuilder.buildGroupMemberService();
+
+        // Create GroupShareService with dependency injection
+        groupShareService = new GroupShareService(
+            stubReader,
+            stubWriter,
+            groupMemberService,
+            // Inject stub dependencies
+            stubLogger,           // injectedLogger
+            StubLoggerContext,    // injectedLoggerContext
+            stubDateHelpers,      // injectedDateHelpers
+            StubMeasure          // injectedMeasure
+        );
 
         vi.clearAllMocks();
     });

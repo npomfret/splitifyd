@@ -1,29 +1,41 @@
 import { Errors, ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
+import * as measure from '../monitoring/measure';
 import { FirestoreCollections } from '@splitifyd/shared';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import { BalanceCalculationService } from './balance';
-import { measureDb } from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import { MemberRoles } from '@splitifyd/shared';
 import { getTopLevelMembershipDocId, createTopLevelMembershipDocument } from '../utils/groupMembershipHelpers';
 
 export class GroupMemberService {
+    // Injected dependencies or defaults
+    private readonly logger: typeof import('../logger').logger;
+    private readonly loggerContext: typeof import('../logger').LoggerContext;
+    private readonly measure: typeof import('../monitoring/measure');
 
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly balanceService: BalanceCalculationService,
+        // Optional dependencies for testing
+        injectedLogger?: typeof import('../logger').logger,
+        injectedLoggerContext?: typeof import('../logger').LoggerContext,
+        injectedMeasure?: typeof import('../monitoring/measure')
     ) {
+        // Use injected dependencies or fall back to imports
+        this.logger = injectedLogger || logger;
+        this.loggerContext = injectedLoggerContext || LoggerContext;
+        this.measure = injectedMeasure || measure;
     }
 
     async leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string }> {
-        return measureDb('GroupMemberService.leaveGroup', async () => this._removeMemberFromGroup(userId, groupId, userId, true));
+        return this.measure.measureDb('GroupMemberService.leaveGroup', async () => this._removeMemberFromGroup(userId, groupId, userId, true));
     }
 
     async removeGroupMember(userId: string, groupId: string, memberId: string): Promise<{ success: true; message: string }> {
-        return measureDb('GroupMemberService.removeGroupMember', async () => this._removeMemberFromGroup(userId, groupId, memberId, false));
+        return this.measure.measureDb('GroupMemberService.removeGroupMember', async () => this._removeMemberFromGroup(userId, groupId, memberId, false));
     }
 
     /**
@@ -34,8 +46,8 @@ export class GroupMemberService {
      * @param isLeaving - true for self-leave, false for admin removal
      */
     private async _removeMemberFromGroup(requestingUserId: string, groupId: string, targetUserId: string, isLeaving: boolean): Promise<{ success: true; message: string }> {
-        LoggerContext.setBusinessContext({ groupId });
-        LoggerContext.update({
+        this.loggerContext.setBusinessContext({ groupId });
+        this.loggerContext.update({
             userId: requestingUserId,
             operation: isLeaving ? 'leave-group' : 'remove-group-member',
             ...(isLeaving ? {} : { memberId: targetUserId }),
@@ -108,7 +120,7 @@ export class GroupMemberService {
 
             // For any other errors from calculateGroupBalances (e.g., database issues, data corruption),
             // log them for debugging and throw a generic error to the user
-            logger.error(`Unexpected error during balance check for ${isLeaving ? 'leaving' : 'member removal'}`, balanceError as Error, {
+            this.logger.error(`Unexpected error during balance check for ${isLeaving ? 'leaving' : 'member removal'}`, balanceError as Error, {
                 groupId,
                 requestingUserId,
                 targetUserId,
@@ -120,9 +132,9 @@ export class GroupMemberService {
         // Atomically update group, delete membership, and clean up notifications
         await this.firestoreWriter.leaveGroupAtomic(groupId, targetUserId);
 
-        LoggerContext.setBusinessContext({ groupId });
+        this.loggerContext.setBusinessContext({ groupId });
         const logEvent = isLeaving ? 'member-left' : 'member-removed';
-        logger.info(logEvent, { id: targetUserId, groupId });
+        this.logger.info(logEvent, { id: targetUserId, groupId });
 
         return {
             success: true,
@@ -139,7 +151,7 @@ export class GroupMemberService {
      * Path: group-memberships/{userId}_{groupId}
      */
     async createMember(groupId: string, memberDoc: GroupMemberDocument): Promise<void> {
-        return measureDb('CREATE_MEMBER', async () => {
+        return this.measure.measureDb('CREATE_MEMBER', async () => {
             const topLevelDocId = getTopLevelMembershipDocId(memberDoc.uid, groupId);
             const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, new Date().toISOString());
 
@@ -147,7 +159,7 @@ export class GroupMemberService {
                 this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, topLevelDocId, topLevelMemberDoc);
             });
 
-            logger.info('Member added to top-level collection', {
+            this.logger.info('Member added to top-level collection', {
                 groupId,
                 userId: memberDoc.uid,
                 memberRole: memberDoc.memberRole,
@@ -175,14 +187,14 @@ export class GroupMemberService {
      * Update a member in the top-level collection
      */
     async updateMember(groupId: string, userId: string, updates: Partial<GroupMemberDocument>): Promise<void> {
-        return measureDb('UPDATE_MEMBER', async () => {
+        return this.measure.measureDb('UPDATE_MEMBER', async () => {
             const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
 
             await this.firestoreWriter.runTransaction(async (transaction) => {
                 this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`, updates);
             });
 
-            logger.info('Member updated in top-level collection', {
+            this.logger.info('Member updated in top-level collection', {
                 groupId,
                 userId,
                 updates: Object.keys(updates),
@@ -194,13 +206,13 @@ export class GroupMemberService {
      * Delete a member from top-level collection
      */
     async deleteMember(groupId: string, userId: string): Promise<void> {
-        return measureDb('DELETE_MEMBER', async () => {
+        return this.measure.measureDb('DELETE_MEMBER', async () => {
             const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
 
             // Use atomic batch operation to delete membership and remove from notifications
             await this.firestoreWriter.deleteMemberAndNotifications(topLevelDocId, userId, groupId);
 
-            logger.info('Member and notification tracking deleted atomically', { groupId, userId });
+            this.logger.info('Member and notification tracking deleted atomically', { groupId, userId });
         });
     }
 

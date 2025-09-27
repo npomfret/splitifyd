@@ -59,6 +59,10 @@ vi.mock('../../logger', () => ({
         info: vi.fn(),
         warn: vi.fn(),
     },
+    LoggerContext: {
+        setBusinessContext: vi.fn(),
+        update: vi.fn(),
+    },
 }));
 
 describe('Configuration Response Functions', () => {

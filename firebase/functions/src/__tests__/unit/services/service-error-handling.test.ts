@@ -1,17 +1,9 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { GroupMemberService } from '../../../services/GroupMemberService';
-import { StubFirestoreReader } from '../mocks/firestore-stubs';
+import { StubFirestoreReader, StubFirestoreWriter, StubLogger, StubLoggerContext, StubMeasure } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
-
-// Mock logger
-vi.mock('../../../logger', () => ({
-    logger: {
-        error: vi.fn(),
-        warn: vi.fn(),
-        info: vi.fn(),
-    },
-}));
+import { BalanceCalculationService } from '../../../services/balance';
 
 // Create mock services
 const createMockUserService = () => ({
@@ -39,6 +31,11 @@ const createMockGroupMemberService = () => ({
 
 describe('Service-Level Error Handling - Subcollection Queries', () => {
     let stubFirestoreReader: StubFirestoreReader;
+    let stubFirestoreWriter: StubFirestoreWriter;
+    let stubLogger: StubLogger;
+    let stubLoggerContext: StubLoggerContext;
+    let stubMeasure: StubMeasure;
+    let mockBalanceService: BalanceCalculationService;
     let groupMemberService: GroupMemberService;
     let mockUserService: ReturnType<typeof createMockUserService>;
     let mockNotificationService: ReturnType<typeof createMockNotificationService>;
@@ -47,13 +44,28 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         stubFirestoreReader = new StubFirestoreReader();
+        stubFirestoreWriter = new StubFirestoreWriter();
+        stubLogger = new StubLogger();
+        stubLoggerContext = new StubLoggerContext();
+        stubMeasure = new StubMeasure();
+
+        // Create a mock balance service
+        mockBalanceService = {
+            calculateGroupBalances: vi.fn().mockResolvedValue({ balancesByCurrency: {} }),
+        } as any;
+
         mockUserService = createMockUserService();
         mockNotificationService = createMockNotificationService();
         mockGroupMemberServiceRef = createMockGroupMemberService();
+
         groupMemberService = new GroupMemberService(
             stubFirestoreReader,
-            {} as any, // mockFirestoreWriter
-            mockUserService as any,
+            stubFirestoreWriter,
+            mockBalanceService,
+            // Inject stub dependencies
+            stubLogger,
+            StubLoggerContext,
+            StubMeasure
         );
     });
 

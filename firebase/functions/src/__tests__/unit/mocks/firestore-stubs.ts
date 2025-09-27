@@ -1555,6 +1555,92 @@ export class StubOptimisticLocking {
 
 
 /**
+ * Stub implementation for CommentStrategyFactory to replace vi.mock()
+ */
+export class StubCommentStrategyFactory {
+    private mockStrategy: any;
+
+    constructor() {
+        this.mockStrategy = {
+            verifyAccess: vi.fn()
+        };
+    }
+
+    getStrategy(targetType: string): any {
+        return this.mockStrategy;
+    }
+
+    setMockStrategy(strategy: any) {
+        this.mockStrategy = strategy;
+    }
+
+    getMockStrategy() {
+        return this.mockStrategy;
+    }
+
+    clear() {
+        this.mockStrategy.verifyAccess.mockReset();
+    }
+}
+
+/**
+ * Stub implementation for i18n validation to replace vi.mock()
+ */
+export class StubI18nValidation {
+    private translations = new Map<string, string>();
+    private errorMessages = new Map<string, string>();
+
+    setTranslation(key: string, value: string) {
+        this.translations.set(key, value);
+    }
+
+    setErrorMessage(error: string, message: string) {
+        this.errorMessages.set(error, message);
+    }
+
+    translateJoiError(error: any): string {
+        const errorKey = error.details?.[0]?.message || 'Validation error';
+        return this.errorMessages.get(errorKey) || errorKey;
+    }
+
+    translate(key: string): string {
+        return this.translations.get(key) || key;
+    }
+
+    translateValidationError(detail: any): string {
+        return detail.message || 'Validation error';
+    }
+
+    clear() {
+        this.translations.clear();
+        this.errorMessages.clear();
+    }
+}
+
+/**
+ * Stub implementation for service registration to replace vi.mock()
+ */
+export class StubServiceRegistration {
+    private services = new Map<string, any>();
+
+    registerService(name: string, service: any) {
+        this.services.set(name, service);
+    }
+
+    getService(name: string): any {
+        return this.services.get(name);
+    }
+
+    hasService(name: string): boolean {
+        return this.services.has(name);
+    }
+
+    clear() {
+        this.services.clear();
+    }
+}
+
+/**
  * Clear all shared storage for tests
  */
 export function clearSharedStorage() {

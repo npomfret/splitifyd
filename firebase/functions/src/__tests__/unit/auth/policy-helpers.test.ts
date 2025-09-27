@@ -15,6 +15,10 @@ vi.mock('../../../logger', () => ({
     logger: {
         error: vi.fn(),
     },
+    LoggerContext: {
+        setBusinessContext: vi.fn(),
+        update: vi.fn(),
+    },
 }));
 
 describe('Policy Helpers', () => {

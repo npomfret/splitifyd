@@ -1,7 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GroupService } from '../../services/GroupService';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
-import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from './mocks/firestore-stubs';
+import {
+    StubFirestoreReader,
+    StubFirestoreWriter,
+    StubAuthService,
+    StubLogger,
+    StubLoggerContext,
+    StubDateHelpers,
+    StubMeasure
+} from './mocks/firestore-stubs';
 import { FirestoreGroupBuilder } from '@splitifyd/test-support';
 import { ApiError } from '../../utils/errors';
 import { validateCreateGroup, validateUpdateGroup, validateGroupId } from '../../groups/validation';
@@ -9,24 +17,15 @@ import { HTTP_STATUS } from '../../constants';
 import { VALIDATION_LIMITS } from '../../constants';
 import type { CreateGroupRequest } from '@splitifyd/shared';
 
-// Mock logger
-vi.mock('../../logger', () => ({
-    logger: {
-        error: vi.fn(),
-        warn: vi.fn(),
-        info: vi.fn(),
-    },
-    LoggerContext: {
-        setBusinessContext: vi.fn(),
-        clearBusinessContext: vi.fn(),
-    },
-}));
-
 describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;
     let stubReader: StubFirestoreReader;
     let stubWriter: StubFirestoreWriter;
     let stubAuth: StubAuthService;
+    let stubLogger: StubLogger;
+    let stubLoggerContext: StubLoggerContext;
+    let stubDateHelpers: StubDateHelpers;
+    let stubMeasure: StubMeasure;
     let applicationBuilder: ApplicationBuilder;
 
     beforeEach(() => {
@@ -34,10 +33,41 @@ describe('GroupService - Unit Tests', () => {
         stubReader = new StubFirestoreReader();
         stubWriter = new StubFirestoreWriter();
         stubAuth = new StubAuthService();
+        stubLogger = new StubLogger();
+        stubLoggerContext = new StubLoggerContext();
+        stubDateHelpers = new StubDateHelpers();
+        stubMeasure = new StubMeasure();
 
-        // Pass stubs directly to ApplicationBuilder constructor
+        // Create ApplicationBuilder to get all dependent services
         applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
-        groupService = applicationBuilder.buildGroupService();
+
+        // Create GroupService with dependency injection
+        // Since GroupService has many dependencies, we'll use ApplicationBuilder
+        // but inject the stubs via dependency injection parameters
+        const userService = applicationBuilder.buildUserService();
+        const expenseService = applicationBuilder.buildExpenseService();
+        const settlementService = applicationBuilder.buildSettlementService();
+        const groupMemberService = applicationBuilder.buildGroupMemberService();
+        const notificationService = applicationBuilder.buildNotificationService();
+        const expenseMetadataService = applicationBuilder.buildExpenseMetadataService();
+        const groupShareService = applicationBuilder.buildGroupShareService();
+
+        groupService = new GroupService(
+            stubReader,
+            stubWriter,
+            userService,
+            expenseService,
+            settlementService,
+            groupMemberService,
+            notificationService,
+            expenseMetadataService,
+            groupShareService,
+            // Inject stub dependencies
+            stubLogger,           // injectedLogger
+            StubLoggerContext,    // injectedLoggerContext
+            stubDateHelpers,      // injectedDateHelpers
+            StubMeasure          // injectedMeasure
+        );
 
         vi.clearAllMocks();
     });

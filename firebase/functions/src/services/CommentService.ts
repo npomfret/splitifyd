@@ -1,10 +1,10 @@
 import type { IAuthService } from './auth';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
-import { createOptimisticTimestamp, assertTimestampAndConvert } from '../utils/dateHelpers';
-import { LoggerContext } from '../utils/logger-context';
+import * as dateHelpers from '../utils/dateHelpers';
+import * as loggerContext from '../utils/logger-context';
 import { Comment, CommentApiResponse, CommentTargetType, CreateCommentRequest, ListCommentsResponse } from '@splitifyd/shared';
-import { measureDb } from '../monitoring/measure';
+import * as measure from '../monitoring/measure';
 import { CommentDataSchema } from '../schemas';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
@@ -24,13 +24,29 @@ type CommentCreateData = Omit<Comment, 'id' | 'authorAvatar'> & {
 export class CommentService {
     private readonly strategyFactory: CommentStrategyFactory;
 
+    // Injected dependencies or defaults
+    private readonly dateHelpers: typeof import('../utils/dateHelpers');
+    private readonly loggerContext: typeof import('../utils/logger-context').LoggerContext;
+    private readonly measure: typeof import('../monitoring/measure');
+
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly groupMemberService: GroupMemberService,
         private readonly authService: IAuthService,
+        // Optional dependencies for testing
+        injectedStrategyFactory?: CommentStrategyFactory,
+        injectedDateHelpers?: typeof import('../utils/dateHelpers'),
+        injectedLoggerContext?: typeof import('../utils/logger-context').LoggerContext,
+        injectedMeasure?: typeof import('../monitoring/measure')
     ) {
-        this.strategyFactory = new CommentStrategyFactory(firestoreReader, groupMemberService);
+        // Use injected strategy factory or create new one
+        this.strategyFactory = injectedStrategyFactory || new CommentStrategyFactory(firestoreReader, groupMemberService);
+
+        // Use injected dependencies or fall back to imports
+        this.dateHelpers = injectedDateHelpers || dateHelpers;
+        this.loggerContext = injectedLoggerContext || loggerContext.LoggerContext;
+        this.measure = injectedMeasure || measure;
     }
 
     /**
@@ -54,7 +70,7 @@ export class CommentService {
             groupId?: string;
         } = {},
     ): Promise<ListCommentsResponse> {
-        return measureDb('CommentService.listComments', async () => this._listComments(targetType, targetId, userId, options));
+        return this.measure.measureDb('CommentService.listComments', async () => this._listComments(targetType, targetId, userId, options));
     }
 
     private async _listComments(
@@ -67,7 +83,7 @@ export class CommentService {
             groupId?: string;
         } = {},
     ): Promise<ListCommentsResponse> {
-        LoggerContext.update({ targetType, targetId, userId, operation: 'list-comments', limit: options.limit || 50 });
+        this.loggerContext.update({ targetType, targetId, userId, operation: 'list-comments', limit: options.limit || 50 });
 
         const limit = options.limit || 50;
         const { cursor } = options;
@@ -90,8 +106,8 @@ export class CommentService {
             authorName: comment.authorName,
             authorAvatar: comment.authorAvatar || undefined,
             text: comment.text,
-            createdAt: assertTimestampAndConvert(comment.createdAt, 'createdAt'),
-            updatedAt: assertTimestampAndConvert(comment.updatedAt, 'updatedAt'),
+            createdAt: this.dateHelpers.assertTimestampAndConvert(comment.createdAt, 'createdAt'),
+            updatedAt: this.dateHelpers.assertTimestampAndConvert(comment.updatedAt, 'updatedAt'),
         }));
 
         return {
@@ -105,11 +121,11 @@ export class CommentService {
      * Create a new comment
      */
     async createComment(targetType: CommentTargetType, targetId: string, commentData: CreateCommentRequest, userId: string): Promise<CommentApiResponse> {
-        return measureDb('CommentService.createComment', async () => this._createComment(targetType, targetId, commentData, userId));
+        return this.measure.measureDb('CommentService.createComment', async () => this._createComment(targetType, targetId, commentData, userId));
     }
 
     private async _createComment(targetType: CommentTargetType, targetId: string, commentData: CreateCommentRequest, userId: string): Promise<CommentApiResponse> {
-        LoggerContext.update({ targetType, targetId, userId, operation: 'create-comment' });
+        this.loggerContext.update({ targetType, targetId, userId, operation: 'create-comment' });
 
         // Verify user has access to comment on this target
         await this.verifyCommentAccess(targetType, targetId, userId);
@@ -122,7 +138,7 @@ export class CommentService {
         const authorName = userRecord.displayName || userRecord.email?.split('@')[0] || 'Anonymous';
 
         // Prepare comment data
-        const now = createOptimisticTimestamp();
+        const now = this.dateHelpers.createOptimisticTimestamp();
         const commentCreateData: CommentCreateData = {
             authorId: userId,
             authorName,
@@ -151,8 +167,8 @@ export class CommentService {
             authorName: createdComment.authorName,
             authorAvatar: createdComment.authorAvatar || undefined,
             text: createdComment.text,
-            createdAt: assertTimestampAndConvert(createdComment.createdAt, 'createdAt'),
-            updatedAt: assertTimestampAndConvert(createdComment.updatedAt, 'updatedAt'),
+            createdAt: this.dateHelpers.assertTimestampAndConvert(createdComment.createdAt, 'createdAt'),
+            updatedAt: this.dateHelpers.assertTimestampAndConvert(createdComment.updatedAt, 'updatedAt'),
         };
     }
 }

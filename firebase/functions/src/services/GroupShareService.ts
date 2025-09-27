@@ -4,8 +4,8 @@ import { ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { COLOR_PATTERNS, FirestoreCollections, GroupMemberDocument, MemberRoles, MemberStatuses, ShareLink, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
-import { createTrueServerTimestamp, timestampToISO } from '../utils/dateHelpers';
-import { measureDb } from '../monitoring/measure';
+import * as dateHelpers from '../utils/dateHelpers';
+import * as measure from '../monitoring/measure';
 import { ShareLinkDataSchema } from '../schemas';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
@@ -13,11 +13,28 @@ import type { GroupMemberService } from './GroupMemberService';
 import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
 
 export class GroupShareService {
+    // Injected dependencies or defaults
+    private readonly logger: typeof import('../logger').logger;
+    private readonly loggerContext: typeof import('../logger').LoggerContext;
+    private readonly dateHelpers: typeof import('../utils/dateHelpers');
+    private readonly measure: typeof import('../monitoring/measure');
+
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly groupMemberService: GroupMemberService,
-    ) {}
+        // Optional dependencies for testing
+        injectedLogger?: typeof import('../logger').logger,
+        injectedLoggerContext?: typeof import('../logger').LoggerContext,
+        injectedDateHelpers?: typeof import('../utils/dateHelpers'),
+        injectedMeasure?: typeof import('../monitoring/measure')
+    ) {
+        // Use injected dependencies or fall back to imports
+        this.logger = injectedLogger || logger;
+        this.loggerContext = injectedLoggerContext || LoggerContext;
+        this.dateHelpers = injectedDateHelpers || dateHelpers;
+        this.measure = injectedMeasure || measure;
+    }
 
     private generateShareToken(): string {
         const bytes = randomBytes(12);
@@ -68,7 +85,7 @@ export class GroupShareService {
         shareablePath: string;
         linkId: string;
     }> {
-        return measureDb('GroupShareService.generateShareableLink', async () => this._generateShareableLink(userId, groupId));
+        return this.measure.measureDb('GroupShareService.generateShareableLink', async () => this._generateShareableLink(userId, groupId));
     }
 
     private async _generateShareableLink(
@@ -111,7 +128,7 @@ export class GroupShareService {
                 const validatedShareLinkData = ShareLinkDataSchema.parse(shareLinkData);
                 this.firestoreWriter.createShareLinkInTransaction(transaction, groupId, validatedShareLinkData);
             } catch (error) {
-                logger.error('ShareLink data validation failed before write', error as Error, {
+                this.logger.error('ShareLink data validation failed before write', error as Error, {
                     groupId,
                     createdBy: userId,
                     validationErrors: error instanceof z.ZodError ? error.issues : undefined,
@@ -122,8 +139,8 @@ export class GroupShareService {
 
         const shareablePath = `/join?linkId=${shareToken}`;
 
-        LoggerContext.setBusinessContext({ groupId });
-        logger.info('share-link-created', { id: shareToken, groupId, createdBy: userId });
+        this.loggerContext.setBusinessContext({ groupId });
+        this.logger.info('share-link-created', { id: shareToken, groupId, createdBy: userId });
 
         return {
             shareablePath,
@@ -175,7 +192,7 @@ export class GroupShareService {
         message: string;
         success: boolean;
     }> {
-        return measureDb('GroupShareService.joinGroupByLink', async () => this._joinGroupByLink(userId, userEmail, linkId));
+        return this.measure.measureDb('GroupShareService.joinGroupByLink', async () => this._joinGroupByLink(userId, userEmail, linkId));
     }
 
     private async _joinGroupByLink(
@@ -227,7 +244,7 @@ export class GroupShareService {
             invitedBy: shareLink.createdBy,
         };
 
-        const serverTimestamp = createTrueServerTimestamp();
+        const serverTimestamp = this.dateHelpers.createTrueServerTimestamp();
 
         // Atomic transaction: check group exists and create member subcollection
         const result = await this.firestoreWriter.runTransaction(
@@ -241,13 +258,13 @@ export class GroupShareService {
                 // Update group timestamp to reflect membership change
                 const groupDocumentPath = `${FirestoreCollections.GROUPS}/${groupId}`;
                 this.firestoreWriter.updateInTransaction(transaction, groupDocumentPath, {
-                    updatedAt: createTrueServerTimestamp(),
+                    updatedAt: this.dateHelpers.createTrueServerTimestamp(),
                 });
 
                 // Write to top-level collection for improved querying
                 const now = new Date();
                 this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, getTopLevelMembershipDocId(userId, groupId), {
-                    ...createTopLevelMembershipDocument(memberDoc, timestampToISO(now)) /* Use current timestamp since group was just updated */,
+                    ...createTopLevelMembershipDocument(memberDoc, this.dateHelpers.timestampToISO(now)) /* Use current timestamp since group was just updated */,
                     createdAt: serverTimestamp,
                     updatedAt: serverTimestamp,
                 });
@@ -272,7 +289,7 @@ export class GroupShareService {
             },
         );
 
-        logger.info('User joined group via share link', {
+        this.logger.info('User joined group via share link', {
             groupId,
             userId,
             userName,
