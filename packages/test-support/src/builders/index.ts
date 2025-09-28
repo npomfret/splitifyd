@@ -24,4 +24,4 @@ export { ExpenseFormDataBuilder } from './ExpenseFormDataBuilder';
 export type { ExpenseFormData } from './ExpenseFormDataBuilder';
 export { SettlementFormDataBuilder } from './SettlementFormDataBuilder';
 export type { SettlementFormData } from './SettlementFormDataBuilder';
-export { StubDataBuilder } from './StubDataBuilder';
+export { AuthUserRecordBuilder } from './AuthUserRecordBuilder';
