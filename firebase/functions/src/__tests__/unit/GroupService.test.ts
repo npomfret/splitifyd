@@ -4,11 +4,7 @@ import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import {
     StubFirestoreReader,
     StubFirestoreWriter,
-    StubAuthService,
-    StubLogger,
-    StubLoggerContext,
-    StubDateHelpers,
-    StubMeasure
+    StubAuthService
 } from './mocks/firestore-stubs';
 import { FirestoreGroupBuilder } from '@splitifyd/test-support';
 import { ApiError } from '../../utils/errors';
@@ -22,10 +18,6 @@ describe('GroupService - Unit Tests', () => {
     let stubReader: StubFirestoreReader;
     let stubWriter: StubFirestoreWriter;
     let stubAuth: StubAuthService;
-    let stubLogger: StubLogger;
-    let stubLoggerContext: StubLoggerContext;
-    let stubDateHelpers: StubDateHelpers;
-    let stubMeasure: StubMeasure;
     let applicationBuilder: ApplicationBuilder;
 
     beforeEach(() => {
@@ -33,41 +25,10 @@ describe('GroupService - Unit Tests', () => {
         stubReader = new StubFirestoreReader();
         stubWriter = new StubFirestoreWriter();
         stubAuth = new StubAuthService();
-        stubLogger = new StubLogger();
-        stubLoggerContext = new StubLoggerContext();
-        stubDateHelpers = new StubDateHelpers();
-        stubMeasure = new StubMeasure();
 
-        // Create ApplicationBuilder to get all dependent services
+        // Create ApplicationBuilder and build GroupService
         applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
-
-        // Create GroupService with dependency injection
-        // Since GroupService has many dependencies, we'll use ApplicationBuilder
-        // but inject the stubs via dependency injection parameters
-        const userService = applicationBuilder.buildUserService();
-        const expenseService = applicationBuilder.buildExpenseService();
-        const settlementService = applicationBuilder.buildSettlementService();
-        const groupMemberService = applicationBuilder.buildGroupMemberService();
-        const notificationService = applicationBuilder.buildNotificationService();
-        const expenseMetadataService = applicationBuilder.buildExpenseMetadataService();
-        const groupShareService = applicationBuilder.buildGroupShareService();
-
-        groupService = new GroupService(
-            stubReader,
-            stubWriter,
-            userService,
-            expenseService,
-            settlementService,
-            groupMemberService,
-            notificationService,
-            expenseMetadataService,
-            groupShareService,
-            // Inject stub dependencies
-            stubLogger,           // injectedLogger
-            StubLoggerContext,    // injectedLoggerContext
-            stubDateHelpers,      // injectedDateHelpers
-            StubMeasure          // injectedMeasure
-        );
+        groupService = applicationBuilder.buildGroupService();
 
         vi.clearAllMocks();
     });

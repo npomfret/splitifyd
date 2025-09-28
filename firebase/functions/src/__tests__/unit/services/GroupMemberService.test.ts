@@ -4,10 +4,7 @@ import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import {
     StubFirestoreReader,
     StubFirestoreWriter,
-    StubAuthService,
-    StubLogger,
-    StubLoggerContext,
-    StubMeasure
+    StubAuthService
 } from '../mocks/firestore-stubs';
 import { FirestoreGroupBuilder } from '@splitifyd/test-support';
 import type { GroupMemberDocument } from '@splitifyd/shared';
@@ -19,11 +16,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     let stubReader: StubFirestoreReader;
     let stubWriter: StubFirestoreWriter;
     let stubAuth: StubAuthService;
-    let stubLogger: StubLogger;
-    let stubLoggerContext: StubLoggerContext;
-    let stubMeasure: StubMeasure;
     let applicationBuilder: ApplicationBuilder;
-    let mockUserService: any;
     let mockBalanceService: any;
 
     // Test data
@@ -49,35 +42,21 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         stubReader = new StubFirestoreReader();
         stubWriter = new StubFirestoreWriter();
         stubAuth = new StubAuthService();
-        stubLogger = new StubLogger();
-        stubLoggerContext = new StubLoggerContext();
-        stubMeasure = new StubMeasure();
 
-        // Mock UserService
-        mockUserService = {
-            getUsers: vi.fn().mockResolvedValue(new Map()),
-            getUser: vi.fn(),
-            updateProfile: vi.fn(),
-            changePassword: vi.fn(),
-            deleteAccount: vi.fn(),
-            registerUser: vi.fn(),
-            createUserDirect: vi.fn(),
-        };
-
-        // Mock the balance service
+        // Create a mock balance service for tests that need to control balance calculations
         mockBalanceService = {
             calculateGroupBalances: vi.fn(),
         };
 
-        // Create GroupMemberService with dependency injection
+        // Create ApplicationBuilder and GroupMemberService
+        applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
+
+        // For tests that need to control balance calculations, create with mock balance service
+        // For others, use the ApplicationBuilder version
         groupMemberService = new GroupMemberService(
             stubReader,
             stubWriter,
-            mockBalanceService,
-            // Inject stub dependencies
-            stubLogger,           // injectedLogger
-            StubLoggerContext,    // injectedLoggerContext
-            StubMeasure          // injectedMeasure
+            mockBalanceService
         );
 
         // Setup test group using builder

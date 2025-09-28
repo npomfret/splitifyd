@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { GroupMemberService } from '../../../services/GroupMemberService';
-import { StubFirestoreReader, StubFirestoreWriter, StubLogger, StubLoggerContext, StubMeasure } from '../mocks/firestore-stubs';
+import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { BalanceCalculationService } from '../../../services/balance';
@@ -32,9 +32,6 @@ const createMockGroupMemberService = () => ({
 describe('Service-Level Error Handling - Subcollection Queries', () => {
     let stubFirestoreReader: StubFirestoreReader;
     let stubFirestoreWriter: StubFirestoreWriter;
-    let stubLogger: StubLogger;
-    let stubLoggerContext: StubLoggerContext;
-    let stubMeasure: StubMeasure;
     let mockBalanceService: BalanceCalculationService;
     let groupMemberService: GroupMemberService;
     let mockUserService: ReturnType<typeof createMockUserService>;
@@ -45,9 +42,6 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
         vi.clearAllMocks();
         stubFirestoreReader = new StubFirestoreReader();
         stubFirestoreWriter = new StubFirestoreWriter();
-        stubLogger = new StubLogger();
-        stubLoggerContext = new StubLoggerContext();
-        stubMeasure = new StubMeasure();
 
         // Create a mock balance service
         mockBalanceService = {
@@ -58,14 +52,11 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
         mockNotificationService = createMockNotificationService();
         mockGroupMemberServiceRef = createMockGroupMemberService();
 
+        // Create GroupMemberService without stub utilities (they'll use defaults)
         groupMemberService = new GroupMemberService(
             stubFirestoreReader,
             stubFirestoreWriter,
-            mockBalanceService,
-            // Inject stub dependencies
-            stubLogger,
-            StubLoggerContext,
-            StubMeasure
+            mockBalanceService
         );
     });
 

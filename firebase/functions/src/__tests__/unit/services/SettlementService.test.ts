@@ -4,11 +4,7 @@ import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import {
     StubFirestoreReader,
     StubFirestoreWriter,
-    StubAuthService,
-    StubDateHelpers,
-    StubLogger,
-    StubLoggerContext,
-    StubMeasure
+    StubAuthService
 } from '../mocks/firestore-stubs';
 import { HTTP_STATUS } from '../../../constants';
 import type { CreateSettlementRequest } from '@splitifyd/shared';
@@ -19,10 +15,6 @@ describe('SettlementService - Unit Tests', () => {
     let stubReader: StubFirestoreReader;
     let stubWriter: StubFirestoreWriter;
     let stubAuth: StubAuthService;
-    let stubDateHelpers: StubDateHelpers;
-    let stubLogger: StubLogger;
-    let stubLoggerContext: StubLoggerContext;
-    let stubMeasure: StubMeasure;
     let applicationBuilder: ApplicationBuilder;
 
     // Helper to set user data in stub
@@ -40,26 +32,9 @@ describe('SettlementService - Unit Tests', () => {
         stubReader = new StubFirestoreReader();
         stubWriter = new StubFirestoreWriter();
         stubAuth = new StubAuthService();
-        stubDateHelpers = new StubDateHelpers();
-        stubLogger = new StubLogger();
-        stubLoggerContext = new StubLoggerContext();
-        stubMeasure = new StubMeasure();
 
-        // Create ApplicationBuilder for group member service
         applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
-        const groupMemberService = applicationBuilder.buildGroupMemberService();
-
-        // Create SettlementService with dependency injection
-        settlementService = new SettlementService(
-            stubReader,
-            stubWriter,
-            groupMemberService,
-            // Inject stub dependencies
-            stubDateHelpers,      // injectedDateHelpers
-            stubLogger,           // injectedLogger
-            StubLoggerContext,    // injectedLoggerContext
-            StubMeasure           // injectedMeasure
-        );
+        settlementService = applicationBuilder.buildSettlementService()
     });
 
     describe('Settlement Creation Validation', () => {

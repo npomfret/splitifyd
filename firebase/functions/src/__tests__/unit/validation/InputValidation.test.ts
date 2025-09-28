@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ExpenseService } from '../../../services/ExpenseService';
 import { SettlementService } from '../../../services/SettlementService';
-import { StubFirestoreReader, StubFirestoreWriter, StubPermissionEngine, StubLogger, StubLoggerContext, StubMeasure, StubDateHelpers, StubExpenseValidation } from '../mocks/firestore-stubs';
+import { StubFirestoreReader, StubFirestoreWriter, StubPermissionEngine, StubExpenseValidation } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import type { CreateExpenseRequest, CreateSettlementRequest } from '@splitifyd/shared';
 
@@ -37,11 +37,6 @@ describe('Input Validation Unit Tests', () => {
     let stubFirestoreWriter: StubFirestoreWriter;
     let stubUserService: ReturnType<typeof createStubUserService>;
     let stubGroupMemberService: ReturnType<typeof createStubGroupMemberService>;
-    let stubDateHelpers: StubDateHelpers;
-    let stubLogger: StubLogger;
-    let stubLoggerContext: StubLoggerContext;
-    let stubMeasure: StubMeasure;
-    let stubMeasureModule: any;
     let stubPermissionEngine: StubPermissionEngine;
     let stubExpenseValidation: StubExpenseValidation;
 
@@ -55,13 +50,10 @@ describe('Input Validation Unit Tests', () => {
         stubFirestoreWriter = new StubFirestoreWriter();
         stubUserService = createStubUserService();
         stubGroupMemberService = createStubGroupMemberService();
-        stubDateHelpers = new StubDateHelpers();
-        stubLogger = new StubLogger();
-        stubLoggerContext = new StubLoggerContext();
-        stubMeasure = new StubMeasure();
-        // Create a module-like object that matches the measure import pattern
-        stubMeasureModule = StubMeasure;
-        stubPermissionEngine = new StubPermissionEngine();
+        // Create a mock permission engine that allows all actions for testing
+        stubPermissionEngine = {
+            checkPermission: () => Promise.resolve(true)
+        } as any;
         stubExpenseValidation = new StubExpenseValidation();
 
         // Set up test group with simple stub data
@@ -74,6 +66,12 @@ describe('Input Validation Unit Tests', () => {
                 [testUser3]: { uid: testUser3, memberRole: 'member', memberStatus: 'active' },
             },
             memberCount: 3,
+            // Add permissions configuration required by ExpenseService
+            permissions: {
+                canCreateExpenses: 'ALL_MEMBERS',
+                canEditExpenses: 'CREATOR_ONLY',
+                canDeleteExpenses: 'CREATOR_ONLY'
+            }
         });
 
         // Set up group members
@@ -130,27 +128,24 @@ describe('Input Validation Unit Tests', () => {
         });
 
         // Use real validation instead of stub to ensure proper business logic validation
+        // Create services without utility stubs but keep permission engine stub
         expenseService = new ExpenseService(
             stubFirestoreReader,
             stubFirestoreWriter,
             stubGroupMemberService as any,
             stubUserService as any,
-            stubDateHelpers,
-            stubLogger,
-            StubLoggerContext,
-            StubPermissionEngine as any,
-            stubMeasureModule
-            // No injected validator - let it use the real validation module
+            undefined, // Use default dateHelpers
+            undefined, // Use default logger
+            undefined, // Use default loggerContext
+            stubPermissionEngine as any, // Use stub permission engine for tests
+            undefined  // Use default measure
         );
 
         settlementService = new SettlementService(
             stubFirestoreReader,
             stubFirestoreWriter,
-            stubGroupMemberService as any,
-            stubDateHelpers,
-            stubLogger,
-            StubLoggerContext,
-            stubMeasureModule
+            stubGroupMemberService as any
+            // No injected utility stubs - use defaults for date helpers, logger, measure
         );
     });
 

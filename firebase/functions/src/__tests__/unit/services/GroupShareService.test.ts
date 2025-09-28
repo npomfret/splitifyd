@@ -4,11 +4,7 @@ import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import {
     StubFirestoreReader,
     StubFirestoreWriter,
-    StubAuthService,
-    StubLogger,
-    StubLoggerContext,
-    StubDateHelpers,
-    StubMeasure
+    StubAuthService
 } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
@@ -19,10 +15,6 @@ describe('GroupShareService', () => {
     let stubReader: StubFirestoreReader;
     let stubWriter: StubFirestoreWriter;
     let stubAuth: StubAuthService;
-    let stubLogger: StubLogger;
-    let stubLoggerContext: StubLoggerContext;
-    let stubDateHelpers: StubDateHelpers;
-    let stubMeasure: StubMeasure;
     let applicationBuilder: ApplicationBuilder;
 
     beforeEach(() => {
@@ -30,26 +22,10 @@ describe('GroupShareService', () => {
         stubReader = new StubFirestoreReader();
         stubWriter = new StubFirestoreWriter();
         stubAuth = new StubAuthService();
-        stubLogger = new StubLogger();
-        stubLoggerContext = new StubLoggerContext();
-        stubDateHelpers = new StubDateHelpers();
-        stubMeasure = new StubMeasure();
 
-        // Create ApplicationBuilder to get dependent services
+        // Create ApplicationBuilder and build GroupShareService
         applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
-        const groupMemberService = applicationBuilder.buildGroupMemberService();
-
-        // Create GroupShareService with dependency injection
-        groupShareService = new GroupShareService(
-            stubReader,
-            stubWriter,
-            groupMemberService,
-            // Inject stub dependencies
-            stubLogger,           // injectedLogger
-            StubLoggerContext,    // injectedLoggerContext
-            stubDateHelpers,      // injectedDateHelpers
-            StubMeasure          // injectedMeasure
-        );
+        groupShareService = applicationBuilder.buildGroupShareService();
 
         vi.clearAllMocks();
     });

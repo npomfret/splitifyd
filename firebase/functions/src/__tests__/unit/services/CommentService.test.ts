@@ -6,9 +6,6 @@ import {
     StubFirestoreWriter,
     StubAuthService,
     StubCommentStrategyFactory,
-    StubDateHelpers,
-    StubLoggerContext,
-    StubMeasure,
     clearSharedStorage
 } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
@@ -25,9 +22,6 @@ describe('CommentService - Consolidated Tests', () => {
     let stubWriter: StubFirestoreWriter;
     let stubAuth: StubAuthService;
     let stubStrategyFactory: StubCommentStrategyFactory;
-    let stubDateHelpers: StubDateHelpers;
-    let stubLoggerContext: StubLoggerContext;
-    let stubMeasure: StubMeasure;
     let applicationBuilder: ApplicationBuilder;
 
     beforeEach(() => {
@@ -36,25 +30,19 @@ describe('CommentService - Consolidated Tests', () => {
         stubWriter = new StubFirestoreWriter();
         stubAuth = new StubAuthService();
         stubStrategyFactory = new StubCommentStrategyFactory();
-        stubDateHelpers = new StubDateHelpers();
-        stubLoggerContext = new StubLoggerContext();
-        stubMeasure = new StubMeasure();
 
         // Create ApplicationBuilder to get dependent services
         applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
         const groupMemberService = applicationBuilder.buildGroupMemberService();
 
         // Create CommentService with dependency injection
+        // Keep the strategy factory for business logic testing, but remove utility stubs
         commentService = new CommentService(
             stubReader,
             stubWriter,
             groupMemberService,
             stubAuth,
-            // Inject stub dependencies
-            stubStrategyFactory as any,    // injectedStrategyFactory (cast to any for testing)
-            stubDateHelpers,        // injectedDateHelpers
-            StubLoggerContext,      // injectedLoggerContext
-            StubMeasure            // injectedMeasure
+            stubStrategyFactory as any    // Keep strategy factory for business logic testing
         );
 
         // Set up test user in auth stub
@@ -379,11 +367,8 @@ describe('CommentService - Consolidated Tests', () => {
                 stubWriter,
                 {} as any, // GroupMemberService not used in these tests
                 stubAuth,
-                // Inject stub dependencies for unit tests
-                stubStrategyFactory as any,    // injectedStrategyFactory
-                stubDateHelpers,        // injectedDateHelpers
-                StubLoggerContext,      // injectedLoggerContext
-                StubMeasure            // injectedMeasure
+                // Keep strategy factory for business logic testing
+                stubStrategyFactory as any    // injectedStrategyFactory
             );
         });
 
