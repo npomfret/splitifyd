@@ -1104,49 +1104,6 @@ export function createMockPolicyDocument(overrides: Partial<PolicyDocument> = {}
     };
 }
 
-
-/**
- * Stub implementation for permission engine to replace vi.mock()
- */
-export class StubPermissionEngine {
-    private static permissions = new Map<string, boolean>();
-    private static defaultPermission = true;
-
-    static async checkPermission(
-        firestoreReader: any,
-        group: any,
-        userId: string,
-        action: string,
-        options: any = {}
-    ): Promise<boolean> {
-        const key = `${action}:${group.id}:${userId}`;
-        return StubPermissionEngine.permissions.get(key) ?? StubPermissionEngine.defaultPermission;
-    }
-
-    private static evaluatePermission(permission: any, userRole: any, userId: string, options: any): boolean {
-        return true;
-    }
-
-    static async canChangeRole(
-        firestoreReader: any,
-        group: any,
-        currentUserRole: any,
-        targetUserRole: any,
-        targetUserId: string
-    ): Promise<boolean> {
-        return true;
-    }
-
-    static async getUserPermissions(firestoreReader: any, group: any, userId: string): Promise<Record<string, boolean>> {
-        return {};
-    }
-
-    static getDefaultPermissions(preset: any): any {
-        return {};
-    }
-
-}
-
 /**
  * Clear all shared storage for tests
  */
