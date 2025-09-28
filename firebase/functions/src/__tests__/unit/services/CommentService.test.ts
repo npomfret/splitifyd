@@ -5,7 +5,6 @@ import {
     StubFirestoreReader,
     StubFirestoreWriter,
     StubAuthService,
-    StubCommentStrategyFactory,
     clearSharedStorage
 } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
@@ -21,24 +20,15 @@ describe('CommentService - Consolidated Tests', () => {
     let stubReader: StubFirestoreReader;
     let stubWriter: StubFirestoreWriter;
     let stubAuth: StubAuthService;
-    let stubStrategyFactory: StubCommentStrategyFactory;
 
     beforeEach(() => {
         stubReader = new StubFirestoreReader();
         stubWriter = new StubFirestoreWriter();
         stubAuth = new StubAuthService();
-        stubStrategyFactory = new StubCommentStrategyFactory();
 
         const applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
 
-        // Create CommentService directly with our stubStrategyFactory instead of using ApplicationBuilder
-        commentService = new CommentService(
-            stubReader,
-            stubWriter,
-            applicationBuilder.buildGroupMemberService(),
-            stubAuth,
-            stubStrategyFactory as any
-        );
+        commentService = applicationBuilder.buildCommentService();
 
         // Set up test user in auth stub
         stubAuth.setUser('user-id', {
@@ -49,7 +39,6 @@ describe('CommentService - Consolidated Tests', () => {
         });
 
         // Reset mocks
-        stubStrategyFactory.getMockStrategy().verifyAccess.mockResolvedValue(undefined);
         stubAuth.clear();
         clearSharedStorage();
         vi.clearAllMocks();
@@ -72,12 +61,10 @@ describe('CommentService - Consolidated Tests', () => {
 
             // Should not throw
             await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.GROUP, 'test-group', 'user-id')).resolves.not.toThrow();
-            // Reset mock for next test
-            stubStrategyFactory.getMockStrategy().verifyAccess.mockResolvedValue(undefined);
         });
 
         it('should throw NOT_FOUND when group does not exist', async () => {
-            stubStrategyFactory.getMockStrategy().verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found'));
+            // No group data set up, so verification should fail
             await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.GROUP, 'nonexistent-group', 'user-id')).rejects.toThrow();
         });
 
@@ -85,7 +72,6 @@ describe('CommentService - Consolidated Tests', () => {
             const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
             stubReader.setDocument('groups', 'test-group', testGroup);
             // Don't set up group membership - user will not be a member
-            stubStrategyFactory.getMockStrategy().verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_FORBIDDEN', 'Access forbidden'));
 
             await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.GROUP, 'test-group', 'unauthorized-user')).rejects.toThrow();
         });
@@ -110,12 +96,10 @@ describe('CommentService - Consolidated Tests', () => {
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
             await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.EXPENSE, 'test-expense', 'user-id')).resolves.not.toThrow();
-            // Reset mock for next test
-            stubStrategyFactory.getMockStrategy().verifyAccess.mockResolvedValue(undefined);
         });
 
         it('should throw NOT_FOUND when expense does not exist', async () => {
-            stubStrategyFactory.getMockStrategy().verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found'));
+            // No expense data set up, so verification should fail
             await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.EXPENSE, 'nonexistent-expense', 'user-id')).rejects.toThrow();
         });
     });
@@ -198,9 +182,7 @@ describe('CommentService - Consolidated Tests', () => {
         });
 
         it('should throw error when user lacks access', async () => {
-            // Mock strategy to reject access
-            stubStrategyFactory.getMockStrategy().verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'));
-
+            // No group or membership data set up, so access should be denied
             await expect(commentService.listComments(CommentTargetTypes.GROUP, 'nonexistent-group', 'user-id')).rejects.toThrow();
         });
     });
@@ -353,22 +335,10 @@ describe('CommentService - Consolidated Tests', () => {
     });
 
     describe('Unit Test Scenarios - Error Handling and Edge Cases', () => {
-        let unitCommentService: CommentService;
-
-        beforeEach(() => {
-            // Create a separate service instance for unit tests with direct injection
-            unitCommentService = new CommentService(
-                stubReader,
-                stubWriter,
-                {} as any, // GroupMemberService not used in these tests
-                stubAuth,
-                // Keep strategy factory for business logic testing
-                stubStrategyFactory as any    // injectedStrategyFactory
-            );
-        });
+        // Use the main commentService instance with real dependencies
 
         describe('createComment - Unit Scenarios', () => {
-            it('should create a comment successfully with mocked strategy', async () => {
+            it('should create a comment successfully with real implementation', async () => {
                 const userId = 'user-123';
                 const targetType: CommentTargetType = 'group';
                 const targetId = 'group-456';
@@ -377,6 +347,19 @@ describe('CommentService - Consolidated Tests', () => {
                     targetType,
                     targetId,
                 };
+
+                // Set up group and membership for real validation
+                const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
+                stubReader.setDocument('groups', targetId, testGroup);
+
+                const membershipDoc = {
+                    userId: userId,
+                    groupId: targetId,
+                    memberRole: 'member',
+                    memberStatus: 'active',
+                    joinedAt: new Date().toISOString(),
+                };
+                stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
 
                 // Set up auth user
                 stubAuth.setUser(userId, {
@@ -387,7 +370,7 @@ describe('CommentService - Consolidated Tests', () => {
 
                 stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, true);
 
-                const result = await unitCommentService.createComment(targetType, targetId, commentData, userId);
+                const result = await commentService.createComment(targetType, targetId, commentData, userId);
 
                 expect(result).toMatchObject({
                     id: expect.any(String),
@@ -408,6 +391,19 @@ describe('CommentService - Consolidated Tests', () => {
                     targetId,
                 };
 
+                // Set up group and membership for real validation
+                const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
+                stubReader.setDocument('groups', targetId, testGroup);
+
+                const membershipDoc = {
+                    userId: userId,
+                    groupId: targetId,
+                    memberRole: 'member',
+                    memberStatus: 'active',
+                    joinedAt: new Date().toISOString(),
+                };
+                stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
+
                 // Set up auth user without displayName
                 stubAuth.setUser(userId, {
                     uid: userId,
@@ -417,7 +413,7 @@ describe('CommentService - Consolidated Tests', () => {
 
                 stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, true);
 
-                const result = await unitCommentService.createComment(targetType, targetId, commentData, userId);
+                const result = await commentService.createComment(targetType, targetId, commentData, userId);
 
                 expect(result.authorName).toBe('user456');
             });
@@ -435,7 +431,7 @@ describe('CommentService - Consolidated Tests', () => {
                 // User not set in stubAuth
 
                 await expect(
-                    unitCommentService.createComment(targetType, targetId, commentData, userId)
+                    commentService.createComment(targetType, targetId, commentData, userId)
                 ).rejects.toThrow(ApiError);
             });
 
@@ -455,11 +451,9 @@ describe('CommentService - Consolidated Tests', () => {
                     displayName: 'Test User',
                 });
 
-                // Mock strategy to reject access
-                stubStrategyFactory.getMockStrategy().verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'));
-
+                // Access should be denied since no proper setup
                 await expect(
-                    unitCommentService.createComment(targetType, targetId, commentData, userId)
+                    commentService.createComment(targetType, targetId, commentData, userId)
                 ).rejects.toThrow(ApiError);
             });
 
@@ -473,6 +467,19 @@ describe('CommentService - Consolidated Tests', () => {
                     targetId,
                 };
 
+                // Set up group and membership for real validation
+                const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
+                stubReader.setDocument('groups', targetId, testGroup);
+
+                const membershipDoc = {
+                    userId: userId,
+                    groupId: targetId,
+                    memberRole: 'member',
+                    memberStatus: 'active',
+                    joinedAt: new Date().toISOString(),
+                };
+                stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
+
                 stubAuth.setUser(userId, {
                     uid: userId,
                     email: 'test@example.com',
@@ -483,7 +490,7 @@ describe('CommentService - Consolidated Tests', () => {
                 stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, false, 'Write failed');
 
                 await expect(
-                    unitCommentService.createComment(targetType, targetId, commentData, userId)
+                    commentService.createComment(targetType, targetId, commentData, userId)
                 ).rejects.toThrow('Write failed');
             });
         });
@@ -493,6 +500,19 @@ describe('CommentService - Consolidated Tests', () => {
                 const userId = 'user-123';
                 const targetType: CommentTargetType = 'group';
                 const targetId = 'group-456';
+
+                // Set up group and membership for real validation
+                const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
+                stubReader.setDocument('groups', targetId, testGroup);
+
+                const membershipDoc = {
+                    userId: userId,
+                    groupId: targetId,
+                    memberRole: 'member',
+                    memberStatus: 'active',
+                    joinedAt: new Date().toISOString(),
+                };
+                stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
 
                 // Mock existing comments
                 const mockComments = [
@@ -516,7 +536,7 @@ describe('CommentService - Consolidated Tests', () => {
 
                 stubReader.setCommentsForTarget(targetType, targetId, mockComments);
 
-                const result = await unitCommentService.listComments(targetType, targetId, userId);
+                const result = await commentService.listComments(targetType, targetId, userId);
 
                 expect(result).toMatchObject({
                     comments: expect.arrayContaining([
@@ -532,9 +552,22 @@ describe('CommentService - Consolidated Tests', () => {
                 const targetType: CommentTargetType = 'group';
                 const targetId = 'group-456';
 
+                // Set up group and membership for real validation
+                const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
+                stubReader.setDocument('groups', targetId, testGroup);
+
+                const membershipDoc = {
+                    userId: userId,
+                    groupId: targetId,
+                    memberRole: 'member',
+                    memberStatus: 'active',
+                    joinedAt: new Date().toISOString(),
+                };
+                stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
+
                 stubReader.setCommentsForTarget(targetType, targetId, []);
 
-                const result = await unitCommentService.listComments(targetType, targetId, userId);
+                const result = await commentService.listComments(targetType, targetId, userId);
 
                 expect(result.comments).toEqual([]);
                 expect(result.hasMore).toBe(false);
@@ -545,11 +578,9 @@ describe('CommentService - Consolidated Tests', () => {
                 const targetType: CommentTargetType = 'group';
                 const targetId = 'group-456';
 
-                // Mock strategy to reject access
-                stubStrategyFactory.getMockStrategy().verifyAccess.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'Access denied'));
-
+                // Access should be denied since no proper setup
                 await expect(
-                    unitCommentService.listComments(targetType, targetId, userId)
+                    commentService.listComments(targetType, targetId, userId)
                 ).rejects.toThrow(ApiError);
             });
         });
@@ -565,6 +596,19 @@ describe('CommentService - Consolidated Tests', () => {
                     targetId,
                 };
 
+                // Set up group and membership for real validation
+                const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
+                stubReader.setDocument('groups', targetId, testGroup);
+
+                const membershipDoc = {
+                    userId: userId,
+                    groupId: targetId,
+                    memberRole: 'member',
+                    memberStatus: 'active',
+                    joinedAt: new Date().toISOString(),
+                };
+                stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
+
                 stubAuth.setUser(userId, {
                     uid: userId,
                     email: 'test@example.com',
@@ -572,21 +616,37 @@ describe('CommentService - Consolidated Tests', () => {
                 });
                 stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, true);
 
-                const result = await unitCommentService.createComment(targetType, targetId, commentData, userId);
+                const result = await commentService.createComment(targetType, targetId, commentData, userId);
 
                 expect(result.text).toBe('Group comment');
-                expect(stubStrategyFactory.getMockStrategy().verifyAccess).toHaveBeenCalledWith(targetId, userId);
             });
 
             it('should support expense comments', async () => {
                 const userId = 'user-123';
                 const targetType: CommentTargetType = 'expense';
                 const targetId = 'expense-456';
+                const groupId = 'group-789';
                 const commentData: CreateCommentRequest = {
                     text: 'Expense comment',
                     targetType,
                     targetId,
                 };
+
+                // Set up expense, group and membership for real validation
+                const testExpense = new FirestoreExpenseBuilder().withId(targetId).withGroupId(groupId).build();
+                const testGroup = new FirestoreGroupBuilder().withId(groupId).build();
+
+                stubReader.setDocument('expenses', targetId, testExpense);
+                stubReader.setDocument('groups', groupId, testGroup);
+
+                const membershipDoc = {
+                    userId: userId,
+                    groupId: groupId,
+                    memberRole: 'member',
+                    memberStatus: 'active',
+                    joinedAt: new Date().toISOString(),
+                };
+                stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
 
                 stubAuth.setUser(userId, {
                     uid: userId,
@@ -595,10 +655,9 @@ describe('CommentService - Consolidated Tests', () => {
                 });
                 stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, true);
 
-                const result = await unitCommentService.createComment(targetType, targetId, commentData, userId);
+                const result = await commentService.createComment(targetType, targetId, commentData, userId);
 
                 expect(result.text).toBe('Expense comment');
-                expect(stubStrategyFactory.getMockStrategy().verifyAccess).toHaveBeenCalledWith(targetId, userId);
             });
         });
 
@@ -613,6 +672,19 @@ describe('CommentService - Consolidated Tests', () => {
                     targetId,
                 };
 
+                // Set up group and membership for real validation
+                const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
+                stubReader.setDocument('groups', targetId, testGroup);
+
+                const membershipDoc = {
+                    userId: userId,
+                    groupId: targetId,
+                    memberRole: 'member',
+                    memberStatus: 'active',
+                    joinedAt: new Date().toISOString(),
+                };
+                stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
+
                 stubAuth.setUser(userId, {
                     uid: userId,
                     email: 'test@example.com',
@@ -621,10 +693,10 @@ describe('CommentService - Consolidated Tests', () => {
                 stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, true);
 
                 // Create the comment
-                const createdComment = await unitCommentService.createComment(targetType, targetId, commentData, userId);
+                const createdComment = await commentService.createComment(targetType, targetId, commentData, userId);
 
                 // List comments to verify consistency
-                const listedComments = await unitCommentService.listComments(targetType, targetId, userId);
+                const listedComments = await commentService.listComments(targetType, targetId, userId);
 
                 expect(listedComments.comments).toHaveLength(1);
                 expect(listedComments.comments[0]).toMatchObject({
