@@ -5,6 +5,16 @@
 **Date Completed**: January 2025
 **Implementation Status**: ✅ **FULLY COMPLETE**
 
+## Initial Audit Overview
+
+This task addressed violations of the project's rule to exclusively use builders from the `@splitifyd/test-support` package for test data creation. An audit identified several instances of direct object literal (`{...}`) usage, which increased maintenance overhead and reduced type safety.
+
+The audit found violations in:
+- **E2E Test Form Submissions**: Object literals in `submitExpense()` and `submitSettlement()` calls
+- **Unit Test Mock Data**: Direct object creation for stubs and services
+- **Integration Test Payloads**: Object literals for service-layer calls
+- **Playwright Test Infrastructure**: Static objects instead of builder patterns
+
 ## Summary of Completed Work
 
 The systematic refactoring of test data creation violations has been successfully completed. **ALL** identified object literals in test files have been replaced with proper builder patterns from the `@splitifyd/test-support` package, including the final cleanup of E2E test files.
@@ -60,11 +70,39 @@ The following areas contain some remaining object literals but were intentionall
 ### ✅ **Additional E2E Test Files** (COMPLETED - January 2025)
 **Problem**: E2E test files contained object literals in `submitExpense()` and `submitSettlement()` calls that needed to be updated to use builder patterns.
 
+**Example Violation Found**:
+```typescript
+// Before - brittle object literal
+await expenseFormPage.submitExpense({
+    description: expenseDescription,
+    amount: 100,
+    currency: 'JPY',
+    paidByDisplayName: ownerDisplayName,
+    splitType: 'equal',
+    participants: [ownerDisplayName, memberDisplayName],
+});
+```
+
 **Solution**:
 - **Created `SettlementFormDataBuilder`** in test-support package following the same pattern as `ExpenseFormDataBuilder`
 - **Updated `expense-and-balance-lifecycle.e2e.test.ts`**: Replaced 10 instances of `submitExpense({})` and 3 instances of `submitSettlement({})` with proper builders
 - **Updated `core-features.e2e.test.ts`**: Replaced 1 instance of `submitExpense({})` with builder pattern
 - **All files now follow consistent builder pattern** for test data creation
+
+**Example After Fix**:
+```typescript
+// After - type-safe builder pattern
+await expenseFormPage.submitExpense(
+    new ExpenseFormDataBuilder()
+        .withDescription(expenseDescription)
+        .withAmount(100)
+        .withCurrency('JPY')
+        .withPaidByDisplayName(ownerDisplayName)
+        .withSplitType('equal')
+        .withParticipants([ownerDisplayName, memberDisplayName])
+        .build()
+);
+```
 
 **Files Updated**:
 - `packages/test-support/src/builders/SettlementFormDataBuilder.ts` (new)
