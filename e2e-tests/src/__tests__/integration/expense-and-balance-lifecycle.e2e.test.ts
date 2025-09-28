@@ -1,7 +1,6 @@
 import {expect, simpleTest} from '../../fixtures';
 import {generateShortId, ExpenseFormDataBuilder, SettlementFormDataBuilder} from '@splitifyd/test-support';
 import {groupDetailUrlPattern} from '../../pages/group-detail.page';
-import {SettlementData} from '../../pages/settlement-form.page';
 
 /**
  * Consolidated Expense and Balance Lifecycle E2E Tests
@@ -183,13 +182,13 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // PHASE 4: Test cross-currency settlement (settle with different currency)
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
         await settlementForm.submitSettlement(
-            {
-                payerName: user2DisplayName,
-                payeeName: user1DisplayName,
-                amount: '25',
-                currency: 'EUR',
-                note: 'Cross-currency settlement test',
-            },
+            new SettlementFormDataBuilder()
+                .withPayerName(user2DisplayName)
+                .withPayeeName(user1DisplayName)
+                .withAmount('25')
+                .withCurrency('EUR')
+                .withNote('Cross-currency settlement test')
+                .build(),
             2,
         );
 
@@ -307,13 +306,13 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // User2 makes partial settlement of €60
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
         await settlementForm.submitSettlement(
-            {
-                payerName: user2DisplayName,
-                payeeName: user1DisplayName,
-                amount: '60.00',
-                currency: 'EUR',
-                note: 'Partial settlement in complex scenario',
-            },
+            new SettlementFormDataBuilder()
+                .withPayerName(user2DisplayName)
+                .withPayeeName(user1DisplayName)
+                .withAmount('60.00')
+                .withCurrency('EUR')
+                .withNote('Partial settlement in complex scenario')
+                .build(),
             2,
         );
 
@@ -587,13 +586,13 @@ simpleTest.describe('Settlement CRUD Operations', () => {
 
         // Test 1: Normal settlement creation and display
         const settlementForm1 = await groupDetailPage.clickSettleUpButton(2);
-        const settlementData1: SettlementData = {
-            payerName: payerName,
-            payeeName: payeeName,
-            amount: '100.50',
-            currency: 'JPY',
-            note: 'Test payment for history',
-        };
+        const settlementData1 = new SettlementFormDataBuilder()
+            .withPayerName(payerName)
+            .withPayeeName(payeeName)
+            .withAmount('100.50')
+            .withCurrency('JPY')
+            .withNote('Test payment for history')
+            .build();
 
         await settlementForm1.submitSettlement(settlementData1, 2);
         await groupDetailPage.openHistoryIfClosed();
@@ -602,13 +601,13 @@ simpleTest.describe('Settlement CRUD Operations', () => {
 
         // Test 2: Settlement where creator is payee (different permissions scenario)
         const settlementForm2 = await groupDetailPage.clickSettleUpButton(2);
-        const settlementData2: SettlementData = {
-            payerName: payeeName,  // Other user pays
-            payeeName: payerName,  // Creator receives
-            amount: '75.00',
-            currency: 'JPY',
-            note: 'Creator receives payment',
-        };
+        const settlementData2 = new SettlementFormDataBuilder()
+            .withPayerName(payeeName)  // Other user pays
+            .withPayeeName(payerName)  // Creator receives
+            .withAmount('75.00')
+            .withCurrency('JPY')
+            .withNote('Creator receives payment')
+            .build();
 
         await settlementForm2.submitSettlement(settlementData2, 2);
         await groupDetailPage.openHistoryIfClosed();
@@ -630,13 +629,13 @@ simpleTest.describe('Settlement CRUD Operations', () => {
 
         // Create settlement for editing
         let settlementForm = await groupDetailPage.clickSettleUpButton(2);
-        const initialData: SettlementData = {
-            payerName,
-            payeeName,
-            amount: '100.50',
-            currency: 'JPY',
-            note: 'Initial test payment',
-        };
+        const initialData = new SettlementFormDataBuilder()
+            .withPayerName(payerName)
+            .withPayeeName(payeeName)
+            .withAmount('100.50')
+            .withCurrency('JPY')
+            .withNote('Initial test payment')
+            .build();
 
         await settlementForm.submitSettlement(initialData, 2);
         await groupDetailPage.verifySettlementDetails({ note: initialData.note });
@@ -696,25 +695,25 @@ simpleTest.describe('Settlement CRUD Operations', () => {
 
         // Create settlements for testing deletion flows
         const settlementForm1 = await groupDetailPage.clickSettleUpButton(2);
-        const settlementData1: SettlementData = {
-            payerName,
-            payeeName,
-            amount: '100.00',
-            currency: 'JPY',
-            note: 'Payment to be deleted',
-        };
+        const settlementData1 = new SettlementFormDataBuilder()
+            .withPayerName(payerName)
+            .withPayeeName(payeeName)
+            .withAmount('100.00')
+            .withCurrency('JPY')
+            .withNote('Payment to be deleted')
+            .build();
 
         await settlementForm1.submitSettlement(settlementData1, 2);
         await groupDetailPage.verifySettlementDetails({ note: settlementData1.note });
 
         const settlementForm2 = await groupDetailPage.clickSettleUpButton(2);
-        const settlementData2: SettlementData = {
-            payerName,
-            payeeName,
-            amount: '75.00',
-            currency: 'JPY',
-            note: 'Payment to keep',
-        };
+        const settlementData2 = new SettlementFormDataBuilder()
+            .withPayerName(payerName)
+            .withPayeeName(payeeName)
+            .withAmount('75.00')
+            .withCurrency('JPY')
+            .withNote('Payment to keep')
+            .build();
 
         await settlementForm2.submitSettlement(settlementData2, 2);
         await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
