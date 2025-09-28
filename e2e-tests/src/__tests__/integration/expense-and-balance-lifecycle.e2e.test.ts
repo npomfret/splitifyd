@@ -1,5 +1,5 @@
 import {expect, simpleTest} from '../../fixtures';
-import {generateShortId, ExpenseFormDataBuilder} from '@splitifyd/test-support';
+import {generateShortId, ExpenseFormDataBuilder, SettlementFormDataBuilder} from '@splitifyd/test-support';
 import {groupDetailUrlPattern} from '../../pages/group-detail.page';
 import {SettlementData} from '../../pages/settlement-form.page';
 
@@ -113,36 +113,42 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // PHASE 1: Test JPY (0 decimals) with rounding
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton();
-        await expenseFormPage2.submitExpense({
-            description: `Multi-currency JPY ${uniqueId}`,
-            amount: 123, // Should split as ¥62 each (123/2 = 61.5 rounds up)
-            paidByDisplayName: user1DisplayName,
-            currency: 'JPY',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName],
-        });
+        await expenseFormPage2.submitExpense(
+            new ExpenseFormDataBuilder()
+                .withDescription(`Multi-currency JPY ${uniqueId}`)
+                .withAmount(123) // Should split as ¥62 each (123/2 = 61.5 rounds up)
+                .withPaidByDisplayName(user1DisplayName)
+                .withCurrency('JPY')
+                .withSplitType('equal')
+                .withParticipants([user1DisplayName, user2DisplayName])
+                .build()
+        );
 
         // PHASE 2: Test BHD (3 decimals) - add to same group
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton();
-        await expenseFormPage1.submitExpense({
-            description: `Multi-currency BHD ${uniqueId}`,
-            amount: 30.5,
-            paidByDisplayName: user1DisplayName,
-            currency: 'BHD',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName],
-        });
+        await expenseFormPage1.submitExpense(
+            new ExpenseFormDataBuilder()
+                .withDescription(`Multi-currency BHD ${uniqueId}`)
+                .withAmount(30.5)
+                .withPaidByDisplayName(user1DisplayName)
+                .withCurrency('BHD')
+                .withSplitType('equal')
+                .withParticipants([user1DisplayName, user2DisplayName])
+                .build()
+        );
 
         // PHASE 3: Test KWD (3 decimals) - comprehensive currency test
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
-        await expenseFormPage.submitExpense({
-            description: `Multi-currency KWD ${uniqueId}`,
-            amount: 5.5,
-            paidByDisplayName: user1DisplayName,
-            currency: 'KWD',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName],
-        });
+        await expenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder()
+                .withDescription(`Multi-currency KWD ${uniqueId}`)
+                .withAmount(5.5)
+                .withPaidByDisplayName(user1DisplayName)
+                .withCurrency('KWD')
+                .withSplitType('equal')
+                .withParticipants([user1DisplayName, user2DisplayName])
+                .build()
+        );
 
         // Verify all currency amounts are displayed with correct precision
         await expect(groupDetailPage.page.getByText('¥123').first()).toBeVisible();
@@ -267,28 +273,32 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // User1 pays €300 (each owes €150)
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton();
-        await expenseFormPage2.submitExpense({
-            description: 'Large User1 Payment',
-            amount: 300,
-            paidByDisplayName: user1DisplayName,
-            currency: 'EUR',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName],
-        });
+        await expenseFormPage2.submitExpense(
+            new ExpenseFormDataBuilder()
+                .withDescription('Large User1 Payment')
+                .withAmount(300)
+                .withPaidByDisplayName(user1DisplayName)
+                .withCurrency('EUR')
+                .withSplitType('equal')
+                .withParticipants([user1DisplayName, user2DisplayName])
+                .build()
+        );
 
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€150.00');
         await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€150.00');
 
         // User2 pays €100 (each owes €50, net: User2 owes €100)
         const expenseFormPage1 = await groupDetailPage2.clickAddExpenseButton();
-        await expenseFormPage1.submitExpense({
-            description: 'Small User2 Payment',
-            amount: 100,
-            paidByDisplayName: user2DisplayName,
-            currency: 'EUR',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName],
-        });
+        await expenseFormPage1.submitExpense(
+            new ExpenseFormDataBuilder()
+                .withDescription('Small User2 Payment')
+                .withAmount(100)
+                .withPaidByDisplayName(user2DisplayName)
+                .withCurrency('EUR')
+                .withSplitType('equal')
+                .withParticipants([user1DisplayName, user2DisplayName])
+                .build()
+        );
 
         // Net calculation: User2 owes €150 - €50 = €100
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€100.00');
@@ -317,14 +327,16 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // Add one more expense to test continued calculation
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
-        await expenseFormPage.submitExpense({
-            description: 'Final Test Expense',
-            amount: 50,
-            paidByDisplayName: user1DisplayName,
-            currency: 'EUR',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName],
-        });
+        await expenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder()
+                .withDescription('Final Test Expense')
+                .withAmount(50)
+                .withPaidByDisplayName(user1DisplayName)
+                .withCurrency('EUR')
+                .withSplitType('equal')
+                .withParticipants([user1DisplayName, user2DisplayName])
+                .build()
+        );
 
         // Final net: €40 + €25 = €65
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€65.00');
@@ -348,14 +360,16 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // Result: User2 owes ¥40, User3 owes ¥40 to User1
         const expenseDescription = 'Group dinner expense';
         const expenseFormPage = await groupDetailPage1.clickAddExpenseButton();
-        await expenseFormPage.submitExpense({
-            description: expenseDescription,
-            amount: 120,
-            paidByDisplayName: user1DisplayName,
-            currency: 'JPY',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName, user3DisplayName],
-        });
+        await expenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder()
+                .withDescription(expenseDescription)
+                .withAmount(120)
+                .withPaidByDisplayName(user1DisplayName)
+                .withCurrency('JPY')
+                .withSplitType('equal')
+                .withParticipants([user1DisplayName, user2DisplayName, user3DisplayName])
+                .build()
+        );
 
         // Verify initial state across all pages
         for (const page of pages) {
@@ -368,13 +382,16 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // PHASE 1: User2 makes partial settlement of ¥30 (leaving ¥10 debt)
         const settlementNote1 = 'Partial payment from user2';
         const settlementFormPage2 = await groupDetailPage1.clickSettleUpButton(memberCount);
-        await settlementFormPage2.submitSettlement({
-            payerName: user2DisplayName,
-            payeeName: user1DisplayName,
-            amount: '30',
-            currency: 'JPY',
-            note: settlementNote1,
-        }, memberCount);
+        await settlementFormPage2.submitSettlement(
+            new SettlementFormDataBuilder()
+                .withPayerName(user2DisplayName)
+                .withPayeeName(user1DisplayName)
+                .withAmount('30')
+                .withCurrency('JPY')
+                .withNote(settlementNote1)
+                .build(),
+            memberCount
+        );
 
         // Verify real-time updates for partial settlement
         for (const page of pages) {
@@ -387,13 +404,16 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // PHASE 2: User2 makes final settlement of ¥10 (fully settled)
         const settlementNote2 = 'Final payment from user2 - all settled!';
         const settlementFormPage1 = await groupDetailPage1.clickSettleUpButton(memberCount);
-        await settlementFormPage1.submitSettlement({
-            payerName: user2DisplayName,
-            payeeName: user1DisplayName,
-            amount: '10',
-            currency: 'JPY',
-            note: settlementNote2,
-        }, memberCount);
+        await settlementFormPage1.submitSettlement(
+            new SettlementFormDataBuilder()
+                .withPayerName(user2DisplayName)
+                .withPayeeName(user1DisplayName)
+                .withAmount('10')
+                .withCurrency('JPY')
+                .withNote(settlementNote2)
+                .build(),
+            memberCount
+        );
 
         // Verify real-time updates for final settlement
         for (const page of pages) {
@@ -406,13 +426,16 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // PHASE 3: Test additional real-time scenarios - User3 partial settlement
         const settlementNote3 = 'User3 partial payment';
         const settlementFormPage = await groupDetailPage1.clickSettleUpButton(memberCount);
-        await settlementFormPage.submitSettlement({
-            payerName: user3DisplayName,
-            payeeName: user1DisplayName,
-            amount: '25',
-            currency: 'JPY',
-            note: settlementNote3,
-        }, memberCount);
+        await settlementFormPage.submitSettlement(
+            new SettlementFormDataBuilder()
+                .withPayerName(user3DisplayName)
+                .withPayeeName(user1DisplayName)
+                .withAmount('25')
+                .withCurrency('JPY')
+                .withNote(settlementNote3)
+                .build(),
+            memberCount
+        );
 
         // Verify final real-time state
         for (const page of pages) {
@@ -512,14 +535,16 @@ simpleTest.describe('Real-time Comments', () => {
         // Create expense
         const expenseFormPage = await user1GroupDetailPage.clickAddExpenseButton();
         const expenseDescription = 'Test Expense for Comments';
-        await expenseFormPage.submitExpense({
-            description: expenseDescription,
-            amount: 50000,
-            currency: 'VND',
-            paidByDisplayName: user1DisplayName,
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName],
-        });
+        await expenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder()
+                .withDescription(expenseDescription)
+                .withAmount(50000)
+                .withCurrency('VND')
+                .withPaidByDisplayName(user1DisplayName)
+                .withSplitType('equal')
+                .withParticipants([user1DisplayName, user2DisplayName])
+                .build()
+        );
 
         await user1GroupDetailPage.waitForExpense(expenseDescription);
         await user2GroupDetailPage.waitForExpense(expenseDescription);
@@ -721,14 +746,16 @@ simpleTest.describe('Copy Expense Feature', () => {
         // Create original expense with specific details
         const originalExpenseFormPage = await groupDetailPage1.clickAddExpenseButton();
         const originalDescription = `Original Expense ${generateShortId()}`;
-        await originalExpenseFormPage.submitExpense({
-            description: originalDescription,
-            amount: 125.75,
-            currency: 'EUR',
-            paidByDisplayName: user1DisplayName,
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName],
-        });
+        await originalExpenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder()
+                .withDescription(originalDescription)
+                .withAmount(125.75)
+                .withCurrency('EUR')
+                .withPaidByDisplayName(user1DisplayName)
+                .withSplitType('equal')
+                .withParticipants([user1DisplayName, user2DisplayName])
+                .build()
+        );
 
         // Step 2: Navigate to expense detail page
         await groupDetailPage1.waitForExpense(originalDescription);
@@ -786,14 +813,16 @@ simpleTest.describe('Copy Expense Feature', () => {
         // Create original expense with complex split
         const originalExpenseFormPage = await groupDetailPage1.clickAddExpenseButton();
         const originalDescription = `Multi-user Original ${generateShortId()}`;
-        await originalExpenseFormPage.submitExpense({
-            description: originalDescription,
-            amount: 150,
-            currency: 'JPY',
-            paidByDisplayName: user2DisplayName, // User2 pays
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName, user3DisplayName], // Split 3 ways
-        });
+        await originalExpenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder()
+                .withDescription(originalDescription)
+                .withAmount(150)
+                .withCurrency('JPY')
+                .withPaidByDisplayName(user2DisplayName) // User2 pays
+                .withSplitType('equal')
+                .withParticipants([user1DisplayName, user2DisplayName, user3DisplayName]) // Split 3 ways
+                .build()
+        );
 
         // Wait for all users to see the original expense
         await groupDetailPage1.waitForExpense(originalDescription);

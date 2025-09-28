@@ -139,14 +139,16 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         // Owner adds an expense that creates a balance
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
         const expenseDescription = 'Test expense for balance';
-        await expenseFormPage.submitExpense({
-            description: expenseDescription,
-            amount: 100,
-            currency: 'JPY',
-            paidByDisplayName: ownerDisplayName,
-            splitType: 'equal',
-            participants: [ownerDisplayName, memberDisplayName],
-        });
+        await expenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder()
+                .withDescription(expenseDescription)
+                .withAmount(100)
+                .withCurrency('JPY')
+                .withPaidByDisplayName(ownerDisplayName)
+                .withSplitType('equal')
+                .withParticipants([ownerDisplayName, memberDisplayName])
+                .build()
+        );
 
         // Wait for expense to be processed and balances to update
         await groupDetailPage.waitForExpense(expenseDescription);
