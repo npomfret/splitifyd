@@ -6,7 +6,6 @@ import { LoggerContext } from '../utils/logger-context';
 import { ApiError, Errors } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { createOptimisticTimestamp } from '../utils/dateHelpers';
-import { getCurrentPolicyVersions } from '../auth/policy-helpers';
 import { assignThemeColor } from '../user-management/assign-theme-color';
 import { validateRegisterRequest } from '../auth/validation';
 import { validateChangePassword, validateDeleteUser, validateUpdateUserProfile } from '../user/validation';
@@ -490,7 +489,7 @@ export class UserService {
             LoggerContext.update({ userId: userRecord.uid });
 
             // Get current policy versions for user acceptance
-            const currentPolicyVersions = await getCurrentPolicyVersions(this.firestoreReader);
+            const currentPolicyVersions = await this.getCurrentPolicyVersions();
 
             // Assign theme color for new user
             const themeColor = await assignThemeColor();
@@ -563,6 +562,27 @@ export class UserService {
             throw error;
         }
     }
+
+    private async getCurrentPolicyVersions(): Promise<Record<string, string>> {
+        try {
+            const policies = await this.firestoreReader.getAllPolicies();
+
+            const acceptedPolicies: Record<string, string> = {};
+
+            policies.forEach((policy) => {
+                if (policy.currentVersionHash) {
+                    acceptedPolicies[policy.id] = policy.currentVersionHash;
+                }
+            });
+
+            return acceptedPolicies;
+        } catch (error) {
+            logger.error('Failed to get current policy versions', error);
+            // Registration must fail if policies cannot be retrieved - compliance requirement
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_SERVICE_UNAVAILABLE', 'Registration temporarily unavailable - unable to retrieve policy versions');
+        }
+    }
+
 }
 
 // ServiceRegistry handles service instantiation
