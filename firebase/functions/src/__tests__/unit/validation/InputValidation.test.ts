@@ -1,44 +1,18 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ExpenseService } from '../../../services/ExpenseService';
 import { SettlementService } from '../../../services/SettlementService';
-import { StubFirestoreReader, StubFirestoreWriter, StubPermissionEngine, StubExpenseValidation } from '../mocks/firestore-stubs';
+import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { StubFirestoreReader, StubFirestoreWriter, StubAuthService, StubPermissionEngine } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
+import { FirestoreGroupBuilder } from '@splitifyd/test-support';
 import type { CreateExpenseRequest, CreateSettlementRequest } from '@splitifyd/shared';
-
-
-// Stub services using simple objects instead of vi.fn()
-const createStubUserService = () => ({
-    getUsers: () => Promise.resolve(new Map()),
-    getUser: () => Promise.resolve({
-        uid: 'test-user',
-        email: 'test@example.com',
-        displayName: 'Test User',
-        emailVerified: true,
-    }),
-    updateProfile: () => Promise.resolve(),
-    changePassword: () => Promise.resolve(),
-    deleteAccount: () => Promise.resolve(),
-    registerUser: () => Promise.resolve(),
-    createUserDirect: () => Promise.resolve(),
-    getGroupMembersResponseFromSubcollection: () => Promise.resolve({ members: [] as any[], hasMore: false }),
-});
-
-const createStubGroupMemberService = () => ({
-    isGroupMemberAsync: () => Promise.resolve(true),
-    getGroupMember: (groupId: string, uid: string) => Promise.resolve(null as any),
-    getAllGroupMembers: () => Promise.resolve([] as any[]),
-    getGroupMembersResponseFromSubcollection: () => Promise.resolve({ members: [] as any[], hasMore: false }),
-});
 
 describe('Input Validation Unit Tests', () => {
     let expenseService: ExpenseService;
     let settlementService: SettlementService;
-    let stubFirestoreReader: StubFirestoreReader;
-    let stubFirestoreWriter: StubFirestoreWriter;
-    let stubUserService: ReturnType<typeof createStubUserService>;
-    let stubGroupMemberService: ReturnType<typeof createStubGroupMemberService>;
-    let stubPermissionEngine: StubPermissionEngine;
-    let stubExpenseValidation: StubExpenseValidation;
+    let stubReader: StubFirestoreReader;
+    let stubWriter: StubFirestoreWriter;
+    let stubAuth: StubAuthService;
 
     const testGroupId = 'test-group-id';
     const testUser1 = 'user1';
@@ -46,107 +20,62 @@ describe('Input Validation Unit Tests', () => {
     const testUser3 = 'user3';
 
     beforeEach(() => {
-        stubFirestoreReader = new StubFirestoreReader();
-        stubFirestoreWriter = new StubFirestoreWriter();
-        stubUserService = createStubUserService();
-        stubGroupMemberService = createStubGroupMemberService();
-        // Create a mock permission engine that allows all actions for testing
-        stubPermissionEngine = {
-            checkPermission: () => Promise.resolve(true)
-        } as any;
-        stubExpenseValidation = new StubExpenseValidation();
+        stubReader = new StubFirestoreReader();
+        stubWriter = new StubFirestoreWriter();
+        stubAuth = new StubAuthService();
 
-        // Set up test group with simple stub data
-        stubFirestoreReader.setDocument('groups', testGroupId, {
-            id: testGroupId,
-            name: 'Test Group',
-            members: {
-                [testUser1]: { uid: testUser1, memberRole: 'admin', memberStatus: 'active' },
-                [testUser2]: { uid: testUser2, memberRole: 'member', memberStatus: 'active' },
-                [testUser3]: { uid: testUser3, memberRole: 'member', memberStatus: 'active' },
-            },
-            memberCount: 3,
-            // Add permissions configuration required by ExpenseService
-            permissions: {
-                canCreateExpenses: 'ALL_MEMBERS',
-                canEditExpenses: 'CREATOR_ONLY',
-                canDeleteExpenses: 'CREATOR_ONLY'
-            }
-        });
+        const applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
 
-        // Set up group members
-        stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUser1}`, { uid: testUser1, groupId: testGroupId });
-        stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUser2}`, { uid: testUser2, groupId: testGroupId });
-        stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUser3}`, { uid: testUser3, groupId: testGroupId });
-
-        // Set up service mocks with simple responses
-        const testMembers = [
-            {
-                uid: testUser1,
-                groupId: testGroupId,
-                memberRole: 'admin',
-                memberStatus: 'active',
-                joinedAt: new Date().toISOString(),
-                theme: { primary: '#000000', secondary: '#ffffff' }
-            },
-            {
-                uid: testUser2,
-                groupId: testGroupId,
-                memberRole: 'member',
-                memberStatus: 'active',
-                joinedAt: new Date().toISOString(),
-                theme: { primary: '#000000', secondary: '#ffffff' }
-            },
-            {
-                uid: testUser3,
-                groupId: testGroupId,
-                memberRole: 'member',
-                memberStatus: 'active',
-                joinedAt: new Date().toISOString(),
-                theme: { primary: '#000000', secondary: '#ffffff' }
-            },
-        ];
-
-        // Update stub implementations to return test data
-        stubGroupMemberService.getAllGroupMembers = () => Promise.resolve(testMembers);
-
-        // Set up getGroupMember to return the appropriate member for each user
-        stubGroupMemberService.getGroupMember = async (groupId: string, uid: string) => {
-            return testMembers.find(member => member.uid === uid) || null;
-        };
-
-        stubUserService.getGroupMembersResponseFromSubcollection = () => Promise.resolve({
-            members: testMembers.map((member) => ({
-                ...member,
-                profile: {
-                    uid: member.uid,
-                    displayName: `User ${member.uid}`,
-                    email: `${member.uid}@test.com`,
-                },
-            })),
-            hasMore: false,
-        });
-
-        // Use real validation instead of stub to ensure proper business logic validation
-        // Create services without utility stubs but keep permission engine stub
+        // Create ExpenseService with stubbed permission engine
         expenseService = new ExpenseService(
-            stubFirestoreReader,
-            stubFirestoreWriter,
-            stubGroupMemberService as any,
-            stubUserService as any,
-            undefined, // Use default dateHelpers
-            undefined, // Use default logger
-            undefined, // Use default loggerContext
-            stubPermissionEngine as any, // Use stub permission engine for tests
-            undefined  // Use default measure
+            stubReader,
+            stubWriter,
+            applicationBuilder.buildGroupMemberService(),
+            applicationBuilder.buildUserService(),
+            undefined, // dateHelpers
+            undefined, // logger
+            undefined, // loggerContext
+            StubPermissionEngine as any, // injected permission engine
+            undefined, // measure
+            undefined  // validator
         );
+        settlementService = applicationBuilder.buildSettlementService();
 
-        settlementService = new SettlementService(
-            stubFirestoreReader,
-            stubFirestoreWriter,
-            stubGroupMemberService as any
-            // No injected utility stubs - use defaults for date helpers, logger, measure
-        );
+        // Set up test group with proper permissions and members
+        const testGroup = new FirestoreGroupBuilder()
+            .withId(testGroupId)
+            .withCreatedBy(testUser1)
+            .build();
+
+        // Add test users as members in the group document
+        testGroup.members[testUser2] = { role: 'member', status: 'active' };
+        testGroup.members[testUser3] = { role: 'member', status: 'active' };
+
+        stubReader.setDocument('groups', testGroupId, testGroup);
+
+        // Set up group member subcollection documents that GroupMemberService expects
+        [testUser1, testUser2, testUser3].forEach(userId => {
+            stubReader.setDocument('group-members', `${testGroupId}_${userId}`, {
+                uid: userId,
+                groupId: testGroupId,
+                memberRole: userId === testUser1 ? 'admin' : 'member',
+                memberStatus: 'active',
+                joinedAt: new Date().toISOString()
+            });
+        });
+
+        // Set up users in auth service
+        [testUser1, testUser2, testUser3].forEach(userId => {
+            stubAuth.setUser(userId, {
+                uid: userId,
+                email: `${userId}@test.com`,
+                displayName: `User ${userId}`,
+                emailVerified: true,
+            });
+        });
+
+        // Clear any previous state
+        stubAuth.clear();
     });
 
     describe('Amount Validation', () => {
