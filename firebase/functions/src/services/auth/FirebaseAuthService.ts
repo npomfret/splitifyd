@@ -23,42 +23,6 @@ import { IAuthService } from './IAuthService';
 // ========================================================================
 
 /**
- * Options for listing users (internal implementation detail)
- */
-interface ListUsersOptions {
-    maxResults?: number;
-    pageToken?: string;
-}
-
-/**
- * Token verification options (internal implementation detail)
- */
-interface TokenVerificationOptions {
-    checkRevoked?: boolean;
-    clockSkewSeconds?: number;
-}
-
-/**
- * Custom claims for user roles and permissions (internal implementation detail)
- */
-interface CustomUserClaims {
-    role?: string;
-    permissions?: string[];
-    groupIds?: string[];
-    [key: string]: any;
-}
-
-/**
- * Auth service configuration options (internal implementation detail)
- */
-interface AuthServiceConfig {
-    validateInput?: boolean;
-    enableLogging?: boolean;
-    enableMetrics?: boolean;
-    defaultTimeout?: number;
-}
-
-/**
  * Auth operation context for logging and debugging (internal implementation detail)
  */
 interface AuthOperationContext {
@@ -68,29 +32,6 @@ interface AuthOperationContext {
     requestId?: string;
     userAgent?: string;
     ipAddress?: string;
-}
-
-/**
- * Auth service performance metrics (internal implementation detail)
- */
-interface AuthServiceMetrics {
-    operationName: string;
-    duration: number;
-    success: boolean;
-    timestamp: Date;
-    context?: AuthOperationContext;
-}
-
-/**
- * Password policy configuration (internal implementation detail)
- */
-interface PasswordPolicy {
-    minLength: number;
-    requireUppercase: boolean;
-    requireLowercase: boolean;
-    requireNumbers: boolean;
-    requireSpecialChars: boolean;
-    disallowedPasswords?: string[];
 }
 
 // Internal types used only by FirebaseAuthService for validated data casting

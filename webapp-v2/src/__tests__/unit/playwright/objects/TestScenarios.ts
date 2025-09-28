@@ -20,15 +20,6 @@ export class TestScenarios {
         return this._validUser;
     }
 
-    static userWithWeakPasswordBuilder(): TestUserBuilder {
-        return TestUserBuilder.userWithWeakPassword();
-    }
-
-    static userWithStrongPasswordBuilder(): TestUserBuilder {
-        return TestUserBuilder.userWithStrongPassword();
-    }
-
-    // Password scenarios (kept as simple arrays since they're just data)
     static get weakPasswords() {
         return ['weak', '123', 'password', '12345678', 'abc123'];
     }

@@ -23,22 +23,6 @@ describe('ExpenseMetadataService', () => {
     describe('calculateExpenseMetadata', () => {
         it('should calculate metadata for group with expenses', async () => {
             const groupId = 'test-group-id';
-            const mockExpenses = [
-                {
-                    id: 'expense-1',
-                    description: 'Latest Expense',
-                    amount: 150,
-                    date: { toDate: () => new Date('2024-01-15') },
-                    createdAt: { toDate: () => new Date('2024-01-15T10:00:00Z') },
-                },
-                {
-                    id: 'expense-2',
-                    description: 'Older Expense',
-                    amount: 100,
-                    date: { toDate: () => new Date('2024-01-10') },
-                    createdAt: { toDate: () => new Date('2024-01-10T10:00:00Z') },
-                },
-            ];
 
             // Set up the stub to return our test expenses for this group
             stubFirestoreReader.setDocument('expenses', 'expense-1', {

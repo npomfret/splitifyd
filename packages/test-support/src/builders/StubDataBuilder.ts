@@ -7,21 +7,6 @@ import { generateShortId } from '../test-helpers';
 export class StubDataBuilder {
 
     /**
-     * Creates a basic group document structure for StubFirestoreReader.setDocument
-     */
-    static groupDocument(overrides: Partial<any> = {}): any {
-        const groupId = `group-${generateShortId()}`;
-        return {
-            id: groupId,
-            name: 'Test Group',
-            description: 'Test group description',
-            members: {},
-            createdBy: `user-${generateShortId()}`,
-            ...overrides,
-        };
-    }
-
-    /**
      * Creates a basic user document structure for StubFirestoreReader.setDocument
      */
     static userDocument(overrides: Partial<any> = {}): any {
@@ -64,42 +49,4 @@ export class StubDataBuilder {
         };
     }
 
-    /**
-     * Creates an expense document structure
-     */
-    static expenseDocument(overrides: Partial<any> = {}): any {
-        const expenseId = `expense-${generateShortId()}`;
-        const userId = `user-${generateShortId()}`;
-        const groupId = `group-${generateShortId()}`;
-        return {
-            id: expenseId,
-            groupId: groupId,
-            description: 'Test Expense',
-            amount: 100,
-            currency: 'USD',
-            paidBy: userId,
-            createdBy: userId,
-            ...overrides,
-        };
-    }
-
-    /**
-     * Creates a settlement document structure
-     */
-    static settlementDocument(overrides: Partial<any> = {}): any {
-        const settlementId = `settlement-${generateShortId()}`;
-        const payerId = `user-${generateShortId()}`;
-        const payeeId = `user-${generateShortId()}`;
-        const groupId = `group-${generateShortId()}`;
-        return {
-            id: settlementId,
-            groupId: groupId,
-            amount: 50,
-            currency: 'USD',
-            payer: payerId,
-            payee: payeeId,
-            note: 'Test Settlement',
-            ...overrides,
-        };
-    }
 }
