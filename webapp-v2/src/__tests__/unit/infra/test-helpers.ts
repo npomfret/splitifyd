@@ -766,7 +766,6 @@ const someValidEmail = () => `${generateShortId()}@bar.com`;
 
 // Re-export new object-oriented test patterns
 export { TestScenarios } from '../playwright/objects';
-export { GroupTestDataBuilder } from '../playwright/builders';
 export { GroupApiMock, AuthApiMock } from '../playwright/mocks';
 
 /**
