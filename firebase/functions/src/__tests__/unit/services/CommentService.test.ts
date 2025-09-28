@@ -22,27 +22,22 @@ describe('CommentService - Consolidated Tests', () => {
     let stubWriter: StubFirestoreWriter;
     let stubAuth: StubAuthService;
     let stubStrategyFactory: StubCommentStrategyFactory;
-    let applicationBuilder: ApplicationBuilder;
 
     beforeEach(() => {
-        // Create stubs
         stubReader = new StubFirestoreReader();
         stubWriter = new StubFirestoreWriter();
         stubAuth = new StubAuthService();
         stubStrategyFactory = new StubCommentStrategyFactory();
 
-        // Create ApplicationBuilder to get dependent services
-        applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
-        const groupMemberService = applicationBuilder.buildGroupMemberService();
+        const applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
 
-        // Create CommentService with dependency injection
-        // Keep the strategy factory for business logic testing, but remove utility stubs
+        // Create CommentService directly with our stubStrategyFactory instead of using ApplicationBuilder
         commentService = new CommentService(
             stubReader,
             stubWriter,
-            groupMemberService,
+            applicationBuilder.buildGroupMemberService(),
             stubAuth,
-            stubStrategyFactory as any    // Keep strategy factory for business logic testing
+            stubStrategyFactory as any
         );
 
         // Set up test user in auth stub
