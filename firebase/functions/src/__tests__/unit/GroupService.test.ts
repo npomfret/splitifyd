@@ -6,7 +6,7 @@ import {
     StubFirestoreWriter,
     StubAuthService
 } from './mocks/firestore-stubs';
-import { FirestoreGroupBuilder, GroupMemberDocumentBuilder, StubDataBuilder } from '@splitifyd/test-support';
+import { FirestoreGroupBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { ApiError } from '../../utils/errors';
 import { validateCreateGroup, validateUpdateGroup, validateGroupId } from '../../groups/validation';
 import { HTTP_STATUS } from '../../constants';

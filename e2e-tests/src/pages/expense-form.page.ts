@@ -2,7 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { FORM_LABELS } from '../constants/selectors';
 import { PooledTestUser } from '@splitifyd/shared';
-import { ExpenseFormData, ExpenseFormDataBuilder } from '@splitifyd/test-support';
+import { ExpenseFormData } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from './group-detail.page.ts';
 
 export class ExpenseFormPage extends BasePage {
