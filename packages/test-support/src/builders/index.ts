@@ -19,3 +19,7 @@ export { UserProfileBuilder } from './UserProfileBuilder';
 export { UserBalanceBuilder, DebtScenarios } from './UserBalanceBuilder';
 export { RegisterRequestBuilder } from './RegisterRequestBuilder';
 export { ValidationExpenseBuilder } from './ValidationExpenseBuilder';
+export { TestUserBuilder } from './TestUserBuilder';
+export { ExpenseFormDataBuilder } from './ExpenseFormDataBuilder';
+export type { ExpenseFormData } from './ExpenseFormDataBuilder';
+export { StubDataBuilder } from './StubDataBuilder';

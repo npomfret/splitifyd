@@ -6,7 +6,7 @@ import {
     StubFirestoreWriter,
     StubAuthService
 } from './mocks/firestore-stubs';
-import { FirestoreGroupBuilder } from '@splitifyd/test-support';
+import { FirestoreGroupBuilder, GroupMemberDocumentBuilder, StubDataBuilder } from '@splitifyd/test-support';
 import { ApiError } from '../../utils/errors';
 import { validateCreateGroup, validateUpdateGroup, validateGroupId } from '../../groups/validation';
 import { HTTP_STATUS } from '../../constants';
@@ -55,13 +55,10 @@ describe('GroupService - Unit Tests', () => {
             vi.spyOn(stubReader, 'getGroup').mockResolvedValue(createdGroup);
 
             // Add group membership for balance calculation
-            const membershipDoc = {
-                userId: userId,
-                groupId: expectedGroupId,
-                memberRole: 'admin',
-                memberStatus: 'active',
-                joinedAt: new Date().toISOString(),
-            };
+            const membershipDoc = new GroupMemberDocumentBuilder(userId, expectedGroupId)
+                .asAdmin()
+                .asActive()
+                .build();
             stubReader.setDocument('group-members', `${expectedGroupId}_${userId}`, membershipDoc);
 
             const result = await groupService.createGroup(userId, createGroupRequest);
@@ -85,13 +82,10 @@ describe('GroupService - Unit Tests', () => {
             stubWriter.setDocument('groups', groupId, testGroup);
 
             // Set up group membership so user has access
-            const membershipDoc = {
-                userId: userId,
-                groupId: groupId,
-                memberRole: 'admin',
-                memberStatus: 'active',
-                joinedAt: new Date().toISOString(),
-            };
+            const membershipDoc = new GroupMemberDocumentBuilder(userId, groupId)
+                .asAdmin()
+                .asActive()
+                .build();
             stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
             stubWriter.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
 
@@ -130,13 +124,10 @@ describe('GroupService - Unit Tests', () => {
             stubReader.setDocument('groups', groupId, existingGroup);
 
             // Set up group membership so user has access (as owner)
-            const membershipDoc = {
-                userId: userId,
-                groupId: groupId,
-                memberRole: 'admin',
-                memberStatus: 'active',
-                joinedAt: new Date().toISOString(),
-            };
+            const membershipDoc = new GroupMemberDocumentBuilder(userId, groupId)
+                .asAdmin()
+                .asActive()
+                .build();
             stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
 
             const updateRequest = {
@@ -163,13 +154,10 @@ describe('GroupService - Unit Tests', () => {
             stubWriter.setDocument('groups', groupId, existingGroup);
 
             // Set up group membership so user has access (as owner)
-            const membershipDoc = {
-                userId: userId,
-                groupId: groupId,
-                memberRole: 'admin',
-                memberStatus: 'active',
-                joinedAt: new Date().toISOString(),
-            };
+            const membershipDoc = new GroupMemberDocumentBuilder(userId, groupId)
+                .asAdmin()
+                .asActive()
+                .build();
             stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
 
             const result = await groupService.deleteGroup(groupId, userId);

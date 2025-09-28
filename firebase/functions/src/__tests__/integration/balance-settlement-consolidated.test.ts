@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from 'vitest';
-import { ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, TestGroupManager, generateShortId } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, SettlementUpdateBuilder, TestGroupManager, generateShortId } from '@splitifyd/test-support';
 import { PooledTestUser, UserToken } from '@splitifyd/shared';
 
 describe('Balance & Settlement - Consolidated Tests', () => {
@@ -145,10 +145,10 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
-                const updateData = {
-                    amount: 75.25,
-                    note: 'Updated note',
-                };
+                const updateData = new SettlementUpdateBuilder()
+                    .withAmount(75.25)
+                    .withNote('Updated note')
+                    .build();
 
                 const updated = await apiDriver.updateSettlement(created.id, updateData, settlementUsers[0].token);
 

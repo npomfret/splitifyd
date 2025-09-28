@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { BalanceCalculationService } from '../../../services/balance';
 import {StubAuthService, StubFirestoreReader, StubFirestoreWriter} from '../mocks/firestore-stubs';
-import { FirestoreGroupBuilder, FirestoreExpenseBuilder, UserProfileBuilder } from '@splitifyd/test-support';
+import { FirestoreGroupBuilder, FirestoreExpenseBuilder, UserProfileBuilder, StubDataBuilder } from '@splitifyd/test-support';
 import {ApplicationBuilder} from "../../../services/ApplicationBuilder";
 import { UserService } from '../../../services/UserService2';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
@@ -28,25 +28,35 @@ describe('BalanceCalculationService', () => {
                 const userId2 = 'user-2';
 
                 // Set up stub data - much cleaner than complex mock objects
-                stubFirestoreReader.setDocument('groups', groupId, {
-                    id: groupId,
-                    name: 'Test Group',
-                    members: {
-                        [userId1]: { uid: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
-                        [userId2]: { uid: userId2, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
-                    },
-                });
+                const groupDoc = new FirestoreGroupBuilder()
+                    .withId(groupId)
+                    .withName('Test Group')
+                    .build();
 
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, { uid: userId1, groupId: groupId });
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId2}`, { uid: userId2, groupId: groupId });
+                // Add members to the group document
+                groupDoc.members = {
+                    [userId1]: { uid: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
+                    [userId2]: { uid: userId2, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
+                };
+
+                stubFirestoreReader.setDocument('groups', groupId, groupDoc);
+
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`,
+                    StubDataBuilder.groupMemberDocument({ uid: userId1, groupId: groupId }));
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId2}`,
+                    StubDataBuilder.groupMemberDocument({ uid: userId2, groupId: groupId }));
 
                 // Set up user records in Auth service (required for UserService2)
-                stubAuthService.setUser(userId1, { uid: userId1, email: 'user1@test.com', displayName: 'User 1' });
-                stubAuthService.setUser(userId2, { uid: userId2, email: 'user2@test.com', displayName: 'User 2' });
+                stubAuthService.setUser(userId1,
+                    StubDataBuilder.authUserRecord({ uid: userId1, email: 'user1@test.com', displayName: 'User 1' }));
+                stubAuthService.setUser(userId2,
+                    StubDataBuilder.authUserRecord({ uid: userId2, email: 'user2@test.com', displayName: 'User 2' }));
 
                 // Set up user documents in Firestore
-                stubFirestoreReader.setDocument('users', userId1, { uid: userId1, email: 'user1@test.com', displayName: 'User 1' });
-                stubFirestoreReader.setDocument('users', userId2, { uid: userId2, email: 'user2@test.com', displayName: 'User 2' });
+                stubFirestoreReader.setDocument('users', userId1,
+                    StubDataBuilder.userDocument({ uid: userId1, email: 'user1@test.com', displayName: 'User 1' }));
+                stubFirestoreReader.setDocument('users', userId2,
+                    StubDataBuilder.userDocument({ uid: userId2, email: 'user2@test.com', displayName: 'User 2' }));
 
                 // Execute
                 const result = await balanceCalculationService.fetchBalanceCalculationData(groupId);

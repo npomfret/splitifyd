@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, borrowTestUsers, generateShortId, NotificationDriver } from '@splitifyd/test-support';
+import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, GroupUpdateBuilder, borrowTestUsers, generateShortId, NotificationDriver } from '@splitifyd/test-support';
 import { PooledTestUser, FirestoreCollections, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
@@ -171,10 +171,10 @@ describe('Groups Management - Consolidated Tests', () => {
         // NOTE: Group update business logic, validation, and authorization are now tested in unit tests: GroupService.test.ts
         // This integration test focuses on API endpoints and Firebase transaction behavior
         test('should handle group updates via API with transaction consistency', async () => {
-            const updateData = {
-                name: 'Updated Group Name API',
-                description: 'Updated via API',
-            };
+            const updateData = new GroupUpdateBuilder()
+                .withName('Updated Group Name API')
+                .withDescription('Updated via API')
+                .build();
 
             // Test API update endpoint with authentication
             const result = await apiDriver.updateGroup(testGroup.id, updateData, users[0].token);

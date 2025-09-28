@@ -1,8 +1,7 @@
 import { expect, simpleTest } from '../../fixtures';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
-import { generateShortId } from '@splitifyd/test-support';
+import { generateShortId, ExpenseFormDataBuilder } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page';
-import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
 
 /**
  * Consolidated Core Features E2E Tests

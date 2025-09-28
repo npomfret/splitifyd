@@ -1,5 +1,5 @@
 import {expect, simpleTest} from '../../fixtures';
-import {generateShortId} from '@splitifyd/test-support';
+import {generateShortId, ExpenseFormDataBuilder} from '@splitifyd/test-support';
 import {groupDetailUrlPattern} from '../../pages/group-detail.page';
 import {SettlementData} from '../../pages/settlement-form.page';
 
@@ -36,14 +36,16 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // Step 2: Create expense with EUR currency and verify balance calculation
         const expenseDescription = `Lifecycle Test ${generateShortId()}`;
         const expenseFormPage = await groupDetailPage1.clickAddExpenseButton();
-        await expenseFormPage.submitExpense({
-            description: expenseDescription,
-            amount: 100,
-            paidByDisplayName: user1DisplayName,
-            currency: 'EUR',
-            splitType: 'equal',
-            participants: [user1DisplayName, user2DisplayName],
-        });
+        await expenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder()
+                .withDescription(expenseDescription)
+                .withAmount(100)
+                .withPaidByDisplayName(user1DisplayName)
+                .withCurrency('EUR')
+                .withSplitType('equal')
+                .withParticipants([user1DisplayName, user2DisplayName])
+                .build()
+        );
 
         // Verify expense appears and balance is calculated correctly (€50 each)
         await groupDetailPage1.waitForExpense(expenseDescription);
