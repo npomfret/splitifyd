@@ -45,34 +45,8 @@ export class StubFirestoreReader implements IFirestoreReader {
         this.paginationBehavior.set(userId, { groups: allGroups, pageSize });
     }
 
-    // Error injection helpers
-    setMethodError(methodName: string, error: Error | string) {
-        if (typeof error === 'string') {
-            // Create appropriate error based on string
-            if (error === 'NOT_FOUND') {
-                this.methodErrors.set(methodName, new ApiError(HTTP_STATUS.NOT_FOUND, 'NOT_FOUND', 'Document not found'));
-            } else if (error === 'PERMISSION_DENIED') {
-                this.methodErrors.set(methodName, new ApiError(HTTP_STATUS.FORBIDDEN, 'PERMISSION_DENIED', 'Permission denied'));
-            } else if (error === 'FIRESTORE_ERROR') {
-                this.methodErrors.set(methodName, new Error('Firestore connection failed'));
-            } else {
-                this.methodErrors.set(methodName, new Error(error));
-            }
-        } else {
-            this.methodErrors.set(methodName, error);
-        }
-    }
-
-    clearMethodError(methodName: string) {
-        this.methodErrors.delete(methodName);
-    }
-
     setNotFound(collection: string, id: string) {
         this.notFoundDocuments.add(`${collection}/${id}`);
-    }
-
-    clearNotFound(collection: string, id: string) {
-        this.notFoundDocuments.delete(`${collection}/${id}`);
     }
 
     // Mock helpers for compatibility
@@ -1138,15 +1112,6 @@ export class StubPermissionEngine {
     private static permissions = new Map<string, boolean>();
     private static defaultPermission = true;
 
-    static setPermission(action: string, groupId: string, userId: string, allowed: boolean) {
-        const key = `${action}:${groupId}:${userId}`;
-        StubPermissionEngine.permissions.set(key, allowed);
-    }
-
-    static setDefaultPermission(allowed: boolean) {
-        StubPermissionEngine.defaultPermission = allowed;
-    }
-
     static async checkPermission(
         firestoreReader: any,
         group: any,
@@ -1180,148 +1145,6 @@ export class StubPermissionEngine {
         return {};
     }
 
-    static clear() {
-        StubPermissionEngine.permissions.clear();
-        StubPermissionEngine.defaultPermission = true;
-    }
-}
-
-/**
- * Stub implementation for logger to replace vi.mock()
- */
-export class StubLogger {
-    public logs: Array<{level: string, message: string, context?: any}> = [];
-
-    info(message: string, context?: any) {
-        this.logs.push({level: 'info', message, context});
-    }
-
-    error(message: string, context?: any) {
-        this.logs.push({level: 'error', message, context});
-    }
-
-    warn(message: string, context?: any) {
-        this.logs.push({level: 'warn', message, context});
-    }
-
-    debug(message: string, context?: any) {
-        this.logs.push({level: 'debug', message, context});
-    }
-
-    getLogsForLevel(level: string) {
-        return this.logs.filter(log => log.level === level);
-    }
-
-    child(context: any): StubLogger {
-        const childLogger = new StubLogger();
-        childLogger.logs = [...this.logs];
-        return childLogger;
-    }
-
-    clear() {
-        this.logs = [];
-    }
-}
-
-/**
- * Stub implementation for logger context to replace vi.mock()
- */
-export class StubLoggerContext {
-    private static context: Record<string, any> = {};
-
-    static run<T>(context: any, fn: () => T): T {
-        const oldContext = StubLoggerContext.context;
-        StubLoggerContext.context = { ...oldContext, ...context };
-        try {
-            return fn();
-        } finally {
-            StubLoggerContext.context = oldContext;
-        }
-    }
-
-    static get(): any {
-        return StubLoggerContext.context;
-    }
-
-    static update(updates: Record<string, any>) {
-        StubLoggerContext.context = { ...StubLoggerContext.context, ...updates };
-    }
-
-    static setUser(userId: string, email?: string, role?: string) {
-        StubLoggerContext.context.userId = userId;
-        if (email) StubLoggerContext.context.userEmail = email;
-        if (role) StubLoggerContext.context.userRole = role;
-    }
-
-    static setBusinessContext(context: Record<string, any>) {
-        StubLoggerContext.context = { ...StubLoggerContext.context, ...context };
-    }
-
-    static child(additionalContext: any): any {
-        return { ...StubLoggerContext.context, ...additionalContext };
-    }
-
-    static clear(...fields: string[]) {
-        if (fields.length === 0) {
-            StubLoggerContext.context = {};
-        } else {
-            fields.forEach(field => {
-                delete StubLoggerContext.context[field];
-            });
-        }
-    }
-
-    // Legacy instance methods for backward compatibility
-    setBusinessContext(context: Record<string, any>) {
-        StubLoggerContext.setBusinessContext(context);
-    }
-
-    clearBusinessContext() {
-        StubLoggerContext.clear();
-    }
-
-    update(updates: Record<string, any>) {
-        StubLoggerContext.update(updates);
-    }
-
-    getContext() {
-        return StubLoggerContext.get();
-    }
-
-    clear() {
-        StubLoggerContext.clear();
-    }
-}
-
-/**
- * Stub implementation for monitoring/measure to replace vi.mock()
- */
-export class StubMeasure {
-    public static measurements: Array<{name: string, duration?: number, result?: any}> = [];
-
-    static async measure<T>(type: string, operation: string, fn: () => Promise<T>): Promise<T> {
-        const start = Date.now();
-        const result = await fn();
-        const duration = Date.now() - start;
-        StubMeasure.measurements.push({name: `${type}:${operation}`, duration, result});
-        return result;
-    }
-
-    static async measureDb<T>(operation: string, fn: () => Promise<T>): Promise<T> {
-        return StubMeasure.measure('db', operation, fn);
-    }
-
-    static async measureTrigger<T>(operation: string, fn: () => Promise<T>): Promise<T> {
-        return StubMeasure.measure('trigger', operation, fn);
-    }
-
-    static getMeasurements() {
-        return [...StubMeasure.measurements];
-    }
-
-    static clear() {
-        StubMeasure.measurements = [];
-    }
 }
 
 /**
@@ -1332,36 +1155,12 @@ export class StubExpenseValidation {
     private splitResults = new Map<string, any>();
     private validationError: Error | null = null;
 
-    setValidationResult(key: string, result: any) {
-        this.validationResults.set(key, result);
-    }
-
-    setValidationError(error: Error) {
-        this.validationError = error;
-    }
-
-    setSplitResult(key: string, result: any) {
-        this.splitResults.set(key, result);
-    }
-
-    validateCreateExpense(data: any): any {
-        if (this.validationError) {
-            throw this.validationError;
-        }
-        const key = JSON.stringify(data);
-        return this.validationResults.get(key) || data;
-    }
-
     calculateSplits(amount: number, splitType: string, participants: string[]): any[] {
         const key = `${amount}:${splitType}:${participants.join(',')}`;
         return this.splitResults.get(key) || participants.map((uid: string) => ({
             uid,
             amount: amount / participants.length,
         }));
-    }
-
-    static validateCreateExpense(data: any): any {
-        return data;
     }
 
     static calculateSplits(amount: number, splitType: string, participants: string[]): any[] {
@@ -1371,144 +1170,6 @@ export class StubExpenseValidation {
         }));
     }
 
-    clear() {
-        this.validationResults.clear();
-        this.splitResults.clear();
-    }
-
-    static validateExpenseId(id: any): string {
-        if (typeof id !== 'string' || !id.trim()) {
-            throw new Error('Invalid expense ID');
-        }
-        return id;
-    }
-
-    static validateUpdateExpense(body: any): any {
-        return body;
-    }
-}
-
-/**
- * Stub implementation for optimistic locking to replace vi.mock()
- */
-export class StubOptimisticLocking {
-    private shouldSucceed = true;
-    private versionUpdates = new Map<string, number>();
-
-    setShouldSucceed(succeed: boolean) {
-        this.shouldSucceed = succeed;
-    }
-
-    setDocumentVersion(docId: string, version: number) {
-        this.versionUpdates.set(docId, version);
-    }
-
-    async verifyAndUpdate(docRef: any, currentVersion: any, updates: any): Promise<any> {
-        if (!this.shouldSucceed) {
-            throw new Error('Optimistic locking failure - document was modified');
-        }
-
-        const docId = docRef.id || docRef.path;
-        const newVersion = this.versionUpdates.get(docId) || (currentVersion + 1);
-
-        return {
-            ...updates,
-            version: newVersion,
-            updatedAt: Timestamp.now(),
-        };
-    }
-
-    clear() {
-        this.shouldSucceed = true;
-        this.versionUpdates.clear();
-    }
-}
-
-
-/**
- * Stub implementation for CommentStrategyFactory to replace vi.mock()
- */
-export class StubCommentStrategyFactory {
-    private mockStrategy: any;
-
-    constructor() {
-        this.mockStrategy = {
-            verifyAccess: vi.fn()
-        };
-    }
-
-    getStrategy(targetType: string): any {
-        return this.mockStrategy;
-    }
-
-    setMockStrategy(strategy: any) {
-        this.mockStrategy = strategy;
-    }
-
-    getMockStrategy() {
-        return this.mockStrategy;
-    }
-
-    clear() {
-        this.mockStrategy.verifyAccess.mockReset();
-    }
-}
-
-/**
- * Stub implementation for i18n validation to replace vi.mock()
- */
-export class StubI18nValidation {
-    private translations = new Map<string, string>();
-    private errorMessages = new Map<string, string>();
-
-    setTranslation(key: string, value: string) {
-        this.translations.set(key, value);
-    }
-
-    setErrorMessage(error: string, message: string) {
-        this.errorMessages.set(error, message);
-    }
-
-    translateJoiError(error: any): string {
-        const errorKey = error.details?.[0]?.message || 'Validation error';
-        return this.errorMessages.get(errorKey) || errorKey;
-    }
-
-    translate(key: string): string {
-        return this.translations.get(key) || key;
-    }
-
-    translateValidationError(detail: any): string {
-        return detail.message || 'Validation error';
-    }
-
-    clear() {
-        this.translations.clear();
-        this.errorMessages.clear();
-    }
-}
-
-/**
- * Stub implementation for service registration to replace vi.mock()
- */
-export class StubServiceRegistration {
-    private services = new Map<string, any>();
-
-    registerService(name: string, service: any) {
-        this.services.set(name, service);
-    }
-
-    getService(name: string): any {
-        return this.services.get(name);
-    }
-
-    hasService(name: string): boolean {
-        return this.services.has(name);
-    }
-
-    clear() {
-        this.services.clear();
-    }
 }
 
 /**
