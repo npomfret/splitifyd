@@ -1148,31 +1148,6 @@ export class StubPermissionEngine {
 }
 
 /**
- * Stub implementation for validation helpers to replace vi.mock()
- */
-export class StubExpenseValidation {
-    private validationResults = new Map<string, any>();
-    private splitResults = new Map<string, any>();
-    private validationError: Error | null = null;
-
-    calculateSplits(amount: number, splitType: string, participants: string[]): any[] {
-        const key = `${amount}:${splitType}:${participants.join(',')}`;
-        return this.splitResults.get(key) || participants.map((uid: string) => ({
-            uid,
-            amount: amount / participants.length,
-        }));
-    }
-
-    static calculateSplits(amount: number, splitType: string, participants: string[]): any[] {
-        return participants.map((uid: string) => ({
-            uid,
-            amount: amount / participants.length,
-        }));
-    }
-
-}
-
-/**
  * Clear all shared storage for tests
  */
 export function clearSharedStorage() {

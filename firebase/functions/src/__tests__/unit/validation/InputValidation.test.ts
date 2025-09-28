@@ -26,7 +26,7 @@ describe('Input Validation Unit Tests', () => {
 
         const applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
 
-        // Create ExpenseService with stubbed permission engine
+        // Build services - ExpenseService needs StubPermissionEngine for validation tests
         expenseService = new ExpenseService(
             stubReader,
             stubWriter,
@@ -35,7 +35,7 @@ describe('Input Validation Unit Tests', () => {
             undefined, // dateHelpers
             undefined, // logger
             undefined, // loggerContext
-            StubPermissionEngine as any, // injected permission engine
+            StubPermissionEngine as any, // permission engine
             undefined, // measure
             undefined  // validator
         );
@@ -73,9 +73,6 @@ describe('Input Validation Unit Tests', () => {
                 emailVerified: true,
             });
         });
-
-        // Clear any previous state
-        stubAuth.clear();
     });
 
     describe('Amount Validation', () => {
