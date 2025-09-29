@@ -4,6 +4,7 @@ import { logError, logInfo } from '@/utils/browser-logger';
 import type { ExpenseData, Group, GroupBalances, GroupMemberDTO, SettlementListItem } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
 import { permissionsStore } from '@/stores/permissions-store.ts';
+import { firebaseService } from '../firebase';
 
 export interface EnhancedGroupDetailStore {
     // State
@@ -220,7 +221,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
         // Set up notification detector if not already running
         if (!this.notificationDetector) {
-            this.notificationDetector = new UserNotificationDetector();
+            this.notificationDetector = new UserNotificationDetector(firebaseService);
             this.notificationUnsubscribe = this.notificationDetector.subscribe(userId, {
                 onTransactionChange: (changeGroupId) => {
                     if (changeGroupId === this.currentGroupId) {

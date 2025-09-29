@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UserNotificationDetector } from '@/utils/user-notification-detector.ts';
+import type { FirebaseService } from '@/app/firebase';
 
 // Mock Firebase
 vi.mock('@/app/firebase', () => ({
@@ -23,9 +24,22 @@ vi.mock('firebase/firestore', () => ({
 
 describe('UserNotificationDetector', () => {
     let detector: UserNotificationDetector;
+    let mockFirebaseService: FirebaseService;
 
     beforeEach(() => {
-        detector = new UserNotificationDetector();
+        // Create a mock FirebaseService
+        mockFirebaseService = {
+            initialize: vi.fn(),
+            getAuth: vi.fn(),
+            getFirestore: vi.fn(),
+            signInWithEmailAndPassword: vi.fn(),
+            sendPasswordResetEmail: vi.fn(),
+            signOut: vi.fn(),
+            onAuthStateChanged: vi.fn(),
+            onDocumentSnapshot: vi.fn(() => vi.fn()), // Return mock unsubscribe function
+        };
+
+        detector = new UserNotificationDetector(mockFirebaseService);
         vi.clearAllMocks();
     });
 

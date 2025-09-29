@@ -4,6 +4,7 @@ import { apiClient, ApiError } from '../apiClient';
 import { logWarning, logInfo } from '@/utils/browser-logger.ts';
 import { UserNotificationDetector } from '@/utils/user-notification-detector.ts';
 import { streamingMetrics } from '@/utils/streaming-metrics';
+import { firebaseService } from '../firebase';
 
 export interface EnhancedGroupsStore {
     groups: Group[];
@@ -51,7 +52,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     readonly #updatingGroupIdsSignal = signal<Set<string>>(new Set());
     readonly #isCreatingGroupSignal = signal<boolean>(false);
 
-    private notificationDetector = new UserNotificationDetector();
+    private notificationDetector = new UserNotificationDetector(firebaseService);
     private notificationUnsubscribe: (() => void) | null = null;
 
     // Reference counting for subscription management
