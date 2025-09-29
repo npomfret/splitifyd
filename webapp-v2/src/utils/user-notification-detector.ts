@@ -192,8 +192,17 @@ export class UserNotificationDetector {
             // Check for comment changes
             if (this.callbacks.onCommentChange && this.hasCommentChanged(groupId, groupData, lastState)) {
                 logInfo('UserNotificationDetector: comment change detected', { groupId });
-                // For now, assume group-level comments (could extend to detect expense comments)
+
+                // Since the backend notification system doesn't distinguish between group and expense comments,
+                // and we don't have the specific expense ID here, we need a different approach.
+                //
+                // The comments store should listen for comment changes in the entire group,
+                // and then decide internally whether to refresh based on its current target.
+                // We'll pass the group ID for both types and let the store handle the logic.
+
                 this.callbacks.onCommentChange('group', groupId);
+                // Also trigger for any expense comments in this group
+                this.callbacks.onCommentChange('expense', groupId);
             }
 
             // Update last state

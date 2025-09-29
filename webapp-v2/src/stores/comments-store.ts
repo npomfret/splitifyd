@@ -1,15 +1,10 @@
 import { signal, ReadonlySignal } from '@preact/signals';
-import { onSnapshot, collection, query, orderBy, limit, startAfter, getDocs, QueryDocumentSnapshot } from 'firebase/firestore';
-import type { CommentApiResponse, CommentTargetType } from '@splitifyd/shared';
+import type { CommentApiResponse, CommentTargetType, ListCommentsResponse } from '@splitifyd/shared';
 import { apiClient } from '../app/apiClient';
-import { getDb } from '../app/firebase';
 import { logError, logInfo } from '../utils/browser-logger';
-import { assertTimestampAndConvert } from '../utils/dateUtils';
 import type { FirebaseService } from '../app/firebase';
 import { firebaseService } from '../app/firebase';
 import { UserNotificationDetector } from '../utils/user-notification-detector';
-
-type SubscriptionState = 'idle' | 'subscribing' | 'subscribed' | 'disposed';
 
 interface CommentsStore {
     // State getters - readonly values for external consumers
@@ -47,10 +42,11 @@ class CommentsStoreImpl implements CommentsStore {
     readonly #targetIdSignal = signal<string | null>(null);
 
     // Private subscription management
-    #subscriptionState: SubscriptionState = 'idle';
-    #unsubscribe: (() => void) | null = null;
-    #lastDoc: QueryDocumentSnapshot | null = null;
     #subscriberCounts = new Map<string, number>();
+
+    // API-based pagination state
+    #apiCursor: string | null = null;
+    #apiHasMore: boolean = false;
 
     // Notification system dependencies
     #notificationUnsubscribe: (() => void) | null = null;
@@ -106,11 +102,11 @@ class CommentsStoreImpl implements CommentsStore {
         this.#subscriberCounts.set(targetId, currentCount + 1);
 
         if (currentCount === 0) {
-            // First component for target, creating subscription
-            this.#subscribeToComments(targetType, targetId);
-
             // Setup notification listener for real-time updates
             this.#setupNotificationListener(targetType, targetId);
+
+            // Fetch initial data via API
+            this.#fetchCommentsViaApi(targetType, targetId);
         }
     }
 
@@ -124,87 +120,6 @@ class CommentsStoreImpl implements CommentsStore {
             this.#dispose();
         } else {
             this.#subscriberCounts.set(targetId, currentCount - 1);
-        }
-    }
-
-    /**
-     * Subscribe to real-time comments for a target (group or expense).
-     * This is a private method managed by the register/deregister logic.
-     */
-    #subscribeToComments(targetType: CommentTargetType, targetId: string) {
-        // If we are already subscribed to the same target, do nothing.
-        if (this.#subscriptionState === 'subscribed' && this.#targetTypeSignal.value === targetType && this.#targetIdSignal.value === targetId) {
-            logInfo('Already subscribed to target', { targetType, targetId });
-            return;
-        }
-
-        // Prevent multiple simultaneous subscription attempts
-        if (this.#subscriptionState === 'subscribing') {
-            logInfo('Already subscribing to comments, ignoring duplicate request');
-            return;
-        }
-
-        // Clean up previous subscription if the target is different
-        if (this.#subscriptionState !== 'idle') {
-            this.#dispose();
-        }
-
-        this.#subscriptionState = 'subscribing';
-        this.#targetTypeSignal.value = targetType;
-        this.#targetIdSignal.value = targetId;
-        this.#loadingSignal.value = true;
-        this.#errorSignal.value = null;
-
-        try {
-            const db = getDb();
-            const collectionPath = targetType === 'group' ? `groups/${targetId}/comments` : `expenses/${targetId}/comments`;
-
-            const commentsQuery = query(collection(db, collectionPath), orderBy('createdAt', 'desc'), limit(20));
-
-            this.#unsubscribe = onSnapshot(
-                commentsQuery,
-                (snapshot) => {
-                    // Only process if we're still subscribing/subscribed to this target
-                    if (this.#subscriptionState === 'disposed' || this.#targetTypeSignal.value !== targetType || this.#targetIdSignal.value !== targetId) {
-                        logInfo('Subscription callback received for stale target, ignoring');
-                        return;
-                    }
-
-                    const comments: CommentApiResponse[] = [];
-
-                    snapshot.forEach((doc) => {
-                        const data = doc.data();
-                        comments.push({
-                            id: doc.id,
-                            authorId: data.authorId,
-                            authorName: data.authorName,
-                            authorAvatar: data.authorAvatar || undefined,
-                            text: data.text,
-                            createdAt: assertTimestampAndConvert(data.createdAt, 'createdAt'),
-                            updatedAt: assertTimestampAndConvert(data.updatedAt, 'updatedAt'),
-                        });
-                    });
-
-                    // Store last document for pagination
-                    this.#lastDoc = snapshot.docs[snapshot.docs.length - 1] || null;
-                    this.#hasMoreSignal.value = snapshot.docs.length === 20;
-
-                    this.#commentsSignal.value = comments;
-                    this.#loadingSignal.value = false;
-                    this.#subscriptionState = 'subscribed';
-                },
-                (error) => {
-                    logError('Comments subscription error', error);
-                    this.#errorSignal.value = 'Failed to load comments. Please try refreshing the page.';
-                    this.#loadingSignal.value = false;
-                    this.#subscriptionState = 'idle';
-                },
-            );
-        } catch (error) {
-            logError('Failed to subscribe to comments', error);
-            this.#errorSignal.value = 'Failed to connect to comments. Please check your connection.';
-            this.#loadingSignal.value = false;
-            this.#subscriptionState = 'idle';
         }
     }
 
@@ -223,10 +138,22 @@ class CommentsStoreImpl implements CommentsStore {
         // Setup notification listener to detect comment changes
         this.#notificationUnsubscribe = this.userNotificationDetector.subscribe(userId, {
             onCommentChange: (notificationTargetType, notificationTargetId) => {
-                // Check if this comment notification is for the current target
-                if (notificationTargetType === targetType && notificationTargetId === targetId) {
-                    logInfo('Comment change notification received, refreshing comments');
+                // Handle comment notifications based on our current target type
+                if (targetType === 'group' && notificationTargetType === 'group' && notificationTargetId === targetId) {
+                    // Direct match for group comments
+                    logInfo('Group comment change notification received, refreshing comments');
                     this.#refreshComments();
+                } else if (targetType === 'expense' && notificationTargetType === 'expense') {
+                    // For expense comments, check if the notification is for the group containing our expense
+                    // The notificationTargetId is the groupId, so we need to check if this expense belongs to that group
+                    // We don't have direct access to the expense's groupId here, but we can refresh
+                    // and let the API call determine if there are new comments for this expense
+                    logInfo('Expense comment change notification received, refreshing comments');
+                    this.#refreshComments();
+                } else if (targetType === 'expense' && notificationTargetType === 'group') {
+                    // This might be a group-level comment, but we only care about expense comments when in expense mode
+                    // Skip group comment notifications when we're listening for expense comments
+                    return;
                 }
             }
         });
@@ -240,20 +167,75 @@ class CommentsStoreImpl implements CommentsStore {
             return;
         }
 
-        // For now, keep using Firebase subscription refresh
-        // This will be replaced with API calls in the next phase
+        // Refresh using API to get latest comments
+        // This preserves pagination state by fetching from the beginning
         try {
-            // Trigger a re-fetch by calling Firebase again
-            // This preserves pagination state
             const targetType = this.#targetTypeSignal.value;
             const targetId = this.#targetIdSignal.value;
 
-            if (this.#unsubscribe) {
-                // Re-establish the Firebase subscription to get fresh data
-                this.#subscribeToComments(targetType, targetId);
-            }
+            // Reset API pagination and fetch fresh data
+            this.#apiCursor = null;
+            await this.#fetchCommentsViaApi(targetType, targetId, true);
         } catch (error) {
             logError('Failed to refresh comments', error);
+        }
+    }
+
+    /**
+     * Fetch comments via API
+     */
+    async #fetchCommentsViaApi(targetType: CommentTargetType, targetId: string, isRefresh: boolean = false) {
+        // Always set target signals for the current target (store is singleton, may be reused)
+        if (!isRefresh) {
+            this.#targetTypeSignal.value = targetType;
+            this.#targetIdSignal.value = targetId;
+        }
+
+        if (!isRefresh) {
+            this.#loadingSignal.value = true;
+        }
+        this.#errorSignal.value = null;
+
+        try {
+            let response: ListCommentsResponse;
+
+            if (targetType === 'group') {
+                response = await apiClient.getGroupComments(targetId, this.#apiCursor || undefined);
+            } else {
+                response = await apiClient.getExpenseComments(targetId, this.#apiCursor || undefined);
+            }
+
+            // Update API pagination state
+            this.#apiHasMore = response.hasMore;
+            this.#apiCursor = response.nextCursor || null;
+
+            // Update comments (replace if initial/refresh, append if pagination)
+            if (isRefresh || this.#commentsSignal.value.length === 0) {
+                // Replace existing comments
+                this.#commentsSignal.value = response.comments;
+            } else {
+                // Append new comments for pagination
+                this.#commentsSignal.value = [...this.#commentsSignal.value, ...response.comments];
+            }
+
+            // Update hasMore signal with API state
+            this.#hasMoreSignal.value = this.#apiHasMore;
+
+            logInfo('Comments fetched via API', {
+                targetType,
+                targetId,
+                count: response.comments.length,
+                hasMore: response.hasMore,
+                isRefresh
+            });
+
+        } catch (error) {
+            logError('Failed to fetch comments via API', error);
+            this.#errorSignal.value = 'Failed to load comments';
+        } finally {
+            if (!isRefresh) {
+                this.#loadingSignal.value = false;
+            }
         }
     }
 
@@ -276,8 +258,8 @@ class CommentsStoreImpl implements CommentsStore {
                 await apiClient.createExpenseComment(this.#targetIdSignal.value, text);
             }
 
-            // The real-time subscription will automatically update the list
-            // Since we're using desc order, new comments should appear at the top
+            // The real-time notification system will trigger a refresh
+            // New comments will appear when the API is refreshed
 
             this.#submittingSignal.value = false;
         } catch (error) {
@@ -292,7 +274,14 @@ class CommentsStoreImpl implements CommentsStore {
      * Load more comments (pagination)
      */
     async loadMoreComments(): Promise<void> {
-        if (!this.#hasMoreSignal.value || this.#loadingSignal.value || !this.#lastDoc) {
+        await this.#loadMoreCommentsViaApi();
+    }
+
+    /**
+     * Load more comments via API (pagination)
+     */
+    async #loadMoreCommentsViaApi(): Promise<void> {
+        if (!this.#apiHasMore || this.#loadingSignal.value || !this.#apiCursor) {
             return;
         }
 
@@ -303,39 +292,36 @@ class CommentsStoreImpl implements CommentsStore {
         this.#loadingSignal.value = true;
 
         try {
-            const db = getDb();
-            const collectionPath = this.#targetTypeSignal.value === 'group' ? `groups/${this.#targetIdSignal.value}/comments` : `expenses/${this.#targetIdSignal.value}/comments`;
+            const targetType = this.#targetTypeSignal.value;
+            const targetId = this.#targetIdSignal.value;
 
-            const nextQuery = query(collection(db, collectionPath), orderBy('createdAt', 'desc'), startAfter(this.#lastDoc), limit(20));
+            let response: ListCommentsResponse;
 
-            // Use getDocs instead of onSnapshot for pagination to avoid conflicts
-            const snapshot = await getDocs(nextQuery);
+            if (targetType === 'group') {
+                response = await apiClient.getGroupComments(targetId, this.#apiCursor);
+            } else {
+                response = await apiClient.getExpenseComments(targetId, this.#apiCursor);
+            }
 
-            const moreComments: CommentApiResponse[] = [];
+            // Update API pagination state
+            this.#apiHasMore = response.hasMore;
+            this.#apiCursor = response.nextCursor || null;
+            this.#hasMoreSignal.value = this.#apiHasMore;
 
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                moreComments.push({
-                    id: doc.id,
-                    authorId: data.authorId,
-                    authorName: data.authorName,
-                    authorAvatar: data.authorAvatar || undefined,
-                    text: data.text,
-                    createdAt: assertTimestampAndConvert(data.createdAt, 'createdAt'),
-                    updatedAt: assertTimestampAndConvert(data.updatedAt, 'updatedAt'),
-                });
+            // Append new comments
+            this.#commentsSignal.value = [...this.#commentsSignal.value, ...response.comments];
+
+            logInfo('More comments loaded via API', {
+                targetType,
+                targetId,
+                count: response.comments.length,
+                hasMore: response.hasMore
             });
 
-            // Update pagination state
-            this.#lastDoc = snapshot.docs[snapshot.docs.length - 1] || this.#lastDoc;
-            this.#hasMoreSignal.value = snapshot.docs.length === 20;
-
-            // Append to existing comments
-            this.#commentsSignal.value = [...this.#commentsSignal.value, ...moreComments];
-            this.#loadingSignal.value = false;
         } catch (error) {
-            logError('Failed to load more comments', error);
+            logError('Failed to load more comments via API', error);
             this.#errorSignal.value = 'Failed to load more comments';
+        } finally {
             this.#loadingSignal.value = false;
         }
     }
@@ -351,7 +337,8 @@ class CommentsStoreImpl implements CommentsStore {
         this.#hasMoreSignal.value = false;
         this.#targetTypeSignal.value = null;
         this.#targetIdSignal.value = null;
-        this.#lastDoc = null;
+        this.#apiCursor = null;
+        this.#apiHasMore = false;
         this.#subscriberCounts.clear();
         this.#dispose();
     }
@@ -360,20 +347,11 @@ class CommentsStoreImpl implements CommentsStore {
      * Clean up subscriptions
      */
     #dispose() {
-        this.#subscriptionState = 'disposed';
-        if (this.#unsubscribe) {
-            this.#unsubscribe();
-            this.#unsubscribe = null;
-        }
-
         // Clean up notification listener
         if (this.#notificationUnsubscribe) {
             this.#notificationUnsubscribe();
             this.#notificationUnsubscribe = null;
         }
-
-        // Reset to idle after cleanup
-        this.#subscriptionState = 'idle';
     }
 }
 

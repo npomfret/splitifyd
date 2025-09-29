@@ -85,6 +85,3 @@ class FirebaseServiceImpl implements FirebaseService {
 }
 
 export const firebaseService: FirebaseService = new FirebaseServiceImpl();
-
-// Export a getter for db to ensure initialization
-export const getDb = () => firebaseService.getFirestore();
