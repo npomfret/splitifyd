@@ -333,6 +333,14 @@ export class ApiDriver {
         return await this.apiRequest('/user/change-password', 'POST', { currentPassword, newPassword }, token);
     }
 
+    async createComment(id: string, type: 'group' | 'expense', text: string, token:string): Promise<CreateCommentResponse> {
+        if (type === 'group') {
+            return this.createGroupComment(id, text, token);
+        } else {
+            return this.createExpenseComment(id, text, token);
+        }
+    }
+
     // Comment API methods
     async createGroupComment(groupId: string, text: string, token: string): Promise<CreateCommentResponse> {
         return await this.apiRequest(`/groups/${groupId}/comments`, 'POST', { text }, token);

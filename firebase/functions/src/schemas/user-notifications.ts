@@ -23,11 +23,13 @@ export const UserNotificationGroupSchema = z.object({
     lastTransactionChange: FirestoreTimestampSchema.nullable(),
     lastBalanceChange: FirestoreTimestampSchema.nullable(),
     lastGroupDetailsChange: FirestoreTimestampSchema.nullable(),
+    lastCommentChange: FirestoreTimestampSchema.nullable(),
 
     // Change counters for detecting missed updates
     transactionChangeCount: z.number().int().nonnegative(),
     balanceChangeCount: z.number().int().nonnegative(),
     groupDetailsChangeCount: z.number().int().nonnegative(),
+    commentChangeCount: z.number().int().nonnegative(),
 });
 
 /**
@@ -35,7 +37,7 @@ export const UserNotificationGroupSchema = z.object({
  */
 export const RecentChangeSchema = z.object({
     groupId: z.string().min(1, 'Group ID is required'),
-    type: z.enum(['transaction', 'balance', 'group']),
+    type: z.enum(['transaction', 'balance', 'group', 'comment']),
     timestamp: FirestoreTimestampSchema,
 });
 

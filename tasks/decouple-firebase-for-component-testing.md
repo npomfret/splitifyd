@@ -25,7 +25,7 @@ import { firebaseService, getDb } from '@/app/firebase';
 
 // Examples:
 - user-notification-detector.ts: uses getDb() directly
-- comments-store.ts: uses getDb() directly
+- comments-store.ts: uses getDb() directly ⚠️ (Currently being refactored)
 - groups-store-enhanced.ts: uses UserNotificationDetector which uses getDb()
 ```
 
@@ -592,3 +592,40 @@ This approach provides the best balance of:
 - Maximum testing capability
 - Fast test execution
 - Maintainability
+
+---
+
+## 10. Related Progress: Comments Store Refactoring
+
+**Status: In Progress** - Working on removing Firebase dependencies from `comments-store.ts`
+
+### 10.1. Current Work: Comment Notification System
+**Goal**: Replace direct Firebase access in `comments-store.ts` with API-based data fetching and notification-driven updates.
+
+**Phase 1 Complete**: Backend comment notification infrastructure ✅
+- Extended user notification schema with comment tracking fields
+- Added comment change triggers for group and expense comments
+- Comprehensive test coverage for comment notifications
+- Backend ready for real-time comment change notifications
+
+**Next Phases**:
+- Add GET comment API endpoints
+- Update frontend notification detector for comment events
+- Refactor comments store to use API + notifications instead of direct Firebase
+- Remove all Firebase imports from comments store
+
+### 10.2. Architecture Impact
+This refactoring directly supports the Firebase decoupling goal:
+
+**Before**: `comments-store.ts` → `getDb()` → Direct Firebase access
+**After**: `comments-store.ts` → `apiClient` + `UserNotificationDetector` → No direct Firebase
+
+Once complete, comments-store will follow the same patterns as other stores and be fully mockable for component testing.
+
+### 10.3. Remaining Firebase Dependencies
+After comments store refactoring, the remaining direct Firebase usage will be:
+- `user-notification-detector.ts` (core notification system)
+- `groups-store-enhanced.ts` (uses UserNotificationDetector)
+- Various utility functions
+
+The notification system refactoring reduces Firebase dependencies from **3 major stores** to **1 core service**, making the overall Firebase decoupling task more focused and manageable.

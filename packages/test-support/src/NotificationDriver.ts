@@ -11,7 +11,7 @@ export interface UserNotificationDocument {
     lastModified: admin.firestore.Timestamp;
     recentChanges?: Array<{
         groupId: string;
-        type: 'transaction' | 'balance' | 'group';
+        type: 'transaction' | 'balance' | 'group' | 'comment';
         timestamp: admin.firestore.Timestamp;
     }>;
 }
@@ -20,9 +20,11 @@ export interface GroupNotificationState {
     lastTransactionChange: admin.firestore.Timestamp | null;
     lastBalanceChange: admin.firestore.Timestamp | null;
     lastGroupDetailsChange: admin.firestore.Timestamp | null;
+    lastCommentChange: admin.firestore.Timestamp | null;
     transactionChangeCount: number;
     balanceChangeCount: number;
     groupDetailsChangeCount: number;
+    commentChangeCount: number;
 }
 
 /**
@@ -31,7 +33,7 @@ export interface GroupNotificationState {
 export interface NotificationEvent {
     userId: string;
     groupId: string;
-    type: 'transaction' | 'balance' | 'group';
+    type: 'transaction' | 'balance' | 'group' | 'comment';
     version: number;
     groupState?: GroupNotificationState;
 }
@@ -175,7 +177,7 @@ export class NotificationListener {
     /**
      * Get events for a group, optionally filtered by type
      */
-    getGroupEvents(groupId: string, eventType?: 'transaction' | 'balance' | 'group'): NotificationEvent[] {
+    getGroupEvents(groupId: string, eventType?: 'transaction' | 'balance' | 'group' | 'comment'): NotificationEvent[] {
         const events: NotificationEvent[] = [];
 
         for (const doc of this.receivedEvents) {
@@ -205,6 +207,11 @@ export class NotificationListener {
                     events.push({ ...baseEvent, type: 'group' });
                 }
             }
+            if (!eventType || eventType === 'comment') {
+                if (groupState.commentChangeCount !== undefined) {
+                    events.push({ ...baseEvent, type: 'comment' });
+                }
+            }
         }
 
         return events;
@@ -213,7 +220,7 @@ export class NotificationListener {
     /**
      * Wait for a specific number of events of a given type for a group
      */
-    async waitForEventCount(groupId: string, eventType: 'transaction' | 'balance' | 'group', minCount: number, timeoutMs: number = 3000): Promise<NotificationEvent[]> {
+    async waitForEventCount(groupId: string, eventType: 'transaction' | 'balance' | 'group' | 'comment', minCount: number, timeoutMs: number = 3000): Promise<NotificationEvent[]> {
         const startTime = Date.now();
 
         while (true) {
@@ -234,7 +241,7 @@ export class NotificationListener {
     /**
      * Assert exact number of events for a group with detailed error message
      */
-    assertEventCount(groupId: string, expectedCount: number, eventType?: 'transaction' | 'balance' | 'group'): void {
+    assertEventCount(groupId: string, expectedCount: number, eventType?: 'transaction' | 'balance' | 'group' | 'comment'): void {
         const events = this.getGroupEvents(groupId, eventType);
         const actualCount = events.length;
         const typeStr = eventType ? ` ${eventType}` : '';
@@ -306,6 +313,20 @@ export class NotificationListener {
 
         if (event.groupState?.balanceChangeCount !== expectedChangeCount) {
             throw new Error(`Expected balanceChangeCount to be ${expectedChangeCount}, but got ${event.groupState?.balanceChangeCount}`);
+        }
+
+        return event;
+    }
+
+    /**
+     * Wait for a comment event and validate its structure
+     */
+    async waitForCommentEvent(groupId: string, expectedChangeCount: number = 1, timeoutMs: number = 3000): Promise<NotificationEvent> {
+        const events = await this.waitForEventCount(groupId, 'comment', 1, timeoutMs);
+        const event = events[0];
+
+        if (event.groupState?.commentChangeCount !== expectedChangeCount) {
+            throw new Error(`Expected commentChangeCount to be ${expectedChangeCount}, but got ${event.groupState?.commentChangeCount}`);
         }
 
         return event;

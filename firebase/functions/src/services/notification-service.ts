@@ -24,7 +24,7 @@ import type { BatchWriteResult, IFirestoreWriter, WriteResult } from './firestor
 import { type CreateUserNotificationDocument } from '../schemas/user-notifications';
 import { measureDb } from '../monitoring/measure';
 
-export type ChangeType = 'transaction' | 'balance' | 'group';
+export type ChangeType = 'transaction' | 'balance' | 'group' | 'comment';
 
 export class NotificationService {
     constructor(
@@ -64,6 +64,7 @@ export class NotificationService {
                 transaction: { count: 'transactionChangeCount', last: 'lastTransactionChange' },
                 balance: { count: 'balanceChangeCount', last: 'lastBalanceChange' },
                 group: { count: 'groupDetailsChangeCount', last: 'lastGroupDetailsChange' },
+                comment: { count: 'commentChangeCount', last: 'lastCommentChange' },
             };
 
             for (const userId of userIds) {

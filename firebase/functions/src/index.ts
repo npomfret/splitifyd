@@ -49,6 +49,7 @@ export function getAppBuilder(): ApplicationBuilder {
 
 // Import triggers and scheduled functions
 import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker';
+import { trackGroupCommentChanges, trackExpenseCommentChanges } from './triggers/comment-tracker';
 import { logMetrics } from './scheduled/metrics-logger';
 
 // Removed emulator connection test at module level to prevent connection creation
@@ -447,7 +448,7 @@ export const api = onRequest(
 );
 
 // Export Firestore triggers for realtime change tracking
-export { trackGroupChanges, trackExpenseChanges, trackSettlementChanges };
+export { trackGroupChanges, trackExpenseChanges, trackSettlementChanges, trackGroupCommentChanges, trackExpenseCommentChanges };
 
 // Note: User notification lifecycle is now handled directly in UserService business logic
 // - Notification document creation: UserService.createUserDirect()

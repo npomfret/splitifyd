@@ -1287,4 +1287,55 @@ describe('Notifications Management - Consolidated Tests', () => {
             expect(user3Events.filter((e) => e.type === 'transaction').length).toBe(2);
         });
     });
+
+    describe('Comment Notifications', () => {
+        test('creating a group comment should trigger a notification for all group members', async () => {
+            const [user1Listener, user2Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
+
+            const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
+            await user1Listener.waitForGroupEvent(group.id, 1);
+            notificationDriver.clearEvents();
+
+            const shareResponse = await apiDriver.generateShareLink(group.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
+            await user1Listener.waitForGroupEvent(group.id, 2);
+            await user2Listener.waitForGroupEvent(group.id, 1);
+            notificationDriver.clearEvents();
+
+            await apiDriver.createComment(group.id, 'group', 'Hello, world!', user1.token);
+
+            await user1Listener.waitForCommentEvent(group.id, 1);
+            await user2Listener.waitForCommentEvent(group.id, 1);
+
+            user1Listener.assertEventCount(group.id, 1, 'comment');
+            user2Listener.assertEventCount(group.id, 1, 'comment');
+        });
+
+        test('creating an expense comment should trigger a notification for all group members', async () => {
+            const [user1Listener, user2Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
+
+            const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
+            await user1Listener.waitForGroupEvent(group.id, 1);
+            notificationDriver.clearEvents();
+
+            const shareResponse = await apiDriver.generateShareLink(group.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
+            await user1Listener.waitForGroupEvent(group.id, 2);
+            await user2Listener.waitForGroupEvent(group.id, 1);
+            notificationDriver.clearEvents();
+
+            const expense = await apiDriver.createExpense(new CreateExpenseRequestBuilder().withGroupId(group.id).withPaidBy(user1.uid).withParticipants([user1.uid, user2.uid]).build(), user1.token);
+            await user1Listener.waitForTransactionEvent(group.id, 1);
+            await user2Listener.waitForTransactionEvent(group.id, 1);
+            notificationDriver.clearEvents();
+
+            await apiDriver.createComment(expense.id, 'expense', 'This is an expense comment', user1.token);
+
+            await user1Listener.waitForCommentEvent(group.id, 1);
+            await user2Listener.waitForCommentEvent(group.id, 1);
+
+            user1Listener.assertEventCount(group.id, 1, 'comment');
+            user2Listener.assertEventCount(group.id, 1, 'comment');
+        });
+    });
 });

@@ -644,8 +644,11 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         return {id: 'notification', success: true, timestamp: Timestamp.now()};
     }
 
-    async setUserNotifications(): Promise<WriteResult> {
-        return {id: 'notification', success: true, timestamp: Timestamp.now()};
+    public setUserNotificationsCalls: {userId: string, updates: any, merge?: boolean}[] = [];
+
+    async setUserNotifications(userId: string, updates: any, merge?: boolean): Promise<WriteResult> {
+        this.setUserNotificationsCalls.push({userId, updates, merge});
+        return {id: userId, success: true, timestamp: Timestamp.now()};
     }
 
     async setUserNotificationGroupInTransaction(): Promise<WriteResult> {
