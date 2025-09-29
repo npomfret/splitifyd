@@ -1,4 +1,119 @@
 {
+  "common": {
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "search": "Search",
+    "select": "Select",
+    "selectAll": "Select all",
+    "none": "None",
+    "all": "All",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Info",
+    "unknown": "Unknown",
+    "unknownUser": "Unknown User",
+    "you": "You",
+    "youSuffix": " (You)",
+    "required": "*",
+    "optional": "(optional)",
+    "or": "or",
+    "and": "and",
+    "copy": "Copy",
+    "share": "Share",
+    "dismiss": "Dismiss",
+    "dismissAlert": "Dismiss alert",
+    "justNow": "just now",
+    "active": "Active",
+    "inactive": "Inactive",
+    "total": "Total",
+    "member": "member",
+    "members": "members",
+    "user": "User",
+    "group": "Group",
+    "groups": "Groups",
+    "recent": "Recent",
+    "all": "All",
+    "placeholder": {
+      "amount": "0.00",
+      "search": "Search...",
+      "searchCurrencies": "Search currencies...",
+      "selectCurrency": "Select currency...",
+      "selectPerson": "Select person"
+    }
+  },
+
+  "landing": {
+    "hero": {
+      "title": "Effortless Bill Splitting, Simplified & Smart.",
+      "subtitle": "Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent.",
+      "highlight": "It's 100% free, with no ads and no limits.",
+      "focusMessage": "Focus on what matters, not on the math.",
+      "appScreenshotAlt": "Splitifyd App Screenshot"
+    },
+    "features": {
+      "sectionTitle": "Everything You Need, Nothing You Don't",
+      "smartGroupManagement": {
+        "title": "Smart Group Management",
+        "description": "Create groups for any occasion. Easily add members and track shared expenses in one place, keeping everyone on the same page."
+      },
+      "flexibleSplitting": {
+        "title": "Flexible Splitting",
+        "description": "Split bills equally, by exact amounts, or by percentages. We handle all the complex math, so you don't have to."
+      },
+      "debtSimplification": {
+        "title": "Debt Simplification",
+        "description": "Our algorithm minimizes transactions, showing you the simplest way to settle up, saving everyone time and hassle."
+      },
+      "freeToUse": {
+        "title": "100% Free to Use",
+        "description": "Our service is and always will be free. No hidden fees or premium tiers—just a powerful, accessible tool for everyone."
+      },
+      "unlimitedUse": {
+        "title": "Unlimited Use",
+        "description": "Create as many groups, add as many friends, and track as many expenses as you need. No restrictions, no limits."
+      },
+      "noAds": {
+        "title": "Zero Ads, Ever",
+        "description": "Enjoy a clean, focused experience. We will never sell your data or clutter your screen with ads. Your privacy is our priority."
+      }
+    },
+    "cta": {
+      "title": "Ready to Simplify Your Shared Expenses?",
+      "subtitle": "Join thousands who are already making group payments stress-free and transparent. Get started today!",
+      "signUpButton": "Sign Up for Free"
+    },
+    "disclaimer": "This is a tool for tracking expenses, not for making payments. To save and manage your expenses, you'll need a free account. We will never ask for sensitive financial details.",
+    "globe": {
+      "loadError": "Unable to load 3D globe"
+    }
+  },
+
+  "app": {
+    "loading": "Loading...",
+    "loadingPage": "Loading page..."
+  },
+
+  "main": {
+    "unknownButton": "Unknown Button",
+    "unknownLink": "Unknown Link",
+    "unknownElement": "Unknown Element",
+    "linkClick": "Link clicked: ",
+    "elementClick": "Element clicked: "
+  },
+
   "createGroupModal": {
     "title": "Create a new group",
     "groupNameLabel": "Group Name",
@@ -54,6 +169,436 @@
       "cookiesRequired": "You must accept the Cookie Policy"
     }
   },
+
+  "auth": {
+    "emailInput": {
+      "label": "Email",
+      "placeholder": "Enter your email",
+      "requiredIndicator": "*",
+      "validation": {
+        "required": "Email is required",
+        "invalid": "Please enter a valid email address"
+      }
+    },
+    "passwordInput": {
+      "label": "Password",
+      "placeholder": "Enter your password",
+      "requiredIndicator": "*",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "strength": "Password strength",
+      "strengthWeak": "Weak",
+      "strengthMedium": "Medium",
+      "strengthStrong": "Strong",
+      "validation": {
+        "required": "Password is required",
+        "tooShort": "Password must be at least 6 characters"
+      }
+    },
+    "defaultLoginButton": "Continue with Email"
+  },
+
+  "dashboard": {
+    "groupCard": {
+      "settledUp": "All settled up!",
+      "youOwe": "You owe {{amount}}",
+      "youAreOwed": "You're owed {{amount}}",
+      "addExpenseTooltip": "Add expense to {{groupName}}",
+      "inviteTooltip": "Invite members to {{groupName}}",
+      "noRecentActivity": "No recent activity"
+    },
+    "emptyState": {
+      "title": "No groups yet",
+      "subtitle": "Create your first group to start tracking shared expenses",
+      "createButton": "Create Group"
+    },
+    "stats": {
+      "totalGroups": "Total Groups",
+      "totalExpenses": "Total Expenses",
+      "totalBalance": "Total Balance"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "createGroup": "Create Group",
+      "addExpense": "Add Expense"
+    }
+  },
+
+  "group": {
+    "header": {
+      "members": "{{count}} member",
+      "members_plural": "{{count}} members",
+      "expenses": "{{count}} expense",
+      "expenses_plural": "{{count}} expenses"
+    },
+    "actions": {
+      "addExpense": "Add Expense",
+      "viewExpenses": "View Expenses",
+      "settleUp": "Settle Up",
+      "shareGroup": "Share Group",
+      "editGroup": "Edit Group",
+      "leaveGroup": "Leave Group"
+    },
+    "share": {
+      "title": "Share Group",
+      "subtitle": "Invite others to join this group",
+      "copyLink": "Copy Link",
+      "linkCopied": "Link copied to clipboard!"
+    },
+    "edit": {
+      "title": "Edit Group",
+      "warningIcon": "⚠️"
+    },
+    "leave": {
+      "title": "Leave Group",
+      "message": "Are you sure you want to leave this group?",
+      "confirmButton": "Leave Group",
+      "cancelButton": "Cancel"
+    },
+    "members": {
+      "title": "Members",
+      "addMember": "Add Member",
+      "removeMember": "Remove Member",
+      "unknownUser": "Unknown User",
+      "user": "User"
+    },
+    "expenses": {
+      "title": "Expenses",
+      "noExpenses": "No expenses yet",
+      "addFirstExpense": "Add your first expense",
+      "unknown": "Unknown"
+    },
+    "balance": {
+      "title": "Balance Summary",
+      "settledUp": "All settled up!",
+      "unknown": "Unknown"
+    }
+  },
+
+  "expense": {
+    "form": {
+      "header": {
+        "add": "Add Expense",
+        "edit": "Edit Expense"
+      },
+      "description": "Description",
+      "amount": "Amount*",
+      "whoPaid": "Who paid?",
+      "whoPaidRequired": "*",
+      "splitBetween": "Split between",
+      "splitType": {
+        "label": "How to split",
+        "equal": "Equal",
+        "exactAmounts": "Exact amounts",
+        "percentage": "Percentage"
+      },
+      "splitInstructions": {
+        "exactAmounts": "Enter exact amounts for each person:",
+        "percentage": "Enter percentage for each person:",
+        "equal": "Each person pays:"
+      },
+      "selectAll": "Select all",
+      "saveExpense": "Save Expense",
+      "updateExpense": "Update Expense",
+      "cancel": "Cancel",
+      "percentageSymbol": "%",
+      "total": "Total:",
+      "unknown": "Unknown"
+    },
+    "actions": {
+      "edit": "Edit",
+      "copy": "Copy",
+      "copyExpense": "Copy expense",
+      "share": "Share",
+      "delete": "Delete",
+      "deleteError": "Failed to delete expense"
+    },
+    "splits": {
+      "splitEqually": "Split Equally",
+      "exactAmounts": "Exact Amounts",
+      "byPercentage": "By Percentage",
+      "customSplit": "Custom Split",
+      "splitBetween": "Split between {{count}} {{people}}",
+      "person": "person",
+      "people": "people",
+      "unknown": "Unknown",
+      "paid": "Paid",
+      "owes": "Owes {{payer}}",
+      "totalPercentage": "Total: {{percentage}}%"
+    }
+  },
+
+  "settlement": {
+    "form": {
+      "title": "Record Payment",
+      "updateTitle": "Update Payment",
+      "closeModal": "Close modal",
+      "whoPaidLabel": "Who paid?",
+      "whoReceivedLabel": "Who received the payment?",
+      "amountLabel": "Amount",
+      "dateLabel": "Date",
+      "noteLabel": "Note (optional)",
+      "selectPersonPlaceholder": "Select person",
+      "amountPlaceholder": "0.00",
+      "notePlaceholder": "e.g., Venmo, cash, bank transfer",
+      "youSuffix": " (You)",
+      "cancelButton": "Cancel",
+      "updatingButton": "Updating...",
+      "recordingButton": "Recording...",
+      "summary": "{{payer}} paid {{payee}} {{amount}}",
+      "validation": {
+        "selectPayer": "Please select who paid",
+        "selectPayee": "Please select who received the payment",
+        "samePersonError": "Payer and recipient cannot be the same person",
+        "validAmountRequired": "Please enter a valid amount greater than 0",
+        "amountTooLarge": "Amount cannot exceed 999,999.99",
+        "validCurrencyRequired": "Please select a valid currency",
+        "dateRequired": "Please select a date",
+        "dateInFuture": "Date cannot be in the future",
+        "recordPaymentFailed": "Failed to record payment"
+      },
+      "unknownUser": "Unknown User"
+    },
+    "history": {
+      "title": "Settlement History",
+      "noSettlements": "No settlements yet"
+    }
+  },
+
+  "comments": {
+    "section": {
+      "title": "Comments",
+      "noComments": "No comments yet"
+    },
+    "input": {
+      "placeholder": "Add a comment...",
+      "ariaLabel": "Comment text",
+      "sendButton": "Send",
+      "sendAriaLabel": "Send comment"
+    },
+    "item": {
+      "justNow": "just now",
+      "deleteButton": "Delete comment"
+    },
+    "list": {
+      "loading": "Loading comments...",
+      "error": "Failed to load comments"
+    }
+  },
+
+  "joinGroup": {
+    "page": {
+      "title": "Join Group",
+      "loading": "Loading..."
+    },
+    "preview": {
+      "invited": "You've been invited to join this group",
+      "member": "Member",
+      "members": "Members",
+      "active": "Active",
+      "group": "Group",
+      "groupSize": "Group Size"
+    },
+    "button": {
+      "join": "Join Group",
+      "joining": "Joining..."
+    }
+  },
+
+  "ui": {
+    "alert": {
+      "dismiss": "Dismiss alert"
+    },
+    "confirmDialog": {
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "currencySelector": {
+      "label": "Currency",
+      "placeholder": "Select currency...",
+      "required": "*",
+      "searchPlaceholder": "Search currencies...",
+      "noResults": "No currencies found",
+      "recent": "Recent",
+      "common": "Common",
+      "allCurrencies": "All Currencies"
+    },
+    "currencyAmountInput": {
+      "unknown": "?",
+      "searchCurrencies": "Search currencies"
+    },
+    "input": {
+      "required": "*"
+    },
+    "timeInput": {
+      "label": "Time",
+      "placeholder": "Select time"
+    },
+    "categorySuggestionInput": {
+      "placeholder": "Category (optional)"
+    },
+    "button": {
+      "default": "Button"
+    },
+    "loadingSpinner": {
+      "loading": "Loading..."
+    },
+    "loadingState": {
+      "loading": "Loading...",
+      "pleaseWait": "Please wait..."
+    },
+    "errorState": {
+      "error": "An error occurred",
+      "tryAgain": "Try again",
+      "goBack": "Go back"
+    },
+    "avatar": {
+      "userAvatar": "User avatar"
+    },
+    "warningBanner": {
+      "warning": "Warning"
+    },
+    "userIndicator": {
+      "online": "Online",
+      "offline": "Offline"
+    }
+  },
+
+  "navigation": {
+    "header": {
+      "fallback": "...",
+      "dashboard": "Dashboard",
+      "groups": "Groups",
+      "settings": "Settings"
+    },
+    "footer": {
+      "copyright": "© {{year}} Splitifyd. All rights reserved.",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "cookies": "Cookie Policy"
+    },
+    "userMenu": {
+      "profile": "Profile",
+      "settings": "Settings",
+      "logout": "Logout",
+      "help": "Help"
+    }
+  },
+
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your account settings",
+    "accountSettingsHeader": "Account Settings",
+    "accountSettingsSubheader": "Update your profile information and preferences",
+    "successMessages": {
+      "profileUpdated": "Profile updated successfully",
+      "passwordChanged": "Password changed successfully"
+    },
+    "errorMessages": {
+      "profileUpdateFailed": "Failed to update profile",
+      "passwordAndNewRequired": "Current password and new password are required",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "passwordsNoMatch": "Passwords do not match",
+      "passwordSameAsCurrent": "New password must be different from current password",
+      "currentPasswordIncorrect": "Current password is incorrect",
+      "passwordChangeFailed": "Failed to change password"
+    }
+  },
+
+  "policy": {
+    "acceptance": {
+      "title": "Accept Updated Policies",
+      "subtitle": "Policy {{current}} of {{total}}: {{name}}",
+      "progress": "Progress",
+      "progressText": "{{accepted}} of {{total}} accepted",
+      "accepted": "✓ Accepted",
+      "loading": "Loading policy content...",
+      "required": "Policy Acceptance Required",
+      "instruction": "Please read the policy above and click \"Accept\" to continue using Splitify.",
+      "checkbox": "I have read and accept this {{policy}}",
+      "previousButton": "Previous",
+      "nextButton": "Next",
+      "acceptingButton": "Accepting...",
+      "acceptAllButton": "Accept All & Continue",
+      "loadError": "Failed to load policy content: {{error}}",
+      "acceptError": "Failed to accept policies: {{error}}"
+    }
+  },
+
+  "pricing": {
+    "title": "Pricing (It's Free, Seriously)",
+    "description": "Simple, transparent pricing for Splitifyd. Split bills with friends for free.",
+    "subtitle": "Choose Your Adventure",
+    "plans": {
+      "starter": {
+        "title": "The \"Just Getting Started\" Plan",
+        "features": [
+          "Unlimited expense tracking",
+          "Unlimited groups",
+          "Unlimited friends (if you have that many)",
+          "Basic debt simplification",
+          "Access to our highly sarcastic FAQ section"
+        ],
+        "button": "Sign Up (It's Still Free)"
+      },
+      "pro": {
+        "title": "The \"I'm Basically a Pro\" Plan",
+        "badge": "MOST POPULAR",
+        "features": [
+          "Everything in \"Just Getting Started\"",
+          "Advanced debt simplification (it's the same, but sounds cooler)",
+          "Priority access to our \"we'll get to it when we get to it\" support",
+          "The warm fuzzy feeling of not paying for anything",
+          "Bragging rights to your friends about your free app"
+        ],
+        "button": "Join Now (Seriously, No Catch)"
+      },
+      "philanthropist": {
+        "title": "The \"I'm a Philanthropist\" Plan",
+        "features": [
+          "Everything in \"I'm Basically a Pro\"",
+          "The ability to tell people you're on the \"Philanthropist\" plan",
+          "A deep sense of satisfaction from using a free app",
+          "We'll send you good vibes (results may vary)",
+          "Your name will be whispered in the halls of free software fame"
+        ],
+        "button": "Get Started (It's a Gift!)"
+      }
+    },
+    "disclaimer": "Disclaimer: All plans are, and always will be, absolutely free. We just like making fancy tables. No hidden fees, no premium features, no secret handshake required. Just pure, unadulterated free expense splitting. You're welcome."
+  },
+
+  "errors": {
+    "generic": "An error occurred",
+    "network": "Network error occurred",
+    "notFound": {
+      "page": "Page not found",
+      "group": "Group not found",
+      "expense": "Expense not found"
+    },
+    "loading": {
+      "cookiePolicy": "Error loading cookie policy",
+      "privacyPolicy": "Error loading privacy policy",
+      "terms": "Error loading terms"
+    }
+  },
+
+  "seo": {
+    "cookiePolicy": {
+      "title": "Cookie Policy",
+      "description": "Cookie Policy for Splitifyd - Learn about how we use cookies and similar technologies."
+    },
+    "privacyPolicy": {
+      "title": "Privacy Policy",
+      "description": "Privacy Policy for Splitifyd - Learn about how we collect, use, and protect your information."
+    },
+    "termsOfService": {
+      "title": "Terms of Service",
+      "description": "Terms of Service for Splitifyd - Read about our policies and user agreements."
+    },
+    "lastUpdated": "Last updated: "
+  },
+
   "expenseForm": {
     "description": "Description",
     "amount": "Amount*",
@@ -407,10 +952,9 @@
     }
   },
   "auth": {
-    "defaultLoginButton": "Default Login",
-    "initializationFailed": "Auth initialization failed",
     "emailInput": {
-      "label": "Email address",
+      "label": "Email",
+      "placeholder": "Enter your email",
       "requiredIndicator": "*",
       "validation": {
         "required": "Email is required",
@@ -419,18 +963,20 @@
     },
     "passwordInput": {
       "label": "Password",
+      "placeholder": "Enter your password",
       "requiredIndicator": "*",
-      "hidePassword": "Hide password",
       "showPassword": "Show password",
-      "strength": "Password strength:",
+      "hidePassword": "Hide password",
+      "strength": "Password strength",
       "strengthWeak": "Weak",
       "strengthMedium": "Medium",
       "strengthStrong": "Strong",
       "validation": {
         "required": "Password is required",
-        "tooShort": "Password must be at least 6 characters long"
+        "tooShort": "Password must be at least 6 characters"
       }
-    }
+    },
+    "defaultLoginButton": "Continue with Email"
   },
   "comments": {
     "commentInput": {

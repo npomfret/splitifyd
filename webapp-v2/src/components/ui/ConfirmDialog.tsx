@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { Button } from './Button';
+import { useTranslation } from 'react-i18next';
 
 interface ConfirmDialogProps {
     isOpen: boolean;
@@ -18,14 +19,15 @@ export function ConfirmDialog({
     isOpen,
     title,
     message,
-    confirmText = 'Confirm',
-    cancelText = 'Cancel',
+    confirmText,
+    cancelText,
     onConfirm,
     onCancel,
     variant = 'info',
     loading = false,
     'data-testid': dataTestId,
 }: ConfirmDialogProps) {
+    const { t } = useTranslation();
     const modalRef = useRef<HTMLDivElement>(null);
 
     // Handle escape key to close modal
@@ -112,10 +114,10 @@ export function ConfirmDialog({
                 {/* Actions */}
                 <div className="flex items-center justify-end space-x-3">
                     <Button variant="secondary" onClick={onCancel} disabled={loading} data-testid="cancel-button">
-                        {cancelText}
+                        {cancelText || t('ui.confirmDialog.cancel')}
                     </Button>
                     <Button variant={styles.button} onClick={onConfirm} loading={loading} data-testid="confirm-button">
-                        {confirmText}
+                        {confirmText || t('ui.confirmDialog.confirm')}
                     </Button>
                 </div>
             </div>

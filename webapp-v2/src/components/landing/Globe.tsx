@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Scene, WebGLRenderer } from 'three';
 import { logError } from '@/utils/browser-logger.ts';
+import { useTranslation } from 'react-i18next';
 
 export function Globe() {
+    const { t } = useTranslation();
     const containerRef = useRef<HTMLDivElement>(null);
     const sceneRef = useRef<Scene | null>(null);
     const rendererRef = useRef<WebGLRenderer | null>(null);
@@ -208,7 +210,7 @@ export function Globe() {
             <div class="w-full h-full flex items-center justify-center">
                 <div class="text-purple-200 text-center">
                     <div class="w-32 h-32 mx-auto mb-4 rounded-full bg-purple-100/20"></div>
-                    <p>Unable to load 3D globe</p>
+                    <p>{t('landing.globe.loadError')}</p>
                 </div>
             </div>
         );

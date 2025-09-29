@@ -13,7 +13,7 @@ interface EmailInputProps {
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function EmailInput({ value, onInput, error, placeholder = 'Enter your email', required = true, autoFocus = false, disabled = false }: EmailInputProps) {
+export function EmailInput({ value, onInput, error, placeholder, required = true, autoFocus = false, disabled = false }: EmailInputProps) {
     const { t } = useTranslation();
     const localError = signal<string | null>(null);
 
@@ -57,7 +57,7 @@ export function EmailInput({ value, onInput, error, placeholder = 'Enter your em
                 value={value}
                 onInput={handleInput}
                 onBlur={handleBlur}
-                placeholder={placeholder}
+                placeholder={placeholder || t('auth.emailInput.placeholder')}
                 required={required}
                 autoFocus={autoFocus}
                 disabled={disabled}

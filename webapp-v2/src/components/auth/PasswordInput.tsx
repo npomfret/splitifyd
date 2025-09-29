@@ -21,8 +21,8 @@ export function PasswordInput({
     value,
     onInput,
     error,
-    placeholder = 'Enter your password',
-    label = 'Password',
+    placeholder,
+    label,
     required = true,
     disabled = false,
     showStrength = false,
@@ -116,11 +116,11 @@ export function PasswordInput({
                     value={value}
                     onInput={handleInput}
                     onBlur={handleBlur}
-                    placeholder={placeholder}
+                    placeholder={placeholder || t('auth.passwordInput.placeholder')}
                     required={required}
                     disabled={disabled}
                     autocomplete={autoComplete}
-                    aria-label={label}
+                    aria-label={label || t('auth.passwordInput.label')}
                     aria-required={required}
                     aria-invalid={hasError}
                     aria-describedby={hasError ? `${id}-error` : undefined}

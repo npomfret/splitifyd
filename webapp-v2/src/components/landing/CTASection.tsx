@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { useNavigation } from '@/hooks/useNavigation';
+import { useTranslation } from 'react-i18next';
 
 export function CTASection() {
+    const { t } = useTranslation();
     const navigation = useNavigation();
     const h2Ref = useRef<HTMLHeadingElement>(null);
 
@@ -35,15 +37,15 @@ export function CTASection() {
         <section class="cta-bottom py-20 bg-purple-600">
             <div class="container mx-auto px-4 text-center">
                 <h2 ref={h2Ref} class="text-3xl md:text-4xl font-bold text-white mb-4">
-                    Ready to Simplify Your Shared Expenses?
+                    {t('landing.cta.title')}
                 </h2>
-                <p class="text-xl text-purple-100 mb-8 max-w-2xl mx-auto">Join thousands who are already making group payments stress-free and transparent. Get started today!</p>
+                <p class="text-xl text-purple-100 mb-8 max-w-2xl mx-auto">{t('landing.cta.subtitle')}</p>
 
                 <button
                     onClick={() => navigation.goToRegister()}
                     class="inline-block bg-white text-purple-600 font-semibold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors transform hover:scale-105 duration-200"
                 >
-                    Sign Up for Free
+                    {t('landing.cta.signUpButton')}
                 </button>
             </div>
         </section>

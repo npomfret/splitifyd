@@ -54,14 +54,14 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
         if (balance.netBalance > 0) {
             // User is owed money
             return {
-                text: `You're owed ${formatCurrency(balance.netBalance, balance.currency)}`,
+                text: t('dashboard.groupCard.youAreOwed', { amount: formatCurrency(balance.netBalance, balance.currency) }),
                 color: 'text-green-600',
                 bgColor: 'bg-green-50',
             };
         } else {
             // User owes money
             return {
-                text: `You owe ${formatCurrency(Math.abs(balance.netBalance), balance.currency)}`,
+                text: t('dashboard.groupCard.youOwe', { amount: formatCurrency(Math.abs(balance.netBalance), balance.currency) }),
                 color: 'text-red-600',
                 bgColor: 'bg-red-50',
             };
