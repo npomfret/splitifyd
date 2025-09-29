@@ -17,6 +17,9 @@ This task is to systematically refactor these tests to use the appropriate build
 
 All instances of manual data creation in tests should be replaced with the appropriate builder.
 
+**IMPORTANT: Focus on Test Intent**
+When refactoring, specify ONLY the fields that are important for the specific test to pass. Avoid over-specifying fields that are not relevant to the test's purpose. This makes tests more focused, readable, and maintainable.
+
 ### Example Violation:
 
 ```typescript
@@ -305,13 +308,25 @@ The following files contain violations that need to be refactored:
 - **✅ Test Verification**: 100% pass rate maintained across all refactored files
 - **✅ Builder Integration**: Proper exports and imports in test-support package
 
+### ✅ **COMPLETED WORK (Phase 2 - December 2024):**
+
+#### High-Priority Files Completed:
+1. **✅ CommentService.test.ts** - **COMPLETE**
+   - Status: Already using builders (GroupMemberDocumentBuilder, CommentBuilder, etc.)
+   - Tests: All passing with proper builder usage
+
+2. **✅ ExpenseService.test.ts** - **COMPLETE**
+   - Refactored: All `mockExpense` objects → `FirestoreExpenseBuilder`
+   - Enhanced: FirestoreExpenseBuilder with timestamp and deletion methods
+   - Applied: "Focus on Test Intent" approach - tests specify only essential fields
+   - Tests: ✅ **21/21 passing** with zero behavioral changes
+   - Status: **FULLY COMPLETE**
+
 ### 🔄 **REMAINING WORK:**
 
 #### High-Priority Files:
-1. **CommentService.test.ts** - Replace `membershipDoc` and `mockComments` objects
-2. **ExpenseService.test.ts** - Replace `mockExpense` objects
 3. **BalanceCalculationService.test.ts** - Replace `groupDoc` and user profile objects
-4. **PercentageSplitStrategy.test.ts** - Replace split arrays with `ExpenseSplitBuilder`
+4. **PercentageSplitStrategy.test.ts** - Complete remaining split arrays with `ExpenseSplitBuilder`
 
 #### Medium-Priority Files:
 5. **validation/InputValidation.test.ts** - Replace with `CreateExpenseRequestBuilder`/`SettlementBuilder`
@@ -326,16 +341,20 @@ The following files contain violations that need to be refactored:
 
 ### 📊 **Progress Statistics:**
 - **New Builders Created**: 2/2 ✅ (100%)
-- **Core Service Files**: 4/7 ✅ (~60% complete)
-- **Key Tests Verified**: 4 files with 120+ tests passing ✅
+- **Core Service Files**: 6/7 ✅ (~85% complete)
+- **Key Tests Verified**: 6 files with 140+ tests passing ✅
 - **TypeScript Integration**: ✅ Fully working
-- **Overall Progress**: **~50-60% complete**
+- **Overall Progress**: **~70-75% complete**
 
 ### 🎯 **Key Achievements:**
 1. **Foundation Established**: Most complex builders (`UserDocumentBuilder`, `ExpenseSplitBuilder`) created
 2. **Pattern Proven**: Successful refactoring with zero behavioral changes
 3. **Technical Soundness**: Full TypeScript compatibility and test integration
 4. **Maintainability Improved**: Manual literals replaced with reusable, fluent builders
+5. **"Focus on Test Intent" Methodology**: Successfully implemented approach where tests specify only essential fields
+   - **Before**: Tests had verbose object literals with all fields specified
+   - **After**: Tests specify only fields critical to the test's purpose
+   - **Benefits**: Improved readability, faster test writing, clearer test intent
 
 ### 🔧 **Implementation Notes:**
 - **UserDocumentBuilder**: Uses index signature `[x: string]: unknown` for Firestore compatibility

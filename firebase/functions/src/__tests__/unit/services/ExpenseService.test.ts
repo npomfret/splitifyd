@@ -6,6 +6,7 @@ import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { CreateExpenseRequest } from '@splitifyd/shared';
+import { FirestoreExpenseBuilder } from '@splitifyd/test-support';
 
 describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;
@@ -37,28 +38,25 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user-id';
             const now = Timestamp.now();
 
-            const mockExpense = {
-                id: expenseId,
-                groupId: 'test-group-id',
-                createdBy: 'creator-id',
-                paidBy: 'payer-id',
-                amount: 100.5,
-                currency: 'USD',
-                description: 'Test expense',
-                category: 'Food',
-                date: now,
-                splitType: 'equal',
-                participants: [userId, 'other-user'],
-                splits: [
+            const mockExpense = new FirestoreExpenseBuilder()
+                .withId(expenseId)
+                .withGroupId('test-group-id')
+                .withCreatedBy('creator-id')
+                .withPaidBy('payer-id')
+                .withAmount(100.5)
+                .withCurrency('USD')
+                .withDescription('Test expense')
+                .withCategory('Food')
+                .withSplitType('equal')
+                .withParticipants([userId, 'other-user'])
+                .withSplits([
                     { uid: userId, amount: 50.25 },
                     { uid: 'other-user', amount: 50.25 },
-                ],
-                receiptUrl: 'https://example.com/receipt.jpg',
-                createdAt: now,
-                updatedAt: now,
-                deletedAt: null,
-                deletedBy: null,
-            };
+                ])
+                .withReceiptUrl('https://example.com/receipt.jpg')
+                .withCreatedAt(now)
+                .withUpdatedAt(now)
+                .build();
 
             // Mock the expense data
             setExpenseData(expenseId, mockExpense);
@@ -96,25 +94,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'test-expense-id';
             const userId = 'test-user-id';
 
-            const mockExpense = {
-                id: expenseId,
-                groupId: 'test-group-id',
-                createdBy: 'creator-id',
-                paidBy: 'payer-id',
-                amount: 100,
-                currency: 'USD',
-                description: 'Test expense',
-                category: 'Food',
-                date: Timestamp.now(),
-                splitType: 'equal',
-                participants: [userId],
-                splits: [{ uid: userId, amount: 100 }],
-                // No receiptUrl
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const mockExpense = new FirestoreExpenseBuilder()
+                .withId(expenseId)
+                .withParticipants([userId])
+                // No receiptUrl - this is the key test point
+                .build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -133,24 +117,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const participantId = 'participant-user';
             const nonParticipantId = 'non-participant-user';
 
-            const mockExpense = {
-                id: expenseId,
-                groupId: 'test-group-id',
-                createdBy: 'creator-id',
-                paidBy: participantId,
-                amount: 100,
-                currency: 'USD',
-                description: 'Test expense',
-                category: 'Food',
-                date: Timestamp.now(),
-                splitType: 'equal',
-                participants: [participantId], // Only one participant
-                splits: [{ uid: participantId, amount: 100 }],
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const mockExpense = new FirestoreExpenseBuilder()
+                .withId(expenseId)
+                .withParticipants([participantId]) // Only one participant - key for access control test
+                .build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -169,27 +139,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const participant1 = 'participant-1';
             const participant2 = 'participant-2';
 
-            const mockExpense = {
-                id: expenseId,
-                groupId: 'test-group-id',
-                createdBy: participant1,
-                paidBy: participant1,
-                amount: 100,
-                currency: 'USD',
-                description: 'Test expense',
-                category: 'Food',
-                date: Timestamp.now(),
-                splitType: 'equal',
-                participants: [participant1, participant2],
-                splits: [
-                    { uid: participant1, amount: 50 },
-                    { uid: participant2, amount: 50 },
-                ],
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const mockExpense = new FirestoreExpenseBuilder()
+                .withId(expenseId)
+                .withParticipants([participant1, participant2]) // Key: multiple participants for access test
+                .build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -209,24 +162,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'deleted-expense-id';
             const userId = 'test-user-id';
 
-            const mockDeletedExpense = {
-                id: expenseId,
-                groupId: 'test-group-id',
-                createdBy: userId,
-                paidBy: userId,
-                amount: 100,
-                currency: 'USD',
-                description: 'Deleted expense',
-                category: 'Food',
-                date: Timestamp.now(),
-                splitType: 'equal',
-                participants: [userId],
-                splits: [{ uid: userId, amount: 100 }],
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: Timestamp.now(), // Soft deleted
-                deletedBy: userId,
-            };
+            const mockDeletedExpense = new FirestoreExpenseBuilder()
+                .withId(expenseId)
+                .withParticipants([userId])
+                .withDeletedAt(Timestamp.now()) // Key: soft deleted status
+                .build();
 
             setExpenseData(expenseId, mockDeletedExpense);
 
@@ -263,14 +203,15 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user-id';
 
             // Set minimal data (the service handles undefined gracefully)
-            const minimalExpense = {
-                id: expenseId,
-                groupId: 'test-group-id',
-                participants: [userId],
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-            };
+            const minimalExpense = new FirestoreExpenseBuilder()
+                .withId(expenseId)
+                .withGroupId('test-group-id') // Key: expected in assertion
+                .withParticipants([userId]) // Key: user access
+                .build();
+
+            // Remove optional fields to test undefined handling
+            delete minimalExpense.amount;
+            delete minimalExpense.description;
 
             setExpenseData(expenseId, minimalExpense);
 
@@ -292,24 +233,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'empty-participants-expense';
             const userId = 'test-user-id';
 
-            const mockExpense = {
-                id: expenseId,
-                groupId: 'test-group-id',
-                createdBy: userId,
-                paidBy: userId,
-                amount: 100,
-                currency: 'USD',
-                description: 'Empty participants expense',
-                category: 'Food',
-                date: Timestamp.now(),
-                splitType: 'equal',
-                participants: [], // Empty participants
-                splits: [],
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const mockExpense = new FirestoreExpenseBuilder()
+                .withId(expenseId)
+                .withParticipants([]) // Key: empty participants for access test
+                .build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -327,24 +254,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'null-participants-expense';
             const userId = 'test-user-id';
 
-            const mockExpense = {
-                id: expenseId,
-                groupId: 'test-group-id',
-                createdBy: userId,
-                paidBy: userId,
-                amount: 100,
-                currency: 'USD',
-                description: 'Null participants expense',
-                category: 'Food',
-                date: Timestamp.now(),
-                splitType: 'equal',
-                participants: null, // Null participants
-                splits: [],
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const mockExpense = new FirestoreExpenseBuilder()
+                .withId(expenseId)
+                .withParticipants([]) // Key: empty participants (null equivalent) for access test
+                .build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -362,24 +275,12 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'decimal-precision-expense';
             const userId = 'test-user-id';
 
-            const mockExpense = {
-                id: expenseId,
-                groupId: 'test-group-id',
-                createdBy: userId,
-                paidBy: userId,
-                amount: 100.33, // Decimal amount
-                currency: 'USD',
-                description: 'Decimal precision test',
-                category: 'Food',
-                date: Timestamp.now(),
-                splitType: 'equal',
-                participants: [userId],
-                splits: [{ uid: userId, amount: 100.33 }],
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const mockExpense = new FirestoreExpenseBuilder()
+                .withId(expenseId)
+                .withAmount(100.33) // Key: decimal precision
+                .withParticipants([userId])
+                .withSplits([{ uid: userId, amount: 100.33 }]) // Key: matching decimal amount
+                .build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -446,24 +347,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'categorized-expense';
             const userId = 'test-user-id';
 
-            const mockExpense = {
-                id: expenseId,
-                groupId: 'test-group-id',
-                createdBy: userId,
-                paidBy: userId,
-                amount: 100,
-                currency: 'USD',
-                description: 'Restaurant dinner',
-                category: 'Food & Dining', // Specific category
-                date: Timestamp.now(),
-                splitType: 'equal',
-                participants: [userId],
-                splits: [{ userId, amount: 100 }],
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const mockExpense = new FirestoreExpenseBuilder()
+                .withId(expenseId)
+                .withCategory('Food & Dining') // Key: specific category to test
+                .withParticipants([userId])
+                .build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -479,24 +367,14 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'uncategorized-expense';
             const userId = 'test-user-id';
 
-            const mockExpense = {
-                id: expenseId,
-                groupId: 'test-group-id',
-                createdBy: userId,
-                paidBy: userId,
-                amount: 100,
-                currency: 'USD',
-                description: 'Uncategorized expense',
-                // category intentionally omitted
-                date: Timestamp.now(),
-                splitType: 'equal',
-                participants: [userId],
-                splits: [{ userId, amount: 100 }],
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            // Create expense without category by not calling withCategory()
+            const builder = new FirestoreExpenseBuilder()
+                .withId(expenseId)
+                .withParticipants([userId]);
+
+            // Build and manually remove category to ensure it's undefined
+            const mockExpense = builder.build();
+            delete mockExpense.category;
 
             setExpenseData(expenseId, mockExpense);
 
@@ -513,25 +391,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user-id';
             const receiptUrl = 'https://storage.example.com/receipts/receipt123.jpg';
 
-            const mockExpense = {
-                id: expenseId,
-                groupId: 'test-group-id',
-                createdBy: userId,
-                paidBy: userId,
-                amount: 100,
-                currency: 'USD',
-                description: 'Expense with receipt',
-                category: 'Business',
-                receiptUrl: receiptUrl,
-                date: Timestamp.now(),
-                splitType: 'equal',
-                participants: [userId],
-                splits: [{ userId, amount: 100 }],
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const mockExpense = new FirestoreExpenseBuilder()
+                .withId(expenseId)
+                .withReceiptUrl(receiptUrl) // Key: receipt URL to test
+                .withParticipants([userId])
+                .build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -563,24 +427,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const participantId = 'participant-user';
             const expenseId = 'test-expense';
 
-            const expenseData = {
-                id: expenseId,
-                groupId: 'test-group',
-                createdBy: participantId,
-                paidBy: participantId,
-                amount: 100,
-                currency: 'USD',
-                description: 'Test expense',
-                category: 'Food',
-                date: Timestamp.now(),
-                splitType: 'equal',
-                participants: [participantId],
-                splits: [{ uid: participantId, amount: 100 }],
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const expenseData = new FirestoreExpenseBuilder()
+                .withId(expenseId)
+                .withDescription('Test expense') // Key: test description for assertion
+                .withParticipants([participantId]) // Key: participant access
+                .build();
 
             stubReader.setDocument('expenses', expenseId, expenseData);
 
@@ -599,24 +450,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const outsiderId = 'outsider-user';
             const expenseId = 'test-expense';
 
-            const expenseData = {
-                id: expenseId,
-                groupId: 'test-group',
-                createdBy: participantId,
-                paidBy: participantId,
-                amount: 100,
-                currency: 'USD',
-                description: 'Private expense',
-                category: 'Food',
-                date: Timestamp.now(),
-                splitType: 'equal',
-                participants: [participantId], // Only one participant
-                splits: [{ uid: participantId, amount: 100 }],
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const expenseData = new FirestoreExpenseBuilder()
+                .withId(expenseId)
+                .withParticipants([participantId]) // Key: only one participant for access denial test
+                .build();
 
             stubReader.setDocument('expenses', expenseId, expenseData);
 
@@ -629,24 +466,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user';
             const expenseId = 'deleted-expense';
 
-            const deletedExpense = {
-                id: expenseId,
-                groupId: 'test-group',
-                createdBy: userId,
-                paidBy: userId,
-                amount: 100,
-                currency: 'USD',
-                description: 'Deleted expense',
-                category: 'Food',
-                date: Timestamp.now(),
-                splitType: 'equal',
-                participants: [userId],
-                splits: [{ userId, amount: 100 }],
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: Timestamp.now(), // Soft deleted
-                deletedBy: userId,
-            };
+            const deletedExpense = new FirestoreExpenseBuilder()
+                .withId(expenseId)
+                .withParticipants([userId])
+                .withDeletedAt(Timestamp.now()) // Key: soft deleted status
+                .build();
 
             stubReader.setDocument('expenses', expenseId, deletedExpense);
 
@@ -662,25 +486,22 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'test-expense';
             const now = Timestamp.now();
 
-            const expenseData = {
-                id: expenseId,
-                groupId: 'test-group',
-                createdBy: userId,
-                paidBy: userId,
-                amount: 100.5,
-                currency: 'USD',
-                description: 'Test expense',
-                category: 'Food',
-                date: now,
-                splitType: 'equal',
-                participants: [userId],
-                splits: [{ userId, amount: 100.5 }],
-                receiptUrl: 'https://example.com/receipt.jpg',
-                createdAt: now,
-                updatedAt: now,
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const expenseData = new FirestoreExpenseBuilder()
+                .withId(expenseId)
+                .withGroupId('test-group')
+                .withCreatedBy(userId)
+                .withPaidBy(userId)
+                .withAmount(100.5) // Key: for transformation test
+                .withCurrency('USD')
+                .withDescription('Test expense')
+                .withCategory('Food')
+                .withSplitType('equal')
+                .withParticipants([userId])
+                .withSplits([{ uid: userId, amount: 100.5 }]) // Key: matching splits
+                .withReceiptUrl('https://example.com/receipt.jpg')
+                .withCreatedAt(now)
+                .withUpdatedAt(now)
+                .build();
 
             stubReader.setDocument('expenses', expenseId, expenseData);
 
@@ -700,7 +521,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 date: expect.any(String), // ISO string
                 splitType: 'equal',
                 participants: [userId],
-                splits: [{ userId, amount: 100.5 }],
+                splits: [{ uid: userId, amount: 100.5 }],
                 receiptUrl: 'https://example.com/receipt.jpg',
                 createdAt: expect.any(String),
                 updatedAt: expect.any(String),
@@ -714,25 +535,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user';
             const expenseId = 'test-expense';
 
-            const expenseData = {
-                id: expenseId,
-                groupId: 'test-group',
-                createdBy: userId,
-                paidBy: userId,
-                amount: 100,
-                currency: 'USD',
-                description: 'Test expense',
-                category: 'Food',
-                date: Timestamp.now(),
-                splitType: 'equal',
-                participants: [userId],
-                splits: [{ userId, amount: 100 }],
-                // No receiptUrl
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const expenseData = new FirestoreExpenseBuilder()
+                .withId(expenseId)
+                .withParticipants([userId])
+                // No receiptUrl - key test point
+                .build();
 
             stubReader.setDocument('expenses', expenseId, expenseData);
 

@@ -26,6 +26,26 @@ export class FirestoreExpenseBuilder extends CreateExpenseRequestBuilder {
         return this;
     }
 
+    withCreatedAt(timestamp: any): FirestoreExpenseBuilder {
+        this.firestoreFields.createdAt = timestamp;
+        return this;
+    }
+
+    withUpdatedAt(timestamp: any): FirestoreExpenseBuilder {
+        this.firestoreFields.updatedAt = timestamp;
+        return this;
+    }
+
+    withDeletedAt(timestamp: any): FirestoreExpenseBuilder {
+        this.firestoreFields.deletedAt = timestamp;
+        return this;
+    }
+
+    withDeletedBy(userId: string | null): FirestoreExpenseBuilder {
+        this.firestoreFields.deletedBy = userId;
+        return this;
+    }
+
     withoutCurrency(): FirestoreExpenseBuilder {
         // For testing missing currency validation
         this.excludeCurrency = true;
