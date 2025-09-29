@@ -3,22 +3,17 @@ import { validateCreateExpense } from '../../../expenses/validation';
 import { createSettlementSchema } from '../../../settlements/validation';
 import { ApiError } from '../../../utils/errors';
 import type { CreateExpenseRequest, CreateSettlementRequest } from '@splitifyd/shared';
+import { CreateExpenseRequestBuilder, SettlementBuilder, ExpenseSplitBuilder } from '@splitifyd/test-support';
 
 describe('Input Validation Unit Tests', () => {
     describe('Amount Validation', () => {
         describe('Decimal Precision Edge Cases', () => {
             it('should handle very small amounts with proper precision', () => {
-                const expenseData: CreateExpenseRequest = {
-                    groupId: 'test-group-id',
-                    amount: 0.01,
-                    description: 'Small amount test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2'],
-                    splitType: 'equal',
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(0.01)
+                    .withParticipants(['user1', 'user2'])
+                    .withPaidBy('user1')
+                    .build();
 
                 const result = validateCreateExpense(expenseData);
                 expect(result.amount).toBe(0.01);
@@ -26,17 +21,11 @@ describe('Input Validation Unit Tests', () => {
             });
 
             it('should handle amounts with many decimal places', () => {
-                const expenseData: CreateExpenseRequest = {
-                    groupId: 'test-group-id',
-                    amount: 33.333333,
-                    description: 'Decimal places test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2', 'user3'],
-                    splitType: 'equal',
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(33.333333)
+                    .withParticipants(['user1', 'user2', 'user3'])
+                    .withPaidBy('user1')
+                    .build();
 
                 const result = validateCreateExpense(expenseData);
                 expect(result.amount).toBe(33.333333);
@@ -44,17 +33,11 @@ describe('Input Validation Unit Tests', () => {
             });
 
             it('should handle very large amounts', () => {
-                const expenseData: CreateExpenseRequest = {
-                    groupId: 'test-group-id',
-                    amount: 999999.99,
-                    description: 'Large amount test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2'],
-                    splitType: 'equal',
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(999999.99)
+                    .withParticipants(['user1', 'user2'])
+                    .withPaidBy('user1')
+                    .build();
 
                 const result = validateCreateExpense(expenseData);
                 expect(result.amount).toBe(999999.99);
@@ -64,81 +47,41 @@ describe('Input Validation Unit Tests', () => {
 
         describe('Invalid Amount Validation', () => {
             it('should reject zero amounts', () => {
-                const expenseData = {
-                    groupId: 'test-group-id',
-                    amount: 0,
-                    description: 'Zero amount test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2'],
-                    splitType: 'equal',
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(0)
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should reject negative amounts', () => {
-                const expenseData = {
-                    groupId: 'test-group-id',
-                    amount: -50,
-                    description: 'Negative amount test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2'],
-                    splitType: 'equal',
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(-50)
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should reject very small negative numbers', () => {
-                const expenseData = {
-                    groupId: 'test-group-id',
-                    amount: -0.01,
-                    description: 'Tiny negative test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2'],
-                    splitType: 'equal',
-                    category: 'food',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(-0.01)
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should reject negative infinity', () => {
-                const expenseData = {
-                    groupId: 'test-group-id',
-                    amount: Number.NEGATIVE_INFINITY,
-                    description: 'Negative infinity test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2'],
-                    splitType: 'equal',
-                    category: 'food',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(Number.NEGATIVE_INFINITY)
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should handle NaN values gracefully', () => {
-                const expenseData = {
-                    groupId: 'test-group-id',
-                    amount: NaN,
-                    description: 'NaN test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2'],
-                    splitType: 'equal',
-                    category: 'food',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(NaN)
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
@@ -148,42 +91,31 @@ describe('Input Validation Unit Tests', () => {
     describe('Split Validation', () => {
         describe('Exact Split Validation', () => {
             it('should reject splits that do not add up to total amount', () => {
-                const expenseData = {
-                    groupId: 'test-group-id',
-                    amount: 100,
-                    description: 'Split validation test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2'],
-                    splitType: 'exact',
-                    splits: [
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(100)
+                    .withSplitType('exact')
+                    .withParticipants(['user1', 'user2'])
+                    .withSplits([
                         { uid: 'user1', amount: 60 },
                         { uid: 'user2', amount: 30 }, // Only adds up to 90, not 100
-                    ],
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                    ])
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should accept splits with minor rounding differences (within tolerance)', () => {
-                const expenseData: CreateExpenseRequest = {
-                    groupId: 'test-group-id',
-                    amount: 100,
-                    description: 'Rounding test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2', 'user3'],
-                    splitType: 'exact',
-                    splits: [
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(100)
+                    .withSplitType('exact')
+                    .withParticipants(['user1', 'user2', 'user3'])
+                    .withPaidBy('user1')
+                    .withSplits([
                         { uid: 'user1', amount: 33.33 },
                         { uid: 'user2', amount: 33.33 },
                         { uid: 'user3', amount: 33.34 }, // Total: 100.00
-                    ],
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                    ])
+                    .build();
 
                 const result = validateCreateExpense(expenseData);
                 expect(result.amount).toBe(100);
@@ -191,121 +123,85 @@ describe('Input Validation Unit Tests', () => {
             });
 
             it('should reject splits with differences greater than tolerance', () => {
-                const expenseData = {
-                    groupId: 'test-group-id',
-                    amount: 100,
-                    description: 'Large difference test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2'],
-                    splitType: 'exact',
-                    splits: [
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(100)
+                    .withSplitType('exact')
+                    .withParticipants(['user1', 'user2'])
+                    .withSplits([
                         { uid: 'user1', amount: 50.0 },
                         { uid: 'user2', amount: 49.0 }, // Total: 99.00
-                    ],
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                    ])
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should reject negative split amounts', () => {
-                const expenseData = {
-                    groupId: 'test-group-id',
-                    amount: 100,
-                    description: 'Negative split test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2'],
-                    splitType: 'exact',
-                    splits: [
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(100)
+                    .withSplitType('exact')
+                    .withParticipants(['user1', 'user2'])
+                    .withSplits([
                         { uid: 'user1', amount: 120 },
                         { uid: 'user2', amount: -20 }, // Negative amount
-                    ],
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                    ])
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should reject zero split amounts', () => {
-                const expenseData = {
-                    groupId: 'test-group-id',
-                    amount: 100,
-                    description: 'Zero split test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2'],
-                    splitType: 'exact',
-                    splits: [
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(100)
+                    .withSplitType('exact')
+                    .withParticipants(['user1', 'user2'])
+                    .withSplits([
                         { uid: 'user1', amount: 100 },
                         { uid: 'user2', amount: 0 }, // Zero amount
-                    ],
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                    ])
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should reject duplicate users in splits', () => {
-                const expenseData = {
-                    groupId: 'test-group-id',
-                    amount: 100,
-                    description: 'Duplicate user test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2'],
-                    splitType: 'exact',
-                    splits: [
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(100)
+                    .withSplitType('exact')
+                    .withParticipants(['user1', 'user2'])
+                    .withSplits([
                         { uid: 'user1', amount: 50 },
                         { uid: 'user1', amount: 50 }, // Duplicate user
-                    ],
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                    ])
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should reject splits for users not in participants list', () => {
-                const expenseData = {
-                    groupId: 'test-group-id',
-                    amount: 100,
-                    description: 'Invalid participant test',
-                    paidBy: 'user1',
-                    participants: ['user1'], // Only user1 is a participant
-                    splitType: 'exact',
-                    splits: [
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(100)
+                    .withSplitType('exact')
+                    .withParticipants(['user1']) // Only user1 is a participant
+                    .withSplits([
                         { uid: 'user1', amount: 50 },
                         { uid: 'user2', amount: 50 }, // User2 is not a participant
-                    ],
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                    ])
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should require splits for all participants in exact split type', () => {
-                const expenseData = {
-                    groupId: 'test-group-id',
-                    amount: 100,
-                    description: 'Missing splits test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2', 'user3'], // 3 participants
-                    splitType: 'exact',
-                    splits: [
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(100)
+                    .withSplitType('exact')
+                    .withParticipants(['user1', 'user2', 'user3']) // 3 participants
+                    .withSplits([
                         { uid: 'user1', amount: 50 },
                         { uid: 'user2', amount: 50 }, // Missing split for user3
-                    ],
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                    ])
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
@@ -313,42 +209,31 @@ describe('Input Validation Unit Tests', () => {
 
         describe('Percentage Split Validation', () => {
             it('should reject percentages that do not add up to 100%', () => {
-                const expenseData = {
-                    groupId: 'test-group-id',
-                    amount: 100,
-                    description: 'Percentage validation test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2'],
-                    splitType: 'percentage',
-                    splits: [
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(100)
+                    .withSplitType('percentage')
+                    .withParticipants(['user1', 'user2'])
+                    .withSplits([
                         { uid: 'user1', amount: 60, percentage: 60 },
                         { uid: 'user2', amount: 30, percentage: 30 }, // Only adds up to 90%
-                    ],
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                    ])
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should accept percentages with minor rounding differences (within tolerance)', () => {
-                const expenseData: CreateExpenseRequest = {
-                    groupId: 'test-group-id',
-                    amount: 100,
-                    description: 'Percentage rounding test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2', 'user3'],
-                    splitType: 'percentage',
-                    splits: [
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(100)
+                    .withSplitType('percentage')
+                    .withParticipants(['user1', 'user2', 'user3'])
+                    .withPaidBy('user1')
+                    .withSplits([
                         { uid: 'user1', amount: 33.33, percentage: 33.33 },
                         { uid: 'user2', amount: 33.33, percentage: 33.33 },
                         { uid: 'user3', amount: 33.34, percentage: 33.34 }, // Total: 100.00%
-                    ],
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                    ])
+                    .build();
 
                 const result = validateCreateExpense(expenseData);
                 expect(result.amount).toBe(100);
@@ -356,59 +241,41 @@ describe('Input Validation Unit Tests', () => {
             });
 
             it('should reject negative percentages', () => {
-                const expenseData = {
-                    groupId: 'test-group-id',
-                    amount: 100,
-                    description: 'Negative percentage test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2'],
-                    splitType: 'percentage',
-                    splits: [
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(100)
+                    .withSplitType('percentage')
+                    .withParticipants(['user1', 'user2'])
+                    .withSplits([
                         { uid: 'user1', amount: 120, percentage: 120 },
                         { uid: 'user2', amount: -20, percentage: -20 }, // Negative percentage
-                    ],
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                    ])
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should reject percentages over 100%', () => {
-                const expenseData = {
-                    groupId: 'test-group-id',
-                    amount: 100,
-                    description: 'Percentage over 100 test',
-                    paidBy: 'user1',
-                    participants: ['user1'],
-                    splitType: 'percentage',
-                    splits: [
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(100)
+                    .withSplitType('percentage')
+                    .withParticipants(['user1'])
+                    .withSplits([
                         { uid: 'user1', amount: 100, percentage: 150 }, // 150% is over limit
-                    ],
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                    ])
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should require splits for all participants in percentage split type', () => {
-                const expenseData = {
-                    groupId: 'test-group-id',
-                    amount: 100,
-                    description: 'Missing percentage splits test',
-                    paidBy: 'user1',
-                    participants: ['user1', 'user2'], // 2 participants
-                    splitType: 'percentage',
-                    splits: [
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(100)
+                    .withSplitType('percentage')
+                    .withParticipants(['user1', 'user2']) // 2 participants
+                    .withSplits([
                         { uid: 'user1', amount: 100, percentage: 100 }, // Missing split for user2
-                    ],
-                    category: 'other',
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                };
+                    ])
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
@@ -417,14 +284,9 @@ describe('Input Validation Unit Tests', () => {
 
     describe('Settlement Validation', () => {
         it('should reject negative settlement amounts', () => {
-            const settlementData = {
-                groupId: 'test-group-id',
-                payerId: 'user1',
-                payeeId: 'user2',
-                amount: -50, // Negative amount
-                currency: 'USD',
-                note: 'Test negative settlement',
-            };
+            const settlementData = new SettlementBuilder()
+                .withAmount(-50) // Negative amount
+                .build();
 
             const { error } = createSettlementSchema.validate(settlementData);
             expect(error).toBeDefined();
@@ -432,14 +294,9 @@ describe('Input Validation Unit Tests', () => {
         });
 
         it('should reject zero settlement amounts', () => {
-            const settlementData = {
-                groupId: 'test-group-id',
-                payerId: 'user1',
-                payeeId: 'user2',
-                amount: 0, // Zero amount
-                currency: 'USD',
-                note: 'Test zero settlement',
-            };
+            const settlementData = new SettlementBuilder()
+                .withAmount(0) // Zero amount
+                .build();
 
             const { error } = createSettlementSchema.validate(settlementData);
             expect(error).toBeDefined();
@@ -447,14 +304,9 @@ describe('Input Validation Unit Tests', () => {
         });
 
         it('should validate settlement amount does not exceed maximum', () => {
-            const settlementData = {
-                groupId: 'test-group-id',
-                payerId: 'user1',
-                payeeId: 'user2',
-                amount: 1000000, // Amount exceeds max of 999,999.99
-                currency: 'USD',
-                note: 'Test max amount',
-            };
+            const settlementData = new SettlementBuilder()
+                .withAmount(1000000) // Amount exceeds max of 999,999.99
+                .build();
 
             const { error } = createSettlementSchema.validate(settlementData);
             expect(error).toBeDefined();
@@ -462,14 +314,11 @@ describe('Input Validation Unit Tests', () => {
         });
 
         it('should accept valid settlement amounts', () => {
-            const settlementData: CreateSettlementRequest = {
-                groupId: 'test-group-id',
-                payerId: 'user1',
-                payeeId: 'user2',
-                amount: 50.0,
-                currency: 'USD',
-                note: 'Valid settlement test',
-            };
+            const settlementData = new SettlementBuilder()
+                .withAmount(50.0)
+                .withPayer('user1')
+                .withPayee('user2')
+                .build();
 
             const { error, value } = createSettlementSchema.validate(settlementData);
             expect(error).toBeUndefined();
@@ -484,17 +333,9 @@ describe('Input Validation Unit Tests', () => {
             const futureDate = new Date();
             futureDate.setFullYear(futureDate.getFullYear() + 1);
 
-            const expenseData = {
-                groupId: 'test-group-id',
-                amount: 100,
-                description: 'Future date test',
-                paidBy: 'user1',
-                participants: ['user1'],
-                splitType: 'equal',
-                category: 'other',
-                currency: 'USD',
-                date: futureDate.toISOString(),
-            };
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withDate(futureDate.toISOString())
+                .build();
 
             expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
         });
@@ -503,40 +344,25 @@ describe('Input Validation Unit Tests', () => {
             const validDate = new Date();
             validDate.setMonth(validDate.getMonth() - 1);
 
-            const expenseData: CreateExpenseRequest = {
-                groupId: 'test-group-id',
-                amount: 100,
-                description: 'Valid date test',
-                paidBy: 'user1',
-                participants: ['user1'],
-                splitType: 'equal',
-                category: 'other',
-                currency: 'USD',
-                date: validDate.toISOString(),
-            };
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withDate(validDate.toISOString())
+                .withAmount(100)
+                .build();
 
             const result = validateCreateExpense(expenseData);
-            expect(result.groupId).toBe('test-group-id');
+            expect(result.groupId).toBeDefined();
             expect(result.amount).toBe(100);
         });
     });
 
     describe('Category Validation', () => {
         it('should accept valid category', () => {
-            const expenseData: CreateExpenseRequest = {
-                groupId: 'test-group-id',
-                amount: 100,
-                description: 'Valid category test',
-                paidBy: 'user1',
-                participants: ['user1'],
-                splitType: 'equal',
-                category: 'food',
-                currency: 'USD',
-                date: new Date().toISOString(),
-            };
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withCategory('food')
+                .build();
 
             const result = validateCreateExpense(expenseData);
-            expect(result.groupId).toBe('test-group-id');
+            expect(result.groupId).toBeDefined();
             expect(result.category).toBe('food');
         });
     });
