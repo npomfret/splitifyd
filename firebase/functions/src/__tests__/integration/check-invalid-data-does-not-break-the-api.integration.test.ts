@@ -87,10 +87,6 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             const validGroup = response.groups.find((g: any) => g.id === validGroupId);
             expect(validGroup).toBeDefined();
             expect(validGroup?.name).toBe('Valid Test Group');
-
-            // Should handle groups with invalid data (either skip them or sanitize)
-            // The important thing is the API doesn't crash
-            console.log(`API returned ${response.groups.length} groups successfully`);
         });
 
         // REMOVED: FirestoreReader validation test - moved to FirestoreReader.validation.unit.test.ts

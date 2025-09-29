@@ -12,7 +12,6 @@ describe('Public Endpoints Tests', () => {
             const responses = await Promise.all(arr.map(() => fetch(healthUrl)));
 
             for (const response of responses) {
-                console.log(response.status);
                 expect(response.status).toBe(200);
             }
         });

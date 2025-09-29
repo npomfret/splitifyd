@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, beforeAll } from 'vitest';
-import { borrowTestUsers, GroupMemberDocumentBuilder, CreateGroupRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
+import { borrowTestUsers, GroupMemberBuilder, GroupMemberDocumentBuilder, CreateGroupRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 import { GroupMemberDocument, MemberRoles, SplitTypes, Group } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
@@ -77,9 +77,7 @@ describe('Concurrent Operations Integration Tests', () => {
                 // Modification operations
                 () => groupMemberService.createMember(testGroup.id, new GroupMemberDocumentBuilder(testUser3.uid, testGroup.id).withThemeIndex(2).withInvitedBy(testUser1.uid).build()),
                 () =>
-                    groupMemberService.updateMember(testGroup.id, testUser2.uid, {
-                        memberRole: MemberRoles.ADMIN,
-                    }),
+                    groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberBuilder().asAdmin().build()),
                 () => groupMemberService.deleteMember(testGroup.id, testUser2.uid),
             ];
 
@@ -106,15 +104,9 @@ describe('Concurrent Operations Integration Tests', () => {
 
             // Execute multiple role updates concurrently
             const updatePromises = [
-                groupMemberService.updateMember(testGroup.id, testUser2.uid, {
-                    memberRole: MemberRoles.ADMIN,
-                }),
-                groupMemberService.updateMember(testGroup.id, testUser2.uid, {
-                    memberRole: MemberRoles.VIEWER,
-                }),
-                groupMemberService.updateMember(testGroup.id, testUser2.uid, {
-                    memberRole: MemberRoles.MEMBER,
-                }),
+                groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberBuilder().asAdmin().build()),
+                groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberBuilder().asViewer().build()),
+                groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberBuilder().asMember().build()),
             ];
 
             // All updates should complete (last write wins)
@@ -310,9 +302,7 @@ describe('Concurrent Operations Integration Tests', () => {
                 .map(() => groupMemberService.getUserGroupsViaSubcollection(testUser1.uid));
 
             const modificationPromises = [
-                groupMemberService.updateMember(testGroup.id, testUser2.uid, {
-                    memberRole: MemberRoles.ADMIN,
-                }),
+                groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberBuilder().asAdmin().build()),
                 groupMemberService.deleteMember(testGroup.id, testUser3.uid),
                 groupMemberService.createMember(testGroup.id, new GroupMemberDocumentBuilder(users[5].uid, testGroup.id).withThemeIndex(4).withInvitedBy(testUser1.uid).build()),
             ];
@@ -350,9 +340,7 @@ describe('Concurrent Operations Integration Tests', () => {
                 // Operations that will fail - trying to access non-existent member
                 () => groupMemberService.getGroupMember(testGroup.id, 'non-existent-user-id'),
                 () =>
-                    groupMemberService.updateMember(testGroup.id, 'non-existent-user-id', {
-                        memberRole: MemberRoles.ADMIN,
-                    }),
+                    groupMemberService.updateMember(testGroup.id, 'non-existent-user-id', new GroupMemberBuilder().asAdmin().build()),
             ];
 
             // Execute all operations concurrently

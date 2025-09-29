@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
+import { borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
 import { SplitTypes } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
 import { UserToken } from '@splitifyd/shared';
@@ -43,7 +43,10 @@ describe('Expense Locking Debug Test', () => {
         // Created expense
 
         // Try to update the expense twice simultaneously
-        const updatePromises = [await apiDriver.updateExpense(expense.id, { amount: 200 }, user1.token), await apiDriver.updateExpense(expense.id, { amount: 300 }, user1.token)];
+        const updatePromises = [
+            await apiDriver.updateExpense(expense.id, new ExpenseUpdateBuilder().withAmount(200).build(), user1.token),
+            await apiDriver.updateExpense(expense.id, new ExpenseUpdateBuilder().withAmount(300).build(), user1.token)
+        ];
 
         // Starting concurrent updates
         const results = await Promise.allSettled(updatePromises);

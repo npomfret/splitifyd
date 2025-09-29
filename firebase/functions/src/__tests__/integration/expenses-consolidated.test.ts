@@ -164,8 +164,8 @@ describe('Expenses Management - Consolidated Tests', () => {
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
 
             // Make multiple updates
-            await apiDriver.updateExpense(createdExpense.id, { amount: 150, description: 'First Update' }, users[0].token);
-            await apiDriver.updateExpense(createdExpense.id, { amount: 200, category: 'transport' }, users[0].token);
+            await apiDriver.updateExpense(createdExpense.id, new ExpenseUpdateBuilder().withAmount(150).withDescription('First Update').build(), users[0].token);
+            await apiDriver.updateExpense(createdExpense.id, new ExpenseUpdateBuilder().withAmount(200).withDescription('First Update').withCategory('transport').build(), users[0].token);
 
             const finalExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
             expect(finalExpense.amount).toBe(200);
@@ -191,10 +191,10 @@ describe('Expenses Management - Consolidated Tests', () => {
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
 
             // Creator should be able to update
-            await apiDriver.updateExpense(createdExpense.id, { amount: 150 }, users[0].token);
+            await apiDriver.updateExpense(createdExpense.id, new ExpenseUpdateBuilder().withAmount(150).build(), users[0].token);
 
             // Non-creator should be able to update (no restrictions without permission setup)
-            const updatedExpense = await apiDriver.updateExpense(createdExpense.id, { description: 'Updated by non-creator' }, users[2].token);
+            const updatedExpense = await apiDriver.updateExpense(createdExpense.id, new ExpenseUpdateBuilder().withDescription('Updated by non-creator').build(), users[2].token);
             expect(updatedExpense.description).toBe('Updated by non-creator');
         });
     });

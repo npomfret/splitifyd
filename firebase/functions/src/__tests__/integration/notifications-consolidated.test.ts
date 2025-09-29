@@ -47,7 +47,7 @@
 
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, NotificationDriver, SettlementBuilder } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseUpdateBuilder, GroupUpdateBuilder, NotificationDriver, SettlementBuilder } from '@splitifyd/test-support';
 import { getFirestore } from '../../firebase';
 import { PooledTestUser } from '@splitifyd/shared';
 
@@ -60,7 +60,6 @@ describe('Notifications Management - Consolidated Tests', () => {
 
     beforeEach(async () => {
         [user1, user2, user3] = await borrowTestUsers(3);
-        console.log(`users:\n\t${[user1, user2, user3].map((user, index) => `${index} ${user.uid}`).join('\n\t')}`);
     });
 
     afterEach(() => {
@@ -145,7 +144,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             notificationDriver.clearEvents();
 
             // Update group to trigger version increment
-            await apiDriver.updateGroup(group.id, { name: 'Updated Name' }, user1.token);
+            await apiDriver.updateGroup(group.id, new GroupUpdateBuilder().withName('Updated Name').build(), user1.token);
 
             // Wait for group update notification - count should increment to 2
             await user1Listener.waitForGroupEvent(group.id, 2);
@@ -174,9 +173,9 @@ describe('Notifications Management - Consolidated Tests', () => {
             // Perform multiple rapid parallel updates
             // Due to transaction conflicts, not all updates may succeed when updating the same document concurrently
             await Promise.all([
-                apiDriver.updateGroup(group.id, { name: 'Update 1' }, user1.token),
-                apiDriver.updateGroup(group.id, { name: 'Update 2', description: 'Updated desc' }, user1.token),
-                apiDriver.updateGroup(group.id, { name: 'Update 3' }, user1.token),
+                apiDriver.updateGroup(group.id, new GroupUpdateBuilder().withName('Update 1').build(), user1.token),
+                apiDriver.updateGroup(group.id, new GroupUpdateBuilder().withName('Update 2').withDescription('Updated desc').build(), user1.token),
+                apiDriver.updateGroup(group.id, new GroupUpdateBuilder().withName('Update 3').build(), user1.token),
             ]);
 
             // Wait for update notifications - allow more time for triggers to process
@@ -274,7 +273,6 @@ describe('Notifications Management - Consolidated Tests', () => {
 
             // Start with single-member group
             const dynamicGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
-            console.log(`groupId=${dynamicGroup.id}`);
 
             // Wait for group creation notification
             await user1Listener.waitForGroupEvent(dynamicGroup.id, 1);
@@ -348,27 +346,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                 }
             }
 
-            // ACTION: Remove user2 from group (user1 remains as owner)
-            console.log(`final user 2 (${user2.uid}) events`);
-            for (let item of user2Listener.getGroupEvents(dynamicGroup.id)) {
-                console.log(`\t${JSON.stringify(item)}`);
-            }
             await apiDriver.removeGroupMember(dynamicGroup.id, user2.uid, user1.token);
-
-            {
-                //sanity check
-                // const {members} = await apiDriver.getGroupFullDetails(dynamicGroup.id, user1.token);
-                // expect(members.members.length).toBe(1);
-                // expect(members.members[0].uid).toBe(user1.uid);
-            }
-
-            // try {
-            //     await apiDriver.getGroupFullDetails(dynamicGroup.id, user2.token);
-            //     throw Error("should not get here")
-            // } catch (error: any) {
-            //     if(error.status !== 404)
-            //         throw error;
-            // }
 
             await user1Listener.waitForEventCount(dynamicGroup.id, 'group', 1);
             await user2Listener.waitForEventCount(dynamicGroup.id, 'group', 0, 100); // removed user should see nothing
@@ -647,7 +625,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             notificationDriver.clearEvents();
 
             // ACTION: Test expense update notification
-            await apiDriver.updateExpense(expense.id, { amount: 45.0 }, user1.token);
+            await apiDriver.updateExpense(expense.id, new ExpenseUpdateBuilder().withAmount(45.0).build(), user1.token);
 
             // WAIT: Wait for expense update transaction notifications
             await user1Listener.waitForEventCount(eventGroup.id, 'transaction', 1);

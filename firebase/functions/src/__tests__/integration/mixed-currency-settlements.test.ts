@@ -32,9 +32,6 @@ describe('Mixed Currency Settlements - API Integration', () => {
         await apiDriver.waitForBalanceUpdate(testGroup.id, user1.token, 3000);
         const initialBalances = await apiDriver.getGroupBalances(testGroup.id, user1.token);
 
-        // Debug: Log the actual structure
-        console.log('Initial balances structure:', JSON.stringify(initialBalances, null, 2));
-
         // Verify User2 owes User1 $100 USD
         expect(initialBalances.simplifiedDebts).toBeDefined();
         expect(Array.isArray(initialBalances.simplifiedDebts)).toBe(true);
@@ -60,9 +57,6 @@ describe('Mixed Currency Settlements - API Integration', () => {
         // Wait for settlement to process and balances to update
         await apiDriver.waitForBalanceUpdate(testGroup.id, user1.token, 3000);
         const finalBalances = await apiDriver.getGroupBalances(testGroup.id, user1.token);
-
-        // Verify debts after settlement
-        console.log('Final balances:', JSON.stringify(finalBalances, null, 2));
 
         // EXPECTED BEHAVIOR: No currency conversion should occur
         // The test expects TWO separate debt relationships:
@@ -131,14 +125,6 @@ describe('Mixed Currency Settlements - API Integration', () => {
         // we would see a reduced USD debt (e.g., $25 instead of $100)
         const remainingUsdDebt = finalBalances.simplifiedDebts?.find((debt) => debt.from.uid === user2.uid && debt.to.uid === user1.uid && debt.currency === 'USD');
 
-        if (remainingUsdDebt && remainingUsdDebt.amount !== 100) {
-            console.warn(`CURRENCY CONVERSION BUG DETECTED!`);
-            console.warn(`Expected USD debt: $100, Actual: $${remainingUsdDebt.amount}`);
-            console.warn(`EUR settlement amount: €75`);
-            console.warn(`Difference suggests conversion rate: ${(100 - remainingUsdDebt.amount) / 75}`);
-            console.warn('This indicates the application is incorrectly applying EUR settlements to USD debts');
-        }
-
         // This assertion will fail if there's a currency conversion bug
         // It documents the expected behavior vs actual behavior
         expect(remainingUsdDebt?.amount).toBe(100); // Will fail if bug exists
@@ -169,8 +155,6 @@ describe('Mixed Currency Settlements - API Integration', () => {
         await apiDriver.waitForBalanceUpdate(freshTestGroup.id, user1.token, 3000);
         const initialBalances = await apiDriver.getGroupBalances(freshTestGroup.id, user1.token);
 
-        console.log('E2E REPLICA - Initial balances:', JSON.stringify(initialBalances, null, 2));
-
         // Verify User2 owes User1 $100 USD
         const initialDebt = initialBalances.simplifiedDebts.find((debt) => debt.from.uid === user2.uid && debt.to.uid === user1.uid);
         expect(initialDebt).toBeDefined();
@@ -194,15 +178,10 @@ describe('Mixed Currency Settlements - API Integration', () => {
         await apiDriver.waitForBalanceUpdate(freshTestGroup.id, user1.token, 3000);
         const finalBalances = await apiDriver.getGroupBalances(freshTestGroup.id, user1.token);
 
-        console.log('E2E REPLICA - Final balances:', JSON.stringify(finalBalances, null, 2));
-
         // The e2e test expects $100 but finds $25 - let's see what we get here
         const usdDebtAfterSettlement = finalBalances.simplifiedDebts?.find((debt) => debt.from.uid === user2.uid && debt.to.uid === user1.uid && debt.currency === 'USD');
 
         const eurDebtAfterSettlement = finalBalances.simplifiedDebts?.find((debt) => debt.from.uid === user1.uid && debt.to.uid === user2.uid && debt.currency === 'EUR');
-
-        console.log('USD debt after settlement:', usdDebtAfterSettlement);
-        console.log('EUR debt after settlement:', eurDebtAfterSettlement);
 
         // E2E TEST EXPECTATION: USD debt should still exist at full amount (no conversion)
         expect(usdDebtAfterSettlement).toBeDefined();

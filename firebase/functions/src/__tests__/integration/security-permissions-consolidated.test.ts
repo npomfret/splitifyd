@@ -3,7 +3,7 @@
 
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, UserRegistrationBuilder, CreateGroupRequestBuilder, PermissionSetBuilder } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, UserRegistrationBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, PermissionSetBuilder } from '@splitifyd/test-support';
 import { SecurityPresets, Group, PooledTestUser, UserToken } from '@splitifyd/shared';
 import { getFirestore } from '../../firebase';
 
@@ -87,7 +87,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
             await expect(apiDriver.getGroupBalances(privateGroup.id, users[1].token)).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied|not.*member/i);
 
             // Non-member should not be able to modify group
-            await expect(apiDriver.updateGroup(testGroup.id, { name: 'Hacked Name' }, users[2].token)).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied/i);
+            await expect(apiDriver.updateGroup(testGroup.id, new GroupUpdateBuilder().withName('Hacked Name').build(), users[2].token)).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied/i);
 
             // Member (not owner) should not be able to delete group
             await expect(apiDriver.deleteGroup(testGroup.id, users[1].token)).rejects.toThrow(/403|forbidden|unauthorized|access.*denied/i);
@@ -282,7 +282,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
                 () => apiDriver.getGroupFullDetails(testGroup.id, ''),
                 () => apiDriver.getGroupBalances(testGroup.id, ''),
                 () => apiDriver.getGroupExpenses(testGroup.id, ''),
-                () => apiDriver.updateGroup(testGroup.id, { name: 'New Name' }, ''),
+                () => apiDriver.updateGroup(testGroup.id, new GroupUpdateBuilder().withName('New Name').build(), ''),
             ];
 
             for (const endpoint of endpoints) {

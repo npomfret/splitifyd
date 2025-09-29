@@ -1338,10 +1338,6 @@ describe('Groups Management - Consolidated Tests', () => {
             const totalExpenseComments = groupDeletionData.expenseComments.reduce((sum, snapshot) => sum + snapshot.size, 0);
             expect(totalExpenseComments).toBeGreaterThanOrEqual(3); // 3 expense comments total
 
-            console.log(
-                `Before deletion - Expenses: ${groupDeletionData.expenses.size}, Settlements: ${groupDeletionData.settlements.size}, Share links: ${groupDeletionData.shareLinks.size}, Group comments: ${groupDeletionData.groupComments.size}, Expense comments: ${totalExpenseComments},`,
-            );
-
             // PERFORM HARD DELETE
             const deleteResponse = await apiDriver.deleteGroup(groupId, owner.token);
 
@@ -1383,7 +1379,6 @@ describe('Groups Management - Consolidated Tests', () => {
                 await expect(apiDriver.getExpense(expense.id, owner.token)).rejects.toThrow(/404|not found/i);
             }
 
-            console.log('✅ Comprehensive group deletion test passed - all subcollections verified as deleted');
         }, 5000); // Fast timeout for comprehensive test
     });
 

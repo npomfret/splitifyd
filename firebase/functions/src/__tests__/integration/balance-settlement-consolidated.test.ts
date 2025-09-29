@@ -161,7 +161,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
-                await expect(apiDriver.updateSettlement(created.id, { amount: 100 }, settlementUsers[1].token)).rejects.toThrow(/status 403.*NOT_SETTLEMENT_CREATOR/);
+                await expect(apiDriver.updateSettlement(created.id, new SettlementUpdateBuilder().withAmount(100).build(), settlementUsers[1].token)).rejects.toThrow(/status 403.*NOT_SETTLEMENT_CREATOR/);
             });
 
             test('should validate update data', async () => {
@@ -169,7 +169,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
-                await expect(apiDriver.updateSettlement(created.id, { amount: -100 }, settlementUsers[0].token)).rejects.toThrow(/status 400.*VALIDATION_ERROR/);
+                await expect(apiDriver.updateSettlement(created.id, new SettlementUpdateBuilder().withAmount(-100).build(), settlementUsers[0].token)).rejects.toThrow(/status 400.*VALIDATION_ERROR/);
             });
         });
 
