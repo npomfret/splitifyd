@@ -11,20 +11,18 @@ Refactor `webapp-v2/src/stores/comments-store.ts` to follow the app's pattern of
 
 ## Implementation Strategy - Small Incremental Commits
 
+⚠️ **CRITICAL**: Backend changes must be deployed before frontend changes to avoid runtime errors
+
 ---
 
-## Phase 1: Backend - Add Comment Change Tracking (3 commits)
+## Phase 1: Backend - Add Comment Change Tracking (4 commits)
 
-### Commit 1: Extend notification schema for comments
+### Commit 1: Extend backend notification schema for comments
 **Files to modify:**
 - `firebase/functions/src/schemas/user-notifications.ts`
   - Add `lastCommentChange: FirestoreTimestampSchema.nullable()`
   - Add `commentChangeCount: z.number().int().nonnegative()`
-
-- `webapp-v2/src/utils/user-notification-detector.ts`
-  - Add `onCommentChange?: (targetType: 'group' | 'expense', targetId: string) => void` to NotificationCallbacks
-  - Add fields to GroupNotificationState interface
-  - Add hasCommentChanged() check method following existing pattern
+  - Update RecentChangeSchema to include 'comment' type
 
 **Tests:** None needed yet (schema changes only)
 
@@ -79,9 +77,17 @@ Refactor `webapp-v2/src/stores/comments-store.ts` to follow the app's pattern of
 
 ---
 
+### Commit 4: **DEPLOY BACKEND** 🚀
+**Critical step:** Deploy backend changes before proceeding to frontend
+- Backend notifications must be live before frontend tries to use them
+- Test deployment in firebase emulator first
+- Verify comment triggers are working
+
+---
+
 ## Phase 2: Backend - Add GET Comment Endpoints (2 commits)
 
-### Commit 4: Add list comment handlers
+### Commit 5: Add list comment handlers
 **Files to modify:**
 - `firebase/functions/src/comments/handlers.ts`
   ```typescript
@@ -106,7 +112,7 @@ Refactor `webapp-v2/src/stores/comments-store.ts` to follow the app's pattern of
 
 ---
 
-### Commit 5: Add integration tests for comment APIs
+### Commit 6: Add integration tests for comment APIs
 **Files to create:**
 - `firebase/functions/src/__tests__/integration/comment-api.test.ts`
   - Test GET /groups/:groupId/comments with pagination
@@ -117,9 +123,23 @@ Refactor `webapp-v2/src/stores/comments-store.ts` to follow the app's pattern of
 
 ---
 
-## Phase 3: Frontend - Update Comments Store (4 commits)
+---
 
-### Commit 6: Add API client methods for fetching comments
+## Phase 3: Frontend - Update Comments Store (5 commits)
+
+### Commit 7: Update frontend notification detector for comments
+**Files to modify:**
+- `webapp-v2/src/utils/user-notification-detector.ts`
+  - Add `onCommentChange?: (targetType: 'group' | 'expense', targetId: string) => void` to NotificationCallbacks
+  - Add fields to GroupNotificationState interface
+  - Add hasCommentChanged() check method following existing pattern
+  - Update baseline setting to include comment fields
+
+**Important:** Backend must be deployed first - this commit depends on backend notification schema
+
+---
+
+### Commit 8: Add API client methods for fetching comments
 **Files to modify:**
 - `webapp-v2/src/app/apiClient.ts`
   ```typescript
@@ -142,7 +162,7 @@ Refactor `webapp-v2/src/stores/comments-store.ts` to follow the app's pattern of
 
 ---
 
-### Commit 7: Refactor comments store - Part 1 (Setup notification listener)
+### Commit 9: Refactor comments store - Part 1 (Setup notification listener)
 **Files to modify:**
 - `webapp-v2/src/stores/comments-store.ts`
   - Add constructor to accept dependencies:
@@ -174,7 +194,7 @@ Refactor `webapp-v2/src/stores/comments-store.ts` to follow the app's pattern of
 
 ---
 
-### Commit 8: Refactor comments store - Part 2 (Implement API-based fetching)
+### Commit 10: Refactor comments store - Part 2 (Implement API-based fetching)
 **Files to modify:**
 - `webapp-v2/src/stores/comments-store.ts`
   - Add `#fetchComments()` method using apiClient
@@ -184,7 +204,7 @@ Refactor `webapp-v2/src/stores/comments-store.ts` to follow the app's pattern of
 
 ---
 
-### Commit 9: Refactor comments store - Part 3 (Remove Firebase dependencies)
+### Commit 11: Refactor comments store - Part 3 (Remove Firebase dependencies)
 **Files to modify:**
 - `webapp-v2/src/stores/comments-store.ts`
   - Remove all Firebase imports
@@ -209,7 +229,7 @@ Refactor `webapp-v2/src/stores/comments-store.ts` to follow the app's pattern of
 
 ## Phase 4: End-to-End Testing (2 commits)
 
-### Commit 10: Add e2e tests for comment real-time updates
+### Commit 12: Add e2e tests for comment real-time updates
 **Files to create:**
 - `e2e-tests/src/__tests__/integration/comments-realtime.e2e.test.ts`
   - Test multi-user comment updates
@@ -219,7 +239,7 @@ Refactor `webapp-v2/src/stores/comments-store.ts` to follow the app's pattern of
 
 ---
 
-### Commit 11: Cleanup and documentation
+### Commit 13: Cleanup and documentation
 **Files to modify:**
 - Remove any TODO comments
 - Update inline documentation
