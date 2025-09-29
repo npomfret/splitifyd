@@ -21,7 +21,7 @@ export function BalanceSummary({ variant = 'default' }: BalanceSummaryProps) {
     // Helper to get user display name
     const getUserName = (userId: string) => {
         const member = members.value.find((m) => m.uid === userId);
-        return member?.displayName || 'Unknown';
+        return member?.displayName || t('unknown');
     };
 
     // Group debts by currency for proper display - memoized to avoid recalculation

@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState, useEffect, useMemo } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 import { CURRENCIES, getCurrency, COMMON_CURRENCIES, type Currency } from '@/utils/currency';
 import { useDebounce } from '@/utils/debounce.ts';
 
@@ -20,11 +21,12 @@ export function CurrencySelector({
     className = '',
     error,
     label,
-    placeholder = 'Select currency...',
+    placeholder,
     required = false,
     disabled = false,
     recentCurrencies = [],
 }: CurrencySelectorProps) {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -259,7 +261,7 @@ export function CurrencySelector({
                         </div>
                     ) : (
                         <div className="flex items-center justify-between">
-                            <span className="text-gray-400">{placeholder}</span>
+                            <span className="text-gray-400">{placeholder || t('ui.currencySelector.placeholder')}</span>
                             <svg
                                 className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                                 xmlns="http://www.w3.org/2000/svg"
@@ -285,15 +287,15 @@ export function CurrencySelector({
                     >
                         <div className="sticky top-0 bg-white px-3 py-2 border-b">
                             <label htmlFor={`${inputId}-search`} className="sr-only">
-                                Search currencies
+                                {t('ui.currencySelector.searchPlaceholder')}
                             </label>
                             <input
                                 id={`${inputId}-search`}
                                 type="text"
                                 value={searchTerm}
                                 onChange={handleSearchChange}
-                                placeholder="Search currencies..."
-                                aria-label="Search currencies"
+                                placeholder={t('ui.currencySelector.searchPlaceholder')}
+                                aria-label={t('ui.currencySelector.searchPlaceholder')}
                                 aria-autocomplete="list"
                                 aria-controls={`${inputId}-listbox`}
                                 className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-600"
@@ -303,14 +305,14 @@ export function CurrencySelector({
 
                         {flatList.length === 0 ? (
                             <div className="px-3 py-2 text-sm text-gray-500" role="status" aria-live="polite">
-                                No currencies found
+                                {t('ui.currencySelector.noCurrencies')}
                             </div>
                         ) : (
                             <>
-                                {renderCurrencyGroup(groupedCurrencies.recent.length > 0 ? 'Recent' : '', groupedCurrencies.recent, 0)}
-                                {renderCurrencyGroup(groupedCurrencies.common.length > 0 ? 'Common' : '', groupedCurrencies.common, groupedCurrencies.recent.length)}
+                                {renderCurrencyGroup(groupedCurrencies.recent.length > 0 ? t('ui.currencySelector.recent') : '', groupedCurrencies.recent, 0)}
+                                {renderCurrencyGroup(groupedCurrencies.common.length > 0 ? t('ui.currencySelector.common') : '', groupedCurrencies.common, groupedCurrencies.recent.length)}
                                 {renderCurrencyGroup(
-                                    groupedCurrencies.others.length > 0 ? 'All Currencies' : '',
+                                    groupedCurrencies.others.length > 0 ? t('ui.currencySelector.allCurrencies') : '',
                                     groupedCurrencies.others,
                                     groupedCurrencies.recent.length + groupedCurrencies.common.length,
                                 )}

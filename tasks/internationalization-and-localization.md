@@ -873,18 +873,30 @@ All comments components were already internationalized:
   - `expenseComponents.payerSelector.*`
   - `expenseComponents.splitAmountInputs.*`
   - `expenseComponents.splitTypeSelector.*`
+- **Session 3 (Phase 3)**: Completed 5 priority components using existing translation keys:
+  - `expenseComponents.expenseActions.*` (button labels & error messages)
+  - `expenseComponents.splitBreakdown.*` (split types, display text)
+  - `ui.currencySelector.*` (placeholders, search, group labels)
+  - `ui.alert.dismiss` (accessibility label)
+  - General `unknown` fallback text
 
 ### 🔄 Remaining Work
 
-**Status**: Significant progress made with systematic approach. All major component groups in Priority 1-4 completed.
+**Status**: Significant progress made with systematic approach. All major component groups in Priority 1-4 completed. **Phase 3 completed** - internationalized 5 additional priority components.
+
+**Completed in Phase 3**:
+- ✅ ExpenseActions.tsx (button labels, error messages)
+- ✅ SplitBreakdown.tsx (split type labels, display text)
+- ✅ BalanceSummary.tsx (unknown user fallback)
+- ✅ CurrencySelector.tsx (search, placeholders, group labels)
+- ✅ Alert.tsx (accessibility labels)
 
 **Next priorities** from original 91-file plan:
-- Group detail components (BalanceSummary, EditGroupModal, etc.)
-- Common UI components (CurrencySelector, Alert, etc.)
+- Group detail components (EditGroupModal, etc.)
 - Page-level components (LoginPage, RegisterPage, etc.)
 - Specialized components and static pages
 
-**Estimated remaining**: ~68 files (down from original 82)
+**Estimated remaining**: ~63 files (down from original 68)
 
 ### Technical Patterns Established
 

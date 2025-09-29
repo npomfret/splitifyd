@@ -1,4 +1,5 @@
 import { useState } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 
 interface AlertProps {
     type: 'info' | 'success' | 'warning' | 'error';
@@ -9,6 +10,7 @@ interface AlertProps {
 }
 
 export function Alert({ type, title, message, dismissible = false, onDismiss }: AlertProps) {
+    const { t } = useTranslation();
     const [isVisible, setIsVisible] = useState(true);
 
     if (!isVisible) return null;
@@ -87,7 +89,7 @@ export function Alert({ type, title, message, dismissible = false, onDismiss }: 
                     <button
                         onClick={handleDismiss}
                         className={`ml-4 ${styles.text} hover:opacity-70 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-current`}
-                        aria-label="Dismiss alert"
+                        aria-label={t('ui.alert.dismiss')}
                     >
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path

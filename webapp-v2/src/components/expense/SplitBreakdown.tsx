@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Avatar } from '../ui/Avatar';
 import { Stack } from '../ui/Stack';
 import type { ExpenseData, GroupMemberDTO } from '@splitifyd/shared';
@@ -10,6 +11,7 @@ interface SplitBreakdownProps {
 }
 
 export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
+    const { t } = useTranslation();
     const memberMap = members.reduce(
         (acc, member) => {
             acc[member.uid] = member;
@@ -21,13 +23,13 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
     const getSplitTypeLabel = (type: string) => {
         switch (type) {
             case SplitTypes.EQUAL:
-                return 'Split Equally';
+                return t('expenseComponents.splitBreakdown.splitEqually');
             case SplitTypes.EXACT:
-                return 'Exact Amounts';
+                return t('expenseComponents.splitBreakdown.exactAmounts');
             case SplitTypes.PERCENTAGE:
-                return 'By Percentage';
+                return t('expenseComponents.splitBreakdown.byPercentage');
             default:
-                return 'Custom Split';
+                return t('expenseComponents.splitBreakdown.customSplit');
         }
     };
 
@@ -48,7 +50,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
         <Stack spacing="md">
             <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-gray-900 dark:text-white">
-                    Split between {expense.participants.length} {expense.participants.length === 1 ? 'person' : 'people'}
+                    {t('expenseComponents.splitBreakdown.splitBetween')}{expense.participants.length}{expense.participants.length === 1 ? t('expenseComponents.splitBreakdown.person') : t('expenseComponents.splitBreakdown.people')}
                 </h3>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSplitTypeBadgeColor(expense.splitType)}`}>{getSplitTypeLabel(expense.splitType)}</span>
             </div>
@@ -66,7 +68,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                             <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-3">
                                     <div className="relative">
-                                        <Avatar displayName={member?.displayName || 'Unknown'} userId={split.uid} size="md" />
+                                        <Avatar displayName={member?.displayName || t('expenseComponents.splitBreakdown.unknown')} userId={split.uid} size="md" />
                                         {isPayer && (
                                             <div className="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-0.5">
                                                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -80,8 +82,8 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                                         )}
                                     </div>
                                     <div>
-                                        <p className="font-medium text-gray-900 dark:text-white">{member?.displayName || 'Unknown'}</p>
-                                        {isPayer && <p className="text-xs text-green-600 dark:text-green-400">Paid</p>}
+                                        <p className="font-medium text-gray-900 dark:text-white">{member?.displayName || t('expenseComponents.splitBreakdown.unknown')}</p>
+                                        {isPayer && <p className="text-xs text-green-600 dark:text-green-400">{t('expenseComponents.splitBreakdown.paid')}</p>}
                                     </div>
                                 </div>
                                 <div className="text-right">
@@ -103,7 +105,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                                         style={{ width: `${percentage}%` }}
                                     />
                                 </div>
-                                {isOwing && <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Owes {memberMap[expense.paidBy]?.displayName || 'Unknown'}</p>}
+                                {isOwing && <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{t('expenseComponents.splitBreakdown.owes')}{memberMap[expense.paidBy]?.displayName || t('expenseComponents.splitBreakdown.unknown')}</p>}
                             </div>
                         </div>
                     );
@@ -112,7 +114,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
 
             {expense.splitType === SplitTypes.PERCENTAGE && (
                 <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                    <p className="text-sm text-yellow-800 dark:text-yellow-200">Total: {expense.splits.reduce((sum, s) => sum + (s.amount / expense.amount) * 100, 0).toFixed(1)}%</p>
+                    <p className="text-sm text-yellow-800 dark:text-yellow-200">{t('expenseComponents.splitBreakdown.total')}{expense.splits.reduce((sum, s) => sum + (s.amount / expense.amount) * 100, 0).toFixed(1)}%</p>
                 </div>
             )}
         </Stack>
