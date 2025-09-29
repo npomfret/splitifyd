@@ -6,7 +6,7 @@
  */
 
 import { describe, test, expect, beforeEach } from 'vitest';
-import { borrowTestUsers } from '@splitifyd/test-support';
+import { borrowTestUsers, CreateGroupRequestBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { GroupMemberDocument, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
 import { getAuth, getFirestore } from '../../firebase';
@@ -29,30 +29,31 @@ describe('GroupMember Subcollection - Integration Tests (Essential Firestore Beh
         testUser1 = users[0];
         testUser2 = users[1];
 
-        testGroup = await groupService.createGroup(testUser1.uid, {
-            name: 'Test Subcollection Group',
-            description: 'Testing subcollection functionality',
-        });
+        testGroup = await groupService.createGroup(testUser1.uid,
+            new CreateGroupRequestBuilder()
+                .withName('Test Subcollection Group')
+                .withDescription('Testing subcollection functionality')
+                .build()
+        );
     });
 
     describe('Firestore CollectionGroup Queries', () => {
         test('should execute collectionGroup query across multiple group subcollections', async () => {
             // This tests actual Firestore collectionGroup functionality that cannot be stubbed
-            const group2 = await groupService.createGroup(testUser2.uid, {
-                name: 'User2 Group',
-                description: 'Second group',
-            });
+            const group2 = await groupService.createGroup(testUser2.uid,
+                new CreateGroupRequestBuilder()
+                    .withName('User2 Group')
+                    .withDescription('Second group')
+                    .build()
+            );
 
             // Add testUser1 to group2 via subcollection
-            const memberDoc: GroupMemberDocument = {
-                uid: testUser1.uid,
-                groupId: group2.id,
-                memberRole: MemberRoles.MEMBER,
-                theme: groupShareService.getThemeColorForMember(1),
-                joinedAt: new Date().toISOString(),
-                memberStatus: MemberStatuses.ACTIVE,
-                invitedBy: testUser2.uid,
-            };
+            const memberDoc = new GroupMemberDocumentBuilder(testUser1.uid, group2.id)
+                .asMember()
+                .asActive()
+                .withTheme(groupShareService.getThemeColorForMember(1))
+                .withInvitedBy(testUser2.uid)
+                .build();
             await groupMemberService.createMember(group2.id, memberDoc);
 
             // Test the actual Firestore collectionGroup query
@@ -69,10 +70,12 @@ describe('GroupMember Subcollection - Integration Tests (Essential Firestore Beh
             const groupPromises = [];
             for (let i = 0; i < 5; i++) {
                 groupPromises.push(
-                    groupService.createGroup(testUser1.uid, {
-                        name: `Scale Test Group ${i}`,
-                        description: `Group ${i} for scalability testing`,
-                    }),
+                    groupService.createGroup(testUser1.uid,
+                        new CreateGroupRequestBuilder()
+                            .withName(`Scale Test Group ${i}`)
+                            .withDescription(`Group ${i} for scalability testing`)
+                            .build()
+                    ),
                 );
             }
             const groups = await Promise.all(groupPromises);

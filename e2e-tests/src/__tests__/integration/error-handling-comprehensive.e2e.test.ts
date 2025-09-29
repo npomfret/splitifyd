@@ -2,7 +2,7 @@ import { expect, simpleTest as test } from '../../fixtures/simple-test.fixture';
 import { CreateGroupModalPage, LoginPage } from '../../pages';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../config/timeouts';
 import { SELECTORS } from '../../constants/selectors';
-import { generateTestGroupName } from '@splitifyd/test-support';
+import { generateTestGroupName, CreateGroupFormDataBuilder } from '@splitifyd/test-support';
 
 /**
  * Comprehensive Error Handling E2E Tests
@@ -275,7 +275,7 @@ test.describe('Form Validation & UI Error Handling', () => {
 
         const [{ dashboardPage }] = await createLoggedInBrowsers(memberCount);
 
-        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().build());
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
         const submitButton = expenseFormPage.getSaveButtonForValidation();
 
@@ -303,7 +303,7 @@ test.describe('Form Validation & UI Error Handling', () => {
 
         const [{ page, dashboardPage }] = await createLoggedInBrowsers(memberCount);
 
-        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().build());
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
 
         // Create invalid form state that passes client validation but fails server validation
@@ -347,7 +347,7 @@ test.describe('Security & Access Control Errors', () => {
         // Test 2: Protected group page access (within same test for efficiency)
         let [{ page: authPage, dashboardPage }] = await createLoggedInBrowsers(1);
 
-        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().build());
         const groupId = groupDetailPage.inferGroupId();
 
         // Navigate back to dashboard and log out
@@ -371,7 +371,7 @@ test.describe('Security & Access Control Errors', () => {
         const [{ dashboardPage }, { page: page2 }] = await createLoggedInBrowsers(2);
 
         // User 1 creates a private group using the efficient helper
-        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().build());
         const groupId = groupDetailPage.inferGroupId();
 
         // User 2 tries to access User 1's group directly

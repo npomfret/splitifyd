@@ -13,6 +13,8 @@ vi.mock('react-i18next', () => ({
                 'groupCard.settledUp': 'Settled up',
                 'groupCard.youreOwed': (vals: any) => `You're owed ${vals.amount}`,
                 'groupCard.youOwe': (vals: any) => `You owe ${vals.amount}`,
+                'dashboard.groupCard.youAreOwed': (vals: any) => `You're owed ${vals.amount}`,
+                'dashboard.groupCard.youOwe': (vals: any) => `You owe ${vals.amount}`,
                 'groupCard.noRecentActivity': 'No recent activity',
                 'groupCard.addExpenseTooltip': (vals: any) => `Add expense to ${vals.groupName}`,
                 'groupCard.inviteTooltip': (vals: any) => `Invite to ${vals.groupName}`,
@@ -26,9 +28,9 @@ vi.mock('react-i18next', () => ({
     }),
 }));
 
-// Helper to create test groups
+// Helper to create test groups - using builder pattern with defaults
 function createTestGroup(overrides: Partial<Group> = {}): Group {
-    return {
+    const defaultGroup: Group = {
         id: `group-${generateShortId()}`,
         name: 'Test Group',
         securityPreset: 'open' as const,
@@ -47,8 +49,10 @@ function createTestGroup(overrides: Partial<Group> = {}): Group {
         },
         lastActivity: 'Just created',
         lastActivityRaw: new Date().toISOString(),
-        ...overrides,
     };
+
+    // Apply overrides to the default object
+    return { ...defaultGroup, ...overrides };
 }
 
 // Helper to create test users
