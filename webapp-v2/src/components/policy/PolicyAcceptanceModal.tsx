@@ -101,9 +101,9 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-200">
                     <div>
-                        <h2 className="text-2xl font-bold text-gray-900">Accept Updated Policies</h2>
+                        <h2 className="text-2xl font-bold text-gray-900">{t('policyComponents.policyAcceptanceModal.title')}</h2>
                         <p className="text-sm text-gray-600 mt-1">
-                            Policy {currentPolicyIndex + 1} of {policies.length}: {currentPolicy.policyName}
+                            {t('policyComponents.policyAcceptanceModal.policyLabel')}{currentPolicyIndex + 1}{t('policyComponents.policyAcceptanceModal.of')}{policies.length}{t('policyComponents.policyAcceptanceModal.colon')}{currentPolicy.policyName}
                         </p>
                     </div>
                     {onClose && (
@@ -118,9 +118,9 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                 {/* Progress bar */}
                 <div className="px-6 py-3 border-b border-gray-100">
                     <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
-                        <span>Progress</span>
+                        <span>{t('policyComponents.policyAcceptanceModal.progress')}</span>
                         <span>
-                            {acceptedPolicies.size} of {policies.length} accepted
+                            {acceptedPolicies.size}{t('policyComponents.policyAcceptanceModal.of')}{policies.length}{t('policyComponents.policyAcceptanceModal.accepted')}
                         </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -138,13 +138,13 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                 <Stack spacing="md">
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-lg font-semibold text-gray-900">{currentPolicy.policyName}</h3>
-                                        {canAcceptCurrent && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">✓ Accepted</span>}
+                                        {canAcceptCurrent && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{t('policyComponents.policyAcceptanceModal.acceptedIcon')}</span>}
                                     </div>
 
                                     {loadingPolicy === currentPolicy.policyId ? (
                                         <div className="flex items-center justify-center py-8">
                                             <LoadingSpinner />
-                                            <span className="ml-2 text-gray-600">Loading policy content...</span>
+                                            <span className="ml-2 text-gray-600">{t('policyComponents.policyAcceptanceModal.loadingContent')}</span>
                                         </div>
                                     ) : (
                                         <>
@@ -165,8 +165,8 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                                             </svg>
                                                         </div>
                                                         <div className="ml-3">
-                                                            <h4 className="text-sm font-medium text-blue-800">Policy Acceptance Required</h4>
-                                                            <p className="text-sm text-blue-700 mt-1">Please read the policy above and click "Accept" to continue using Splitify.</p>
+                                                            <h4 className="text-sm font-medium text-blue-800">{t('policyComponents.policyAcceptanceModal.acceptanceRequired')}</h4>
+                                                            <p className="text-sm text-blue-700 mt-1">{t('policyComponents.policyAcceptanceModal.acceptanceInstructions')}</p>
                                                         </div>
                                                     </div>
 
@@ -188,7 +188,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                                             }}
                                                         />
                                                         <label htmlFor={`accept-${currentPolicy.policyId}`} className="ml-2 text-sm text-blue-800">
-                                                            I have read and accept this {currentPolicy.policyName.toLowerCase()}
+                                                            {t('policyComponents.policyAcceptanceModal.acceptCheckbox')}{currentPolicy.policyName.toLowerCase()}
                                                         </label>
                                                     </div>
                                                 </div>
@@ -205,27 +205,27 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                 <div className="flex items-center justify-between p-6 border-t border-gray-200">
                     <div className="flex items-center gap-2">
                         <Button variant="secondary" onClick={handlePrevious} disabled={currentPolicyIndex === 0}>
-                            Previous
+                            {t('policyComponents.policyAcceptanceModal.previous')}
                         </Button>
                         <Button variant="secondary" onClick={handleNext} disabled={isLastPolicy || !canAcceptCurrent}>
-                            Next
+                            {t('policyComponents.policyAcceptanceModal.next')}
                         </Button>
                     </div>
 
                     <div className="flex items-center gap-2">
                         {policies.length > 1 && (
                             <span className="text-sm text-gray-500">
-                                {acceptedPolicies.size} of {policies.length} policies accepted
+                                {acceptedPolicies.size}{t('policyComponents.policyAcceptanceModal.of')}{policies.length}{t('policyComponents.policyAcceptanceModal.policiesAccepted')}
                             </span>
                         )}
                         <Button onClick={handleAcceptAll} disabled={!allPoliciesAccepted || loading}>
                             {loading ? (
                                 <>
                                     <LoadingSpinner size="sm" />
-                                    <span className="ml-2">Accepting...</span>
+                                    <span className="ml-2">{t('policyComponents.policyAcceptanceModal.accepting')}</span>
                                 </>
                             ) : (
-                                'Accept All & Continue'
+                                t('policyComponents.policyAcceptanceModal.acceptAll')
                             )}
                         </Button>
                     </div>

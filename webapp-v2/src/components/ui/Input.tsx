@@ -1,4 +1,5 @@
 import { useCallback } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 
 interface InputProps {
     type?: 'text' | 'email' | 'password' | 'number';
@@ -35,6 +36,7 @@ export function Input({
     autoComplete,
     'data-testid': dataTestId,
 }: InputProps) {
+    const { t } = useTranslation();
     const inputId = id || name || `input-${Math.random().toString(36).substr(2, 9)}`;
 
     const handleChange = useCallback(
@@ -76,7 +78,7 @@ export function Input({
                     {label}
                     {required && (
                         <span className="text-red-500 ml-1" data-testid="required-indicator">
-                            *
+                            {t('common.required')}
                         </span>
                     )}
                 </label>

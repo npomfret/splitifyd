@@ -7,6 +7,7 @@
 import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
 import { Group } from '@splitifyd/shared';
+import { useTranslation } from 'react-i18next';
 
 interface GroupPreviewProps {
     group: Group;
@@ -14,6 +15,7 @@ interface GroupPreviewProps {
 }
 
 export function GroupPreview({ group, memberCount }: GroupPreviewProps) {
+    const { t } = useTranslation();
     return (
         <Card className="w-full">
             <div className="p-6">
@@ -29,18 +31,18 @@ export function GroupPreview({ group, memberCount }: GroupPreviewProps) {
                         <div className="grid grid-cols-2 gap-4 text-center">
                             <div>
                                 <div className="text-2xl font-semibold text-primary-600">{memberCount}</div>
-                                <div className="text-sm text-gray-600">{memberCount === 1 ? 'Member' : 'Members'}</div>
+                                <div className="text-sm text-gray-600">{memberCount === 1 ? t('common.member') : t('common.members')}</div>
                             </div>
                             <div>
-                                <div className="text-2xl font-semibold text-primary-600">Active</div>
-                                <div className="text-sm text-gray-600">Group</div>
+                                <div className="text-2xl font-semibold text-primary-600">{t('common.active')}</div>
+                                <div className="text-sm text-gray-600">{t('common.group')}</div>
                             </div>
                         </div>
                     </div>
 
                     {/* Join Invitation Message */}
                     <div className="text-center p-4 bg-blue-50 rounded-lg">
-                        <p className="text-blue-800 text-sm">You've been invited to join this group</p>
+                        <p className="text-blue-800 text-sm">{t('joinGroupComponents.groupPreview.invitationMessage')}</p>
                     </div>
                 </Stack>
             </div>

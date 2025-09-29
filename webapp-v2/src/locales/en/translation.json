@@ -39,8 +39,8 @@
     "active": "Active",
     "inactive": "Inactive",
     "total": "Total",
-    "member": "member",
-    "members": "members",
+    "member": "Member",
+    "members": "Members",
     "user": "User",
     "group": "Group",
     "groups": "Groups",
@@ -1323,5 +1323,55 @@
   "seo": {
     "titleSuffix": " | Splitifyd",
     "siteName": "Splitifyd"
+  },
+  "staticPages": {
+    "common": {
+      "lastUpdated": "Last updated:"
+    },
+    "cookiePolicy": {
+      "title": "Cookie Policy",
+      "description": "Cookie Policy for Splitifyd - Learn about how we use cookies and similar technologies.",
+      "loadError": "Error loading cookie policy"
+    },
+    "privacyPolicy": {
+      "title": "Privacy Policy",
+      "description": "Privacy Policy for Splitifyd - Learn about how we collect, use, and protect your information.",
+      "loadError": "Error loading privacy policy"
+    },
+    "termsOfService": {
+      "title": "Terms of Service",
+      "description": "Terms of Service for Splitifyd - Read about our policies and user agreements.",
+      "loadError": "Error loading terms"
+    }
+  },
+  "policyComponents": {
+    "policyAcceptanceModal": {
+      "title": "Accept Updated Policies",
+      "policyLabel": "Policy ",
+      "of": " of ",
+      "colon": ": ",
+      "progress": "Progress",
+      "accepted": " accepted",
+      "acceptedIcon": "✓ Accepted",
+      "loadingContent": "Loading policy content...",
+      "acceptanceRequired": "Policy Acceptance Required",
+      "acceptanceInstructions": "Please read the policy above and click \"Accept\" to continue using Splitify.",
+      "acceptCheckbox": "I have read and accept this ",
+      "previous": "Previous",
+      "next": "Next",
+      "policiesAccepted": " policies accepted",
+      "accepting": "Accepting...",
+      "acceptAll": "Accept All & Continue",
+      "closeAriaLabel": "Close"
+    }
+  },
+  "joinGroupComponents": {
+    "groupPreview": {
+      "invitationMessage": "You've been invited to join this group"
+    },
+    "joinButton": {
+      "joinGroup": "Join Group",
+      "joining": "Joining..."
+    }
   }
 }

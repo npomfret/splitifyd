@@ -1,8 +1,10 @@
 import { StaticPageLayout } from '../../components/StaticPageLayout';
 import { usePolicy } from '@/hooks/usePolicy.ts';
 import { PolicyRenderer } from '../../components/policy/PolicyRenderer';
+import { useTranslation } from 'react-i18next';
 
 export function TermsOfServicePage() {
+    const { t } = useTranslation();
     const { policy, loading, error } = usePolicy('TERMS_OF_SERVICE');
 
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
@@ -14,8 +16,8 @@ export function TermsOfServicePage() {
     const structuredData = {
         '@context': 'https://schema.org',
         '@type': 'WebPage',
-        name: 'Terms of Service - Splitifyd',
-        description: 'Terms of Service for Splitifyd - Read about our policies and user agreements.',
+        name: `${t('staticPages.termsOfService.title')} - Splitifyd`,
+        description: t('staticPages.termsOfService.description'),
         url: canonical,
         dateModified: lastUpdated,
         publisher: {
@@ -25,9 +27,9 @@ export function TermsOfServicePage() {
     };
 
     return (
-        <StaticPageLayout title="Terms of Service" description="Terms of Service for Splitifyd - Read about our policies and user agreements." canonical={canonical} structuredData={structuredData}>
+        <StaticPageLayout title={t('staticPages.termsOfService.title')} description={t('staticPages.termsOfService.description')} canonical={canonical} structuredData={structuredData}>
             <div class="space-y-6">
-                <div class="text-sm text-gray-500 mb-8">Last updated: {lastUpdated}</div>
+                <div class="text-sm text-gray-500 mb-8">{t('staticPages.common.lastUpdated')} {lastUpdated}</div>
 
                 {loading && (
                     <div class="flex justify-center py-12">
@@ -49,7 +51,7 @@ export function TermsOfServicePage() {
                             </div>
                             <div class="ml-3">
                                 <h3 class="text-sm font-medium text-red-800" role="alert" data-testid="terms-error-heading">
-                                    Error loading terms
+                                    {t('staticPages.termsOfService.loadError')}
                                 </h3>
                                 <div class="mt-2 text-sm text-red-700" role="alert" data-testid="terms-error-message">
                                     <p>{error}</p>

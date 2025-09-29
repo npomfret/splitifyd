@@ -201,7 +201,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
     const getMemberName = (userId: string): string => {
         const member = members.find((m: GroupMemberDTO) => m.uid === userId);
-        return member?.displayName || 'Unknown User';
+        return member?.displayName || t('common.unknownUser');
     };
 
     return (

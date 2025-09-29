@@ -1,8 +1,10 @@
 import { StaticPageLayout } from '../../components/StaticPageLayout';
 import { usePolicy } from '@/hooks/usePolicy.ts';
 import { PolicyRenderer } from '../../components/policy/PolicyRenderer';
+import { useTranslation } from 'react-i18next';
 
 export function PrivacyPolicyPage() {
+    const { t } = useTranslation();
     const { policy, loading, error } = usePolicy('PRIVACY_POLICY');
 
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
@@ -14,8 +16,8 @@ export function PrivacyPolicyPage() {
     const structuredData = {
         '@context': 'https://schema.org',
         '@type': 'WebPage',
-        name: 'Privacy Policy - Splitifyd',
-        description: 'Privacy Policy for Splitifyd - Learn about how we collect, use, and protect your information.',
+        name: `${t('staticPages.privacyPolicy.title')} - Splitifyd`,
+        description: t('staticPages.privacyPolicy.description'),
         url: canonical,
         dateModified: lastUpdated,
         publisher: {
@@ -26,13 +28,13 @@ export function PrivacyPolicyPage() {
 
     return (
         <StaticPageLayout
-            title="Privacy Policy"
-            description="Privacy Policy for Splitifyd - Learn about how we collect, use, and protect your information."
+            title={t('staticPages.privacyPolicy.title')}
+            description={t('staticPages.privacyPolicy.description')}
             canonical={canonical}
             structuredData={structuredData}
         >
             <div class="space-y-6">
-                <div class="text-sm text-gray-500 mb-8">Last updated: {lastUpdated}</div>
+                <div class="text-sm text-gray-500 mb-8">{t('staticPages.common.lastUpdated')} {lastUpdated}</div>
 
                 {loading && (
                     <div class="flex justify-center py-12">
@@ -54,7 +56,7 @@ export function PrivacyPolicyPage() {
                             </div>
                             <div class="ml-3">
                                 <h3 class="text-sm font-medium text-red-800" role="alert" data-testid="privacy-policy-error-heading">
-                                    Error loading privacy policy
+                                    {t('staticPages.privacyPolicy.loadError')}
                                 </h3>
                                 <div class="mt-2 text-sm text-red-700" role="alert" data-testid="privacy-policy-error-message">
                                     <p>{error}</p>

@@ -24,9 +24,9 @@ export function MembersList({ members, createdBy, loading = false, variant = 'de
         <div className="space-y-3">
             {members.map((member) => (
                 <div key={member.uid} className="flex items-center gap-3">
-                    <Avatar displayName={member.displayName || member.email || 'Unknown User'} userId={member.uid} size="sm" themeColor={member.themeColor} />
+                    <Avatar displayName={member.displayName || member.email || t('common.unknownUser')} userId={member.uid} size="sm" themeColor={member.themeColor} />
                     <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{member.displayName || member.email || 'Unknown User'}</p>
+                        <p className="text-sm font-medium truncate">{member.displayName || member.email || t('common.unknownUser')}</p>
                         {member.uid === createdBy && <p className="text-xs text-gray-500">{t('membersList.admin')}</p>}
                     </div>
                 </div>
@@ -36,9 +36,9 @@ export function MembersList({ members, createdBy, loading = false, variant = 'de
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {members.map((member) => (
                 <div key={member.uid} className="flex items-center gap-3">
-                    <Avatar displayName={member.displayName || member.email || 'Unknown User'} userId={member.uid} size="md" themeColor={member.themeColor} />
+                    <Avatar displayName={member.displayName || member.email || t('common.unknownUser')} userId={member.uid} size="md" themeColor={member.themeColor} />
                     <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{member.displayName || member.email || 'Unknown User'}</p>
+                        <p className="text-sm font-medium truncate">{member.displayName || member.email || t('common.unknownUser')}</p>
                         {member.uid === createdBy && <p className="text-xs text-gray-500">{t('membersList.admin')}</p>}
                     </div>
                 </div>

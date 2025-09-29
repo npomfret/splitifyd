@@ -898,6 +898,70 @@ All comments components were already internationalized:
 
 **Estimated remaining**: ~63 files (down from original 68)
 
+## Progress Update - September 29, 2025 (Session 4)
+
+### ✅ Critical Bug Fix Session
+
+#### Phase 4 Implementation Issues Resolved
+
+**Problem Identified**: Previous Phase 4 internationalization work introduced critical bugs:
+- Missing translation keys causing raw translation keys to display instead of text
+- Currency symbol access error: `"Cannot read properties of undefined (reading 'symbol')"`
+- Multiple E2E tests failing due to internationalization issues
+
+#### Translation Keys Fixed ✅
+1. **Missing Translation Keys Added**:
+   - `policyComponents.policyAcceptanceModal.*` - Complete modal internationalization (17 keys)
+   - `joinGroupComponents.joinButton.*` - Join button states
+   - `staticPages.termsOfService.*` - Terms page metadata
+   - `staticPages.privacyPolicy.*` - Privacy page metadata
+   - `staticPages.common.lastUpdated` - Page update timestamps
+
+#### Critical Bug Fixes ✅
+2. **Currency Symbol Fix** (`CurrencyAmountInput.tsx:151`):
+   - **Issue**: `selectedCurrency.symbol` caused error when `selectedCurrency` was undefined
+   - **Root Cause**: `currencyService.getCurrencyByCode()` can return undefined for invalid currencies
+   - **Solution**: Changed to `selectedCurrency?.symbol ?? currency` to handle undefined gracefully
+   - **Impact**: Fixed expense form crashes and form loading issues
+
+#### Components Fixed ✅
+3. **Internationalized Components Validated**:
+   - **Input.tsx** - Required field indicator (`*` → `t('common.required')`)
+   - **PolicyAcceptanceModal.tsx** - Complete modal with proper interpolation
+   - **MembersList.tsx** - Unknown user fallbacks (4 instances)
+   - **GroupPreview.tsx** - Join flow member counts and labels
+   - **Static Pages** - Terms and Privacy policy loading states
+
+#### E2E Test Validation ✅
+4. **Test Suite Results**:
+   - ✅ **Balance Restrictions** - `should allow leaving/removing after settlement clears balance` (PASS)
+   - ✅ **Real-time Updates** - `should show member removal in real-time to all viewers` (PASS)
+   - ✅ **Form Validation** - `should prevent form submission with invalid data` (PASS)
+   - ✅ **Expense Lifecycle** - Currency symbol error resolved (PASS)
+
+#### Translation File Updates ✅
+5. **Translation.json Changes**:
+   - Added comprehensive `policyComponents` section
+   - Added `joinGroupComponents` section
+   - Added `staticPages` section with metadata
+   - Removed incorrect `currencySymbol` translation key (currencies shouldn't be translated)
+   - Fixed spacing in interpolated strings (`"of": " of "`, `"colon": ": "`)
+
+### 🎯 Session Impact
+- **Fixed**: All major E2E test failures related to internationalization
+- **Resolved**: Critical runtime errors that broke expense form functionality
+- **Validated**: Previously internationalized components working correctly
+- **Quality**: No hardcoded fallbacks, proper undefined handling
+
+### ✅ Current Status
+**Phase 4**: Successfully completed with critical bug fixes
+- All internationalization-related test failures resolved
+- Currency handling robust and error-free
+- Translation keys properly structured and complete
+- E2E test suite passing for internationalized components
+
+**Next Phase**: Ready to continue with remaining component internationalization from 91-file plan
+
 ### Technical Patterns Established
 
 1. **Import Pattern**: `import { useTranslation } from 'react-i18next';`

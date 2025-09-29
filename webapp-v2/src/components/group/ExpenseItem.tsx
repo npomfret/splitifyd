@@ -47,7 +47,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                 <div className="flex-1">
                     <div className="flex items-center gap-3">
                         {/* User avatar */}
-                        <Avatar displayName={paidByUser?.displayName || 'Unknown'} userId={expense.paidBy} size="sm" themeColor={paidByUser?.themeColor} />
+                        <Avatar displayName={paidByUser?.displayName || t('common.unknown')} userId={expense.paidBy} size="sm" themeColor={paidByUser?.themeColor} />
 
                         <div className="flex-1">
                             <div className="flex items-center gap-2">
@@ -61,12 +61,12 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                             <p className="text-sm text-gray-600">
                                 {t('expenseItem.paidBy')}{' '}
                                 <span className="font-medium" style={{ color: isDeleted ? '' : themeColor }}>
-                                    {paidByUser?.displayName || 'Unknown'}
+                                    {paidByUser?.displayName || t('common.unknown')}
                                 </span>{' '}
                                 • {formatExpenseDateTime(expense.date)}
                                 {isDeleted && expense.deletedAt && (
                                     <span className="ml-2 text-red-600">
-                                        • {t('expenseItem.deletedBy')} {deletedByUser?.displayName || 'Unknown'} {formatDistanceToNow(new Date(expense.deletedAt))}
+                                        • {t('expenseItem.deletedBy')} {deletedByUser?.displayName || t('common.unknown')} {formatDistanceToNow(new Date(expense.deletedAt))}
                                     </span>
                                 )}
                             </p>
@@ -81,7 +81,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
 
                         {/* Theme color indicator dot */}
                         {!isDeleted && paidByTheme && (
-                            <div className="w-2 h-2 rounded-full mt-1 ml-auto" style={{ backgroundColor: themeColor }} title={`${paidByUser?.displayName || 'Unknown'} (${paidByTheme.name})`} />
+                            <div className="w-2 h-2 rounded-full mt-1 ml-auto" style={{ backgroundColor: themeColor }} title={`${paidByUser?.displayName || t('common.unknown')} (${paidByTheme.name})`} />
                         )}
                     </div>
 
