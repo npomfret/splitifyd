@@ -764,9 +764,7 @@ export const SELECTORS = {
 
 const someValidEmail = () => `${generateShortId()}@bar.com`;
 
-// Re-export new object-oriented test patterns
-export { TestScenarios } from '../playwright/objects';
-export { GroupApiMock, AuthApiMock } from '../playwright/mocks';
+// Note: TestScenarios and API mocks were removed with the deleted playwright tests
 
 /**
  * Common test scenarios for reuse

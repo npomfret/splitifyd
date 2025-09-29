@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 import { simpleTest } from '../../fixtures';
 import { SettingsPage, RegisterPage, DashboardPage, HomepagePage, LoginPage, GroupDetailPage, JoinGroupPage } from '../../pages';
-import { generateNewUserDetails, DEFAULT_PASSWORD, generateTestEmail, generateTestUserName, generateTestGroupName } from '@splitifyd/test-support';
+import { generateNewUserDetails, DEFAULT_PASSWORD, generateTestEmail, generateTestUserName, generateTestGroupName, CreateGroupFormDataBuilder } from '@splitifyd/test-support';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { ApiDriver } from '@splitifyd/test-support';
 import { PolicyAcceptanceModalPage } from '../../pages/policy-acceptance-modal.page';
@@ -437,10 +437,11 @@ simpleTest.describe('Share Link Access Management', () => {
             const [{ dashboardPage: user1DashboardPage }, { page: page2 }] = await createLoggedInBrowsers(2);
 
             const groupName = generateTestGroupName(`ShareLink`);
-            const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup({
-                name: groupName,
-                description: 'Testing already member scenario',
-            });
+            const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup(
+                new CreateGroupFormDataBuilder()
+                    .withName(groupName)
+                    .withDescription('Testing already member scenario')
+            );
             const groupId = groupDetailPage.inferGroupId();
             const shareLink = await groupDetailPage.getShareLink();
 
@@ -471,7 +472,7 @@ simpleTest.describe('Share Link Access Management', () => {
             const { page: unauthPage, loginPage } = await newEmptyBrowser();
 
             // Create group with authenticated user
-            const [groupDetailPage] = await ownerDashboardPage.createMultiUserGroup({});
+            const [groupDetailPage] = await ownerDashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder());
             const groupId = groupDetailPage.inferGroupId();
             const groupName = await groupDetailPage.getGroupName();
 
@@ -513,7 +514,7 @@ simpleTest.describe('Share Link Access Management', () => {
             const { page: unauthPage, loginPage } = await newEmptyBrowser();
 
             // Create group with authenticated user
-            const [groupDetailPage] = await ownerDashboardPage.createMultiUserGroup({});
+            const [groupDetailPage] = await ownerDashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder());
             const groupId = groupDetailPage.inferGroupId();
 
             // Get share link from the group
@@ -563,7 +564,7 @@ simpleTest.describe('Share Link Access Management', () => {
             const { page: unauthPage, loginPage } = await newEmptyBrowser();
 
             // Create group with authenticated user
-            const [groupDetailPage] = await ownerDashboardPage.createMultiUserGroup({});
+            const [groupDetailPage] = await ownerDashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder());
             const groupId = groupDetailPage.inferGroupId();
 
             // Get share link from the group
@@ -660,7 +661,7 @@ simpleTest.describe('Share Link Access Management', () => {
             const [{ dashboardPage }] = await createLoggedInBrowsers(1);
 
             // Create a group to share
-            const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
+            const [groupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder());
 
             // Open the share modal
             const shareModalPage = await groupDetailPage.openShareGroupModal();

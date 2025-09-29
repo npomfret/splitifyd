@@ -1,6 +1,6 @@
 import { expect, simpleTest } from '../../fixtures';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
-import { generateShortId, ExpenseFormDataBuilder } from '@splitifyd/test-support';
+import { generateShortId, ExpenseFormDataBuilder, CreateGroupFormDataBuilder } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 
 /**
@@ -22,7 +22,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
         const [{ dashboardPage }] = await createLoggedInBrowsers(1);
 
         // Create a group as owner
-        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder());
 
         // Verify Leave Group button is NOT visible for owner
         await expect(groupDetailPage.getLeaveGroupButton()).not.toBeVisible();
@@ -52,7 +52,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
 
         const memberDisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        const [groupDetailPage, memberGroupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+        const [groupDetailPage, memberGroupDetailPage] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), user2DashboardPage);
 
         // Verify member sees Leave Group button
         await groupDetailPage.waitForMemberCount(2);// sanity check
@@ -82,7 +82,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
         const memberDisplayName = await memberDashboardPage.header.getCurrentUserDisplayName();
 
         // Owner creates group
-        const [groupDetailPage, memberGroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({}, memberDashboardPage);
+        const [groupDetailPage, memberGroupDetailPage] = await ownerDashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), memberDashboardPage);
         const groupId = groupDetailPage.inferGroupId();
 
         // Owner removes the member
@@ -104,7 +104,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
 
         const memberDisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), user2DashboardPage);
         const groupId = groupDetailPage.inferGroupId();
         const groupName = await groupDetailPage.getGroupName();
 
@@ -134,7 +134,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         const memberDisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         // Owner creates group
-        const [groupDetailPage, memberGroupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+        const [groupDetailPage, memberGroupDetailPage] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), user2DashboardPage);
 
         // Owner adds an expense that creates a balance
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
@@ -179,7 +179,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         const ownerDisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const memberDisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        const [groupDetailPage, memberGroupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+        const [groupDetailPage, memberGroupDetailPage] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), user2DashboardPage);
         const groupId = groupDetailPage.inferGroupId();
 
         // Create expense that creates a balance
@@ -228,7 +228,7 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
         // Get display names
         const member1DisplayName = await member1DashboardPage.header.getCurrentUserDisplayName();
 
-        const [groupDetailPage, member1GroupDetailPage, member2GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({}, member1DashboardPage, member2DashboardPage);
+        const [groupDetailPage, member1GroupDetailPage, member2GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), member1DashboardPage, member2DashboardPage);
 
         // Owner removes Member1
         const removeMember1Modal = await groupDetailPage.clickRemoveMember(member1DisplayName);
@@ -265,7 +265,7 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
         const leavingDisplayName = await leavingDashboardPage.header.getCurrentUserDisplayName();
 
         // Setup group
-        const [creatorGroupDetailPage, leavingGroupDetailPage, watchingGroupDetailPage] = await creatorDashboardPage.createMultiUserGroup({}, leavingDashboardPage, watchingDashboardPage);
+        const [creatorGroupDetailPage, leavingGroupDetailPage, watchingGroupDetailPage] = await creatorDashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), leavingDashboardPage, watchingDashboardPage);
         const groupId = creatorGroupDetailPage.inferGroupId();
 
         // LeavingUser leaves
@@ -310,7 +310,7 @@ simpleTest.describe('Group Settings & Management', () => {
         await expect(page).toHaveURL(/\/dashboard/);
 
         // Create a group
-        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder());
         const groupId = groupDetailPage.inferGroupId();
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
@@ -387,7 +387,7 @@ simpleTest.describe('Group Settings & Management', () => {
         ] = await createLoggedInBrowsers(2);
 
         // Owner creates a group with member
-        const [ownerGroupDetailPage, memberGroupDetailPage] = await dashboardPage.createMultiUserGroup({}, memberDashboardPage);
+        const [ownerGroupDetailPage, memberGroupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), memberDashboardPage);
         const groupId = ownerGroupDetailPage.inferGroupId();
         const groupName = await ownerGroupDetailPage.getGroupName();
 
@@ -417,7 +417,7 @@ simpleTest.describe('Group Deletion', () => {
         let [{ dashboardPage: ownerDashboardPage }, { dashboardPage: memberDashboardPage1 }, { dashboardPage: memberDashboardPage2 }] = await createLoggedInBrowsers(3);
 
         // Scenario 1: Dashboard real-time updates when group is deleted
-        let [ownerGroupDetailPage, member1GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({}, memberDashboardPage1);
+        let [ownerGroupDetailPage, member1GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), memberDashboardPage1);
         const groupName1 = await ownerGroupDetailPage.getGroupName();
 
         // Both users navigate to dashboard to see the group
@@ -441,7 +441,7 @@ simpleTest.describe('Group Deletion', () => {
         await memberDashboardPage1.waitForGroupToNotBePresent(groupName1);
 
         // Scenario 2: Member redirect when group deleted while viewing
-        let [ownerGroupDetailPage2, member2GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({}, memberDashboardPage2);
+        let [ownerGroupDetailPage2, member2GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), memberDashboardPage2);
         const groupId2 = ownerGroupDetailPage2.inferGroupId();
         const groupName2 = await ownerGroupDetailPage2.getGroupName();
 
@@ -473,7 +473,7 @@ simpleTest.describe('Group Comments - Real-time Communication', () => {
         testInfo.setTimeout(20000); // 20 seconds for multi-user test
 
         // Create a group with Alice as owner and Bob as member
-        const [aliceGroupDetailPage, bobGroupDetailPage] = await aliceDashboardPage.createMultiUserGroup({}, bobDashboardPage);
+        const [aliceGroupDetailPage, bobGroupDetailPage] = await aliceDashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), bobDashboardPage);
 
         const groupId = aliceGroupDetailPage.inferGroupId();
 

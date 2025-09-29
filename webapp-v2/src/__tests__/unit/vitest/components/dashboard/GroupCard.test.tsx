@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/preact';
 import { vi, describe, it, beforeEach, expect } from 'vitest';
 import { GroupCard } from '@/components/dashboard/GroupCard.tsx';
 import type { Group, RegisteredUser } from '@splitifyd/shared';
+import { generateShortId, TestUserBuilder } from '@splitifyd/test-support';
 
 // Mock react-i18next
 vi.mock('react-i18next', () => ({
@@ -28,7 +29,7 @@ vi.mock('react-i18next', () => ({
 // Helper to create test groups
 function createTestGroup(overrides: Partial<Group> = {}): Group {
     return {
-        id: `group-${Math.random().toString(36).substring(2, 11)}`,
+        id: `group-${generateShortId()}`,
         name: 'Test Group',
         securityPreset: 'open' as const,
         permissions: {
@@ -52,11 +53,11 @@ function createTestGroup(overrides: Partial<Group> = {}): Group {
 
 // Helper to create test users
 function createTestUser(overrides: Partial<RegisteredUser> = {}): RegisteredUser {
-    const id = Math.random().toString(36).substring(2, 11);
+    const testUser = new TestUserBuilder().build();
     return {
-        uid: `user-${id}`,
-        email: `test-${id}@example.com`,
-        displayName: `Test User ${id}`,
+        uid: `user-${generateShortId()}`,
+        email: testUser.email,
+        displayName: testUser.displayName,
         emailVerified: true,
         photoURL: null,
         ...overrides,

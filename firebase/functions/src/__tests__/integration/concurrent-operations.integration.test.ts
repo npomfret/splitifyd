@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, beforeAll } from 'vitest';
-import { borrowTestUsers, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { borrowTestUsers, GroupMemberDocumentBuilder, CreateGroupRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 import { GroupMemberDocument, MemberRoles, SplitTypes, Group } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
@@ -29,10 +29,12 @@ describe('Concurrent Operations Integration Tests', () => {
         testUser4 = users[3];
 
         // Create test group
-        testGroup = await groupService.createGroup(testUser1.uid, {
-            name: 'Concurrent Operations Test Group',
-            description: 'Testing concurrent operations',
-        });
+        testGroup = await groupService.createGroup(testUser1.uid,
+            new CreateGroupRequestBuilder()
+                .withName('Concurrent Operations Test Group')
+                .withDescription('Testing concurrent operations')
+                .build()
+        );
     });
 
     describe('Concurrent Member Operations', () => {
@@ -141,42 +143,45 @@ describe('Concurrent Operations Integration Tests', () => {
 
             // Create concurrent expenses
             const expensePromises = [
-                expenseService.createExpense(testUser1.uid, {
-                    groupId: testGroup.id,
-                    paidBy: testUser1.uid,
-                    amount: 100,
-                    currency: 'EUR',
-                    description: 'Concurrent Expense 1',
-                    category: 'Food',
-                    date: new Date().toISOString(),
-                    splitType: SplitTypes.EQUAL,
-                    participants: [testUser1.uid, testUser2.uid],
-                    splits: [],
-                }),
-                expenseService.createExpense(testUser2.uid, {
-                    groupId: testGroup.id,
-                    paidBy: testUser2.uid,
-                    amount: 75,
-                    currency: 'EUR',
-                    description: 'Concurrent Expense 2',
-                    category: 'Transport',
-                    date: new Date().toISOString(),
-                    splitType: SplitTypes.EQUAL,
-                    participants: [testUser2.uid, testUser3.uid],
-                    splits: [],
-                }),
-                expenseService.createExpense(testUser3.uid, {
-                    groupId: testGroup.id,
-                    paidBy: testUser3.uid,
-                    amount: 50,
-                    currency: 'EUR',
-                    description: 'Concurrent Expense 3',
-                    category: 'Entertainment',
-                    date: new Date().toISOString(),
-                    splitType: SplitTypes.EQUAL,
-                    participants: [testUser3.uid, testUser4.uid],
-                    splits: [],
-                }),
+                expenseService.createExpense(testUser1.uid,
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(testGroup.id)
+                        .withPaidBy(testUser1.uid)
+                        .withAmount(100)
+                        .withCurrency('EUR')
+                        .withDescription('Concurrent Expense 1')
+                        .withCategory('Food')
+                        .withDate(new Date().toISOString())
+                        .withSplitType('equal')
+                        .withParticipants([testUser1.uid, testUser2.uid])
+                        .build()
+                ),
+                expenseService.createExpense(testUser2.uid,
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(testGroup.id)
+                        .withPaidBy(testUser2.uid)
+                        .withAmount(75)
+                        .withCurrency('EUR')
+                        .withDescription('Concurrent Expense 2')
+                        .withCategory('Transport')
+                        .withDate(new Date().toISOString())
+                        .withSplitType('equal')
+                        .withParticipants([testUser2.uid, testUser3.uid])
+                        .build()
+                ),
+                expenseService.createExpense(testUser3.uid,
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(testGroup.id)
+                        .withPaidBy(testUser3.uid)
+                        .withAmount(50)
+                        .withCurrency('EUR')
+                        .withDescription('Concurrent Expense 3')
+                        .withCategory('Entertainment')
+                        .withDate(new Date().toISOString())
+                        .withSplitType('equal')
+                        .withParticipants([testUser3.uid, testUser4.uid])
+                        .build()
+                ),
             ];
 
             // All expense creations should succeed
@@ -196,18 +201,19 @@ describe('Concurrent Operations Integration Tests', () => {
             await groupMemberService.createMember(testGroup.id, memberDoc);
 
             // Create expense
-            await expenseService.createExpense(testUser1.uid, {
-                groupId: testGroup.id,
-                paidBy: testUser1.uid,
-                amount: 100,
-                currency: 'EUR',
-                description: 'Test Expense',
-                category: 'Food',
-                date: new Date().toISOString(),
-                splitType: SplitTypes.EQUAL,
-                participants: [testUser1.uid, testUser2.uid],
-                splits: [],
-            });
+            await expenseService.createExpense(testUser1.uid,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser1.uid)
+                    .withAmount(100)
+                    .withCurrency('EUR')
+                    .withDescription('Test Expense')
+                    .withCategory('Food')
+                    .withDate(new Date().toISOString())
+                    .withSplitType('equal')
+                    .withParticipants([testUser1.uid, testUser2.uid])
+                    .build()
+            );
 
             // Simulate concurrent operations: balance queries and member removal
             const operations = [

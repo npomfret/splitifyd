@@ -44,7 +44,12 @@ describe('Groups Management - Consolidated Tests', () => {
         // NOTE: Group validation logic is now comprehensively tested in unit tests:
         // GroupService.test.ts - This integration test focuses on Firebase Auth integration only
         test('should require authentication for group creation', async () => {
-            await expect(apiDriver.createGroup({ name: 'Test' }, '')).rejects.toThrow(/401|unauthorized/i);
+            await expect(apiDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Test')
+                    .build(),
+                ''
+            )).rejects.toThrow(/401|unauthorized/i);
         });
     });
 
@@ -334,9 +339,9 @@ describe('Groups Management - Consolidated Tests', () => {
 
             // Same user tries multiple concurrent updates
             const updatePromises = [
-                apiDriver.updateGroup(testGroup.id, { name: 'First Update' }, users[0].token),
-                apiDriver.updateGroup(testGroup.id, { name: 'Second Update' }, users[0].token),
-                apiDriver.updateGroup(testGroup.id, { description: 'Updated description' }, users[0].token),
+                apiDriver.updateGroup(testGroup.id, new GroupUpdateBuilder().withName('First Update').build(), users[0].token),
+                apiDriver.updateGroup(testGroup.id, new GroupUpdateBuilder().withName('Second Update').build(), users[0].token),
+                apiDriver.updateGroup(testGroup.id, new GroupUpdateBuilder().withDescription('Updated description').build(), users[0].token),
             ];
 
             const results = await Promise.allSettled(updatePromises);
@@ -532,7 +537,9 @@ describe('Groups Management - Consolidated Tests', () => {
             const memberResult = await groupService.getGroupFullDetails(testGroup.id, users[1].uid);
             expect(memberResult.group.id).toBe(testGroup.id);
 
-            await expect(groupService.updateGroup(testGroup.id, users[1].uid, { name: 'Hacked Name' })).rejects.toThrow();
+            await expect(groupService.updateGroup(testGroup.id, users[1].uid,
+                new GroupUpdateBuilder().withName('Hacked Name').build()
+            )).rejects.toThrow();
             await expect(groupService.deleteGroup(testGroup.id, users[1].uid)).rejects.toThrow();
         });
     });

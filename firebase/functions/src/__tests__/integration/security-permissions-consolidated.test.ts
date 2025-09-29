@@ -3,7 +3,7 @@
 
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, UserRegistrationBuilder, CreateGroupRequestBuilder, PermissionSetBuilder } from '@splitifyd/test-support';
 import { SecurityPresets, Group, PooledTestUser, UserToken } from '@splitifyd/shared';
 import { getFirestore } from '../../firebase';
 
@@ -165,13 +165,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
 
         test('should enforce permission updates and authorization', async () => {
             // Admin can apply managed security permissions
-            const managedPermissions = {
-                expenseEditing: 'owner-and-admin',
-                expenseDeletion: 'owner-and-admin',
-                memberInvitation: 'admin-only',
-                memberApproval: 'admin-required',
-                settingsManagement: 'admin-only',
-            };
+            const managedPermissions = new PermissionSetBuilder().asManagedPermissions().build();
             await apiDriver.updateGroupPermissions(roleTestGroup.id, adminUser.token, managedPermissions);
 
             const { group: updatedGroup } = await apiDriver.getGroupFullDetails(roleTestGroup.id, adminUser.token);
@@ -179,13 +173,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
             expect(updatedGroup.permissions.expenseEditing).toBe('owner-and-admin');
 
             // Member cannot update group permissions
-            const openPermissions = {
-                expenseEditing: 'anyone',
-                expenseDeletion: 'anyone',
-                memberInvitation: 'anyone',
-                memberApproval: 'automatic',
-                settingsManagement: 'anyone',
-            };
+            const openPermissions = new PermissionSetBuilder().asOpenPermissions().build();
             await expect(apiDriver.updateGroupPermissions(roleTestGroup.id, memberUser.token, openPermissions)).rejects.toThrow('failed with status 403');
         });
     });
@@ -196,7 +184,13 @@ describe('Security and Permissions - Consolidated Tests', () => {
             const testUser = await apiDriver.createUser(new UserRegistrationBuilder().withEmail(`test-invalid-${Date.now()}@test.com`).withDisplayName('Test User Invalid').build());
 
             // Create valid group first
-            await apiDriver.createGroup({ name: 'Valid Group Test ' + Date.now(), description: 'Testing valid security preset' }, testUser.token);
+            await apiDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Valid Group Test ' + Date.now())
+                    .withDescription('Testing valid security preset')
+                    .build(),
+                testUser.token
+            );
 
             // Insert group with invalid securityPreset directly via Firestore
             const invalidGroupId = 'invalid-group-' + Date.now();
@@ -247,30 +241,18 @@ describe('Security and Permissions - Consolidated Tests', () => {
             const validGroups: Group[] = [];
             for (let i = 0; i < 3; i++) {
                 const group = await apiDriver.createGroup(
-                    {
-                        name: `Valid Group ${i} - ${Date.now()}`,
-                        description: `Valid group ${i}`,
-                    },
+                    new CreateGroupRequestBuilder()
+                        .withName(`Valid Group ${i} - ${Date.now()}`)
+                        .withDescription(`Valid group ${i}`)
+                        .build(),
                     testUser.token,
                 );
                 validGroups.push(group);
             }
 
             // Apply different permission configurations
-            const openPermissions = {
-                expenseEditing: 'anyone',
-                expenseDeletion: 'anyone',
-                memberInvitation: 'anyone',
-                memberApproval: 'automatic',
-                settingsManagement: 'anyone',
-            };
-            const managedPermissions = {
-                expenseEditing: 'owner-and-admin',
-                expenseDeletion: 'owner-and-admin',
-                memberInvitation: 'admin-only',
-                memberApproval: 'admin-required',
-                settingsManagement: 'admin-only',
-            };
+            const openPermissions = new PermissionSetBuilder().asOpenPermissions().build();
+            const managedPermissions = new PermissionSetBuilder().asManagedPermissions().build();
 
             await apiDriver.updateGroupPermissions(validGroups[0].id, testUser.token, openPermissions);
             await apiDriver.updateGroupPermissions(validGroups[1].id, testUser.token, managedPermissions);

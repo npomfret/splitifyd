@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { expenseFormStore } from '@/app/stores/expense-form-store';
 import { SplitTypes } from '@splitifyd/shared';
 import type { UserScopedStorage } from '@/utils/userScopedStorage';
+import { ExpenseDraftBuilder } from '@splitifyd/test-support';
 
 // Mock the dependencies
 vi.mock('@/app/apiClient', () => ({
@@ -149,23 +150,23 @@ describe('ExpenseFormStore - Draft Functionality', () => {
     });
 
     describe('Draft Loading', () => {
-        const testDraftData = {
-            description: 'Saved draft expense',
-            amount: 42.75,
-            currency: 'GBP',
-            date: '2022-01-10',
-            time: '16:45',
-            paidBy: 'user-2',
-            category: 'transport',
-            splitType: SplitTypes.EXACT,
-            participants: ['user-1', 'user-2', 'user-3'],
-            splits: [
+        const testDraftData = new ExpenseDraftBuilder()
+            .withDescription('Saved draft expense')
+            .withAmount(42.75)
+            .withCurrency('GBP')
+            .withDate('2022-01-10')
+            .withTime('16:45')
+            .withPaidBy('user-2')
+            .withCategory('transport')
+            .withSplitType(SplitTypes.EXACT)
+            .withParticipants(['user-1', 'user-2', 'user-3'])
+            .withSplits([
                 { userId: 'user-1', amount: 15.00 },
                 { userId: 'user-2', amount: 12.75 },
                 { userId: 'user-3', amount: 15.00 },
-            ],
-            timestamp: mockNow - (30 * 60 * 1000), // 30 minutes ago
-        };
+            ])
+            .withTimestamp(mockNow - (30 * 60 * 1000))
+            .build();
 
         it('should load valid draft data into form', () => {
             // Arrange
@@ -245,13 +246,15 @@ describe('ExpenseFormStore - Draft Functionality', () => {
 
         it('should use default values for missing draft fields', () => {
             // Arrange - draft with some missing fields
-            const partialDraft = {
-                description: 'Partial draft',
-                amount: 10.00,
-                timestamp: mockNow,
-                // Missing other fields
-            };
-            (mockStorage.getItem as any).mockReturnValue(JSON.stringify(partialDraft));
+            const partialDraft = new ExpenseDraftBuilder()
+                .withDescription('Partial draft')
+                .withAmount(10.00)
+                .withTimestamp(mockNow)
+                .build();
+
+            // Remove fields to simulate partial data
+            const { currency, paidBy, category, splitType, ...partialDraftData } = partialDraft;
+            (mockStorage.getItem as any).mockReturnValue(JSON.stringify(partialDraftData));
 
             // Act
             const loaded = expenseFormStore.loadDraft(testGroupId);
@@ -369,11 +372,11 @@ describe('ExpenseFormStore - Draft Functionality', () => {
     describe('Draft Age Validation', () => {
         it('should accept edge case of exactly 24 hours old', () => {
             // Arrange - draft exactly 24 hours old
-            const exactlyOldDraft = {
-                description: 'Edge case draft',
-                amount: 10.00,
-                timestamp: mockNow - (24 * 60 * 60 * 1000), // Exactly 24 hours
-            };
+            const exactlyOldDraft = new ExpenseDraftBuilder()
+                .withDescription('Edge case draft')
+                .withAmount(10.00)
+                .withTimestamp(mockNow - (24 * 60 * 60 * 1000))
+                .build();
             (mockStorage.getItem as any).mockReturnValue(JSON.stringify(exactlyOldDraft));
 
             // Act
@@ -386,11 +389,11 @@ describe('ExpenseFormStore - Draft Functionality', () => {
 
         it('should reject drafts just over 24 hours old', () => {
             // Arrange - draft 24 hours and 1 millisecond old
-            const justOverOldDraft = {
-                description: 'Just over limit draft',
-                amount: 10.00,
-                timestamp: mockNow - (24 * 60 * 60 * 1000 + 1), // 24 hours + 1ms
-            };
+            const justOverOldDraft = new ExpenseDraftBuilder()
+                .withDescription('Just over limit draft')
+                .withAmount(10.00)
+                .withTimestamp(mockNow - (24 * 60 * 60 * 1000 + 1))
+                .build();
             (mockStorage.getItem as any).mockReturnValue(JSON.stringify(justOverOldDraft));
 
             // Act
@@ -403,11 +406,13 @@ describe('ExpenseFormStore - Draft Functionality', () => {
 
         it('should handle missing timestamp in draft', () => {
             // Arrange - draft without timestamp
-            const noTimestampDraft = {
-                description: 'Draft without timestamp',
-                amount: 10.00,
-                // No timestamp field
-            };
+            const noTimestampData = new ExpenseDraftBuilder()
+                .withDescription('Draft without timestamp')
+                .withAmount(10.00)
+                .build();
+
+            // Remove timestamp to simulate missing field
+            const { timestamp, ...noTimestampDraft } = noTimestampData;
             (mockStorage.getItem as any).mockReturnValue(JSON.stringify(noTimestampDraft));
 
             // Act

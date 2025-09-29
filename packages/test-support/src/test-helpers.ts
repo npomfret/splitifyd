@@ -31,11 +31,15 @@ export const DEFAULT_PASSWORD = 'rrRR44$$';
 
 export function generateNewUserDetails(prefix = 'u') {
     const id = generateShortId();
-    return {
-        displayName: `${prefix} ${id}`,
-        email: `${prefix}-${id}@example.com`,
-        password: DEFAULT_PASSWORD,
-    };
+    // Use TestUserBuilder internally for consistency
+    // Import at the top is better but would create circular dependency
+    // Use dynamic import to avoid circular dependency issues
+    const { TestUserBuilder } = require('./builders');
+    return new TestUserBuilder()
+        .withDisplayName(`${prefix} ${id}`)
+        .withEmail(`${prefix}-${id}@example.com`)
+        .withPassword(DEFAULT_PASSWORD)
+        .build();
 }
 
 export function randomString(length: number = 8): string {

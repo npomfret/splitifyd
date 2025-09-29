@@ -9,7 +9,7 @@ export interface ExpenseUpdate {
     participants?: string[];
     splitType?: 'equal' | 'exact' | 'percentage';
     splits?: Array<{
-        userId: string;
+        uid: string;
         amount: number;
         percentage?: number;
     }>;
@@ -67,7 +67,7 @@ export class ExpenseUpdateBuilder {
         return this;
     }
 
-    withSplits(splits: Array<{ userId: string; amount: number; percentage?: number }>): this {
+    withSplits(splits: Array<{ uid: string; amount: number; percentage?: number }>): this {
         this.update.splits = [...splits];
         return this;
     }

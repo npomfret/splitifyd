@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { validateRegisterRequest } from '../../../auth/validation';
 import { HTTP_STATUS } from '../../../constants';
 import { ApiError } from '../../../utils/errors';
+import { UserRegistrationBuilder } from '@splitifyd/test-support';
 import type { UserRegistration } from '@splitifyd/shared';
 
 /**
@@ -15,20 +16,26 @@ import type { UserRegistration } from '@splitifyd/shared';
  * - firebase/functions/src/__tests__/integration/auth-and-registration.test.ts
  */
 describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
-    const validRegistrationData: UserRegistration = {
-        email: 'test@example.com',
-        password: 'SecurePass123!',
-        displayName: 'Test User',
-        termsAccepted: true,
-        cookiePolicyAccepted: true,
-    };
+    const validRegistrationData: UserRegistration = new UserRegistrationBuilder()
+        .withEmail('test@example.com')
+        .withPassword('SecurePass123!')
+        .withDisplayName('Test User')
+        .withTermsAccepted(true)
+        .withCookiePolicyAccepted(true)
+        .build();
 
     describe('Email Validation', () => {
         it('should accept valid email formats', () => {
             const validEmails = ['user@example.com', 'test.email@domain.org', 'user+tag@example.com', 'user123@test-domain.net', 'a@b.co'];
 
             for (const email of validEmails) {
-                const data = { ...validRegistrationData, email };
+                const data = new UserRegistrationBuilder()
+                    .withEmail(email)
+                    .withPassword(validRegistrationData.password)
+                    .withDisplayName(validRegistrationData.displayName)
+                    .withTermsAccepted(validRegistrationData.termsAccepted)
+                    .withCookiePolicyAccepted(validRegistrationData.cookiePolicyAccepted)
+                    .build();
                 expect(() => validateRegisterRequest(data)).not.toThrow();
             }
         });
@@ -37,7 +44,13 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
             const invalidEmails = ['invalid-email', '@domain.com', 'user@', 'user..double@domain.com', 'user@domain', '', 'user@.com', 'user@domain.', 'user space@domain.com'];
 
             for (const email of invalidEmails) {
-                const data = { ...validRegistrationData, email };
+                const data = new UserRegistrationBuilder()
+                    .withEmail(email)
+                    .withPassword(validRegistrationData.password)
+                    .withDisplayName(validRegistrationData.displayName)
+                    .withTermsAccepted(validRegistrationData.termsAccepted)
+                    .withCookiePolicyAccepted(validRegistrationData.cookiePolicyAccepted)
+                    .build();
                 expect(() => validateRegisterRequest(data)).toThrow(
                     expect.objectContaining({
                         statusCode: HTTP_STATUS.BAD_REQUEST,

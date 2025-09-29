@@ -6,7 +6,7 @@ import {
     StubFirestoreWriter,
     StubAuthService
 } from './mocks/firestore-stubs';
-import { FirestoreGroupBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { FirestoreGroupBuilder, GroupMemberDocumentBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
 import { ApiError } from '../../utils/errors';
 import { validateCreateGroup, validateUpdateGroup, validateGroupId } from '../../groups/validation';
 import { HTTP_STATUS } from '../../constants';
@@ -36,10 +36,10 @@ describe('GroupService - Unit Tests', () => {
     describe('createGroup', () => {
         it('should create group successfully', async () => {
             const userId = 'test-user-123';
-            const createGroupRequest = {
-                name: 'Test Group',
-                description: 'Test Description',
-            };
+            const createGroupRequest = new CreateGroupRequestBuilder()
+                .withName('Test Group')
+                .withDescription('Test Description')
+                .build();
 
             const expectedGroupId = 'test-group-created';
 
@@ -50,7 +50,7 @@ describe('GroupService - Unit Tests', () => {
             });
 
             // Mock getGroup to return the created group directly
-            const createdGroup = new FirestoreGroupBuilder().withId(expectedGroupId).withName(createGroupRequest.name).withDescription(createGroupRequest.description).withCreatedBy(userId).build();
+            const createdGroup = new FirestoreGroupBuilder().withId(expectedGroupId).withName(createGroupRequest.name).withDescription(createGroupRequest.description || '').withCreatedBy(userId).build();
 
             vi.spyOn(stubReader, 'getGroup').mockResolvedValue(createdGroup);
 
@@ -130,10 +130,10 @@ describe('GroupService - Unit Tests', () => {
                 .build();
             stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
 
-            const updateRequest = {
-                name: 'Updated Name',
-                description: 'Updated Description',
-            };
+            const updateRequest = new GroupUpdateBuilder()
+                .withName('Updated Name')
+                .withDescription('Updated Description')
+                .build();
 
             const result = await groupService.updateGroup(groupId, userId, updateRequest);
 
@@ -202,10 +202,10 @@ describe('GroupService - Unit Tests', () => {
      */
     describe('Group Validation - Unit Tests', () => {
         describe('validateCreateGroup', () => {
-            const validGroupData: CreateGroupRequest = {
-                name: 'Test Group',
-                description: 'A test group for validation',
-            };
+            const validGroupData: CreateGroupRequest = new CreateGroupRequestBuilder()
+                .withName('Test Group')
+                .withDescription('A test group for validation')
+                .build();
 
             describe('Group Name Validation', () => {
                 it('should accept valid group names', () => {
@@ -219,7 +219,10 @@ describe('GroupService - Unit Tests', () => {
                     ];
 
                     for (const name of validNames) {
-                        const data = { ...validGroupData, name };
+                        const data = new CreateGroupRequestBuilder()
+                            .withName(name)
+                            .withDescription(validGroupData.description || 'Test description')
+                            .build();
                         expect(() => validateCreateGroup(data)).not.toThrow();
                     }
                 });
@@ -232,7 +235,10 @@ describe('GroupService - Unit Tests', () => {
                     ];
 
                     for (const name of invalidNames) {
-                        const data = { ...validGroupData, name };
+                        const data = new CreateGroupRequestBuilder()
+                            .withName(name)
+                            .withDescription(validGroupData.description || 'Test description')
+                            .build();
                         expect(() => validateCreateGroup(data)).toThrow(
                             expect.objectContaining({
                                 statusCode: HTTP_STATUS.BAD_REQUEST,
@@ -242,13 +248,18 @@ describe('GroupService - Unit Tests', () => {
                 });
 
                 it('should trim whitespace from group names', () => {
-                    const data = { ...validGroupData, name: '  Test Group  ' };
+                    const data = new CreateGroupRequestBuilder()
+                        .withName('  Test Group  ')
+                        .withDescription(validGroupData.description || 'Test description')
+                        .build();
                     const result = validateCreateGroup(data);
                     expect(result.name).toBe('Test Group');
                 });
 
                 it('should require group name', () => {
-                    const dataWithoutName = { ...validGroupData };
+                    const dataWithoutName = new CreateGroupRequestBuilder()
+                        .withDescription(validGroupData.description || 'Test description')
+                        .build();
                     delete (dataWithoutName as any).name;
 
                     expect(() => validateCreateGroup(dataWithoutName)).toThrow(
@@ -262,7 +273,10 @@ describe('GroupService - Unit Tests', () => {
 
                 it('should enforce maximum length constraint', () => {
                     const longName = 'A'.repeat(VALIDATION_LIMITS.MAX_GROUP_NAME_LENGTH + 1);
-                    const data = { ...validGroupData, name: longName };
+                    const data = new CreateGroupRequestBuilder()
+                        .withName(longName)
+                        .withDescription(validGroupData.description || 'Test description')
+                        .build();
 
                     expect(() => validateCreateGroup(data)).toThrow(
                         expect.objectContaining({
@@ -285,14 +299,20 @@ describe('GroupService - Unit Tests', () => {
                     ];
 
                     for (const description of validDescriptions) {
-                        const data = { ...validGroupData, description };
+                        const data = new CreateGroupRequestBuilder()
+                            .withName(validGroupData.name)
+                            .withDescription(description)
+                            .build();
                         expect(() => validateCreateGroup(data)).not.toThrow();
                     }
                 });
 
                 it('should reject descriptions that are too long', () => {
                     const longDescription = 'A'.repeat(VALIDATION_LIMITS.MAX_GROUP_DESCRIPTION_LENGTH + 1);
-                    const data = { ...validGroupData, description: longDescription };
+                    const data = new CreateGroupRequestBuilder()
+                        .withName(validGroupData.name)
+                        .withDescription(longDescription)
+                        .build();
 
                     expect(() => validateCreateGroup(data)).toThrow(
                         expect.objectContaining({
@@ -302,13 +322,18 @@ describe('GroupService - Unit Tests', () => {
                 });
 
                 it('should trim whitespace from descriptions', () => {
-                    const data = { ...validGroupData, description: '  Test Description  ' };
+                    const data = new CreateGroupRequestBuilder()
+                        .withName(validGroupData.name)
+                        .withDescription('  Test Description  ')
+                        .build();
                     const result = validateCreateGroup(data);
                     expect(result.description).toBe('Test Description');
                 });
 
                 it('should allow missing description (optional field)', () => {
-                    const dataWithoutDescription = { ...validGroupData };
+                    const dataWithoutDescription = new CreateGroupRequestBuilder()
+                        .withName(validGroupData.name)
+                        .build();
                     delete (dataWithoutDescription as any).description;
 
                     expect(() => validateCreateGroup(dataWithoutDescription)).not.toThrow();

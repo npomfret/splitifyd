@@ -2,7 +2,7 @@
 // Combines tests from expenses-api.test.ts, ExpenseService.integration.test.ts, and expenses-full-details.test.ts
 
 import { beforeEach, describe, expect, test } from 'vitest';
-import { ApiDriver, CreateExpenseRequestBuilder, borrowTestUsers, TestGroupManager, generateShortId } from '@splitifyd/test-support';
+import { ApiDriver, CreateExpenseRequestBuilder, ExpenseUpdateBuilder, borrowTestUsers, TestGroupManager, generateShortId } from '@splitifyd/test-support';
 import { PooledTestUser } from '@splitifyd/shared';
 describe('Expenses Management - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();
@@ -124,11 +124,11 @@ describe('Expenses Management - Consolidated Tests', () => {
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
 
             // Test API update
-            const apiUpdateData = {
-                description: 'Updated Test Expense',
-                amount: 150.5,
-                category: 'food',
-            };
+            const apiUpdateData = new ExpenseUpdateBuilder()
+                .withDescription('Updated Test Expense')
+                .withAmount(150.5)
+                .withCategory('food')
+                .build();
             await apiDriver.updateExpense(createdExpense.id, apiUpdateData, users[0].token);
 
             const apiUpdatedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);

@@ -3,7 +3,7 @@ import { BasePage } from './base.page';
 import { PooledTestUser } from '@splitifyd/shared';
 import { CreateGroupModalPage } from './create-group-modal.page.ts';
 import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
-import { generateShortId, randomString } from '@splitifyd/test-support';
+import { generateShortId, randomString, CreateGroupFormDataBuilder, CreateGroupFormData } from '@splitifyd/test-support';
 import { JoinGroupPage } from './join-group.page.ts';
 
 let i = 0;
@@ -21,7 +21,17 @@ export class DashboardPage extends BasePage {
         await this.waitForDomContentLoaded();
     }
 
-    async createMultiUserGroup(options: { name?: string; description?: string }, ...dashboardPages: DashboardPage[]): Promise<GroupDetailPage[]> {
+    // Overload: Accept CreateGroupFormDataBuilder for builder pattern
+    async createMultiUserGroup(dataBuilder: CreateGroupFormDataBuilder, ...dashboardPages: DashboardPage[]): Promise<GroupDetailPage[]>;
+    // Overload: Accept plain object for backward compatibility
+    async createMultiUserGroup(options: CreateGroupFormData, ...dashboardPages: DashboardPage[]): Promise<GroupDetailPage[]>;
+    // Implementation
+    async createMultiUserGroup(optionsOrBuilder: CreateGroupFormData | CreateGroupFormDataBuilder, ...dashboardPages: DashboardPage[]): Promise<GroupDetailPage[]> {
+        // Handle both builder and plain object inputs
+        const options = optionsOrBuilder instanceof CreateGroupFormDataBuilder
+            ? optionsOrBuilder.build()
+            : optionsOrBuilder;
+
         const groupName = options.name ?? `g-${++i} ${randomString(4)} ${randomString(6)} ${randomString(8)}`;
         const groupDescription = options.description ?? `descr for ${groupName}`;
 

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { borrowTestUsers } from '@splitifyd/test-support';
+import { borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 import { SplitTypes } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
 import { UserToken } from '@splitifyd/shared';
@@ -17,26 +17,26 @@ describe('Expense Locking Debug Test', () => {
     test('should handle concurrent expense updates', async () => {
         // Create group
         const group = await apiDriver.createGroup(
-            {
-                name: 'Debug Test Group',
-                description: 'Testing expense concurrent updates',
-            },
+            new CreateGroupRequestBuilder()
+                .withName('Debug Test Group')
+                .withDescription('Testing expense concurrent updates')
+                .build(),
             user1.token,
         );
 
         // Create an expense
         const expense = await apiDriver.createExpense(
-            {
-                groupId: group.id,
-                description: 'Test Expense',
-                amount: 100,
-                currency: 'EUR',
-                paidBy: user1.uid,
-                category: 'food',
-                date: new Date().toISOString(),
-                splitType: SplitTypes.EQUAL,
-                participants: [user1.uid],
-            },
+            new CreateExpenseRequestBuilder()
+                .withGroupId(group.id)
+                .withDescription('Test Expense')
+                .withAmount(100)
+                .withCurrency('EUR')
+                .withPaidBy(user1.uid)
+                .withCategory('food')
+                .withDate(new Date().toISOString())
+                .withSplitType('equal')
+                .withParticipants([user1.uid])
+                .build(),
             user1.token,
         );
 
