@@ -1208,6 +1208,9 @@
       "at": "at ",
       "placeholder": "Enter time (e.g., 2:30pm)",
       "requiredIndicator": "*"
+    },
+    "form": {
+      "submissionError": "Form submission error"
     }
   },
   "pages": {

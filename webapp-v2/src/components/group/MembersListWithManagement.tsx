@@ -141,7 +141,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                     data-member-id={member.uid}
                 >
                     <div className="flex items-center gap-3">
-                        <Avatar displayName={member.displayName || 'User'} userId={member.uid} size="sm" />
+                        <Avatar displayName={member.displayName || t('common.user')} userId={member.uid} size="sm" />
                         <div className="flex flex-col">
                             <span className="font-medium text-gray-900 text-sm">
                                 {member.displayName}

@@ -1,6 +1,7 @@
 import { JSX } from 'preact';
 import { useCallback, useState } from 'preact/hooks';
 import { logError } from '@/utils/browser-logger.ts';
+import { useTranslation } from 'react-i18next';
 
 interface FormProps {
     onSubmit: (e: Event) => void | Promise<void>;
@@ -10,6 +11,7 @@ interface FormProps {
 }
 
 export function Form({ onSubmit, children, className = '', id }: FormProps) {
+    const { t } = useTranslation();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = useCallback(
@@ -23,7 +25,7 @@ export function Form({ onSubmit, children, className = '', id }: FormProps) {
             try {
                 await onSubmit(e);
             } catch (error) {
-                logError('Form submission error', error, { formId: id });
+                logError(t('uiComponents.form.submissionError'), error, { formId: id });
                 throw error;
             } finally {
                 setIsSubmitting(false);
