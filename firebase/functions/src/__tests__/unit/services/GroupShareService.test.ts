@@ -8,7 +8,7 @@ import {
 } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
-import { FirestoreGroupBuilder } from '@splitifyd/test-support';
+import { FirestoreGroupBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 
 describe('GroupShareService', () => {
     let groupShareService: GroupShareService;
@@ -73,13 +73,9 @@ describe('GroupShareService', () => {
             stubReader.setDocument('groups', groupId, testGroup);
 
             // Set up group membership so user has access (as owner)
-            const membershipDoc = {
-                userId: userId,
-                groupId: groupId,
-                memberRole: 'admin',
-                memberStatus: 'active',
-                joinedAt: new Date().toISOString(),
-            };
+            const membershipDoc = new GroupMemberDocumentBuilder(userId, groupId)
+                .asAdmin()
+                .build();
             stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
 
             const result = await groupShareService.generateShareableLink(userId, groupId);

@@ -6,7 +6,7 @@ import {
     StubFirestoreWriter,
     StubAuthService
 } from '../mocks/firestore-stubs';
-import { FirestoreGroupBuilder } from '@splitifyd/test-support';
+import { FirestoreGroupBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import type { GroupDocument } from '../../../schemas';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
@@ -68,14 +68,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
     describe('getGroupMember', () => {
         it('should return member if exists', async () => {
-            const testMember = {
-                uid: testUserId1,
-                groupId: testGroupId,
-                memberRole: 'member',
-                memberStatus: 'active',
-                theme: defaultTheme,
-                joinedAt: new Date().toISOString(),
-            };
+            const testMember = new GroupMemberDocumentBuilder(testUserId1, testGroupId)
+                .withTheme(defaultTheme)
+                .build();
 
             stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, testMember);
 
@@ -112,30 +107,16 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     describe('getAllGroupMembers', () => {
         it('should return all members for a group', async () => {
             const testMembers: GroupMemberDocument[] = [
-                {
-                    uid: testUserId1,
-                    groupId: testGroupId,
-                    memberRole: 'member',
-                    memberStatus: 'active',
-                    theme: defaultTheme,
-                    joinedAt: new Date().toISOString(),
-                },
-                {
-                    uid: testUserId2,
-                    groupId: testGroupId,
-                    memberRole: 'member',
-                    memberStatus: 'active',
-                    theme: defaultTheme,
-                    joinedAt: new Date().toISOString(),
-                },
-                {
-                    uid: testUserId3,
-                    groupId: testGroupId,
-                    memberRole: 'admin',
-                    memberStatus: 'active',
-                    theme: defaultTheme,
-                    joinedAt: new Date().toISOString(),
-                },
+                new GroupMemberDocumentBuilder(testUserId1, testGroupId)
+                    .withTheme(defaultTheme)
+                    .build(),
+                new GroupMemberDocumentBuilder(testUserId2, testGroupId)
+                    .withTheme(defaultTheme)
+                    .build(),
+                new GroupMemberDocumentBuilder(testUserId3, testGroupId)
+                    .withTheme(defaultTheme)
+                    .asAdmin()
+                    .build(),
             ];
 
             // Set up group members in stub
@@ -167,14 +148,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
     describe('isGroupMemberAsync', () => {
         it('should return true for existing group member', async () => {
-            const testMember = {
-                uid: testUserId1,
-                groupId: testGroupId,
-                memberRole: 'member',
-                memberStatus: 'active',
-                theme: defaultTheme,
-                joinedAt: new Date().toISOString(),
-            };
+            const testMember = new GroupMemberDocumentBuilder(testUserId1, testGroupId)
+                .withTheme(defaultTheme)
+                .build();
 
             stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, testMember);
 
@@ -210,14 +186,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
     describe('member document structure validation', () => {
         it('should handle member documents with all required fields', async () => {
-            const completeMember = {
-                uid: testUserId1,
-                groupId: testGroupId,
-                memberRole: 'member',
-                memberStatus: 'active',
-                theme: defaultTheme,
-                joinedAt: new Date().toISOString(),
-            };
+            const completeMember = new GroupMemberDocumentBuilder(testUserId1, testGroupId)
+                .withTheme(defaultTheme)
+                .build();
 
             stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, completeMember);
 
@@ -231,14 +202,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         });
 
         it('should handle member documents with admin role', async () => {
-            const adminMember = {
-                uid: testUserId1,
-                groupId: testGroupId,
-                memberRole: 'admin',
-                memberStatus: 'active',
-                theme: defaultTheme,
-                joinedAt: new Date().toISOString(),
-            };
+            const adminMember = new GroupMemberDocumentBuilder(testUserId1, testGroupId)
+                .withTheme(defaultTheme)
+                .asAdmin()
+                .build();
 
             stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, adminMember);
 

@@ -10,6 +10,7 @@ import { USER_COLORS } from '@splitifyd/shared';
 import type { UserDocument } from '../../../schemas';
 import { ApiError } from '../../../utils/errors';
 import type { IAuthService } from '../../../services/auth';
+import { UserDocumentBuilder } from '@splitifyd/test-support';
 
 // Mock i18n functions to avoid translation errors in tests
 vi.mock('../../../utils/i18n-validation', () => ({
@@ -164,17 +165,12 @@ describe('UserService - Consolidated Unit Tests', () => {
             });
 
             // Set up Firestore user document
-            const userDoc: UserDocument = {
-                id: uid,
-                email,
-                displayName,
-                role: SystemUserRoles.SYSTEM_USER,
-                themeColor: createTestThemeColor(),
-                preferredLanguage: 'en',
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                acceptedPolicies: {},
-            };
+            const userDoc: UserDocument = new UserDocumentBuilder(uid)
+                .withEmail(email)
+                .withDisplayName(displayName)
+                .withThemeColor(createTestThemeColor())
+                .withPreferredLanguage('en')
+                .build();
             stubReader.setDocument('users', uid, userDoc);
 
             const profile = await userService.getUser(uid);

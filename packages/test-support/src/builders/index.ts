@@ -29,3 +29,6 @@ export { PermissionSetBuilder } from './PermissionSetBuilder';
 export { CreateGroupFormDataBuilder } from './CreateGroupFormDataBuilder';
 export type { CreateGroupFormData } from './CreateGroupFormDataBuilder';
 export { AuthUserRecordBuilder } from './AuthUserRecordBuilder';
+export { UserDocumentBuilder } from './UserDocumentBuilder';
+export { ExpenseSplitBuilder } from './ExpenseSplitBuilder';
+export type { ExpenseSplit } from './ExpenseSplitBuilder';

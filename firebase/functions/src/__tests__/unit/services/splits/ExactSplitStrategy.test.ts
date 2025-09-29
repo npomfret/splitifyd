@@ -2,6 +2,7 @@ import { expect, describe, it } from 'vitest';
 import { ExactSplitStrategy } from '../../../../services/splits/ExactSplitStrategy';
 import { SplitTypes } from '@splitifyd/shared';
 import { ApiError } from '../../../../utils/errors';
+import { ExpenseSplitBuilder } from '@splitifyd/test-support';
 
 describe('ExactSplitStrategy', () => {
     const strategy = new ExactSplitStrategy();
@@ -22,11 +23,11 @@ describe('ExactSplitStrategy', () => {
         const participants = ['user1', 'user2', 'user3'];
 
         it('should validate correct exact splits', () => {
-            const splits = [
+            const splits = ExpenseSplitBuilder.exactSplit([
                 { uid: 'user1', amount: 30 },
                 { uid: 'user2', amount: 40 },
                 { uid: 'user3', amount: 30 },
-            ];
+            ]).build();
             expect(() => strategy.validateSplits(100, participants, splits)).not.toThrow();
         });
 
