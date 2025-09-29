@@ -125,13 +125,15 @@ This project contains the end-to-end tests that run against the entire applicati
 # Navigate to the e2e-tests directory first
 cd e2e-tests
 
-# Running a single integration test file
-npx playwright test src/__tests__/integration/your-test-suite/your-test-file.e2e.test.ts
-
-# For debugging flaky or unreliable e2e-tests, use the `run-until-fail.sh` script:
+# For running and debugging flaky or unreliable e2e-tests, use the `run-until-fail.sh` script:
 # > edit the TEST_FILE and TEST_FILTER variables in the script before running it
 ./run-until-fail.sh
 ```
+
+These tests output lots of useful data for debugging including screenshots, per-use browser console logs as files, and even api request logs.
+
+You MUST carefully analyse the console output from this test script. I contains a lot of useful information that will help debug the test.
+
 
 ### Other Packages
 
