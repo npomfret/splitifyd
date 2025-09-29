@@ -56,7 +56,7 @@ describe('Input Component', () => {
 
             const requiredIndicator = screen.getByTestId('required-indicator');
             expect(requiredIndicator).toBeInTheDocument();
-            expect(requiredIndicator).toHaveTextContent('*');
+            expect(requiredIndicator).toHaveTextContent('common.required');
             expect(requiredIndicator).toHaveClass('text-red-500', 'ml-1');
 
             const input = screen.getByRole('textbox');

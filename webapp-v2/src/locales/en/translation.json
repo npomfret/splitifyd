@@ -1275,7 +1275,11 @@
       "description": "Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent. It's 100% free, with no ads and no limits.",
       "disclaimer": "This is a tool for tracking expenses, not for making payments.",
       "accountNote": " To save and manage your expenses, you'll need a free account.",
-      "privacyNote": "We will never ask for sensitive financial details."
+      "privacyNote": "We will never ask for sensitive financial details.",
+      "transparencyNotice": {
+        "bold": "This is a tool for tracking expenses, not for making payments.",
+        "text": "To save and manage your expenses, you'll need a free account. We will never ask for sensitive financial details."
+      }
     },
     "registerPage": {
       "requiredIndicator": "*"

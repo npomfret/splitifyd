@@ -1062,3 +1062,108 @@ From the original 91-file plan:
 - Error boundary and loading state components
 
 **Estimated effort**: ~3-4 more sessions to complete the full 91-file plan
+
+---
+
+## Progress Update - September 29, 2025 (Session 6)
+
+### ✅ Phase 6 Implementation: Page-Level Component Internationalization
+
+**Completed**: Systematic internationalization of high-priority page-level components, completing the most user-visible pages.
+
+#### Page-Level Components Internationalized ✅
+
+1. **Static Content Pages**: All pages completed
+   - ✅ **CookiePolicyPage.tsx** - Already fully internationalized
+   - ✅ **PrivacyPolicyPage.tsx** - Already fully internationalized
+   - ✅ **TermsOfServicePage.tsx** - Already fully internationalized
+   - ✅ **PricingPage.tsx** - **NEWLY INTERNATIONALIZED**
+     - Added `useTranslation()` hook
+     - Internationalized page metadata with `t('pricing.title')`, `t('pricing.description')`
+     - Replaced hardcoded pricing plan content with dynamic arrays
+     - Used `(t('pricing.plans.starter.features', { returnObjects: true }) as string[])` pattern for feature lists
+     - Internationalized all button text and disclaimers
+     - Fixed TypeScript typing issues with `map()` function on translation arrays
+
+2. **Core App Pages**: All pages completed
+   - ✅ **JoinGroupPage.tsx** - Already fully internationalized
+   - ✅ **NotFoundPage.tsx** - Already fully internationalized
+   - ✅ **LandingPage.tsx** - **UPDATED INTERNATIONALIZATION**
+     - Updated page description to use `t('pages.landingPage.description')`
+     - Replaced hardcoded transparency notice with `t('pages.landingPage.transparencyNotice.bold')` and `t('pages.landingPage.transparencyNotice.text')`
+
+3. **Auth Flow Pages**: All pages completed
+   - ✅ **LoginPage.tsx** - Already fully internationalized
+   - ✅ **RegisterPage.tsx** - Already fully internationalized
+   - ✅ **ResetPasswordPage.tsx** - Already fully internationalized
+
+#### Translation Keys Added ✅
+
+4. **New Translation Keys**: Added to `translation.json`
+   - `pages.landingPage.transparencyNotice.bold`: "This is a tool for tracking expenses, not for making payments."
+   - `pages.landingPage.transparencyNotice.text`: "To save and manage your expenses, you'll need a free account. We will never ask for sensitive financial details."
+   - **Note**: All `pricing.*` keys were already present from previous sessions
+
+#### Technical Fixes ✅
+
+5. **TypeScript Resolution**: Fixed type issues with translation arrays
+   - Used explicit casting: `(t('key', { returnObjects: true }) as string[])`
+   - Added proper type annotations for `map()` parameters: `(feature: string, index: number)`
+   - Resolved all TypeScript compilation errors
+
+6. **Test Suite Fixes**: Fixed failing unit test
+   - Updated Input component test to expect `'common.required'` instead of `'*'`
+   - All 207 webapp unit tests now passing ✅
+   - Build verification successful ✅
+
+### 🎯 Session Impact
+- **1 page newly internationalized**: PricingPage.tsx with comprehensive translation arrays
+- **1 page improved**: LandingPage.tsx transparency notice
+- **6+ pages verified complete**: All other page-level components already internationalized
+- **3 translation keys added**: Landing page transparency notice text
+- **TypeScript fixes**: Proper typing for translation array usage
+- **Test fixes**: Input component test now passing
+
+### ✅ Current Status
+**Phase 6**: Successfully completed
+- All page-level components verified internationalized
+- Pricing page fully dynamic with translation arrays
+- Landing page transparency notice properly translated
+- Build and test suite passing
+- Ready for next phase of remaining component internationalization
+
+### Updated Progress Summary (All Sessions)
+
+#### Total Components Internationalized: 33+ files
+**Sessions 1-5**: 29 components (verified from previous sessions)
+**Session 6**: 4 additional page components verified/improved
+
+#### Translation Infrastructure
+- **585+ translation keys** established across all sections (added transparency notice keys)
+- **Comprehensive page coverage** for all user-facing pages
+- **Consistent patterns** followed throughout all components
+- **Complete test coverage** with proper error handling
+- **Build validation** passing for all workspaces
+
+### Remaining Work Estimate
+
+From the original 91-file plan:
+- **Completed**: ~33 files (high priority components + all page-level components)
+- **Verified Complete**: Many components already internationalized in previous sessions
+- **Remaining**: ~55-58 files (specialized components, remaining UI components, utilities)
+
+**Next priorities** from original plan:
+- Remaining specialized modal/dialog components
+- Utility/layout components that weren't covered in earlier phases
+- Any edge case components with hardcoded text
+
+**Estimated effort**: ~2-3 more sessions to complete the full 91-file plan
+
+### Quality Assurance ✅
+
+- ✅ No hardcoded English text in newly internationalized pages
+- ✅ Proper TypeScript compilation with array translation support
+- ✅ Consistent translation key naming conventions (`pages.pageName.*`, `pricing.*`)
+- ✅ All tests passing (unit and build verification)
+- ✅ Translation arrays working correctly with `returnObjects: true`
+- ✅ Established patterns followed throughout

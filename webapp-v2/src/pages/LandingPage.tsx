@@ -11,7 +11,7 @@ export function LandingPage() {
     return (
         <BaseLayout
             title={t('pages.landingPage.title')}
-            description="Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent. It's 100% free, with no ads and no limits."
+            description={t('pages.landingPage.description')}
         >
             <div class="bg-white">
                 <main class="pt-16">
@@ -24,8 +24,7 @@ export function LandingPage() {
                         <div class="container mx-auto px-4">
                             <div class="transparency-content text-center text-gray-600">
                                 <p>
-                                    <strong class="text-gray-800">This is a tool for tracking expenses, not for making payments.</strong> To save and manage your expenses, you'll need a free account.
-                                    We will never ask for sensitive financial details.
+                                    <strong class="text-gray-800">{t('pages.landingPage.transparencyNotice.bold')}</strong> {t('pages.landingPage.transparencyNotice.text')}
                                 </p>
                             </div>
                         </div>
