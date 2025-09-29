@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, GroupUpdateBuilder, borrowTestUsers, generateShortId, NotificationDriver } from '@splitifyd/test-support';
+import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, GroupUpdateBuilder, GroupMemberDocumentBuilder, borrowTestUsers, generateShortId, NotificationDriver } from '@splitifyd/test-support';
 import { PooledTestUser, FirestoreCollections, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
@@ -1387,20 +1387,19 @@ describe('Groups Management - Consolidated Tests', () => {
 
         describe('Member Creation', () => {
             test('should create member document using service layer', async () => {
-                const testGroup = await groupService.createGroup(users[0].uid, {
-                    name: 'Member Creation Test Group',
-                    description: 'Testing member creation functionality',
-                });
+                const testGroup = await groupService.createGroup(users[0].uid,
+                    new CreateGroupRequestBuilder()
+                        .withName('Member Creation Test Group')
+                        .withDescription('Testing member creation functionality')
+                        .build()
+                );
 
-                const memberDoc = {
-                    uid: users[1].uid,
-                    groupId: testGroup.id,
-                    memberRole: MemberRoles.MEMBER,
-                    theme: groupShareService.getThemeColorForMember(1),
-                    joinedAt: new Date().toISOString(),
-                    memberStatus: MemberStatuses.ACTIVE,
-                    invitedBy: users[0].uid,
-                };
+                const memberDoc = new GroupMemberDocumentBuilder(users[1].uid, testGroup.id)
+                    .withRole('member')
+                    .withStatus('active')
+                    .withTheme(groupShareService.getThemeColorForMember(1))
+                    .withInvitedBy(users[0].uid)
+                    .build();
 
                 await groupMemberService.createMember(testGroup.id, memberDoc);
 
@@ -1415,10 +1414,12 @@ describe('Groups Management - Consolidated Tests', () => {
             });
 
             test('should return null for non-existent member queries', async () => {
-                const testGroup = await groupService.createGroup(users[0].uid, {
-                    name: 'Non-existent Member Test',
-                    description: 'Testing non-existent member queries',
-                });
+                const testGroup = await groupService.createGroup(users[0].uid,
+                    new CreateGroupRequestBuilder()
+                        .withName('Non-existent Member Test')
+                        .withDescription('Testing non-existent member queries')
+                        .build()
+                );
 
                 const result = await groupMemberService.getGroupMember(testGroup.id, 'non-existent-user');
                 expect(result).toBeNull();
@@ -1430,21 +1431,20 @@ describe('Groups Management - Consolidated Tests', () => {
 
         describe('Member Retrieval', () => {
             test('should return all members for a group', async () => {
-                const testGroup = await groupService.createGroup(users[0].uid, {
-                    name: 'All Members Test Group',
-                    description: 'Testing member retrieval',
-                });
+                const testGroup = await groupService.createGroup(users[0].uid,
+                    new CreateGroupRequestBuilder()
+                        .withName('All Members Test Group')
+                        .withDescription('Testing member retrieval')
+                        .build()
+                );
 
                 // Add second member
-                const memberDoc = {
-                    uid: users[1].uid,
-                    groupId: testGroup.id,
-                    memberRole: MemberRoles.MEMBER,
-                    theme: groupShareService.getThemeColorForMember(1),
-                    joinedAt: new Date().toISOString(),
-                    memberStatus: MemberStatuses.ACTIVE,
-                    invitedBy: users[0].uid,
-                };
+                const memberDoc = new GroupMemberDocumentBuilder(users[1].uid, testGroup.id)
+                    .withRole('member')
+                    .withStatus('active')
+                    .withTheme(groupShareService.getThemeColorForMember(1))
+                    .withInvitedBy(users[0].uid)
+                    .build();
                 await groupMemberService.createMember(testGroup.id, memberDoc);
 
                 // Get all members
@@ -1460,10 +1460,12 @@ describe('Groups Management - Consolidated Tests', () => {
             });
 
             test('should return empty array for group with no members', async () => {
-                const newGroup = await groupService.createGroup(users[0].uid, {
-                    name: 'Empty Members Group',
-                    description: 'No members for testing',
-                });
+                const newGroup = await groupService.createGroup(users[0].uid,
+                    new CreateGroupRequestBuilder()
+                        .withName('Empty Members Group')
+                        .withDescription('No members for testing')
+                        .build()
+                );
 
                 // Delete the auto-created member for this test
                 await groupMemberService.deleteMember(newGroup.id, users[0].uid);
@@ -1475,21 +1477,20 @@ describe('Groups Management - Consolidated Tests', () => {
 
         describe('Member Updates', () => {
             test('should update member role and status', async () => {
-                const testGroup = await groupService.createGroup(users[0].uid, {
-                    name: 'Member Update Test Group',
-                    description: 'Testing member updates',
-                });
+                const testGroup = await groupService.createGroup(users[0].uid,
+                    new CreateGroupRequestBuilder()
+                        .withName('Member Update Test Group')
+                        .withDescription('Testing member updates')
+                        .build()
+                );
 
                 // Add member first
-                const memberDoc = {
-                    uid: users[1].uid,
-                    groupId: testGroup.id,
-                    memberRole: MemberRoles.MEMBER,
-                    theme: groupShareService.getThemeColorForMember(1),
-                    joinedAt: new Date().toISOString(),
-                    memberStatus: MemberStatuses.ACTIVE,
-                    invitedBy: users[0].uid,
-                };
+                const memberDoc = new GroupMemberDocumentBuilder(users[1].uid, testGroup.id)
+                    .withRole('member')
+                    .withStatus('active')
+                    .withTheme(groupShareService.getThemeColorForMember(1))
+                    .withInvitedBy(users[0].uid)
+                    .build();
                 await groupMemberService.createMember(testGroup.id, memberDoc);
 
                 // Update the member
@@ -1508,21 +1509,20 @@ describe('Groups Management - Consolidated Tests', () => {
 
         describe('Member Deletion', () => {
             test('should delete member from group', async () => {
-                const testGroup = await groupService.createGroup(users[0].uid, {
-                    name: 'Member Deletion Test Group',
-                    description: 'Testing member deletion',
-                });
+                const testGroup = await groupService.createGroup(users[0].uid,
+                    new CreateGroupRequestBuilder()
+                        .withName('Member Deletion Test Group')
+                        .withDescription('Testing member deletion')
+                        .build()
+                );
 
                 // Add member first
-                const memberDoc = {
-                    uid: users[1].uid,
-                    groupId: testGroup.id,
-                    memberRole: MemberRoles.MEMBER,
-                    theme: groupShareService.getThemeColorForMember(1),
-                    joinedAt: new Date().toISOString(),
-                    memberStatus: MemberStatuses.ACTIVE,
-                    invitedBy: users[0].uid,
-                };
+                const memberDoc = new GroupMemberDocumentBuilder(users[1].uid, testGroup.id)
+                    .withRole('member')
+                    .withStatus('active')
+                    .withTheme(groupShareService.getThemeColorForMember(1))
+                    .withInvitedBy(users[0].uid)
+                    .build();
                 await groupMemberService.createMember(testGroup.id, memberDoc);
 
                 // Verify member exists
@@ -1538,10 +1538,12 @@ describe('Groups Management - Consolidated Tests', () => {
             });
 
             test('should not throw error when deleting non-existent member', async () => {
-                const testGroup = await groupService.createGroup(users[0].uid, {
-                    name: 'Non-existent Delete Test',
-                    description: 'Testing non-existent member deletion',
-                });
+                const testGroup = await groupService.createGroup(users[0].uid,
+                    new CreateGroupRequestBuilder()
+                        .withName('Non-existent Delete Test')
+                        .withDescription('Testing non-existent member deletion')
+                        .build()
+                );
 
                 // Should not throw - idempotent operation
                 await expect(groupMemberService.deleteMember(testGroup.id, 'non-existent-user')).resolves.not.toThrow();
