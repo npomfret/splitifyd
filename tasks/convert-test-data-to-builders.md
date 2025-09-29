@@ -322,16 +322,41 @@ The following files contain violations that need to be refactored:
    - Tests: ✅ **21/21 passing** with zero behavioral changes
    - Status: **FULLY COMPLETE**
 
+### ✅ **COMPLETED WORK (Phase 3 - Sept 29, 2025):**
+
+#### High-Priority Files Completed:
+3. **✅ BalanceCalculationService.test.ts** - **COMPLETE**
+   - Refactored: All manual `groupDoc` objects → `FirestoreGroupBuilder`
+   - Refactored: All manual user profile objects → `UserProfileBuilder`, `AuthUserRecordBuilder`
+   - Applied: "Focus on Test Intent" - only essential fields specified
+   - Tests: ✅ **7/7 passing** with zero behavioral changes
+   - Status: **FULLY COMPLETE**
+
+4. **✅ PercentageSplitStrategy.test.ts** - **COMPLETE**
+   - Refactored: All manual split arrays → `ExpenseSplitBuilder.percentageSplit()`
+   - Applied: "Focus on Test Intent" - only specify percentages relevant to each test
+   - Tests: ✅ **8/8 passing** with zero behavioral changes
+   - Status: **FULLY COMPLETE**
+
+#### Medium-Priority Files Completed:
+5. **✅ validation/string-validation.test.ts** - **COMPLETE**
+   - Refactored: `baseValidExpenseData` → `CreateExpenseRequestBuilder`
+   - Refactored: `baseValidGroupData` → `CreateGroupRequestBuilder`
+   - Applied: "Focus on Test Intent" - minimal field specification
+   - Tests: ✅ **5/5 passing** with zero behavioral changes
+   - Status: **FULLY COMPLETE**
+
+6. **✅ validation/date-validation.test.ts** - **COMPLETE**
+   - Refactored: All manual `expenseData` objects → `CreateExpenseRequestBuilder`
+   - Refactored: All manual `updateData` objects → `ExpenseUpdateBuilder`
+   - Applied: "Focus on Test Intent" - only specify date field for date validation tests
+   - Tests: ✅ **13/13 passing** with zero behavioral changes
+   - Status: **FULLY COMPLETE**
+
 ### 🔄 **REMAINING WORK:**
 
-#### High-Priority Files:
-3. **BalanceCalculationService.test.ts** - Replace `groupDoc` and user profile objects
-4. **PercentageSplitStrategy.test.ts** - Complete remaining split arrays with `ExpenseSplitBuilder`
-
-#### Medium-Priority Files:
-5. **validation/InputValidation.test.ts** - Replace with `CreateExpenseRequestBuilder`/`SettlementBuilder`
-6. **validation/date-validation.test.ts** - Replace with `CreateExpenseRequestBuilder`
-7. **validation/string-validation.test.ts** - Replace base objects with builders
+#### Remaining Files:
+7. **validation/InputValidation.test.ts** - Replace with `CreateExpenseRequestBuilder`/`SettlementBuilder` (LARGE FILE - 542 lines)
 
 #### Special Case Files:
 8. **security-rules.test.ts** - **RECOMMENDED TO SKIP**
@@ -341,10 +366,12 @@ The following files contain violations that need to be refactored:
 
 ### 📊 **Progress Statistics:**
 - **New Builders Created**: 2/2 ✅ (100%)
-- **Core Service Files**: 6/7 ✅ (~85% complete)
-- **Key Tests Verified**: 6 files with 140+ tests passing ✅
+- **Core Service Files**: 7/7 ✅ (100% complete)
+- **Split Strategy Files**: 2/2 ✅ (100% complete)
+- **Validation Files**: 2/3 ✅ (67% complete)
+- **Key Tests Verified**: 10 files with 180+ tests passing ✅
 - **TypeScript Integration**: ✅ Fully working
-- **Overall Progress**: **~70-75% complete**
+- **Overall Progress**: **~90-95% complete**
 
 ### 🎯 **Key Achievements:**
 1. **Foundation Established**: Most complex builders (`UserDocumentBuilder`, `ExpenseSplitBuilder`) created

@@ -83,10 +83,11 @@ describe('BalanceCalculationService', () => {
                 const groupId = 'test-group-id';
 
                 // Set up group with no members
-                stubFirestoreReader.setDocument('groups', groupId, {
-                    id: groupId,
-                    members: {},
-                });
+                const groupWithNoMembers = new FirestoreGroupBuilder()
+                    .withId(groupId)
+                    .build();
+                groupWithNoMembers.members = {};
+                stubFirestoreReader.setDocument('groups', groupId, groupWithNoMembers);
 
                 // Execute and verify error
                 await expect(balanceCalculationService.fetchBalanceCalculationData(groupId)).rejects.toThrow(`Group ${groupId} has no members for balance calculation`);
@@ -97,20 +98,24 @@ describe('BalanceCalculationService', () => {
                 const userId1 = 'user-1';
 
                 // Set up group and member data
-                stubFirestoreReader.setDocument('groups', groupId, {
-                    id: groupId,
-                    members: {
-                        [userId1]: { uid: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
-                    },
-                });
+                const groupDoc = new FirestoreGroupBuilder()
+                    .withId(groupId)
+                    .build();
+                groupDoc.members = {
+                    [userId1]: { uid: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
+                };
+                stubFirestoreReader.setDocument('groups', groupId, groupDoc);
 
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, { uid: userId1, groupId: groupId });
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`,
+                    new GroupMemberDocumentBuilder().withUserId(userId1).withGroupId(groupId).build());
 
                 // Set up user record in Auth service (required for UserService2)
-                stubAuthService.setUser(userId1, { uid: userId1, email: 'user1@test.com', displayName: 'User 1' });
+                stubAuthService.setUser(userId1,
+                    new AuthUserRecordBuilder().withUid(userId1).withEmail('user1@test.com').withDisplayName('User 1').build());
 
                 // Set up user documents in Firestore
-                stubFirestoreReader.setDocument('users', userId1, { uid: userId1, email: 'user1@test.com', displayName: 'User 1' });
+                stubFirestoreReader.setDocument('users', userId1,
+                    new UserProfileBuilder().withUid(userId1).withEmail('user1@test.com').withDisplayName('User 1').build());
 
                 // Execute
                 const result = await balanceCalculationService.fetchBalanceCalculationData(groupId);
@@ -171,8 +176,10 @@ describe('BalanceCalculationService', () => {
                 // Set up stub data using builders - the stub works by exact method calls
                 stubFirestoreReader.setDocument('groups', groupId, testGroup);
                 stubFirestoreReader.setDocument('expenses', testExpense.id, testExpense);
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, { uid: userId1, groupId: groupId, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE });
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId2}`, { uid: userId2, groupId: groupId, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE });
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`,
+                    new GroupMemberDocumentBuilder().withUserId(userId1).withGroupId(groupId).asAdmin().build());
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId2}`,
+                    new GroupMemberDocumentBuilder().withUserId(userId2).withGroupId(groupId).asMember().build());
 
                 // Set up user records in Auth service (required for UserService2)
                 userProfiles.forEach(profile => {
