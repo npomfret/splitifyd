@@ -31,8 +31,8 @@ export const DEFAULT_PASSWORD = 'rrRR44$$';
 
 export function generateNewUserDetails(prefix = 'u') {
     const id = generateShortId();
-    // Direct import to avoid circular dependency issues
-    // Using import() would be async, so we use a direct object instead
+    // Direct object return to avoid circular dependency issues with TestUserBuilder
+    // TestUserBuilder imports from this file, so we can't import it here
     return {
         email: `${prefix}-${id}@example.com`,
         displayName: `${prefix} ${id}`,

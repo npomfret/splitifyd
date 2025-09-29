@@ -16,7 +16,7 @@ export class TestUserBuilder {
     constructor() {
         this.user = {
             email: `test-${generateShortId()}@example.com`,
-            password: 'password123',
+            password: 'rrRR44$$', // Strong password that meets validation requirements
             displayName: `${randomChoice(['Test', 'Demo', 'Sample'])} ${randomChoice(['User', 'Person', 'Account'])}`,
         };
     }
@@ -43,7 +43,7 @@ export class TestUserBuilder {
     static validUser(): TestUserBuilder {
         return new TestUserBuilder()
             .withEmail(`test-${generateShortId()}@example.com`)
-            .withPassword('password123')
+            .withPassword('rrRR44$$')
             .withDisplayName('Test User');
     }
 

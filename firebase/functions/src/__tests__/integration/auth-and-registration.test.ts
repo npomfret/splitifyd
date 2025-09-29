@@ -10,7 +10,7 @@
 
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { ApiDriver, borrowTestUsers, generateTestEmail, generateNewUserDetails, UserRegistrationBuilder } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, generateTestEmail, UserRegistrationBuilder, TestUserBuilder } from '@splitifyd/test-support';
 import { PooledTestUser } from '@splitifyd/shared';
 
 describe('Authentication and Registration - Integration Tests (Essential Firebase Behavior Only)', () => {
@@ -24,7 +24,7 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
         });
 
         test('should be able to register a new user in the emulator', async () => {
-            const userData = generateNewUserDetails();
+            const userData = new TestUserBuilder().build();
             const registeredUser = await apiDriver.register(userData);
 
             expect(registeredUser).toHaveProperty('user');

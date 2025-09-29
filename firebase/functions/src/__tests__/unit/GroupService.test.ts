@@ -435,10 +435,10 @@ describe('GroupService - Unit Tests', () => {
                 });
 
                 it('should accept updates with both name and description', () => {
-                    const update = {
-                        name: 'New Name',
-                        description: 'New description',
-                    };
+                    const update = new GroupUpdateBuilder()
+                        .withName('New Name')
+                        .withDescription('New description')
+                        .build();
 
                     const result = validateUpdateGroup(update);
                     expect(result).toEqual({
@@ -522,10 +522,10 @@ describe('GroupService - Unit Tests', () => {
 
             it('should sanitize input through validation process', () => {
                 // The validation should handle potentially unsafe input
-                const inputWithExtraSpaces = {
-                    name: '   Group Name   ',
-                    description: '   Description   ',
-                };
+                const inputWithExtraSpaces = new CreateGroupRequestBuilder()
+                    .withName('   Group Name   ')
+                    .withDescription('   Description   ')
+                    .build();
 
                 const result = validateCreateGroup(inputWithExtraSpaces);
                 expect(result.name).toBe('Group Name');

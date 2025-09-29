@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 import { simpleTest } from '../../fixtures';
 import { SettingsPage, RegisterPage, DashboardPage, HomepagePage, LoginPage, GroupDetailPage, JoinGroupPage } from '../../pages';
-import { generateNewUserDetails, DEFAULT_PASSWORD, generateTestEmail, generateTestUserName, generateTestGroupName, CreateGroupFormDataBuilder } from '@splitifyd/test-support';
+import { DEFAULT_PASSWORD, generateTestEmail, generateTestUserName, generateTestGroupName, CreateGroupFormDataBuilder, TestUserBuilder } from '@splitifyd/test-support';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { ApiDriver } from '@splitifyd/test-support';
 import { PolicyAcceptanceModalPage } from '../../pages/policy-acceptance-modal.page';
@@ -26,7 +26,7 @@ import { getUserPool } from '../../fixtures/user-pool.fixture';
 simpleTest.describe('User Profile Management', () => {
     simpleTest('comprehensive profile and password management with validation and real-time updates', async ({ createLoggedInBrowsers, newEmptyBrowser }) => {
         // Create a fresh user specifically for comprehensive testing
-        const { displayName, email, password } = generateNewUserDetails();
+        const { displayName, email, password } = new TestUserBuilder().build();
 
         // Test 1: Profile viewing, updating, and real-time updates
         const [{ page, dashboardPage, user }] = await createLoggedInBrowsers(1);
@@ -532,7 +532,7 @@ simpleTest.describe('Share Link Access Management', () => {
             const registerPage = await loginPage.clickSignUp();
 
             // Register new user
-            const { displayName: newUserName, email: newUserEmail, password: newUserPassword } = generateNewUserDetails();
+            const { displayName: newUserName, email: newUserEmail, password: newUserPassword } = new TestUserBuilder().build();
             await registerPage.fillRegistrationForm(newUserName, newUserEmail, newUserPassword);
             await registerPage.submitForm();
 

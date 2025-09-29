@@ -9,6 +9,7 @@
  */
 
 import { describe, test, expect } from 'vitest';
+import { FirestoreExpenseBuilder } from '@splitifyd/test-support';
 
 /**
  * Extract affected users from expense data (before and after states)
@@ -33,13 +34,13 @@ describe('Expense Change Tracking Logic', () => {
     describe('Shared Expense Notifications', () => {
         test('should extract all participants when shared expense is created', () => {
             // Arrange: Create a shared expense between 3 users
-            const expenseData = {
-                groupId: 'test-group-123',
-                paidBy: 'user1',
-                participants: ['user1', 'user2', 'user3'], // 3 participants
-                amount: 30.0,
-                description: 'Shared dinner',
-            };
+            const expenseData = new FirestoreExpenseBuilder()
+                .withGroupId('test-group-123')
+                .withPaidBy('user1')
+                .withParticipants(['user1', 'user2', 'user3']) // 3 participants
+                .withAmount(30.0)
+                .withDescription('Shared dinner')
+                .build();
 
             // Act: Extract affected users (expense creation = no beforeData)
             const affectedUsers = extractAffectedUsersFromExpense(null, expenseData);
@@ -51,13 +52,13 @@ describe('Expense Change Tracking Logic', () => {
 
         test('should extract both payer and participant when different users', () => {
             // Arrange: User1 pays, User2 participates
-            const expenseData = {
-                groupId: 'test-group-456',
-                paidBy: 'user1',
-                participants: ['user2'], // Only user2 participates, but user1 paid
-                amount: 20.0,
-                description: 'Coffee for friend',
-            };
+            const expenseData = new FirestoreExpenseBuilder()
+                .withGroupId('test-group-456')
+                .withPaidBy('user1')
+                .withParticipants(['user2']) // Only user2 participates, but user1 paid
+                .withAmount(20.0)
+                .withDescription('Coffee for friend')
+                .build();
 
             // Act
             const affectedUsers = extractAffectedUsersFromExpense(null, expenseData);
@@ -69,13 +70,13 @@ describe('Expense Change Tracking Logic', () => {
 
         test('should handle duplicate users correctly (payer is also participant)', () => {
             // Arrange: User1 pays and is also a participant (common case)
-            const expenseData = {
-                groupId: 'test-group-789',
-                paidBy: 'user1',
-                participants: ['user1', 'user2'], // user1 appears in both paidBy and participants
-                amount: 25.0,
-                description: 'Shared lunch',
-            };
+            const expenseData = new FirestoreExpenseBuilder()
+                .withGroupId('test-group-789')
+                .withPaidBy('user1')
+                .withParticipants(['user1', 'user2']) // user1 appears in both paidBy and participants
+                .withAmount(25.0)
+                .withDescription('Shared lunch')
+                .build();
 
             // Act
             const affectedUsers = extractAffectedUsersFromExpense(null, expenseData);
@@ -90,13 +91,13 @@ describe('Expense Change Tracking Logic', () => {
         test('BUG: should extract User2 when User1 creates shared expense', () => {
             // Arrange: Reproduce the exact scenario from failing integration test
             // User1 creates a shared expense where both User1 and User2 participate
-            const sharedExpenseData = {
-                groupId: 'multi-user-test-group',
-                paidBy: 'user1', // User1 pays
-                participants: ['user1', 'user2'], // Both users participate
-                amount: 50.0,
-                description: 'Shared expense between User1 and User2',
-            };
+            const sharedExpenseData = new FirestoreExpenseBuilder()
+                .withGroupId('multi-user-test-group')
+                .withPaidBy('user1') // User1 pays
+                .withParticipants(['user1', 'user2']) // Both users participate
+                .withAmount(50.0)
+                .withDescription('Shared expense between User1 and User2')
+                .build();
 
             // Act: Extract affected users from shared expense
             const affectedUsers = extractAffectedUsersFromExpense(null, sharedExpenseData);
@@ -117,13 +118,13 @@ describe('Expense Change Tracking Logic', () => {
 
         test('should handle edge case: empty participants array', () => {
             // Arrange: Expense with no participants (only payer)
-            const expenseData = {
-                groupId: 'test-group-solo',
-                paidBy: 'user1',
-                participants: [], // Empty participants
-                amount: 15.0,
-                description: 'Solo expense',
-            };
+            const expenseData = new FirestoreExpenseBuilder()
+                .withGroupId('test-group-solo')
+                .withPaidBy('user1')
+                .withParticipants([]) // Empty participants
+                .withAmount(15.0)
+                .withDescription('Solo expense')
+                .build();
 
             // Act
             const affectedUsers = extractAffectedUsersFromExpense(null, expenseData);
