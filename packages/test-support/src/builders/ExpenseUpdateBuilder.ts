@@ -20,15 +20,12 @@ export class ExpenseUpdateBuilder {
     private update: ExpenseUpdate;
 
     constructor() {
-        const userId = `user-${generateShortId()}`;
         this.update = {
             description: `Updated ${randomChoice(['Dinner', 'Lunch', 'Coffee', 'Gas', 'Movie', 'Grocery'])} ${randomString(4)}`,
             amount: randomDecimal(5, 500),
             currency: randomCurrency(),
             category: randomCategory(),
             date: randomDate(),
-            splitType: randomChoice(['equal', 'exact', 'percentage']),
-            participants: [userId, `user-${generateShortId()}`],
         };
     }
 
