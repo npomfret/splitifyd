@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card } from '../ui';
 import { Stack } from '../ui/Stack';
 
@@ -7,10 +8,11 @@ interface SplitTypeSelectorProps {
 }
 
 export function SplitTypeSelector({ splitType, updateField }: SplitTypeSelectorProps) {
+    const { t } = useTranslation();
     return (
         <Card>
             <Stack spacing="md">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">How to split</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('expenseComponents.splitTypeSelector.label')}</h2>
                 <div className="grid grid-cols-3 gap-3">
                     <label
                         className={`
@@ -19,7 +21,7 @@ export function SplitTypeSelector({ splitType, updateField }: SplitTypeSelectorP
           `}
                     >
                         <input type="radio" name="splitType" value="equal" checked={splitType === 'equal'} onChange={() => updateField('splitType', 'equal')} className="sr-only" />
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">Equal</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{t('expenseComponents.splitTypeSelector.equal')}</span>
                     </label>
 
                     <label
@@ -29,7 +31,7 @@ export function SplitTypeSelector({ splitType, updateField }: SplitTypeSelectorP
           `}
                     >
                         <input type="radio" name="splitType" value="exact" checked={splitType === 'exact'} onChange={() => updateField('splitType', 'exact')} className="sr-only" />
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">Exact amounts</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{t('expenseComponents.splitTypeSelector.exactAmounts')}</span>
                     </label>
 
                     <label
@@ -39,7 +41,7 @@ export function SplitTypeSelector({ splitType, updateField }: SplitTypeSelectorP
           `}
                     >
                         <input type="radio" name="splitType" value="percentage" checked={splitType === 'percentage'} onChange={() => updateField('splitType', 'percentage')} className="sr-only" />
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">Percentage</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{t('expenseComponents.splitTypeSelector.percentage')}</span>
                     </label>
                 </div>
             </Stack>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Avatar } from '../ui';
 import { formatCurrency, getCurrency } from '@/utils/currency';
 
@@ -24,6 +25,7 @@ interface SplitAmountInputsProps {
 }
 
 export function SplitAmountInputs({ splitType, amount, currency, participants, splits, members, updateSplitAmount, updateSplitPercentage }: SplitAmountInputsProps) {
+    const { t } = useTranslation();
     const memberMap = members.reduce(
         (acc, member) => {
             acc[member.uid] = member;
@@ -39,15 +41,15 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
     if (splitType === 'exact') {
         return (
             <div className="space-y-3">
-                <p className="text-sm text-gray-600 dark:text-gray-400">Enter exact amounts for each person:</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('expenseComponents.splitAmountInputs.exactAmountsInstruction')}</p>
                 {participants.map((participantId) => {
                     const member = memberMap[participantId];
                     const split = splits.find((s) => s.uid === participantId);
                     return (
                         <div key={participantId} className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2 flex-1">
-                                <Avatar displayName={member?.displayName || 'Unknown'} userId={participantId} size="sm" />
-                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{member?.displayName || 'Unknown'}</span>
+                                <Avatar displayName={member?.displayName || t('expenseComponents.splitAmountInputs.unknown')} userId={participantId} size="sm" />
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{member?.displayName || t('expenseComponents.splitAmountInputs.unknown')}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-gray-500">{getCurrency(currency)!.symbol}</span>
@@ -68,7 +70,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                 })}
                 <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex justify-between text-sm">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">Total:</span>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">{t('expenseComponents.splitAmountInputs.total')}</span>
                         <span
                             className={`font-medium ${
                                 Math.abs(splits.reduce((sum, s) => sum + s.amount, 0) - amount) < 0.01 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
@@ -90,15 +92,15 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
     if (splitType === 'percentage') {
         return (
             <div className="space-y-3">
-                <p className="text-sm text-gray-600 dark:text-gray-400">Enter percentage for each person:</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('expenseComponents.splitAmountInputs.percentageInstruction')}</p>
                 {participants.map((participantId) => {
                     const member = memberMap[participantId];
                     const split = splits.find((s) => s.uid === participantId);
                     return (
                         <div key={participantId} className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2 flex-1">
-                                <Avatar displayName={member?.displayName || 'Unknown'} userId={participantId} size="sm" />
-                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{member?.displayName || 'Unknown'}</span>
+                                <Avatar displayName={member?.displayName || t('expenseComponents.splitAmountInputs.unknown')} userId={participantId} size="sm" />
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{member?.displayName || t('expenseComponents.splitAmountInputs.unknown')}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <input
@@ -112,7 +114,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                     }}
                                     className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-right"
                                 />
-                                <span className="text-gray-500">%</span>
+                                <span className="text-gray-500">{t('expenseComponents.splitAmountInputs.percentSign')}</span>
                                 <span className="text-xs text-gray-500 w-16 text-right">{formatCurrency(split?.amount || 0, currency)}</span>
                             </div>
                         </div>
@@ -120,7 +122,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                 })}
                 <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex justify-between text-sm">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">Total:</span>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">{t('expenseComponents.splitAmountInputs.total')}</span>
                         <span
                             className={`font-medium ${
                                 Math.abs(splits.reduce((sum, s) => sum + (s.percentage || 0), 0) - 100) < 0.01 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
@@ -138,15 +140,15 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
     if (splitType === 'equal') {
         return (
             <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Each person pays:</p>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('expenseComponents.splitAmountInputs.equalInstruction')}</p>
                 <div className="space-y-1">
                     {splits.map((split) => {
                         const member = memberMap[split.uid];
                         return (
                             <div key={split.uid} className="flex items-center justify-between gap-2">
                                 <div className="flex items-center gap-2">
-                                    <Avatar displayName={member?.displayName || 'Unknown'} userId={split.uid} size="sm" />
-                                    <span className="text-sm text-gray-600 dark:text-gray-400">{member?.displayName || 'Unknown'}</span>
+                                    <Avatar displayName={member?.displayName || t('expenseComponents.splitAmountInputs.unknown')} userId={split.uid} size="sm" />
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">{member?.displayName || t('expenseComponents.splitAmountInputs.unknown')}</span>
                                 </div>
                                 <span className="text-sm font-medium text-gray-900 dark:text-white">{formatCurrency(split.amount, currency)}</span>
                             </div>

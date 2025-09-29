@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, Avatar } from '../ui';
 import { Stack } from '../ui/Stack';
 
@@ -14,13 +15,14 @@ interface PayerSelectorProps {
 }
 
 export function PayerSelector({ members, paidBy, validationErrors, updateField }: PayerSelectorProps) {
+    const { t } = useTranslation();
     return (
         <Card>
             <Stack spacing="md">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Who paid?{' '}
+                    {t('expenseComponents.payerSelector.label')}{' '}
                     <span className="text-red-500" data-testid="required-indicator">
-                        *
+                        {t('expenseComponents.payerSelector.requiredIndicator')}
                     </span>
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
