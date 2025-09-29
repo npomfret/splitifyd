@@ -390,3 +390,310 @@ The following is a list of hardcoded text found in the `webapp-v2` `.tsx` files 
 - "Terms of Service for Splitifyd - Read about our policies and user agreements."
 - "Last updated: "
 - "Error loading terms"
+
+---
+
+## Comprehensive Internationalization Implementation Plan
+
+### File-by-File Replacement List (91 files total)
+
+This is a systematic plan to replace ALL hardcoded text strings across 76 components + 15 pages with translation keys.
+
+#### Priority 1: Landing Page Components (4 files)
+1. **CTASection.tsx**
+   - "Ready to Simplify Your Shared Expenses?"
+   - "Join thousands who are already making group payments stress-free and transparent. Get started today!"
+   - "Sign Up for Free"
+
+2. **HeroSection.tsx**
+   - "Effortless Bill Splitting, Simplified & Smart."
+   - "Say goodbye to awkward IOUs and complex calculations..."
+   - "It's 100% free, with no ads and no limits."
+   - "Splitifyd App Screenshot" (alt text)
+
+3. **FeaturesGrid.tsx**
+   - "Everything You Need, Nothing You Don't"
+   - Feature titles: "Smart Group Management", "Flexible Splitting", "Debt Simplification", "100% Free to Use", "Unlimited Use", "Zero Ads, Ever"
+   - Feature descriptions (6 detailed descriptions)
+
+4. **Globe.tsx**
+   - "Unable to load 3D globe"
+
+#### Priority 2: Authentication Components (7 files)
+5. **EmailInput.tsx** ✅ Already partially internationalized
+   - "Enter your email" (placeholder - needs translation key)
+   - Label, validation messages
+
+6. **PasswordInput.tsx**
+   - "Enter your password" (placeholder)
+   - "Password" (label)
+
+7. **AuthForm.tsx**
+   - Form validation messages
+   - Submit button text
+
+8. **DefaultLoginButton.tsx**
+   - Button text
+
+9. **SubmitButton.tsx**
+   - Loading states
+
+10. **ErrorMessage.tsx**
+    - Error display patterns
+
+11. **AuthLayout.tsx**
+    - Layout text
+
+#### Priority 3: Dashboard Components (5 files)
+12. **GroupCard.tsx** ✅ Partially internationalized
+    - "You're owed " / "You owe " (needs proper i18n with interpolation)
+
+13. **EmptyGroupsState.tsx**
+    - Empty state messages
+
+14. **DashboardStats.tsx**
+    - Stats labels
+
+15. **GroupsList.tsx**
+    - List headers
+
+16. **QuickActionsCard.tsx**
+    - Action labels
+
+#### Priority 4: Expense Components (8 files)
+17. **ExpenseBasicFields.tsx**
+    - "*" (required indicator)
+    - "0.00" (placeholder)
+
+18. **PayerSelector.tsx**
+    - "Who paid?"
+    - "*" (required indicator)
+
+19. **SplitAmountInputs.tsx**
+    - "Enter exact amounts for each person:"
+    - "Unknown"
+    - "Total:"
+    - "Enter percentage for each person:"
+    - "%"
+    - "Each person pays:"
+
+20. **SplitTypeSelector.tsx**
+    - "How to split"
+    - "Equal"
+    - "Exact amounts"
+    - "Percentage"
+
+21. **ExpenseFormActions.tsx**
+    - Form action buttons
+
+22. **ExpenseFormHeader.tsx**
+    - Header text
+
+23. **ParticipantSelector.tsx**
+    - Participant selection UI
+
+24. **ExpenseActions.tsx**
+    - "Edit", "Copy", "Share", "Delete"
+    - "Failed to delete expense"
+
+#### Priority 5: Group Detail Components (9 files)
+25. **BalanceSummary.tsx**
+    - "Unknown"
+
+26. **EditGroupModal.tsx**
+    - "⚠️"
+
+27. **ExpenseItem.tsx**
+    - "Unknown"
+
+28. **ExpensesList.tsx**
+    - List headers and messages
+
+29. **GroupActions.tsx**
+    - Action buttons
+
+30. **GroupHeader.tsx**
+    - Header text
+
+31. **LeaveGroupDialog.tsx**
+    - Dialog text
+
+32. **MembersList.tsx**
+    - "Unknown User"
+
+33. **MembersListWithManagement.tsx**
+    - "User"
+
+34. **ShareGroupModal.tsx**
+    - Share dialog text
+
+#### Priority 6: Common UI Components (16 files)
+35. **Alert.tsx**
+    - "Dismiss alert"
+
+36. **Avatar.tsx**
+    - Alt text
+
+37. **Button.tsx** ✅ No hardcoded text (good example)
+
+38. **Card.tsx**
+    - Component text
+
+39. **CategorySuggestionInput.tsx**
+    - Input text
+
+40. **ConfirmDialog.tsx**
+    - "Confirm", "Cancel" (default values)
+
+41. **Container.tsx**
+    - Container text
+
+42. **CurrencyAmountInput.tsx**
+    - "?", "Search currencies"
+
+43. **CurrencySelector.tsx**
+    - "Select currency...", "*", "Search currencies...", "No currencies found", "Recent", "Common", "All Currencies"
+
+44. **ErrorState.tsx**
+    - Error messages
+
+45. **Form.tsx**
+    - Form labels
+
+46. **Input.tsx**
+    - "*"
+
+47. **LoadingSpinner.tsx**
+    - Loading text
+
+48. **LoadingState.tsx**
+    - Loading messages
+
+49. **SidebarCard.tsx**
+    - Card content
+
+50. **TimeInput.tsx**
+    - Time input labels
+
+#### Priority 7: Navigation Components (4 files)
+51. **Header.tsx**
+    - "..." (fallback)
+
+52. **Footer.tsx**
+    - Footer text
+
+53. **UserMenu.tsx**
+    - Menu items
+
+54. **BaseLayout.tsx**
+    - Layout text
+
+#### Priority 8: Specialized Components (15 files)
+55. **CommentsSection.tsx**
+    - Comments headers
+
+56. **CommentInput.tsx**
+    - "Comment text" (aria-label)
+    - "Send comment" (aria-label)
+
+57. **CommentItem.tsx**
+    - "just now"
+
+58. **CommentsList.tsx**
+    - List text
+
+59. **CreateGroupModal.tsx**
+    - Modal text
+
+60. **ErrorBoundary.tsx**
+    - Error boundary messages
+
+61. **JoinButton.tsx**
+    - Button text
+
+62. **GroupPreview.tsx**
+    - "Member"/"Members", "Active", "Group"
+    - "You've been invited to join this group"
+
+63. **MembersPreview.tsx**
+    - "Group Size", "member"/"members"
+
+64. **PolicyAcceptanceModal.tsx**
+    - "Accept Updated Policies"
+    - Multiple policy acceptance texts
+
+65. **PolicyRenderer.tsx**
+    - Policy rendering text
+
+66. **SEOHead.tsx**
+    - SEO meta text
+
+67. **SettlementForm.tsx**
+    - "Unknown User"
+
+68. **SettlementHistory.tsx**
+    - History labels
+
+69. **StaticPageLayout.tsx**
+    - Layout text
+
+#### Priority 9: Page Components (15 files)
+70. **AddExpensePage.tsx**
+    - Page text
+
+71. **DashboardPage.tsx**
+    - Page content
+
+72. **ExpenseDetailPage.tsx**
+    - Detail text
+
+73. **GroupDetailPage.tsx**
+    - Page content
+
+74. **JoinGroupPage.tsx**
+    - "Loading..."
+
+75. **LandingPage.tsx**
+    - Page disclaimers
+
+76. **LoginPage.tsx**
+    - Login page text
+
+77. **NotFoundPage.tsx**
+    - 404 messages
+
+78. **RegisterPage.tsx**
+    - Registration text
+
+79. **ResetPasswordPage.tsx**
+    - Reset password text
+
+80. **SettingsPage.tsx**
+    - Settings labels
+
+81. **CookiePolicyPage.tsx**
+    - "Cookie Policy", "Last updated: ", "Error loading cookie policy"
+
+82. **PricingPage.tsx**
+    - "Pricing (It's Free, Seriously)" + extensive pricing copy
+
+83. **PrivacyPolicyPage.tsx**
+    - "Privacy Policy", "Last updated: ", "Error loading privacy policy"
+
+84. **TermsOfServicePage.tsx**
+    - "Terms of Service", "Last updated: ", "Error loading terms"
+
+#### Utility/Layout Files (7 files)
+85. **DashboardGrid.tsx**
+86. **GroupDetailGrid.tsx**
+87. **Stack.tsx**
+88. **UserIndicator.tsx**
+89. **WarningBanner.tsx**
+90. **FeatureCard.tsx**
+91. **SplitBreakdown.tsx**
+
+### Estimated Scope
+- **Total Files**: 91 files
+- **Estimated Strings**: 400-500 unique translation keys
+- **Time Estimate**: 8-10 hours of systematic work
+- **Implementation**: File-by-file replacement with immediate testing
