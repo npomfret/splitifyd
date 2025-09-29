@@ -10,6 +10,7 @@ import {
     GroupFullDetails,
     JoinGroupResponse,
     LeaveGroupResponse,
+    ListCommentsResponse,
     ListGroupsResponse,
     ListSettlementsResponse,
     MessageResponse,
@@ -348,6 +349,26 @@ export class ApiDriver {
 
     async createExpenseComment(expenseId: string, text: string, token: string): Promise<CreateCommentResponse> {
         return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', { text }, token);
+    }
+
+    async listGroupComments(groupId: string, token: string, cursor?: string, limit?: number): Promise<ListCommentsResponse> {
+        const params = new URLSearchParams();
+        if (cursor) params.append('cursor', cursor);
+        if (limit) params.append('limit', limit.toString());
+        const query = params.toString() ? `?${params.toString()}` : '';
+
+        const response = await this.apiRequest(`/groups/${groupId}/comments${query}`, 'GET', null, token);
+        return response.data;
+    }
+
+    async listExpenseComments(expenseId: string, token: string, cursor?: string, limit?: number): Promise<ListCommentsResponse> {
+        const params = new URLSearchParams();
+        if (cursor) params.append('cursor', cursor);
+        if (limit) params.append('limit', limit.toString());
+        const query = params.toString() ? `?${params.toString()}` : '';
+
+        const response = await this.apiRequest(`/expenses/${expenseId}/comments${query}`, 'GET', null, token);
+        return response.data;
     }
 
     private async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {

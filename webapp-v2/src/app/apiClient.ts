@@ -24,6 +24,7 @@ import type {
     GroupFullDetails,
     JoinGroupResponse,
     LeaveGroupResponse,
+    ListCommentsResponse,
     ListGroupsResponse,
     MessageResponse,
     PolicyAcceptanceStatus,
@@ -791,6 +792,32 @@ export class ApiClient {
             method: 'POST',
             params: { expenseId },
             body: { text },
+        });
+        return response.data;
+    }
+
+    async getGroupComments(groupId: string, cursor?: string): Promise<ListCommentsResponse> {
+        const query: Record<string, string> = {};
+        if (cursor) query.cursor = cursor;
+
+        const response = await this.request<{ success: boolean; data: ListCommentsResponse }>({
+            endpoint: '/groups/:groupId/comments',
+            method: 'GET',
+            params: { groupId },
+            query: Object.keys(query).length > 0 ? query : undefined,
+        });
+        return response.data;
+    }
+
+    async getExpenseComments(expenseId: string, cursor?: string): Promise<ListCommentsResponse> {
+        const query: Record<string, string> = {};
+        if (cursor) query.cursor = cursor;
+
+        const response = await this.request<{ success: boolean; data: ListCommentsResponse }>({
+            endpoint: '/expenses/:expenseId/comments',
+            method: 'GET',
+            params: { expenseId },
+            query: Object.keys(query).length > 0 ? query : undefined,
         });
         return response.data;
     }

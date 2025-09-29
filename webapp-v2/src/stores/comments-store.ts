@@ -5,6 +5,9 @@ import { apiClient } from '../app/apiClient';
 import { getDb } from '../app/firebase';
 import { logError, logInfo } from '../utils/browser-logger';
 import { assertTimestampAndConvert } from '../utils/dateUtils';
+import type { FirebaseService } from '../app/firebase';
+import { firebaseService } from '../app/firebase';
+import { UserNotificationDetector } from '../utils/user-notification-detector';
 
 type SubscriptionState = 'idle' | 'subscribing' | 'subscribed' | 'disposed';
 
@@ -48,6 +51,14 @@ class CommentsStoreImpl implements CommentsStore {
     #unsubscribe: (() => void) | null = null;
     #lastDoc: QueryDocumentSnapshot | null = null;
     #subscriberCounts = new Map<string, number>();
+
+    // Notification system dependencies
+    #notificationUnsubscribe: (() => void) | null = null;
+
+    constructor(
+        private firebaseService: FirebaseService,
+        private userNotificationDetector: UserNotificationDetector
+    ) {}
 
     // State getters - readonly values for external consumers
     get comments() {
@@ -97,6 +108,9 @@ class CommentsStoreImpl implements CommentsStore {
         if (currentCount === 0) {
             // First component for target, creating subscription
             this.#subscribeToComments(targetType, targetId);
+
+            // Setup notification listener for real-time updates
+            this.#setupNotificationListener(targetType, targetId);
         }
     }
 
@@ -191,6 +205,55 @@ class CommentsStoreImpl implements CommentsStore {
             this.#errorSignal.value = 'Failed to connect to comments. Please check your connection.';
             this.#loadingSignal.value = false;
             this.#subscriptionState = 'idle';
+        }
+    }
+
+    /**
+     * Setup notification listener for comment changes
+     */
+    #setupNotificationListener(targetType: CommentTargetType, targetId: string) {
+        // Get current user ID from Firebase service
+        const auth = this.firebaseService.getAuth();
+        const userId = auth.currentUser?.uid;
+        if (!userId) {
+            logError('Cannot setup notification listener: user not authenticated');
+            return;
+        }
+
+        // Setup notification listener to detect comment changes
+        this.#notificationUnsubscribe = this.userNotificationDetector.subscribe(userId, {
+            onCommentChange: (notificationTargetType, notificationTargetId) => {
+                // Check if this comment notification is for the current target
+                if (notificationTargetType === targetType && notificationTargetId === targetId) {
+                    logInfo('Comment change notification received, refreshing comments');
+                    this.#refreshComments();
+                }
+            }
+        });
+    }
+
+    /**
+     * Refresh comments when notified of changes
+     */
+    async #refreshComments() {
+        if (!this.#targetTypeSignal.value || !this.#targetIdSignal.value) {
+            return;
+        }
+
+        // For now, keep using Firebase subscription refresh
+        // This will be replaced with API calls in the next phase
+        try {
+            // Trigger a re-fetch by calling Firebase again
+            // This preserves pagination state
+            const targetType = this.#targetTypeSignal.value;
+            const targetId = this.#targetIdSignal.value;
+
+            if (this.#unsubscribe) {
+                // Re-establish the Firebase subscription to get fresh data
+                this.#subscribeToComments(targetType, targetId);
+            }
+        } catch (error) {
+            logError('Failed to refresh comments', error);
         }
     }
 
@@ -302,10 +365,20 @@ class CommentsStoreImpl implements CommentsStore {
             this.#unsubscribe();
             this.#unsubscribe = null;
         }
+
+        // Clean up notification listener
+        if (this.#notificationUnsubscribe) {
+            this.#notificationUnsubscribe();
+            this.#notificationUnsubscribe = null;
+        }
+
         // Reset to idle after cleanup
         this.#subscriptionState = 'idle';
     }
 }
 
 // Export singleton instance
-export const commentsStore = new CommentsStoreImpl();
+export const commentsStore = new CommentsStoreImpl(
+    firebaseService,
+    new UserNotificationDetector(firebaseService)
+);

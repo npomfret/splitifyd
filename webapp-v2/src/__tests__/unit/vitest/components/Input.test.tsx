@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/preact';
 import { Input } from '@/components/ui/Input.tsx';
+import i18n from '@/i18n';
 
 describe('Input Component', () => {
     describe('basic rendering', () => {

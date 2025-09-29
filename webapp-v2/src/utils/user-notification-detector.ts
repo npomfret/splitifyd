@@ -10,6 +10,7 @@ export interface NotificationCallbacks {
     onGroupChange?: (groupId: string) => void;
     onTransactionChange?: (groupId: string) => void;
     onBalanceChange?: (groupId: string) => void;
+    onCommentChange?: (targetType: 'group' | 'expense', targetId: string) => void;
     onGroupRemoved?: (groupId: string) => void;
 }
 
@@ -29,9 +30,11 @@ interface GroupNotificationState {
     lastTransactionChange: Timestamp | null;
     lastBalanceChange: Timestamp | null;
     lastGroupDetailsChange: Timestamp | null;
+    lastCommentChange: Timestamp | null;
     transactionChangeCount: number;
     balanceChangeCount: number;
     groupDetailsChangeCount: number;
+    commentChangeCount: number;
 }
 
 /**
@@ -45,7 +48,7 @@ interface UserNotificationDocument {
     lastModified: Timestamp;
     recentChanges?: Array<{
         groupId: string;
-        type: 'transaction' | 'balance' | 'group';
+        type: 'transaction' | 'balance' | 'group' | 'comment';
         timestamp: Timestamp;
     }>;
 }
@@ -186,6 +189,13 @@ export class UserNotificationDetector {
                 this.callbacks.onBalanceChange(groupId);
             }
 
+            // Check for comment changes
+            if (this.callbacks.onCommentChange && this.hasCommentChanged(groupId, groupData, lastState)) {
+                logInfo('UserNotificationDetector: comment change detected', { groupId });
+                // For now, assume group-level comments (could extend to detect expense comments)
+                this.callbacks.onCommentChange('group', groupId);
+            }
+
             // Update last state
             this.lastGroupStates.set(groupId, { ...groupData });
         }
@@ -242,9 +252,11 @@ export class UserNotificationDetector {
                     transactionChangeCount: current.transactionChangeCount || 0,
                     balanceChangeCount: current.balanceChangeCount || 0,
                     groupDetailsChangeCount: current.groupDetailsChangeCount || 0,
+                    commentChangeCount: current.commentChangeCount || 0,
                     lastTransactionChange: current.lastTransactionChange || null,
                     lastBalanceChange: current.lastBalanceChange || null,
                     lastGroupDetailsChange: current.lastGroupDetailsChange || null,
+                    lastCommentChange: current.lastCommentChange || null,
                 });
 
                 // Only trigger if this is not the first document and has transaction changes
@@ -285,6 +297,31 @@ export class UserNotificationDetector {
         }
 
         return (current.balanceChangeCount || 0) > (last.balanceChangeCount || 0);
+    }
+
+    /**
+     * Check if comments have changed
+     */
+    private hasCommentChanged(groupId: string, current: GroupNotificationState, last: GroupNotificationState | undefined): boolean {
+        if (!last) {
+            // First time seeing this group in our tracking map
+            // Set baseline for comparison and check if this is a new change
+            const baseline = this.baselineGroupStates.get(groupId);
+            if (!baseline) {
+                // Baseline already set in hasTransactionChanged - no need to set again
+                // Only trigger if this is not the first document and has comment changes
+                return !this.isFirstDocument && (current.commentChangeCount || 0) > 0;
+            }
+
+            // We have a baseline - check if comment count increased since baseline
+            const currentCount = current.commentChangeCount || 0;
+            const baselineCount = baseline.commentChangeCount || 0;
+            const shouldTrigger = currentCount > baselineCount;
+
+            return shouldTrigger;
+        }
+
+        return (current.commentChangeCount || 0) > (last.commentChangeCount || 0);
     }
 
     /**
