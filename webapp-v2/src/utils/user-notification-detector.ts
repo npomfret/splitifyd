@@ -1,5 +1,5 @@
-import { doc, onSnapshot, Unsubscribe, Timestamp } from 'firebase/firestore';
-import { getDb } from '../app/firebase';
+import { Timestamp } from 'firebase/firestore';
+import type { FirebaseService } from '../app/firebase';
 import { logInfo, logError } from './browser-logger';
 
 /**
@@ -63,7 +63,7 @@ interface UserNotificationDocument {
  * - Reliable change detection via counters
  */
 export class UserNotificationDetector {
-    private listener: Unsubscribe | null = null;
+    private listener: (() => void) | null = null;
     private lastVersion = 0;
     private lastGroupStates = new Map<string, GroupNotificationState>();
     private callbacks: NotificationCallbacks = {};
@@ -76,7 +76,7 @@ export class UserNotificationDetector {
     // Track baseline states when groups are first seen to distinguish new changes from pre-existing ones
     private baselineGroupStates = new Map<string, GroupNotificationState>();
 
-    constructor() {}
+    constructor(private firebaseService: FirebaseService) {}
 
     /**
      * Subscribe to user notifications
@@ -110,10 +110,9 @@ export class UserNotificationDetector {
 
         // Starting listener is routine
 
-        const docRef = doc(getDb(), 'user-notifications', this.userId);
-
-        this.listener = onSnapshot(
-            docRef,
+        this.listener = this.firebaseService.onDocumentSnapshot(
+            'user-notifications',
+            this.userId,
             (snapshot) => this.handleSnapshot(snapshot),
             (error) => this.handleError(error),
         );

@@ -1,9 +1,20 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, User as FirebaseUser } from 'firebase/auth';
-import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getFirestore, Firestore, connectFirestoreEmulator, doc, onSnapshot } from 'firebase/firestore';
 import { firebaseConfigManager } from './firebase-config';
 
-class FirebaseService {
+export interface FirebaseService {
+    initialize(): Promise<void>;
+    getAuth(): Auth;
+    getFirestore(): Firestore;
+    signInWithEmailAndPassword(email: string, password: string): Promise<any>;
+    sendPasswordResetEmail(email: string): Promise<void>;
+    signOut(): Promise<void>;
+    onAuthStateChanged(callback: (user: FirebaseUser | null) => void): () => void;
+    onDocumentSnapshot(collection: string, documentId: string, onData: (data: any) => void, onError: (error: Error) => void): () => void;
+}
+
+class FirebaseServiceImpl implements FirebaseService {
     private app: FirebaseApp | null = null;
     private auth: Auth | null = null;
     private firestore: Firestore | null = null;
@@ -66,9 +77,14 @@ class FirebaseService {
     onAuthStateChanged(callback: (user: FirebaseUser | null) => void) {
         return onAuthStateChanged(this.getAuth(), callback);
     }
+
+    onDocumentSnapshot(collection: string, documentId: string, onData: (data: any) => void, onError: (error: Error) => void): () => void {
+        const docRef = doc(this.getFirestore(), collection, documentId);
+        return onSnapshot(docRef, onData, onError);
+    }
 }
 
-export const firebaseService = new FirebaseService();
+export const firebaseService: FirebaseService = new FirebaseServiceImpl();
 
 // Export a getter for db to ensure initialization
 export const getDb = () => firebaseService.getFirestore();
