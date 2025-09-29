@@ -10,7 +10,7 @@ import { USER_COLORS } from '@splitifyd/shared';
 import type { UserDocument } from '../../../schemas';
 import { ApiError } from '../../../utils/errors';
 import type { IAuthService } from '../../../services/auth';
-import { UserDocumentBuilder } from '@splitifyd/test-support';
+import { UserDocumentBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
 
 // Mock i18n functions to avoid translation errors in tests
 vi.mock('../../../utils/i18n-validation', () => ({
@@ -62,13 +62,11 @@ describe('UserService - Consolidated Unit Tests', () => {
 
     describe('registerUser', () => {
         it('should register a new user with Firebase Auth and Firestore', async () => {
-            const registrationData = {
-                email: 'newuser@example.com',
-                password: 'SecurePass123!',
-                displayName: 'New User',
-                termsAccepted: true,
-                cookiePolicyAccepted: true,
-            };
+            const registrationData = new UserRegistrationBuilder()
+                .withEmail('newuser@example.com')
+                .withPassword('SecurePass123!')
+                .withDisplayName('New User')
+                .build();
 
             // Mock successful validation
             vi.mocked(mockValidationService.validateBeforeWrite).mockImplementation((schema, data) => data);
@@ -99,13 +97,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: 'Existing User',
             });
 
-            const duplicateData = {
-                email,
-                password: 'DifferentPass123!',
-                displayName: 'Different Name',
-                termsAccepted: true,
-                cookiePolicyAccepted: true,
-            };
+            const duplicateData = new UserRegistrationBuilder()
+                .withEmail(email)
+                .withPassword('DifferentPass123!')
+                .withDisplayName('Different Name')
+                .build();
 
             await expect(userService.registerUser(duplicateData)).rejects.toThrow(
                 expect.objectContaining({
@@ -116,31 +112,34 @@ describe('UserService - Consolidated Unit Tests', () => {
         });
 
         it('should validate policy acceptance flags', async () => {
-            const userData = {
-                email: 'testuser@example.com',
-                password: 'SecurePass123!',
-                displayName: 'Test User',
-                termsAccepted: false,
-                cookiePolicyAccepted: true,
-            };
+            const userData = new UserRegistrationBuilder()
+                .withEmail('testuser@example.com')
+                .withPassword('SecurePass123!')
+                .withDisplayName('Test User')
+                .withTermsAccepted(false)
+                .withCookiePolicyAccepted(true)
+                .build();
 
             await expect(userService.registerUser(userData)).rejects.toThrow('You must accept the Terms of Service');
 
             // Test cookie policy validation
-            userData.termsAccepted = true;
-            userData.cookiePolicyAccepted = false;
+            const userData2 = new UserRegistrationBuilder()
+                .withEmail('testuser@example.com')
+                .withPassword('SecurePass123!')
+                .withDisplayName('Test User')
+                .withTermsAccepted(true)
+                .withCookiePolicyAccepted(false)
+                .build();
 
-            await expect(userService.registerUser(userData)).rejects.toThrow('You must accept the Cookie Policy');
+            await expect(userService.registerUser(userData2)).rejects.toThrow('You must accept the Cookie Policy');
         });
 
         it('should assign theme color and role during registration', async () => {
-            const registrationData = {
-                email: 'themed@example.com',
-                password: 'SecurePass123!',
-                displayName: 'Themed User',
-                termsAccepted: true,
-                cookiePolicyAccepted: true,
-            };
+            const registrationData = new UserRegistrationBuilder()
+                .withEmail('themed@example.com')
+                .withPassword('SecurePass123!')
+                .withDisplayName('Themed User')
+                .build();
 
             const result = await userService.registerUser(registrationData);
 

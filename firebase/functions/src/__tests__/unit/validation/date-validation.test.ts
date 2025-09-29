@@ -99,9 +99,9 @@ describe('Date Validation Unit Tests', () => {
             ];
 
             invalidDates.forEach((invalidDate) => {
-                const expenseData = {
-                        date: invalidDate,
-                };
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withDate(invalidDate as string)
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
@@ -153,9 +153,11 @@ describe('Date Validation Unit Tests', () => {
             ];
 
             nonStringDates.forEach((nonStringDate) => {
-                const expenseData = {
-                        date: nonStringDate,
-                };
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .build();
+
+                // Override the date field with the invalid value for testing
+                (expenseData as any).date = nonStringDate;
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
