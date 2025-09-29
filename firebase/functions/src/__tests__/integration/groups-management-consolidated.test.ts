@@ -1019,7 +1019,7 @@ describe('Groups Management - Consolidated Tests', () => {
             expect(createdExpense.id).toBeDefined();
 
             // Verify the expense exists
-            const fetchedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
+            let fetchedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
             expect(fetchedExpense).toBeDefined();
             expect(fetchedExpense.description).toBe('To Be Deleted Test');
 
@@ -1394,7 +1394,7 @@ describe('Groups Management - Consolidated Tests', () => {
                         .build()
                 );
 
-                const memberDoc = new GroupMemberDocumentBuilder(users[1].uid, testGroup.id)
+                const memberDoc = new GroupMemberDocumentBuilder().withUserId(users[1].uid).withGroupId(testGroup.id)
                     .withRole('member')
                     .withStatus('active')
                     .withTheme(groupShareService.getThemeColorForMember(1))
@@ -1439,7 +1439,7 @@ describe('Groups Management - Consolidated Tests', () => {
                 );
 
                 // Add second member
-                const memberDoc = new GroupMemberDocumentBuilder(users[1].uid, testGroup.id)
+                const memberDoc = new GroupMemberDocumentBuilder().withUserId(users[1].uid).withGroupId(testGroup.id)
                     .withRole('member')
                     .withStatus('active')
                     .withTheme(groupShareService.getThemeColorForMember(1))
@@ -1485,7 +1485,7 @@ describe('Groups Management - Consolidated Tests', () => {
                 );
 
                 // Add member first
-                const memberDoc = new GroupMemberDocumentBuilder(users[1].uid, testGroup.id)
+                const memberDoc = new GroupMemberDocumentBuilder().withUserId(users[1].uid).withGroupId(testGroup.id)
                     .withRole('member')
                     .withStatus('active')
                     .withTheme(groupShareService.getThemeColorForMember(1))
@@ -1517,7 +1517,7 @@ describe('Groups Management - Consolidated Tests', () => {
                 );
 
                 // Add member first
-                const memberDoc = new GroupMemberDocumentBuilder(users[1].uid, testGroup.id)
+                const memberDoc = new GroupMemberDocumentBuilder().withUserId(users[1].uid).withGroupId(testGroup.id)
                     .withRole('member')
                     .withStatus('active')
                     .withTheme(groupShareService.getThemeColorForMember(1))

@@ -55,7 +55,7 @@ describe('GroupService - Unit Tests', () => {
             vi.spyOn(stubReader, 'getGroup').mockResolvedValue(createdGroup);
 
             // Add group membership for balance calculation
-            const membershipDoc = new GroupMemberDocumentBuilder(userId, expectedGroupId)
+            const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(expectedGroupId)
                 .asAdmin()
                 .asActive()
                 .build();
@@ -82,7 +82,7 @@ describe('GroupService - Unit Tests', () => {
             stubWriter.setDocument('groups', groupId, testGroup);
 
             // Set up group membership so user has access
-            const membershipDoc = new GroupMemberDocumentBuilder(userId, groupId)
+            const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(groupId)
                 .asAdmin()
                 .asActive()
                 .build();
@@ -124,7 +124,7 @@ describe('GroupService - Unit Tests', () => {
             stubReader.setDocument('groups', groupId, existingGroup);
 
             // Set up group membership so user has access (as owner)
-            const membershipDoc = new GroupMemberDocumentBuilder(userId, groupId)
+            const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(groupId)
                 .asAdmin()
                 .asActive()
                 .build();
@@ -154,7 +154,7 @@ describe('GroupService - Unit Tests', () => {
             stubWriter.setDocument('groups', groupId, existingGroup);
 
             // Set up group membership so user has access (as owner)
-            const membershipDoc = new GroupMemberDocumentBuilder(userId, groupId)
+            const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(groupId)
                 .asAdmin()
                 .asActive()
                 .build();

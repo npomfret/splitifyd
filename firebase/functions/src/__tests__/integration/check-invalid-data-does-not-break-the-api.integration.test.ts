@@ -63,7 +63,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
                 testGroupIds.push(groupRef.id);
 
                 // Create valid member document for top-level collection
-                const memberDoc = new GroupMemberDocumentBuilder(testUser.uid, groupRef.id).asAdmin().asActive().build();
+                const memberDoc = new GroupMemberDocumentBuilder().withUserId(testUser.uid).withGroupId(groupRef.id).asAdmin().asActive().build();
 
                 const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, new Date().toISOString());
                 const topLevelDocId = getTopLevelMembershipDocId(testUser.uid, groupRef.id);
@@ -108,7 +108,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             testGroupIds.push(invalidGroupRef.id);
 
             // Create valid member document
-            const memberDoc = new GroupMemberDocumentBuilder(testUser.uid, invalidGroupRef.id).asAdmin().asActive().build();
+            const memberDoc = new GroupMemberDocumentBuilder().withUserId(testUser.uid).withGroupId(invalidGroupRef.id).asAdmin().asActive().build();
 
             const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, new Date().toISOString());
             const topLevelDocId = getTopLevelMembershipDocId(testUser.uid, invalidGroupRef.id);

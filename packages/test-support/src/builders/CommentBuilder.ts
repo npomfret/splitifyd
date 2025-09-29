@@ -27,8 +27,18 @@ export class CommentBuilder {
         return this;
     }
 
-    withAvatar(avatar: string): this {
-        this.comment.authorAvatar = avatar;
+    withAvatar(avatar: string | null): this {
+        this.comment.authorAvatar = avatar === null ? undefined : avatar;
+        return this;
+    }
+
+    withCreatedAtTimestamp(timestamp: any): this {
+        this.comment.createdAt = timestamp;
+        return this;
+    }
+
+    withUpdatedAtTimestamp(timestamp: any): this {
+        this.comment.updatedAt = timestamp;
         return this;
     }
 

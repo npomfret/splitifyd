@@ -73,7 +73,7 @@ describe('GroupShareService', () => {
             stubReader.setDocument('groups', groupId, testGroup);
 
             // Set up group membership so user has access (as owner)
-            const membershipDoc = new GroupMemberDocumentBuilder(userId, groupId)
+            const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(groupId)
                 .asAdmin()
                 .build();
             stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);

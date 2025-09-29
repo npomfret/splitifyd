@@ -42,9 +42,9 @@ describe('BalanceCalculationService', () => {
                 stubFirestoreReader.setDocument('groups', groupId, groupDoc);
 
                 stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`,
-                    new GroupMemberDocumentBuilder(userId1, groupId).build());
+                    new GroupMemberDocumentBuilder().withUserId(userId1).withGroupId(groupId).build());
                 stubFirestoreReader.setDocument('group-members', `${groupId}_${userId2}`,
-                    new GroupMemberDocumentBuilder(userId2, groupId).build());
+                    new GroupMemberDocumentBuilder().withUserId(userId2).withGroupId(groupId).build());
 
                 // Set up user records in Auth service (required for UserService2)
                 stubAuthService.setUser(userId1,
@@ -236,11 +236,11 @@ describe('BalanceCalculationService', () => {
             // Set up common stub data
             stubFirestoreReader.setDocument('groups', testGroupId, testGroup);
             stubFirestoreReader.setDocument('group-members', `${testGroupId}_${userAlice}`,
-                new GroupMemberDocumentBuilder(userAlice, testGroupId).asAdmin().build());
+                new GroupMemberDocumentBuilder().withUserId(userAlice).withGroupId(testGroupId).asAdmin().build());
             stubFirestoreReader.setDocument('group-members', `${testGroupId}_${userBob}`,
-                new GroupMemberDocumentBuilder(userBob, testGroupId).asMember().build());
+                new GroupMemberDocumentBuilder().withUserId(userBob).withGroupId(testGroupId).asMember().build());
             stubFirestoreReader.setDocument('group-members', `${testGroupId}_${userCharlie}`,
-                new GroupMemberDocumentBuilder(userCharlie, testGroupId).asMember().build());
+                new GroupMemberDocumentBuilder().withUserId(userCharlie).withGroupId(testGroupId).asMember().build());
 
             // Set up user records in Auth service (required for UserService2)
             userProfiles.forEach(profile => {

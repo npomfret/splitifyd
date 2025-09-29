@@ -40,9 +40,9 @@ describe('Concurrent Operations Integration Tests', () => {
     describe('Concurrent Member Operations', () => {
         test('should handle multiple users joining simultaneously', async () => {
             const memberDocs: GroupMemberDocument[] = [
-                new GroupMemberDocumentBuilder(testUser2.uid, testGroup.id).withThemeIndex(1).withInvitedBy(testUser1.uid).build(),
-                new GroupMemberDocumentBuilder(testUser3.uid, testGroup.id).withThemeIndex(2).withInvitedBy(testUser1.uid).build(),
-                new GroupMemberDocumentBuilder(testUser4.uid, testGroup.id).withThemeIndex(3).withInvitedBy(testUser1.uid).build(),
+                new GroupMemberDocumentBuilder().withUserId(testUser2.uid).withGroupId(testGroup.id).withThemeIndex(1).withInvitedBy(testUser1.uid).build(),
+                new GroupMemberDocumentBuilder().withUserId(testUser3.uid).withGroupId(testGroup.id).withThemeIndex(2).withInvitedBy(testUser1.uid).build(),
+                new GroupMemberDocumentBuilder().withUserId(testUser4.uid).withGroupId(testGroup.id).withThemeIndex(3).withInvitedBy(testUser1.uid).build(),
             ];
 
             // Execute all member additions concurrently
@@ -64,7 +64,7 @@ describe('Concurrent Operations Integration Tests', () => {
 
         test('should handle concurrent member queries during membership changes', async () => {
             // Add initial member
-            const initialMember = new GroupMemberDocumentBuilder(testUser2.uid, testGroup.id).withThemeIndex(1).withInvitedBy(testUser1.uid).build();
+            const initialMember = new GroupMemberDocumentBuilder().withUserId(testUser2.uid).withGroupId(testGroup.id).withThemeIndex(1).withInvitedBy(testUser1.uid).build();
             await groupMemberService.createMember(testGroup.id, initialMember);
 
             // Run concurrent operations: queries while adding/removing members
@@ -75,7 +75,7 @@ describe('Concurrent Operations Integration Tests', () => {
                 () => groupMemberService.getUserGroupsViaSubcollection(testUser1.uid),
 
                 // Modification operations
-                () => groupMemberService.createMember(testGroup.id, new GroupMemberDocumentBuilder(testUser3.uid, testGroup.id).withThemeIndex(2).withInvitedBy(testUser1.uid).build()),
+                () => groupMemberService.createMember(testGroup.id, new GroupMemberDocumentBuilder().withUserId(testUser3.uid).withGroupId(testGroup.id).withThemeIndex(2).withInvitedBy(testUser1.uid).build()),
                 () =>
                     groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberBuilder().asAdmin().build()),
                 () => groupMemberService.deleteMember(testGroup.id, testUser2.uid),
@@ -99,7 +99,7 @@ describe('Concurrent Operations Integration Tests', () => {
 
         test('should handle concurrent role updates', async () => {
             // Add test member
-            const memberDoc = new GroupMemberDocumentBuilder(testUser2.uid, testGroup.id).withThemeIndex(1).withInvitedBy(testUser1.uid).build();
+            const memberDoc = new GroupMemberDocumentBuilder().withUserId(testUser2.uid).withGroupId(testGroup.id).withThemeIndex(1).withInvitedBy(testUser1.uid).build();
             await groupMemberService.createMember(testGroup.id, memberDoc);
 
             // Execute multiple role updates concurrently
@@ -123,7 +123,7 @@ describe('Concurrent Operations Integration Tests', () => {
         test('should handle concurrent expense creation by multiple members', async () => {
             // Add members to group first
             const memberDocs = [testUser2, testUser3, testUser4].map((user, index) =>
-                new GroupMemberDocumentBuilder(user.uid, testGroup.id)
+                new GroupMemberDocumentBuilder().withUserId(user.uid).withGroupId(testGroup.id)
                     .withThemeIndex(index + 1)
                     .withInvitedBy(testUser1.uid)
                     .build(),
@@ -189,7 +189,7 @@ describe('Concurrent Operations Integration Tests', () => {
 
         test('should handle member leaving during balance calculation', async () => {
             // Add member and create expense
-            const memberDoc = new GroupMemberDocumentBuilder(testUser2.uid, testGroup.id).withThemeIndex(1).withInvitedBy(testUser1.uid).build();
+            const memberDoc = new GroupMemberDocumentBuilder().withUserId(testUser2.uid).withGroupId(testGroup.id).withThemeIndex(1).withInvitedBy(testUser1.uid).build();
             await groupMemberService.createMember(testGroup.id, memberDoc);
 
             // Create expense
@@ -245,7 +245,7 @@ describe('Concurrent Operations Integration Tests', () => {
                     groupMemberService
                         .createMember(
                             testGroup.id,
-                            new GroupMemberDocumentBuilder(userId, testGroup.id)
+                            new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(testGroup.id)
                                 .withThemeIndex(i % 10)
                                 .withInvitedBy(testUser1.uid)
                                 .build(),
@@ -286,7 +286,7 @@ describe('Concurrent Operations Integration Tests', () => {
         test('should handle collectionGroup queries during concurrent modifications', async () => {
             // Add initial members
             const memberDocs = [testUser2, testUser3, testUser4].map((user, index) =>
-                new GroupMemberDocumentBuilder(user.uid, testGroup.id)
+                new GroupMemberDocumentBuilder().withUserId(user.uid).withGroupId(testGroup.id)
                     .withThemeIndex(index + 1)
                     .withInvitedBy(testUser1.uid)
                     .build(),
@@ -304,7 +304,7 @@ describe('Concurrent Operations Integration Tests', () => {
             const modificationPromises = [
                 groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberBuilder().asAdmin().build()),
                 groupMemberService.deleteMember(testGroup.id, testUser3.uid),
-                groupMemberService.createMember(testGroup.id, new GroupMemberDocumentBuilder(users[5].uid, testGroup.id).withThemeIndex(4).withInvitedBy(testUser1.uid).build()),
+                groupMemberService.createMember(testGroup.id, new GroupMemberDocumentBuilder().withUserId(users[5].uid).withGroupId(testGroup.id).withThemeIndex(4).withInvitedBy(testUser1.uid).build()),
             ];
 
             // Execute queries and modifications concurrently
@@ -329,7 +329,7 @@ describe('Concurrent Operations Integration Tests', () => {
     describe('Error Recovery During Concurrent Operations', () => {
         test('should handle partial failures gracefully', async () => {
             // Add a member first
-            await groupMemberService.createMember(testGroup.id, new GroupMemberDocumentBuilder(testUser2.uid, testGroup.id).withThemeIndex(1).withInvitedBy(testUser1.uid).build());
+            await groupMemberService.createMember(testGroup.id, new GroupMemberDocumentBuilder().withUserId(testUser2.uid).withGroupId(testGroup.id).withThemeIndex(1).withInvitedBy(testUser1.uid).build());
 
             // Create operations where some will succeed and some will fail
             const operations = [

@@ -68,7 +68,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
     describe('getGroupMember', () => {
         it('should return member if exists', async () => {
-            const testMember = new GroupMemberDocumentBuilder(testUserId1, testGroupId)
+            const testMember = new GroupMemberDocumentBuilder().withUserId(testUserId1).withGroupId(testGroupId)
                 .withTheme(defaultTheme)
                 .build();
 
@@ -107,13 +107,13 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     describe('getAllGroupMembers', () => {
         it('should return all members for a group', async () => {
             const testMembers: GroupMemberDocument[] = [
-                new GroupMemberDocumentBuilder(testUserId1, testGroupId)
+                new GroupMemberDocumentBuilder().withUserId(testUserId1).withGroupId(testGroupId)
                     .withTheme(defaultTheme)
                     .build(),
-                new GroupMemberDocumentBuilder(testUserId2, testGroupId)
+                new GroupMemberDocumentBuilder().withUserId(testUserId2).withGroupId(testGroupId)
                     .withTheme(defaultTheme)
                     .build(),
-                new GroupMemberDocumentBuilder(testUserId3, testGroupId)
+                new GroupMemberDocumentBuilder().withUserId(testUserId3).withGroupId(testGroupId)
                     .withTheme(defaultTheme)
                     .asAdmin()
                     .build(),
@@ -148,7 +148,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
     describe('isGroupMemberAsync', () => {
         it('should return true for existing group member', async () => {
-            const testMember = new GroupMemberDocumentBuilder(testUserId1, testGroupId)
+            const testMember = new GroupMemberDocumentBuilder().withUserId(testUserId1).withGroupId(testGroupId)
                 .withTheme(defaultTheme)
                 .build();
 
@@ -186,7 +186,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
     describe('member document structure validation', () => {
         it('should handle member documents with all required fields', async () => {
-            const completeMember = new GroupMemberDocumentBuilder(testUserId1, testGroupId)
+            const completeMember = new GroupMemberDocumentBuilder().withUserId(testUserId1).withGroupId(testGroupId)
                 .withTheme(defaultTheme)
                 .build();
 
@@ -202,7 +202,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         });
 
         it('should handle member documents with admin role', async () => {
-            const adminMember = new GroupMemberDocumentBuilder(testUserId1, testGroupId)
+            const adminMember = new GroupMemberDocumentBuilder().withUserId(testUserId1).withGroupId(testGroupId)
                 .withTheme(defaultTheme)
                 .asAdmin()
                 .build();

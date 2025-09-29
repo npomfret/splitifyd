@@ -48,7 +48,7 @@ describe('GroupMember Subcollection - Integration Tests (Essential Firestore Beh
             );
 
             // Add testUser1 to group2 via subcollection
-            const memberDoc = new GroupMemberDocumentBuilder(testUser1.uid, group2.id)
+            const memberDoc = new GroupMemberDocumentBuilder().withUserId(testUser1.uid).withGroupId(group2.id)
                 .asMember()
                 .asActive()
                 .withTheme(groupShareService.getThemeColorForMember(1))

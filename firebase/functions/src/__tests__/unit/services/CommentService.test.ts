@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, beforeEach, expect, vi } from 'vitest';
 import { CommentService } from '../../../services/CommentService';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import {
@@ -9,7 +9,7 @@ import {
 } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
-import { FirestoreGroupBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-support';
+import { FirestoreGroupBuilder, FirestoreExpenseBuilder, GroupMemberDocumentBuilder, CommentBuilder } from '@splitifyd/test-support';
 import { CommentTargetTypes } from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { CommentTargetType, CreateCommentRequest } from '@splitifyd/shared';
@@ -50,13 +50,8 @@ describe('CommentService - Consolidated Tests', () => {
             stubReader.setDocument('groups', 'test-group', testGroup);
 
             // Set up group membership
-            const membershipDoc = {
-                userId: 'user-id',
-                groupId: 'test-group',
-                memberRole: 'member',
-                memberStatus: 'active',
-                joinedAt: new Date().toISOString(),
-            };
+            const membershipDoc = new GroupMemberDocumentBuilder().withUserId('user-id').withGroupId('test-group')
+                .build();
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
             // Should not throw
@@ -86,13 +81,8 @@ describe('CommentService - Consolidated Tests', () => {
             stubReader.setDocument('groups', 'test-group', testGroup);
 
             // Set up group membership
-            const membershipDoc = {
-                userId: 'user-id',
-                groupId: 'test-group',
-                memberRole: 'member',
-                memberStatus: 'active',
-                joinedAt: new Date().toISOString(),
-            };
+            const membershipDoc = new GroupMemberDocumentBuilder().withUserId('user-id').withGroupId('test-group')
+                .build();
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
             await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.EXPENSE, 'test-expense', 'user-id')).resolves.not.toThrow();
@@ -109,28 +99,22 @@ describe('CommentService - Consolidated Tests', () => {
             const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
 
             const mockComments = [
-                {
-                    id: 'comment-1',
-                    authorId: 'user-1',
-                    authorName: 'User 1',
-                    authorAvatar: null,
-                    text: 'Test comment 1',
-                    createdAt: Timestamp.fromDate(new Date('2023-01-01')),
-                    updatedAt: Timestamp.fromDate(new Date('2023-01-01')),
-                },
+                new CommentBuilder()
+                    .withId('comment-1')
+                    .withAuthor('user-1', 'User 1')
+                    .withAvatar(null)
+                    .withText('Test comment 1')
+                    .withCreatedAtTimestamp(Timestamp.fromDate(new Date('2023-01-01')))
+                    .withUpdatedAtTimestamp(Timestamp.fromDate(new Date('2023-01-01')))
+                    .build(),
             ];
 
             // Set up test data in stubs
             stubReader.setDocument('groups', 'test-group', testGroup);
 
             // Set up group membership for user
-            const membershipDoc = {
-                userId: 'user-id',
-                groupId: 'test-group',
-                memberRole: 'member',
-                memberStatus: 'active',
-                joinedAt: new Date().toISOString(),
-            };
+            const membershipDoc = new GroupMemberDocumentBuilder().withUserId('user-id').withGroupId('test-group')
+                .build();
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
             // Mock the getCommentsForTarget method since it's complex
@@ -158,13 +142,8 @@ describe('CommentService - Consolidated Tests', () => {
             stubReader.setDocument('groups', 'test-group', testGroup);
 
             // Set up group membership for user
-            const membershipDoc = {
-                userId: 'user-id',
-                groupId: 'test-group',
-                memberRole: 'member',
-                memberStatus: 'active',
-                joinedAt: new Date().toISOString(),
-            };
+            const membershipDoc = new GroupMemberDocumentBuilder().withUserId('user-id').withGroupId('test-group')
+                .build();
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
             // Mock the getCommentsForTarget method
@@ -191,27 +170,21 @@ describe('CommentService - Consolidated Tests', () => {
         it('should create a GROUP comment successfully', async () => {
             const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
 
-            const createdComment = {
-                id: 'new-comment-id',
-                authorId: 'user-id',
-                authorName: 'Test User',
-                authorAvatar: 'https://example.com/photo.jpg',
-                text: 'New test comment',
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            };
+            const createdComment = new CommentBuilder()
+                .withId('new-comment-id')
+                .withAuthor('user-id', 'Test User')
+                .withAvatar('https://example.com/photo.jpg')
+                .withText('New test comment')
+                .withCreatedAtTimestamp(Timestamp.now())
+                .withUpdatedAtTimestamp(Timestamp.now())
+                .build();
 
             // Set up test data in stubs
             stubReader.setDocument('groups', 'test-group', testGroup);
 
             // Set up group membership for user
-            const membershipDoc = {
-                userId: 'user-id',
-                groupId: 'test-group',
-                memberRole: 'member',
-                memberStatus: 'active',
-                joinedAt: new Date().toISOString(),
-            };
+            const membershipDoc = new GroupMemberDocumentBuilder().withUserId('user-id').withGroupId('test-group')
+                .build();
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
             // Set up user in auth stub (CommentService calls authService.getUser)
@@ -249,13 +222,8 @@ describe('CommentService - Consolidated Tests', () => {
             stubReader.setDocument('groups', 'test-group', testGroup);
 
             // Set up group membership for user
-            const membershipDoc = {
-                userId: 'user-id',
-                groupId: 'test-group',
-                memberRole: 'member',
-                memberStatus: 'active',
-                joinedAt: new Date().toISOString(),
-            };
+            const membershipDoc = new GroupMemberDocumentBuilder().withUserId('user-id').withGroupId('test-group')
+                .build();
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
             // Mock writer and reader to simulate creation failure
@@ -287,13 +255,8 @@ describe('CommentService - Consolidated Tests', () => {
             stubReader.setDocument('groups', 'test-group', testGroup);
 
             // Set up group membership for user
-            const membershipDoc = {
-                userId: 'user-id',
-                groupId: 'test-group',
-                memberRole: 'member',
-                memberStatus: 'active',
-                joinedAt: new Date().toISOString(),
-            };
+            const membershipDoc = new GroupMemberDocumentBuilder().withUserId('user-id').withGroupId('test-group')
+                .build();
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
             await (commentService as any).verifyCommentAccess('group', 'test-group', 'user-id');
@@ -310,13 +273,8 @@ describe('CommentService - Consolidated Tests', () => {
             stubReader.setDocument('groups', 'test-group', testGroup);
 
             // Set up group membership for user
-            const membershipDoc = {
-                userId: 'user-id',
-                groupId: 'test-group',
-                memberRole: 'member',
-                memberStatus: 'active',
-                joinedAt: new Date().toISOString(),
-            };
+            const membershipDoc = new GroupMemberDocumentBuilder().withUserId('user-id').withGroupId('test-group')
+                .build();
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
             // Mock the getCommentsForTarget method to avoid further complexity
@@ -352,13 +310,8 @@ describe('CommentService - Consolidated Tests', () => {
                 const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
-                const membershipDoc = {
-                    userId: userId,
-                    groupId: targetId,
-                    memberRole: 'member',
-                    memberStatus: 'active',
-                    joinedAt: new Date().toISOString(),
-                };
+                const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
+                    .build();
                 stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
 
                 // Set up auth user
@@ -395,13 +348,8 @@ describe('CommentService - Consolidated Tests', () => {
                 const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
-                const membershipDoc = {
-                    userId: userId,
-                    groupId: targetId,
-                    memberRole: 'member',
-                    memberStatus: 'active',
-                    joinedAt: new Date().toISOString(),
-                };
+                const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
+                    .build();
                 stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
 
                 // Set up auth user without displayName
@@ -471,13 +419,8 @@ describe('CommentService - Consolidated Tests', () => {
                 const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
-                const membershipDoc = {
-                    userId: userId,
-                    groupId: targetId,
-                    memberRole: 'member',
-                    memberStatus: 'active',
-                    joinedAt: new Date().toISOString(),
-                };
+                const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
+                    .build();
                 stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
 
                 stubAuth.setUser(userId, {
@@ -505,33 +448,26 @@ describe('CommentService - Consolidated Tests', () => {
                 const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
-                const membershipDoc = {
-                    userId: userId,
-                    groupId: targetId,
-                    memberRole: 'member',
-                    memberStatus: 'active',
-                    joinedAt: new Date().toISOString(),
-                };
+                const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
+                    .build();
                 stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
 
                 // Mock existing comments
                 const mockComments = [
-                    {
-                        id: 'comment-1',
-                        authorId: 'user-123',
-                        authorName: 'Test User',
-                        text: 'First comment',
-                        createdAt: Timestamp.now(),
-                        updatedAt: Timestamp.now(),
-                    },
-                    {
-                        id: 'comment-2',
-                        authorId: 'user-456',
-                        authorName: 'Another User',
-                        text: 'Second comment',
-                        createdAt: Timestamp.now(),
-                        updatedAt: Timestamp.now(),
-                    },
+                    new CommentBuilder()
+                        .withId('comment-1')
+                        .withAuthor('user-123', 'Test User')
+                        .withText('First comment')
+                        .withCreatedAtTimestamp(Timestamp.now())
+                        .withUpdatedAtTimestamp(Timestamp.now())
+                        .build(),
+                    new CommentBuilder()
+                        .withId('comment-2')
+                        .withAuthor('user-456', 'Another User')
+                        .withText('Second comment')
+                        .withCreatedAtTimestamp(Timestamp.now())
+                        .withUpdatedAtTimestamp(Timestamp.now())
+                        .build(),
                 ];
 
                 stubReader.setCommentsForTarget(targetType, targetId, mockComments);
@@ -556,13 +492,8 @@ describe('CommentService - Consolidated Tests', () => {
                 const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
-                const membershipDoc = {
-                    userId: userId,
-                    groupId: targetId,
-                    memberRole: 'member',
-                    memberStatus: 'active',
-                    joinedAt: new Date().toISOString(),
-                };
+                const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
+                    .build();
                 stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
 
                 stubReader.setCommentsForTarget(targetType, targetId, []);
@@ -600,13 +531,8 @@ describe('CommentService - Consolidated Tests', () => {
                 const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
-                const membershipDoc = {
-                    userId: userId,
-                    groupId: targetId,
-                    memberRole: 'member',
-                    memberStatus: 'active',
-                    joinedAt: new Date().toISOString(),
-                };
+                const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
+                    .build();
                 stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
 
                 stubAuth.setUser(userId, {
@@ -639,13 +565,8 @@ describe('CommentService - Consolidated Tests', () => {
                 stubReader.setDocument('expenses', targetId, testExpense);
                 stubReader.setDocument('groups', groupId, testGroup);
 
-                const membershipDoc = {
-                    userId: userId,
-                    groupId: groupId,
-                    memberRole: 'member',
-                    memberStatus: 'active',
-                    joinedAt: new Date().toISOString(),
-                };
+                const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(groupId)
+                    .build();
                 stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
 
                 stubAuth.setUser(userId, {
@@ -676,13 +597,8 @@ describe('CommentService - Consolidated Tests', () => {
                 const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
-                const membershipDoc = {
-                    userId: userId,
-                    groupId: targetId,
-                    memberRole: 'member',
-                    memberStatus: 'active',
-                    joinedAt: new Date().toISOString(),
-                };
+                const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
+                    .build();
                 stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
 
                 stubAuth.setUser(userId, {
@@ -1118,8 +1034,8 @@ describe('CommentService - Consolidated Tests', () => {
                     '',
                     '   ', // whitespace only
                     123, // not a string
-                    {}, // object
-                    [], // array
+                    {},
+                    [],
                 ];
 
                 for (const id of invalidIds) {

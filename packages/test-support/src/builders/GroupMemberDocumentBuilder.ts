@@ -7,11 +7,11 @@ import { GroupMemberDocument, UserThemeColor, MemberRoles, MemberStatuses, Color
 export class GroupMemberDocumentBuilder {
     private memberDoc: GroupMemberDocument;
 
-    constructor(userId: string, groupId: string) {
+    constructor() {
         // Default member document with sensible defaults
         this.memberDoc = {
-            uid: userId,
-            groupId,
+            uid: 'default-user-id',
+            groupId: 'default-group-id',
             memberRole: MemberRoles.MEMBER,
             memberStatus: MemberStatuses.ACTIVE,
             joinedAt: new Date().toISOString(),
@@ -25,6 +25,16 @@ export class GroupMemberDocumentBuilder {
                 colorIndex: 0,
             },
         };
+    }
+
+    withUserId(userId: string): this {
+        this.memberDoc.uid = userId;
+        return this;
+    }
+
+    withGroupId(groupId: string): this {
+        this.memberDoc.groupId = groupId;
+        return this;
     }
 
     withRole(role: 'admin' | 'member' | 'viewer'): this {
