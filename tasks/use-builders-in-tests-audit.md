@@ -677,4 +677,95 @@ const metadata = new ChangeMetadataBuilder()
 - Maintained proper type safety throughout migration
 - No breaking changes to existing builder patterns
 
-**Status:** ✅ **COMPREHENSIVE PHASE 5 MIGRATION COMPLETE** - All identified change builder test files have been successfully migrated to use the ChangeMetadataBuilder pattern with focused testing principles applied, proper TypeScript type safety maintained, and full test coverage preserved. The project now has complete builder pattern compliance across all core test files with over 211 test instances successfully migrated.
+**Status:** ✅ **COMPREHENSIVE PHASE 5 MIGRATION COMPLETE** - All identified change builder test files have been successfully migrated to use the ChangeMetadataBuilder pattern with focused testing principles applied, proper TypeScript type safety maintained, and full test coverage preserved.
+
+## 10. Phase 6 Migration ✅ (September 2025)
+
+Following the successful completion of Phase 5, a comprehensive Phase 6 migration was undertaken to address remaining manual object creation patterns in test assertions, specifically in the split strategy test files where manual ExpenseSplit objects were being created in `expect().toEqual()` statements.
+
+### Additional Files Migrated:
+
+#### ✅ **Split Strategy Test Files** (3 files)
+**Issue**: Extensive manual creation of ExpenseSplit objects in test assertions throughout split strategy tests, with repetitive `uid`/`amount`/`percentage` object literals.
+
+**Files Migrated**:
+- `firebase/functions/src/__tests__/unit/services/splits/EqualSplitStrategy.test.ts`
+- `firebase/functions/src/__tests__/unit/services/splits/ExactSplitStrategy.test.ts`
+- `firebase/functions/src/__tests__/unit/services/splits/PercentageSplitStrategy.test.ts`
+
+**Migration Details**:
+- **Created SplitAssertionBuilder**: New builder for individual `ExpenseSplit` objects used in test assertions
+- **Replaced 24+ manual split object assertions** across all three test files with builder patterns
+- **Applied focused testing principle**: Only specified percentage field when being explicitly tested
+- **All 50 split strategy tests passing** after migration (11 + 31 + 8 test files)
+
+**Examples of Changes**:
+```typescript
+// Before (manual object creation in assertions)
+expect(result[0]).toEqual({ uid: 'user1', amount: 50 });
+expect(result[1]).toEqual({ uid: 'user2', amount: 50 });
+
+// After (builder with focus on what matters)
+expect(result[0]).toEqual(SplitAssertionBuilder.split('user1', 50));
+expect(result[1]).toEqual(SplitAssertionBuilder.split('user2', 50));
+```
+
+**Focused Testing Examples**:
+```typescript
+// Before (unnecessary complexity in percentage assertions)
+expect(result[0]).toEqual({ uid: 'user1', amount: 70, percentage: 70 });
+
+// After (clear intent with dedicated method)
+expect(result[0]).toEqual(SplitAssertionBuilder.splitWithPercentage('user1', 70, 70));
+```
+
+### New Builder Created:
+
+1. **SplitAssertionBuilder** - For `ExpenseSplit` test assertion creation
+   - `forUser()`, `withAmount()`, `withPercentage()`, `withoutPercentage()`
+   - Static convenience methods: `split(uid, amount)`, `splitWithPercentage(uid, amount, percentage)`
+   - Provides sensible defaults for all required fields
+   - Used specifically for test assertions rather than data creation
+
+### Key Principles Applied:
+
+1. **Focused Testing**: Builders specify only properties relevant to the specific test assertion
+2. **Clear Intent**: Separate methods for splits with and without percentages
+3. **Readability**: Test assertions focus on expected outcomes rather than object construction
+4. **Maintainability**: Changes to ExpenseSplit interface only require builder updates
+
+### Migration Results Summary:
+
+**Phase 6 Statistics**:
+- **24+ split assertion instances** migrated to use builder patterns
+- **1 new builder created** (SplitAssertionBuilder)
+- **3 test files** successfully migrated with focused testing principles applied
+- **100% test pass rate** maintained across all affected files (50/50 split strategy tests passing)
+- **Zero regressions** introduced
+- **TypeScript compilation clean** - no build errors
+
+**Total Project Impact (All Phases)**:
+- **235+ total test instances** migrated across all phases (117 + 35 + 25 + 14 + 20 + 24)
+- **100% builder pattern compliance** achieved in core test files
+- **15 test files** successfully migrated to use builders
+- **Zero manual object creation** remaining in identified test files
+
+### Benefits Achieved:
+
+- **Complete consistency**: Uniform builder pattern usage across all test data creation and assertions
+- **Enhanced maintainability**: All test object changes centralized in builder classes
+- **Improved readability**: Tests focus on business logic with minimal setup and assertion noise
+- **Type safety**: Builders ensure proper defaults and field validation
+- **Focused testing**: Tests only specify properties relevant to the scenario being tested
+- **Future-proof**: New test files naturally follow established builder patterns
+
+### TypeScript Integration Success:
+
+**Verification**:
+- All TypeScript compilation passes with zero errors
+- `npm run build` completes successfully
+- All split strategy tests (50 tests) continue to pass
+- Maintained proper type safety throughout migration
+- No breaking changes to existing builder patterns
+
+**Status:** ✅ **COMPREHENSIVE PHASE 6 MIGRATION COMPLETE** - All identified split strategy test assertion files have been successfully migrated to use the SplitAssertionBuilder pattern with focused testing principles applied, proper TypeScript type safety maintained, and full test coverage preserved. The project now has complete builder pattern compliance across all core test files with over 235 test instances successfully migrated.

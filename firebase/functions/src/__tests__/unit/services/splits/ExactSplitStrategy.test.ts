@@ -2,7 +2,7 @@ import { expect, describe, it } from 'vitest';
 import { ExactSplitStrategy } from '../../../../services/splits/ExactSplitStrategy';
 import { SplitTypes } from '@splitifyd/shared';
 import { ApiError } from '../../../../utils/errors';
-import { ExpenseSplitBuilder } from '@splitifyd/test-support';
+import { ExpenseSplitBuilder, SplitAssertionBuilder } from '@splitifyd/test-support';
 
 describe('ExactSplitStrategy', () => {
     const strategy = new ExactSplitStrategy();
@@ -276,8 +276,8 @@ describe('ExactSplitStrategy', () => {
             const result = strategy.calculateSplits(100, participants, splits);
 
             expect(result).toHaveLength(2);
-            expect(result[0]).toEqual({ uid: 'user1', amount: 70 });
-            expect(result[1]).toEqual({ uid: 'user2', amount: 30 });
+            expect(result[0]).toEqual(SplitAssertionBuilder.split('user1', 70));
+            expect(result[1]).toEqual(SplitAssertionBuilder.split('user2', 30));
         });
 
         it('should preserve percentage if provided', () => {
@@ -289,8 +289,8 @@ describe('ExactSplitStrategy', () => {
             const result = strategy.calculateSplits(100, participants, splits);
 
             expect(result).toHaveLength(2);
-            expect(result[0]).toEqual({ uid: 'user1', amount: 70, percentage: 70 });
-            expect(result[1]).toEqual({ uid: 'user2', amount: 30, percentage: 30 });
+            expect(result[0]).toEqual(SplitAssertionBuilder.splitWithPercentage('user1', 70, 70));
+            expect(result[1]).toEqual(SplitAssertionBuilder.splitWithPercentage('user2', 30, 30));
         });
 
         it('should not include percentage field when undefined', () => {
@@ -302,8 +302,8 @@ describe('ExactSplitStrategy', () => {
             const result = strategy.calculateSplits(100, participants, splits);
 
             expect(result).toHaveLength(2);
-            expect(result[0]).toEqual({ uid: 'user1', amount: 70 });
-            expect(result[1]).toEqual({ uid: 'user2', amount: 30 });
+            expect(result[0]).toEqual(SplitAssertionBuilder.split('user1', 70));
+            expect(result[1]).toEqual(SplitAssertionBuilder.split('user2', 30));
             expect(result[0]).not.toHaveProperty('percentage');
             expect(result[1]).not.toHaveProperty('percentage');
         });

@@ -38,3 +38,4 @@ export { PasswordChangeBuilder } from './PasswordChangeBuilder';
 export { ThemeBuilder } from './ThemeBuilder';
 export { ChangeMetadataBuilder } from './ChangeMetadataBuilder';
 export type { ChangeMetadata, ChangePriority } from './ChangeMetadataBuilder';
+export { SplitAssertionBuilder } from './SplitAssertionBuilder';
