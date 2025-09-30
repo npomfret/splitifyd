@@ -80,7 +80,6 @@ export class UserNotificationDetector {
     private retryCount = 0;
     private retryTimer: NodeJS.Timeout | null = null;
     private isDisposed = false;
-    private userId: string | null = null;
     private isFirstDocument = true;
     // Track baseline states when groups are first seen to distinguish new changes from pre-existing ones
     private baselineGroupStates = new Map<string, GroupNotificationState>();
@@ -92,12 +91,6 @@ export class UserNotificationDetector {
      * Returns unsubscribe function
      */
     subscribe(callbacks: NotificationCallbacks, config?: NotificationConfig): () => void {
-        const currentUser = this.firebaseService.getCurrentUser();
-        const userId = currentUser?.uid;
-        if (!userId) {
-            throw new Error('Cannot setup notification listener: user not authenticated');
-        }
-
         if (this.isDisposed) {
             throw new Error('UserNotificationDetector has been disposed');
         }
@@ -113,13 +106,7 @@ export class UserNotificationDetector {
         };
         this.subscriptions.set(subscriptionId, subscription);
 
-        // Set userId and start listener if not already running
-        if (!this.userId) {
-            this.userId = userId;
-            this.startListener();
-        } else if (this.userId !== userId) {
-            throw new Error(`UserNotificationDetector already subscribed for different user. Expected: ${this.userId}, got: ${userId}`);
-        }
+        this.startListener();
 
         // Return unsubscribe function that removes this specific subscription
         return () => this.unsubscribeSubscription(subscriptionId);
@@ -129,15 +116,18 @@ export class UserNotificationDetector {
      * Start the Firestore listener
      */
     private startListener(): void {
-        if (!this.userId || this.listener) {
+        if (this.listener) {
             return;
         }
 
-        // Starting listener is routine
+        const userId = this.firebaseService.getCurrentUserId();
+        if (!userId) {
+            throw new Error('Cannot setup notification listener: user not authenticated');
+        }
 
         this.listener = this.firebaseService.onDocumentSnapshot(
             'user-notifications',
-            this.userId,
+            userId,
             (snapshot) => this.handleSnapshot(snapshot),
             (error) => this.handleError(error),
         );
@@ -374,7 +364,6 @@ export class UserNotificationDetector {
      */
     private handleError(error: Error): void {
         logError('UserNotificationDetector: subscription error', error, {
-            userId: this.userId,
             retryCount: this.retryCount,
         });
 
@@ -456,7 +445,6 @@ export class UserNotificationDetector {
         this.baselineGroupStates.clear();
         this.isFirstDocument = true;
         this.retryCount = 0;
-        this.userId = null;
     }
 
     /**
@@ -494,7 +482,6 @@ export class UserNotificationDetector {
      */
     getDebugInfo(): any {
         return {
-            userId: this.userId,
             isDisposed: this.isDisposed,
             hasListener: !!this.listener,
             lastVersion: this.lastVersion,

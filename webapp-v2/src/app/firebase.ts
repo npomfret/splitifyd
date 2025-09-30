@@ -9,7 +9,7 @@ export interface FirebaseService {
     connect(): Promise<void>;
     performTokenRefresh(): Promise<string>;
     performUserRefresh(): Promise<void>;
-    getCurrentUser(): User | null;
+    getCurrentUserId(): string | null;
     signInWithEmailAndPassword(email: string, password: string): Promise<any>;
     sendPasswordResetEmail(email: string): Promise<void>;
     signOut(): Promise<void>;
@@ -57,8 +57,10 @@ class FirebaseServiceImpl implements FirebaseService {
         return this.auth;
     }
 
-    getCurrentUser(): User | null {
-        return this.getAuth().currentUser;
+    getCurrentUserId(): string | null {
+        const currentUser = this.getAuth().currentUser;
+        const userId = currentUser?.uid;
+        return userId ?? null;
     }
 
     private getFirestore(): Firestore {
@@ -82,7 +84,7 @@ class FirebaseServiceImpl implements FirebaseService {
     }
 
     async performTokenRefresh() {
-        const currentUser = this.getCurrentUser();
+        const currentUser = this.getAuth().currentUser;
 
         if (!currentUser) {
             throw new Error('No authenticated user');
@@ -93,7 +95,7 @@ class FirebaseServiceImpl implements FirebaseService {
     }
 
     async performUserRefresh() {
-        const currentUser = this.getCurrentUser();
+        const currentUser = this.getAuth().currentUser;
         if (currentUser) {
             await currentUser.reload();
         }
