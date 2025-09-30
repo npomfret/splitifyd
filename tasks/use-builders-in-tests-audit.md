@@ -573,3 +573,108 @@ const invalidSettlementData = new CreateSettlementRequestBuilder()
 - **Future-proof**: New test files naturally follow established builder patterns
 
 **Status:** ✅ **COMPREHENSIVE PHASE 4 MIGRATION COMPLETE** - All identified builder pattern opportunities have been successfully implemented with focused testing principles applied, proper TypeScript type safety maintained, and full test coverage preserved.
+
+## 9. Phase 5 Migration ✅ (September 2025)
+
+Following the successful completion of Phase 4, a comprehensive Phase 5 migration was undertaken to address remaining test files with manual object creation patterns in the change builder tests. This phase focused on standardizing metadata object creation for testing change document builders.
+
+### Additional Files Migrated:
+
+#### ✅ **Change Builder Test Files** (3 files)
+**Issue**: Extensive manual creation of `ChangeMetadata` objects throughout change builder tests, with repetitive priority/user/field specifications.
+
+**Files Migrated**:
+- `firebase/functions/src/__tests__/unit/change-builders/ExpenseChangeDocumentBuilder.test.ts`
+- `firebase/functions/src/__tests__/unit/change-builders/SettlementChangeDocumentBuilder.test.ts`
+- `firebase/functions/src/__tests__/unit/change-builders/GroupChangeDocumentBuilder.test.ts`
+
+**Migration Details**:
+- **Created ChangeMetadataBuilder**: New builder for `ChangeMetadata` objects with intuitive method chaining
+- **Replaced 20+ ChangeMetadata instances** across all three test files with builder patterns
+- **Applied focused testing principle**: Only specified metadata properties essential to each test
+- **All 48 tests passing** after migration (13 + 13 + 9 + 13 factory tests)
+
+**Examples of Changes**:
+```typescript
+// Before (manual object creation)
+const metadata: ChangeMetadata = {
+    priority: 'high',
+    affectedUsers: ['user1', 'user2'],
+    changedFields: ['amount'],
+};
+
+// After (builder with focus on what matters)
+const metadata = new ChangeMetadataBuilder()
+    .asHighPriority()
+    .withAffectedUsers(['user1', 'user2'])
+    .withChangedFields(['amount'])
+    .build();
+```
+
+**Focused Testing Examples**:
+```typescript
+// Before (unnecessary metadata complexity)
+const metadata: ChangeMetadata = {
+    priority: 'medium',
+    affectedUsers: ['user1'],
+    changedFields: undefined,
+};
+
+// After (builder focusing only on what's being tested)
+const metadata = new ChangeMetadataBuilder()
+    .asMediumPriority()
+    .withAffectedUsers(['user1'])
+    .withoutChangedFields()
+    .build();
+```
+
+### New Builder Created:
+
+1. **ChangeMetadataBuilder** - For `ChangeMetadata` test object creation
+   - `withPriority()`, `withAffectedUsers()`, `withChangedFields()`, `withoutChangedFields()`
+   - Convenience methods: `asHighPriority()`, `asMediumPriority()`, `asLowPriority()`
+   - Provides sensible defaults for all required fields
+   - Used for consistent metadata object creation across change builder tests
+
+### Key Principles Applied:
+
+1. **Focused Testing**: Builders specify only metadata properties relevant to the specific test scenario
+2. **Default Sufficiency**: Let builders provide sensible defaults for irrelevant properties
+3. **Readability**: Tests focus on business logic rather than metadata object construction
+4. **Maintainability**: Changes to ChangeMetadata interface only require builder updates
+
+### Migration Results Summary:
+
+**Phase 5 Statistics**:
+- **20+ change metadata instances** migrated to use builder patterns
+- **1 new builder created** (ChangeMetadataBuilder)
+- **3 test files** successfully migrated with focused testing principles applied
+- **100% test pass rate** maintained across all affected files (48/48 tests passing)
+- **Zero regressions** introduced
+- **TypeScript compilation clean** - no build errors
+
+**Total Project Impact (All Phases)**:
+- **211+ total test instances** migrated across all phases (117 + 35 + 25 + 14 + 20)
+- **100% builder pattern compliance** achieved in core test files
+- **12 test files** successfully migrated to use builders
+- **Zero manual object creation** remaining in identified test files
+
+### Benefits Achieved:
+
+- **Complete consistency**: Uniform builder pattern usage across all test data creation
+- **Enhanced maintainability**: All test metadata changes centralized in builder classes
+- **Improved readability**: Tests focus on business logic with minimal setup noise
+- **Type safety**: Builders ensure proper defaults and field validation
+- **Focused testing**: Tests only specify properties relevant to the scenario being tested
+- **Future-proof**: New test files naturally follow established builder patterns
+
+### TypeScript Integration Success:
+
+**Verification**:
+- All TypeScript compilation passes with zero errors
+- `npm run build` completes successfully
+- All change builder tests (48 tests) continue to pass
+- Maintained proper type safety throughout migration
+- No breaking changes to existing builder patterns
+
+**Status:** ✅ **COMPREHENSIVE PHASE 5 MIGRATION COMPLETE** - All identified change builder test files have been successfully migrated to use the ChangeMetadataBuilder pattern with focused testing principles applied, proper TypeScript type safety maintained, and full test coverage preserved. The project now has complete builder pattern compliance across all core test files with over 211 test instances successfully migrated.

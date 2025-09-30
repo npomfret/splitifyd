@@ -2,6 +2,7 @@ import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
 import { SettlementChangeDocumentBuilder } from '../../../utils/change-builders';
 import { ChangeMetadata } from '../../../utils/change-detection';
+import { ChangeMetadataBuilder } from '@splitifyd/test-support';
 
 describe('SettlementChangeDocumentBuilder', () => {
     let builder: SettlementChangeDocumentBuilder;
@@ -27,11 +28,11 @@ describe('SettlementChangeDocumentBuilder', () => {
 
     describe('createChangeDocument', () => {
         it('should create a basic settlement change document with groupId', () => {
-            const metadata: ChangeMetadata = {
-                priority: 'high',
-                affectedUsers: ['user1', 'user2'],
-                changedFields: ['amount'],
-            };
+            const metadata = new ChangeMetadataBuilder()
+                .asHighPriority()
+                .withAffectedUsers(['user1', 'user2'])
+                .withChangedFields(['amount'])
+                .build();
 
             const additionalData = {
                 groupId: 'group123',
@@ -53,10 +54,11 @@ describe('SettlementChangeDocumentBuilder', () => {
         });
 
         it('should throw error when groupId is missing', () => {
-            const metadata: ChangeMetadata = {
-                priority: 'high',
-                affectedUsers: ['user1'],
-            };
+            const metadata = new ChangeMetadataBuilder()
+                .asHighPriority()
+                .withAffectedUsers(['user1'])
+                .withoutChangedFields()
+                .build();
 
             expect(() => {
                 builder.createChangeDocument('settlement789', 'created', metadata);
@@ -64,10 +66,11 @@ describe('SettlementChangeDocumentBuilder', () => {
         });
 
         it('should throw error when groupId is undefined in additionalData', () => {
-            const metadata: ChangeMetadata = {
-                priority: 'medium',
-                affectedUsers: ['user1'],
-            };
+            const metadata = new ChangeMetadataBuilder()
+                .asMediumPriority()
+                .withAffectedUsers(['user1'])
+                .withoutChangedFields()
+                .build();
 
             const additionalData = {
                 groupId: undefined,
@@ -80,10 +83,11 @@ describe('SettlementChangeDocumentBuilder', () => {
         });
 
         it('should include additional data beyond groupId', () => {
-            const metadata: ChangeMetadata = {
-                priority: 'low',
-                affectedUsers: ['user1'],
-            };
+            const metadata = new ChangeMetadataBuilder()
+                .asLowPriority()
+                .withAffectedUsers(['user1'])
+                .withoutChangedFields()
+                .build();
 
             const additionalData = {
                 groupId: 'group456',
@@ -110,10 +114,11 @@ describe('SettlementChangeDocumentBuilder', () => {
         });
 
         it('should handle all change types', () => {
-            const metadata: ChangeMetadata = {
-                priority: 'high',
-                affectedUsers: ['user1'],
-            };
+            const metadata = new ChangeMetadataBuilder()
+                .asHighPriority()
+                .withAffectedUsers(['user1'])
+                .withoutChangedFields()
+                .build();
 
             const additionalData = { groupId: 'group123' };
 
@@ -127,10 +132,11 @@ describe('SettlementChangeDocumentBuilder', () => {
         });
 
         it('should remove undefined fields recursively', () => {
-            const metadata: ChangeMetadata = {
-                priority: 'medium',
-                affectedUsers: ['user1'],
-            };
+            const metadata = new ChangeMetadataBuilder()
+                .asMediumPriority()
+                .withAffectedUsers(['user1'])
+                .withoutChangedFields()
+                .build();
 
             const additionalData = {
                 groupId: 'group123',

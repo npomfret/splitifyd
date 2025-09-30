@@ -36,3 +36,5 @@ export type { ExpenseSplit } from './ExpenseSplitBuilder';
 export { UserUpdateBuilder } from './UserUpdateBuilder';
 export { PasswordChangeBuilder } from './PasswordChangeBuilder';
 export { ThemeBuilder } from './ThemeBuilder';
+export { ChangeMetadataBuilder } from './ChangeMetadataBuilder';
+export type { ChangeMetadata, ChangePriority } from './ChangeMetadataBuilder';

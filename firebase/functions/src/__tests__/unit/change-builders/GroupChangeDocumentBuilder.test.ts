@@ -2,6 +2,7 @@ import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
 import { GroupChangeDocumentBuilder } from '../../../utils/change-builders';
 import { ChangeMetadata } from '../../../utils/change-detection';
+import { ChangeMetadataBuilder } from '@splitifyd/test-support';
 
 describe('GroupChangeDocumentBuilder', () => {
     let builder: GroupChangeDocumentBuilder;
@@ -27,11 +28,11 @@ describe('GroupChangeDocumentBuilder', () => {
 
     describe('createChangeDocument', () => {
         it('should create a basic group change document', () => {
-            const metadata: ChangeMetadata = {
-                priority: 'high',
-                affectedUsers: ['user1', 'user2'],
-                changedFields: ['name'],
-            };
+            const metadata = new ChangeMetadataBuilder()
+                .asHighPriority()
+                .withAffectedUsers(['user1', 'user2'])
+                .withChangedFields(['name'])
+                .build();
 
             const result = builder.createChangeDocument('group123', 'updated', metadata);
 
@@ -48,10 +49,11 @@ describe('GroupChangeDocumentBuilder', () => {
         });
 
         it('should include additional data when provided', () => {
-            const metadata: ChangeMetadata = {
-                priority: 'medium',
-                affectedUsers: ['user1'],
-            };
+            const metadata = new ChangeMetadataBuilder()
+                .asMediumPriority()
+                .withAffectedUsers(['user1'])
+                .withoutChangedFields()
+                .build();
 
             const additionalData = {
                 changeUserId: 'user789',
@@ -74,10 +76,11 @@ describe('GroupChangeDocumentBuilder', () => {
         });
 
         it('should remove undefined fields recursively', () => {
-            const metadata: ChangeMetadata = {
-                priority: 'low',
-                affectedUsers: ['user1'],
-            };
+            const metadata = new ChangeMetadataBuilder()
+                .asLowPriority()
+                .withAffectedUsers(['user1'])
+                .withoutChangedFields()
+                .build();
 
             const additionalData = {
                 definedField: 'value',
@@ -108,10 +111,11 @@ describe('GroupChangeDocumentBuilder', () => {
         });
 
         it('should handle all change types', () => {
-            const metadata: ChangeMetadata = {
-                priority: 'high',
-                affectedUsers: ['user1'],
-            };
+            const metadata = new ChangeMetadataBuilder()
+                .asHighPriority()
+                .withAffectedUsers(['user1'])
+                .withoutChangedFields()
+                .build();
 
             const createdResult = builder.createChangeDocument('group1', 'created', metadata);
             const updatedResult = builder.createChangeDocument('group2', 'updated', metadata);
