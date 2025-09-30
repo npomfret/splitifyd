@@ -721,7 +721,7 @@ export class GroupService {
 
             // Update denormalized groupUpdatedAt in all membership documents
             membershipSnapshot.docs.forEach((doc) => {
-                transaction.update(doc.ref, {
+                this.firestoreWriter.updateInTransaction(transaction, doc.ref.path, {
                     groupUpdatedAt: updatedData.updatedAt.toISOString(),
                     updatedAt: this.dateHelpers.createTrueServerTimestamp(),
                 });
@@ -778,7 +778,7 @@ export class GroupService {
                     updatedAt: Timestamp.now(),
                 };
 
-                transaction.update(groupRef, updatedData);
+                this.firestoreWriter.updateInTransaction(transaction, groupRef.path, updatedData);
 
                 this.logger.info('Group marked for deletion', {
                     groupId,
@@ -884,7 +884,7 @@ export class GroupService {
                     const groupSnap = await transaction.get(groupRef);
 
                     if (groupSnap.exists) {
-                        transaction.update(groupRef, {
+                        this.firestoreWriter.updateInTransaction(transaction, groupRef.path, {
                             deletionStatus: 'failed' as const,
                             updatedAt: Timestamp.now(),
                         });

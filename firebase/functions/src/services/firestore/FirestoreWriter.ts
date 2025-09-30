@@ -46,6 +46,21 @@ interface TransactionRetryMetric {
     retryDelay: number;
 }
 
+/**
+ * Validation metrics for monitoring validation coverage and effectiveness
+ */
+interface ValidationMetrics {
+    operation: string;
+    collection: string;
+    documentId: string;
+    validationType: 'full' | 'partial' | 'skipped';
+    validatedFieldCount?: number;
+    skippedFieldCount?: number;
+    validatedFields?: string[];
+    skippedFields?: string[];
+    skipReason?: string;
+}
+
 export class FirestoreWriter implements IFirestoreWriter {
     constructor(private readonly db: Firestore) {}
 
@@ -54,16 +69,54 @@ export class FirestoreWriter implements IFirestoreWriter {
     // ========================================================================
 
     /**
+     * Track validation metrics for monitoring and analysis
+     */
+    private trackValidationMetrics(metrics: ValidationMetrics): void {
+        logger.info('Firestore validation metrics', {
+            operation: metrics.operation,
+            collection: metrics.collection,
+            documentId: metrics.documentId,
+            validationType: metrics.validationType,
+            validatedFieldCount: metrics.validatedFieldCount || 0,
+            skippedFieldCount: metrics.skippedFieldCount || 0,
+            validatedFields: metrics.validatedFields || [],
+            skippedFields: metrics.skippedFields || [],
+            skipReason: metrics.skipReason,
+            validationCoveragePercent: metrics.validatedFieldCount && metrics.skippedFieldCount
+                ? Math.round((metrics.validatedFieldCount / (metrics.validatedFieldCount + metrics.skippedFieldCount)) * 100)
+                : metrics.validationType === 'full' ? 100 : 0,
+        });
+    }
+
+    /**
      * Safely validate merged data, handling FieldValue operations gracefully
      */
     private safeValidateUpdate<T>(schema: any, mergedData: Record<string, any>, schemaName: string, documentId: string, collection: string): { isValid: boolean; data?: T; skipValidation?: boolean } {
         try {
             const validatedData = this.validateMergedData<T>(schema, mergedData, schemaName, documentId, collection);
+
+            this.trackValidationMetrics({
+                operation: 'safeValidateUpdate',
+                collection,
+                documentId,
+                validationType: 'full',
+                validatedFieldCount: Object.keys(mergedData).length,
+                validatedFields: Object.keys(mergedData),
+            });
+
             return { isValid: true, data: validatedData };
         } catch (error) {
             // Check if error is due to FieldValue operations
             const errorMessage = error instanceof Error ? error.message : String(error);
             if (errorMessage.includes('FieldValue') || errorMessage.includes('Transform')) {
+                this.trackValidationMetrics({
+                    operation: 'safeValidateUpdate',
+                    collection,
+                    documentId,
+                    validationType: 'skipped',
+                    skipReason: 'FieldValue operations detected',
+                });
+
                 logger.info('Validation skipped due to FieldValue operations', {
                     documentId,
                     collection,
@@ -71,6 +124,15 @@ export class FirestoreWriter implements IFirestoreWriter {
                 });
                 return { isValid: true, skipValidation: true };
             }
+
+            this.trackValidationMetrics({
+                operation: 'safeValidateUpdate',
+                collection,
+                documentId,
+                validationType: 'skipped',
+                skipReason: 'validation error: ' + errorMessage,
+            });
+
             // Re-throw non-FieldValue validation errors
             throw error;
         }
@@ -185,6 +247,14 @@ export class FirestoreWriter implements IFirestoreWriter {
     } {
         const schema = this.getSchemaForCollection(collection);
         if (!schema) {
+            this.trackValidationMetrics({
+                operation: 'validateTransactionData',
+                collection,
+                documentId,
+                validationType: 'skipped',
+                skipReason: 'no schema found for collection',
+            });
+
             // No schema found - log and skip validation
             logger.info('Transaction validation skipped - no schema found', {
                 collection,
@@ -208,6 +278,16 @@ export class FirestoreWriter implements IFirestoreWriter {
 
         // If all fields are FieldValue operations, skip validation entirely
         if (Object.keys(fieldsToValidate).length === 0) {
+            this.trackValidationMetrics({
+                operation: 'validateTransactionData',
+                collection,
+                documentId,
+                validationType: 'skipped',
+                skippedFieldCount: skippedFields.length,
+                skippedFields,
+                skipReason: 'only FieldValue operations',
+            });
+
             logger.info('Transaction validation skipped - only FieldValue operations', {
                 collection,
                 documentId,
@@ -221,6 +301,17 @@ export class FirestoreWriter implements IFirestoreWriter {
             // Validate partial data (only business logic fields)
             // Note: This doesn't do full document validation, just field-level validation
             const validatedFields = fieldsToValidate;
+
+            this.trackValidationMetrics({
+                operation: 'validateTransactionData',
+                collection,
+                documentId,
+                validationType: 'partial',
+                validatedFieldCount: Object.keys(validatedFields).length,
+                skippedFieldCount: skippedFields.length,
+                validatedFields: Object.keys(validatedFields),
+                skippedFields: skippedFields.length > 0 ? skippedFields : undefined,
+            });
 
             logger.info('Transaction validation completed (partial)', {
                 collection,
@@ -238,6 +329,14 @@ export class FirestoreWriter implements IFirestoreWriter {
                 skippedFields: skippedFields.length > 0 ? skippedFields : undefined
             };
         } catch (error) {
+            this.trackValidationMetrics({
+                operation: 'validateTransactionData',
+                collection,
+                documentId,
+                validationType: 'skipped',
+                skipReason: 'validation error: ' + (error instanceof Error ? error.message : String(error)),
+            });
+
             logger.error('Transaction validation failed', error, {
                 collection,
                 documentId,
@@ -1460,16 +1559,37 @@ export class FirestoreWriter implements IFirestoreWriter {
             return;
         }
 
-        logger.info('Bulk delete in transaction initiated', {
-            operation: 'bulkDeleteInTransaction',
-            documentCount: documentPaths.length,
-        });
+        // Enhanced validation and monitoring for bulk delete operations
+        const collectionCounts: Record<string, number> = {};
+        const validatedPaths: string[] = [];
 
+        // Pre-validate all paths and collect statistics
         for (const path of documentPaths) {
             if (!path || typeof path !== 'string') {
                 throw new Error(`Invalid document path: ${path}`);
             }
 
+            // Validate path format (collection/document or collection/document/subcollection/document)
+            const pathSegments = path.split('/');
+            if (pathSegments.length < 2 || pathSegments.length % 2 !== 0) {
+                throw new Error(`Invalid document path format: ${path}. Must be collection/document or collection/document/subcollection/document`);
+            }
+
+            // Track deletions by collection for monitoring
+            const collection = pathSegments[0];
+            collectionCounts[collection] = (collectionCounts[collection] || 0) + 1;
+            validatedPaths.push(path);
+        }
+
+        logger.info('Bulk delete in transaction initiated (enhanced validation)', {
+            operation: 'bulkDeleteInTransaction',
+            documentCount: validatedPaths.length,
+            collectionBreakdown: collectionCounts,
+            collections: Object.keys(collectionCounts),
+        });
+
+        // Perform all deletions
+        for (const path of validatedPaths) {
             try {
                 const docRef = this.db.doc(path);
                 transaction.delete(docRef);
@@ -1482,9 +1602,11 @@ export class FirestoreWriter implements IFirestoreWriter {
             }
         }
 
-        logger.info('Bulk delete in transaction completed', {
+        logger.info('Bulk delete in transaction completed (enhanced monitoring)', {
             operation: 'bulkDeleteInTransaction',
-            documentCount: documentPaths.length,
+            documentCount: validatedPaths.length,
+            collectionBreakdown: collectionCounts,
+            validationStatus: 'all paths validated',
         });
     }
 

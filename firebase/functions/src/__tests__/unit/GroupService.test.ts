@@ -23,7 +23,7 @@ describe('GroupService - Unit Tests', () => {
     beforeEach(() => {
         // Create stubs
         stubReader = new StubFirestoreReader();
-        stubWriter = new StubFirestoreWriter();
+        stubWriter = new StubFirestoreWriter(stubReader.getDocuments()); // Share document storage
         stubAuth = new StubAuthService();
 
         // Create ApplicationBuilder and build GroupService

@@ -31,6 +31,11 @@ export class StubFirestoreReader implements IFirestoreReader {
         this.documents.set(`${collection}/${id}`, data);
     }
 
+    // Get the documents Map for sharing with writer
+    getDocuments(): Map<string, any> {
+        return this.documents;
+    }
+
     // Helper methods for pagination testing (similar to MockFirestoreReader)
     mockGroupsForUser(userId: string, groups: any[], hasMore: boolean = false, nextCursor?: string) {
         this.userGroups.set(userId, {
@@ -490,6 +495,13 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     private documents = new Map<string, any>();
     private writeResults: WriteResult[] = [];
 
+    constructor(private sharedDocuments?: Map<string, any>) {
+        // If shared documents are provided, use those instead of our own
+        if (sharedDocuments) {
+            this.documents = sharedDocuments;
+        }
+    }
+
     // Helper methods to configure behavior
     setWriteResult(id: string, success: boolean, error?: string) {
         this.writeResults.push({
@@ -695,8 +707,11 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         return {id, path: `${collection}/${id}`};
     }
 
-    updateInTransaction = vi.fn().mockImplementation(async (): Promise<WriteResult> => {
-        return {id: 'doc', success: true, timestamp: Timestamp.now()};
+    updateInTransaction = vi.fn().mockImplementation((transaction: any, documentPath: string, updates: any): void => {
+        // Update the document in the writer's storage so subsequent reads see the changes
+        const existingDoc = this.documents.get(documentPath) || {};
+        const updatedDoc = { ...existingDoc, ...updates };
+        this.documents.set(documentPath, updatedDoc);
     });
 
     async deleteInTransaction(): Promise<WriteResult> {
