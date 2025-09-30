@@ -40,7 +40,8 @@ describe('UserNotificationDetector', () => {
         mockFirebaseService = {
             connect: vi.fn(),
             performTokenRefresh: vi.fn(),
-            getCurrentUser: vi.fn(() => ({ uid: 'test-user-456' }) as any),
+            performUserRefresh: vi.fn(),
+            getCurrentUserId: vi.fn(() => 'test-user-456'),
             signInWithEmailAndPassword: vi.fn(),
             sendPasswordResetEmail: vi.fn(),
             signOut: vi.fn(),
@@ -100,12 +101,13 @@ describe('UserNotificationDetector', () => {
         const debugInfo = detector.getDebugInfo();
 
         expect(debugInfo).toEqual({
-            userId: null,
             isDisposed: false,
             hasListener: false,
             lastVersion: 0,
             trackedGroups: [],
             retryCount: 0,
+            activeSubscriptions: 0,
+            subscriptionIds: [],
         });
     });
 
@@ -114,7 +116,7 @@ describe('UserNotificationDetector', () => {
 
         const debugInfo = detector.getDebugInfo();
 
-        expect(debugInfo.userId).toBe('test-user-456');
         expect(debugInfo.hasListener).toBe(true);
+        expect(debugInfo.activeSubscriptions).toBe(1);
     });
 });
