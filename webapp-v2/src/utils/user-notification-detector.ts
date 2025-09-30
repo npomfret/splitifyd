@@ -95,21 +95,18 @@ export class UserNotificationDetector {
             throw new Error('UserNotificationDetector has been disposed');
         }
 
-        // Generate unique subscription ID
-        const subscriptionId = `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
         // Store subscription
         const subscription: Subscription = {
-            id: subscriptionId,
+            id: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,// some unique id
             callbacks,
             config: config || {},
         };
-        this.subscriptions.set(subscriptionId, subscription);
+        this.subscriptions.set(subscription.id, subscription);
 
         this.startListener();
 
         // Return unsubscribe function that removes this specific subscription
-        return () => this.unsubscribeSubscription(subscriptionId);
+        return () => this.unsubscribeSubscription(subscription.id);
     }
 
     /**
