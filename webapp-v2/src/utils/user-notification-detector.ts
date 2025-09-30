@@ -65,12 +65,18 @@ interface UserNotificationDocument {
  * - Atomic consistency via FieldValue operations
  * - Reliable change detection via counters
  */
+// Internal subscription tracking
+interface Subscription {
+    id: string;
+    callbacks: NotificationCallbacks;
+    config: NotificationConfig;
+}
+
 export class UserNotificationDetector {
     private listener: (() => void) | null = null;
     private lastVersion = 0;
     private lastGroupStates = new Map<string, GroupNotificationState>();
-    private callbacks: NotificationCallbacks = {};
-    private config: NotificationConfig = {};
+    private subscriptions = new Map<string, Subscription>();
     private retryCount = 0;
     private retryTimer: NodeJS.Timeout | null = null;
     private isDisposed = false;
@@ -86,7 +92,8 @@ export class UserNotificationDetector {
      * Returns unsubscribe function
      */
     subscribe(callbacks: NotificationCallbacks, config?: NotificationConfig): () => void {
-        const userId = this.firebaseService.getAuth().currentUser?.uid;
+        const currentUser = this.firebaseService.getCurrentUser();
+        const userId = currentUser?.uid;
         if (!userId) {
             throw new Error('Cannot setup notification listener: user not authenticated');
         }
@@ -95,17 +102,27 @@ export class UserNotificationDetector {
             throw new Error('UserNotificationDetector has been disposed');
         }
 
-        // Subscription is routine - only log if debug mode needed
+        // Generate unique subscription ID
+        const subscriptionId = `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-        this.userId = userId;
-        this.callbacks = callbacks;
-        this.config = config || {};
+        // Store subscription
+        const subscription: Subscription = {
+            id: subscriptionId,
+            callbacks,
+            config: config || {},
+        };
+        this.subscriptions.set(subscriptionId, subscription);
 
-        // Start listening immediately
-        this.startListener();
+        // Set userId and start listener if not already running
+        if (!this.userId) {
+            this.userId = userId;
+            this.startListener();
+        } else if (this.userId !== userId) {
+            throw new Error(`UserNotificationDetector already subscribed for different user. Expected: ${this.userId}, got: ${userId}`);
+        }
 
-        // Return unsubscribe function that cleans up without disposing
-        return () => this.unsubscribe();
+        // Return unsubscribe function that removes this specific subscription
+        return () => this.unsubscribeSubscription(subscriptionId);
     }
 
     /**
@@ -124,6 +141,22 @@ export class UserNotificationDetector {
             (snapshot) => this.handleSnapshot(snapshot),
             (error) => this.handleError(error),
         );
+    }
+
+    /**
+     * Helper method to call a specific callback across all active subscriptions
+     */
+    private callAllSubscriptions(callbackName: keyof NotificationCallbacks, ...args: any[]): void {
+        for (const subscription of this.subscriptions.values()) {
+            const callback = subscription.callbacks[callbackName];
+            if (callback && typeof callback === 'function') {
+                try {
+                    (callback as any)(...args);
+                } catch (error) {
+                    logError(`Error in ${callbackName} callback:`, error);
+                }
+            }
+        }
     }
 
     /**
@@ -177,25 +210,25 @@ export class UserNotificationDetector {
             const lastState = this.lastGroupStates.get(groupId);
 
             // Check for group details changes
-            if (this.callbacks.onGroupChange && this.hasGroupDetailsChanged(groupData, lastState)) {
+            if (this.hasGroupDetailsChanged(groupData, lastState)) {
                 logInfo('UserNotificationDetector: group change detected', { groupId });
-                this.callbacks.onGroupChange(groupId);
+                this.callAllSubscriptions('onGroupChange', groupId);
             }
 
             // Check for transaction changes (expenses/settlements)
-            if (this.callbacks.onTransactionChange && this.hasTransactionChanged(groupId, groupData, lastState)) {
+            if (this.hasTransactionChanged(groupId, groupData, lastState)) {
                 logInfo('UserNotificationDetector: transaction change detected', { groupId });
-                this.callbacks.onTransactionChange(groupId);
+                this.callAllSubscriptions('onTransactionChange', groupId);
             }
 
             // Check for balance changes
-            if (this.callbacks.onBalanceChange && this.hasBalanceChanged(groupId, groupData, lastState)) {
+            if (this.hasBalanceChanged(groupId, groupData, lastState)) {
                 logInfo('UserNotificationDetector: balance change detected', { groupId });
-                this.callbacks.onBalanceChange(groupId);
+                this.callAllSubscriptions('onBalanceChange', groupId);
             }
 
             // Check for comment changes
-            if (this.callbacks.onCommentChange && this.hasCommentChanged(groupId, groupData, lastState)) {
+            if (this.hasCommentChanged(groupId, groupData, lastState)) {
                 logInfo('UserNotificationDetector: comment change detected', { groupId });
 
                 // Since the backend notification system doesn't distinguish between group and expense comments,
@@ -205,9 +238,9 @@ export class UserNotificationDetector {
                 // and then decide internally whether to refresh based on its current target.
                 // We'll pass the group ID for both types and let the store handle the logic.
 
-                this.callbacks.onCommentChange('group', groupId);
+                this.callAllSubscriptions('onCommentChange', 'group', groupId);
                 // Also trigger for any expense comments in this group
-                this.callbacks.onCommentChange('expense', groupId);
+                this.callAllSubscriptions('onCommentChange', 'expense', groupId);
             }
 
             // Update last state
@@ -222,9 +255,7 @@ export class UserNotificationDetector {
                 this.lastGroupStates.delete(groupId);
 
                 // Notify callback that the group was removed (deleted or user was removed)
-                if (this.callbacks.onGroupRemoved) {
-                    this.callbacks.onGroupRemoved(groupId);
-                }
+                this.callAllSubscriptions('onGroupRemoved', groupId);
             }
         }
     }
@@ -347,14 +378,24 @@ export class UserNotificationDetector {
             retryCount: this.retryCount,
         });
 
-        // Call error callback if provided
-        if (this.config.onError) {
-            this.config.onError(error);
+        // Call error callbacks for all subscriptions
+        for (const subscription of this.subscriptions.values()) {
+            if (subscription.config.onError) {
+                try {
+                    subscription.config.onError(error);
+                } catch (callbackError) {
+                    logError('Error in onError callback:', callbackError);
+                }
+            }
         }
 
-        // Implement retry logic
-        const maxRetries = this.config.maxRetries || 3;
-        const retryDelay = this.config.retryDelay || 2000;
+        // Implement retry logic - use max values from all subscriptions
+        let maxRetries = 3;
+        let retryDelay = 2000;
+        for (const subscription of this.subscriptions.values()) {
+            maxRetries = Math.max(maxRetries, subscription.config.maxRetries || 3);
+            retryDelay = Math.max(retryDelay, subscription.config.retryDelay || 2000);
+        }
 
         if (this.retryCount < maxRetries && !this.isDisposed) {
             this.retryCount++;
@@ -382,12 +423,21 @@ export class UserNotificationDetector {
     }
 
     /**
-     * Unsubscribe from current listener without disposing detector
-     * Allows detector to be reused for new subscriptions
+     * Unsubscribe a specific subscription
      */
-    unsubscribe(): void {
-        // Unsubscribing - routine cleanup
+    private unsubscribeSubscription(subscriptionId: string): void {
+        this.subscriptions.delete(subscriptionId);
 
+        // If no more subscriptions, stop the listener
+        if (this.subscriptions.size === 0) {
+            this.stopListener();
+        }
+    }
+
+    /**
+     * Stop the Firebase listener and reset state
+     */
+    private stopListener(): void {
         // Clear retry timer
         if (this.retryTimer) {
             clearTimeout(this.retryTimer);
@@ -400,14 +450,23 @@ export class UserNotificationDetector {
             this.listener = null;
         }
 
-        // Clear subscription state but keep detector alive
+        // Reset state for potential reuse
         this.lastVersion = 0;
         this.lastGroupStates.clear();
-        this.callbacks = {};
-        this.config = {};
+        this.baselineGroupStates.clear();
+        this.isFirstDocument = true;
         this.retryCount = 0;
         this.userId = null;
-        this.isFirstDocument = true;
+    }
+
+    /**
+     * Unsubscribe from current listener without disposing detector
+     * @deprecated Use the unsubscribe function returned by subscribe() instead
+     */
+    unsubscribe(): void {
+        // Clear all subscriptions and stop listener
+        this.subscriptions.clear();
+        this.stopListener();
     }
 
     /**
@@ -441,6 +500,8 @@ export class UserNotificationDetector {
             lastVersion: this.lastVersion,
             trackedGroups: Array.from(this.lastGroupStates.keys()),
             retryCount: this.retryCount,
+            activeSubscriptions: this.subscriptions.size,
+            subscriptionIds: Array.from(this.subscriptions.keys()),
         };
     }
 }

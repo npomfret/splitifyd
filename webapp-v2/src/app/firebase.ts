@@ -1,12 +1,11 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, User as FirebaseUser } from 'firebase/auth';
+import { getAuth, Auth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, User as FirebaseUser, User } from 'firebase/auth';
 import { getFirestore, Firestore, connectFirestoreEmulator, doc, onSnapshot } from 'firebase/firestore';
 import { firebaseConfigManager } from './firebase-config';
 
 export interface FirebaseService {
     initialize(): Promise<void>;
-    getAuth(): Auth;
-    getFirestore(): Firestore;
+    getCurrentUser(): User | null;
     signInWithEmailAndPassword(email: string, password: string): Promise<any>;
     sendPasswordResetEmail(email: string): Promise<void>;
     signOut(): Promise<void>;
@@ -47,14 +46,18 @@ class FirebaseServiceImpl implements FirebaseService {
         this.initialized = true;
     }
 
-    getAuth(): Auth {
+    private getAuth(): Auth {
         if (!this.auth) {
             throw new Error('Firebase not initialized - call initialize() first');
         }
         return this.auth;
     }
 
-    getFirestore(): Firestore {
+    getCurrentUser(): User | null {
+        return this.getAuth().currentUser;
+    }
+
+    private getFirestore(): Firestore {
         if (!this.firestore) {
             throw new Error('Firebase not initialized - call initialize() first');
         }

@@ -10,6 +10,15 @@ vi.mock('@/app/firebase', () => ({
             doc: vi.fn(() => ({})),
         })),
     })),
+    firebaseService: {
+        initialize: vi.fn(),
+        getCurrentUser: vi.fn(() => ({ uid: 'test-user-456' }) as any),
+        signInWithEmailAndPassword: vi.fn(),
+        sendPasswordResetEmail: vi.fn(),
+        signOut: vi.fn(),
+        onAuthStateChanged: vi.fn(),
+        onDocumentSnapshot: vi.fn(() => vi.fn()), // Return mock unsubscribe function
+    },
 }));
 
 vi.mock('firebase/firestore', () => ({
@@ -30,8 +39,7 @@ describe('UserNotificationDetector', () => {
         // Create a mock FirebaseService
         mockFirebaseService = {
             initialize: vi.fn(),
-            getAuth: vi.fn(),
-            getFirestore: vi.fn(),
+            getCurrentUser: vi.fn(() => ({ uid: 'test-user-456' }) as any),
             signInWithEmailAndPassword: vi.fn(),
             sendPasswordResetEmail: vi.fn(),
             signOut: vi.fn(),
