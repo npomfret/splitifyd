@@ -56,7 +56,7 @@ describe('UserNotificationDetector', () => {
     });
 
     it('should return unsubscribe function from subscribe', () => {
-        const unsubscribe = detector.subscribe('test-user', {});
+        const unsubscribe = detector.subscribe({});
         expect(typeof unsubscribe).toBe('function');
     });
 
@@ -67,12 +67,12 @@ describe('UserNotificationDetector', () => {
             onBalanceChange: vi.fn(),
         };
 
-        const unsubscribe = detector.subscribe('test-user-123', callbacks);
+        const unsubscribe = detector.subscribe(callbacks);
         expect(typeof unsubscribe).toBe('function');
     });
 
     it('should handle subscription with minimal callbacks', () => {
-        const unsubscribe = detector.subscribe('test-user', {});
+        const unsubscribe = detector.subscribe({});
         expect(typeof unsubscribe).toBe('function');
     });
 
@@ -81,7 +81,7 @@ describe('UserNotificationDetector', () => {
     });
 
     it('should dispose subscription when unsubscribe is called', () => {
-        const unsubscribe = detector.subscribe('test-user', {});
+        const unsubscribe = detector.subscribe({});
 
         // Calling unsubscribe should dispose the detector
         expect(() => unsubscribe()).not.toThrow();
@@ -101,7 +101,7 @@ describe('UserNotificationDetector', () => {
     });
 
     it('should update debug info after subscription', () => {
-        detector.subscribe('test-user-456', {});
+        detector.subscribe({});
 
         const debugInfo = detector.getDebugInfo();
 

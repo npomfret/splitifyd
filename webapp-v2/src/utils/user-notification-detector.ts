@@ -1,6 +1,6 @@
-import { Timestamp } from 'firebase/firestore';
+import {Timestamp} from 'firebase/firestore';
 import {firebaseService, FirebaseService} from '../app/firebase';
-import { logInfo, logError } from './browser-logger';
+import {logError, logInfo} from './browser-logger';
 
 /**
  * User notification detector callbacks
@@ -85,7 +85,12 @@ export class UserNotificationDetector {
      * Subscribe to user notifications
      * Returns unsubscribe function
      */
-    subscribe(userId: string, callbacks: NotificationCallbacks, config?: NotificationConfig): () => void {
+    subscribe(callbacks: NotificationCallbacks, config?: NotificationConfig): () => void {
+        const userId = this.firebaseService.getAuth().currentUser?.uid;
+        if (!userId) {
+            throw new Error('Cannot setup notification listener: user not authenticated');
+        }
+
         if (this.isDisposed) {
             throw new Error('UserNotificationDetector has been disposed');
         }

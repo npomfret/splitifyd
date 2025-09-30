@@ -310,89 +310,85 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         }
 
         // Subscribe to user notifications - group changes trigger refresh
-        this.notificationUnsubscribe = this.notificationDetector.subscribe(
-            userId,
-            {
-                onGroupChange: (groupId) => {
-                    logInfo('Group change detected, triggering refresh', {
-                        userId,
-                        groupId,
-                        currentGroupCount: this.#groupsSignal.value.length,
-                        timestamp: new Date().toISOString(),
-                    });
+        this.notificationUnsubscribe = this.notificationDetector.subscribe({
+            onGroupChange: (groupId) => {
+                logInfo('Group change detected, triggering refresh', {
+                    userId,
+                    groupId,
+                    currentGroupCount: this.#groupsSignal.value.length,
+                    timestamp: new Date().toISOString(),
+                });
 
-                    // NO OPTIMISTIC UPDATES - just refresh from server
-                    // This ensures the dashboard accurately reflects server state
-                    this.refreshGroups()
-                        .then(() => {
-                            logInfo('Groups refresh completed after change detection', {
-                                userId,
-                                groupId,
-                                newGroupCount: this.#groupsSignal.value.length,
-                            });
-                        })
-                        .catch((error) =>
-                            logWarning('Failed to refresh groups after change detection', {
-                                error: error instanceof Error ? error.message : String(error),
-                                userId,
-                                groupId,
-                            }),
-                        );
-                },
-                onGroupRemoved: (groupId) => {
-                    // Find the group name before removing it
-                    const currentGroups = this.#groupsSignal.value;
-                    const removedGroup = currentGroups.find((group) => group.id === groupId);
-                    const groupName = removedGroup?.name || 'Unknown Group';
+                // NO OPTIMISTIC UPDATES - just refresh from server
+                // This ensures the dashboard accurately reflects server state
+                this.refreshGroups()
+                    .then(() => {
+                        logInfo('Groups refresh completed after change detection', {
+                            userId,
+                            groupId,
+                            newGroupCount: this.#groupsSignal.value.length,
+                        });
+                    })
+                    .catch((error) =>
+                        logWarning('Failed to refresh groups after change detection', {
+                            error: error instanceof Error ? error.message : String(error),
+                            userId,
+                            groupId,
+                        }),
+                    );
+            },
+            onGroupRemoved: (groupId) => {
+                // Find the group name before removing it
+                const currentGroups = this.#groupsSignal.value;
+                const removedGroup = currentGroups.find((group) => group.id === groupId);
+                const groupName = removedGroup?.name || 'Unknown Group';
 
-                    logInfo('Group removed - removing from list without refresh', {
-                        userId,
+                logInfo('Group removed - removing from list without refresh', {
+                    userId,
+                    groupId,
+                    groupName,
+                    currentGroupCount: currentGroups.length,
+                });
+
+                // Remove the group from the list immediately without fetching
+                const filteredGroups = currentGroups.filter((group) => group.id !== groupId);
+
+                if (filteredGroups.length !== currentGroups.length) {
+                    this.#groupsSignal.value = filteredGroups;
+
+                    // Show user-friendly notification about removal
+                    console.info(`📨 You've been removed from "${groupName}"`);
+
+                    // DEBUG: Log signal value change for UI reactivity debugging
+                    console.info('🔄 Signal value updated after group removal', {
                         groupId,
                         groupName,
-                        currentGroupCount: currentGroups.length,
+                        oldCount: currentGroups.length,
+                        newCount: filteredGroups.length,
+                        oldGroupIds: currentGroups.map((g) => g.id),
+                        newGroupIds: filteredGroups.map((g) => g.id),
+                        signalValueLength: this.#groupsSignal.value.length,
+                        signalPeek: this.#groupsSignal.peek().length,
                     });
 
-                    // Remove the group from the list immediately without fetching
-                    const filteredGroups = currentGroups.filter((group) => group.id !== groupId);
-
-                    if (filteredGroups.length !== currentGroups.length) {
-                        this.#groupsSignal.value = filteredGroups;
-
-                        // Show user-friendly notification about removal
-                        console.info(`📨 You've been removed from "${groupName}"`);
-
-                        // DEBUG: Log signal value change for UI reactivity debugging
-                        console.info('🔄 Signal value updated after group removal', {
-                            groupId,
-                            groupName,
-                            oldCount: currentGroups.length,
-                            newCount: filteredGroups.length,
-                            oldGroupIds: currentGroups.map((g) => g.id),
-                            newGroupIds: filteredGroups.map((g) => g.id),
-                            signalValueLength: this.#groupsSignal.value.length,
-                            signalPeek: this.#groupsSignal.peek().length,
-                        });
-
-                        logInfo('Group removed from dashboard', {
-                            groupId,
-                            groupName,
-                            oldCount: currentGroups.length,
-                            newCount: filteredGroups.length,
-                        });
-                    }
-                },
-            },
-            {
-                maxRetries: 3,
-                retryDelay: 2000,
-                onError: (error) => {
-                    logWarning('Notification subscription error, notifications may be delayed', {
-                        error: error.message,
-                        userId,
+                    logInfo('Group removed from dashboard', {
+                        groupId,
+                        groupName,
+                        oldCount: currentGroups.length,
+                        newCount: filteredGroups.length,
                     });
-                },
+                }
             },
-        );
+        }, {
+            maxRetries: 3,
+            retryDelay: 2000,
+            onError: (error) => {
+                logWarning('Notification subscription error, notifications may be delayed', {
+                    error: error.message,
+                    userId,
+                });
+            },
+        });
 
         // Immediately refresh to get current data after setting up subscription
         // This ensures we don't miss any changes that happened before the subscription was active

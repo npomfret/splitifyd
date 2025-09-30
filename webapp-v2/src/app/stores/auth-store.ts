@@ -4,6 +4,7 @@ import {firebaseService} from '../firebase';
 import {apiClient} from '../apiClient';
 import {USER_ID_KEY} from '@/constants.ts';
 import {logError} from '@/utils/browser-logger.ts';
+import type {ClientUser} from "@splitifyd/shared";
 import {AuthErrors} from '@splitifyd/shared';
 import {enhancedGroupsStore as groupsStore} from './groups-store-enhanced';
 import {enhancedGroupDetailStore} from './group-detail-store-enhanced';
@@ -11,7 +12,6 @@ import {themeStore} from './theme-store';
 import {createUserScopedStorage} from '@/utils/userScopedStorage.ts';
 import {CurrencyService} from '../services/currencyService';
 import {expenseFormStore} from './expense-form-store';
-import type {ClientUser} from "@splitifyd/shared";
 
 // Auth types - moved from types/auth.ts
 export interface AuthState {
@@ -260,8 +260,7 @@ class AuthStoreImpl implements AuthStore {
             }
 
             // Also update the Firebase Auth user object to keep it in sync
-            const firebaseAuth = firebaseService.getAuth();
-            const currentUser = firebaseAuth.currentUser;
+            const currentUser = firebaseService.getAuth().currentUser;
             if (currentUser) {
                 await currentUser.reload();
             }
@@ -294,8 +293,7 @@ class AuthStoreImpl implements AuthStore {
     }
 
     private async performTokenRefresh(): Promise<string> {
-        const firebaseAuth = firebaseService.getAuth();
-        const currentUser = firebaseAuth.currentUser;
+        const currentUser = firebaseService.getAuth().currentUser;
 
         if (!currentUser) {
             throw new Error('No authenticated user');

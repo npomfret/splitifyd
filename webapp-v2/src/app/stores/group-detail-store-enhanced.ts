@@ -236,7 +236,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         await this.loadGroup(groupId);
 
         // Set up notification detector if not already running
-        this.notificationUnsubscribe = this.notificationDetector.subscribe(userId, {
+        this.notificationUnsubscribe = this.notificationDetector.subscribe({
             onTransactionChange: (changeGroupId) => {
                 if (changeGroupId === this.currentGroupId) {
                     logInfo('Transaction change detected', {groupId: changeGroupId});

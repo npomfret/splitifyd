@@ -2,9 +2,7 @@ import { signal, ReadonlySignal } from '@preact/signals';
 import type { CommentApiResponse, CommentTargetType, ListCommentsResponse } from '@splitifyd/shared';
 import { apiClient } from '../app/apiClient';
 import { logError, logInfo } from '../utils/browser-logger';
-import type { FirebaseService } from '../app/firebase';
-import { firebaseService } from '../app/firebase';
-import { UserNotificationDetector } from '../utils/user-notification-detector';
+import {userNotificationDetector, UserNotificationDetector} from '../utils/user-notification-detector';
 
 interface CommentsStore {
     // State getters - readonly values for external consumers
@@ -51,10 +49,7 @@ class CommentsStoreImpl implements CommentsStore {
     // Notification system dependencies
     #notificationUnsubscribe: (() => void) | null = null;
 
-    constructor(
-        private firebaseService: FirebaseService,
-        private userNotificationDetector: UserNotificationDetector
-    ) {}
+    constructor(private userNotificationDetector: UserNotificationDetector) {}
 
     // State getters - readonly values for external consumers
     get comments() {
@@ -127,16 +122,8 @@ class CommentsStoreImpl implements CommentsStore {
      * Setup notification listener for comment changes
      */
     #setupNotificationListener(targetType: CommentTargetType, targetId: string) {
-        // Get current user ID from Firebase service
-        const auth = this.firebaseService.getAuth();
-        const userId = auth.currentUser?.uid;
-        if (!userId) {
-            logError('Cannot setup notification listener: user not authenticated');
-            return;
-        }
-
         // Setup notification listener to detect comment changes
-        this.#notificationUnsubscribe = this.userNotificationDetector.subscribe(userId, {
+        this.#notificationUnsubscribe = this.userNotificationDetector.subscribe({
             onCommentChange: (notificationTargetType, notificationTargetId) => {
                 // Handle comment notifications based on our current target type
                 if (targetType === 'group' && notificationTargetType === 'group' && notificationTargetId === targetId) {
@@ -356,7 +343,4 @@ class CommentsStoreImpl implements CommentsStore {
 }
 
 // Export singleton instance
-export const commentsStore = new CommentsStoreImpl(
-    firebaseService,
-    new UserNotificationDetector(firebaseService)
-);
+export const commentsStore = new CommentsStoreImpl(userNotificationDetector);
