@@ -2,9 +2,8 @@ import { signal, batch, computed, ReadonlySignal } from '@preact/signals';
 import type { Group, CreateGroupRequest } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { logWarning, logInfo } from '@/utils/browser-logger.ts';
-import { UserNotificationDetector } from '@/utils/user-notification-detector.ts';
+import {userNotificationDetector, UserNotificationDetector} from '@/utils/user-notification-detector.ts';
 import { streamingMetrics } from '@/utils/streaming-metrics';
-import { firebaseService } from '../firebase';
 
 export interface EnhancedGroupsStore {
     groups: Group[];
@@ -52,7 +51,6 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     readonly #updatingGroupIdsSignal = signal<Set<string>>(new Set());
     readonly #isCreatingGroupSignal = signal<boolean>(false);
 
-    private notificationDetector = new UserNotificationDetector(firebaseService);
     private notificationUnsubscribe: (() => void) | null = null;
 
     // Reference counting for subscription management
@@ -65,7 +63,10 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     private refreshDebounceDelay = 300; // 300ms debounce
     private pendingRefresh = false;
 
-    // State getters - readonly values for external consumers
+    constructor(private notificationDetector: UserNotificationDetector) {
+    }
+
+// State getters - readonly values for external consumers
     get groups() {
         return this.#groupsSignal.value;
     }
@@ -476,4 +477,4 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 }
 
 // Export singleton instance
-export const enhancedGroupsStore = new EnhancedGroupsStoreImpl();
+export const enhancedGroupsStore = new EnhancedGroupsStoreImpl(userNotificationDetector);

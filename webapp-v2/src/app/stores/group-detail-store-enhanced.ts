@@ -1,10 +1,9 @@
-import { signal, batch } from '@preact/signals';
-import { UserNotificationDetector } from '@/utils/user-notification-detector';
-import { logError, logInfo } from '@/utils/browser-logger';
-import type { ExpenseData, Group, GroupBalances, GroupMemberDTO, SettlementListItem } from '@splitifyd/shared';
-import { apiClient } from '../apiClient';
-import { permissionsStore } from '@/stores/permissions-store.ts';
-import { firebaseService } from '../firebase';
+import {signal, batch} from '@preact/signals';
+import {userNotificationDetector, UserNotificationDetector} from '@/utils/user-notification-detector';
+import {logError, logInfo} from '@/utils/browser-logger';
+import type {ExpenseData, Group, GroupBalances, GroupMemberDTO, SettlementListItem} from '@splitifyd/shared';
+import {apiClient} from '../apiClient';
+import {permissionsStore} from '@/stores/permissions-store.ts';
 
 export interface EnhancedGroupDetailStore {
     // State
@@ -23,14 +22,23 @@ export interface EnhancedGroupDetailStore {
 
     // Methods
     loadGroup(id: string): Promise<void>;
+
     dispose(): void;
+
     reset(): void;
+
     refreshAll(): Promise<void>;
+
     registerComponent(groupId: string, userId: string): Promise<void>;
+
     deregisterComponent(groupId: string): void;
+
     loadMoreExpenses(): Promise<void>;
+
     loadMoreSettlements(): Promise<void>;
+
     fetchSettlements(cursor?: string, userId?: string): Promise<void>;
+
     setDeletingGroup(value: boolean): void;
 }
 
@@ -54,46 +62,59 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     readonly #subscriberCounts = new Map<string, number>();
 
     // Single detector per user, not per group
-    private notificationDetector: UserNotificationDetector | null = null;
     private notificationUnsubscribe: (() => void) | null = null;
 
     // Current group tracking for core functionality
     private currentGroupId: string | null = null;
 
-    // State getters
+    constructor(private notificationDetector: UserNotificationDetector) {
+    }
+
+// State getters
     get group() {
         return this.#groupSignal.value;
     }
+
     get members() {
         return this.#membersSignal.value;
     }
+
     get expenses() {
         return this.#expensesSignal.value;
     }
+
     get balances() {
         return this.#balancesSignal.value;
     }
+
     get settlements() {
         return this.#settlementsSignal.value;
     }
+
     get loading() {
         return this.#loadingSignal.value;
     }
+
     get loadingMembers() {
         return this.#loadingMembersSignal.value;
     }
+
     get loadingExpenses() {
         return this.#loadingExpensesSignal.value;
     }
+
     get loadingSettlements() {
         return this.#loadingSettlementsSignal.value;
     }
+
     get error() {
         return this.#errorSignal.value;
     }
+
     get hasMoreExpenses() {
         return this.#hasMoreExpensesSignal.value;
     }
+
     get hasMoreSettlements() {
         return this.#hasMoreSettlementsSignal.value;
     }
@@ -139,7 +160,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             const isAccessDenied = error?.status === 403 || error?.code === 'FORBIDDEN';
 
             if (isGroupDeleted) {
-                logInfo('Group deleted, clearing state', { groupId: this.currentGroupId });
+                logInfo('Group deleted, clearing state', {groupId: this.currentGroupId});
 
                 this.#errorSignal.value = 'GROUP_DELETED';
                 batch(() => {
@@ -157,7 +178,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
             if (isAccessDenied) {
                 // User has been removed from the group - handle gracefully without error
-                logInfo('User removed from group, clearing state', { groupId: this.currentGroupId });
+                logInfo('User removed from group, clearing state', {groupId: this.currentGroupId});
 
                 this.#errorSignal.value = 'GROUP_DELETED';
                 batch(() => {
@@ -173,7 +194,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 return;
             }
 
-            logError('RefreshAll: Failed to refresh all data', { error, groupId: this.currentGroupId });
+            logError('RefreshAll: Failed to refresh all data', {error, groupId: this.currentGroupId});
             throw error;
         }
     }
@@ -183,11 +204,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         if (this.notificationUnsubscribe) {
             this.notificationUnsubscribe();
             this.notificationUnsubscribe = null;
-        }
-
-        if (this.notificationDetector) {
-            this.notificationDetector.dispose();
-            this.notificationDetector = null;
         }
 
         // Note: We do NOT clear #subscriberCounts or call permissionsStore.dispose()
@@ -220,37 +236,34 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         await this.loadGroup(groupId);
 
         // Set up notification detector if not already running
-        if (!this.notificationDetector) {
-            this.notificationDetector = new UserNotificationDetector(firebaseService);
-            this.notificationUnsubscribe = this.notificationDetector.subscribe(userId, {
-                onTransactionChange: (changeGroupId) => {
-                    if (changeGroupId === this.currentGroupId) {
-                        logInfo('Transaction change detected', { groupId: changeGroupId });
-                        this.refreshAll().catch((error) => logError('Failed to refresh after transaction change', error));
-                    }
-                },
-                onGroupChange: (changeGroupId) => {
-                    if (changeGroupId === this.currentGroupId) {
-                        logInfo('Group change detected', { groupId: changeGroupId });
-                        this.refreshAll().catch((error) => logError('Failed to refresh after group change', error));
-                    }
-                },
-                onBalanceChange: (changeGroupId) => {
-                    if (changeGroupId === this.currentGroupId) {
-                        logInfo('Balance change detected', { groupId: changeGroupId });
-                        this.refreshAll().catch((error) => logError('Failed to refresh after balance change', error));
-                    }
-                },
-                onGroupRemoved: (changeGroupId) => {
-                    if (changeGroupId === this.currentGroupId) {
-                        logInfo('Group removed - clearing state and setting removal flag', { groupId: changeGroupId });
-                        this.#clearGroupData();
-                        // Set specific error after clearing data to trigger better UX
-                        this.#errorSignal.value = 'USER_REMOVED_FROM_GROUP';
-                    }
-                },
-            });
-        }
+        this.notificationUnsubscribe = this.notificationDetector.subscribe(userId, {
+            onTransactionChange: (changeGroupId) => {
+                if (changeGroupId === this.currentGroupId) {
+                    logInfo('Transaction change detected', {groupId: changeGroupId});
+                    this.refreshAll().catch((error) => logError('Failed to refresh after transaction change', error));
+                }
+            },
+            onGroupChange: (changeGroupId) => {
+                if (changeGroupId === this.currentGroupId) {
+                    logInfo('Group change detected', {groupId: changeGroupId});
+                    this.refreshAll().catch((error) => logError('Failed to refresh after group change', error));
+                }
+            },
+            onBalanceChange: (changeGroupId) => {
+                if (changeGroupId === this.currentGroupId) {
+                    logInfo('Balance change detected', {groupId: changeGroupId});
+                    this.refreshAll().catch((error) => logError('Failed to refresh after balance change', error));
+                }
+            },
+            onGroupRemoved: (changeGroupId) => {
+                if (changeGroupId === this.currentGroupId) {
+                    logInfo('Group removed - clearing state and setting removal flag', {groupId: changeGroupId});
+                    this.#clearGroupData();
+                    // Set specific error after clearing data to trigger better UX
+                    this.#errorSignal.value = 'USER_REMOVED_FROM_GROUP';
+                }
+            },
+        });
 
         // Update permissions store
         permissionsStore.registerComponent(groupId, userId);
@@ -276,10 +289,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 if (this.notificationUnsubscribe) {
                     this.notificationUnsubscribe();
                     this.notificationUnsubscribe = null;
-                }
-                if (this.notificationDetector) {
-                    this.notificationDetector.dispose();
-                    this.notificationDetector = null;
                 }
             }
         } else {
@@ -325,4 +334,4 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 }
 
-export const enhancedGroupDetailStore = new EnhancedGroupDetailStoreImpl();
+export const enhancedGroupDetailStore = new EnhancedGroupDetailStoreImpl(userNotificationDetector);

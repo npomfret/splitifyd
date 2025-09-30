@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase/firestore';
-import type { FirebaseService } from '../app/firebase';
+import {firebaseService, FirebaseService} from '../app/firebase';
 import { logInfo, logError } from './browser-logger';
 
 /**
@@ -439,3 +439,5 @@ export class UserNotificationDetector {
         };
     }
 }
+
+export const userNotificationDetector = new UserNotificationDetector(firebaseService)
