@@ -632,13 +632,6 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         return {id: 'notification', success: true, timestamp: Timestamp.now()};
     }
 
-    async updateUserNotification(): Promise<WriteResult> {
-        return {id: 'notification', success: true, timestamp: Timestamp.now()};
-    }
-
-    async setUserNotificationGroup(): Promise<WriteResult> {
-        return {id: 'notification', success: true, timestamp: Timestamp.now()};
-    }
 
     async removeUserNotificationGroup(): Promise<WriteResult> {
         return {id: 'notification', success: true, timestamp: Timestamp.now()};
@@ -651,9 +644,6 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         return {id: userId, success: true, timestamp: Timestamp.now()};
     }
 
-    async setUserNotificationGroupInTransaction(): Promise<WriteResult> {
-        return {id: 'notification', success: true, timestamp: Timestamp.now()};
-    }
 
     async runTransaction(transactionFn: (transaction: any) => Promise<any>): Promise<any> {
         const mockTransaction = {
@@ -739,6 +729,26 @@ export class StubFirestoreWriter implements IFirestoreWriter {
 
     async leaveGroupAtomic(): Promise<any> {
         return {successCount: 1, failureCount: 0, results: []};
+    }
+
+    // Test Pool Operations
+    async createTestPoolUser(email: string, userData: any): Promise<WriteResult> {
+        this.documents.set(`test-user-pool/${email}`, userData);
+        return {
+            id: email,
+            success: true,
+            timestamp: Timestamp.now(),
+        };
+    }
+
+    async updateTestPoolUser(email: string, updates: any): Promise<WriteResult> {
+        const existing = this.documents.get(`test-user-pool/${email}`) || {};
+        this.documents.set(`test-user-pool/${email}`, { ...existing, ...updates });
+        return {
+            id: email,
+            success: true,
+            timestamp: Timestamp.now(),
+        };
     }
 }
 

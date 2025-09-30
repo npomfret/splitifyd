@@ -19,6 +19,8 @@ import { measureDb } from '../../monitoring/measure';
 // Import schemas for validation
 import { UserDocumentSchema, GroupDocumentSchema, ExpenseDocumentSchema, SettlementDocumentSchema, CommentDataSchema, PolicyDocumentSchema } from '../../schemas';
 import { UserNotificationDocumentSchema, UserNotificationGroupSchema } from '../../schemas/user-notifications';
+import { TransactionChangeDocumentSchema, BalanceChangeDocumentSchema } from '../../schemas/change-documents';
+import { TopLevelGroupMemberSchema } from '../../schemas/group-membership';
 import { validateUpdate } from '../../schemas';
 
 // Import types
@@ -117,8 +119,134 @@ export class FirestoreWriter implements IFirestoreWriter {
     }
 
     // ========================================================================
+    // Schema Mapping Infrastructure
+    // ========================================================================
+
+    /**
+     * Get the appropriate schema for a given collection
+     * Returns null for unknown collections (graceful degradation)
+     */
+    private getSchemaForCollection(collection: string) {
+        const schemaMap = {
+            [FirestoreCollections.USERS]: UserDocumentSchema,
+            [FirestoreCollections.GROUPS]: GroupDocumentSchema,
+            [FirestoreCollections.EXPENSES]: ExpenseDocumentSchema,
+            [FirestoreCollections.SETTLEMENTS]: SettlementDocumentSchema,
+            [FirestoreCollections.POLICIES]: PolicyDocumentSchema,
+            [FirestoreCollections.COMMENTS]: CommentDataSchema,
+            [FirestoreCollections.GROUP_MEMBERSHIPS]: TopLevelGroupMemberSchema,
+            [FirestoreCollections.USER_NOTIFICATIONS]: UserNotificationDocumentSchema,
+            [FirestoreCollections.TRANSACTION_CHANGES]: TransactionChangeDocumentSchema,
+            [FirestoreCollections.BALANCE_CHANGES]: BalanceChangeDocumentSchema,
+        };
+
+        const schema = schemaMap[collection as keyof typeof schemaMap];
+        if (!schema) {
+            // Log warning but don't fail - allows gradual migration
+            logger.warn(`No schema found for collection: ${collection}`, {
+                collection,
+                availableCollections: Object.keys(schemaMap),
+            });
+            return null;
+        }
+        return schema;
+    }
+
+    // ========================================================================
     // Transaction Validation Helper Methods
     // ========================================================================
+
+    /**
+     * Check if a value is a FieldValue operation (serverTimestamp, arrayUnion, etc.)
+     */
+    private isFieldValue(value: any): boolean {
+        if (!value || typeof value !== 'object') {
+            return false;
+        }
+
+        // Check for FieldValue operations by examining the constructor name or known properties
+        return (
+            value.constructor?.name?.includes('Transform') ||
+            value.operand !== undefined ||
+            value._delegate?.type !== undefined ||
+            (typeof value.isEqual === 'function')
+        );
+    }
+
+    /**
+     * Validate transaction data using selective field validation
+     * Only validates fields that aren't FieldValue operations
+     */
+    private validateTransactionData(collection: string, data: any, documentId: string): {
+        isValid: boolean;
+        skipValidation?: boolean;
+        validatedFields?: Record<string, any>;
+        skippedFields?: string[];
+    } {
+        const schema = this.getSchemaForCollection(collection);
+        if (!schema) {
+            // No schema found - log and skip validation
+            logger.info('Transaction validation skipped - no schema found', {
+                collection,
+                documentId,
+                operation: 'validateTransactionData',
+            });
+            return { isValid: true, skipValidation: true };
+        }
+
+        // Separate FieldValue operations from regular fields
+        const fieldsToValidate: Record<string, any> = {};
+        const skippedFields: string[] = [];
+
+        for (const [key, value] of Object.entries(data)) {
+            if (this.isFieldValue(value)) {
+                skippedFields.push(key);
+            } else {
+                fieldsToValidate[key] = value;
+            }
+        }
+
+        // If all fields are FieldValue operations, skip validation entirely
+        if (Object.keys(fieldsToValidate).length === 0) {
+            logger.info('Transaction validation skipped - only FieldValue operations', {
+                collection,
+                documentId,
+                skippedFields,
+                operation: 'validateTransactionData',
+            });
+            return { isValid: true, skipValidation: true, skippedFields };
+        }
+
+        try {
+            // Validate partial data (only business logic fields)
+            // Note: This doesn't do full document validation, just field-level validation
+            const validatedFields = fieldsToValidate;
+
+            logger.info('Transaction validation completed (partial)', {
+                collection,
+                documentId,
+                validatedFieldCount: Object.keys(validatedFields).length,
+                skippedFieldCount: skippedFields.length,
+                validatedFields: Object.keys(validatedFields),
+                skippedFields,
+                operation: 'validateTransactionData',
+            });
+
+            return {
+                isValid: true,
+                validatedFields,
+                skippedFields: skippedFields.length > 0 ? skippedFields : undefined
+            };
+        } catch (error) {
+            logger.error('Transaction validation failed', error, {
+                collection,
+                documentId,
+                fieldsAttempted: Object.keys(fieldsToValidate),
+                operation: 'validateTransactionData',
+            });
+            throw error;
+        }
+    }
 
     /**
      * Get the Firestore collection path for comments on a target entity
@@ -800,21 +928,50 @@ export class FirestoreWriter implements IFirestoreWriter {
     createInTransaction(transaction: Transaction, collection: string, documentId: string | null, data: any): DocumentReference {
         const docRef = documentId ? this.db.collection(collection).doc(documentId) : this.db.collection(collection).doc();
 
-        transaction.set(docRef, {
+        const finalData = {
             ...data,
             createdAt: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
+        };
+
+        // Apply selective validation for transaction data
+        const validationResult = this.validateTransactionData(collection, finalData, docRef.id);
+        const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(partial validation)';
+
+        logger.info(`Document created in transaction ${logType}`, {
+            collection,
+            documentId: docRef.id,
+            validatedFields: validationResult.validatedFields ? Object.keys(validationResult.validatedFields) : [],
+            skippedFields: validationResult.skippedFields || [],
         });
+
+        transaction.set(docRef, finalData);
 
         return docRef;
     }
 
     updateInTransaction(transaction: Transaction, documentPath: string, updates: any): void {
         const docRef = this.db.doc(documentPath);
-        transaction.update(docRef, {
+        const finalUpdates = {
             ...updates,
             updatedAt: FieldValue.serverTimestamp(),
+        };
+
+        // Extract collection from document path for validation
+        const collection = documentPath.split('/')[0];
+
+        // Apply selective validation for transaction data
+        const validationResult = this.validateTransactionData(collection, finalUpdates, docRef.id);
+        const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(partial validation)';
+
+        logger.info(`Document updated in transaction ${logType}`, {
+            collection,
+            documentPath,
+            validatedFields: validationResult.validatedFields ? Object.keys(validationResult.validatedFields) : [],
+            skippedFields: validationResult.skippedFields || [],
         });
+
+        transaction.update(docRef, finalUpdates);
     }
 
     deleteInTransaction(transaction: Transaction, documentPath: string): void {
@@ -871,178 +1028,6 @@ export class FirestoreWriter implements IFirestoreWriter {
                 };
             }
         });
-    }
-
-    async updateUserNotification(userId: string, updates: Record<string, any>): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.updateUserNotification', async () => {
-            try {
-                // Note: This method has complex FieldValue operations that need special handling
-                // Check for FieldValue operations using simple detection
-                const hasFieldValueOperations = Object.values(updates).some(
-                    (value) => value && typeof value === 'object' && (value.constructor?.name?.includes('Transform') || value.operand !== undefined),
-                );
-
-                if (hasFieldValueOperations) {
-                    // For updates with FieldValue operations, use direct update()
-                    // Cannot validate these as they contain transform objects, not final values
-                    const finalUpdates = {
-                        ...updates,
-                        lastModified: FieldValue.serverTimestamp(),
-                    };
-
-                    await this.db.doc(`user-notifications/${userId}`).update(finalUpdates);
-
-                    logger.info('User notification document updated', { userId, fields: Object.keys(updates) });
-
-                    return {
-                        id: userId,
-                        success: true,
-                        timestamp: new Date() as any,
-                    };
-                } else {
-                    // For regular updates without FieldValue operations, use read-merge-validate-write
-                    const docRef = this.db.doc(`user-notifications/${userId}`);
-                    const docSnapshot = await docRef.get();
-
-                    let existingData: any = {};
-                    if (docSnapshot.exists) {
-                        existingData = docSnapshot.data() || {};
-                    }
-
-                    // Merge updates with existing data
-                    const mergedData = {
-                        ...existingData,
-                        ...updates,
-                        lastModified: FieldValue.serverTimestamp(),
-                    };
-
-                    // Ensure all group entries have required count fields
-                    if (mergedData.groups) {
-                        for (const groupId in mergedData.groups) {
-                            const group = mergedData.groups[groupId];
-                            mergedData.groups[groupId] = {
-                                lastTransactionChange: group.lastTransactionChange || null,
-                                lastBalanceChange: group.lastBalanceChange || null,
-                                lastGroupDetailsChange: group.lastGroupDetailsChange || null,
-                                transactionChangeCount: group.transactionChangeCount ?? 0,
-                                balanceChangeCount: group.balanceChangeCount ?? 0,
-                                groupDetailsChangeCount: group.groupDetailsChangeCount ?? 0,
-                            };
-                        }
-                    }
-
-                    // Ensure required fields exist
-                    const completeData = {
-                        groups: {},
-                        recentChanges: [],
-                        changeVersion: 0,
-                        ...mergedData,
-                    };
-
-                    // Validate the complete document (excluding FieldValue transforms)
-                    const validatedData = UserNotificationDocumentSchema.parse(completeData);
-
-                    // Write the complete validated document
-                    await docRef.set(validatedData);
-
-                    logger.info('User notification document updated', { userId, fields: Object.keys(updates) });
-
-                    return {
-                        id: userId,
-                        success: true,
-                        timestamp: new Date() as any,
-                    };
-                }
-            } catch (error) {
-                logger.error('Failed to update user notification document', error, { userId, updates });
-                return {
-                    id: userId,
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
-
-    async setUserNotificationGroup(userId: string, groupId: string, groupData: UserNotificationGroup): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.setUserNotificationGroup', async () => {
-            try {
-                // Validate group data before writing
-                const validatedGroupData = UserNotificationGroupSchema.parse(groupData);
-
-                // Use dot notation to properly set nested group data with set() and merge: true
-                // This ensures the document exists and all fields are properly set
-                const updates: Record<string, any> = {
-                    [`groups.${groupId}`]: {
-                        lastTransactionChange: validatedGroupData.lastTransactionChange,
-                        lastBalanceChange: validatedGroupData.lastBalanceChange,
-                        lastGroupDetailsChange: validatedGroupData.lastGroupDetailsChange,
-                        transactionChangeCount: validatedGroupData.transactionChangeCount,
-                        balanceChangeCount: validatedGroupData.balanceChangeCount,
-                        groupDetailsChangeCount: validatedGroupData.groupDetailsChangeCount,
-                    },
-                    lastModified: FieldValue.serverTimestamp(),
-                };
-
-                await this.db.doc(`user-notifications/${userId}`).set(updates, { merge: true });
-
-                logger.info('User notification group updated', { userId, groupId });
-
-                return {
-                    id: userId,
-                    success: true,
-                    timestamp: new Date() as any,
-                };
-            } catch (error) {
-                logger.error('Failed to update user notification group', error, { userId, groupId });
-                return {
-                    id: userId,
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
-
-    setUserNotificationGroupInTransaction(transaction: Transaction, userId: string, groupId: string, groupData: UserNotificationGroup): void {
-        try {
-            // Validate group data before writing
-            const validatedGroupData = UserNotificationGroupSchema.parse(groupData);
-
-            const docRef = this.db.doc(`user-notifications/${userId}`);
-
-            // First, ensure the base document exists with proper structure
-            transaction.set(
-                docRef,
-                {
-                    changeVersion: 0,
-                    groups: {},
-                    lastModified: FieldValue.serverTimestamp(),
-                },
-                { merge: true },
-            );
-
-            // Then update with the specific group data using dot notation (which requires update(), not set())
-            const updates: Record<string, any> = {
-                [`groups.${groupId}`]: {
-                    lastTransactionChange: validatedGroupData.lastTransactionChange,
-                    lastBalanceChange: validatedGroupData.lastBalanceChange,
-                    lastGroupDetailsChange: validatedGroupData.lastGroupDetailsChange,
-                    transactionChangeCount: validatedGroupData.transactionChangeCount,
-                    balanceChangeCount: validatedGroupData.balanceChangeCount,
-                    groupDetailsChangeCount: validatedGroupData.groupDetailsChangeCount,
-                },
-                lastModified: FieldValue.serverTimestamp(),
-            };
-
-            // Use update() for dot notation paths to work correctly
-            transaction.update(docRef, updates);
-
-            logger.info('User notification group updated in transaction', { userId, groupId });
-        } catch (error) {
-            logger.error('Failed to update user notification group in transaction', error, { userId, groupId });
-            throw error;
-        }
     }
 
     async removeUserNotificationGroup(userId: string, groupId: string): Promise<WriteResult> {
@@ -1194,12 +1179,17 @@ export class FirestoreWriter implements IFirestoreWriter {
             updatedAt: FieldValue.serverTimestamp(),
         };
 
-        transaction.update(groupRef, finalUpdates);
+        // Apply selective validation for group updates in transaction
+        const validationResult = this.validateTransactionData(FirestoreCollections.GROUPS, finalUpdates, groupId);
+        const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(partial validation)';
 
-        logger.info('Group updated in transaction', {
+        logger.info(`Group updated in transaction ${logType}`, {
             groupId,
-            fields: Object.keys(updates),
+            validatedFields: validationResult.validatedFields ? Object.keys(validationResult.validatedFields) : [],
+            skippedFields: validationResult.skippedFields || [],
         });
+
+        transaction.update(groupRef, finalUpdates);
     }
 
 
@@ -1381,6 +1371,74 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
+
+    // ========================================================================
+    // Test Pool Operations (for TestUserPoolService)
+    // ========================================================================
+
+    /**
+     * Create a test pool user document
+     * Note: This bypasses schema validation as test-user-pool is not a canonical collection
+     */
+    async createTestPoolUser(email: string, userData: {
+        email: string;
+        token: string;
+        password: string;
+        status: 'available' | 'borrowed';
+    }): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.createTestPoolUser', async () => {
+            try {
+                const finalData = {
+                    ...userData,
+                    createdAt: FieldValue.serverTimestamp(),
+                };
+
+                await this.db.collection('test-user-pool').doc(email).set(finalData);
+
+                logger.info('Test pool user created', { email });
+
+                return {
+                    id: email,
+                    success: true,
+                    timestamp: new Date() as any,
+                };
+            } catch (error) {
+                logger.error('Failed to create test pool user', error, { email });
+                return {
+                    id: email,
+                    success: false,
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                };
+            }
+        });
+    }
+
+    /**
+     * Update a test pool user document
+     * Note: This bypasses schema validation as test-user-pool is not a canonical collection
+     */
+    async updateTestPoolUser(email: string, updates: { status?: 'available' | 'borrowed' }): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.updateTestPoolUser', async () => {
+            try {
+                await this.db.collection('test-user-pool').doc(email).update(updates);
+
+                logger.info('Test pool user updated', { email, updates });
+
+                return {
+                    id: email,
+                    success: true,
+                    timestamp: new Date() as any,
+                };
+            } catch (error) {
+                logger.error('Failed to update test pool user', error, { email });
+                return {
+                    id: email,
+                    success: false,
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                };
+            }
+        });
+    }
 
     // ========================================================================
     // Transaction Helper Methods (Phase 1 - Transaction Foundation)

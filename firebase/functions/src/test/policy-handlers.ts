@@ -3,11 +3,12 @@ import { logger } from '../logger';
 import { getAuth, getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { getConfig } from '../client-config';
-import { FirestoreCollections, SystemUserRoles } from '@splitifyd/shared';
+import { SystemUserRoles } from '@splitifyd/shared';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
 const authService = applicationBuilder.buildAuthService();
+const firestoreWriter = applicationBuilder.buildFirestoreWriter();
 
 /**
  * Test endpoint to clear a user's policy acceptances in dev environment
@@ -55,8 +56,8 @@ export const testClearPolicyAcceptances = async (req: Request, res: Response): P
     }
 
     try {
-        // Clear the user's acceptedPolicies field
-        await firestore.collection(FirestoreCollections.USERS).doc(decodedToken.uid).update({
+        // Clear the user's acceptedPolicies field using FirestoreWriter
+        await firestoreWriter.updateUser(decodedToken.uid, {
             acceptedPolicies: {},
         });
 
@@ -122,8 +123,8 @@ export const testPromoteToAdmin = async (req: Request, res: Response): Promise<v
     }
 
     try {
-        // Promote the user to admin role
-        await firestore.collection(FirestoreCollections.USERS).doc(decodedToken.uid).update({
+        // Promote the user to admin role using FirestoreWriter
+        await firestoreWriter.updateUser(decodedToken.uid, {
             role: SystemUserRoles.SYSTEM_ADMIN,
         });
 

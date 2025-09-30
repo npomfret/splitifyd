@@ -80,6 +80,7 @@ export interface IFirestoreWriter {
      * Delete a user document
      * @param userId - The user ID
      * @returns Write result
+     * @deprecated This method is not used in production code. User deletion logic exists in UserService2 using direct auth service calls.
      */
     deleteUser(userId: string): Promise<WriteResult>;
 
@@ -181,6 +182,7 @@ export interface IFirestoreWriter {
      * @param commentId - The comment ID
      * @param updates - Partial comment data to update
      * @returns Write result
+     * @deprecated This method is not used anywhere in the codebase. Consider removing in future versions.
      */
     updateComment(targetType: 'expense' | 'settlement', targetId: string, commentId: string, updates: Partial<Omit<CommentDocument, 'id'>>): Promise<WriteResult>;
 
@@ -190,6 +192,7 @@ export interface IFirestoreWriter {
      * @param targetId - The expense or settlement ID
      * @param commentId - The comment ID
      * @returns Write result
+     * @deprecated This method is not used anywhere in the codebase. Consider removing in future versions.
      */
     deleteComment(targetType: 'expense' | 'settlement', targetId: string, commentId: string): Promise<WriteResult>;
 
@@ -299,23 +302,6 @@ export interface IFirestoreWriter {
     createUserNotification(userId: string, notificationData: CreateUserNotificationDocument): Promise<WriteResult>;
 
     /**
-     * Update user notification document
-     * @param userId - The user ID
-     * @param updates - The update data (validated before writing)
-     * @returns Write result
-     */
-    updateUserNotification(userId: string, updates: Record<string, any>): Promise<WriteResult>;
-
-    /**
-     * Add or update a group in user's notification tracking
-     * @param userId - The user ID
-     * @param groupId - The group ID
-     * @param groupData - The group notification data
-     * @returns Write result
-     */
-    setUserNotificationGroup(userId: string, groupId: string, groupData: UserNotificationGroup): Promise<WriteResult>;
-
-    /**
      * Remove a group from user's notification tracking
      * @param userId - The user ID
      * @param groupId - The group ID to remove
@@ -332,19 +318,35 @@ export interface IFirestoreWriter {
      */
     setUserNotifications(userId: string, data: any, merge?: boolean): Promise<WriteResult>;
 
+
+    // ========================================================================
+    // Test Pool Operations (for TestUserPoolService)
+    // ========================================================================
+
     /**
-     * Set user notification group data within a transaction
-     * @param transaction - The Firestore transaction
-     * @param userId - The user ID
-     * @param groupId - The group ID
-     * @param groupData - The group notification data
+     * Create a test pool user document
+     * @param email - The user email (used as document ID)
+     * @param userData - The test pool user data
+     * @returns Write result
      */
-    setUserNotificationGroupInTransaction(transaction: Transaction, userId: string, groupId: string, groupData: UserNotificationGroup): void;
+    createTestPoolUser(email: string, userData: {
+        email: string;
+        token: string;
+        password: string;
+        status: 'available' | 'borrowed';
+    }): Promise<WriteResult>;
+
+    /**
+     * Update a test pool user document
+     * @param email - The user email (document ID)
+     * @param updates - The updates to apply
+     * @returns Write result
+     */
+    updateTestPoolUser(email: string, updates: { status?: 'available' | 'borrowed' }): Promise<WriteResult>;
 
     // ========================================================================
     // System Operations
     // ========================================================================
-
 
     /**
      * Perform health check operations (test read/write)

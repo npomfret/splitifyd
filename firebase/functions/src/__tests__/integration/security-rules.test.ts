@@ -20,7 +20,7 @@ describe('Firestore Security Rules (Production)', () => {
 
     beforeAll(async () => {
         // Read the rules file
-        const rulesPath = join(__dirname, '../../../../firestore.prod.rules');
+        const rulesPath = join(__dirname, '../../../../firestore.rules');
         const rules = readFileSync(rulesPath, 'utf8');
 
         // Initialize test environment

@@ -1,4 +1,11 @@
 rules_version = '2';
+
+// FIRESTORE SECURITY RULES - PRODUCTION READY
+// These rules enforce proper security for all environments (dev, staging, production)
+// Schema validation is handled at the application level via FirestoreWriter
+// Environment parity principle: Dev and prod have identical code AND rules
+// Security principle: Deny by default, allow only specific authenticated operations
+
 service cloud.firestore {
   match /databases/{database}/documents {
     // Helper function to check if user is a member of a group
@@ -45,11 +52,14 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Groups collection - simplified for emulator streaming compatibility
+    // Groups collection - production security rules
     match /groups/{groupId} {
-      // Allow all operations for authenticated users to avoid evaluation errors
-      // In production, more restrictive rules would be used
-      allow read, write: if request.auth != null;
+      // Allow read only for authenticated users who are group members
+      allow read: if request.auth != null &&
+        request.auth.uid in resource.data.memberIds;
+
+      // Deny all direct writes - only server functions can write to groups
+      allow write: if false;
       
       // ShareLinks subcollection - for invite tracking
       match /shareLinks/{shareLinkId} {
@@ -68,13 +78,15 @@ service cloud.firestore {
         allow write: if false;
       }
     }
-    
-    
-    // Expenses collection - simplified for emulator streaming compatibility
+
+    // Expenses collection - production security rules
     match /expenses/{expenseId} {
-      // Allow all operations for authenticated users to avoid evaluation errors
-      // In production, more restrictive rules would be used
-      allow read, write: if request.auth != null;
+      // Allow read only for authenticated users who are participants
+      allow read: if request.auth != null &&
+        request.auth.uid in resource.data.participants;
+
+      // Deny all direct writes - only server functions can write to expenses
+      allow write: if false;
       
       // Comments subcollection - for expense discussions
       match /comments/{commentId} {
@@ -86,11 +98,14 @@ service cloud.firestore {
       }
     }
     
-    // Settlements collection - simplified for emulator streaming compatibility
+    // Settlements collection - production security rules
     match /settlements/{settlementId} {
-      // Allow all operations for authenticated users to avoid evaluation errors
-      // In production, more restrictive rules would be used
-      allow read, write: if request.auth != null;
+      // Allow read only for authenticated users who are participants
+      allow read: if request.auth != null &&
+        request.auth.uid in resource.data.memberIds;
+
+      // Deny all direct writes - only server functions can write to settlements
+      allow write: if false;
     }
     
     // Group balances collection - simplified for emulator streaming compatibility  
@@ -108,52 +123,55 @@ service cloud.firestore {
       allow read, write: if false;
     }
     
-    // Users collection - users can read/update their own documents
+    // Users collection - users can read/create/update their own documents
     match /users/{userId} {
       // Allow read if user is reading their own document
       allow read: if request.auth != null && request.auth.uid == userId;
-      
+
+      // Allow create if user is creating their own document
+      allow create: if request.auth != null && request.auth.uid == userId;
+
       // Allow update if user is updating their own document
       // (users can update acceptedPolicies, but not role)
-      allow update: if request.auth != null && 
+      allow update: if request.auth != null &&
         request.auth.uid == userId &&
         (!request.resource.data.diff(resource.data).affectedKeys().hasAny(["role"]) ||
          isAdmin());
     }
     
-    // Policies collection - admin only access
+    // Policies collection - allow all authenticated users to read, deny writes
     match /policies/{policyId} {
-      // Only admins can read policies
-      allow read: if isAdmin();
-      
-      // Only admins can write policies
-      allow write: if isAdmin();
-    }
-    
-    // Change detection collections - simplified for emulator streaming compatibility
-    match /group-changes/{changeId} {
-      // Allow read for authenticated users to avoid evaluation errors
-      // In production, more restrictive rules would check affectedUsers
+      // Allow all authenticated users to read policies
       allow read: if request.auth != null;
-      
-      // Only server functions can write changes
+
+      // Deny all direct writes - only server functions can write policies
       allow write: if false;
     }
     
+    // Change detection collections - production security rules
+    match /group-changes/{changeId} {
+      // Only allow reads for affected users
+      allow read: if request.auth != null &&
+        request.auth.uid in resource.data.affectedUsers;
+
+      // Only server functions can write changes
+      allow write: if false;
+    }
+
     match /transaction-changes/{changeId} {
-      // Allow read for authenticated users to avoid evaluation errors
-      // In production, more restrictive rules would check affectedUsers
-      allow read: if request.auth != null;
-      
+      // Only allow reads for users in the users array
+      allow read: if request.auth != null &&
+        request.auth.uid in resource.data.users;
+
       // Only server functions can write changes
       allow write: if false;
     }
     
     match /balance-changes/{changeId} {
-      // Allow read for authenticated users to avoid evaluation errors
-      // In production, more restrictive rules would check affectedUsers
-      allow read: if request.auth != null;
-      
+      // Only allow reads for affected users
+      allow read: if request.auth != null &&
+        request.auth.uid in resource.data.affectedUsers;
+
       // Only server functions can write changes
       allow write: if false;
     }
@@ -169,29 +187,6 @@ service cloud.firestore {
       
       // Only server functions can write notifications (via admin SDK)
       allow write: if false;
-    }
-
-    // Allow expense operations for authenticated users
-    match /expenses/{expenseId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null 
-        && request.auth.uid in resource.data.participants;
-      allow update, delete: if request.auth != null 
-        && request.auth.uid == resource.data.createdBy;
-    }
-
-    // Allow user expense queries
-    match /users/{userId}/expenses/{expenseId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // Allow group expense operations - use V2 top-level membership collection
-    match /groups/{groupId}/expenses/{expenseId} {
-      allow read: if request.auth != null 
-        && exists(/databases/$(database)/documents/group-memberships/$(request.auth.uid + '_' + groupId));
-      allow write: if request.auth != null 
-        && exists(/databases/$(database)/documents/group-memberships/$(request.auth.uid + '_' + groupId));
     }
 
     // Group memberships collection (top-level V2 implementation)

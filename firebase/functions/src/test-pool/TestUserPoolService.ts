@@ -2,7 +2,6 @@ import type { IFirestoreWriter } from '../services/firestore';
 import { UserService } from '../services/UserService2';
 import type { IAuthService } from '../services/auth';
 import { getFirestore } from '../firebase';
-import { FieldValue } from 'firebase-admin/firestore';
 
 export interface PoolUser {
     token: string;
@@ -89,25 +88,27 @@ export class TestUserPoolService {
         // This is done outside transaction since createUser() involves Auth API calls
         const newUser = await this.createUser();
 
-        // Use direct Firestore operation instead of deprecated createTestUser method
-        await this.db.collection(POOL_COLLECTION).doc(newUser.email).set({
+        // Use FirestoreWriter for test pool user creation
+        await this.firestoreWriter.createTestPoolUser(newUser.email, {
             email: newUser.email,
             token: newUser.token,
             password: newUser.password,
             status: 'borrowed' as const,
-            createdAt: FieldValue.serverTimestamp(),
         });
 
         return newUser;
     }
 
     async returnUser(email: string): Promise<void> {
-        // Update user status directly using direct Firestore operation
-        // This is simpler and doesn't require transaction complexity for a status update
+        // Update user status using FirestoreWriter
         try {
-            await this.db.collection(POOL_COLLECTION).doc(email).update({
+            const result = await this.firestoreWriter.updateTestPoolUser(email, {
                 status: 'available',
             });
+
+            if (!result.success) {
+                throw new Error(result.error || 'Update failed');
+            }
         } catch (error) {
             // If user doesn't exist or update fails, wrap with more context
             throw new Error(`Failed to return user ${email} to pool: ${error instanceof Error ? error.message : 'Unknown error'}`);
