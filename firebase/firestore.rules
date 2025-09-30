@@ -8,55 +8,12 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function to check if user is a member of a group
-    // Note: Simplified for emulator compatibility - avoiding get() calls that cause double evaluation issues
-    function isGroupMember(groupId) {
-      // In emulator mode, be more permissive to avoid evaluation errors
-      // Production rules would use: get(/databases/$(database)/documents/groups/$(groupId))
-      return request.auth != null;
-    }
-    
-    // Helper function to check if user can access a group document
-    function canAccessGroup(groupData) {
-      return request.auth.uid == groupData.userId ||
-             (groupData.data != null && request.auth.uid in groupData.data.memberIds);
-    }
-    
-    // Helper function to validate expense data structure
-    function isValidExpenseData(data) {
-      return data.keys().hasAll(['groupId', 'createdBy', 'paidBy', 'amount', 'description', 'category', 'date', 'splitType', 'participants', 'splits', 'memberIds', 'createdAt', 'updatedAt']) &&
-             data.amount is number && data.amount > 0 &&
-             data.description is string && data.description.size() > 0 && data.description.size() <= 200 &&
-             data.category in ['food', 'transport', 'utilities', 'entertainment', 'shopping', 'accommodation', 'healthcare', 'education', 'other'] &&
-             data.splitType in ['equal', 'exact', 'percentage'] &&
-             data.participants is list && data.participants.size() > 0 &&
-             data.splits is list && data.splits.size() > 0 &&
-             data.paidBy in data.participants &&
-             data.createdBy == request.auth.uid;
-    }
-    
-    // Helper function to validate group data structure
-    function isValidGroupData(data) {
-      return data.keys().hasAll(['userId', 'data', 'createdAt', 'updatedAt']) &&
-             data.userId == request.auth.uid &&
-             data.data.keys().hasAll(['name', 'members', 'memberIds']) &&
-             data.data.name is string && data.data.name.size() > 0 && data.data.name.size() <= 100 &&
-             data.data.members is list &&
-             data.data.memberIds is list;
-    }
-    
-    // Helper function to check if user is admin
-    function isAdmin() {
-      // Simplified for emulator compatibility - avoiding get() calls that cause double evaluation issues
-      // Production rules would check user role via get(/databases/$(database)/documents/users/$(request.auth.uid))
-      return request.auth != null;
-    }
 
     // Groups collection - production security rules
     match /groups/{groupId} {
       // Allow read only for authenticated users who are group members
       allow read: if request.auth != null &&
-        request.auth.uid in resource.data.memberIds;
+        exists(/databases/$(database)/documents/group-memberships/$(request.auth.uid + '_' + groupId));
 
       // Deny all direct writes - only server functions can write to groups
       allow write: if false;
@@ -65,15 +22,15 @@ service cloud.firestore {
       match /shareLinks/{shareLinkId} {
         // Allow read for authenticated users to resolve share links
         allow read: if request.auth != null;
-        // Allow write for authenticated users who are group members
-        allow write: if request.auth != null;
+        // Deny all direct writes - only server functions can write share links
+        allow write: if false;
       }
       
       // Comments subcollection - for group discussions
       match /comments/{commentId} {
-        // Allow read for authenticated users to avoid evaluation errors
-        // In production, would check group membership
-        allow read: if request.auth != null;
+        // Allow read only for group members
+        allow read: if request.auth != null &&
+          exists(/databases/$(database)/documents/group-memberships/$(request.auth.uid + '_' + groupId));
         // Only server functions can write comments
         allow write: if false;
       }
@@ -90,9 +47,9 @@ service cloud.firestore {
       
       // Comments subcollection - for expense discussions
       match /comments/{commentId} {
-        // Allow read for authenticated users to avoid evaluation errors
-        // In production, would check group membership for the expense's group
-        allow read: if request.auth != null;
+        // Allow read only for expense participants
+        allow read: if request.auth != null &&
+          request.auth.uid in get(/databases/$(database)/documents/expenses/$(expenseId)).data.participants;
         // Only server functions can write comments
         allow write: if false;
       }
@@ -100,19 +57,20 @@ service cloud.firestore {
     
     // Settlements collection - production security rules
     match /settlements/{settlementId} {
-      // Allow read only for authenticated users who are participants
+      // Allow read only for authenticated users who are the payer or payee
       allow read: if request.auth != null &&
-        request.auth.uid in resource.data.memberIds;
+        (request.auth.uid == resource.data.payerId || request.auth.uid == resource.data.payeeId);
 
       // Deny all direct writes - only server functions can write to settlements
       allow write: if false;
     }
     
-    // Group balances collection - simplified for emulator streaming compatibility  
+    // Group balances collection - production security rules
     match /group-balances/{groupId} {
-      // Allow read for authenticated users to avoid evaluation errors
-      allow read: if request.auth != null;
-      
+      // Allow read only for group members
+      allow read: if request.auth != null &&
+        exists(/databases/$(database)/documents/group-memberships/$(request.auth.uid + '_' + groupId));
+
       // Deny all writes - these should only be updated by server functions
       allow write: if false;
     }
@@ -131,12 +89,10 @@ service cloud.firestore {
       // Allow create if user is creating their own document
       allow create: if request.auth != null && request.auth.uid == userId;
 
-      // Allow update if user is updating their own document
-      // (users can update acceptedPolicies, but not role)
+      // Allow update if user is updating their own document (but not role field)
       allow update: if request.auth != null &&
         request.auth.uid == userId &&
-        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(["role"]) ||
-         isAdmin());
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(["role"]);
     }
     
     // Policies collection - allow all authenticated users to read, deny writes
@@ -176,10 +132,6 @@ service cloud.firestore {
       allow write: if false;
     }
     
-    match /test-collection/{docId} {
-      allow read, write: if true;
-    }
-
     // User notifications collection - for new notification system
     match /user-notifications/{userId} {
       // Users can only read their own notification documents
@@ -198,19 +150,6 @@ service cloud.firestore {
       
       // Only server functions can write memberships (via admin SDK)
       allow write: if false;
-    }
-
-    // For test environment - allow specific test collections
-    match /test-users/{document=**} {
-      allow read, write: if true;
-    }
-    
-    match /test-groups/{document=**} {
-      allow read, write: if true;
-    }
-    
-    match /test-expenses/{document=**} {
-      allow read, write: if true;
     }
 
     // Default deny rule for any other collections

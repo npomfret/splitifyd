@@ -75,6 +75,18 @@ describe('Firestore Security Rules (Production)', () => {
                     createdAt: new Date(),
                     updatedAt: new Date(),
                 });
+
+                // Create group-memberships documents for security rules
+                await setDoc(doc(db, 'group-memberships', 'user1-id_' + groupId), {
+                    userId: 'user1-id',
+                    groupId: groupId,
+                    joinedAt: new Date(),
+                });
+                await setDoc(doc(db, 'group-memberships', 'user2-id_' + groupId), {
+                    userId: 'user2-id',
+                    groupId: groupId,
+                    joinedAt: new Date(),
+                });
             });
         });
 
@@ -177,8 +189,8 @@ describe('Firestore Security Rules (Production)', () => {
                 // Create a settlement
                 await setDoc(doc(db, 'settlements', settlementId), {
                     groupId: 'test-group-1',
-                    fromUserId: 'user2-id',
-                    toUserId: 'user1-id',
+                    payerId: 'user2-id', // Changed from fromUserId to payerId
+                    payeeId: 'user1-id', // Changed from toUserId to payeeId
                     amount: 50,
                     currency: 'USD',
                     memberIds: ['user1-id', 'user2-id'], // Critical: memberIds controls access
@@ -189,15 +201,15 @@ describe('Firestore Security Rules (Production)', () => {
         });
 
         it('should allow group members to read settlements in their groups', async () => {
-            // User1 is in memberIds and should be able to read
+            // User1 is the payee and should be able to read
             await assertSucceeds(getDoc(doc(user1Db, 'settlements', settlementId)));
 
-            // User2 is also in memberIds and should be able to read
+            // User2 is the payer and should be able to read
             await assertSucceeds(getDoc(doc(user2Db, 'settlements', settlementId)));
         });
 
         it('should deny non-members from reading settlements they are not part of', async () => {
-            // User3 is NOT in memberIds and should be denied
+            // User3 is neither payer nor payee and should be denied
             await assertFails(getDoc(doc(user3Db, 'settlements', settlementId)));
         });
 
@@ -234,10 +246,23 @@ describe('Firestore Security Rules (Production)', () => {
                     createdAt: new Date(),
                 });
 
+                // Create group-memberships for comment group
+                await setDoc(doc(db, 'group-memberships', 'user1-id_' + groupId), {
+                    userId: 'user1-id',
+                    groupId: groupId,
+                    joinedAt: new Date(),
+                });
+                await setDoc(doc(db, 'group-memberships', 'user2-id_' + groupId), {
+                    userId: 'user2-id',
+                    groupId: groupId,
+                    joinedAt: new Date(),
+                });
+
                 // Create expense with comments
                 await setDoc(doc(db, 'expenses', expenseId), {
                     description: 'Expense with Comments',
                     memberIds: ['user1-id', 'user2-id'],
+                    participants: ['user1-id', 'user2-id'], // Add participants field for expense comments rule
                     amount: 100,
                     createdAt: new Date(),
                 });
@@ -251,19 +276,20 @@ describe('Firestore Security Rules (Production)', () => {
         });
 
         it('should allow authenticated users to read group comments', async () => {
-            // According to the simplified rules, any authenticated user can read comments
+            // Only group members can read group comments (user1 and user2 are members)
             await assertSucceeds(getDoc(doc(user1Db, 'groups', groupId, 'comments', groupCommentId)));
             await assertSucceeds(getDoc(doc(user2Db, 'groups', groupId, 'comments', groupCommentId)));
 
-            // Even non-members can read comments (simplified rule to avoid evaluation errors)
-            await assertSucceeds(getDoc(doc(user3Db, 'groups', groupId, 'comments', groupCommentId)));
+            // Non-members cannot read comments
+            await assertFails(getDoc(doc(user3Db, 'groups', groupId, 'comments', groupCommentId)));
         });
 
         it('should allow authenticated users to read expense comments', async () => {
-            // According to the simplified rules, any authenticated user can read comments
+            // Only expense participants can read expense comments (user1 and user2 are participants)
             await assertSucceeds(getDoc(doc(user1Db, 'expenses', expenseId, 'comments', expenseCommentId)));
             await assertSucceeds(getDoc(doc(user2Db, 'expenses', expenseId, 'comments', expenseCommentId)));
-            await assertSucceeds(getDoc(doc(user3Db, 'expenses', expenseId, 'comments', expenseCommentId)));
+            // Non-participants cannot read comments
+            await assertFails(getDoc(doc(user3Db, 'expenses', expenseId, 'comments', expenseCommentId)));
         });
 
         it('should deny all client writes to comments', async () => {
@@ -419,10 +445,12 @@ describe('Firestore Security Rules (Production)', () => {
         });
 
         it('should allow authenticated users to read group balances', async () => {
-            // All authenticated users can attempt to read (actual access controlled by data)
+            // Only group members can read group balances (user1 and user2 are members from Groups Collection setup)
             await assertSucceeds(getDoc(doc(user1Db, 'group-balances', groupId)));
             await assertSucceeds(getDoc(doc(user2Db, 'group-balances', groupId)));
-            await assertSucceeds(getDoc(doc(user3Db, 'group-balances', groupId)));
+
+            // User3 is not a group member and should be denied
+            await assertFails(getDoc(doc(user3Db, 'group-balances', groupId)));
         });
 
         it('should deny all client writes to group balances', async () => {
