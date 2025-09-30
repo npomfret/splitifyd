@@ -258,10 +258,7 @@ class AuthStoreImpl implements AuthStore {
             }
 
             // Also update the Firebase Auth user object to keep it in sync
-            const currentUser = firebaseService.getCurrentUser();
-            if (currentUser) {
-                await currentUser.reload();
-            }
+            firebaseService.performUserRefresh();
         } catch (error: any) {
             this.#errorSignal.value = this.getAuthErrorMessage(error);
             throw error;
@@ -291,14 +288,8 @@ class AuthStoreImpl implements AuthStore {
     }
 
     private async performTokenRefresh(): Promise<string> {
-        const currentUser = firebaseService.getCurrentUser();
-
-        if (!currentUser) {
-            throw new Error('No authenticated user');
-        }
-
         try {
-            const freshToken = await currentUser.getIdToken(true); // Force refresh
+            const freshToken = await firebaseService.performTokenRefresh();
             apiClient.setAuthToken(freshToken);
             this.scheduleNextRefresh(freshToken);
             return freshToken;

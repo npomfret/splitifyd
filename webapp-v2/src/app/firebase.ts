@@ -1,12 +1,14 @@
-import { initializeApp, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, User as FirebaseUser, User } from 'firebase/auth';
-import { getFirestore, Firestore, connectFirestoreEmulator, doc, onSnapshot } from 'firebase/firestore';
-import { firebaseConfigManager } from './firebase-config';
+import {FirebaseApp, initializeApp} from 'firebase/app';
+import {Auth, connectAuthEmulator, getAuth, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, User as FirebaseUser, User} from 'firebase/auth';
+import {connectFirestoreEmulator, doc, Firestore, getFirestore, onSnapshot} from 'firebase/firestore';
+import {firebaseConfigManager} from './firebase-config';
 import {mapFirebaseUser} from "@/app/stores/auth-store.ts";
 import {ClientUser} from "@splitifyd/shared";
 
 export interface FirebaseService {
     connect(): Promise<void>;
+    performTokenRefresh(): Promise<string>;
+    performUserRefresh(): Promise<void>;
     getCurrentUser(): User | null;
     signInWithEmailAndPassword(email: string, password: string): Promise<any>;
     sendPasswordResetEmail(email: string): Promise<void>;
@@ -77,6 +79,24 @@ class FirebaseServiceImpl implements FirebaseService {
 
     async signOut() {
         return signOut(this.getAuth());
+    }
+
+    async performTokenRefresh() {
+        const currentUser = this.getCurrentUser();
+
+        if (!currentUser) {
+            throw new Error('No authenticated user');
+        }
+
+        // Force refresh
+        return await currentUser.getIdToken(true);
+    }
+
+    async performUserRefresh() {
+        const currentUser = this.getCurrentUser();
+        if (currentUser) {
+            await currentUser.reload();
+        }
     }
 
     onAuthStateChanged(callback: (user: ClientUser | null, idToken: string | null) => Promise<void>) {
