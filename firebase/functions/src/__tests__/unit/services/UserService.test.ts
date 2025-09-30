@@ -10,7 +10,7 @@ import { USER_COLORS } from '@splitifyd/shared';
 import type { UserDocument } from '../../../schemas';
 import { ApiError } from '../../../utils/errors';
 import type { IAuthService } from '../../../services/auth';
-import { UserDocumentBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
+import { UserDocumentBuilder, UserRegistrationBuilder, UserUpdateBuilder, PasswordChangeBuilder } from '@splitifyd/test-support';
 
 // Mock i18n functions to avoid translation errors in tests
 vi.mock('../../../utils/i18n-validation', () => ({
@@ -674,33 +674,33 @@ describe('UserService - Consolidated Unit Tests', () => {
 
         describe('updateProfile validation', () => {
             it('should validate displayName length', async () => {
-                const updateData = {
-                    displayName: 'a'.repeat(101), // Too long
-                };
+                const updateData = new UserUpdateBuilder()
+                    .withDisplayName('a'.repeat(101)) // Too long
+                    .build();
 
                 await expect(validationUserService.updateProfile(testUserId, updateData)).rejects.toThrow(ApiError);
             });
 
             it('should validate displayName is not empty', async () => {
-                const updateData = {
-                    displayName: '',
-                };
+                const updateData = new UserUpdateBuilder()
+                    .withDisplayName('')
+                    .build();
 
                 await expect(validationUserService.updateProfile(testUserId, updateData)).rejects.toThrow(ApiError);
             });
 
             it('should validate displayName with only whitespace', async () => {
-                const updateData = {
-                    displayName: '   ',
-                };
+                const updateData = new UserUpdateBuilder()
+                    .withDisplayName('   ')
+                    .build();
 
                 await expect(validationUserService.updateProfile(testUserId, updateData)).rejects.toThrow(ApiError);
             });
 
             it('should accept valid displayName', async () => {
-                const updateData = {
-                    displayName: 'Valid Display Name',
-                };
+                const updateData = new UserUpdateBuilder()
+                    .withDisplayName('Valid Display Name')
+                    .build();
 
                 mockAuthService.updateUser.mockResolvedValue({});
                 mockAuthService.getUser.mockResolvedValue({
@@ -720,17 +720,17 @@ describe('UserService - Consolidated Unit Tests', () => {
             });
 
             it('should validate preferredLanguage enum', async () => {
-                const updateData = {
-                    preferredLanguage: 'invalid-language',
-                };
+                const updateData = new UserUpdateBuilder()
+                    .withPreferredLanguage('invalid-language')
+                    .build();
 
                 await expect(validationUserService.updateProfile(testUserId, updateData)).rejects.toThrow(ApiError);
             });
 
             it('should accept valid preferredLanguage', async () => {
-                const updateData = {
-                    preferredLanguage: 'en',
-                };
+                const updateData = new UserUpdateBuilder()
+                    .withPreferredLanguage('en')
+                    .build();
 
                 const updatedUserDoc = createTestUser(testUserId, {
                     email: testUserEmail,
@@ -746,17 +746,17 @@ describe('UserService - Consolidated Unit Tests', () => {
             });
 
             it('should validate photoURL format', async () => {
-                const updateData = {
-                    photoURL: 'not-a-valid-url',
-                };
+                const updateData = new UserUpdateBuilder()
+                    .withPhotoURL('not-a-valid-url')
+                    .build();
 
                 await expect(validationUserService.updateProfile(testUserId, updateData)).rejects.toThrow(ApiError);
             });
 
             it('should accept valid photoURL', async () => {
-                const updateData = {
-                    photoURL: 'https://example.com/photo.jpg',
-                };
+                const updateData = new UserUpdateBuilder()
+                    .withPhotoURL('https://example.com/photo.jpg')
+                    .build();
 
                 mockAuthService.updateUser.mockResolvedValue({});
                 mockAuthService.getUser.mockResolvedValue({
@@ -776,9 +776,9 @@ describe('UserService - Consolidated Unit Tests', () => {
             });
 
             it('should accept null photoURL', async () => {
-                const updateData = {
-                    photoURL: null,
-                };
+                const updateData = new UserUpdateBuilder()
+                    .withPhotoURL(null)
+                    .build();
 
                 mockAuthService.updateUser.mockResolvedValue({});
 
@@ -797,19 +797,19 @@ describe('UserService - Consolidated Unit Tests', () => {
                 (authError as any).code = 'auth/user-not-found';
                 mockAuthService.updateUser.mockRejectedValue(authError);
 
-                const updateData = {
-                    displayName: 'Test',
-                };
+                const updateData = new UserUpdateBuilder()
+                    .withDisplayName('Test')
+                    .build();
 
                 await expect(validationUserService.updateProfile(nonExistentUserId, updateData)).rejects.toThrow(ApiError);
             });
 
             it('should validate multiple fields simultaneously', async () => {
-                const updateData = {
-                    displayName: 'Valid Name',
-                    preferredLanguage: 'en',
-                    photoURL: 'https://example.com/photo.jpg',
-                };
+                const updateData = new UserUpdateBuilder()
+                    .withDisplayName('Valid Name')
+                    .withPreferredLanguage('en')
+                    .withPhotoURL('https://example.com/photo.jpg')
+                    .build();
 
                 mockAuthService.updateUser.mockResolvedValue({});
                 mockAuthService.getUser.mockResolvedValue({
@@ -839,19 +839,19 @@ describe('UserService - Consolidated Unit Tests', () => {
 
         describe('changePassword validation', () => {
             it('should validate password strength - minimum length', async () => {
-                const changeData = {
-                    currentPassword: 'ValidCurrentPassword123!',
-                    newPassword: '123', // Too short
-                };
+                const changeData = new PasswordChangeBuilder()
+                    .withCurrentPassword('ValidCurrentPassword123!')
+                    .withNewPassword('123') // Too short
+                    .build();
 
                 await expect(validationUserService.changePassword(testUserId, changeData)).rejects.toThrow(ApiError);
             });
 
             it('should validate password strength - requires uppercase', async () => {
-                const changeData = {
-                    currentPassword: 'ValidCurrentPassword123!',
-                    newPassword: 'newpassword123!', // No uppercase
-                };
+                const changeData = new PasswordChangeBuilder()
+                    .withCurrentPassword('ValidCurrentPassword123!')
+                    .withNewPassword('newpassword123!') // No uppercase
+                    .build();
 
                 await expect(validationUserService.changePassword(testUserId, changeData)).rejects.toThrow(ApiError);
             });
@@ -1124,9 +1124,9 @@ describe('UserService - Consolidated Unit Tests', () => {
 
         describe('input sanitization', () => {
             it('should trim whitespace from displayName', async () => {
-                const updateData = {
-                    displayName: '  Trimmed Name  ',
-                };
+                const updateData = new UserUpdateBuilder()
+                    .withDisplayName('  Trimmed Name  ')
+                    .build();
 
                 mockAuthService.updateUser.mockResolvedValue({});
                 mockAuthService.getUser.mockResolvedValue({
@@ -1150,9 +1150,9 @@ describe('UserService - Consolidated Unit Tests', () => {
             });
 
             it('should handle special characters in displayName', async () => {
-                const updateData = {
-                    displayName: 'Name with émojis 🎉 and açcénts',
-                };
+                const updateData = new UserUpdateBuilder()
+                    .withDisplayName('Name with émojis 🎉 and açcénts')
+                    .build();
 
                 mockAuthService.updateUser.mockResolvedValue({});
                 mockAuthService.getUser.mockResolvedValue({

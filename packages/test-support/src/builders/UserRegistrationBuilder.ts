@@ -43,6 +43,11 @@ export class UserRegistrationBuilder {
         return this;
     }
 
+    from(data: UserRegistration): this {
+        this.userRegistration = { ...data };
+        return this;
+    }
+
     build(): UserRegistration {
         return { ...this.userRegistration };
     }

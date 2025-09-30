@@ -32,3 +32,5 @@ export { AuthUserRecordBuilder } from './AuthUserRecordBuilder';
 export { UserDocumentBuilder } from './UserDocumentBuilder';
 export { ExpenseSplitBuilder } from './ExpenseSplitBuilder';
 export type { ExpenseSplit } from './ExpenseSplitBuilder';
+export { UserUpdateBuilder } from './UserUpdateBuilder';
+export { PasswordChangeBuilder } from './PasswordChangeBuilder';

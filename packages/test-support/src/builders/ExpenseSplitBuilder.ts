@@ -32,7 +32,7 @@ export class ExpenseSplitBuilder {
     /**
      * Create an exact split for the given participants with specified amounts
      */
-    static exactSplit(userAmounts: Array<{ uid: string; amount: number }>): ExpenseSplitBuilder {
+    static exactSplit(userAmounts: Array<{ uid: string; amount: number; percentage?: number }>): ExpenseSplitBuilder {
         const builder = new ExpenseSplitBuilder();
         builder.splits = [...userAmounts];
         return builder;
