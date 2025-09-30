@@ -162,16 +162,7 @@ class AuthStoreImpl implements AuthStore {
         this.#errorSignal.value = null;
 
         try {
-            const userCredential = await firebaseService.signInWithEmailAndPassword(email, password);
-
-            // Get ID token for API authentication
-            const idToken = await userCredential.user.getIdToken();
-            apiClient.setAuthToken(idToken);
-            localStorage.setItem(USER_ID_KEY, userCredential.user.uid);
-
-            // Schedule token refresh
-            this.scheduleNextRefresh(idToken);
-
+            await firebaseService.signInWithEmailAndPassword(email, password);
             // User state will be updated by onAuthStateChanged listener
         } catch (error: any) {
             this.#errorSignal.value = this.getAuthErrorMessage(error);

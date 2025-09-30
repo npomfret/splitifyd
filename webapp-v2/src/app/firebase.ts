@@ -10,7 +10,7 @@ export interface FirebaseService {
     performTokenRefresh(): Promise<string>;
     performUserRefresh(): Promise<void>;
     getCurrentUserId(): string | null;
-    signInWithEmailAndPassword(email: string, password: string): Promise<any>;
+    signInWithEmailAndPassword(email: string, password: string): Promise<void>;
     sendPasswordResetEmail(email: string): Promise<void>;
     signOut(): Promise<void>;
     onAuthStateChanged(callback: (user: ClientUser | null, idToken: string | null) => Promise<void>): () => void;
@@ -72,7 +72,7 @@ class FirebaseServiceImpl implements FirebaseService {
 
     // Auth methods
     async signInWithEmailAndPassword(email: string, password: string) {
-        return signInWithEmailAndPassword(this.getAuth(), email, password);
+        await signInWithEmailAndPassword(this.getAuth(), email, password);
     }
 
     async sendPasswordResetEmail(email: string) {
