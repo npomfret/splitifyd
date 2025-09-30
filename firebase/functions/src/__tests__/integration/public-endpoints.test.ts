@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { ApiDriver } from '@splitifyd/test-support';
+import { ApiDriver, RegisterRequestBuilder } from '@splitifyd/test-support';
 
 describe('Public Endpoints Tests', () => {
     const apiDriver = new ApiDriver();
@@ -338,11 +338,9 @@ describe('Public Endpoints Tests', () => {
         });
 
         test('should reject registration with invalid email format', async () => {
-            const invalidData = {
-                email: 'invalid-email-format',
-                password: 'validPassword123!',
-                displayName: 'Test User',
-            };
+            const invalidData = new RegisterRequestBuilder()
+                .withEmail('invalid-email-format')
+                .build();
 
             const response = await fetch(`${apiDriver.getBaseUrl()}/register`, {
                 method: 'POST',
@@ -356,11 +354,9 @@ describe('Public Endpoints Tests', () => {
         });
 
         test('should reject registration with weak password', async () => {
-            const invalidData = {
-                email: 'test@example.com',
-                password: '123', // Too weak
-                displayName: 'Test User',
-            };
+            const invalidData = new RegisterRequestBuilder()
+                .withPassword('123') // Too weak
+                .build();
 
             const response = await fetch(`${apiDriver.getBaseUrl()}/register`, {
                 method: 'POST',

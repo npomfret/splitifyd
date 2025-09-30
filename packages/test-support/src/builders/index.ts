@@ -34,3 +34,4 @@ export { ExpenseSplitBuilder } from './ExpenseSplitBuilder';
 export type { ExpenseSplit } from './ExpenseSplitBuilder';
 export { UserUpdateBuilder } from './UserUpdateBuilder';
 export { PasswordChangeBuilder } from './PasswordChangeBuilder';
+export { ThemeBuilder } from './ThemeBuilder';

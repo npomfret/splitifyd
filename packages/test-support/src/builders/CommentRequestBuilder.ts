@@ -1,18 +1,27 @@
 import { CommentTargetTypes } from '@splitifyd/shared';
+import type { CreateCommentRequest } from '@splitifyd/shared';
 
 /**
  * Builder for creating comment request objects for testing
  * Used for validating comment creation and handling various edge cases
  */
 export class CommentRequestBuilder {
-    private request: any = {};
+    private request: Record<string, unknown> = {};
 
-    withText(text: string) {
+    /**
+     * Copy data from an existing comment request object
+     */
+    from(data: CreateCommentRequest | Record<string, unknown>): this {
+        this.request = { ...data };
+        return this;
+    }
+
+    withText(text: string | null | undefined) {
         this.request.text = text;
         return this;
     }
 
-    withTargetType(targetType: string) {
+    withTargetType(targetType: string | number | null | undefined) {
         this.request.targetType = targetType;
         return this;
     }
@@ -30,12 +39,12 @@ export class CommentRequestBuilder {
         return this;
     }
 
-    withTargetId(targetId: string) {
+    withTargetId(targetId: string | null | undefined) {
         this.request.targetId = targetId;
         return this;
     }
 
-    withGroupId(groupId: string) {
+    withGroupId(groupId: string | undefined) {
         this.request.groupId = groupId;
         return this;
     }

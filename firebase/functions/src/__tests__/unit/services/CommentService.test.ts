@@ -9,7 +9,7 @@ import {
 } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
-import { FirestoreGroupBuilder, FirestoreExpenseBuilder, GroupMemberDocumentBuilder, CommentBuilder } from '@splitifyd/test-support';
+import { FirestoreGroupBuilder, FirestoreExpenseBuilder, GroupMemberDocumentBuilder, CommentBuilder, CommentRequestBuilder } from '@splitifyd/test-support';
 import { CommentTargetTypes } from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { CommentTargetType, CreateCommentRequest } from '@splitifyd/shared';
@@ -694,7 +694,10 @@ describe('CommentService - Consolidated Tests', () => {
 
                 it('should enforce maximum length constraint', () => {
                     const longText = 'A'.repeat(501);
-                    const data = { ...validCommentData, text: longText };
+                    const data = new CommentRequestBuilder()
+                        .from(validCommentData)
+                        .withText(longText)
+                        .build();
 
                     expect(() => validateCreateComment(data)).toThrow(
                         expect.objectContaining({
@@ -711,7 +714,10 @@ describe('CommentService - Consolidated Tests', () => {
                     const validTargetTypes = [CommentTargetTypes.GROUP, CommentTargetTypes.EXPENSE];
 
                     for (const targetType of validTargetTypes) {
-                        const data = { ...validCommentData, targetType };
+                        const data = new CommentRequestBuilder()
+                            .from(validCommentData)
+                            .withTargetType(targetType)
+                            .build();
                         expect(() => validateCreateComment(data)).not.toThrow();
                     }
                 });
@@ -720,7 +726,10 @@ describe('CommentService - Consolidated Tests', () => {
                     const invalidTargetTypes = ['invalid', 'user', 'settlement', '', null, undefined, 123];
 
                     for (const targetType of invalidTargetTypes) {
-                        const data = { ...validCommentData, targetType };
+                        const data = new CommentRequestBuilder()
+                            .from(validCommentData)
+                            .withTargetType(targetType)
+                            .build();
                         expect(() => validateCreateComment(data as any)).toThrow(
                             expect.objectContaining({
                                 statusCode: HTTP_STATUS.BAD_REQUEST,
@@ -744,7 +753,10 @@ describe('CommentService - Consolidated Tests', () => {
                 });
 
                 it('should provide specific error message for invalid target types', () => {
-                    const data = { ...validCommentData, targetType: 'invalid' };
+                    const data = new CommentRequestBuilder()
+                        .from(validCommentData)
+                        .withTargetType('invalid')
+                        .build();
 
                     expect(() => validateCreateComment(data as any)).toThrow(
                         expect.objectContaining({
@@ -760,7 +772,10 @@ describe('CommentService - Consolidated Tests', () => {
                     const validTargetIds = ['group-123', 'expense-456', 'simple-id', 'id_with_underscores', 'ID-WITH-CAPS'];
 
                     for (const targetId of validTargetIds) {
-                        const data = { ...validCommentData, targetId };
+                        const data = new CommentRequestBuilder()
+                            .from(validCommentData)
+                            .withTargetId(targetId)
+                            .build();
                         expect(() => validateCreateComment(data)).not.toThrow();
                     }
                 });
@@ -774,7 +789,10 @@ describe('CommentService - Consolidated Tests', () => {
                     ];
 
                     for (const targetId of invalidTargetIds) {
-                        const data = { ...validCommentData, targetId };
+                        const data = new CommentRequestBuilder()
+                            .from(validCommentData)
+                            .withTargetId(targetId)
+                            .build();
                         expect(() => validateCreateComment(data as any)).toThrow(
                             expect.objectContaining({
                                 statusCode: HTTP_STATUS.BAD_REQUEST,
@@ -785,7 +803,10 @@ describe('CommentService - Consolidated Tests', () => {
                 });
 
                 it('should trim whitespace from target IDs', () => {
-                    const data = { ...validCommentData, targetId: '  group-123  ' };
+                    const data = new CommentRequestBuilder()
+                        .from(validCommentData)
+                        .withTargetId('  group-123  ')
+                        .build();
                     const result = validateCreateComment(data);
                     expect(result.targetId).toBe('group-123');
                 });
@@ -813,13 +834,19 @@ describe('CommentService - Consolidated Tests', () => {
                     ];
 
                     for (const groupId of validGroupIds) {
-                        const data = { ...validCommentData, groupId };
+                        const data = new CommentRequestBuilder()
+                            .from(validCommentData)
+                            .withGroupId(groupId)
+                            .build();
                         expect(() => validateCreateComment(data)).not.toThrow();
                     }
                 });
 
                 it('should trim whitespace from group IDs', () => {
-                    const data = { ...validCommentData, groupId: '  group-123  ' };
+                    const data = new CommentRequestBuilder()
+                        .from(validCommentData)
+                        .withGroupId('  group-123  ')
+                        .build();
                     const result = validateCreateComment(data);
                     expect(result.groupId).toBe('group-123');
                 });

@@ -6,10 +6,9 @@ import {
     StubFirestoreWriter,
     StubAuthService
 } from '../mocks/firestore-stubs';
-import { FirestoreGroupBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { FirestoreGroupBuilder, GroupMemberDocumentBuilder, ThemeBuilder } from '@splitifyd/test-support';
 import type { GroupMemberDocument } from '@splitifyd/shared';
-import type { GroupDocument } from '../../../schemas';
-import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { MemberRoles } from '@splitifyd/shared';
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {
     let groupMemberService: GroupMemberService;
@@ -28,14 +27,13 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     const memberUserId = 'member-user-123';
     const otherMemberUserId = 'other-member-123';
 
-    const defaultTheme = {
-        light: '#FF6B6B',
-        dark: '#FF6B6B',
-        name: 'Test Theme',
-        pattern: 'solid' as const,
-        assignedAt: new Date().toISOString(),
-        colorIndex: 0,
-    };
+    const defaultTheme = new ThemeBuilder()
+        .withLight('#FF6B6B')
+        .withDark('#FF6B6B')
+        .withName('Test Theme')
+        .withPattern('solid')
+        .withColorIndex(0)
+        .build();
 
     beforeEach(() => {
         // Create stubs
@@ -223,40 +221,16 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     describe('Leave Group Validation', () => {
         test('should prevent group creator from leaving', async () => {
             // Setup: Creator trying to leave their own group
-            const testGroup: GroupDocument = {
-                id: testGroupId,
-                name: 'Test Group',
-                description: 'Test group for validation',
-                createdBy: creatorUserId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                members: {
-                    [creatorUserId]: {
-                        role: MemberRoles.ADMIN,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
-                    },
-                },
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                securityPreset: 'open',
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId(testGroupId)
+                .withCreatedBy(creatorUserId)
+                .build();
 
-            const creatorMember: GroupMemberDocument = {
-                uid: creatorUserId,
-                groupId: testGroupId,
-                memberRole: MemberRoles.ADMIN,
-                memberStatus: MemberStatuses.ACTIVE,
-                joinedAt: new Date().toISOString(),
-                theme: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0, assignedAt: new Date().toISOString() },
-                invitedBy: creatorUserId,
-            };
+            const creatorMember = new GroupMemberDocumentBuilder()
+                .withUserId(creatorUserId)
+                .withGroupId(testGroupId)
+                .withRole(MemberRoles.ADMIN)
+                .build();
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${creatorUserId}`, creatorMember);
@@ -267,46 +241,15 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should prevent leaving with outstanding balance', async () => {
             // Setup: Member with outstanding balance trying to leave
-            const testGroup: GroupDocument = {
-                id: testGroupId,
-                name: 'Test Group',
-                description: 'Test group for validation',
-                createdBy: creatorUserId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                members: {
-                    [creatorUserId]: {
-                        role: MemberRoles.ADMIN,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
-                    },
-                    [memberUserId]: {
-                        role: MemberRoles.MEMBER,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1 },
-                    },
-                },
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                securityPreset: 'open',
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId(testGroupId)
+                .withCreatedBy(creatorUserId)
+                .build();
 
-            const memberDoc: GroupMemberDocument = {
-                uid: memberUserId,
-                groupId: testGroupId,
-                memberRole: MemberRoles.MEMBER,
-                memberStatus: MemberStatuses.ACTIVE,
-                joinedAt: new Date().toISOString(),
-                theme: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1, assignedAt: new Date().toISOString() },
-                invitedBy: creatorUserId,
-            };
+            const memberDoc = new GroupMemberDocumentBuilder()
+                .withUserId(memberUserId)
+                .withGroupId(testGroupId)
+                .build();
 
             // Mock balance calculation to return outstanding balance
             mockBalanceService.calculateGroupBalances.mockResolvedValue({
@@ -330,46 +273,15 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should allow member to leave when balance is settled', async () => {
             // Setup: Member with settled balance leaving
-            const testGroup: GroupDocument = {
-                id: testGroupId,
-                name: 'Test Group',
-                description: 'Test group for validation',
-                createdBy: creatorUserId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                members: {
-                    [creatorUserId]: {
-                        role: MemberRoles.ADMIN,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
-                    },
-                    [memberUserId]: {
-                        role: MemberRoles.MEMBER,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1 },
-                    },
-                },
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                securityPreset: 'open',
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId(testGroupId)
+                .withCreatedBy(creatorUserId)
+                .build();
 
-            const memberDoc: GroupMemberDocument = {
-                uid: memberUserId,
-                groupId: testGroupId,
-                memberRole: MemberRoles.MEMBER,
-                memberStatus: MemberStatuses.ACTIVE,
-                joinedAt: new Date().toISOString(),
-                theme: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1, assignedAt: new Date().toISOString() },
-                invitedBy: creatorUserId,
-            };
+            const memberDoc = new GroupMemberDocumentBuilder()
+                .withUserId(memberUserId)
+                .withGroupId(testGroupId)
+                .build();
 
             // Mock balance calculation to return zero balance
             mockBalanceService.calculateGroupBalances.mockResolvedValue({
@@ -385,15 +297,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             });
 
             // Add another member so the group has multiple members (needed for leave validation)
-            const otherMemberDoc: GroupMemberDocument = {
-                uid: otherMemberUserId,
-                groupId: testGroupId,
-                memberRole: MemberRoles.MEMBER,
-                memberStatus: MemberStatuses.ACTIVE,
-                joinedAt: new Date().toISOString(),
-                theme: { light: '#0000FF', dark: '#0000FF', name: 'blue', pattern: 'solid', colorIndex: 2, assignedAt: new Date().toISOString() },
-                invitedBy: creatorUserId,
-            };
+            const otherMemberDoc = new GroupMemberDocumentBuilder()
+                .withUserId(otherMemberUserId)
+                .withGroupId(testGroupId)
+                .build();
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${memberUserId}`, memberDoc);
@@ -427,30 +334,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should reject leave request for non-member', async () => {
             // Setup: Group exists but user is not a member
-            const testGroup: GroupDocument = {
-                id: testGroupId,
-                name: 'Test Group',
-                description: 'Test group for validation',
-                createdBy: creatorUserId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                members: {
-                    [creatorUserId]: {
-                        role: MemberRoles.ADMIN,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
-                    },
-                },
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                securityPreset: 'open',
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId(testGroupId)
+                .build();
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${memberUserId}`, null); // Member doesn't exist
@@ -463,46 +349,15 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     describe('Remove Member Validation', () => {
         test('should prevent non-creator from removing members', async () => {
             // Setup: Non-creator trying to remove another member
-            const testGroup: GroupDocument = {
-                id: testGroupId,
-                name: 'Test Group',
-                description: 'Test group for validation',
-                createdBy: creatorUserId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                members: {
-                    [creatorUserId]: {
-                        role: MemberRoles.ADMIN,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
-                    },
-                    [memberUserId]: {
-                        role: MemberRoles.MEMBER,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1 },
-                    },
-                },
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                securityPreset: 'open',
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId(testGroupId)
+                .withCreatedBy(creatorUserId)
+                .build();
 
-            const targetMemberDoc: GroupMemberDocument = {
-                uid: otherMemberUserId,
-                groupId: testGroupId,
-                memberRole: MemberRoles.MEMBER,
-                memberStatus: MemberStatuses.ACTIVE,
-                joinedAt: new Date().toISOString(),
-                theme: { light: '#0000FF', dark: '#0000FF', name: 'blue', pattern: 'solid', colorIndex: 2, assignedAt: new Date().toISOString() },
-                invitedBy: creatorUserId,
-            };
+            const targetMemberDoc = new GroupMemberDocumentBuilder()
+                .withUserId(otherMemberUserId)
+                .withGroupId(testGroupId)
+                .build();
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${otherMemberUserId}`, targetMemberDoc);
@@ -513,40 +368,16 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should prevent removing the group creator', async () => {
             // Setup: Creator trying to remove themselves via removeGroupMember
-            const testGroup: GroupDocument = {
-                id: testGroupId,
-                name: 'Test Group',
-                description: 'Test group for validation',
-                createdBy: creatorUserId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                members: {
-                    [creatorUserId]: {
-                        role: MemberRoles.ADMIN,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
-                    },
-                },
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                securityPreset: 'open',
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId(testGroupId)
+                .withCreatedBy(creatorUserId)
+                .build();
 
-            const creatorMemberDoc: GroupMemberDocument = {
-                uid: creatorUserId,
-                groupId: testGroupId,
-                memberRole: MemberRoles.ADMIN,
-                memberStatus: MemberStatuses.ACTIVE,
-                joinedAt: new Date().toISOString(),
-                theme: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0, assignedAt: new Date().toISOString() },
-                invitedBy: creatorUserId,
-            };
+            const creatorMemberDoc = new GroupMemberDocumentBuilder()
+                .withUserId(creatorUserId)
+                .withGroupId(testGroupId)
+                .withRole(MemberRoles.ADMIN)
+                .build();
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${creatorUserId}`, creatorMemberDoc);
@@ -557,46 +388,15 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should prevent removing member with outstanding balance', async () => {
             // Setup: Creator trying to remove member with debt
-            const testGroup: GroupDocument = {
-                id: testGroupId,
-                name: 'Test Group',
-                description: 'Test group for validation',
-                createdBy: creatorUserId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                members: {
-                    [creatorUserId]: {
-                        role: MemberRoles.ADMIN,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
-                    },
-                    [memberUserId]: {
-                        role: MemberRoles.MEMBER,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1 },
-                    },
-                },
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                securityPreset: 'open',
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId(testGroupId)
+                .withCreatedBy(creatorUserId)
+                .build();
 
-            const memberDoc: GroupMemberDocument = {
-                uid: memberUserId,
-                groupId: testGroupId,
-                memberRole: MemberRoles.MEMBER,
-                memberStatus: MemberStatuses.ACTIVE,
-                joinedAt: new Date().toISOString(),
-                theme: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1, assignedAt: new Date().toISOString() },
-                invitedBy: creatorUserId,
-            };
+            const memberDoc = new GroupMemberDocumentBuilder()
+                .withUserId(memberUserId)
+                .withGroupId(testGroupId)
+                .build();
 
             // Mock balance calculation to return outstanding balance
             mockBalanceService.calculateGroupBalances.mockResolvedValue({
@@ -620,46 +420,15 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should allow creator to remove member with settled balance', async () => {
             // Setup: Creator removing member with zero balance
-            const testGroup: GroupDocument = {
-                id: testGroupId,
-                name: 'Test Group',
-                description: 'Test group for validation',
-                createdBy: creatorUserId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                members: {
-                    [creatorUserId]: {
-                        role: MemberRoles.ADMIN,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
-                    },
-                    [memberUserId]: {
-                        role: MemberRoles.MEMBER,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1 },
-                    },
-                },
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                securityPreset: 'open',
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId(testGroupId)
+                .withCreatedBy(creatorUserId)
+                .build();
 
-            const memberDoc: GroupMemberDocument = {
-                uid: memberUserId,
-                groupId: testGroupId,
-                memberRole: MemberRoles.MEMBER,
-                memberStatus: MemberStatuses.ACTIVE,
-                joinedAt: new Date().toISOString(),
-                theme: { light: '#00FF00', dark: '#00FF00', name: 'green', pattern: 'solid', colorIndex: 1, assignedAt: new Date().toISOString() },
-                invitedBy: creatorUserId,
-            };
+            const memberDoc = new GroupMemberDocumentBuilder()
+                .withUserId(memberUserId)
+                .withGroupId(testGroupId)
+                .build();
 
             // Mock balance calculation to return zero balance
             mockBalanceService.calculateGroupBalances.mockResolvedValue({
@@ -692,30 +461,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should reject removal of non-existent member', async () => {
             // Setup: Creator trying to remove non-existent member
-            const testGroup: GroupDocument = {
-                id: testGroupId,
-                name: 'Test Group',
-                description: 'Test group for validation',
-                createdBy: creatorUserId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                members: {
-                    [creatorUserId]: {
-                        role: MemberRoles.ADMIN,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
-                    },
-                },
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                securityPreset: 'open',
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId(testGroupId)
+                .withCreatedBy(creatorUserId)
+                .build();
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_nonexistent-user`, null); // Member doesn't exist

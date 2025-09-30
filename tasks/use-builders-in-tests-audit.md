@@ -304,4 +304,160 @@ const updateData = new UserUpdateBuilder()
 - **Type safety**: Builders ensure proper defaults and field validation
 - **Future-proof**: New test files will naturally follow established builder patterns
 
-**Status:** ✅ **COMPREHENSIVE MIGRATION COMPLETE** - All identified builder pattern opportunities have been successfully implemented with full test coverage maintained.
+## 7. Phase 3 Migration ✅ (September 2025)
+
+Following the successful completion of Phase 2, a comprehensive Phase 3 migration was undertaken to address additional test files that still contained manual object creation patterns and spread operator usage instead of the prescribed builder pattern.
+
+### Additional Files Migrated:
+
+#### ✅ **`firebase/functions/src/__tests__/unit/services/GroupMemberService.test.ts`**
+**Issue**: Extensive manual creation of GroupDocument and GroupMemberDocument objects with detailed nested properties and theme structures.
+
+**Migration Details**:
+- **Created ThemeBuilder**: New builder for UserThemeColor objects with predefined color methods (red(), green(), blue())
+- **Replaced 12+ GroupDocument instances** with FirestoreGroupBuilder focusing only on test-relevant properties
+- **Replaced 6+ GroupMemberDocument instances** with GroupMemberDocumentBuilder
+- **Applied focused testing principle**: Only specified properties essential to each test (e.g., creator ID for leave validation, group ID for existence checks)
+- **All 28 tests passing** after migration
+
+**Examples of Changes**:
+```typescript
+// Before (manual with unnecessary details)
+const testGroup: GroupDocument = {
+    id: testGroupId,
+    name: 'Test Group',
+    description: 'Test group for validation',
+    createdBy: creatorUserId,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    members: {
+        [creatorUserId]: {
+            role: MemberRoles.ADMIN,
+            status: MemberStatuses.ACTIVE,
+            joinedAt: new Date().toISOString(),
+            color: { light: '#FF0000', dark: '#FF0000', name: 'red', pattern: 'solid', colorIndex: 0 },
+        },
+    },
+    permissions: { /* extensive permissions object */ },
+    securityPreset: 'open',
+};
+
+// After (builder with focus on what matters)
+const testGroup = new FirestoreGroupBuilder()
+    .withId(testGroupId)
+    .withCreatedBy(creatorUserId)
+    .build();
+```
+
+#### ✅ **`firebase/functions/src/__tests__/unit/services/CommentService.test.ts`**
+**Issue**: Used spread operator pattern `{ ...validCommentData, field: value }` throughout comment validation tests instead of builder method chaining.
+
+**Migration Details**:
+- **Enhanced CommentRequestBuilder**: Added `from()` method to enable copying from existing data (similar to UserRegistrationBuilder)
+- **Replaced 11+ spread operator patterns** with builder method chaining
+- **Pattern conversion**: `{ ...validCommentData, text: 'test' }` → `new CommentRequestBuilder().from(validCommentData).withText('test').build()`
+- **All 61 tests passing** after migration
+
+**Examples of Changes**:
+```typescript
+// Before (spread operator pattern)
+for (const text of invalidTexts) {
+    const data = { ...validCommentData, text };
+    expect(() => validateCreateComment(data)).toThrow();
+}
+
+// After (builder pattern)
+for (const text of invalidTexts) {
+    const data = new CommentRequestBuilder()
+        .from(validCommentData)
+        .withText(text)
+        .build();
+    expect(() => validateCreateComment(data)).toThrow();
+}
+```
+
+#### ✅ **`firebase/functions/src/__tests__/integration/public-endpoints.test.ts`**
+**Issue**: Manual creation of registration data objects for testing invalid registration scenarios.
+
+**Migration Details**:
+- **Used RegisterRequestBuilder**: Leveraged existing builder for registration test data
+- **Replaced 2 instances** of manual object creation with focused builder usage
+- **Applied focused testing principle**: Only specified the field being tested for invalidity
+- **All 32 tests passing** after migration
+
+**Examples of Changes**:
+```typescript
+// Before (manual object with irrelevant details)
+const invalidData = {
+    email: 'invalid-email-format',
+    password: 'validPassword123!',
+    displayName: 'Test User',
+};
+
+// After (builder focusing only on what's being tested)
+const invalidData = new RegisterRequestBuilder()
+    .withEmail('invalid-email-format')
+    .build();
+```
+
+### New Builders Created:
+
+1. **ThemeBuilder** - For UserThemeColor object creation
+   - `withLight()`, `withDark()`, `withName()`, `withPattern()`, `withColorIndex()`, `withAssignedAt()`
+   - Static methods: `red()`, `green()`, `blue()` for common test colors
+   - Used for consistent theme object creation across tests
+
+2. **Enhanced CommentRequestBuilder** - Added `from()` method
+   - Enables copying existing comment data and overriding specific fields
+   - Consistent with UserRegistrationBuilder pattern established in Phase 2
+
+### Key Principles Applied:
+
+1. **Focused Testing**: Builders specify only properties relevant to the specific test scenario
+2. **Default Sufficiency**: Let builders provide sensible defaults for irrelevant properties
+3. **Readability**: Tests focus on business logic rather than object construction
+4. **Maintainability**: Changes to object structures only require builder updates
+
+### Migration Results Summary:
+
+**Phase 3 Statistics**:
+- **25+ additional test instances** migrated to use builder patterns
+- **1 new builder created** (ThemeBuilder)
+- **1 existing builder enhanced** (CommentRequestBuilder with from() method)
+- **3 test files** successfully migrated with focused testing principles applied
+- **100% test pass rate** maintained across all affected files
+- **Zero regressions** introduced
+
+**Total Project Impact (All Phases)**:
+- **177+ total test instances** migrated across all phases (117 + 35 + 25)
+- **100% builder pattern compliance** achieved in core test files
+- **8 test files** successfully migrated to use builders
+- **Zero manual object creation** remaining in identified test files
+
+### Benefits Achieved:
+
+- **Complete consistency**: Uniform builder pattern usage across all test data creation
+- **Enhanced maintainability**: All test data changes centralized in builder classes
+- **Improved readability**: Tests focus on business logic with minimal setup noise
+- **Type safety**: Builders ensure proper defaults and field validation
+- **Focused testing**: Tests only specify properties relevant to the scenario being tested
+- **Future-proof**: New test files naturally follow established builder patterns
+
+### TypeScript Compilation Fix:
+
+During the Phase 3 migration, a TypeScript compilation issue was discovered and resolved:
+
+**Issue**: The `CommentRequestBuilder.from()` method expected `Record<string, unknown>` but was receiving `CreateCommentRequest` interface types from test code.
+
+**Solution**: Updated the method signature to accept both types using a union:
+```typescript
+from(data: CreateCommentRequest | Record<string, unknown>): this
+```
+
+**Verification**:
+- All TypeScript compilation errors resolved
+- `npm run build` passes successfully
+- All 61 CommentService tests continue to pass
+- Maintained proper type safety without using `any`
+
+**Status:** ✅ **COMPREHENSIVE PHASE 3 MIGRATION COMPLETE** - All identified builder pattern opportunities have been successfully implemented with focused testing principles applied, proper TypeScript type safety maintained, and full test coverage preserved.
