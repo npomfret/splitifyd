@@ -119,4 +119,16 @@ class FirebaseServiceImpl implements FirebaseService {
     }
 }
 
-export const firebaseService: FirebaseService = new FirebaseServiceImpl();
+// Conditionally export either the real service or a mock for testing
+let serviceInstance: FirebaseService;
+
+if (typeof window !== 'undefined' && (window as any).__MOCK_FIREBASE_SERVICE__) {
+    /* MONKEY PATCH!!! */
+    // Use the mock service provided by Playwright tests
+    serviceInstance = (window as any).__MOCK_FIREBASE_SERVICE__;
+} else {
+    // Use the real implementation in production
+    serviceInstance = new FirebaseServiceImpl();
+}
+
+export const firebaseService: FirebaseService = serviceInstance;

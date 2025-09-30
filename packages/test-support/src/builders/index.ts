@@ -41,3 +41,5 @@ export { ThemeBuilder } from './ThemeBuilder';
 export { ChangeMetadataBuilder } from './ChangeMetadataBuilder';
 export type { ChangeMetadata, ChangePriority } from './ChangeMetadataBuilder';
 export { SplitAssertionBuilder } from './SplitAssertionBuilder';
+export { ListGroupsResponseBuilder } from './ListGroupsResponseBuilder';
+export { UserNotificationDocumentBuilder } from './UserNotificationDocumentBuilder';

@@ -330,6 +330,53 @@ export interface Policy {
 export interface PolicyDocument extends Policy, BaseDocument {}
 
 // ========================================================================
+// User Notification Types - Real-time change tracking per user
+// ========================================================================
+
+/**
+ * Per-group notification tracking within a user's document
+ */
+export interface UserNotificationGroup {
+    // Timestamps of last changes by type
+    lastTransactionChange: FirestoreTimestamp | null;
+    lastBalanceChange: FirestoreTimestamp | null;
+    lastGroupDetailsChange: FirestoreTimestamp | null;
+    lastCommentChange: FirestoreTimestamp | null;
+
+    // Change counters for detecting missed updates
+    transactionChangeCount: number;
+    balanceChangeCount: number;
+    groupDetailsChangeCount: number;
+    commentChangeCount: number;
+}
+
+/**
+ * Recent changes tracking (debugging and audit)
+ */
+export interface RecentChange {
+    groupId: string;
+    type: 'transaction' | 'balance' | 'group' | 'comment';
+    timestamp: FirestoreTimestamp;
+}
+
+/**
+ * Complete user notification document schema
+ */
+export interface UserNotificationDocument {
+    // Global version counter - increments on every change
+    changeVersion: number;
+
+    // Per-group change tracking
+    groups: Record<string, UserNotificationGroup>;
+
+    // Document metadata
+    lastModified: FirestoreTimestamp;
+
+    // Optional: Recent changes for debugging (kept to last 10)
+    recentChanges?: RecentChange[];
+}
+
+// ========================================================================
 // Balance Types
 // ========================================================================
 
