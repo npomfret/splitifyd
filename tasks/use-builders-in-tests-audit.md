@@ -460,4 +460,116 @@ from(data: CreateCommentRequest | Record<string, unknown>): this
 - All 61 CommentService tests continue to pass
 - Maintained proper type safety without using `any`
 
-**Status:** ✅ **COMPREHENSIVE PHASE 3 MIGRATION COMPLETE** - All identified builder pattern opportunities have been successfully implemented with focused testing principles applied, proper TypeScript type safety maintained, and full test coverage preserved.
+## 8. Phase 4 Migration ✅ (September 2025)
+
+Following the successful completion of Phase 3, a comprehensive Phase 4 migration was undertaken to address remaining test files that contained manual object creation patterns for settlement-related operations.
+
+### Additional Files Migrated:
+
+#### ✅ **`firebase/functions/src/__tests__/unit/services/SettlementService.test.ts`**
+**Issue**: Extensive manual creation of `CreateSettlementRequest` objects and `GroupMemberDocument` objects throughout settlement validation and creation tests.
+
+**Migration Details**:
+- **Created CreateSettlementRequestBuilder**: New builder for `CreateSettlementRequest` objects with all settlement-specific methods
+- **Replaced 14+ CreateSettlementRequest instances** with `CreateSettlementRequestBuilder` focusing only on test-relevant properties
+- **Replaced remaining GroupMemberDocument instances** with `GroupMemberDocumentBuilder`
+- **Applied focused testing principle**: Only specified properties essential to each test (e.g., amount for validation tests, group/user IDs for membership checks)
+- **All 14 tests passing** after migration
+
+**Examples of Changes**:
+```typescript
+// Before (manual with unnecessary details)
+const validSettlementData: CreateSettlementRequest = {
+    groupId,
+    payerId: 'payer-user',
+    payeeId: 'payee-user',
+    amount: 100.5,
+    currency: 'USD',
+    note: 'Test settlement',
+    date: new Date().toISOString(),
+};
+
+const payerMembershipDoc = {
+    userId: 'payer-user',
+    groupId: groupId,
+    memberRole: 'member',
+    memberStatus: 'active',
+    joinedAt: new Date().toISOString(),
+};
+
+// After (builder with focus on what matters)
+const validSettlementData = new CreateSettlementRequestBuilder()
+    .withGroupId(groupId)
+    .withPayerId('payer-user')
+    .withPayeeId('payee-user')
+    .withAmount(100.5)
+    .withCurrency('USD')
+    .withNote('Test settlement')
+    .build();
+
+const payerMembershipDoc = new GroupMemberDocumentBuilder()
+    .withUserId('payer-user')
+    .withGroupId(groupId)
+    .withRole('member')
+    .withStatus('active')
+    .build();
+```
+
+**Validation Test Focus Examples**:
+```typescript
+// Before (full object for simple validation)
+const invalidSettlementData: CreateSettlementRequest = {
+    groupId: 'test-group',
+    payerId: 'payer-user',
+    payeeId: 'payee-user',
+    amount: 0, // Invalid amount
+    currency: 'USD',
+    date: new Date().toISOString(),
+};
+
+// After (builder focusing only on what's being tested)
+const invalidSettlementData = new CreateSettlementRequestBuilder()
+    .withAmount(0) // Invalid amount
+    .build();
+```
+
+### New Builders Created:
+
+1. **CreateSettlementRequestBuilder** - For `CreateSettlementRequest` object creation
+   - `withGroupId()`, `withPayerId()`, `withPayeeId()`, `withAmount()`, `withCurrency()`, `withDate()`, `withNote()`
+   - `withoutNote()`, `withoutDate()` for testing optional field handling
+   - Provides sensible defaults for all required fields
+   - Used for consistent settlement request data creation across tests
+
+### Key Principles Applied:
+
+1. **Focused Testing**: Builders specify only properties relevant to the specific test scenario
+2. **Default Sufficiency**: Let builders provide sensible defaults for irrelevant properties
+3. **Readability**: Tests focus on business logic rather than object construction
+4. **Maintainability**: Changes to settlement request structures only require builder updates
+
+### Migration Results Summary:
+
+**Phase 4 Statistics**:
+- **14+ settlement test instances** migrated to use builder patterns
+- **1 new builder created** (CreateSettlementRequestBuilder)
+- **1 test file** successfully migrated with focused testing principles applied
+- **100% test pass rate** maintained (all 14 tests passing)
+- **Zero regressions** introduced
+
+**Total Project Impact (All Phases)**:
+- **191+ total test instances** migrated across all phases (117 + 35 + 25 + 14)
+- **100% builder pattern compliance** achieved in core test files
+- **9 test files** successfully migrated to use builders
+- **Zero manual object creation** remaining in identified test files
+
+### Benefits Achieved:
+
+- **Complete consistency**: Uniform builder pattern usage across all test data creation
+- **Enhanced maintainability**: All test data changes centralized in builder classes
+- **Improved readability**: Tests focus on business logic with minimal setup noise
+- **Type safety**: Builders ensure proper defaults and field validation
+- **Focused testing**: Tests only specify properties relevant to the scenario being tested
+- **Future-proof**: New test files naturally follow established builder patterns
+
+**Status:** ✅ **COMPREHENSIVE PHASE 4 MIGRATION COMPLETE** - All identified builder pattern opportunities have been successfully implemented with focused testing principles applied, proper TypeScript type safety maintained, and full test coverage preserved.

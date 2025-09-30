@@ -4,6 +4,7 @@ export { GroupMemberBuilder } from './GroupMemberBuilder';
 export { GroupMemberDocumentBuilder } from './GroupMemberDocumentBuilder';
 export { GroupChangeDocumentBuilder } from './GroupChangeDocumentBuilder';
 export { CreateExpenseRequestBuilder } from './CreateExpenseRequestBuilder';
+export { CreateSettlementRequestBuilder } from './CreateSettlementRequestBuilder';
 export { SettlementBuilder } from './SettlementBuilder';
 export { ExpenseUpdateBuilder } from './ExpenseUpdateBuilder';
 export { SettlementUpdateBuilder } from './SettlementUpdateBuilder';
