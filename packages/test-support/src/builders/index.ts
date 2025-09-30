@@ -21,6 +21,8 @@ export { UserBalanceBuilder, DebtScenarios } from './UserBalanceBuilder';
 export { RegisterRequestBuilder } from './RegisterRequestBuilder';
 export { ValidationExpenseBuilder } from './ValidationExpenseBuilder';
 export { TestUserBuilder } from './TestUserBuilder';
+export { ClientUserBuilder } from './ClientUserBuilder';
+export { GroupBuilder } from './GroupBuilder';
 export { ExpenseFormDataBuilder } from './ExpenseFormDataBuilder';
 export type { ExpenseFormData } from './ExpenseFormDataBuilder';
 export { SettlementFormDataBuilder } from './SettlementFormDataBuilder';
