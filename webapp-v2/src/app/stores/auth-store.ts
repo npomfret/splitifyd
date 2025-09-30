@@ -109,9 +109,8 @@ class AuthStoreImpl implements AuthStore {
             );
 
             // Set up auth state listener
-            firebaseService.onAuthStateChanged(async (firebaseUser) => {
-                if (firebaseUser) {
-                    const user = mapFirebaseUser(firebaseUser);
+            firebaseService.onAuthStateChanged(async (user, idToken) => {
+                if (user) {
                     this.#userSignal.value = user;
 
                     // Apply user's theme colors
@@ -119,7 +118,6 @@ class AuthStoreImpl implements AuthStore {
 
                     // Get and store ID token for API authentication
                     try {
-                        const idToken = await firebaseUser.getIdToken();
                         apiClient.setAuthToken(idToken);
                         localStorage.setItem(USER_ID_KEY, user.uid);
 
@@ -128,7 +126,7 @@ class AuthStoreImpl implements AuthStore {
                         expenseFormStore.setStorage(this.userStorage);
 
                         // Schedule token refresh
-                        this.scheduleNextRefresh(idToken);
+                        this.scheduleNextRefresh(idToken!);
                     } catch (error) {
                         logError('Failed to get ID token', error);
                     }

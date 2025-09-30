@@ -2,6 +2,8 @@ import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, User as FirebaseUser, User } from 'firebase/auth';
 import { getFirestore, Firestore, connectFirestoreEmulator, doc, onSnapshot } from 'firebase/firestore';
 import { firebaseConfigManager } from './firebase-config';
+import {mapFirebaseUser} from "@/app/stores/auth-store.ts";
+import {ClientUser} from "@splitifyd/shared";
 
 export interface FirebaseService {
     connect(): Promise<void>;
@@ -9,7 +11,7 @@ export interface FirebaseService {
     signInWithEmailAndPassword(email: string, password: string): Promise<any>;
     sendPasswordResetEmail(email: string): Promise<void>;
     signOut(): Promise<void>;
-    onAuthStateChanged(callback: (user: FirebaseUser | null) => void): () => void;
+    onAuthStateChanged(callback: (user: ClientUser | null, idToken: string | null) => Promise<void>): () => void;
     onDocumentSnapshot(collection: string, documentId: string, onData: (data: any) => void, onError: (error: Error) => void): () => void;
 }
 
@@ -77,8 +79,16 @@ class FirebaseServiceImpl implements FirebaseService {
         return signOut(this.getAuth());
     }
 
-    onAuthStateChanged(callback: (user: FirebaseUser | null) => void) {
-        return onAuthStateChanged(this.getAuth(), callback);
+    onAuthStateChanged(callback: (user: ClientUser | null, idToken: string | null) => Promise<void>) {
+        return onAuthStateChanged(this.getAuth(), async (firebaseUser: FirebaseUser | null) => {
+            if (firebaseUser) {
+                const user = mapFirebaseUser(firebaseUser);
+                const idToken = await firebaseUser.getIdToken();
+                callback(user!, idToken!);
+            } else {
+                callback(null, null);
+            }
+        });
     }
 
     onDocumentSnapshot(collection: string, documentId: string, onData: (data: any) => void, onError: (error: Error) => void): () => void {
