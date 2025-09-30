@@ -4,7 +4,7 @@ import { getFirestore, Firestore, connectFirestoreEmulator, doc, onSnapshot } fr
 import { firebaseConfigManager } from './firebase-config';
 
 export interface FirebaseService {
-    initialize(): Promise<void>;
+    connect(): Promise<void>;
     getCurrentUser(): User | null;
     signInWithEmailAndPassword(email: string, password: string): Promise<any>;
     sendPasswordResetEmail(email: string): Promise<void>;
@@ -19,7 +19,7 @@ class FirebaseServiceImpl implements FirebaseService {
     private firestore: Firestore | null = null;
     private initialized = false;
 
-    async initialize(): Promise<void> {
+    async connect(): Promise<void> {
         if (this.initialized) {
             return;
         }

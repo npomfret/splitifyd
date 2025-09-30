@@ -98,7 +98,7 @@ class AuthStoreImpl implements AuthStore {
 
     private async initializeAuth() {
         try {
-            await firebaseService.initialize();
+            await firebaseService.connect();
 
             // Set up API client auth callbacks to avoid circular dependencies
             apiClient.setAuthCallbacks(

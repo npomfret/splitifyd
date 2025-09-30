@@ -38,7 +38,7 @@ describe('UserNotificationDetector', () => {
     beforeEach(() => {
         // Create a mock FirebaseService
         mockFirebaseService = {
-            initialize: vi.fn(),
+            connect: vi.fn(),
             getCurrentUser: vi.fn(() => ({ uid: 'test-user-456' }) as any),
             signInWithEmailAndPassword: vi.fn(),
             sendPasswordResetEmail: vi.fn(),
