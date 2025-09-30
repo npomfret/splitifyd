@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { validateCreateExpense } from '../../expenses/validation';
 import { createSettlementSchema } from '../../settlements/validation';
 import { isUTCFormat, parseUTCOnly, validateUTCDate } from '../../utils/dateHelpers';
+import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder } from '@splitifyd/test-support';
 
 describe('UTC Date Validation', () => {
     describe('dateHelpers', () => {
@@ -100,41 +101,17 @@ describe('UTC Date Validation', () => {
 
     describe('Expense Validation', () => {
         it('should accept expenses with UTC dates', () => {
-            const validExpense = {
-                groupId: 'group123',
-                description: 'Test expense',
-                amount: 50.0,
-                paidBy: 'user123',
-                category: 'food',
-                currency: 'USD',
-                date: '2024-01-01T00:00:00.000Z',
-                splitType: 'equal',
-                participants: ['user123', 'user456'],
-                splits: [
-                    { uid: 'user123', amount: 25 },
-                    { uid: 'user456', amount: 25 },
-                ],
-            };
+            const validExpense = new CreateExpenseRequestBuilder()
+                .withDate('2024-01-01T00:00:00.000Z')
+                .build();
 
             expect(() => validateCreateExpense(validExpense)).not.toThrow();
         });
 
         it('should reject expenses with non-UTC dates', () => {
-            const invalidExpense = {
-                groupId: 'group123',
-                description: 'Test expense',
-                amount: 50.0,
-                paidBy: 'user123',
-                category: 'food',
-                currency: 'USD',
-                date: '2024-01-01T00:00:00-05:00', // Non-UTC timezone
-                splitType: 'equal',
-                participants: ['user123', 'user456'],
-                splits: [
-                    { uid: 'user123', amount: 25 },
-                    { uid: 'user456', amount: 25 },
-                ],
-            };
+            const invalidExpense = new CreateExpenseRequestBuilder()
+                .withDate('2024-01-01T00:00:00-05:00') // Non-UTC timezone
+                .build();
 
             expect(() => validateCreateExpense(invalidExpense)).toThrow('Date must be in UTC format');
         });
@@ -143,21 +120,9 @@ describe('UTC Date Validation', () => {
             const future = new Date();
             future.setDate(future.getDate() + 2); // 2 days in future, beyond 24h buffer
 
-            const futureExpense = {
-                groupId: 'group123',
-                description: 'Test expense',
-                amount: 50.0,
-                paidBy: 'user123',
-                category: 'food',
-                currency: 'USD',
-                date: future.toISOString(),
-                splitType: 'equal',
-                participants: ['user123', 'user456'],
-                splits: [
-                    { uid: 'user123', amount: 25 },
-                    { uid: 'user456', amount: 25 },
-                ],
-            };
+            const futureExpense = new CreateExpenseRequestBuilder()
+                .withDate(future.toISOString())
+                .build();
 
             expect(() => validateCreateExpense(futureExpense)).toThrow('Date cannot be in the future');
         });
@@ -165,43 +130,27 @@ describe('UTC Date Validation', () => {
 
     describe('Settlement Validation', () => {
         it('should accept settlements with UTC dates', () => {
-            const validSettlement = {
-                groupId: 'group123',
-                payerId: 'user123',
-                payeeId: 'user456',
-                amount: 100.0,
-                currency: 'USD',
-                date: '2024-01-01T00:00:00.000Z',
-                note: 'Test settlement',
-            };
+            const validSettlement = new CreateSettlementRequestBuilder()
+                .withDate('2024-01-01T00:00:00.000Z')
+                .build();
 
             const result = createSettlementSchema.validate(validSettlement);
             expect(result.error).toBeUndefined();
         });
 
         it('should accept settlements without dates (server will use current time)', () => {
-            const validSettlement = {
-                groupId: 'group123',
-                payerId: 'user123',
-                payeeId: 'user456',
-                amount: 100.0,
-                currency: 'USD',
-            };
+            const validSettlement = new CreateSettlementRequestBuilder()
+                .withoutDate()
+                .build();
 
             const result = createSettlementSchema.validate(validSettlement);
             expect(result.error).toBeUndefined();
         });
 
         it('should reject settlements with non-UTC dates', () => {
-            const invalidSettlement = {
-                groupId: 'group123',
-                payerId: 'user123',
-                payeeId: 'user456',
-                amount: 100.0,
-                currency: 'USD',
-                date: '2024-01-01T00:00:00-05:00', // Non-UTC timezone
-                note: 'Test settlement',
-            };
+            const invalidSettlement = new CreateSettlementRequestBuilder()
+                .withDate('2024-01-01T00:00:00-05:00') // Non-UTC timezone
+                .build();
 
             const result = createSettlementSchema.validate(invalidSettlement);
             expect(result.error).toBeDefined();
@@ -212,15 +161,9 @@ describe('UTC Date Validation', () => {
             const future = new Date();
             future.setDate(future.getDate() + 2); // 2 days in future, beyond 24h buffer
 
-            const futureSettlement = {
-                groupId: 'group123',
-                payerId: 'user123',
-                payeeId: 'user456',
-                amount: 100.0,
-                currency: 'USD',
-                date: future.toISOString(),
-                note: 'Test settlement',
-            };
+            const futureSettlement = new CreateSettlementRequestBuilder()
+                .withDate(future.toISOString())
+                .build();
 
             const result = createSettlementSchema.validate(futureSettlement);
             expect(result.error).toBeDefined();

@@ -4,6 +4,7 @@ import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stu
 import { ApiError } from '../../../utils/errors';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { BalanceCalculationService } from '../../../services/balance';
+import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 
 // Create mock services
 const createMockUserService = () => ({
@@ -98,14 +99,14 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
     describe('Subcollection Query Performance Edge Cases', () => {
         test('should handle large subcollection results without memory issues', async () => {
             // Mock large result set (1000 members) through MockFirestoreReader
-            const largeMemberSet = Array.from({ length: 1000 }, (_, i) => ({
-                uid: `user-${i}`,
-                groupId: 'large-group',
-                memberRole: MemberRoles.MEMBER,
-                memberStatus: MemberStatuses.ACTIVE,
-                joinedAt: '2024-01-01T00:00:00.000Z',
-                theme: { name: 'Blue', colorIndex: i % 10, light: '#0000FF', dark: '#000080', pattern: 'solid' as const, assignedAt: '2024-01-01T00:00:00Z' },
-            }));
+            const largeMemberSet = Array.from({ length: 1000 }, (_, i) =>
+                new GroupMemberDocumentBuilder()
+                    .withUserId(`user-${i}`)
+                    .withGroupId('large-group')
+                    .withRole(MemberRoles.MEMBER)
+                    .withStatus(MemberStatuses.ACTIVE)
+                    .build()
+            );
 
             vi.spyOn(stubFirestoreReader, 'getAllGroupMembers').mockResolvedValue(largeMemberSet);
 
@@ -121,14 +122,12 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
             // Mock mixed valid and corrupted documents through MockFirestoreReader
             // The MockFirestoreReader should handle validation, so we just return what it would process
             const mixedMembers = [
-                {
-                    uid: 'user-1',
-                    groupId: 'group-123',
-                    memberRole: MemberRoles.MEMBER,
-                    memberStatus: MemberStatuses.ACTIVE,
-                    joinedAt: '2024-01-01T00:00:00.000Z',
-                    theme: { name: 'Blue', colorIndex: 0, light: '#0000FF', dark: '#000080', pattern: 'solid' as const, assignedAt: '2024-01-01T00:00:00Z' },
-                },
+                new GroupMemberDocumentBuilder()
+                    .withUserId('user-1')
+                    .withGroupId('group-123')
+                    .withRole(MemberRoles.MEMBER)
+                    .withStatus(MemberStatuses.ACTIVE)
+                    .build(),
                 // Simulate a partially corrupted document
                 {
                     uid: 'user-3',
