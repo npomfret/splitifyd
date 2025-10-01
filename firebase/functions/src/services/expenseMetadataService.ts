@@ -1,6 +1,6 @@
 import type { IFirestoreReader } from './firestore';
 
-export interface ExpenseMetadata {
+interface ExpenseMetadata {
     expenseCount: number;
     lastExpenseTime?: Date;
     lastExpense?: {

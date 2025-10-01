@@ -1,6 +1,6 @@
 import { randomDecimal, randomDate, randomCurrency, generateShortId } from '../test-helpers';
 
-export interface SettlementUpdate {
+interface SettlementUpdate {
     amount?: number;
     currency?: string;
     date?: string;

@@ -10,7 +10,7 @@ import { IFirestoreWriter } from './firestore';
 /**
  * Interface for policy acceptance status
  */
-export interface PolicyAcceptanceStatus {
+interface PolicyAcceptanceStatus {
     policyId: string;
     currentVersionHash: string;
     userAcceptedHash?: string;
@@ -21,7 +21,7 @@ export interface PolicyAcceptanceStatus {
 /**
  * Interface for user policy status response
  */
-export interface UserPolicyStatusResponse {
+interface UserPolicyStatusResponse {
     needsAcceptance: boolean;
     policies: PolicyAcceptanceStatus[];
     totalPending: number;
@@ -30,7 +30,7 @@ export interface UserPolicyStatusResponse {
 /**
  * Interface for policy acceptance request
  */
-export interface AcceptPolicyRequest {
+interface AcceptPolicyRequest {
     policyId: string;
     versionHash: string;
 }

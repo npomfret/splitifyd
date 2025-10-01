@@ -6,7 +6,7 @@ import { timestampToISO, createOptimisticTimestamp } from './dateHelpers';
 /**
  * Standard error response interface
  */
-export interface ErrorResponse {
+interface ErrorResponse {
     error: {
         code: string;
         message: string;
@@ -18,7 +18,7 @@ export interface ErrorResponse {
 /**
  * Health check response interface
  */
-export interface HealthCheckResponse {
+interface HealthCheckResponse {
     status: 'healthy' | 'unhealthy';
     timestamp: string;
     checks: Record<

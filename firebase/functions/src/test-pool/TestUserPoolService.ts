@@ -3,7 +3,7 @@ import { UserService } from '../services/UserService2';
 import type { IAuthService } from '../services/auth';
 import { getFirestore } from '../firebase';
 
-export interface PoolUser {
+interface PoolUser {
     token: string;
     email: string;
     password: string;

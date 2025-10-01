@@ -5,7 +5,7 @@ import { logWarning, logInfo } from '@/utils/browser-logger.ts';
 import {userNotificationDetector, UserNotificationDetector} from '@/utils/user-notification-detector.ts';
 import { streamingMetrics } from '@/utils/streaming-metrics';
 
-export interface EnhancedGroupsStore {
+interface EnhancedGroupsStore {
     groups: Group[];
     loading: boolean;
     error: string | null;

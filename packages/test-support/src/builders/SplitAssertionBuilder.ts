@@ -1,6 +1,6 @@
 import { generateShortId } from '../test-helpers';
 
-export interface ExpenseSplit {
+interface ExpenseSplit {
     uid: string;
     amount: number;
     percentage?: number;

@@ -32,4 +32,4 @@ export type ParsedComment = z.infer<typeof CommentDocumentSchema>;
 /**
  * Type-safe Comment data for writing
  */
-export type CommentData = z.infer<typeof CommentDataSchema>;
+type CommentData = z.infer<typeof CommentDataSchema>;

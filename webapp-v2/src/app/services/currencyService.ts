@@ -1,7 +1,7 @@
 import { CURRENCIES, getCurrency, isValidCurrency, type Currency } from '@/utils/currency';
 import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
 
-export interface GroupedCurrencies {
+interface GroupedCurrencies {
     recent: Currency[];
     common: Currency[];
     others: Currency[];

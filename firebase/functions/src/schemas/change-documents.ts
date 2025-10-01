@@ -37,5 +37,5 @@ export const BalanceChangeDocumentSchema = z.object({
     users: z.array(z.string().min(1)),
 });
 
-export type TransactionChangeDocument = z.infer<typeof TransactionChangeDocumentSchema>;
-export type BalanceChangeDocument = z.infer<typeof BalanceChangeDocumentSchema>;
+type TransactionChangeDocument = z.infer<typeof TransactionChangeDocumentSchema>;
+type BalanceChangeDocument = z.infer<typeof BalanceChangeDocumentSchema>;

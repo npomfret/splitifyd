@@ -1,6 +1,6 @@
 import { generateShortId, randomChoice } from '../test-helpers';
 
-export interface TestUser {
+interface TestUser {
     email: string;
     password: string;
     displayName: string;

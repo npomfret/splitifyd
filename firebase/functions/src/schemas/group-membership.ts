@@ -32,4 +32,4 @@ export const TopLevelGroupMemberSchema = z.object({
     updatedAt: z.string(),
 });
 
-export type ParsedTopLevelGroupMemberDocument = z.infer<typeof TopLevelGroupMemberSchema>;
+type ParsedTopLevelGroupMemberDocument = z.infer<typeof TopLevelGroupMemberSchema>;

@@ -1,6 +1,6 @@
 import { SimplifiedDebt, UserBalance } from '@splitifyd/shared';
 
-export interface NetBalance {
+interface NetBalance {
     uid: string;
     netAmount: number;
 }

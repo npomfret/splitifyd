@@ -18,7 +18,7 @@ import { FirestoreTimestamp, MemberRole, MemberStatus } from '@splitifyd/shared'
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 
 // FirestoreReader query and pagination types
-export interface PaginationOptions {
+interface PaginationOptions {
     limit?: number;
     offset?: number;
     cursor?: string;
@@ -29,7 +29,7 @@ export interface PaginationOptions {
  */
 export type FirestoreOrderField = keyof Pick<FirestoreAuditMetadata, 'createdAt' | 'updatedAt'>;
 
-export interface FilterOptions {
+interface FilterOptions {
     includeDeleted?: boolean;
     dateRange?: {
         start?: FirestoreTimestamp;

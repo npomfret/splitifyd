@@ -35,7 +35,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^24.0.14",
-    "dotenv": "^17.0.0",
+    "dotenv": "^17.2.3",
     "tsx": "^4.7.0",
     "typescript": "^5.8.3"
   },

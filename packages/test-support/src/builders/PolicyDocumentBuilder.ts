@@ -1,4 +1,4 @@
-export interface PolicyDocument {
+interface PolicyDocument {
     type: 'privacy' | 'terms' | 'cookie';
     version: string;
     content: string;

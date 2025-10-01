@@ -60,4 +60,4 @@ export { UserDocumentSchema, UserDataSchema };
  * Type definitions derived from schemas
  */
 export type UserDocument = z.infer<typeof UserDocumentSchema>;
-export type UserData = z.infer<typeof UserDataSchema>;
+type UserData = z.infer<typeof UserDataSchema>;

@@ -1,7 +1,7 @@
 import { randomString, randomDecimal, randomChoice, randomCategory, randomCurrency, generateShortId } from '../test-helpers';
 import { SplitTypes } from '@splitifyd/shared';
 
-export interface ExpenseDraft {
+interface ExpenseDraft {
     description: string;
     amount: number;
     currency: string;

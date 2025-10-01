@@ -2,20 +2,20 @@ import {signal} from '@preact/signals';
 import type {UserThemeColor} from '@splitifyd/shared';
 import type {ClientUser} from "@splitifyd/shared";
 
-export interface ThemeState {
+interface ThemeState {
     userThemes: Map<string, UserThemeColor>;
     isDarkMode: boolean;
     currentUserTheme: UserThemeColor | null;
 }
 
-export interface ThemeActions {
+interface ThemeActions {
     setUserTheme: (userId: string, themeColor: UserThemeColor) => void;
     setDarkMode: (isDark: boolean) => void;
     getCurrentUserTheme: (user: ClientUser | null) => UserThemeColor | null;
     applyThemeToDOM: (themeColor: UserThemeColor | null, isDark: boolean) => void;
 }
 
-export interface ThemeStore extends ThemeState, ThemeActions {}
+interface ThemeStore extends ThemeState, ThemeActions {}
 
 class ThemeStoreImpl implements ThemeStore {
     // Private signals - encapsulated within the class

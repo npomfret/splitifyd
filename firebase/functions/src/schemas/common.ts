@@ -113,8 +113,8 @@ const FirestoreSecurityFieldsSchema = z.object({
  * Type definitions for Firestore document metadata
  */
 export type FirestoreAuditMetadata = z.infer<typeof FirestoreAuditMetadataSchema>;
-export type FirestoreAuditMetadataWithDeletion = z.infer<typeof FirestoreAuditMetadataWithDeletionSchema>;
-export type FirestoreSecurityFields = z.infer<typeof FirestoreSecurityFieldsSchema>;
+type FirestoreAuditMetadataWithDeletion = z.infer<typeof FirestoreAuditMetadataWithDeletionSchema>;
+type FirestoreSecurityFields = z.infer<typeof FirestoreSecurityFieldsSchema>;
 
 /**
  * Schema configuration options for consistency

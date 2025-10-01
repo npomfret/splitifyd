@@ -102,12 +102,12 @@ export const BalanceDisplaySchema = z.object({
 });
 
 // Export inferred types
-export type ParsedExpenseBalance = z.infer<typeof ExpenseBalanceSchema>;
-export type ParsedSettlementBalance = z.infer<typeof SettlementBalanceSchema>;
-export type ParsedUserBalance = z.infer<typeof UserBalanceSchema>;
-export type ParsedSimplifiedDebt = z.infer<typeof SimplifiedDebtSchema>;
+type ParsedExpenseBalance = z.infer<typeof ExpenseBalanceSchema>;
+type ParsedSettlementBalance = z.infer<typeof SettlementBalanceSchema>;
+type ParsedUserBalance = z.infer<typeof UserBalanceSchema>;
+type ParsedSimplifiedDebt = z.infer<typeof SimplifiedDebtSchema>;
 export type ParsedCurrencyBalances = z.infer<typeof CurrencyBalancesSchema>;
 export type ParsedBalanceCalculationInput = z.infer<typeof BalanceCalculationInputSchema>;
 export type ParsedBalanceCalculationResult = z.infer<typeof BalanceCalculationResultSchema>;
-export type ParsedCurrencyBalanceDisplay = z.infer<typeof CurrencyBalanceDisplaySchema>;
-export type ParsedBalanceDisplay = z.infer<typeof BalanceDisplaySchema>;
+type ParsedCurrencyBalanceDisplay = z.infer<typeof CurrencyBalanceDisplaySchema>;
+type ParsedBalanceDisplay = z.infer<typeof BalanceDisplaySchema>;

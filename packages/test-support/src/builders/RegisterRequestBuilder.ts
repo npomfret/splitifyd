@@ -1,6 +1,6 @@
 import { randomString, randomChoice, randomEmail, randomBoolean } from '../test-helpers';
 
-export interface RegisterRequest {
+interface RegisterRequest {
     email: string;
     password: string;
     displayName: string;

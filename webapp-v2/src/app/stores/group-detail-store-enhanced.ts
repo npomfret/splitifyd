@@ -5,7 +5,7 @@ import type {ExpenseData, Group, GroupBalances, GroupMemberDTO, SettlementListIt
 import {apiClient} from '../apiClient';
 import {permissionsStore} from '@/stores/permissions-store.ts';
 
-export interface EnhancedGroupDetailStore {
+interface EnhancedGroupDetailStore {
     // State
     group: Group | null;
     members: GroupMemberDTO[];

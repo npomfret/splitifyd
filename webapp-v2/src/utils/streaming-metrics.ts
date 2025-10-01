@@ -2,7 +2,7 @@
  * Simple metrics collection for monitoring streaming implementation performance
  */
 
-export interface StreamingMetrics {
+interface StreamingMetrics {
     notificationCount: number;
     restRefreshCount: number;
     subscriptionErrorCount: number;

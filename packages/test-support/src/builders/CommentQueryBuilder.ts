@@ -1,6 +1,6 @@
 import { randomNumber, generateShortId } from '../test-helpers';
 
-export interface CommentQuery {
+interface CommentQuery {
     cursor?: string;
     limit?: string;
 }

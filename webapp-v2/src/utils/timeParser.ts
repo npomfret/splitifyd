@@ -1,4 +1,4 @@
-export interface ParsedTime {
+interface ParsedTime {
     hours: number;
     minutes: number;
 }

@@ -1,6 +1,6 @@
 import { generateShortId } from '../test-helpers';
 
-export interface TransactionChangeDocument {
+interface TransactionChangeDocument {
     groupId: string;
     type: 'expense' | 'settlement' | 'group';
     users: string[];

@@ -6,7 +6,7 @@ import {logError, logInfo} from './browser-logger';
  * User notification detector callbacks
  * These match the ChangeDetector interface for backward compatibility
  */
-export interface NotificationCallbacks {
+interface NotificationCallbacks {
     onGroupChange?: (groupId: string) => void;
     onTransactionChange?: (groupId: string) => void;
     onBalanceChange?: (groupId: string) => void;
@@ -17,7 +17,7 @@ export interface NotificationCallbacks {
 /**
  * Configuration for notification subscriptions
  */
-export interface NotificationConfig {
+interface NotificationConfig {
     maxRetries?: number;
     retryDelay?: number;
     onError?: (error: Error) => void;

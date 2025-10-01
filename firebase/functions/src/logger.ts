@@ -4,4 +4,3 @@
  */
 export { logger } from './utils/contextual-logger';
 export { LoggerContext } from './utils/logger-context';
-export type { LogContext } from './utils/logger-context';

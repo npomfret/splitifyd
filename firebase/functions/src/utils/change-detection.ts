@@ -4,7 +4,7 @@ import { ChangeDocumentBuilderFactory } from './change-builders';
 const builderFactory = new ChangeDocumentBuilderFactory();
 
 export type ChangeType = 'created' | 'updated' | 'deleted';
-export type ChangePriority = 'high' | 'medium' | 'low';
+type ChangePriority = 'high' | 'medium' | 'low';
 
 export interface ChangeMetadata {
     priority: ChangePriority;

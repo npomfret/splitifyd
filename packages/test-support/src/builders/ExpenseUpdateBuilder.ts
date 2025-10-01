@@ -1,6 +1,6 @@
 import { randomString, randomDecimal, randomChoice, randomDate, randomCurrency, randomCategory } from '../test-helpers';
 
-export interface ExpenseUpdate {
+interface ExpenseUpdate {
     amount?: number;
     currency?: string;
     description?: string;

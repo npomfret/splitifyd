@@ -1,6 +1,6 @@
 import { generateShortId } from '../test-helpers';
 
-export interface GroupBalanceDocument {
+interface GroupBalanceDocument {
     groupId: string;
     balances: Record<string, Record<string, number>>;
     lastUpdated: Date;

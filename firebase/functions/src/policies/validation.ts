@@ -24,7 +24,7 @@ const acceptMultiplePoliciesSchema = Joi.object({
 /**
  * Accept policy request interface
  */
-export interface AcceptPolicyRequest {
+interface AcceptPolicyRequest {
     policyId: string;
     versionHash: string;
 }
@@ -32,7 +32,7 @@ export interface AcceptPolicyRequest {
 /**
  * Accept multiple policies request interface
  */
-export interface AcceptMultiplePoliciesRequest {
+interface AcceptMultiplePoliciesRequest {
     acceptances: AcceptPolicyRequest[];
 }
 
@@ -108,7 +108,7 @@ const publishPolicySchema = Joi.object({
 /**
  * Create policy request interface
  */
-export interface CreatePolicyRequest {
+interface CreatePolicyRequest {
     policyName: string;
     text: string;
     publish?: boolean;
@@ -117,7 +117,7 @@ export interface CreatePolicyRequest {
 /**
  * Update policy request interface
  */
-export interface UpdatePolicyRequest {
+interface UpdatePolicyRequest {
     text: string;
     publish?: boolean;
 }
@@ -125,7 +125,7 @@ export interface UpdatePolicyRequest {
 /**
  * Publish policy request interface
  */
-export interface PublishPolicyRequest {
+interface PublishPolicyRequest {
     versionHash: string;
 }
 

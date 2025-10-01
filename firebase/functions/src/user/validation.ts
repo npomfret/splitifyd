@@ -33,7 +33,7 @@ const updateUserProfileSchema = Joi.object({
 /**
  * Update user profile request interface
  */
-export interface UpdateUserProfileRequest {
+interface UpdateUserProfileRequest {
     displayName?: string;
     photoURL?: string | null;
     preferredLanguage?: string;
@@ -84,7 +84,7 @@ const deleteUserSchema = Joi.object({
 /**
  * Delete user request interface
  */
-export interface DeleteUserRequest {
+interface DeleteUserRequest {
     confirmDelete: true;
 }
 
@@ -123,7 +123,7 @@ const changePasswordSchema = Joi.object({
 /**
  * Change password request interface
  */
-export interface ChangePasswordRequest {
+interface ChangePasswordRequest {
     currentPassword: string;
     newPassword: string;
 }

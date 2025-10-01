@@ -31,4 +31,4 @@ export type ParsedShareLink = z.infer<typeof ShareLinkDocumentSchema>;
 /**
  * Type-safe ShareLink data for writing
  */
-export type ShareLinkData = z.infer<typeof ShareLinkDataSchema>;
+type ShareLinkData = z.infer<typeof ShareLinkDataSchema>;

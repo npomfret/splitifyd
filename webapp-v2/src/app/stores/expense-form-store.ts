@@ -7,7 +7,7 @@ import { logWarning } from '@/utils/browser-logger.ts';
 import { getUTCDateTime, isDateInFuture } from '@/utils/dateUtils.ts';
 import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
 
-export interface ExpenseFormStore {
+interface ExpenseFormStore {
     // Form fields
     description: string;
     amount: number;

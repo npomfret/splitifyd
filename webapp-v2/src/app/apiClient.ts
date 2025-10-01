@@ -824,7 +824,7 @@ class ApiClient {
 }
 
 // Export types for external use
-export type { RequestConfig, RequestInterceptor, ResponseInterceptor, AcceptPolicyRequest, PolicyAcceptanceStatus, UserPolicyStatusResponse };
+export type { PolicyAcceptanceStatus };
 
 // Export a singleton instance
 export const apiClient = new ApiClient();

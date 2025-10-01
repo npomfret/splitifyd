@@ -14,7 +14,7 @@ import {CurrencyService} from '../services/currencyService';
 import {expenseFormStore} from './expense-form-store';
 
 // Auth types - moved from types/auth.ts
-export interface AuthState {
+interface AuthState {
     user: ClientUser | null;
     loading: boolean;
     error: string | null;
@@ -22,7 +22,7 @@ export interface AuthState {
     isUpdatingProfile?: boolean;
 }
 
-export interface AuthActions {
+interface AuthActions {
     login: (email: string, password: string) => Promise<void>;
     register: (email: string, password: string, displayName: string, termsAccepted: boolean, cookiePolicyAccepted: boolean) => Promise<void>;
     logout: () => Promise<void>;

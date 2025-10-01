@@ -1,6 +1,6 @@
 import { randomChoice } from '../test-helpers';
 
-export interface PermissionSet {
+interface PermissionSet {
     expenseEditing: string;
     expenseDeletion: string;
     memberInvitation: string;

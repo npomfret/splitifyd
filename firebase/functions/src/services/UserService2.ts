@@ -21,7 +21,7 @@ import { type GroupMemberDocument, GroupMembersResponse, GroupMemberDTO } from '
 /**
  * Result of a successful user registration
  */
-export interface RegisterUserResult {
+interface RegisterUserResult {
     success: boolean;
     message: string;
     user: {

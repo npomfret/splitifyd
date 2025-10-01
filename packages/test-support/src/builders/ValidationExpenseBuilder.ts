@@ -1,4 +1,4 @@
-export interface ValidationExpenseData {
+interface ValidationExpenseData {
     groupId: string;
     paidBy: string;
     amount: number;
