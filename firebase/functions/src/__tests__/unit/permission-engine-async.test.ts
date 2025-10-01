@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { Group, PermissionLevels } from '@splitifyd/shared';
 import { PermissionEngineAsync } from '../../permissions/permission-engine-async';
 import { StubFirestoreReader } from './mocks/firestore-stubs';
-import { FirestoreGroupBuilder, GroupMemberDocumentBuilder, ExpenseBuilder } from '@splitifyd/test-support';
+import { GroupBuilder, GroupMemberDocumentBuilder, ExpenseBuilder } from '@splitifyd/test-support';
 
 let stubFirestoreReader: StubFirestoreReader;
 
@@ -15,7 +15,7 @@ describe('PermissionEngineAsync', () => {
         stubFirestoreReader = new StubFirestoreReader();
         vi.clearAllMocks();
 
-        testGroup = new FirestoreGroupBuilder()
+        testGroup = new GroupBuilder()
             .withId(testGroupId)
             .withName('Test Group')
             .withDescription('Test Description')

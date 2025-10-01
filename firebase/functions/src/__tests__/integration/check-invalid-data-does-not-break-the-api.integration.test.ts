@@ -14,7 +14,7 @@
 
 import { describe, test, expect, beforeAll, beforeEach } from 'vitest';
 import { getFirestore } from '../../firebase';
-import { ApiDriver, CreateGroupRequestBuilder, FirestoreGroupBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { ApiDriver, CreateGroupRequestBuilder, GroupBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { FirestoreReader } from '../../services/firestore';
 import { getTopLevelMembershipDocId, createTopLevelMembershipDocument } from '../../utils/groupMembershipHelpers';
@@ -50,7 +50,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
                 const groupRef = firestore.collection(FirestoreCollections.GROUPS).doc();
 
                 // Build valid group data, then corrupt the securityPreset field
-                const validGroup = new FirestoreGroupBuilder().withName(invalidGroupNames[i]).withDescription('Group with invalid securityPreset').withCreatedBy(testUser.uid).build();
+                const validGroup = new GroupBuilder().withName(invalidGroupNames[i]).withDescription('Group with invalid securityPreset').withCreatedBy(testUser.uid).withServerCompatibleTimestamps().buildForFirestore();
 
                 // Corrupt the securityPreset field
                 const corruptedGroup = {
@@ -96,7 +96,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             const invalidGroupRef = firestore.collection(FirestoreCollections.GROUPS).doc();
 
             // Build valid group data, then corrupt securityPreset
-            const validGroup = new FirestoreGroupBuilder().withName('Direct Access Invalid Group').withDescription('Testing direct access to invalid group').withCreatedBy(testUser.uid).build();
+            const validGroup = new GroupBuilder().withName('Direct Access Invalid Group').withDescription('Testing direct access to invalid group').withCreatedBy(testUser.uid).withServerCompatibleTimestamps().buildForFirestore();
 
             const corruptedGroup = {
                 ...validGroup,
@@ -147,7 +147,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             const corruptedGroupRef = firestore.collection(FirestoreCollections.GROUPS).doc();
 
             // Build valid group, then corrupt critical fields
-            const validGroup = new FirestoreGroupBuilder().withName('Corrupted Test Group').withCreatedBy(testUser.uid).build();
+            const validGroup = new GroupBuilder().withName('Corrupted Test Group').withCreatedBy(testUser.uid).withServerCompatibleTimestamps().buildForFirestore();
 
             const corruptedGroup = {
                 ...validGroup,

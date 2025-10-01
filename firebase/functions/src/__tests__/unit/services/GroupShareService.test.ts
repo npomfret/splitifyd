@@ -8,7 +8,7 @@ import {
 } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
-import { FirestoreGroupBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { GroupBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 
 describe('GroupShareService', () => {
     let groupShareService: GroupShareService;
@@ -68,7 +68,7 @@ describe('GroupShareService', () => {
             const userId = 'owner-id';
 
             // Set up test group using builder
-            const testGroup = new FirestoreGroupBuilder().withId(groupId).withCreatedBy(userId).build();
+            const testGroup = new GroupBuilder().withId(groupId).withCreatedBy(userId).build();
 
             stubReader.setDocument('groups', groupId, testGroup);
 

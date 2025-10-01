@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { BalanceCalculationService } from '../../../services/balance';
 import {StubAuthService, StubFirestoreReader, StubFirestoreWriter} from '../mocks/firestore-stubs';
-import { FirestoreGroupBuilder, ExpenseBuilder, UserProfileBuilder, AuthUserRecordBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { GroupBuilder, ExpenseBuilder, UserProfileBuilder, AuthUserRecordBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import {ApplicationBuilder} from "../../../services/ApplicationBuilder";
 import { UserService } from '../../../services/UserService2';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
@@ -28,16 +28,15 @@ describe('BalanceCalculationService', () => {
                 const userId2 = 'user-2';
 
                 // Set up stub data - much cleaner than complex mock objects
-                const groupDoc = new FirestoreGroupBuilder()
+                const groupDoc = new GroupBuilder()
                     .withId(groupId)
                     .withName('Test Group')
-                    .build();
-
-                // Add members to the group document
-                groupDoc.members = {
-                    [userId1]: { uid: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
-                    [userId2]: { uid: userId2, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
-                };
+                    .withMembers({
+                        [userId1]: { uid: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
+                        [userId2]: { uid: userId2, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
+                    })
+                    .withServerCompatibleTimestamps()
+                    .buildForFirestore();
 
                 stubFirestoreReader.setDocument('groups', groupId, groupDoc);
 
@@ -83,10 +82,11 @@ describe('BalanceCalculationService', () => {
                 const groupId = 'test-group-id';
 
                 // Set up group with no members
-                const groupWithNoMembers = new FirestoreGroupBuilder()
+                const groupWithNoMembers = new GroupBuilder()
                     .withId(groupId)
-                    .build();
-                groupWithNoMembers.members = {};
+                    .withMembers({})
+                    .withServerCompatibleTimestamps()
+                    .buildForFirestore();
                 stubFirestoreReader.setDocument('groups', groupId, groupWithNoMembers);
 
                 // Execute and verify error
@@ -98,12 +98,13 @@ describe('BalanceCalculationService', () => {
                 const userId1 = 'user-1';
 
                 // Set up group and member data
-                const groupDoc = new FirestoreGroupBuilder()
+                const groupDoc = new GroupBuilder()
                     .withId(groupId)
-                    .build();
-                groupDoc.members = {
-                    [userId1]: { uid: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
-                };
+                    .withMembers({
+                        [userId1]: { uid: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
+                    })
+                    .withServerCompatibleTimestamps()
+                    .buildForFirestore();
                 stubFirestoreReader.setDocument('groups', groupId, groupDoc);
 
                 stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`,
@@ -150,7 +151,7 @@ describe('BalanceCalculationService', () => {
                 const userId2 = 'user-2';
 
                 // Use builders for clean test data setup - but build simple data the stub can handle
-                const testGroup = new FirestoreGroupBuilder()
+                const testGroup = new GroupBuilder()
                     .withId(groupId)
                     .withName('Test Group')
                     .withCreatedBy(userId1)
@@ -221,18 +222,17 @@ describe('BalanceCalculationService', () => {
             balanceCalculationService = new BalanceCalculationService(stubFirestoreReader, userService);
 
             // Setup common test group using builder
-            const testGroup = new FirestoreGroupBuilder()
+            const testGroup = new GroupBuilder()
                 .withId(testGroupId)
                 .withName('Test Group')
                 .withCreatedBy(userAlice)
-                .build();
-
-            // Add members with correct enum values
-            testGroup.members = {
-                [userAlice]: { uid: userAlice, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
-                [userBob]: { uid: userBob, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
-                [userCharlie]: { uid: userCharlie, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
-            };
+                .withMembers({
+                    [userAlice]: { uid: userAlice, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
+                    [userBob]: { uid: userBob, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
+                    [userCharlie]: { uid: userCharlie, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
+                })
+                .withServerCompatibleTimestamps()
+                .buildForFirestore();
 
             const userProfiles = [
                 new UserProfileBuilder().withUid(userAlice).withDisplayName('Alice').build(),

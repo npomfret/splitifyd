@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GroupPermissionService } from '../../../services/GroupPermissionService';
 import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
-import { FirestoreGroupBuilder } from '@splitifyd/test-support';
+import { GroupBuilder } from '@splitifyd/test-support';
 
 describe('GroupPermissionService', () => {
     let groupPermissionService: GroupPermissionService;
@@ -20,7 +20,7 @@ describe('GroupPermissionService', () => {
             const groupId = 'test-group';
 
             // Set up group data with stub - much cleaner than mock setup
-            const testGroup = new FirestoreGroupBuilder()
+            const testGroup = new GroupBuilder()
                 .withId(groupId)
                 .withSecurityPreset('open') // Test checks this value
                 .build();
@@ -55,7 +55,7 @@ describe('GroupPermissionService', () => {
             const groupId = 'test-group';
 
             // Set up group but no member - much simpler than complex mock setup
-            const testGroup = new FirestoreGroupBuilder().withId(groupId).build();
+            const testGroup = new GroupBuilder().withId(groupId).build();
             stubFirestoreReader.setDocument('groups', groupId, testGroup);
 
             // No member data set up, so getAllGroupMembers will return empty array

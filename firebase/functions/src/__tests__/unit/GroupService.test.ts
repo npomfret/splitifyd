@@ -6,7 +6,7 @@ import {
     StubFirestoreWriter,
     StubAuthService
 } from './mocks/firestore-stubs';
-import { FirestoreGroupBuilder, GroupMemberDocumentBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
+import { GroupBuilder, GroupMemberDocumentBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
 import { ApiError } from '../../utils/errors';
 import { validateCreateGroup, validateUpdateGroup, validateGroupId } from '../../groups/validation';
 import { HTTP_STATUS } from '../../constants';
@@ -50,7 +50,7 @@ describe('GroupService - Unit Tests', () => {
             });
 
             // Mock getGroup to return the created group directly
-            const createdGroup = new FirestoreGroupBuilder().withId(expectedGroupId).withName(createGroupRequest.name).withDescription(createGroupRequest.description || '').withCreatedBy(userId).build();
+            const createdGroup = new GroupBuilder().withId(expectedGroupId).withName(createGroupRequest.name).withDescription(createGroupRequest.description || '').withCreatedBy(userId).withServerCompatibleTimestamps().buildForFirestore();
 
             vi.spyOn(stubReader, 'getGroup').mockResolvedValue(createdGroup);
 
@@ -76,7 +76,7 @@ describe('GroupService - Unit Tests', () => {
             const groupId = 'test-group-456';
 
             // Set up test group using builder
-            const testGroup = new FirestoreGroupBuilder().withId(groupId).withName('Test Group').withDescription('Test Description').withCreatedBy(userId).build();
+            const testGroup = new GroupBuilder().withId(groupId).withName('Test Group').withDescription('Test Description').withCreatedBy(userId).withServerCompatibleTimestamps().buildForFirestore();
 
             stubReader.setDocument('groups', groupId, testGroup);
             stubWriter.setDocument('groups', groupId, testGroup);
@@ -119,7 +119,7 @@ describe('GroupService - Unit Tests', () => {
             const groupId = 'test-group-456';
 
             // Set up existing group
-            const existingGroup = new FirestoreGroupBuilder().withId(groupId).withName('Original Name').withDescription('Original Description').withCreatedBy(userId).build();
+            const existingGroup = new GroupBuilder().withId(groupId).withName('Original Name').withDescription('Original Description').withCreatedBy(userId).withServerCompatibleTimestamps().buildForFirestore();
 
             stubReader.setDocument('groups', groupId, existingGroup);
 
@@ -148,7 +148,7 @@ describe('GroupService - Unit Tests', () => {
             const groupId = 'test-group-456';
 
             // Set up existing group (not marked for deletion yet)
-            const existingGroup = new FirestoreGroupBuilder().withId(groupId).withName('Test Group').withCreatedBy(userId).build();
+            const existingGroup = new GroupBuilder().withId(groupId).withName('Test Group').withCreatedBy(userId).withServerCompatibleTimestamps().buildForFirestore();
 
             stubReader.setDocument('groups', groupId, existingGroup);
             stubWriter.setDocument('groups', groupId, existingGroup);
@@ -172,7 +172,7 @@ describe('GroupService - Unit Tests', () => {
             const userId = 'test-user-123';
 
             // Set up test groups using builder
-            const group1 = new FirestoreGroupBuilder().withId('group-1').withName('Group 1').withCreatedBy(userId).build();
+            const group1 = new GroupBuilder().withId('group-1').withName('Group 1').withCreatedBy(userId).withServerCompatibleTimestamps().buildForFirestore();
 
             stubReader.setDocument('groups', 'group-1', group1);
 

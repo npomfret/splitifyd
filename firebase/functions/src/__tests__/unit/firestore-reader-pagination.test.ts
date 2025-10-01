@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StubFirestoreReader } from './mocks/firestore-stubs';
 import type { GroupDocument } from '../../schemas';
-import { FirestoreGroupBuilder } from '@splitifyd/test-support';
+import { GroupBuilder } from '@splitifyd/test-support';
 
 describe('FirestoreReader Pagination Performance', () => {
     let stubReader: StubFirestoreReader;
@@ -25,7 +25,7 @@ describe('FirestoreReader Pagination Performance', () => {
     describe('PaginatedResult Interface', () => {
         it('should return paginated result with all required fields', async () => {
             const testGroups = [
-                new FirestoreGroupBuilder()
+                new GroupBuilder()
                     .withId('group-1')
                     .withName('Test Group 1')
                     .withDescription('First test group')
@@ -52,7 +52,7 @@ describe('FirestoreReader Pagination Performance', () => {
         });
 
         it('should indicate hasMore=true when there are additional pages', async () => {
-            const testGroups = [new FirestoreGroupBuilder().withId('group-1').build(), new FirestoreGroupBuilder().withId('group-2').build()];
+            const testGroups = [new GroupBuilder().withId('group-1').build(), new GroupBuilder().withId('group-2').build()];
 
             stubReader.mockGroupsForUser('test-user', testGroups, true, 'cursor-123');
 
@@ -66,7 +66,7 @@ describe('FirestoreReader Pagination Performance', () => {
 
     describe('Cursor-Based Pagination', () => {
         it('should handle paginated requests with proper cursor behavior', async () => {
-            const allGroups = FirestoreGroupBuilder.buildMany(25, (builder) => {
+            const allGroups = GroupBuilder.buildMany(25, (builder) => {
                 builder.withCreatedBy('test-user');
             });
 
@@ -133,7 +133,7 @@ describe('FirestoreReader Pagination Performance', () => {
         });
 
         it('should handle single result efficiently', async () => {
-            const singleGroup = [new FirestoreGroupBuilder().withId('only-group').build()];
+            const singleGroup = [new GroupBuilder().withId('only-group').build()];
 
             stubReader.mockGroupsForUser('test-user', singleGroup, false);
 
@@ -146,7 +146,7 @@ describe('FirestoreReader Pagination Performance', () => {
         });
 
         it('should handle exact page size boundary', async () => {
-            const exactPageGroups = FirestoreGroupBuilder.buildMany(10);
+            const exactPageGroups = GroupBuilder.buildMany(10);
 
             stubReader.mockPaginatedGroups('test-user', exactPageGroups, 10);
 
@@ -163,7 +163,7 @@ describe('FirestoreReader Pagination Performance', () => {
             // This test validates that the new implementation avoids the
             // "fetch-all-then-paginate" anti-pattern that caused 100x performance issues
 
-            const manyGroups = FirestoreGroupBuilder.buildMany(1000, (builder, i) => {
+            const manyGroups = GroupBuilder.buildMany(1000, (builder, i) => {
                 builder.withCreatedAt(`2024-01-01T${String(i % 24).padStart(2, '0')}:00:00Z`).withUpdatedAt(`2024-01-01T${String(i % 24).padStart(2, '0')}:00:00Z`);
             });
 
@@ -188,7 +188,7 @@ describe('FirestoreReader Pagination Performance', () => {
 
     describe('Query Options Integration', () => {
         it('should respect limit parameter', async () => {
-            const testGroups = FirestoreGroupBuilder.buildMany(20);
+            const testGroups = GroupBuilder.buildMany(20);
 
             stubReader.mockPaginatedGroups('test-user', testGroups, 5);
 
@@ -199,7 +199,7 @@ describe('FirestoreReader Pagination Performance', () => {
         });
 
         it('should work without explicit limit (default pagination)', async () => {
-            const testGroups = FirestoreGroupBuilder.buildMany(15);
+            const testGroups = GroupBuilder.buildMany(15);
 
             stubReader.mockPaginatedGroups('test-user', testGroups, 10); // Default page size
 
@@ -262,7 +262,7 @@ describe('StubFirestoreReader Pagination Support', () => {
 
     describe('Stub Helper Methods', () => {
         it('should support mockGroupsForUser with pagination parameters', async () => {
-            const testGroups = [new FirestoreGroupBuilder().withId('group-1').build(), new FirestoreGroupBuilder().withId('group-2').build()];
+            const testGroups = [new GroupBuilder().withId('group-1').build(), new GroupBuilder().withId('group-2').build()];
 
             // Test the enhanced mockGroupsForUser signature
             stubReader.mockGroupsForUser('test-user', testGroups, true, 'test-cursor');
@@ -275,7 +275,7 @@ describe('StubFirestoreReader Pagination Support', () => {
         });
 
         it('should support mockPaginatedGroups for complex pagination testing', async () => {
-            const allGroups = FirestoreGroupBuilder.buildMany(7, (builder, i) => {
+            const allGroups = GroupBuilder.buildMany(7, (builder, i) => {
                 builder.withUpdatedAt(`2024-01-${String(i + 1).padStart(2, '0')}T00:00:00Z`);
             });
 

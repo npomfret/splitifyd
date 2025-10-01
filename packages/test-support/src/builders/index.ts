@@ -8,7 +8,6 @@ export { CreateSettlementRequestBuilder } from './CreateSettlementRequestBuilder
 export { ExpenseUpdateBuilder } from './ExpenseUpdateBuilder';
 export { SettlementUpdateBuilder } from './SettlementUpdateBuilder';
 export { GroupUpdateBuilder } from './GroupUpdateBuilder';
-export { FirestoreGroupBuilder } from './FirestoreGroupBuilder';
 export { CommentBuilder } from './CommentBuilder';
 export { CommentRequestBuilder } from './CommentRequestBuilder';
 export { CommentQueryBuilder } from './CommentQueryBuilder';

@@ -6,7 +6,7 @@ import { join } from 'path';
 import {
     getFirestorePort,
     UserNotificationDocumentBuilder,
-    FirestoreGroupBuilder,
+    GroupBuilder,
     GroupMemberDocumentBuilder,
     ExpenseBuilder,
     SettlementBuilder,
@@ -77,7 +77,7 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
 
                 // Create a group with user1 and user2 as members
-                const group = new FirestoreGroupBuilder()
+                const group = new GroupBuilder()
                     .withName('Test Group')
                     .withDescription('A test group')
                     .withCreatedBy('user1-id')
@@ -248,7 +248,7 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
 
                 // Create group with comments
-                const commentGroup = new FirestoreGroupBuilder()
+                const commentGroup = new GroupBuilder()
                     .withName('Group with Comments')
                     // Note: SettlementBuilder doesn't have memberIds
                     .withClientCompatibleTimestamps()
@@ -560,7 +560,7 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
 
                 // Create a group with empty memberIds
-                const emptyMembersGroup = new FirestoreGroupBuilder()
+                const emptyMembersGroup = new GroupBuilder()
                     .withName('Empty Members Group')
                     .withMemberIds([]) // Empty array
                     .withClientCompatibleTimestamps()
@@ -579,7 +579,7 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
 
                 // Create a group without memberIds field
-                const noMembersFieldGroup = new FirestoreGroupBuilder()
+                const noMembersFieldGroup = new GroupBuilder()
                     .withName('No Members Field Group')
                     .withoutMemberIds() // memberIds is missing
                     .withClientCompatibleTimestamps()

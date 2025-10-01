@@ -9,7 +9,7 @@ import {
 } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
-import { FirestoreGroupBuilder, ExpenseBuilder, GroupMemberDocumentBuilder, CommentBuilder, CommentRequestBuilder } from '@splitifyd/test-support';
+import { GroupBuilder, ExpenseBuilder, GroupMemberDocumentBuilder, CommentBuilder, CommentRequestBuilder } from '@splitifyd/test-support';
 import { CommentTargetTypes } from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { CommentTargetType, CreateCommentRequest } from '@splitifyd/shared';
@@ -46,7 +46,7 @@ describe('CommentService - Consolidated Tests', () => {
 
     describe('verifyCommentAccess for GROUP comments', () => {
         it('should allow access when group exists and user is member', async () => {
-            const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
+            const testGroup = new GroupBuilder().withId('test-group').build();
             stubReader.setDocument('groups', 'test-group', testGroup);
 
             // Set up group membership
@@ -64,7 +64,7 @@ describe('CommentService - Consolidated Tests', () => {
         });
 
         it('should throw FORBIDDEN when user is not a group member', async () => {
-            const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
+            const testGroup = new GroupBuilder().withId('test-group').build();
             stubReader.setDocument('groups', 'test-group', testGroup);
             // Don't set up group membership - user will not be a member
 
@@ -75,7 +75,7 @@ describe('CommentService - Consolidated Tests', () => {
     describe('verifyCommentAccess for EXPENSE comments', () => {
         it('should allow access when expense exists and user is group member', async () => {
             const testExpense = new ExpenseBuilder().withId('test-expense').withGroupId('test-group').build();
-            const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
+            const testGroup = new GroupBuilder().withId('test-group').build();
 
             stubReader.setDocument('expenses', 'test-expense', testExpense);
             stubReader.setDocument('groups', 'test-group', testGroup);
@@ -96,7 +96,7 @@ describe('CommentService - Consolidated Tests', () => {
 
     describe('listComments', () => {
         it('should return paginated comments for GROUP target', async () => {
-            const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
+            const testGroup = new GroupBuilder().withId('test-group').build();
 
             const mockComments = [
                 new CommentBuilder()
@@ -135,7 +135,7 @@ describe('CommentService - Consolidated Tests', () => {
         it('should return paginated comments for EXPENSE target', async () => {
             const testExpense = new ExpenseBuilder().withId('test-expense').withGroupId('test-group').build();
 
-            const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
+            const testGroup = new GroupBuilder().withId('test-group').build();
 
             // Set up test data in stubs
             stubReader.setDocument('expenses', 'test-expense', testExpense);
@@ -168,7 +168,7 @@ describe('CommentService - Consolidated Tests', () => {
 
     describe('createComment', () => {
         it('should create a GROUP comment successfully', async () => {
-            const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
+            const testGroup = new GroupBuilder().withId('test-group').build();
 
             const createdComment = new CommentBuilder()
                 .withId('new-comment-id')
@@ -216,7 +216,7 @@ describe('CommentService - Consolidated Tests', () => {
         });
 
         it('should throw error when comment creation fails', async () => {
-            const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
+            const testGroup = new GroupBuilder().withId('test-group').build();
 
             // Set up test data in stubs
             stubReader.setDocument('groups', 'test-group', testGroup);
@@ -249,7 +249,7 @@ describe('CommentService - Consolidated Tests', () => {
 
     describe('dependency injection', () => {
         it('should use injected FirestoreReader for group reads', async () => {
-            const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
+            const testGroup = new GroupBuilder().withId('test-group').build();
 
             // Set up test data in stubs
             stubReader.setDocument('groups', 'test-group', testGroup);
@@ -266,7 +266,7 @@ describe('CommentService - Consolidated Tests', () => {
 
         it('should use injected FirestoreReader for expense reads', async () => {
             const testExpense = new ExpenseBuilder().withId('test-expense').withGroupId('test-group').build();
-            const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
+            const testGroup = new GroupBuilder().withId('test-group').build();
 
             // Set up test data in stubs
             stubReader.setDocument('expenses', 'test-expense', testExpense);
@@ -307,7 +307,7 @@ describe('CommentService - Consolidated Tests', () => {
                 };
 
                 // Set up group and membership for real validation
-                const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
+                const testGroup = new GroupBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
                 const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
@@ -345,7 +345,7 @@ describe('CommentService - Consolidated Tests', () => {
                 };
 
                 // Set up group and membership for real validation
-                const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
+                const testGroup = new GroupBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
                 const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
@@ -416,7 +416,7 @@ describe('CommentService - Consolidated Tests', () => {
                 };
 
                 // Set up group and membership for real validation
-                const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
+                const testGroup = new GroupBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
                 const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
@@ -445,7 +445,7 @@ describe('CommentService - Consolidated Tests', () => {
                 const targetId = 'group-456';
 
                 // Set up group and membership for real validation
-                const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
+                const testGroup = new GroupBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
                 const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
@@ -489,7 +489,7 @@ describe('CommentService - Consolidated Tests', () => {
                 const targetId = 'group-456';
 
                 // Set up group and membership for real validation
-                const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
+                const testGroup = new GroupBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
                 const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
@@ -528,7 +528,7 @@ describe('CommentService - Consolidated Tests', () => {
                 };
 
                 // Set up group and membership for real validation
-                const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
+                const testGroup = new GroupBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
                 const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
@@ -560,7 +560,7 @@ describe('CommentService - Consolidated Tests', () => {
 
                 // Set up expense, group and membership for real validation
                 const testExpense = new ExpenseBuilder().withId(targetId).withGroupId(groupId).build();
-                const testGroup = new FirestoreGroupBuilder().withId(groupId).build();
+                const testGroup = new GroupBuilder().withId(groupId).build();
 
                 stubReader.setDocument('expenses', targetId, testExpense);
                 stubReader.setDocument('groups', groupId, testGroup);
@@ -594,7 +594,7 @@ describe('CommentService - Consolidated Tests', () => {
                 };
 
                 // Set up group and membership for real validation
-                const testGroup = new FirestoreGroupBuilder().withId(targetId).build();
+                const testGroup = new GroupBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
                 const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)

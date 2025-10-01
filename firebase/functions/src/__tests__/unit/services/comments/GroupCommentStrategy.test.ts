@@ -3,7 +3,7 @@ import { GroupCommentStrategy } from '../../../../services/comments/GroupComment
 import { StubFirestoreReader } from '../../mocks/firestore-stubs';
 import { ApiError } from '../../../../utils/errors';
 import { HTTP_STATUS } from '../../../../constants';
-import { FirestoreGroupBuilder } from '@splitifyd/test-support';
+import { GroupBuilder } from '@splitifyd/test-support';
 import { FirestoreCollections } from '@splitifyd/shared';
 
 const createStubGroupMemberService = () => ({
@@ -25,7 +25,7 @@ describe('GroupCommentStrategy', () => {
 
     describe('verifyAccess', () => {
         it('should allow access when group exists and user is member', async () => {
-            const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
+            const testGroup = new GroupBuilder().withId('test-group').build();
 
             // Simple stub data setup
             stubFirestoreReader.setDocument('groups', 'test-group', testGroup);
@@ -46,7 +46,7 @@ describe('GroupCommentStrategy', () => {
         });
 
         it('should throw FORBIDDEN when user is not a group member', async () => {
-            const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
+            const testGroup = new GroupBuilder().withId('test-group').build();
 
             // Set up group but user is not a member
             stubFirestoreReader.setDocument('groups', 'test-group', testGroup);

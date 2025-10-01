@@ -3,7 +3,7 @@ import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCom
 import { StubFirestoreReader } from '../../mocks/firestore-stubs';
 import { ApiError } from '../../../../utils/errors';
 import { HTTP_STATUS } from '../../../../constants';
-import { ExpenseBuilder, FirestoreGroupBuilder } from '@splitifyd/test-support';
+import { ExpenseBuilder, GroupBuilder } from '@splitifyd/test-support';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';
 
@@ -27,7 +27,7 @@ describe('ExpenseCommentStrategy', () => {
     describe('verifyAccess', () => {
         it('should allow access when expense exists and user is group member', async () => {
             const testExpense = new ExpenseBuilder().withId('test-expense').withGroupId('test-group').build();
-            const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
+            const testGroup = new GroupBuilder().withId('test-group').build();
 
             // Simple stub data setup
             stubFirestoreReader.setDocument('expenses', 'test-expense', testExpense);
@@ -82,7 +82,7 @@ describe('ExpenseCommentStrategy', () => {
         it('should throw FORBIDDEN when user is not a member of expense group', async () => {
             const testExpense = new ExpenseBuilder().withId('test-expense').withGroupId('test-group').build();
 
-            const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
+            const testGroup = new GroupBuilder().withId('test-group').build();
 
             stubFirestoreReader.setDocument('expenses', 'test-expense', testExpense);
             stubFirestoreReader.setDocument('groups', 'test-group', testGroup);
