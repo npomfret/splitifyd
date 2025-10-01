@@ -25,7 +25,13 @@
     "get-webapp-url": "node -e \"const config = require('./firebase/firebase.json'); console.log('http://localhost:' + config.emulators.hosting.port)\"",
     "postinstall": "cd e2e-tests && npx playwright install chromium",
     "prepare": "npm run build -w @splitifyd/shared || true",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "check:unused": "npm run check:unused -ws --if-present",
+    "check:unused:webapp": "cd webapp-v2 && npx ts-prune -p tsconfig.json",
+    "check:unused:functions": "cd firebase/functions && npx ts-prune -p tsconfig.json",
+    "check:unused:shared": "cd packages/shared && npx ts-prune -p tsconfig.json",
+    "check:unused:test-support": "cd packages/test-support && npx ts-prune -p tsconfig.json",
+    "analyze:unused": "npx tsx scripts/find-unused-functions.ts"
   },
   "devDependencies": {
     "@types/node": "^24.0.14",
@@ -34,6 +40,7 @@
     "firebase-tools": "^14.11.0",
     "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
+    "ts-prune": "^0.10.3",
     "typescript": "^5.8.3"
   }
 }
