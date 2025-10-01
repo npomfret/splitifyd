@@ -1,6 +1,8 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
-import type { RegisteredUser } from '@splitifyd/shared';
+
+// Import translation file for text constants
+import translation from '../../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 
 /**
  * Login Page Object Model for Playwright tests
@@ -10,8 +12,8 @@ import type { RegisteredUser } from '@splitifyd/shared';
 export class LoginPage extends BasePage {
     readonly url = '/login';
 
-    constructor(page: Page, userInfo?: RegisteredUser) {
-        super(page, userInfo);
+    constructor(page: Page) {
+        super(page);
     }
 
     // ============================================================================
@@ -78,7 +80,10 @@ export class LoginPage extends BasePage {
      * Primary submit button (Log In)
      */
     getSubmitButton(): Locator {
-        return this.getLoginFormContainer().locator('button[type="submit"]');
+        // Try translation first, fall back to generic submit button
+        const translationButton = this.page.getByRole('button', { name: translation.loginPage.submitButton });
+        const fallbackButton = this.getLoginFormContainer().locator('button[type="submit"]');
+        return translationButton.or(fallbackButton);
     }
 
     /**
@@ -93,6 +98,13 @@ export class LoginPage extends BasePage {
      */
     getSignUpButton(): Locator {
         return this.getLoginFormContainer().getByTestId('loginpage-signup-button');
+    }
+
+    /**
+     * Sign in heading
+     */
+    getSignInHeading(): Locator {
+        return this.page.getByRole('heading', { name: translation.loginPage.title });
     }
 
     /**
@@ -167,6 +179,14 @@ export class LoginPage extends BasePage {
     }
 
     /**
+     * Navigate to homepage (for e2e-tests compatibility)
+     */
+    async navigateToHomepage(): Promise<void> {
+        await this.page.goto('/');
+        await this.page.waitForLoadState('domcontentloaded');
+    }
+
+    /**
      * Fill the email field using proper Preact handling
      */
     async fillEmail(email: string): Promise<void> {
@@ -186,6 +206,17 @@ export class LoginPage extends BasePage {
     async fillCredentials(email: string, password: string): Promise<void> {
         await this.fillEmail(email);
         await this.fillPassword(password);
+    }
+
+    /**
+     * Fill login form (e2e-tests compatibility method)
+     */
+    async fillLoginForm(email: string, password: string, rememberMe = false): Promise<void> {
+        await this.fillEmail(email);
+        await this.fillPassword(password);
+        if (rememberMe) {
+            await this.toggleRememberMe();
+        }
     }
 
     /**
@@ -224,9 +255,19 @@ export class LoginPage extends BasePage {
      * Click the sign up button to navigate to register page
      */
     async clickSignUp(): Promise<void> {
-        await this.clickButton(this.getSignUpButton(), {
+        await this.clickSignUpButton();
+    }
+
+    /**
+     * Internal method to click the sign up button with proper validation
+     */
+    protected async clickSignUpButton(): Promise<void> {
+        const button = this.getSignUpButton();
+        await this.clickButton(button, {
             buttonName: 'Sign Up'
         });
+        // Wait for navigation to register page
+        await expect(this.page).toHaveURL(/\/register/);
     }
 
     /**

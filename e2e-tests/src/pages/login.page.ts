@@ -1,73 +1,35 @@
-import { expect, Page } from '@playwright/test';
-import { BasePage } from './base.page';
-import { SELECTORS, ARIA_ROLES, HEADINGS, BUTTON_TEXTS } from '../constants/selectors';
-import { PooledTestUser } from '@splitifyd/shared';
+import { Page } from '@playwright/test';
+import { LoginPage as BaseLoginPage } from '@splitifyd/test-support';
+import { BUTTON_TEXTS } from '../constants/selectors';
 import { RegisterPage } from './register.page.ts';
 
-export class LoginPage extends BasePage {
-    constructor(page: Page, userInfo?: PooledTestUser) {
-        super(page, userInfo);
+export class LoginPage extends BaseLoginPage {
+    constructor(page: Page) {
+        super(page);
     }
-    // Selectors
-    readonly url = '/login';
+
+    // E2E-specific constants using centralized selectors
     readonly signInButton = BUTTON_TEXTS.SIGN_IN;
 
+    // Override navigate method to include e2e-specific error handling
     async navigate() {
         await this.navigateToLogin();
 
         // Fail fast if we're not on the login page
         // This ensures tests start from a known state
-        try {
-            await this.expectUrl(/\/login/);
-        } catch (error) {
-            throw new Error('Expected to navigate to login page but was redirected. Test requires clean authentication state.');
-        }
-    }
-
-    async navigateToHomepage() {
-        await super.navigateToHomepage();
-    }
-
-    async fillLoginForm(email: string, password: string, rememberMe = false) {
-        await this.fillPreactInput(SELECTORS.EMAIL_INPUT, email);
-        await this.fillPreactInput(SELECTORS.PASSWORD_INPUT, password);
-        if (rememberMe) {
-            await this.page.locator(SELECTORS.CHECKBOX).check();
-        }
-    }
-
-    async submitForm() {
-        // Use standardized button click with proper error handling
-        const submitButton = this.getSubmitButton();
-        await this.clickButton(submitButton, { buttonName: this.signInButton });
-    }
-
-    async login(email: string, password: string, rememberMe = false) {
         await this.expectUrl(/\/login/);
-        await this.fillLoginForm(email, password, rememberMe);
-        await this.submitForm();
+    }
 
-        // Simple approach: just wait for the form submission to complete
-        // The AuthenticationWorkflow will handle waiting for dashboard
+    // E2E-specific method using navigation helper from BasePage
+    async navigateToLogin() {
+        await super.navigateToHomepage();
+        await this.page.goto('/login');
         await this.waitForDomContentLoaded();
     }
 
-    async clickSignUp() {
-        // Use data-testid to ensure we click the correct SignUp button
-        const button = this.page.locator('[data-testid="loginpage-signup-button"]');
-        // Note: Buttons should be enabled before clicking
-        await expect(button).toBeEnabled();
-        await button.click();
-        // user should be sent to register page (may include returnUrl parameter)
-        await expect(this.page).toHaveURL(/\/register/);
+    // E2E-specific version of clickSignUp that returns e2e RegisterPage
+    async navigateToRegisterPage() {
+        await this.clickSignUpButton();
         return new RegisterPage(this.page);
-    }
-
-    getSubmitButton() {
-        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.signInButton });
-    }
-
-    getSignInHeading() {
-        return this.page.getByRole(ARIA_ROLES.HEADING, { name: HEADINGS.SIGN_IN });
     }
 }

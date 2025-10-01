@@ -334,7 +334,7 @@ simpleTest.describe('Policy Acceptance', () => {
             const page = await context.newPage();
 
             // Use the LoginPage to handle the login process
-            const loginPage = new LoginPage(page, user);
+            const loginPage = new LoginPage(page);
             await loginPage.navigate();
             await loginPage.login(user.email, user.password);
 
@@ -384,7 +384,7 @@ simpleTest.describe('Policy Acceptance', () => {
             const context = await browser.newContext();
             const page = await context.newPage();
 
-            const loginPage = new LoginPage(page, user);
+            const loginPage = new LoginPage(page);
             await loginPage.navigate();
             await loginPage.login(user.email, user.password);
 
@@ -529,7 +529,7 @@ simpleTest.describe('Share Link Access Management', () => {
             expect(unauthPage.url()).toContain('returnUrl');
 
             // Click on Sign Up link to go to registration
-            const registerPage = await loginPage.clickSignUp();
+            const registerPage = await loginPage.navigateToRegisterPage();
 
             // Register new user
             const { displayName: newUserName, email: newUserEmail, password: newUserPassword } = new TestUserBuilder().build();

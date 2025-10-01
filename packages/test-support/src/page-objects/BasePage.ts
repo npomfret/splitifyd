@@ -6,13 +6,8 @@ import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
  * Extracted from e2e-tests/src/pages/base.page.ts for reuse in unit tests
  */
 export abstract class BasePage {
-    protected userInfo?: BaseUser;
 
-    constructor(
-        protected _page: Page,
-        userInfo?: BaseUser,
-    ) {
-        this.userInfo = userInfo;
+    constructor(protected _page: Page) {
     }
 
     /**
@@ -169,5 +164,12 @@ export abstract class BasePage {
         // Click the button
         await button.click();
         await this.waitForDomContentLoaded();
+    }
+
+    /**
+     * Expects the page to match a URL pattern
+     */
+    async expectUrl(pattern: string | RegExp): Promise<void> {
+        await expect(this._page).toHaveURL(pattern);
     }
 }
