@@ -394,15 +394,6 @@ export interface CurrencyBalance {
     totalOwing: number;
 }
 
-export interface GroupBalance {
-    userBalance?: {
-        netBalance: number;
-        totalOwed: number;
-        totalOwing: number;
-    } | null;
-    balancesByCurrency: Record<string, CurrencyBalance>;
-}
-
 // ========================================================================
 // Group Types - Single unified interface for both storage and API
 // ========================================================================

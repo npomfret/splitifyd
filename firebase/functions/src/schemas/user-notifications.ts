@@ -58,10 +58,6 @@ export const UserNotificationDocumentSchema = z.object({
     recentChanges: z.array(RecentChangeSchema).optional(),
 });
 
-/**
- * Type definitions derived from schemas
- */
-export type UserNotificationGroup = z.infer<typeof UserNotificationGroupSchema>;
 export type UserNotificationDocument = z.infer<typeof UserNotificationDocumentSchema>;
 
 /**
