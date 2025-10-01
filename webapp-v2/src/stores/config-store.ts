@@ -1,25 +1,6 @@
 import { signal, ReadonlySignal } from '@preact/signals';
 import { firebaseConfigManager } from '../app/firebase-config';
-
-interface AppConfiguration {
-    firebase: {
-        apiKey: string;
-        authDomain: string;
-        projectId: string;
-        storageBucket: string;
-        messagingSenderId: string;
-        appId: string;
-    };
-    firebaseAuthUrl?: string;
-    environment: {
-        warningBanner?: string;
-    };
-    formDefaults: {
-        displayName?: string;
-        email?: string;
-        password?: string;
-    };
-}
+import type { AppConfiguration } from '@splitifyd/shared';
 
 interface ConfigStore {
     // State getters - readonly values for external consumers
@@ -100,4 +81,3 @@ class ConfigStoreImpl implements ConfigStore {
 
 // Export singleton instance
 export const configStore = new ConfigStoreImpl();
-export type { AppConfiguration };

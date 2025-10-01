@@ -19,7 +19,6 @@ export { CommentDocumentSchema, CommentDataSchema, type ParsedComment } from './
 
 // Expense schemas
 export { ExpenseDocumentSchema, type ExpenseDocument } from './expense';
-export { ExpenseSplitSchema } from './balance';
 
 // Settlement schemas
 export { SettlementDocumentSchema, type SettlementDocument } from './settlement';

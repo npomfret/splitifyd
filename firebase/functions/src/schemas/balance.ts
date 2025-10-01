@@ -5,7 +5,7 @@ import { SettlementDocumentSchema } from './settlement';
 import { GroupDocumentSchema } from './group';
 
 // Schema for ExpenseSplit
-export const ExpenseSplitSchema = z.object({
+const ExpenseSplitSchema = z.object({
     uid: z.string(),
     amount: z.number(),
     percentage: z.number().optional(),

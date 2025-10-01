@@ -10,7 +10,6 @@ import {
     GroupMemberDocumentBuilder,
     ExpenseBuilder,
     SettlementBuilder,
-    TransactionChangeDocumentBuilder,
     PolicyDocumentBuilder,
     GroupBalanceDocumentBuilder
 } from '@splitifyd/test-support';
@@ -371,38 +370,6 @@ describe('Firestore Security Rules (Production)', () => {
 
             // Users cannot write to their own notifications
             await assertFails(setDoc(doc(user1Db, 'user-notifications', 'user1-id'), updateData, { merge: true }));
-        });
-    });
-
-    describe('Transaction Changes Collection', () => {
-        const changeId = 'test-change-1';
-
-        beforeAll(async () => {
-            await testEnv.withSecurityRulesDisabled(async (context: any) => {
-                const db = context.firestore();
-
-                // Create a transaction change document
-                const transactionChange = new TransactionChangeDocumentBuilder()
-                    .withGroupId('test-group-1')
-                    .withType('expense')
-                    .withUsers(['user1-id', 'user2-id']) // Controls who can read this change
-                    .build();
-
-                await setDoc(doc(db, 'transaction-changes', changeId), transactionChange);
-            });
-        });
-
-        it('should allow users in the users array to read transaction changes', async () => {
-            // User1 is in users array and should be able to read
-            await assertSucceeds(getDoc(doc(user1Db, 'transaction-changes', changeId)));
-
-            // User2 is also in users array and should be able to read
-            await assertSucceeds(getDoc(doc(user2Db, 'transaction-changes', changeId)));
-        });
-
-        it('should deny users not in the users array from reading transaction changes', async () => {
-            // User3 is NOT in users array and should be denied
-            await assertFails(getDoc(doc(user3Db, 'transaction-changes', changeId)));
         });
     });
 

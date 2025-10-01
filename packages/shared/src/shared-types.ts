@@ -22,10 +22,7 @@ export const FirestoreCollections = {
     USERS: 'users',
     POLICIES: 'policies',
     COMMENTS: 'comments',
-
-    BALANCE_CHANGES: 'balance-changes',
     USER_NOTIFICATIONS: 'user-notifications',
-    TRANSACTION_CHANGES: 'transaction-changes',
 } as const;
 
 // Type-safe collection names

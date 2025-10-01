@@ -75,12 +75,6 @@ service cloud.firestore {
       allow write: if false;
     }
     
-    // Processing events collection - server-only
-    match /_processing_events/{eventId} {
-      // Deny all access - server functions only
-      allow read, write: if false;
-    }
-    
     // Users collection - users can read/create/update their own documents
     match /users/{userId} {
       // Allow read if user is reading their own document
@@ -104,35 +98,6 @@ service cloud.firestore {
       allow write: if false;
     }
     
-    // Change detection collections - production security rules
-    match /group-changes/{changeId} {
-      // Only allow reads for affected users
-      allow read: if request.auth != null &&
-        request.auth.uid in resource.data.affectedUsers;
-
-      // Only server functions can write changes
-      allow write: if false;
-    }
-
-    match /transaction-changes/{changeId} {
-      // Only allow reads for users in the users array
-      allow read: if request.auth != null &&
-        request.auth.uid in resource.data.users;
-
-      // Only server functions can write changes
-      allow write: if false;
-    }
-    
-    match /balance-changes/{changeId} {
-      // Only allow reads for affected users
-      allow read: if request.auth != null &&
-        request.auth.uid in resource.data.affectedUsers;
-
-      // Only server functions can write changes
-      allow write: if false;
-    }
-    
-    // User notifications collection - for new notification system
     match /user-notifications/{userId} {
       // Users can only read their own notification documents
       allow read: if request.auth != null && request.auth.uid == userId;

@@ -19,7 +19,6 @@ import { measureDb } from '../../monitoring/measure';
 // Import schemas for validation
 import { UserDocumentSchema, GroupDocumentSchema, ExpenseDocumentSchema, SettlementDocumentSchema, CommentDataSchema, PolicyDocumentSchema } from '../../schemas';
 import { UserNotificationDocumentSchema } from '../../schemas/user-notifications';
-import { TransactionChangeDocumentSchema, BalanceChangeDocumentSchema } from '../../schemas';
 import { TopLevelGroupMemberSchema } from '../../schemas';
 import { validateUpdate } from '../../schemas';
 
@@ -198,8 +197,6 @@ export class FirestoreWriter implements IFirestoreWriter {
             [FirestoreCollections.COMMENTS]: CommentDataSchema,
             [FirestoreCollections.GROUP_MEMBERSHIPS]: TopLevelGroupMemberSchema,
             [FirestoreCollections.USER_NOTIFICATIONS]: UserNotificationDocumentSchema,
-            [FirestoreCollections.TRANSACTION_CHANGES]: TransactionChangeDocumentSchema,
-            [FirestoreCollections.BALANCE_CHANGES]: BalanceChangeDocumentSchema,
         };
 
         const schema = schemaMap[collection as keyof typeof schemaMap];

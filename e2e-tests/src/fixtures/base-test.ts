@@ -1,4 +1,4 @@
-import { test as base } from '@playwright/test';
+import { test as base, expect } from '@playwright/test';
 import { attachApiInterceptor, attachConsoleHandler, ApiInterceptor } from '../helpers';
 
 // Global counter for browser instances across all tests
@@ -43,4 +43,4 @@ export const baseTest = base.extend<{ apiInterceptor: ApiInterceptor }>({
 });
 
 // Re-export expect for internal use
-const { expect } = require('@playwright/test');
+export { expect };
