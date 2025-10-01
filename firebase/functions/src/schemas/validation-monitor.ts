@@ -134,7 +134,7 @@ export function validateWithMonitoring<T extends z.ZodSchema>(
 /**
  * Enhanced validation error with additional context
  */
-export class EnhancedValidationError extends Error {
+class EnhancedValidationError extends Error {
     constructor(
         public readonly validationError: ValidationError,
         public readonly zodError: z.ZodError,
@@ -142,7 +142,6 @@ export class EnhancedValidationError extends Error {
         super(`Schema validation failed for ${validationError.schemaName}: ${formatZodError(zodError)}`);
         this.name = 'EnhancedValidationError';
     }
-
 }
 
 /**
@@ -155,30 +154,4 @@ function formatZodError(error: z.ZodError): string {
             return `${path}${err.message}`;
         })
         .join(', ');
-}
-
-/**
- * Safe validation that logs failures but doesn't throw
- * Useful for monitoring without breaking the application
- */
-export function validateSafely<T extends z.ZodSchema>(
-    schema: T,
-    data: unknown,
-    context: {
-        schemaName: string;
-        operation: 'read' | 'write' | 'update';
-        documentId?: string;
-        collection?: string;
-        logger?: ContextualLogger;
-    },
-): { success: true; data: z.infer<T> } | { success: false; error: EnhancedValidationError } {
-    try {
-        const validatedData = validateWithMonitoring(schema, data, context);
-        return { success: true, data: validatedData };
-    } catch (error) {
-        if (error instanceof EnhancedValidationError) {
-            return { success: false, error };
-        }
-        throw error; // Re-throw non-validation errors
-    }
 }
