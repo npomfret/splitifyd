@@ -1,10 +1,20 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, existsSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
-// Load translation file at runtime
-const translationPath = join(__dirname, '../../../../webapp-v2/src/locales/en/translation.json');
+// Get current file directory in ES module
+const __filename = fileURLToPath(import.meta.url);
+let currentDir = dirname(__filename);
+
+// Go up the directory tree until we find the project root (contains webapp-v2)
+while (!existsSync(join(currentDir, 'webapp-v2')) && currentDir !== dirname(currentDir)) {
+    currentDir = dirname(currentDir);
+}
+
+// Load translation file from project root
+const translationPath = join(currentDir, 'webapp-v2/src/locales/en/translation.json');
 const translation = JSON.parse(readFileSync(translationPath, 'utf-8'));
 
 /**
