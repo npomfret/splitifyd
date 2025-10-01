@@ -7,7 +7,7 @@ import {
     StubAuthService
 } from '../mocks/firestore-stubs';
 import { GroupBuilder, GroupMemberDocumentBuilder, ThemeBuilder } from '@splitifyd/test-support';
-import type { GroupMemberDocument } from '@splitifyd/shared';
+import { GroupMemberDocument } from '@splitifyd/shared';
 import { MemberRoles } from '@splitifyd/shared';
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {

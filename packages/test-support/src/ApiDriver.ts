@@ -3,9 +3,9 @@ import {
     CreateCommentResponse,
     type CreateExpenseRequest,
     CurrentPolicyResponse,
-    ExpenseData,
+    ExpenseDTO,
     ExpenseFullDetails,
-    Group,
+    GroupDTO,
     GroupBalances,
     GroupFullDetails,
     JoinGroupResponse,
@@ -17,7 +17,7 @@ import {
     PooledTestUser,
     RegisterResponse,
     RemoveGroupMemberResponse,
-    type Settlement,
+    type SettlementDTO,
     SettlementListItem,
     ShareLinkResponse,
     UserRegistration,
@@ -25,8 +25,6 @@ import {
 } from '@splitifyd/shared';
 
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
-
-// Direct Firestore access for policy manipulation (bypass API)
 import { Matcher, PollOptions, pollUntil } from './Polling';
 import { UserRegistrationBuilder } from './builders';
 
@@ -141,12 +139,12 @@ export class ApiDriver {
         await this.apiRequest('/test-pool/return', 'POST', { email });
     }
 
-    async createExpense(expenseData: Partial<CreateExpenseRequest>, token: string): Promise<ExpenseData> {
+    async createExpense(expenseData: Partial<CreateExpenseRequest>, token: string): Promise<ExpenseDTO> {
         const response = await this.apiRequest('/expenses', 'POST', expenseData, token);
-        return response as ExpenseData;
+        return response as ExpenseDTO;
     }
 
-    async updateExpense(expenseId: string, updateData: Partial<ExpenseData>, token: string): Promise<ExpenseData> {
+    async updateExpense(expenseId: string, updateData: Partial<ExpenseDTO>, token: string): Promise<ExpenseDTO> {
         return await this.apiRequest(`/expenses?id=${expenseId}`, 'PUT', updateData, token);
     }
 
@@ -154,14 +152,14 @@ export class ApiDriver {
         return await this.apiRequest(`/expenses?id=${expenseId}`, 'DELETE', null, token);
     }
 
-    async getExpense(expenseId: string, token: string): Promise<ExpenseData> {
+    async getExpense(expenseId: string, token: string): Promise<ExpenseDTO> {
         const response = await this.apiRequest(`/expenses/${expenseId}/full-details`, 'GET', null, token);
         return response.expense;
     }
 
-    async createSettlement(settlementData: any, token: string): Promise<Settlement> {
+    async createSettlement(settlementData: any, token: string): Promise<SettlementDTO> {
         const response = await this.apiRequest('/settlements', 'POST', settlementData, token);
-        return response.data as Settlement;
+        return response.data as SettlementDTO;
     }
 
     async updateSettlement(settlementId: string, updateData: any, token: string): Promise<SettlementListItem> {
@@ -212,7 +210,7 @@ export class ApiDriver {
         return await this.apiRequest('/groups/join', 'POST', { linkId }, token);
     }
 
-    async createGroupWithMembers(name: string, members: UserToken[], creatorToken: string): Promise<Group> {
+    async createGroupWithMembers(name: string, members: UserToken[], creatorToken: string): Promise<GroupDTO> {
         // Step 1: Create group with just the creator
         const groupData = { name, description: `Test group created at ${new Date().toISOString()}` };
 
@@ -236,11 +234,11 @@ export class ApiDriver {
         }
     }
 
-    async createGroup(groupData: any, token: string): Promise<Group> {
-        return (await this.apiRequest('/groups', 'POST', groupData, token)) as Group;
+    async createGroup(groupData: any, token: string): Promise<GroupDTO> {
+        return (await this.apiRequest('/groups', 'POST', groupData, token)) as GroupDTO;
     }
 
-    async getGroup(groupId: string, token: string): Promise<Group> {
+    async getGroup(groupId: string, token: string): Promise<GroupDTO> {
         const res = await this.getGroupFullDetails(groupId, token);
         return res.group;
     }

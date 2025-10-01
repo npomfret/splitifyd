@@ -30,7 +30,7 @@ export { ShareLinkDocumentSchema, ShareLinkDataSchema, type ParsedShareLink } fr
 export { UserDocumentSchema, UserDataSchema, type UserDocument } from './user';
 
 // Policy schemas
-export { PolicyDocumentSchema, PolicyDataSchema, type PolicyDocument } from './policy';
+export { PolicyDocumentSchema, PolicyDataSchema, type PolicyTDO } from './policy';
 
 // Group schemas
 export { GroupDocumentSchema, GroupDataSchema, GroupMemberDocumentSchema, type GroupDocument, type ParsedGroupMemberDocument } from './group';

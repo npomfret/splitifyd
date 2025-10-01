@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { Avatar } from '../ui/Avatar';
 import { Stack } from '../ui/Stack';
-import type { ExpenseData, GroupMemberDTO } from '@splitifyd/shared';
+import { ExpenseDTO, GroupMemberDTO } from '@splitifyd/shared';
 import { SplitTypes } from '@splitifyd/shared';
 import { formatCurrency } from '@/utils/currency';
 
 interface SplitBreakdownProps {
-    expense: ExpenseData;
+    expense: ExpenseDTO;
     members: GroupMemberDTO[];
 }
 

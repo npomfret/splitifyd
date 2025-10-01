@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/preact';
 import { vi, describe, it, beforeEach, expect } from 'vitest';
 import { GroupCard } from '@/components/dashboard/GroupCard.tsx';
-import type { Group, RegisteredUser } from '@splitifyd/shared';
+import { GroupDTO, RegisteredUser } from '@splitifyd/shared';
 import { generateShortId, TestUserBuilder } from '@splitifyd/test-support';
 
 // Mock react-i18next
@@ -29,8 +29,8 @@ vi.mock('react-i18next', () => ({
 }));
 
 // Helper to create test groups - using builder pattern with defaults
-function createTestGroup(overrides: Partial<Group> = {}): Group {
-    const defaultGroup: Group = {
+function createTestGroup(overrides: Partial<GroupDTO> = {}): GroupDTO {
+    const defaultGroup: GroupDTO = {
         id: `group-${generateShortId()}`,
         name: 'Test Group',
         securityPreset: 'open' as const,

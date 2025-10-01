@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, beforeAll } from 'vitest';
-import { borrowTestUsers, GroupMemberBuilder, GroupMemberDocumentBuilder, CreateGroupRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
-import { GroupMemberDocument, MemberRoles, Group } from '@splitifyd/shared';
+import { borrowTestUsers, GroupMemberDocumentBuilder, CreateGroupRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
+import { GroupMemberDocument, MemberRoles, GroupDTO } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { getAuth, getFirestore } from '../../firebase';
@@ -16,7 +16,7 @@ describe('Concurrent Operations Integration Tests', () => {
     let testUser2: PooledTestUser;
     let testUser3: PooledTestUser;
     let testUser4: PooledTestUser;
-    let testGroup: Group;
+    let testGroup: GroupDTO;
 
     beforeAll(async () => {});
 
@@ -77,7 +77,7 @@ describe('Concurrent Operations Integration Tests', () => {
                 // Modification operations
                 () => groupMemberService.createMember(testGroup.id, new GroupMemberDocumentBuilder().withUserId(testUser3.uid).withGroupId(testGroup.id).withThemeIndex(2).withInvitedBy(testUser1.uid).build()),
                 () =>
-                    groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberBuilder().asAdmin().build()),
+                    groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberDocumentBuilder().asAdmin().build()),
                 () => groupMemberService.deleteMember(testGroup.id, testUser2.uid),
             ];
 
@@ -104,9 +104,9 @@ describe('Concurrent Operations Integration Tests', () => {
 
             // Execute multiple role updates concurrently
             const updatePromises = [
-                groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberBuilder().asAdmin().build()),
-                groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberBuilder().asViewer().build()),
-                groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberBuilder().asMember().build()),
+                groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberDocumentBuilder().asAdmin().build()),
+                groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberDocumentBuilder().asViewer().build()),
+                groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberDocumentBuilder().asMember().build()),
             ];
 
             // All updates should complete (last write wins)
@@ -302,7 +302,7 @@ describe('Concurrent Operations Integration Tests', () => {
                 .map(() => groupMemberService.getUserGroupsViaSubcollection(testUser1.uid));
 
             const modificationPromises = [
-                groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberBuilder().asAdmin().build()),
+                groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberDocumentBuilder().asAdmin().build()),
                 groupMemberService.deleteMember(testGroup.id, testUser3.uid),
                 groupMemberService.createMember(testGroup.id, new GroupMemberDocumentBuilder().withUserId(users[5].uid).withGroupId(testGroup.id).withThemeIndex(4).withInvitedBy(testUser1.uid).build()),
             ];
@@ -340,7 +340,7 @@ describe('Concurrent Operations Integration Tests', () => {
                 // Operations that will fail - trying to access non-existent member
                 () => groupMemberService.getGroupMember(testGroup.id, 'non-existent-user-id'),
                 () =>
-                    groupMemberService.updateMember(testGroup.id, 'non-existent-user-id', new GroupMemberBuilder().asAdmin().build()),
+                    groupMemberService.updateMember(testGroup.id, 'non-existent-user-id', new GroupMemberDocumentBuilder().asAdmin().build()),
             ];
 
             // Execute all operations concurrently

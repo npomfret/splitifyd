@@ -4,7 +4,7 @@ import { ApiError, Errors } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import * as dateHelpers from '../utils/dateHelpers';
 import { logger, LoggerContext } from '../logger';
-import type { Group, GroupPermissions } from '@splitifyd/shared';
+import { GroupDTO, GroupPermissions } from '@splitifyd/shared';
 import { CreateExpenseRequest, DELETED_AT_FIELD, FirestoreCollections, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
 import * as expenseValidation from '../expenses/validation';
 import type { Expense } from '../expenses/validation';
@@ -24,7 +24,7 @@ import { UserService } from './UserService2';
 /**
  * Transform GroupDocument (database schema) to Group (API type) with required defaults
  */
-function toGroup(groupDoc: GroupDocument): Group {
+function toGroup(groupDoc: GroupDocument): GroupDTO {
     return {
         ...groupDoc,
         securityPreset: groupDoc.securityPreset!,

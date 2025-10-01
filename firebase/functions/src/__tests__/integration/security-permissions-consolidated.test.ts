@@ -4,7 +4,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, UserRegistrationBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, PermissionSetBuilder } from '@splitifyd/test-support';
-import { SecurityPresets, Group, PooledTestUser, UserToken } from '@splitifyd/shared';
+import { SecurityPresets, GroupDTO, PooledTestUser, UserToken } from '@splitifyd/shared';
 import { getFirestore } from '../../firebase';
 
 describe('Security and Permissions - Consolidated Tests', () => {
@@ -71,7 +71,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
     });
 
     describe('Cross-User Data Access Control', () => {
-        let testGroup: Group;
+        let testGroup: GroupDTO;
 
         beforeEach(async () => {
             testGroup = await apiDriver.createGroupWithMembers(`Access Control Test ${uuidv4()}`, [users[0], users[1]], users[0].token);
@@ -115,7 +115,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
     });
 
     describe('Non-Member Access Attempts and Edge Cases', () => {
-        let edgeTestGroup: Group;
+        let edgeTestGroup: GroupDTO;
 
         beforeEach(async () => {
             edgeTestGroup = await apiDriver.createGroupWithMembers(`Edge Test ${uuidv4()}`, users.slice(0, 2), users[0].token);
@@ -154,7 +154,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
     });
 
     describe('Permission System and Role Management', () => {
-        let roleTestGroup: Group;
+        let roleTestGroup: GroupDTO;
         let adminUser: UserToken;
         let memberUser: UserToken;
 
@@ -238,7 +238,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
             const testUser = await apiDriver.createUser(new UserRegistrationBuilder().withEmail(`test-valid-${Date.now()}@test.com`).withDisplayName('Test User Valid').build());
 
             // Create multiple valid groups
-            const validGroups: Group[] = [];
+            const validGroups: GroupDTO[] = [];
             for (let i = 0; i < 3; i++) {
                 const group = await apiDriver.createGroup(
                     new CreateGroupRequestBuilder()

@@ -7,10 +7,9 @@ import { EMULATOR_URL } from './src/helpers';
 export default defineConfig({
     testDir: './src/__tests__/integration',
     /* Output directory for test results - must be inside e2e-tests for HTML report to find attachments */
-    outputDir: process.env.PLAYWRIGHT_TEST_OUTPUT_DIR || './playwright-report/output',
+    outputDir: './playwright-report/output',
     /* Global setup and teardown for user pool management */
     globalSetup: './src/fixtures/global-setup.ts',
-    globalTeardown: './src/fixtures/global-teardown.ts',
     /* Global test timeout - some are slow */
     timeout: 15000,
     /* Expect timeout for assertions like toBeVisible() */
@@ -20,11 +19,11 @@ export default defineConfig({
     /* Run tests in files in parallel */
     fullyParallel: true,
     /* Fail the build on CI if you accidentally left test.only in the source code. */
-    forbidOnly: !!process.env.CI,
+    forbidOnly: true,
     /* Retry on CI only */
-    retries: process.env.CI ? 2 : 0,
+    retries: 0,
     /* Opt out of parallel tests on CI. */
-    workers: process.env.CI ? 1 : undefined,
+    workers: 1,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
     reporter: 'list',
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */

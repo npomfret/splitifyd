@@ -1256,7 +1256,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 const mergedData = await this.fetchAndMergeForValidation(documentPath, finalUpdates, policyId);
 
                 // Validate with graceful FieldValue handling
-                const validationResult = this.safeValidateUpdate<any>(PolicyDocumentSchema, mergedData, 'PolicyDocument', policyId, 'policies');
+                const validationResult = this.safeValidateUpdate<any>(PolicyDocumentSchema, mergedData, 'PolicyTDO', policyId, 'policies');
 
                 await this.db.collection('policies').doc(policyId).update(finalUpdates);
 

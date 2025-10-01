@@ -3,14 +3,14 @@ import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
 import { Button } from '../ui/Button';
 import { ExpenseItem } from './ExpenseItem';
-import type { ExpenseData } from '@splitifyd/shared';
+import type { ExpenseDTO } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 
 interface ExpensesListProps {
-    onExpenseClick?: (expense: ExpenseData) => void;
-    onExpenseCopy?: (expense: ExpenseData) => void;
+    onExpenseClick?: (expense: ExpenseDTO) => void;
+    onExpenseCopy?: (expense: ExpenseDTO) => void;
     showDeletedExpenses?: boolean;
     onShowDeletedChange?: (show: boolean) => void;
 }

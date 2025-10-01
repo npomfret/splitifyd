@@ -3,11 +3,11 @@ import { useState, useRef, useEffect } from 'preact/hooks';
 import { apiClient } from '@/app/apiClient.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { Input, Button, Form } from '../ui';
-import type { Group } from '@splitifyd/shared';
+import { GroupDTO } from '@splitifyd/shared';
 
 interface EditGroupModalProps {
     isOpen: boolean;
-    group: Group;
+    group: GroupDTO;
     onClose: () => void;
     onSuccess?: () => void;
     onDelete?: () => void;
@@ -189,7 +189,7 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
                     {/* Modal Content */}
                     <Form onSubmit={handleSubmit}>
                         <div class="space-y-4">
-                            {/* Group Name */}
+                            {/* GroupDTO Name */}
                             <div>
                                 <Input
                                     label={t('editGroupModal.groupNameLabel')}
@@ -207,7 +207,7 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
                                 />
                             </div>
 
-                            {/* Group Description (Optional) */}
+                            {/* GroupDTO Description (Optional) */}
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">{t('editGroupModal.descriptionLabel')}</label>
                                 <textarea

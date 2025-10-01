@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { Input, Button, Form } from '../ui';
-import type { CreateGroupRequest } from '@splitifyd/shared';
+import { CreateGroupRequest } from '@splitifyd/shared';
 
 interface CreateGroupModalProps {
     isOpen: boolean;

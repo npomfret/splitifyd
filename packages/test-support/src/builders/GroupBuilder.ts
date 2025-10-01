@@ -1,4 +1,4 @@
-import type { Group, SecurityPreset, GroupPermissions, UserThemeColor, FirestoreTimestamp, FirestoreAuditMetadata } from '@splitifyd/shared';
+import type { GroupDTO, SecurityPreset, GroupPermissions, UserThemeColor, FirestoreTimestamp, FirestoreAuditMetadata } from '@splitifyd/shared';
 import { SecurityPresets, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { generateShortId, randomChoice, randomString } from '../test-helpers';
 import { Timestamp } from 'firebase-admin/firestore';
@@ -204,8 +204,8 @@ export class GroupBuilder {
     /**
      * Build client-format Group object for API responses
      */
-    build(): Group {
-        const result: Group = {
+    build(): GroupDTO {
+        const result: GroupDTO = {
             ...this.auditFields,
             ...this.businessFields,
             ...this.clientFields,
@@ -248,7 +248,7 @@ export class GroupBuilder {
     /**
      * Creates multiple groups with sequential IDs for testing pagination
      */
-    static buildMany(count: number, customizer?: (builder: GroupBuilder, index: number) => void): Group[] {
+    static buildMany(count: number, customizer?: (builder: GroupBuilder, index: number) => void): GroupDTO[] {
         return Array.from({ length: count }, (_, i) => {
             const builder = new GroupBuilder().withId(`group-${i + 1}`);
 

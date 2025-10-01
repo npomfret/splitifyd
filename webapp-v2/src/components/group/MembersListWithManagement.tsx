@@ -8,7 +8,7 @@ import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { ConfirmDialog } from '@/components/ui';
 import { UserPlusIcon, UserMinusIcon } from '@heroicons/react/24/outline';
-import type { GroupMemberDTO } from '@splitifyd/shared';
+import { GroupMemberDTO } from '@splitifyd/shared';
 import { apiClient } from '@/app/apiClient';
 import { logError } from '@/utils/browser-logger';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';

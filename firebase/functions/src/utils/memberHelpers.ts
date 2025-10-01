@@ -1,4 +1,4 @@
-import type { GroupMemberDocument } from '@splitifyd/shared';
+import { GroupMemberDocument } from '@splitifyd/shared';
 
 /**
  * Helper functions for working with GroupMemberDocument arrays

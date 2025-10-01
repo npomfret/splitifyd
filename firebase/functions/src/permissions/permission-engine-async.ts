@@ -1,8 +1,8 @@
-import {ExpenseData, Group, GroupPermissions, MemberRoles, MemberStatuses, PermissionLevels} from '@splitifyd/shared';
+import {ExpenseDTO, GroupDTO, GroupPermissions, MemberRoles, MemberStatuses, PermissionLevels} from '@splitifyd/shared';
 import {IFirestoreReader} from '../services/firestore';
 
 interface PermissionCheckOptions {
-    expense?: ExpenseData;
+    expense?: ExpenseDTO;
     targetUserId?: string;
 }
 
@@ -13,7 +13,7 @@ export class PermissionEngineAsync {
      */
     static async checkPermission(
         firestoreReader: IFirestoreReader,
-        group: Group,
+        group: GroupDTO,
         userId: string,
         action: keyof GroupPermissions | 'viewGroup',
         options: PermissionCheckOptions = {},

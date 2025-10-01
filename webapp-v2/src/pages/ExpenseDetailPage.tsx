@@ -11,7 +11,7 @@ import { ExpenseActions } from '../components/expense/ExpenseActions';
 import { CommentsSection } from '@/components/comments';
 import { formatDistanceToNow, formatLocalDateTime, formatExpenseDateTime } from '../utils/dateUtils';
 import { formatCurrency } from '@/utils/currency';
-import type { ExpenseData, Group, GroupMemberDTO } from '@splitifyd/shared';
+import { ExpenseDTO, GroupDTO, GroupMemberDTO } from '@splitifyd/shared';
 import { logError } from '../utils/browser-logger';
 
 interface ExpenseDetailPageProps {
@@ -29,13 +29,13 @@ const truncateDescription = (description: string, maxLength: number = 40): strin
 
 export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailPageProps) {
     const { t } = useTranslation();
-    const expense = useSignal<ExpenseData | null>(null);
+    const expense = useSignal<ExpenseDTO | null>(null);
     const loading = useSignal(true);
     const error = useSignal<string | null>(null);
     const [showReceiptModal, setShowReceiptModal] = useState(false);
 
     // Local state for page data (replaces store dependency)
-    const group = useSignal<Group | null>(null);
+    const group = useSignal<GroupDTO | null>(null);
     const members = useSignal<GroupMemberDTO[]>([]);
 
     // Create member lookup map

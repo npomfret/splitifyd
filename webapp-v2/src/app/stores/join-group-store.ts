@@ -1,16 +1,16 @@
 /**
- * Join Group Store
+ * Join GroupDTO Store
  *
  * Manages the state for joining a group via share link
  */
 
 import { signal, ReadonlySignal } from '@preact/signals';
 import { apiClient } from '../apiClient';
-import type { Group } from '@splitifyd/shared';
+import { GroupDTO } from '@splitifyd/shared';
 
 class JoinGroupStore {
     // Private signals - encapsulated within the class
-    readonly #groupSignal = signal<Group | null>(null);
+    readonly #groupSignal = signal<GroupDTO | null>(null);
     readonly #memberCountSignal = signal<number>(0);
     readonly #loadingPreviewSignal = signal<boolean>(false);
     readonly #joiningSignal = signal<boolean>(false);
@@ -58,8 +58,8 @@ class JoinGroupStore {
             // Load preview data without joining the group
             const preview = await apiClient.previewGroupByLink(linkId);
 
-            // Transform preview data to Group interface
-            const group: Group = {
+            // Transform preview data to GroupDTO interface
+            const group: GroupDTO = {
                 id: preview.groupId,
                 name: preview.groupName,
                 description: preview.groupDescription,
@@ -100,7 +100,7 @@ class JoinGroupStore {
         }
     }
 
-    async joinGroup(linkId: string): Promise<Group | null> {
+    async joinGroup(linkId: string): Promise<GroupDTO | null> {
         this.#joiningSignal.value = true;
         this.#errorSignal.value = null;
 

@@ -1,4 +1,4 @@
-import { Group } from '@splitifyd/shared';
+import { GroupDTO } from '@splitifyd/shared';
 import { ApiDriver } from './ApiDriver';
 import { generateShortId } from './test-helpers';
 import { UserToken } from '@splitifyd/shared';
@@ -13,7 +13,7 @@ interface GroupOptions {
  * @deprecated this is pointless and fragile - if users are added or removed then it will return incorrect groups
  */
 export class TestGroupManager {
-    private static groupCache: Map<string, Promise<Group>> = new Map();
+    private static groupCache: Map<string, Promise<GroupDTO>> = new Map();
     private static apiDriver = new ApiDriver();
 
     private static createCacheKey(users: UserToken[], memberCount: number): string {
@@ -24,7 +24,7 @@ export class TestGroupManager {
         return `${sortedUserIds.join('|')}:${memberCount}`;
     }
 
-    public static async getOrCreateGroup(users: UserToken[], options: GroupOptions = {}): Promise<Group> {
+    public static async getOrCreateGroup(users: UserToken[], options: GroupOptions = {}): Promise<GroupDTO> {
         const { memberCount = 2, fresh = false } = options;
 
         if (memberCount > users.length) {
@@ -45,7 +45,7 @@ export class TestGroupManager {
         return this.groupCache.get(cacheKey)!;
     }
 
-    private static async createFreshGroup(users: UserToken[], memberCount: number): Promise<Group> {
+    private static async createFreshGroup(users: UserToken[], memberCount: number): Promise<GroupDTO> {
         const groupMembers = users.slice(0, memberCount);
         const groupName = `Reusable Test Group ${generateShortId()}`;
 

@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { Group, PermissionLevels } from '@splitifyd/shared';
+import { GroupDTO, PermissionLevels } from '@splitifyd/shared';
 import { PermissionEngineAsync } from '../../permissions/permission-engine-async';
 import { StubFirestoreReader } from './mocks/firestore-stubs';
 import { GroupBuilder, GroupMemberDocumentBuilder, ExpenseBuilder } from '@splitifyd/test-support';
@@ -7,7 +7,7 @@ import { GroupBuilder, GroupMemberDocumentBuilder, ExpenseBuilder } from '@split
 let stubFirestoreReader: StubFirestoreReader;
 
 describe('PermissionEngineAsync', () => {
-    let testGroup: Group;
+    let testGroup: GroupDTO;
     const testUserId = 'user123';
     const testGroupId = 'group456';
 

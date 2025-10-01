@@ -2,7 +2,7 @@ import { Errors, ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
 import { FirestoreCollections } from '@splitifyd/shared';
-import type { GroupMemberDocument } from '@splitifyd/shared';
+import { GroupMemberDocument } from '@splitifyd/shared';
 import { BalanceCalculationService } from './balance';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';

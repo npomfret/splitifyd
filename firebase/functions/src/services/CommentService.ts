@@ -3,7 +3,7 @@ import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import * as dateHelpers from '../utils/dateHelpers';
 import * as loggerContext from '../utils/logger-context';
-import { Comment, CommentApiResponse, CommentTargetType, CreateCommentRequest, ListCommentsResponse } from '@splitifyd/shared';
+import { CommentDTO, CommentApiResponse, CommentTargetType, CreateCommentRequest, ListCommentsResponse } from '@splitifyd/shared';
 import * as measure from '../monitoring/measure';
 import { CommentDataSchema } from '../schemas';
 import type { IFirestoreReader } from './firestore';
@@ -13,9 +13,15 @@ import { CommentStrategyFactory } from './comments/CommentStrategyFactory';
 
 /**
  * Type for comment data before it's saved to Firestore (without id)
+ * Uses Firestore Timestamp objects, not ISO strings
  */
-type CommentCreateData = Omit<Comment, 'id' | 'authorAvatar'> & {
+type CommentCreateData = {
+    authorId: string;
+    authorName: string;
     authorAvatar: string | null; // Firestore doesn't allow undefined, so we use null
+    text: string;
+    createdAt: FirebaseFirestore.Timestamp;
+    updatedAt: FirebaseFirestore.Timestamp;
 };
 
 /**

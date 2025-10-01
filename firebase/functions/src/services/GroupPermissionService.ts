@@ -9,13 +9,13 @@ import { createOptimisticTimestamp } from '../utils/dateHelpers';
 
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
-import type { Group, GroupPermissions } from '@splitifyd/shared';
+import { GroupDTO, GroupPermissions } from '@splitifyd/shared';
 import type { GroupDocument } from '../schemas';
 
 /**
  * Transform GroupDocument (database schema) to Group (API type) with required defaults
  */
-function toGroup(groupDoc: GroupDocument): Group {
+function toGroup(groupDoc: GroupDocument): GroupDTO {
     return {
         ...groupDoc,
         securityPreset: groupDoc.securityPreset!,

@@ -4,7 +4,7 @@ import { HTTP_STATUS } from '../constants';
 import { createOptimisticTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
-import { PolicyDocument, PolicyVersion } from '@splitifyd/shared';
+import { PolicyDTO, PolicyVersion } from '@splitifyd/shared';
 import { measureDb } from '../monitoring/measure';
 import { PolicyDocumentSchema, PolicyDataSchema } from '../schemas';
 import { z } from 'zod';
@@ -57,14 +57,14 @@ export class PolicyService {
     /**
      * List all policies
      */
-    async listPolicies(): Promise<{ policies: PolicyDocument[]; count: number }> {
+    async listPolicies(): Promise<{ policies: PolicyDTO[]; count: number }> {
         try {
             const policies = await this.firestoreReader.getAllPolicies();
 
             logger.info('Policies listed', { count: policies.length });
 
             return {
-                policies: policies as PolicyDocument[],
+                policies: policies as PolicyDTO[],
                 count: policies.length,
             };
         } catch (error) {
@@ -79,7 +79,7 @@ export class PolicyService {
     /**
      * Get policy details and version history
      */
-    async getPolicy(id: string): Promise<PolicyDocument> {
+    async getPolicy(id: string): Promise<PolicyDTO> {
         try {
             const policy = await this.firestoreReader.getPolicy(id);
 
@@ -89,7 +89,7 @@ export class PolicyService {
 
             logger.info('Policy retrieved', { policyId: id });
 
-            return policy as PolicyDocument;
+            return policy as PolicyDTO;
         } catch (error) {
             if (error instanceof ApiError) {
                 throw error;
@@ -301,7 +301,7 @@ export class PolicyService {
                 createdAt: timestampToISO(now),
             };
 
-            const policyData: Omit<PolicyDocument, 'id'> = {
+            const policyData: Omit<PolicyDTO, 'id'> = {
                 policyName,
                 currentVersionHash: versionHash,
                 versions: {

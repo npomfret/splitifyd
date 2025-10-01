@@ -33,8 +33,8 @@ import { ShareLinkDocumentSchema, type ParsedShareLink } from '../../schemas';
 import { CommentDocumentSchema, type ParsedComment } from '../../schemas';
 
 // Import types
-import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument, PolicyDocument } from '../../schemas';
-import type { GroupMemberDocument, TopLevelGroupMemberDocument } from '@splitifyd/shared';
+import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument, PolicyTDO } from '../../schemas';
+import { GroupMemberDocument, TopLevelGroupMemberDocument } from '@splitifyd/shared';
 import type { ParsedGroupMemberDocument } from '../../schemas';
 import type { IFirestoreReader, FirestoreOrderField } from './IFirestoreReader';
 import type { QueryOptions, PaginatedResult, GroupsPaginationCursor, OrderBy, BatchGroupFetchOptions } from './IFirestoreReader';
@@ -146,7 +146,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getPolicy(policyId: string): Promise<PolicyDocument | null> {
+    async getPolicy(policyId: string): Promise<PolicyTDO | null> {
         try {
             const policyDoc = await this.db.collection(FirestoreCollections.POLICIES).doc(policyId).get();
 
@@ -166,11 +166,11 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getAllPolicies(): Promise<PolicyDocument[]> {
+    async getAllPolicies(): Promise<PolicyTDO[]> {
         try {
             const snapshot = await this.db.collection(FirestoreCollections.POLICIES).get();
 
-            const policies: PolicyDocument[] = [];
+            const policies: PolicyTDO[] = [];
 
             snapshot.forEach((doc) => {
                 try {

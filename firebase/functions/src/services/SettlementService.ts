@@ -7,7 +7,7 @@ import { getUpdatedAtTimestamp } from '../utils/optimistic-locking';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import * as measure from '../monitoring/measure';
-import { Settlement, CreateSettlementRequest, UpdateSettlementRequest, SettlementListItem, RegisteredUser, FirestoreCollections } from '@splitifyd/shared';
+import { SettlementDTO, CreateSettlementRequest, UpdateSettlementRequest, SettlementListItem, RegisteredUser, GroupMemberDTO, FirestoreCollections } from '@splitifyd/shared';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
@@ -70,37 +70,48 @@ export class SettlementService {
     }
 
     /**
-     * Fetch user data with validation
+     * Fetch group member data for settlements
      */
-    private async fetchUserData(userId: string): Promise<RegisteredUser> {
-        const userData = await this.firestoreReader.getUser(userId);
+    private async fetchGroupMemberData(groupId: string, userId: string): Promise<GroupMemberDTO> {
+        const [userData, memberData] = await Promise.all([
+            this.firestoreReader.getUser(userId),
+            this.firestoreReader.getGroupMember(groupId, userId)
+        ]);
 
         if (!userData) {
-            // Users are never deleted, so missing user doc indicates invalid data
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${userId} not found`);
         }
 
-        // Validate user data with Zod instead of manual field checking
+        if (!memberData) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'MEMBER_NOT_FOUND', `Member ${userId} not found in group ${groupId}`);
+        }
+
+        // Validate user data
         try {
             const validatedData = UserDataSchema.parse(userData);
+
+            // Generate initials from display name
+            const initials = validatedData.displayName
+                .split(' ')
+                .map(n => n[0])
+                .join('')
+                .toUpperCase()
+                .slice(0, 2);
 
             return {
                 uid: userId,
                 email: validatedData.email,
                 displayName: validatedData.displayName,
-                emailVerified: Boolean(userData.emailVerified),
+                initials,
                 photoURL: userData.photoURL || null,
-                role: userData.role,
-                termsAcceptedAt: userData.termsAcceptedAt,
-                cookiePolicyAcceptedAt: userData.cookiePolicyAcceptedAt,
-                acceptedPolicies: userData.acceptedPolicies,
-                themeColor: typeof userData.themeColor === 'object' ? userData.themeColor as RegisteredUser['themeColor'] : undefined,
-                preferredLanguage: userData.preferredLanguage,
-                createdAt: userData.createdAt,
-                updatedAt: userData.updatedAt,
+                themeColor: memberData.theme,
+                memberRole: memberData.memberRole,
+                memberStatus: memberData.memberStatus,
+                joinedAt: memberData.joinedAt,
+                invitedBy: memberData.invitedBy,
+                lastPermissionChange: memberData.lastPermissionChange,
             };
         } catch (error) {
-            // Zod validation failed - user document is corrupted
             this.logger.error('User document validation failed', error, { userId });
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_USER_DATA', `User ${userId} has invalid data structure`);
         }
@@ -155,11 +166,11 @@ export class SettlementService {
     /**
      * Create a new settlement
      */
-    async createSettlement(settlementData: CreateSettlementRequest, userId: string): Promise<Settlement> {
+    async createSettlement(settlementData: CreateSettlementRequest, userId: string): Promise<SettlementDTO> {
         return this.measure.measureDb('SettlementService.createSettlement', async () => this._createSettlement(settlementData, userId));
     }
 
-    private async _createSettlement(settlementData: CreateSettlementRequest, userId: string): Promise<Settlement> {
+    private async _createSettlement(settlementData: CreateSettlementRequest, userId: string): Promise<SettlementDTO> {
         this.loggerContext.setBusinessContext({ groupId: settlementData.groupId });
         this.loggerContext.update({ userId, operation: 'create-settlement', amount: settlementData.amount });
 
@@ -293,8 +304,11 @@ export class SettlementService {
 
         const updatedSettlement = await this.firestoreReader.getSettlement(settlementId);
 
-        // Fetch user data for payer and payee to return complete response
-        const [payerData, payeeData] = await Promise.all([this.fetchUserData(updatedSettlement!.payerId), this.fetchUserData(updatedSettlement!.payeeId)]);
+        // Fetch group member data for payer and payee to return complete response
+        const [payerData, payeeData] = await Promise.all([
+            this.fetchGroupMemberData(updatedSettlement!.groupId, updatedSettlement!.payerId),
+            this.fetchGroupMemberData(updatedSettlement!.groupId, updatedSettlement!.payeeId)
+        ]);
 
         return {
             id: settlementId,
@@ -407,7 +421,10 @@ export class SettlementService {
 
         const settlements: SettlementListItem[] = await Promise.all(
             result.settlements.map(async (settlement) => {
-                const [payerData, payeeData] = await Promise.all([this.fetchUserData(settlement.payerId), this.fetchUserData(settlement.payeeId)]);
+                const [payerData, payeeData] = await Promise.all([
+                    this.fetchGroupMemberData(groupId, settlement.payerId),
+                    this.fetchGroupMemberData(groupId, settlement.payeeId)
+                ]);
 
                 return {
                     id: settlement.id,

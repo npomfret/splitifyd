@@ -1,4 +1,4 @@
-import type { Group, ListGroupsResponse, ChangeMetadata } from '@splitifyd/shared';
+import type { GroupDTO, ListGroupsResponse, ChangeMetadata } from '@splitifyd/shared';
 
 /**
  * Builder for creating ListGroupsResponse objects for tests
@@ -19,7 +19,7 @@ export class ListGroupsResponseBuilder {
         };
     }
 
-    withGroups(groups: Group[]): this {
+    withGroups(groups: GroupDTO[]): this {
         this.response.groups = groups;
         this.response.count = groups.length;
         return this;
@@ -118,14 +118,14 @@ export class ListGroupsResponseBuilder {
             .withHasMore(false);
     }
 
-    static singleGroupResponse(group: Group): ListGroupsResponseBuilder {
+    static singleGroupResponse(group: GroupDTO): ListGroupsResponseBuilder {
         return new ListGroupsResponseBuilder()
             .withGroups([group])
             .withCount(1)
             .withHasMore(false);
     }
 
-    static responseWithMetadata(groups: Group[], changeCount: number = 1): ListGroupsResponseBuilder {
+    static responseWithMetadata(groups: GroupDTO[], changeCount: number = 1): ListGroupsResponseBuilder {
         const now = Date.now();
         return new ListGroupsResponseBuilder()
             .withGroups(groups)
@@ -134,7 +134,7 @@ export class ListGroupsResponseBuilder {
             .withChangeCount(changeCount);
     }
 
-    static paginatedResponse(groups: Group[], hasMore: boolean, nextCursor?: string): ListGroupsResponseBuilder {
+    static paginatedResponse(groups: GroupDTO[], hasMore: boolean, nextCursor?: string): ListGroupsResponseBuilder {
         const builder = new ListGroupsResponseBuilder()
             .withGroups(groups)
             .withHasMore(hasMore);

@@ -11,7 +11,7 @@ import { ApiError } from '../../utils/errors';
 import { validateCreateGroup, validateUpdateGroup, validateGroupId } from '../../groups/validation';
 import { HTTP_STATUS } from '../../constants';
 import { VALIDATION_LIMITS } from '../../constants';
-import type { CreateGroupRequest } from '@splitifyd/shared';
+import { CreateGroupRequest } from '@splitifyd/shared';
 
 describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;

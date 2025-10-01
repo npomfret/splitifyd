@@ -1,5 +1,5 @@
 import { CreateSettlementRequestBuilder } from './CreateSettlementRequestBuilder';
-import type { Settlement, FirestoreTimestamp, FirestoreAuditMetadata } from '@splitifyd/shared';
+import type { SettlementDTO, FirestoreTimestamp, FirestoreAuditMetadata } from '@splitifyd/shared';
 
 /**
  * Builder for creating Settlement objects for tests
@@ -49,9 +49,9 @@ export class SettlementBuilder extends CreateSettlementRequestBuilder {
         return (timestamp as any).toDate().toISOString();
     }
 
-    build(): Settlement {
+    build(): SettlementDTO {
         const baseSettlement = super.build();
-        const result: Settlement = {
+        const result: SettlementDTO = {
             ...this.auditFields,
             ...this.businessFields,
             ...baseSettlement,

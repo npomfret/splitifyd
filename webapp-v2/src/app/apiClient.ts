@@ -18,9 +18,9 @@ import type {
     CreateSettlementRequest,
     CreateSettlementResponse,
     CurrentPolicyResponse,
-    ExpenseData,
+    ExpenseDTO,
     ExpenseFullDetails,
-    Group,
+    GroupDTO,
     GroupFullDetails,
     JoinGroupResponse,
     LeaveGroupResponse,
@@ -31,7 +31,7 @@ import type {
     PreviewGroupResponse,
     RegisterResponse,
     RemoveGroupMemberResponse,
-    Settlement,
+    SettlementDTO,
     ShareLinkResponse,
     UpdateGroupRequest,
     UserPolicyStatusResponse,
@@ -598,7 +598,7 @@ class ApiClient {
         });
     }
 
-    async createGroup(data: CreateGroupRequest): Promise<Group> {
+    async createGroup(data: CreateGroupRequest): Promise<GroupDTO> {
         return this.request({
             endpoint: '/groups',
             method: 'POST',
@@ -621,7 +621,7 @@ class ApiClient {
         });
     }
 
-    async createExpense(data: CreateExpenseRequest): Promise<ExpenseData> {
+    async createExpense(data: CreateExpenseRequest): Promise<ExpenseDTO> {
         return this.request({
             endpoint: '/expenses',
             method: 'POST',
@@ -629,7 +629,7 @@ class ApiClient {
         });
     }
 
-    async updateExpense(expenseId: string, data: CreateExpenseRequest): Promise<ExpenseData> {
+    async updateExpense(expenseId: string, data: CreateExpenseRequest): Promise<ExpenseDTO> {
         return this.request({
             endpoint: '/expenses',
             method: 'PUT',
@@ -653,7 +653,7 @@ class ApiClient {
         });
     }
 
-    async createSettlement(data: CreateSettlementRequest): Promise<Settlement> {
+    async createSettlement(data: CreateSettlementRequest): Promise<SettlementDTO> {
         const response = await this.request<CreateSettlementResponse>({
             endpoint: '/settlements',
             method: 'POST',
@@ -662,7 +662,7 @@ class ApiClient {
         return response.data;
     }
 
-    async updateSettlement(settlementId: string, data: Partial<CreateSettlementRequest>): Promise<Settlement> {
+    async updateSettlement(settlementId: string, data: Partial<CreateSettlementRequest>): Promise<SettlementDTO> {
         return this.request({
             endpoint: '/settlements/:settlementId',
             method: 'PUT',
@@ -695,7 +695,7 @@ class ApiClient {
         });
     }
 
-    async joinGroupByLink(linkId: string): Promise<Group> {
+    async joinGroupByLink(linkId: string): Promise<GroupDTO> {
         const response = await this.request<JoinGroupResponse>({
             endpoint: '/groups/join',
             method: 'POST',
@@ -704,7 +704,7 @@ class ApiClient {
             skipRetry: false,
         });
 
-        // Transform the response to match Group interface
+        // Transform the response to match GroupDTO interface
         return {
             id: response.groupId,
             name: response.groupName,
@@ -723,7 +723,7 @@ class ApiClient {
             balance: {},
             lastActivity: 'just now',
             lastActivityRaw: new Date().toISOString(),
-        } as Group;
+        } as GroupDTO;
     }
 
     async register(email: string, password: string, displayName: string, termsAccepted: boolean, cookiePolicyAccepted: boolean): Promise<RegisterResponse> {

@@ -1,5 +1,5 @@
 import { signal, computed } from '@preact/signals';
-import { Group, MemberRole, GroupPermissions, GroupMemberDTO } from '@splitifyd/shared';
+import { GroupDTO, MemberRole, GroupPermissions, GroupMemberDTO } from '@splitifyd/shared';
 
 /**
  * Permission cache with TTL
@@ -40,7 +40,7 @@ class PermissionCache {
  * Mirrors the backend permission logic for immediate UI feedback
  */
 class ClientPermissionEngine {
-    static checkPermission(group: Group, members: GroupMemberDTO[], userId: string, action: keyof GroupPermissions | 'viewGroup', options: { expense?: any } = {}): boolean {
+    static checkPermission(group: GroupDTO, members: GroupMemberDTO[], userId: string, action: keyof GroupPermissions | 'viewGroup', options: { expense?: any } = {}): boolean {
         const member = members.find((m) => m.uid === userId);
         if (!member) {
             return false;
@@ -89,7 +89,7 @@ class ClientPermissionEngine {
         }
     }
 
-    static getUserPermissions(group: Group, members: GroupMemberDTO[], userId: string): Record<string, boolean> {
+    static getUserPermissions(group: GroupDTO, members: GroupMemberDTO[], userId: string): Record<string, boolean> {
         return {
             canEditAnyExpense: this.checkPermission(group, members, userId, 'expenseEditing'),
             canDeleteAnyExpense: this.checkPermission(group, members, userId, 'expenseDeletion'),
@@ -106,7 +106,7 @@ class ClientPermissionEngine {
  */
 class PermissionsStore {
     private currentUserId: string | null = null;
-    private currentGroup: Group | null = null;
+    private currentGroup: GroupDTO | null = null;
     private currentMembers: GroupMemberDTO[] = [];
     private cache = new PermissionCache();
 
@@ -114,7 +114,7 @@ class PermissionsStore {
     readonly #subscriberCounts = new Map<string, number>();
 
     // Reactive signals
-    private groupSignal = signal<Group | null>(null);
+    private groupSignal = signal<GroupDTO | null>(null);
     private membersSignal = signal<GroupMemberDTO[]>([]);
     private userIdSignal = signal<string | null>(null);
     private permissionsSignal = signal<Record<string, boolean>>({});
@@ -169,7 +169,7 @@ class PermissionsStore {
     }
 
     // Update group data (called by group detail store)
-    updateGroupData(group: Group, members?: GroupMemberDTO[]): void {
+    updateGroupData(group: GroupDTO, members?: GroupMemberDTO[]): void {
         this.groupSignal.value = group;
         this.currentGroup = group;
 

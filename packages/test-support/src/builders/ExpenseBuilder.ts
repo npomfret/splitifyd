@@ -1,5 +1,5 @@
 import { CreateExpenseRequestBuilder } from './CreateExpenseRequestBuilder';
-import type { FirestoreTimestamp, ExpenseData, FirestoreAuditMetadataWithDeletion } from '@splitifyd/shared';
+import type { FirestoreTimestamp, ExpenseDTO, FirestoreAuditMetadataWithDeletion } from '@splitifyd/shared';
 
 /**
  * Builder for creating ExpenseData objects for tests
@@ -75,9 +75,9 @@ export class ExpenseBuilder extends CreateExpenseRequestBuilder {
         return (timestamp as any).toDate().toISOString();
     }
 
-    build(): ExpenseData {
+    build(): ExpenseDTO {
         const baseExpense = super.build();
-        const result: ExpenseData = {
+        const result: ExpenseDTO = {
             ...this.auditFields,
             ...this.businessFields,
             ...baseExpense,

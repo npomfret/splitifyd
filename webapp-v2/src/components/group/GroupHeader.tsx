@@ -2,11 +2,11 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { CogIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from '@/utils/dateUtils.ts';
-import { Group, GroupMemberDTO } from '@splitifyd/shared';
+import { GroupDTO, GroupMemberDTO } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
 
 interface GroupHeaderProps {
-    group: Group;
+    group: GroupDTO;
     members: GroupMemberDTO[];
     onSettings?: () => void;
     isGroupOwner?: boolean;

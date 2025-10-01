@@ -1,6 +1,5 @@
 export { UserRegistrationBuilder } from './UserRegistrationBuilder';
 export { CreateGroupRequestBuilder } from './CreateGroupRequestBuilder';
-export { GroupMemberBuilder } from './GroupMemberBuilder';
 export { GroupMemberDocumentBuilder } from './GroupMemberDocumentBuilder';
 export { GroupChangeDocumentBuilder } from './GroupChangeDocumentBuilder';
 export { CreateExpenseRequestBuilder } from './CreateExpenseRequestBuilder';

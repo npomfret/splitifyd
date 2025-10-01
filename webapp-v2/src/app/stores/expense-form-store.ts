@@ -1,5 +1,5 @@
 import { signal, ReadonlySignal } from '@preact/signals';
-import { CreateExpenseRequest, ExpenseData, ExpenseSplit, SplitTypes } from '@splitifyd/shared';
+import { CreateExpenseRequest, ExpenseDTO, ExpenseSplit, SplitTypes } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
@@ -50,8 +50,8 @@ interface ExpenseFormStore {
     updateSplitAmount(uid: string, amount: number): void;
     updateSplitPercentage(uid: string, percentage: number): void;
     validateForm(): boolean;
-    saveExpense(groupId: string): Promise<ExpenseData>;
-    updateExpense(groupId: string, expenseId: string): Promise<ExpenseData>;
+    saveExpense(groupId: string): Promise<ExpenseDTO>;
+    updateExpense(groupId: string, expenseId: string): Promise<ExpenseDTO>;
     clearError(): void;
     reset(): void;
     hasUnsavedChanges(): boolean;
@@ -695,7 +695,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         return isValid;
     }
 
-    async saveExpense(groupId: string): Promise<ExpenseData> {
+    async saveExpense(groupId: string): Promise<ExpenseDTO> {
         if (!this.validateForm()) {
             const errors = this.#validationErrorsSignal.value;
             logWarning('[ExpenseForm] Cannot submit form due to validation errors', { errors });
@@ -749,7 +749,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         }
     }
 
-    async updateExpense(groupId: string, expenseId: string): Promise<ExpenseData> {
+    async updateExpense(groupId: string, expenseId: string): Promise<ExpenseDTO> {
         if (!this.validateForm()) {
             throw new Error('Please fix validation errors');
         }

@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { Errors } from '../utils/errors';
-import { Group, UpdateGroupRequest, CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets } from '@splitifyd/shared';
+import { GroupDTO, UpdateGroupRequest, CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets } from '@splitifyd/shared';
 import { BalanceCalculationResultSchema, BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupDataSchema, GroupDocument } from '../schemas';
 import { BalanceCalculationService } from './balance';
 import { DOCUMENT_CONFIG, FIRESTORE } from '../constants';
@@ -70,7 +70,7 @@ export class GroupService {
     /**
      * Add computed fields to Group (balance, last activity)
      */
-    private async addComputedFields(group: Group, userId: string): Promise<Group> {
+    private async addComputedFields(group: GroupDTO, userId: string): Promise<GroupDTO> {
         // Calculate real balance for the user
         const groupBalances = await this.balanceService.calculateGroupBalances(group.id);
 
@@ -125,7 +125,7 @@ export class GroupService {
     /**
      * Fetch a group and verify user access
      */
-    private async fetchGroupWithAccess(groupId: string, userId: string, requireWriteAccess: boolean = false): Promise<{ group: Group }> {
+    private async fetchGroupWithAccess(groupId: string, userId: string, requireWriteAccess: boolean = false): Promise<{ group: GroupDTO }> {
         const groupData = await this.firestoreReader.getGroup(groupId);
 
         if (!groupData) {
@@ -133,7 +133,7 @@ export class GroupService {
         }
 
         // Convert GroupDocument to Group format (the reader returns validated data)
-        const group: Group = {
+        const group: GroupDTO = {
             id: groupData.id,
             name: groupData.name,
             description: groupData.description,
@@ -354,7 +354,7 @@ export class GroupService {
             const returnedGroups = groupsData;
 
             // Convert GroupDocument to Group format (the reader returns validated data)
-            const groups: Group[] = returnedGroups.map((groupData: any) => ({
+            const groups: GroupDTO[] = returnedGroups.map((groupData: any) => ({
                 id: groupData.id,
                 name: groupData.name,
                 description: groupData.description,
@@ -383,11 +383,11 @@ export class GroupService {
             const membersByGroup = new Map<string, string[]>();
 
             // Fetch members for each group
-            const memberPromises = groups.map((group: Group) => this.groupMemberService.getAllGroupMembers(group.id));
+            const memberPromises = groups.map((group: GroupDTO) => this.groupMemberService.getAllGroupMembers(group.id));
             const membersArrays = await Promise.all(memberPromises);
 
             // Collect all member IDs and create mapping
-            groups.forEach((group: Group, index: number) => {
+            groups.forEach((group: GroupDTO, index: number) => {
                 const memberDocs = membersArrays[index];
                 const memberIds = memberDocs.map((memberDoc: GroupMemberDocument) => memberDoc.uid);
                 membersByGroup.set(group.id, memberIds);
@@ -402,12 +402,12 @@ export class GroupService {
         // Step 5: Calculate balances for groups with expenses
         const balanceMap = await (async () => {
             // Calculate balances for groups that have expenses
-            const groupsWithExpenses = groups.filter((group: Group) => {
+            const groupsWithExpenses = groups.filter((group: GroupDTO) => {
                 const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
                 return expenseMetadata.count > 0;
             });
 
-            const balancePromises = groupsWithExpenses.map((group: Group) =>
+            const balancePromises = groupsWithExpenses.map((group: GroupDTO) =>
                 this.balanceService.calculateGroupBalances(group.id).catch((error: Error) => {
                     this.logger.error('Error calculating balances', error, { groupId: group.id });
                     return {
@@ -421,7 +421,7 @@ export class GroupService {
 
             const balanceResults = await Promise.all(balancePromises);
             const balanceMap = new Map<string, BalanceCalculationResult>();
-            groupsWithExpenses.forEach((group: Group, index: number) => {
+            groupsWithExpenses.forEach((group: GroupDTO, index: number) => {
                 balanceMap.set(group.id, balanceResults[index]);
             });
 
@@ -429,8 +429,8 @@ export class GroupService {
         })();
 
         // Step 6: Process each group using batched data - no more database calls!
-        const groupsWithBalances: Group[] = await (async () => {
-            return groups.map((group: Group) => {
+        const groupsWithBalances: GroupDTO[] = await (async () => {
+            return groups.map((group: GroupDTO) => {
                 // Get pre-fetched data for this group (no database calls)
                 const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
 
@@ -576,11 +576,11 @@ export class GroupService {
      * Create a new group with the creator as the owner/admin
      * IMPORTANT: The creator is automatically added as a member with 'owner' role
      */
-    async createGroup(userId: string, groupData: CreateGroupRequest = new CreateGroupRequestBuilder().build()): Promise<Group> {
+    async createGroup(userId: string, groupData: CreateGroupRequest = new CreateGroupRequestBuilder().build()): Promise<GroupDTO> {
         return this.measure.measureDb('createGroup', async () => this._createGroup(userId, groupData));
     }
 
-    private async _createGroup(userId: string, createGroupRequest: CreateGroupRequest): Promise<Group> {
+    private async _createGroup(userId: string, createGroupRequest: CreateGroupRequest): Promise<GroupDTO> {
         // Initialize group structure with server timestamps
         const groupId = this.firestoreWriter.generateDocumentId(FirestoreCollections.GROUPS);
         const serverTimestamp = this.dateHelpers.createTrueServerTimestamp();
@@ -600,7 +600,7 @@ export class GroupService {
         };
 
         // Create the response object with ISO strings (for API responses)
-        const newGroup: Group = {
+        const newGroup: GroupDTO = {
             id: groupId,
             name: createGroupRequest.name,
             description: createGroupRequest.description ?? '',
@@ -660,7 +660,7 @@ export class GroupService {
         }
 
         // Convert GroupDocument to Group format
-        const group: Group = {
+        const group: GroupDTO = {
             id: groupData.id,
             name: groupData.name,
             description: groupData.description,

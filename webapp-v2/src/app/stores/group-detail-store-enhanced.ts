@@ -1,15 +1,15 @@
 import {signal, batch} from '@preact/signals';
 import {userNotificationDetector, UserNotificationDetector} from '@/utils/user-notification-detector';
 import {logError, logInfo} from '@/utils/browser-logger';
-import type {ExpenseData, Group, GroupBalances, GroupMemberDTO, SettlementListItem} from '@splitifyd/shared';
+import {ExpenseDTO, GroupDTO, GroupBalances, GroupMemberDTO, SettlementListItem} from '@splitifyd/shared';
 import {apiClient} from '../apiClient';
 import {permissionsStore} from '@/stores/permissions-store.ts';
 
 interface EnhancedGroupDetailStore {
     // State
-    group: Group | null;
+    group: GroupDTO | null;
     members: GroupMemberDTO[];
-    expenses: ExpenseData[];
+    expenses: ExpenseDTO[];
     balances: GroupBalances | null;
     settlements: SettlementListItem[];
     loading: boolean;
@@ -44,9 +44,9 @@ interface EnhancedGroupDetailStore {
 
 class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     // Private signals
-    readonly #groupSignal = signal<Group | null>(null);
+    readonly #groupSignal = signal<GroupDTO | null>(null);
     readonly #membersSignal = signal<GroupMemberDTO[]>([]);
-    readonly #expensesSignal = signal<ExpenseData[]>([]);
+    readonly #expensesSignal = signal<ExpenseDTO[]>([]);
     readonly #balancesSignal = signal<GroupBalances | null>(null);
     readonly #settlementsSignal = signal<SettlementListItem[]>([]);
     readonly #loadingSignal = signal<boolean>(false);
@@ -121,7 +121,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
     setDeletingGroup(value: boolean): void {
         this.#isDeletingGroupSignal.value = value;
-        // Group deletion flag changed (routine)
+        // GroupDTO deletion flag changed (routine)
     }
 
     async loadGroup(groupId: string): Promise<void> {
@@ -160,7 +160,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             const isAccessDenied = error?.status === 403 || error?.code === 'FORBIDDEN';
 
             if (isGroupDeleted) {
-                logInfo('Group deleted, clearing state', {groupId: this.currentGroupId});
+                logInfo('GroupDTO deleted, clearing state', {groupId: this.currentGroupId});
 
                 this.#errorSignal.value = 'GROUP_DELETED';
                 batch(() => {
@@ -245,7 +245,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             },
             onGroupChange: (changeGroupId) => {
                 if (changeGroupId === this.currentGroupId) {
-                    logInfo('Group change detected', {groupId: changeGroupId});
+                    logInfo('GroupDTO change detected', {groupId: changeGroupId});
                     this.refreshAll().catch((error) => logError('Failed to refresh after group change', error));
                 }
             },
@@ -257,7 +257,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             },
             onGroupRemoved: (changeGroupId) => {
                 if (changeGroupId === this.currentGroupId) {
-                    logInfo('Group removed - clearing state and setting removal flag', {groupId: changeGroupId});
+                    logInfo('GroupDTO removed - clearing state and setting removal flag', {groupId: changeGroupId});
                     this.#clearGroupData();
                     // Set specific error after clearing data to trigger better UX
                     this.#errorSignal.value = 'USER_REMOVED_FROM_GROUP';

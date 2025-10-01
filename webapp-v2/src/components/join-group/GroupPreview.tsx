@@ -1,16 +1,16 @@
 /**
- * Group Preview Component
+ * GroupDTO Preview Component
  *
  * Shows group information in the join group flow
  */
 
 import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
-import { Group } from '@splitifyd/shared';
+import { GroupDTO } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
 
 interface GroupPreviewProps {
-    group: Group;
+    group: GroupDTO;
     memberCount: number;
 }
 
@@ -20,13 +20,13 @@ export function GroupPreview({ group, memberCount }: GroupPreviewProps) {
         <Card className="w-full">
             <div className="p-6">
                 <Stack spacing="lg">
-                    {/* Group Header */}
+                    {/* GroupDTO Header */}
                     <div className="text-center">
                         <h2 className="text-xl font-semibold text-gray-900 mb-2">{group.name}</h2>
                         {group.description && <p className="text-gray-600 text-sm">{group.description}</p>}
                     </div>
 
-                    {/* Group Stats */}
+                    {/* GroupDTO Stats */}
                     <div className="bg-gray-50 rounded-lg p-4">
                         <div className="grid grid-cols-2 gap-4 text-center">
                             <div>

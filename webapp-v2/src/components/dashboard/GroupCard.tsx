@@ -1,10 +1,10 @@
-import { Group } from '@splitifyd/shared';
+import { GroupDTO } from '@splitifyd/shared';
 import { Card } from '../ui';
 import { formatCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 
 interface GroupCardProps {
-    group: Group;
+    group: GroupDTO;
     onClick: () => void;
     onInvite?: (groupId: string) => void;
     onAddExpense?: (groupId: string) => void;
@@ -109,7 +109,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
                     </div>
                 )}
 
-                {/* Group header */}
+                {/* GroupDTO header */}
                 <div class="mb-3 pr-12">
                     <h4 class="font-semibold text-gray-900 text-lg mb-1">{group.name}</h4>
                     <div class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${balanceDisplay.bgColor} ${balanceDisplay.color}`} data-financial-amount="balance">
@@ -117,7 +117,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
                     </div>
                 </div>
 
-                {/* Group stats */}
+                {/* GroupDTO stats */}
                 <div class="space-y-2 text-sm text-gray-600">
                     <div class="flex items-center">
                         <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

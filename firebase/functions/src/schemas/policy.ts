@@ -44,4 +44,4 @@ export { PolicyDocumentSchema, PolicyDataSchema };
 /**
  * Type definitions derived from schemas
  */
-export type PolicyDocument = z.infer<typeof PolicyDocumentSchema>;
+export type PolicyTDO = z.infer<typeof PolicyDocumentSchema>;

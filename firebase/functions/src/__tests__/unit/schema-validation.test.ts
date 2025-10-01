@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeAll } from 'vitest';
 import { z } from 'zod';
-import { Group, GroupMemberDTO, MemberRoles, MemberStatuses, SecurityPresets, PermissionLevels, UserThemeColor } from '@splitifyd/shared';
+import { GroupDTO, GroupMemberDTO, MemberRoles, MemberStatuses, SecurityPresets, PermissionLevels, UserThemeColor } from '@splitifyd/shared';
 
 // Import webapp Zod schemas for validation
 // Note: These are the actual schemas used by the frontend to validate API responses
@@ -74,7 +74,7 @@ const GroupMemberDTOSchema = z.object({
 });
 
 describe('Cross-Service Schema Validation', () => {
-    let mockGroup: Group;
+    let mockGroup: GroupDTO;
     let mockGroupMember: GroupMemberDTO;
     let mockTheme: UserThemeColor;
 

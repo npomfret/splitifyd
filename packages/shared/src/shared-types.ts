@@ -6,8 +6,25 @@ import type { ColorPattern } from './user-colors';
 // Type aliases for Firebase types (browser-safe)
 // ========================================================================
 
-// Browser-safe type for Firestore Timestamp
-// In runtime, this will be either Date or firebase.firestore.Timestamp
+/**
+ * Client-side Firestore Timestamp type for browser compatibility
+ *
+ * **IMPORTANT - Understand the three timestamp layers:**
+ *
+ * 1. **Server storage (firebase-admin)**: `Timestamp` objects from firebase-admin/firestore
+ *    - Used in: Firebase schemas (ExpenseDocument, SettlementDocument, etc.)
+ *    - Never sent over the wire directly
+ *
+ * 2. **API responses (wire format)**: ISO 8601 strings (e.g., "2025-01-15T10:30:00.000Z")
+ *    - Used in: All DTO types (ExpenseDTO, SettlementDTO, GroupDTO, etc.)
+ *    - This is what the client receives from API endpoints
+ *
+ * 3. **Client runtime (Firebase SDK)**: This union type for browser Firebase SDK compatibility
+ *    - Used in: Client-side Firebase listeners and real-time updates
+ *    - The Firebase browser SDK may return either Date or Timestamp-like objects
+ *
+ * In runtime, this will be either Date or firebase.firestore.Timestamp from the browser SDK.
+ */
 export type FirestoreTimestamp = Date | { toDate(): Date; seconds: number; nanoseconds: number };
 
 // ========================================================================
@@ -260,8 +277,10 @@ export interface UserToken {
 export interface AuthenticatedFirebaseUser extends FirebaseUser, UserToken {}
 
 /**
- * Complete registered user profile - the canonical user document type.
- * This is the single source of truth for user data stored in Firestore.
+ * Registered user type for client-side code.
+ * Uses FirestoreTimestamp for fields read from Firestore browser SDK.
+ *
+ * Note: The canonical storage type is UserDocument in firebase/functions/src/schemas/user.ts
  */
 export interface RegisteredUser extends FirebaseUser {
     // Firebase Auth fields
@@ -272,8 +291,8 @@ export interface RegisteredUser extends FirebaseUser {
     role?: SystemUserRole; // Role field for admin access control
 
     // Policy acceptance tracking
-    termsAcceptedAt?: Date | FirestoreTimestamp; // Legacy timestamp field
-    cookiePolicyAcceptedAt?: Date | FirestoreTimestamp; // Legacy timestamp field
+    termsAcceptedAt?: FirestoreTimestamp;
+    cookiePolicyAcceptedAt?: FirestoreTimestamp;
     acceptedPolicies?: Record<string, string>; // Map of policyId -> versionHash
 
     // User preferences
@@ -281,8 +300,8 @@ export interface RegisteredUser extends FirebaseUser {
     preferredLanguage?: string; // User's preferred language code (e.g., 'en', 'es', 'fr')
 
     // Document timestamps
-    createdAt?: Date | FirestoreTimestamp; // When the user document was created
-    updatedAt?: Date | FirestoreTimestamp; // When the user document was last updated
+    createdAt?: FirestoreTimestamp;
+    updatedAt?: FirestoreTimestamp;
 }
 
 /**
@@ -302,7 +321,7 @@ export type ClientUser = Pick<RegisteredUser, 'uid' | 'email' | 'displayName' | 
 // ========================================================================
 
 // Base interface for document types with common timestamp fields
-export interface BaseDocument {
+export interface BaseDTO {
     id: string;
     createdAt: string; // ISO string
     updatedAt: string; // ISO string
@@ -310,7 +329,9 @@ export interface BaseDocument {
 
 /**
  * Firestore audit metadata types for test builders
- * These use FirestoreTimestamp (server format) vs BaseDocument which uses ISO strings (client format)
+ *
+ * @deprecated Import from firebase/functions/src/schemas/common.ts instead
+ * These are duplicates maintained only for backward compatibility with test-support package
  */
 export interface FirestoreAuditMetadata {
     id: string;
@@ -318,15 +339,13 @@ export interface FirestoreAuditMetadata {
     updatedAt: FirestoreTimestamp;
 }
 
+/**
+ * @deprecated Import from firebase/functions/src/schemas/common.ts instead
+ */
 export interface FirestoreAuditMetadataWithDeletion extends FirestoreAuditMetadata {
     deletedAt: FirestoreTimestamp | null;
     deletedBy: string | null;
 }
-
-// Utility type to convert FirestoreTimestamp fields to string for API responses
-export type WithStringTimestamps<T> = {
-    [K in keyof T]: T[K] extends FirestoreTimestamp ? string : T[K];
-};
 
 export interface PolicyVersion {
     text: string;
@@ -339,7 +358,7 @@ export interface Policy {
     versions: Record<string, PolicyVersion>; // Map of versionHash -> PolicyVersion
 }
 
-export interface PolicyDocument extends Policy, BaseDocument {}
+export interface PolicyDTO extends Policy, BaseDTO {}
 
 // ========================================================================
 // User Notification Types - Real-time change tracking per user
@@ -372,7 +391,8 @@ export interface RecentChange {
 }
 
 /**
- * Complete user notification document schema
+ * User notification document for client-side Firestore listeners.
+ * Uses FirestoreTimestamp because it's read directly by browser SDK real-time listeners.
  */
 export interface UserNotificationDocument {
     // Global version counter - increments on every change
@@ -407,16 +427,8 @@ export interface CurrencyBalance {
 }
 
 // ========================================================================
-// Group Types - Single unified interface for both storage and API
+// Group Types
 // ========================================================================
-
-export interface GroupMember {
-    joinedAt: string; // ISO string
-    memberRole: MemberRole;
-    invitedBy?: string; // UID of the user who created the share link that was used to join
-    memberStatus: MemberStatus;
-    lastPermissionChange?: string; // ISO string - Track permission updates
-}
 
 /**
  * Lean DTO for API responses containing only essential fields for group member display.
@@ -447,8 +459,10 @@ export interface GroupMemberDTO {
 }
 
 /**
- * Document structure for storing members in the subcollection: groups/{groupId}/members/{userId}
- * This replaces the embedded members map for scalable queries
+ * Document structure for storing members in subcollection: groups/{groupId}/members/{userId}
+ *
+ * Note: Uses ISO string timestamps (matches API format) rather than FirestoreTimestamp.
+ * This is a known pattern where storage format matches wire format.
  */
 export interface GroupMemberDocument {
     uid: string;
@@ -493,19 +507,29 @@ export interface ShareLink {
     isActive: boolean; // For soft deletion/deactivation
 }
 
-export interface Group {
-    // Always present
+/**
+ * Group DTO for API responses
+ *
+ * This is the wire format returned by API endpoints. All timestamps are ISO 8601 strings.
+ * The canonical storage format is GroupDocument in firebase/functions/src/schemas/group.ts
+ * which uses Firestore Timestamp objects.
+ *
+ * This type includes computed fields (balance, lastActivity) that are added by the API layer
+ * and do not exist in the storage format.
+ */
+export interface GroupDTO {
+    // Core fields
     id: string;
     name: string;
     description?: string;
 
     createdBy: string;
-    createdAt: string; // ISO string
-    updatedAt: string; // ISO string
+    createdAt: string; // ISO 8601 string
+    updatedAt: string; // ISO 8601 string
 
     // Security Configuration
     securityPreset: SecurityPreset; // default: 'open'
-    presetAppliedAt?: string; // ISO string - Track when preset was last applied
+    presetAppliedAt?: string; // ISO 8601 string - Track when preset was last applied
 
     // Individual permission settings (customizable after preset selection)
     permissions: GroupPermissions;
@@ -516,7 +540,7 @@ export interface Group {
     // Invite link configuration
     inviteLinks?: Record<string, InviteLink>;
 
-    // Computed fields (only in API responses)
+    // Computed fields (API-only - not in storage)
     balance?: {
         balancesByCurrency: Record<string, CurrencyBalance>;
     };
@@ -544,7 +568,7 @@ export interface ChangeMetadata {
 
 // List groups response
 export interface ListGroupsResponse {
-    groups: Group[];
+    groups: GroupDTO[];
     count: number;
     hasMore: boolean;
     nextCursor?: string;
@@ -572,7 +596,14 @@ export interface ExpenseSplit {
     percentage?: number;
 }
 
-export interface ExpenseData {
+/**
+ * Expense DTO for API responses
+ *
+ * This is the wire format returned by API endpoints. All timestamps are ISO 8601 strings.
+ * The canonical storage format is ExpenseDocument in firebase/functions/src/schemas/expense.ts
+ * which uses Firestore Timestamp objects.
+ */
+export interface ExpenseDTO {
     id: string;
     groupId: string;
     createdBy: string;
@@ -581,14 +612,14 @@ export interface ExpenseData {
     currency: string;
     description: string;
     category: string;
-    date: string; // ISO string
+    date: string; // ISO 8601 string
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
     participants: string[];
     splits: ExpenseSplit[];
     receiptUrl?: string;
-    createdAt: string; // ISO string
-    updatedAt: string; // ISO string
-    deletedAt: string | null; // ISO string
+    createdAt: string; // ISO 8601 string
+    updatedAt: string; // ISO 8601 string
+    deletedAt: string | null; // ISO 8601 string
     deletedBy: string | null;
 }
 
@@ -612,18 +643,25 @@ export type UpdateExpenseRequest = Partial<Omit<CreateExpenseRequest, 'groupId'>
 // Settlement Types
 // ========================================================================
 
-export interface Settlement {
+/**
+ * Settlement DTO for API responses
+ *
+ * This is the wire format returned by API endpoints. All timestamps are ISO 8601 strings.
+ * The canonical storage format is SettlementDocument in firebase/functions/src/schemas/settlement.ts
+ * which uses Firestore Timestamp objects.
+ */
+export interface SettlementDTO {
     id: string;
     groupId: string;
     payerId: string;
     payeeId: string;
     amount: number;
     currency: string;
-    date: string; // ISO string
+    date: string; // ISO 8601 string
     note?: string | undefined;
     createdBy: string;
-    createdAt: string; // ISO string
-    updatedAt: string; // ISO string
+    createdAt: string; // ISO 8601 string
+    updatedAt: string; // ISO 8601 string
 }
 
 export interface CreateSettlementRequest {
@@ -638,16 +676,20 @@ export interface CreateSettlementRequest {
 
 export type UpdateSettlementRequest = Partial<Omit<CreateSettlementRequest, 'groupId' | 'payerId' | 'payeeId'>>;
 
+/**
+ * Enriched settlement with group member details for list displays
+ * Used in settlement history and similar UI components
+ */
 export interface SettlementListItem {
     id: string;
     groupId: string;
-    payer: RegisteredUser;
-    payee: RegisteredUser;
+    payer: GroupMemberDTO;
+    payee: GroupMemberDTO;
     amount: number;
     currency: string;
-    date: string;
+    date: string; // ISO 8601 string
     note?: string;
-    createdAt: string;
+    createdAt: string; // ISO 8601 string
 }
 
 // ========================================================================
@@ -655,16 +697,16 @@ export interface SettlementListItem {
 // ========================================================================
 
 export interface GroupFullDetails {
-    group: Group;
+    group: GroupDTO;
     members: { members: GroupMemberDTO[] };
-    expenses: { expenses: ExpenseData[]; hasMore: boolean; nextCursor?: string };
+    expenses: { expenses: ExpenseDTO[]; hasMore: boolean; nextCursor?: string };
     balances: GroupBalances;
     settlements: { settlements: SettlementListItem[]; hasMore: boolean; nextCursor?: string };
 }
 
 export interface ExpenseFullDetails {
-    expense: ExpenseData;
-    group: Group;
+    expense: ExpenseDTO;
+    group: GroupDTO;
     members: { members: GroupMemberDTO[] };
 }
 
@@ -773,7 +815,7 @@ export interface AcceptPolicyRequest {
 
 export interface CreateSettlementResponse {
     success: boolean;
-    data: Settlement;
+    data: SettlementDTO;
 }
 
 export interface UpdateSettlementResponse {
@@ -825,17 +867,21 @@ export const CommentTargetTypes = {
 
 export type CommentTargetType = (typeof CommentTargetTypes)[keyof typeof CommentTargetTypes];
 
-export interface Comment {
+/**
+ * Comment DTO for API responses
+ */
+export interface CommentDTO {
     id: string;
     authorId: string;
     authorName: string;
     authorAvatar?: string;
     text: string;
-    createdAt: FirestoreTimestamp;
-    updatedAt: FirestoreTimestamp;
+    createdAt: string; // ISO 8601 string
+    updatedAt: string; // ISO 8601 string
 }
 
-export type CommentApiResponse = WithStringTimestamps<Comment>;
+/** @deprecated Use CommentDTO instead */
+export type CommentApiResponse = CommentDTO;
 
 export interface CreateCommentRequest {
     text: string;

@@ -1,6 +1,6 @@
 import { useMemo } from 'preact/hooks';
 import { formatDistanceToNow, formatExpenseDateTime } from '@/utils/dateUtils.ts';
-import type { ExpenseData, GroupMemberDTO } from '@splitifyd/shared';
+import { ExpenseDTO, GroupMemberDTO } from '@splitifyd/shared';
 import { DELETED_AT_FIELD } from '@splitifyd/shared';
 import { formatCurrency } from '@/utils/currency';
 import { Avatar } from '../ui/Avatar';
@@ -8,10 +8,10 @@ import { themeStore } from '@/app/stores/theme-store.ts';
 import { useTranslation } from 'react-i18next';
 
 interface ExpenseItemProps {
-    expense: ExpenseData;
+    expense: ExpenseDTO;
     members: GroupMemberDTO[];
-    onClick?: (expense: ExpenseData) => void;
-    onCopy?: (expense: ExpenseData) => void;
+    onClick?: (expense: ExpenseDTO) => void;
+    onCopy?: (expense: ExpenseDTO) => void;
 }
 
 export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemProps) {

@@ -1,11 +1,11 @@
 import { useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, ConfirmDialog, Alert } from '../ui';
-import type { ExpenseData } from '@splitifyd/shared';
+import type { ExpenseDTO } from '@splitifyd/shared';
 import { logError } from '@/utils/browser-logger.ts';
 
 interface ExpenseActionsProps {
-    expense: ExpenseData;
+    expense: ExpenseDTO;
     onEdit: () => void;
     onDelete: () => Promise<void>;
     onShare: () => void;

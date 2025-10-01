@@ -1,12 +1,12 @@
 import { signal, batch, computed, ReadonlySignal } from '@preact/signals';
-import type { Group, CreateGroupRequest } from '@splitifyd/shared';
+import { GroupDTO, CreateGroupRequest } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { logWarning, logInfo } from '@/utils/browser-logger.ts';
 import {userNotificationDetector, UserNotificationDetector} from '@/utils/user-notification-detector.ts';
 import { streamingMetrics } from '@/utils/streaming-metrics';
 
 interface EnhancedGroupsStore {
-    groups: Group[];
+    groups: GroupDTO[];
     loading: boolean;
     error: string | null;
     initialized: boolean;
@@ -16,7 +16,7 @@ interface EnhancedGroupsStore {
     isCreatingGroup: boolean;
 
     // Readonly signal accessors for reactive components
-    readonly groupsSignal: ReadonlySignal<Group[]>;
+    readonly groupsSignal: ReadonlySignal<GroupDTO[]>;
     readonly loadingSignal: ReadonlySignal<boolean>;
     readonly errorSignal: ReadonlySignal<string | null>;
     readonly initializedSignal: ReadonlySignal<boolean>;
@@ -26,8 +26,8 @@ interface EnhancedGroupsStore {
     readonly isCreatingGroupSignal: ReadonlySignal<boolean>;
 
     fetchGroups(): Promise<void>;
-    createGroup(data: CreateGroupRequest): Promise<Group>;
-    updateGroup(id: string, updates: Partial<Group>): Promise<void>;
+    createGroup(data: CreateGroupRequest): Promise<GroupDTO>;
+    updateGroup(id: string, updates: Partial<GroupDTO>): Promise<void>;
     refreshGroups(): Promise<void>;
     clearError(): void;
     clearValidationError(): void;
@@ -41,7 +41,7 @@ interface EnhancedGroupsStore {
 
 class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     // Private signals - encapsulated within the class
-    readonly #groupsSignal = signal<Group[]>([]);
+    readonly #groupsSignal = signal<GroupDTO[]>([]);
     readonly #loadingSignal = signal<boolean>(false);
     readonly #validationErrorSignal = signal<string | null>(null); // Persists through refreshes
     readonly #networkErrorSignal = signal<string | null>(null); // Cleared on successful refresh
@@ -93,7 +93,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     }
 
     // Signal accessors for reactive components - return readonly signals
-    get groupsSignal(): ReadonlySignal<Group[]> {
+    get groupsSignal(): ReadonlySignal<GroupDTO[]> {
         return this.#groupsSignal;
     }
     get loadingSignal(): ReadonlySignal<boolean> {
@@ -160,7 +160,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         }
     }
 
-    async createGroup(data: CreateGroupRequest): Promise<Group> {
+    async createGroup(data: CreateGroupRequest): Promise<GroupDTO> {
         this.#isCreatingGroupSignal.value = true;
         // Clear both error types when starting a new operation
         this.#validationErrorSignal.value = null;
@@ -186,7 +186,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         }
     }
 
-    async updateGroup(id: string, updates: Partial<Group>): Promise<void> {
+    async updateGroup(id: string, updates: Partial<GroupDTO>): Promise<void> {
         const groupIndex = this.#groupsSignal.value.findIndex((g) => g.id === id);
 
         if (groupIndex === -1) {

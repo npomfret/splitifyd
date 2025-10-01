@@ -68,8 +68,8 @@ export interface BatchGroupFetchOptions {
 }
 
 // Import parsed types from schemas
-import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument, PolicyDocument } from '../../schemas';
-import type { GroupMemberDocument, CommentTargetType } from '@splitifyd/shared';
+import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument, PolicyTDO } from '../../schemas';
+import { GroupMemberDocument, CommentTargetType } from '@splitifyd/shared';
 import type { UserNotificationDocument } from '../../schemas/user-notifications';
 import type { ParsedShareLink } from '../../schemas';
 import type { ParsedComment } from '../../schemas';
@@ -112,13 +112,13 @@ export interface IFirestoreReader {
      * @param policyId - The policy ID
      * @returns Policy document or null if not found
      */
-    getPolicy(policyId: string): Promise<PolicyDocument | null>;
+    getPolicy(policyId: string): Promise<PolicyTDO | null>;
 
     /**
      * Get all policy documents
      * @returns Array of all policy documents
      */
-    getAllPolicies(): Promise<PolicyDocument[]>;
+    getAllPolicies(): Promise<PolicyTDO[]>;
 
     // ========================================================================
     // Collection Read Operations - User-related

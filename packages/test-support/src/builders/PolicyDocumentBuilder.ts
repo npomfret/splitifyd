@@ -1,4 +1,4 @@
-interface PolicyDocument {
+interface PolicyTDO {
     type: 'privacy' | 'terms' | 'cookie';
     version: string;
     content: string;
@@ -10,7 +10,7 @@ interface PolicyDocument {
  * Used for testing Firestore security rules
  */
 export class PolicyDocumentBuilder {
-    private document: PolicyDocument;
+    private document: PolicyTDO;
 
     constructor() {
         this.document = {
@@ -41,7 +41,7 @@ export class PolicyDocumentBuilder {
         return this;
     }
 
-    build(): PolicyDocument {
+    build(): PolicyTDO {
         return { ...this.document };
     }
 }

@@ -4,8 +4,8 @@ import type {UserRecord, UpdateRequest, CreateRequest, GetUsersResult, DecodedId
 import type {IFirestoreReader} from '../../../services/firestore';
 import type {IFirestoreWriter, WriteResult} from '../../../services/firestore/IFirestoreWriter';
 import type {IAuthService} from '../../../services/auth';
-import type {PolicyDocument, UserDocument, GroupDocument, ExpenseDocument, SettlementDocument} from '../../../schemas';
-import type {GroupMemberDocument, CommentTargetType} from '@splitifyd/shared';
+import type {PolicyTDO, UserDocument, GroupDocument, ExpenseDocument, SettlementDocument} from '../../../schemas';
+import {GroupMemberDocument, CommentTargetType} from '@splitifyd/shared';
 import type {UserNotificationDocument} from '../../../schemas/user-notifications';
 import type {ParsedComment} from '../../../schemas';
 import {ApiError} from '../../../utils/errors';
@@ -80,11 +80,11 @@ export class StubFirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getAllPolicies(): Promise<PolicyDocument[]> {
+    async getAllPolicies(): Promise<PolicyTDO[]> {
         const error = this.methodErrors.get('getAllPolicies');
         if (error) throw error;
 
-        return this.filterCollection<PolicyDocument>('policies');
+        return this.filterCollection<PolicyTDO>('policies');
     }
 
     // Reset helper for test cleanup
@@ -199,7 +199,7 @@ export class StubFirestoreReader implements IFirestoreReader {
         return this.documents.get(key) || null;
     }
 
-    async getPolicy(policyId: string): Promise<PolicyDocument | null> {
+    async getPolicy(policyId: string): Promise<PolicyTDO | null> {
         const error = this.methodErrors.get('getPolicy');
         if (error) throw error;
 
@@ -1050,7 +1050,7 @@ export function createTestExpense(id: string, overrides: any = {}): any {
     };
 }
 
-export function createMockPolicyDocument(overrides: Partial<PolicyDocument> = {}): PolicyDocument {
+export function createMockPolicyDocument(overrides: Partial<PolicyTDO> = {}): PolicyTDO {
     const defaultHash = '4205e9e6ac39b586be85ca281f9eb22a12765bac87ca095f7ebfee54083063e3';
     const defaultTimestamp = Timestamp.now();
 

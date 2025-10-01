@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import type { ClientUser, ListGroupsResponse, UserPolicyStatusResponse, UserNotificationDocument } from '@splitifyd/shared';
+import { ClientUser, ListGroupsResponse, UserPolicyStatusResponse, UserNotificationDocument } from '@splitifyd/shared';
 import { FirebaseService } from '@/app/firebase.ts';
 
 interface AuthError {
