@@ -4,6 +4,7 @@ import { getAuth, getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { getConfig } from '../client-config';
 import { SystemUserRoles } from '@splitifyd/shared';
+import { TestErrorResponse, TestSuccessResponse, TestPromoteToAdminResponse } from '../types/server-types';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
@@ -19,24 +20,26 @@ export const testClearPolicyAcceptances = async (req: Request, res: Response): P
 
     // Only allow in non-production environments
     if (config.isProduction) {
-        res.status(403).json({
+        const response: TestErrorResponse = {
             error: {
                 code: 'FORBIDDEN',
                 message: 'Test endpoints not available in production',
             },
-        });
+        };
+        res.status(403).json(response);
         return;
     }
 
     // Get user from auth token
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        res.status(401).json({
+        const response: TestErrorResponse = {
             error: {
                 code: 'UNAUTHORIZED',
                 message: 'Authorization token required',
             },
-        });
+        };
+        res.status(401).json(response);
         return;
     }
 
@@ -46,12 +49,13 @@ export const testClearPolicyAcceptances = async (req: Request, res: Response): P
     try {
         decodedToken = await authService.verifyIdToken(token);
     } catch (error) {
-        res.status(401).json({
+        const response: TestErrorResponse = {
             error: {
                 code: 'UNAUTHORIZED',
                 message: 'Invalid token',
             },
-        });
+        };
+        res.status(401).json(response);
         return;
     }
 
@@ -65,10 +69,11 @@ export const testClearPolicyAcceptances = async (req: Request, res: Response): P
             userId: decodedToken.uid,
         });
 
-        res.json({
+        const response: TestSuccessResponse = {
             success: true,
             message: 'Policy acceptances cleared',
-        });
+        };
+        res.json(response);
     } catch (error) {
         logger.error('Failed to clear policy acceptances via test endpoint', error as Error, {
             userId: decodedToken.uid,
@@ -86,24 +91,26 @@ export const testPromoteToAdmin = async (req: Request, res: Response): Promise<v
 
     // Only allow in non-production environments
     if (config.isProduction) {
-        res.status(403).json({
+        const response: TestErrorResponse = {
             error: {
                 code: 'FORBIDDEN',
                 message: 'Test endpoints not available in production',
             },
-        });
+        };
+        res.status(403).json(response);
         return;
     }
 
     // Get user from auth token
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        res.status(401).json({
+        const response: TestErrorResponse = {
             error: {
                 code: 'UNAUTHORIZED',
                 message: 'Authorization token required',
             },
-        });
+        };
+        res.status(401).json(response);
         return;
     }
 
@@ -113,12 +120,13 @@ export const testPromoteToAdmin = async (req: Request, res: Response): Promise<v
     try {
         decodedToken = await authService.verifyIdToken(token);
     } catch (error) {
-        res.status(401).json({
+        const response: TestErrorResponse = {
             error: {
                 code: 'UNAUTHORIZED',
                 message: 'Invalid token',
             },
-        });
+        };
+        res.status(401).json(response);
         return;
     }
 
@@ -132,11 +140,12 @@ export const testPromoteToAdmin = async (req: Request, res: Response): Promise<v
             userId: decodedToken.uid,
         });
 
-        res.json({
+        const response: TestPromoteToAdminResponse = {
             success: true,
             message: 'User promoted to admin role',
             userId: decodedToken.uid,
-        });
+        };
+        res.json(response);
     } catch (error) {
         logger.error('Failed to promote user to admin via test endpoint', error as Error, {
             userId: decodedToken.uid,

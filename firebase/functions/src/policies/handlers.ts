@@ -5,6 +5,7 @@ import { HTTP_STATUS } from '../constants';
 import { validateCreatePolicy, validateUpdatePolicy, validatePublishPolicy } from './validation';
 import { getAuth, getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { UpdatePolicyResponse, PublishPolicyResponse, CreatePolicyResponse, DeletePolicyVersionResponse } from '../types/server-types';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
@@ -100,13 +101,14 @@ export const updatePolicy = async (req: AuthenticatedRequest, res: Response): Pr
             published: publish,
         });
 
-        res.json({
+        const response: UpdatePolicyResponse = {
             success: true,
             versionHash: result.versionHash,
             published: publish,
             currentVersionHash: result.currentVersionHash,
             message: publish ? 'Policy updated and published' : 'Draft version saved',
-        });
+        };
+        res.json(response);
     } catch (error) {
         logger.error('Failed to update policy', error as Error, {
             userId: req.user?.uid,
@@ -134,11 +136,12 @@ export const publishPolicy = async (req: AuthenticatedRequest, res: Response): P
             versionHash,
         });
 
-        res.json({
+        const response: PublishPolicyResponse = {
             success: true,
             message: 'Policy published successfully',
             currentVersionHash: result.currentVersionHash,
-        });
+        };
+        res.json(response);
     } catch (error) {
         logger.error('Failed to publish policy', error as Error, {
             userId: req.user?.uid,
@@ -166,12 +169,13 @@ export const createPolicy = async (req: AuthenticatedRequest, res: Response): Pr
             versionHash: result.currentVersionHash,
         });
 
-        res.status(HTTP_STATUS.CREATED).json({
+        const response: CreatePolicyResponse = {
             success: true,
             id: result.id,
             versionHash: result.currentVersionHash,
             message: 'Policy created successfully',
-        });
+        };
+        res.status(HTTP_STATUS.CREATED).json(response);
     } catch (error) {
         logger.error('Failed to create policy', error as Error, {
             userId: req.user?.uid,
@@ -196,10 +200,11 @@ export const deletePolicyVersion = async (req: AuthenticatedRequest, res: Respon
             versionHash: hash,
         });
 
-        res.json({
+        const response: DeletePolicyVersionResponse = {
             success: true,
             message: 'Policy version deleted successfully',
-        });
+        };
+        res.json(response);
     } catch (error) {
         logger.error('Failed to delete policy version', error as Error, {
             userId: req.user?.uid,

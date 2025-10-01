@@ -3,6 +3,7 @@ import {TestUserPoolService} from './TestUserPoolService';
 import {getAuth, getFirestore, isEmulator} from '../firebase';
 import {logger} from '../logger';
 import {ApplicationBuilder} from '../services/ApplicationBuilder';
+import {ReturnTestUserResponse} from '../types/server-types';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
@@ -48,10 +49,11 @@ export async function returnTestUser(req: Request, res: Response): Promise<void>
     try {
         await pool.returnUser(email);
 
-        res.json({
+        const response: ReturnTestUserResponse = {
             message: 'User returned to pool',
             email,
-        });
+        };
+        res.json(response);
     } catch (error: any) {
         logger.error('Failed to return test user', error);
         res.status(500).json({

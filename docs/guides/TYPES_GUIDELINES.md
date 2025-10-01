@@ -17,9 +17,11 @@ To maintain consistency and prevent duplication, follow these guidelines when de
 
 ### 2. Shared Types Between Client and Server
 **Location**: `packages/shared/src/shared-types.ts`
-- Any type shared between `firebase` and `webapp-v2` **MUST** be defined in the shared package
-- Examples: `RegisteredUser`, `GroupMemberDTO`, `UserBalance`, `SimplifiedDebt`
+- **CRITICAL RULE**: Any response sent to ANY client (webapp, mobile app, etc.) **MUST** be defined in the shared package
+- This includes ALL API response types that any client consumes
+- Examples: `RegisteredUser`, `GroupMemberDTO`, `UserBalance`, `SimplifiedDebt`, `MessageResponse`, `CreateSettlementResponse`
 - Import these types in both client and server code
+- If a handler returns a response that a client will receive, its type belongs here
 
 ### 3. Service-Internal Types
 **Location**: Within the service file itself or dedicated interface files
@@ -27,11 +29,23 @@ To maintain consistency and prevent duplication, follow these guidelines when de
 - Example: Pagination interfaces in `IFirestoreReader.ts`
 - Avoid creating separate `types/` directories for simple types
 
-### 4. Server-Only API Types
+### 4. Server-Only Internal Types
 **Location**: `firebase/functions/src/types/server-types.ts` (sparingly)
-- Only for server-specific request/response types not shared with client
-- Example: `UpdateGroupRequest`
-- Keep this file minimal
+- **ONLY** for internal server types that are NEVER sent to clients
+- Examples: Internal request validation types, admin-only endpoints, test-only endpoints
+- **NOT** for API responses that any client receives
+- Example: `UpdateGroupRequest` (internal request validation), admin policy responses (not consumed by webapp)
+- Keep this file minimal - when in doubt, put it in shared
+
+## Critical Decision Flow
+
+**When creating a new type, ask:**
+1. **Is this returned by an API endpoint to ANY client?** → `packages/shared/src/shared-types.ts`
+2. **Is this a Firestore document structure?** → `firebase/functions/src/schemas/`
+3. **Is this only used within a single service?** → Co-locate with the service
+4. **Is this server-internal only (validation, admin-only, test-only)?** → `firebase/functions/src/types/server-types.ts`
+
+**Rule of thumb:** If you're unsure whether a client might use it, put it in shared.
 
 ## Anti-Patterns to Avoid
 

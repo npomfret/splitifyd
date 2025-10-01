@@ -6,6 +6,7 @@ import { HTTP_STATUS } from '../constants';
 import { validateCreateExpense, validateUpdateExpense, validateExpenseId } from './validation';
 import { getAuth, getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { MessageResponse } from '@splitifyd/shared';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
@@ -51,9 +52,10 @@ export const deleteExpense = async (req: AuthenticatedRequest, res: Response): P
 
     await expenseService.deleteExpense(expenseId, userId);
 
-    res.json({
+    const response: MessageResponse = {
         message: 'Expense deleted successfully',
-    });
+    };
+    res.json(response);
 };
 
 export const getExpenseHistory = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
