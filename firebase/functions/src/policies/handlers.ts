@@ -5,7 +5,7 @@ import { HTTP_STATUS } from '../constants';
 import { validateCreatePolicy, validateUpdatePolicy, validatePublishPolicy } from './validation';
 import { getAuth, getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
-import { UpdatePolicyResponse, PublishPolicyResponse, CreatePolicyResponse, DeletePolicyVersionResponse } from '../types/server-types';
+import { UpdatePolicyResponse, PublishPolicyResponse, CreatePolicyResponse, DeletePolicyVersionResponse } from '@splitifyd/shared';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());

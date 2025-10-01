@@ -33,6 +33,7 @@ import type {
     RemoveGroupMemberResponse,
     Settlement,
     ShareLinkResponse,
+    UpdateGroupRequest,
     UserPolicyStatusResponse,
     UserProfileResponse,
 } from '@splitifyd/shared';
@@ -605,7 +606,7 @@ class ApiClient {
         });
     }
 
-    async updateGroup(id: string, data: { name?: string; description?: string }): Promise<MessageResponse> {
+    async updateGroup(id: string, data: UpdateGroupRequest): Promise<MessageResponse> {
         return this.request({
             endpoint: `/groups/${id}`,
             method: 'PUT',

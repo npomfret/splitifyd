@@ -17,11 +17,14 @@ To maintain consistency and prevent duplication, follow these guidelines when de
 
 ### 2. Shared Types Between Client and Server
 **Location**: `packages/shared/src/shared-types.ts`
-- **CRITICAL RULE**: Any response sent to ANY client (webapp, mobile app, etc.) **MUST** be defined in the shared package
-- This includes ALL API response types that any client consumes
-- Examples: `RegisteredUser`, `GroupMemberDTO`, `UserBalance`, `SimplifiedDebt`, `MessageResponse`, `CreateSettlementResponse`
+- **CRITICAL RULE**: ALL request and response types **MUST** be defined in the shared package
+- This includes:
+  - ALL API request types (e.g., `CreateGroupRequest`, `UpdateGroupRequest`, `CreateExpenseRequest`)
+  - ALL API response types (e.g., `MessageResponse`, `CreateSettlementResponse`, `UpdatePolicyResponse`)
+  - Even if only the server uses them today, the client should be able to import them
+- Examples: `RegisteredUser`, `GroupMemberDTO`, `UserBalance`, `SimplifiedDebt`, `MessageResponse`, `UpdateGroupRequest`
 - Import these types in both client and server code
-- If a handler returns a response that a client will receive, its type belongs here
+- **No exceptions** - request/response types always go in shared
 
 ### 3. Service-Internal Types
 **Location**: Within the service file itself or dedicated interface files
@@ -29,23 +32,14 @@ To maintain consistency and prevent duplication, follow these guidelines when de
 - Example: Pagination interfaces in `IFirestoreReader.ts`
 - Avoid creating separate `types/` directories for simple types
 
-### 4. Server-Only Internal Types
-**Location**: `firebase/functions/src/types/server-types.ts` (sparingly)
-- **ONLY** for internal server types that are NEVER sent to clients
-- Examples: Internal request validation types, admin-only endpoints, test-only endpoints
-- **NOT** for API responses that any client receives
-- Example: `UpdateGroupRequest` (internal request validation), admin policy responses (not consumed by webapp)
-- Keep this file minimal - when in doubt, put it in shared
-
 ## Critical Decision Flow
 
 **When creating a new type, ask:**
-1. **Is this returned by an API endpoint to ANY client?** → `packages/shared/src/shared-types.ts`
+1. **Is this a request or response type for ANY API endpoint?** → `packages/shared/src/shared-types.ts` (**ALWAYS**)
 2. **Is this a Firestore document structure?** → `firebase/functions/src/schemas/`
 3. **Is this only used within a single service?** → Co-locate with the service
-4. **Is this server-internal only (validation, admin-only, test-only)?** → `firebase/functions/src/types/server-types.ts`
 
-**Rule of thumb:** If you're unsure whether a client might use it, put it in shared.
+**Rule of thumb:** When in doubt, put it in shared. There is no `server-types.ts` file - all API contracts are shared.
 
 ## Anti-Patterns to Avoid
 

@@ -533,6 +533,17 @@ export interface CreateGroupRequest {
     description?: string;
 }
 
+export interface UpdateGroupRequest {
+    name?: string;
+    description?: string;
+}
+
+export interface PermissionCheckResult {
+    allowed: boolean;
+    reason?: string;
+    userRole?: MemberRole;
+}
+
 // Metadata for real-time change tracking
 export interface ChangeMetadata {
     lastChangeTimestamp: number;
@@ -851,4 +862,65 @@ export interface ListCommentsResponse {
 export interface CreateCommentResponse {
     success: boolean;
     data: CommentApiResponse;
+}
+
+// ========================================================================
+// Policy Admin Response Types
+// ========================================================================
+
+export interface UpdatePolicyResponse {
+    success: boolean;
+    versionHash: string;
+    published: boolean;
+    currentVersionHash: string | undefined;
+    message: string;
+}
+
+export interface PublishPolicyResponse {
+    success: boolean;
+    message: string;
+    currentVersionHash: string;
+}
+
+export interface CreatePolicyResponse {
+    success: boolean;
+    id: string;
+    versionHash: string;
+    message: string;
+}
+
+export interface DeletePolicyVersionResponse {
+    success: boolean;
+    message: string;
+}
+
+// ========================================================================
+// Test Pool Response Types
+// ========================================================================
+
+export interface ReturnTestUserResponse {
+    message: string;
+    email: string;
+}
+
+// ========================================================================
+// Test Endpoint Response Types
+// ========================================================================
+
+export interface TestErrorResponse {
+    error: {
+        code: string;
+        message: string;
+    };
+}
+
+export interface TestSuccessResponse {
+    success: boolean;
+    message: string;
+}
+
+export interface TestPromoteToAdminResponse {
+    success: boolean;
+    message: string;
+    userId: string;
 }

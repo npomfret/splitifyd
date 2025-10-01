@@ -3,7 +3,7 @@ import {TestUserPoolService} from './TestUserPoolService';
 import {getAuth, getFirestore, isEmulator} from '../firebase';
 import {logger} from '../logger';
 import {ApplicationBuilder} from '../services/ApplicationBuilder';
-import {ReturnTestUserResponse} from '../types/server-types';
+import {ReturnTestUserResponse} from '@splitifyd/shared';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());

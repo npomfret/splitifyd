@@ -3,8 +3,7 @@ import { logger } from '../logger';
 import { getAuth, getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { getConfig } from '../client-config';
-import { SystemUserRoles } from '@splitifyd/shared';
-import { TestErrorResponse, TestSuccessResponse, TestPromoteToAdminResponse } from '../types/server-types';
+import { SystemUserRoles, TestErrorResponse, TestSuccessResponse, TestPromoteToAdminResponse } from '@splitifyd/shared';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
