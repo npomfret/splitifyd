@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { Project, SyntaxKind, InterfaceDeclaration } from 'ts-morph';
+import { Project, SyntaxKind, InterfaceDeclaration, ClassDeclaration } from 'ts-morph';
 import * as path from 'path';
 
 interface MethodInfo {
@@ -17,12 +17,19 @@ interface InterfaceReport {
     interfaceName: string;
     filePath: string;
     methods: MethodInfo[];
+    isClass: boolean;
 }
 
 const TARGET_INTERFACES = [
     'IFirestoreWriter',
     'IFirestoreReader',
     'IAuthService',
+];
+
+const TARGET_CLASSES = [
+    'FirestoreWriter',
+    'FirestoreReader',
+    'FirebaseAuthService',
 ];
 
 function analyzeProject(tsconfigPath: string): InterfaceReport[] {
@@ -34,7 +41,7 @@ function analyzeProject(tsconfigPath: string): InterfaceReport[] {
 
     const reports: InterfaceReport[] = [];
 
-    console.log('Finding target interfaces...');
+    console.log('Finding target interfaces and classes...');
     const sourceFiles = project.getSourceFiles();
 
     for (const sourceFile of sourceFiles) {
@@ -42,8 +49,8 @@ function analyzeProject(tsconfigPath: string): InterfaceReport[] {
             continue;
         }
 
+        // Analyze interfaces
         const interfaces = sourceFile.getDescendantsOfKind(SyntaxKind.InterfaceDeclaration);
-
         for (const interfaceDecl of interfaces) {
             const interfaceName = interfaceDecl.getName();
 
@@ -58,6 +65,27 @@ function analyzeProject(tsconfigPath: string): InterfaceReport[] {
                 interfaceName,
                 filePath: sourceFile.getFilePath(),
                 methods,
+                isClass: false,
+            });
+        }
+
+        // Analyze classes
+        const classes = sourceFile.getDescendantsOfKind(SyntaxKind.ClassDeclaration);
+        for (const classDecl of classes) {
+            const className = classDecl.getName();
+
+            if (!className || !TARGET_CLASSES.includes(className)) {
+                continue;
+            }
+
+            console.log(`\nAnalyzing class: ${className}`);
+            const methods = analyzeClassMethods(classDecl, project);
+
+            reports.push({
+                interfaceName: className,
+                filePath: sourceFile.getFilePath(),
+                methods,
+                isClass: true,
             });
         }
     }
@@ -92,6 +120,45 @@ function analyzeInterfaceMethods(interfaceDecl: InterfaceDeclaration, project: P
             filePath: sourceFile.getFilePath(),
             lineNumber,
             implementations,
+            invocations,
+            isDeprecated,
+        });
+    }
+
+    return methods;
+}
+
+function analyzeClassMethods(classDecl: ClassDeclaration, project: Project): MethodInfo[] {
+    const methods: MethodInfo[] = [];
+    const className = classDecl.getName() || '';
+    const sourceFile = classDecl.getSourceFile();
+
+    const classMethods = classDecl.getMethods();
+
+    for (const method of classMethods) {
+        // Skip private methods and constructors
+        if (method.hasModifier(SyntaxKind.PrivateKeyword) || method.getName() === 'constructor') {
+            continue;
+        }
+
+        const methodName = method.getName();
+        const lineNumber = method.getStartLineNumber();
+
+        const jsDocs = method.getJsDocs();
+        const isDeprecated = jsDocs.some(doc =>
+            doc.getTags().some(tag => tag.getTagName() === 'deprecated')
+        );
+
+        const invocations = countInvocations(methodName, project);
+
+        console.log(`  - ${methodName}: ${invocations} invocations${isDeprecated ? ' (DEPRECATED)' : ''}`);
+
+        methods.push({
+            name: methodName,
+            interfaceName: className,
+            filePath: sourceFile.getFilePath(),
+            lineNumber,
+            implementations: 1, // The class itself is the implementation
             invocations,
             isDeprecated,
         });
@@ -157,7 +224,7 @@ function countInvocations(methodName: string, project: Project): number {
 
 function generateReport(reports: InterfaceReport[]): void {
     console.log('\n\n' + '='.repeat(80));
-    console.log('UNUSED INTERFACE METHODS REPORT');
+    console.log('UNUSED INTERFACE/CLASS METHODS REPORT');
     console.log('='.repeat(80) + '\n');
 
     let totalUnused = 0;
@@ -170,28 +237,36 @@ function generateReport(reports: InterfaceReport[]): void {
         }
 
         const relativePath = path.relative(process.cwd(), report.filePath);
-        console.log(`\n${report.interfaceName} (${relativePath})`);
+        const typeLabel = report.isClass ? 'Class' : 'Interface';
+        console.log(`\n${report.interfaceName} [${typeLabel}] (${relativePath})`);
         console.log('-'.repeat(80));
 
         for (const method of unusedMethods) {
             const deprecatedTag = method.isDeprecated ? ' [DEPRECATED]' : '';
 
-            console.log(
-                `  ✗ ${method.name}:${method.lineNumber} - ` +
-                `${method.implementations} impl, ${method.invocations} calls${deprecatedTag}`
-            );
+            if (report.isClass) {
+                console.log(
+                    `  ✗ ${method.name}:${method.lineNumber} - ` +
+                    `${method.invocations} calls${deprecatedTag}`
+                );
+            } else {
+                console.log(
+                    `  ✗ ${method.name}:${method.lineNumber} - ` +
+                    `${method.implementations} impl, ${method.invocations} calls${deprecatedTag}`
+                );
+            }
         }
 
         totalUnused += unusedMethods.length;
     }
 
     if (totalUnused === 0) {
-        console.log('\n✅ No unused interface methods found!\n');
+        console.log('\n✅ No unused interface/class methods found!\n');
     } else {
         console.log('\n' + '='.repeat(80));
         console.log(`Summary: ${totalUnused} unused method(s) found`);
         console.log('='.repeat(80) + '\n');
-        console.log('Recommendation: Consider removing unused methods from interfaces and implementations.\n');
+        console.log('Recommendation: Consider removing unused methods from interfaces, classes, and implementations.\n');
     }
 }
 
@@ -202,6 +277,7 @@ function main() {
     console.log('Project root:', projectRoot);
     console.log('TypeScript config:', tsconfigPath);
     console.log('Target interfaces:', TARGET_INTERFACES.join(', '));
+    console.log('Target classes:', TARGET_CLASSES.join(', '));
 
     try {
         const reports = analyzeProject(tsconfigPath);
