@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'preact/hooks';
+import { useComputed } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
 import { navigationService } from '@/services/navigation.service';
 import { AuthLayout } from '../components/auth/AuthLayout';
@@ -90,18 +91,21 @@ export function LoginPage() {
     }, [email, password]);
 
     const isFormValid = email.trim() && password;
-    const isSubmitting = authStore.loading;
+
+    // Use useComputed for reactive access to auth store values
+    const isSubmitting = useComputed(() => authStore.loading);
+    const displayError = useComputed(() => authStore.error);
 
     return (
         <AuthLayout title={t('loginPage.title')} description={t('loginPage.description')}>
-            <AuthForm onSubmit={handleSubmit} error={authStore.error} disabled={isSubmitting}>
-                <EmailInput value={email} onInput={setEmail} autoFocus disabled={isSubmitting} />
+            <AuthForm onSubmit={handleSubmit} error={displayError.value} disabled={isSubmitting.value}>
+                <EmailInput value={email} onInput={setEmail} autoFocus disabled={isSubmitting.value} />
 
-                <PasswordInput value={password} onInput={setPassword} disabled={isSubmitting} autoComplete="current-password" />
+                <PasswordInput value={password} onInput={setPassword} disabled={isSubmitting.value} autoComplete="current-password" />
 
                 <div class="flex items-center justify-between">
                     <label class="flex items-center">
-                        <input type="checkbox" data-testid="remember-me-checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" disabled={isSubmitting} />
+                        <input type="checkbox" data-testid="remember-me-checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" disabled={isSubmitting.value} />
                         <span class="ml-2 block text-sm text-gray-700">{t('loginPage.rememberMe')}</span>
                     </label>
 
@@ -110,11 +114,11 @@ export function LoginPage() {
                     </button>
                 </div>
 
-                <SubmitButton loading={isSubmitting} disabled={!isFormValid}>
+                <SubmitButton loading={isSubmitting.value} disabled={!isFormValid}>
                     {t('loginPage.submitButton')}
                 </SubmitButton>
 
-                <DefaultLoginButton onFillForm={handleFillForm} onSubmit={() => handleSubmit(new Event('submit'))} disabled={isSubmitting} />
+                <DefaultLoginButton onFillForm={handleFillForm} onSubmit={() => handleSubmit(new Event('submit'))} disabled={isSubmitting.value} />
 
                 <div class="text-center">
                     <p class="text-sm text-gray-600">
