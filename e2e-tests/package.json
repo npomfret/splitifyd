@@ -14,7 +14,9 @@
     "install-browsers": "playwright install --with-deps"
   },
   "dependencies": {
-    "@splitifyd/test-support": "*"
+    "@splitifyd/shared": "^1.0.0",
+    "@splitifyd/test-support": "*",
+    "preact": "^10.27.2"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
