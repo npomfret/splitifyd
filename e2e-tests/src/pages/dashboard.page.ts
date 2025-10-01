@@ -1,24 +1,41 @@
 import { expect, Page } from '@playwright/test';
-import { BasePage } from './base.page';
+import { DashboardPage as BaseDashboardPage } from '@splitifyd/test-support';
 import { PooledTestUser } from '@splitifyd/shared';
 import { CreateGroupModalPage } from './create-group-modal.page.ts';
 import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
 import { generateShortId, randomString, CreateGroupFormDataBuilder, CreateGroupFormData } from '@splitifyd/test-support';
 import { JoinGroupPage } from './join-group.page.ts';
+import { HeaderPage } from './header.page';
 
 let i = 0;
 
-export class DashboardPage extends BasePage {
+/**
+ * E2E-specific DashboardPage that extends the shared BaseDashboardPage
+ * Adds multi-user group creation and advanced test workflows
+ */
+export class DashboardPage extends BaseDashboardPage {
+    private _header?: HeaderPage;
+    protected readonly userInfo?: PooledTestUser;
+
     constructor(page: Page, userInfo?: PooledTestUser) {
-        super(page, userInfo);
+        super(page);
+        this.userInfo = userInfo;
     }
 
-    // Selectors
-    readonly url = '/dashboard';
+    /**
+     * Header page object for user menu and navigation functionality.
+     * E2E-specific header with additional functionality
+     */
+    get header(): HeaderPage {
+        if (!this._header) {
+            this._header = new HeaderPage(this.page);
+        }
+        return this._header;
+    }
 
+    // Override navigate to include e2e-specific setup
     async navigate() {
-        await this.page.goto(this.url);
-        await this.waitForDomContentLoaded();
+        await super.navigate();
     }
 
     // Overload: Accept CreateGroupFormDataBuilder for builder pattern
@@ -67,6 +84,10 @@ export class DashboardPage extends BasePage {
         return groupDetailPages;
     }
 
+    /**
+     * E2E-specific group creation that returns e2e GroupDetailPage
+     * Delegates to base class for UI interactions, adds e2e-specific verification
+     */
     async createGroupAndNavigate(name: string = generateShortId(), description: string = generateShortId()): Promise<GroupDetailPage> {
         const currentUrl = this.page.url();
         if (!currentUrl.includes('/dashboard')) {
@@ -74,7 +95,7 @@ export class DashboardPage extends BasePage {
         }
         await this.waitForDashboard();
 
-        // Open modal and create group
+        // Open modal using e2e-specific method that returns e2e CreateGroupModalPage
         const createGroupModal = await this.openCreateGroupModal();
         await createGroupModal.createGroup(name, description);
 
@@ -92,24 +113,22 @@ export class DashboardPage extends BasePage {
         return groupDetailPage;
     }
 
-    getCreateGroupButton() {
-        return this.page.getByRole('button', { name: /Create.*Group/i }).first();
-    }
-
+    /**
+     * E2E-specific utility to get base URL from current dashboard URL
+     */
     getBaseUrl() {
         return this.page.url().split('/dashboard')[0];
     }
 
+    /**
+     * E2E-specific modal opening that returns e2e CreateGroupModalPage
+     * Uses base class selector but wraps result in e2e page object
+     */
     async openCreateGroupModal() {
-        // Simply click the first visible create group button
-        const createButton = this.page
-            .getByRole('button')
-            .filter({ hasText: /Create.*Group/i }) //there are several
-            .first();
+        // Use base class method to click the button
+        await super.clickCreateGroup();
 
-        await this.clickButton(createButton, { buttonName: 'Create Group' });
-
-        // Create modal page instance first
+        // Create e2e-specific modal page instance
         const createGroupModalPage = new CreateGroupModalPage(this.page, this.userInfo);
 
         // Wait for the modal to appear using the modal's own strict selector
@@ -121,42 +140,28 @@ export class DashboardPage extends BasePage {
         return createGroupModalPage;
     }
 
+    /**
+     * E2E-specific dashboard waiting with comprehensive state checking
+     * Extends base class verification with additional e2e requirements
+     */
     async waitForDashboard() {
-        // Wait for navigation to dashboard if not already there - handle both /dashboard and /dashboard/
-        await expect(this.page).toHaveURL(/\/dashboard\/?$/);
+        // Use base class verification for standard checks
+        await super.verifyDashboardPageLoaded();
 
-        // Wait for the dashboard to be fully loaded
-        await this.waitForDomContentLoaded();
-
-        // Wait for the main dashboard content to appear
-        await this.page.locator('h3:has-text("Your Groups")').waitFor();
-
-        // Wait for loading spinner to disappear (handles race condition where spinner might never appear)
-        const loadingSpinner = this.page.locator('span:has-text("Loading your groups...")');
+        // E2E-specific: Wait for loading spinner to disappear
         try {
+            const loadingSpinner = super.getGroupsLoadingSpinner();
             await loadingSpinner.waitFor({ state: 'hidden', timeout: 3000 });
         } catch {
             // Spinner never appeared or disappeared quickly - expected behavior
         }
 
-        // Wait for groups content to be fully loaded
-        // This ensures we wait for either groups to appear, empty state to show, or loading to complete
+        // E2E-specific: Comprehensive state polling for all possible outcomes
         await expect(async () => {
-            // Check if groups container exists (means groups are loaded)
-            const groupsContainer = this.page.getByTestId('groups-container');
-            const hasGroupsContainer = await groupsContainer.isVisible().catch(() => false);
-
-            // Check if empty state is shown (means no groups but loading is complete)
-            const emptyState = this.page.getByRole('button', { name: /create.*first.*group/i });
-            const hasEmptyState = await emptyState.isVisible().catch(() => false);
-
-            // Check if error state is shown
-            const errorState = this.page.getByTestId('groups-load-error-title');
-            const hasErrorState = await errorState.isVisible().catch(() => false);
-
-            // Check if loading spinner is shown (means still loading groups)
-            const loadingSpinner = this.page.getByText('Loading your groups...');
-            const hasLoadingSpinner = await loadingSpinner.isVisible().catch(() => false);
+            const hasGroupsContainer = await super.getGroupsContainer().isVisible().catch(() => false);
+            const hasEmptyState = await super.getEmptyGroupsState().isVisible().catch(() => false);
+            const hasErrorState = await super.getErrorContainer().isVisible().catch(() => false);
+            const hasLoadingSpinner = await super.getGroupsLoadingSpinner().isVisible().catch(() => false);
 
             if (!hasGroupsContainer && !hasEmptyState && !hasErrorState && !hasLoadingSpinner) {
                 throw new Error('Groups content not yet loaded - waiting for groups container, empty state, error state, or loading spinner');
@@ -166,67 +171,48 @@ export class DashboardPage extends BasePage {
             intervals: [100, 250, 500],
         });
 
-        // Wait for DOM to be fully loaded
+        // Final DOM check
         await this.waitForDomContentLoaded();
     }
 
     /**
-     * Wait for a group with the specified name to not be present on the dashboard
-     * This handles async deletion processes and real-time updates properly
+     * E2E-specific: Wait for a group to not be present (with custom polling intervals)
+     * Delegates to base class but adds e2e-specific polling strategy
      */
     async waitForGroupToNotBePresent(groupName: string, options: { timeout?: number } = {}) {
         await expect(this.page).toHaveURL(/\/dashboard/);
-        const timeout = options.timeout || 5000; // Default 5 seconds - allow time for real-time updates
+        const timeout = options.timeout || 5000;
 
-        await expect(async () => {
-            // Use exact match to avoid partial matches with updated group names
-            const groupCard = this.page.getByText(groupName, { exact: true });
-            const isVisible = await groupCard.isVisible();
-            if (isVisible) {
-                throw new Error(`Group "${groupName}" is still visible on dashboard`);
-            }
-        }).toPass({
-            timeout,
-            intervals: [100, 250, 500, 1000], // Check frequently initially, then less frequently
-        });
+        // Use base class method with e2e-specific polling
+        await super.waitForGroupToDisappear(groupName, timeout);
     }
 
     /**
-     * Wait for a group with the specified name to appear on the dashboard
-     * This handles async creation processes and real-time updates properly
+     * E2E-specific: Wait for a group to appear (delegates to base class)
+     * Accepts options object for backwards compatibility
      */
-    async waitForGroupToAppear(groupName: string, options: { timeout?: number } = {}) {
-        const timeout = options.timeout || 5000; // Default 5 seconds - allow time for real-time updates
-
-        await expect(async () => {
-            const groupCard = this.page.getByText(groupName);
-            const isVisible = await groupCard.isVisible();
-            if (!isVisible) {
-                throw new Error(`Group "${groupName}" is not yet visible on dashboard`);
-            }
-        }).toPass({
-            timeout,
-            intervals: [100, 250, 500], // Check frequently for appearance
-        });
+    async waitForGroupToAppear(groupName: string, options: { timeout?: number } | number = {}) {
+        const timeout = typeof options === 'number' ? options : (options.timeout || 5000);
+        await super.waitForGroupToAppear(groupName, timeout);
     }
 
     /**
-     * Click on a group card to navigate to the group details page
-     * This simulates the user clicking on a group from the dashboard
+     * E2E-specific: Click on a group card and navigate to group detail page
+     * Use this method in e2e tests to get the GroupDetailPage instance
+     *
+     * This overrides the base class method to return GroupDetailPage instead of void.
+     * TypeScript doesn't allow changing return types in overrides, but this is intentional
+     * for e2e test workflows that need the page object instance.
      */
-    async clickGroupCard(groupName: string, groupId?: string) {
-        // Ensure the group is visible first
-        await this.waitForGroupToAppear(groupName);
+    // @ts-expect-error - Intentionally changing return type for e2e test ergonomics
+    async clickGroupCard(groupName: string, groupId?: string): Promise<GroupDetailPage> {
+        // Use base class method to click the group
+        await super.clickGroupCard(groupName);
 
-        // Find the group card button and click it
-        // Group cards are typically buttons containing the group name
-        const groupCard = this.page.getByRole('button').filter({ hasText: groupName });
-        await this.clickButton(groupCard, { buttonName: `Group: ${groupName}` });
-
-        // Wait for navigation to complete
-        await this.waitForDomContentLoaded();
+        // E2E-specific: Verify navigation to group detail page
         await expect(this.page).toHaveURL(groupDetailUrlPattern(groupId));
 
+        // Return e2e-specific GroupDetailPage
         return new GroupDetailPage(this.page);
     }
 }

@@ -34,17 +34,22 @@ export class LoginPage extends BasePage {
      * Login page heading container - helps identify we're on the right page
      */
     getPageHeading(): Locator {
-        // The login page should have a heading containing "Log In" or "Sign In"
-        return this.page.getByRole('heading', { name: /log.?in|sign.?in/i });
+        // Find the heading within the main login area
+        return this.getLoginFormContainer().locator('..').getByRole('heading', { name: /log.?in|sign.?in/i }).or(
+            this.page.getByRole('heading', { name: /log.?in|sign.?in/i })
+        );
     }
 
     /**
      * Error message container within the login form
      */
     getErrorContainer(): Locator {
-        // First try within the form, fall back to page-level error message
-        const formError = this.getLoginFormContainer().getByTestId('error-message');
-        return formError.or(this.page.getByTestId('error-message'));
+        // First look for error with role="alert" within form, then fall back to testid
+        return this.getLoginFormContainer().getByRole('alert').or(
+            this.getLoginFormContainer().getByTestId('error-message')
+        ).or(
+            this.page.getByRole('alert')
+        );
     }
 
     // ============================================================================
@@ -80,10 +85,10 @@ export class LoginPage extends BasePage {
      * Primary submit button (Log In)
      */
     getSubmitButton(): Locator {
-        // Try translation first, fall back to generic submit button
-        const translationButton = this.page.getByRole('button', { name: translation.loginPage.submitButton });
-        const fallbackButton = this.getLoginFormContainer().locator('button[type="submit"]');
-        return translationButton.or(fallbackButton);
+        // Look for submit button within form container first (scoped), then fall back to page-level
+        return this.getLoginFormContainer().getByRole('button', { name: translation.loginPage.submitButton }).or(
+            this.getLoginFormContainer().locator('button[type="submit"]')
+        );
     }
 
     /**
@@ -97,14 +102,22 @@ export class LoginPage extends BasePage {
      * Sign up button/link to navigate to register page
      */
     getSignUpButton(): Locator {
-        return this.getLoginFormContainer().getByTestId('loginpage-signup-button');
+        // Look for visible "Sign Up" or "Create Account" text first, then fall back to testid
+        return this.getLoginFormContainer().getByRole('link', { name: /sign.?up|create.*account|register/i }).or(
+            this.getLoginFormContainer().getByRole('button', { name: /sign.?up|create.*account|register/i })
+        ).or(
+            this.getLoginFormContainer().getByTestId('loginpage-signup-button')
+        );
     }
 
     /**
      * Sign in heading
      */
     getSignInHeading(): Locator {
-        return this.page.getByRole('heading', { name: translation.loginPage.title });
+        // Look for heading within the login form area first
+        return this.getLoginFormContainer().locator('..').getByRole('heading', { name: translation.loginPage.title }).or(
+            this.page.getByRole('heading', { name: translation.loginPage.title })
+        );
     }
 
     /**
