@@ -1,4 +1,4 @@
-import { GroupMember, MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { GroupMember, MemberRoles, MemberStatuses, MemberRole, MemberStatus } from '@splitifyd/shared';
 import { randomChoice, randomDate } from '../test-helpers';
 
 export class GroupMemberBuilder {
@@ -17,13 +17,13 @@ export class GroupMemberBuilder {
         return this;
     }
 
-    withRole(role: 'admin' | 'member' | 'viewer'): this {
-        this.member.memberRole = role as any;
+    withRole(role: MemberRole): this {
+        this.member.memberRole = role;
         return this;
     }
 
-    withStatus(status: 'active' | 'pending'): this {
-        this.member.memberStatus = status as any;
+    withStatus(status: MemberStatus): this {
+        this.member.memberStatus = status;
         return this;
     }
 

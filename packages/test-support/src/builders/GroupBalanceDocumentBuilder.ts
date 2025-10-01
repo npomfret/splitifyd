@@ -1,11 +1,17 @@
 import { generateShortId } from '../test-helpers';
 
+export interface GroupBalanceDocument {
+    groupId: string;
+    balances: Record<string, Record<string, number>>;
+    lastUpdated: Date;
+}
+
 /**
  * Builder for creating group balance documents for tests
  * Used for testing Firestore security rules
  */
 export class GroupBalanceDocumentBuilder {
-    private document: any;
+    private document: GroupBalanceDocument;
 
     constructor() {
         const groupId = `group-${generateShortId()}`;
@@ -39,7 +45,7 @@ export class GroupBalanceDocumentBuilder {
         return this;
     }
 
-    build(): any {
-        return { ...this.document };
+    build(): GroupBalanceDocument {
+        return { ...this.document, balances: { ...this.document.balances } };
     }
 }

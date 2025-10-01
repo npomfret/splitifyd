@@ -13,7 +13,7 @@ export { CommentRequestBuilder } from './CommentRequestBuilder';
 export { CommentQueryBuilder } from './CommentQueryBuilder';
 export { ExpenseBuilder } from './ExpenseBuilder';
 export { SettlementBuilder } from './SettlementBuilder';
-export { UserProfileBuilder } from './UserProfileBuilder';
+export { RegisteredUserBuilder } from './RegisteredUserBuilder';
 export { UserBalanceBuilder, DebtScenarios } from './UserBalanceBuilder';
 export { RegisterRequestBuilder } from './RegisterRequestBuilder';
 export { ValidationExpenseBuilder } from './ValidationExpenseBuilder';

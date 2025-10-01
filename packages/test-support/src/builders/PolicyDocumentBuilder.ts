@@ -1,9 +1,16 @@
+export interface PolicyDocument {
+    type: 'privacy' | 'terms' | 'cookie';
+    version: string;
+    content: string;
+    createdAt: Date;
+}
+
 /**
  * Builder for creating policy documents for tests
  * Used for testing Firestore security rules
  */
 export class PolicyDocumentBuilder {
-    private document: any;
+    private document: PolicyDocument;
 
     constructor() {
         this.document = {
@@ -34,7 +41,7 @@ export class PolicyDocumentBuilder {
         return this;
     }
 
-    build(): any {
+    build(): PolicyDocument {
         return { ...this.document };
     }
 }

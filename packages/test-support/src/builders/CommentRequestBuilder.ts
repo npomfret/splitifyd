@@ -79,7 +79,7 @@ export class CommentRequestBuilder {
         return this;
     }
 
-    build() {
+    build(): CreateCommentRequest | Record<string, unknown> {
         return { ...this.request };
     }
 }

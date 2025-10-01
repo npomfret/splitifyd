@@ -29,7 +29,7 @@ export class ValidationExpenseBuilder {
         return this;
     }
 
-    build(): any {
-        return { ...this.expense };
+    build(): ValidationExpenseData {
+        return { ...this.expense, participants: [...this.expense.participants] };
     }
 }

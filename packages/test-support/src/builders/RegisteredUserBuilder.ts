@@ -1,11 +1,11 @@
 import { randomString, randomBoolean, randomChoice, randomEmail, randomUrl, generateShortId } from '../test-helpers';
-import type { RegisteredUser } from '@splitifyd/shared';
+import type { RegisteredUser, UserThemeColor } from '@splitifyd/shared';
 
 /**
  * Builder for creating RegisteredUser objects for testing
  * Used for creating mock user data in balance calculation and other tests
  */
-export class UserProfileBuilder {
+export class RegisteredUserBuilder {
     private user: RegisteredUser = {
         uid: `user-${generateShortId()}`,
         displayName: `${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(4)}`,
@@ -23,37 +23,37 @@ export class UserProfileBuilder {
         preferredLanguage: randomChoice(['en', 'es', 'fr', 'de', 'it', 'pt']),
     };
 
-    withUid(uid: string): UserProfileBuilder {
+    withUid(uid: string): RegisteredUserBuilder {
         this.user.uid = uid;
         return this;
     }
 
-    withDisplayName(name: string): UserProfileBuilder {
+    withDisplayName(name: string): RegisteredUserBuilder {
         this.user.displayName = name;
         return this;
     }
 
-    withEmail(email: string): UserProfileBuilder {
+    withEmail(email: string): RegisteredUserBuilder {
         this.user.email = email;
         return this;
     }
 
-    withPhotoURL(photoURL: string | null): UserProfileBuilder {
+    withPhotoURL(photoURL: string | null): RegisteredUserBuilder {
         this.user.photoURL = photoURL;
         return this;
     }
 
-    withEmailVerified(verified: boolean): UserProfileBuilder {
+    withEmailVerified(verified: boolean): RegisteredUserBuilder {
         this.user.emailVerified = verified;
         return this;
     }
 
-    withThemeColor(themeColor: any): UserProfileBuilder {
+    withThemeColor(themeColor: UserThemeColor): RegisteredUserBuilder {
         this.user.themeColor = themeColor;
         return this;
     }
 
-    withPreferredLanguage(language: string): UserProfileBuilder {
+    withPreferredLanguage(language: string): RegisteredUserBuilder {
         this.user.preferredLanguage = language;
         return this;
     }

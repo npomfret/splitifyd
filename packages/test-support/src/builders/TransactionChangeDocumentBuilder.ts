@@ -1,11 +1,18 @@
 import { generateShortId } from '../test-helpers';
 
+export interface TransactionChangeDocument {
+    groupId: string;
+    type: 'expense' | 'settlement' | 'group';
+    users: string[];
+    createdAt: Date;
+}
+
 /**
  * Builder for creating transaction change documents for tests
  * Used for testing Firestore security rules and real-time notifications
  */
 export class TransactionChangeDocumentBuilder {
-    private document: any;
+    private document: TransactionChangeDocument;
 
     constructor() {
         this.document = {
@@ -27,7 +34,7 @@ export class TransactionChangeDocumentBuilder {
     }
 
     withUsers(users: string[]): this {
-        this.document.users = users;
+        this.document.users = [...users];
         return this;
     }
 
@@ -36,7 +43,7 @@ export class TransactionChangeDocumentBuilder {
         return this;
     }
 
-    build(): any {
-        return { ...this.document };
+    build(): TransactionChangeDocument {
+        return { ...this.document, users: [...this.document.users] };
     }
 }

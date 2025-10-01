@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { BalanceCalculationService } from '../../../services/balance';
 import {StubAuthService, StubFirestoreReader, StubFirestoreWriter} from '../mocks/firestore-stubs';
-import { GroupBuilder, ExpenseBuilder, UserProfileBuilder, AuthUserRecordBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { GroupBuilder, ExpenseBuilder, RegisteredUserBuilder, AuthUserRecordBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import {ApplicationBuilder} from "../../../services/ApplicationBuilder";
 import { UserService } from '../../../services/UserService2';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
@@ -53,9 +53,9 @@ describe('BalanceCalculationService', () => {
 
                 // Set up user documents in Firestore
                 stubFirestoreReader.setDocument('users', userId1,
-                    new UserProfileBuilder().withUid(userId1).withEmail('user1@test.com').withDisplayName('User 1').build());
+                    new RegisteredUserBuilder().withUid(userId1).withEmail('user1@test.com').withDisplayName('User 1').build());
                 stubFirestoreReader.setDocument('users', userId2,
-                    new UserProfileBuilder().withUid(userId2).withEmail('user2@test.com').withDisplayName('User 2').build());
+                    new RegisteredUserBuilder().withUid(userId2).withEmail('user2@test.com').withDisplayName('User 2').build());
 
                 // Execute
                 const result = await balanceCalculationService.fetchBalanceCalculationData(groupId);
@@ -116,7 +116,7 @@ describe('BalanceCalculationService', () => {
 
                 // Set up user documents in Firestore
                 stubFirestoreReader.setDocument('users', userId1,
-                    new UserProfileBuilder().withUid(userId1).withEmail('user1@test.com').withDisplayName('User 1').build());
+                    new RegisteredUserBuilder().withUid(userId1).withEmail('user1@test.com').withDisplayName('User 1').build());
 
                 // Execute
                 const result = await balanceCalculationService.fetchBalanceCalculationData(groupId);
@@ -170,8 +170,8 @@ describe('BalanceCalculationService', () => {
                     .build();
 
                 const userProfiles = [
-                    new UserProfileBuilder().withUid(userId1).withDisplayName('User 1').withEmail('user1@test.com').build(),
-                    new UserProfileBuilder().withUid(userId2).withDisplayName('User 2').withEmail('user2@test.com').build(),
+                    new RegisteredUserBuilder().withUid(userId1).withDisplayName('User 1').withEmail('user1@test.com').build(),
+                    new RegisteredUserBuilder().withUid(userId2).withDisplayName('User 2').withEmail('user2@test.com').build(),
                 ];
 
                 // Set up stub data using builders - the stub works by exact method calls
@@ -235,9 +235,9 @@ describe('BalanceCalculationService', () => {
                 .buildForFirestore();
 
             const userProfiles = [
-                new UserProfileBuilder().withUid(userAlice).withDisplayName('Alice').build(),
-                new UserProfileBuilder().withUid(userBob).withDisplayName('Bob').build(),
-                new UserProfileBuilder().withUid(userCharlie).withDisplayName('Charlie').build(),
+                new RegisteredUserBuilder().withUid(userAlice).withDisplayName('Alice').build(),
+                new RegisteredUserBuilder().withUid(userBob).withDisplayName('Bob').build(),
+                new RegisteredUserBuilder().withUid(userCharlie).withDisplayName('Charlie').build(),
             ];
 
             // Set up common stub data

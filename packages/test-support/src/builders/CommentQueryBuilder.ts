@@ -1,36 +1,41 @@
 import { randomNumber, generateShortId } from '../test-helpers';
 
+export interface CommentQuery {
+    cursor?: string;
+    limit?: string;
+}
+
 /**
  * Builder for creating comment query parameters for testing
  * Used for testing comment listing with pagination and filtering
  */
 export class CommentQueryBuilder {
-    private query: any = {
+    private query: CommentQuery = {
         cursor: `cursor-${generateShortId()}`,
         limit: randomNumber(1, 50).toString(),
     };
 
-    withCursor(cursor: string) {
+    withCursor(cursor: string): this {
         this.query.cursor = cursor;
         return this;
     }
 
-    withLimit(limit: string | number) {
+    withLimit(limit: string | number): this {
         this.query.limit = typeof limit === 'number' ? limit.toString() : limit;
         return this;
     }
 
-    withInvalidLimit(invalidValue: string) {
+    withInvalidLimit(invalidValue: string): this {
         this.query.limit = invalidValue;
         return this;
     }
 
-    withEmptyQuery() {
+    withEmptyQuery(): this {
         this.query = {};
         return this;
     }
 
-    build() {
+    build(): CommentQuery {
         return { ...this.query };
     }
 }

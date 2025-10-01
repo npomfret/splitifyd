@@ -57,7 +57,7 @@ export class RegisterRequestBuilder {
         return this;
     }
 
-    build(): any {
+    build(): RegisterRequest {
         return { ...this.request };
     }
 }
