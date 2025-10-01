@@ -41,19 +41,21 @@ test.describe('Authentication Flow', () => {
     });
 
     test('should show error message for invalid credentials', async ({ page }) => {
-        // 1. Configure mock Firebase for login failure
+        // 1. Navigate to login page first to ensure clean state
+        await page.goto('/login');
+
+        // 2. Configure mock Firebase for login failure
         mockFirebase.mockLoginFailure({
             code: 'auth/wrong-password',
             message: 'Invalid email or password.',
         });
 
-        // 2. Navigate to login page and attempt login
-        await page.goto('/login');
+        // 3. Fill and submit login form
         await page.fill('input[type="email"]', 'test@example.com');
         await page.fill('input[type="password"]', 'wrong-password');
         await page.click('button[type="submit"]');
 
-        // 3. Verify error handling
+        // 4. Verify error handling
         await expect(page.getByTestId('error-message')).toContainText('Invalid email or password.');
         await expect(page).toHaveURL('/login');
         await expect(page.locator('input[type="email"]')).toBeVisible();
@@ -61,19 +63,30 @@ test.describe('Authentication Flow', () => {
     });
 
     test('should handle network errors gracefully', async ({ page }) => {
-        // 1. Configure mock Firebase for network error
+        // 1. Navigate to login page first to ensure clean state
+        await page.goto('/login');
+
+        // Ensure page is fully loaded and form is ready
+        await expect(page.locator('input[type="email"]')).toBeVisible();
+        await expect(page.locator('input[type="password"]')).toBeVisible();
+        await expect(page.locator('button[type="submit"]')).toBeVisible();
+
+        // 2. Configure mock Firebase for network error
         mockFirebase.mockLoginFailure({
             code: 'auth/network-request-failed',
             message: 'Network error. Please check your connection.',
         });
 
-        // 2. Navigate and attempt login
-        await page.goto('/login');
+        // 3. Fill and submit login form
         await page.fill('input[type="email"]', 'test@example.com');
         await page.fill('input[type="password"]', 'password123');
+
+        // Wait for form validation and ensure submit button is enabled
+        await expect(page.locator('button[type="submit"]')).toBeEnabled();
         await page.click('button[type="submit"]');
 
-        // 3. Verify network error handling
+        // 4. Verify network error handling - wait for the error to appear
+        await expect(page.getByTestId('error-message')).toBeVisible();
         await expect(page.getByTestId('error-message')).toContainText('Network error. Please check your connection.');
         await expect(page).toHaveURL('/login');
     });

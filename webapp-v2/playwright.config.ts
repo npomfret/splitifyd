@@ -1,39 +1,60 @@
-import { defineConfig, devices } from '@playwright/test';
+import {defineConfig, devices} from '@playwright/test';
 
 /**
- * Playwright Configuration for Component Tests
- *
- * These tests run components in a real browser environment
- * but are much simpler than the experimental CT framework.
+ * Playwright configuration for webapp-v2 unit tests
+ * Separate from e2e-tests to allow faster individual test execution
  */
 export default defineConfig({
     testDir: './src/__tests__/unit/playwright',
-    outputDir: './playwright-report/test-results',
-    timeout: 10 * 1000, // 10 seconds - fast but reasonable for page loads
-    fullyParallel: true,
-    forbidOnly: !!process.env.CI,
-    retries: process.env.CI ? 1 : 0,
-    workers: process.env.CI ? 1 : 1, // Always use 1 worker for consistency
-    reporter: [['html', { outputFolder: 'playwright-report/reports', open: 'never' }], ['list']],
 
+    /* Run tests serially to maximize browser reuse */
+    fullyParallel: false,
+
+    /* Fail the build if you accidentally left test.only in the source code. */
+    forbidOnly: false,
+
+    /* No retries for unit tests */
+    retries: 0,
+
+    /* Single worker for maximum browser reuse */
+    workers: 1,
+
+    /* Reporter to use. See https://playwright.dev/docs/test-reporters */
+    reporter: [
+        ['html', { open: 'never', outputFolder: 'playwright-report/html' }],
+        ['json', { outputFile: 'playwright-report/results.json' }],
+        ['junit', { outputFile: 'playwright-report/results.xml' }],
+    ],
+
+    /* Global test timeout */
+    timeout: 5 * 1000,
+
+    /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {
-        actionTimeout: 1000, // 1 second for actions - fast and forces good selectors
-        baseURL: 'http://localhost:5173', // Will be overridden by webServer
-        trace: 'retain-on-failure',
-        screenshot: 'only-on-failure',
-        video: 'retain-on-failure',
+        /* Base URL to use in actions like `await page.goto('/')`. */
+        baseURL: 'http://localhost:5173',
+
+        /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+        trace: 'on-first-retry',
+
+        /* Optimize for speed - headless mode and faster navigation */
+        headless: true,
+        actionTimeout: 5000,
+        navigationTimeout: 5000,
     },
 
+    /* Configure projects for major browsers */
     projects: [
         {
             name: 'chromium',
-            use: { ...devices['Desktop Chrome'] },
+            use: {...devices['Desktop Chrome']},
         },
     ],
 
+    /* Run your local dev server before starting the tests */
     webServer: {
         command: 'npm run dev',
+        url: 'http://localhost:5173',
         reuseExistingServer: true,
-        timeout: 120 * 1000,
     },
 });

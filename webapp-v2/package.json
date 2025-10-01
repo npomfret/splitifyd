@@ -15,6 +15,7 @@
     "test": "ORIGINAL_TEST_SCRIPT=test node ../scripts/test-wrapper.js",
     "test:unit": "ORIGINAL_TEST_SCRIPT=test:unit node ../scripts/test-wrapper.js",
     "test:integration": "ORIGINAL_TEST_SCRIPT=test:integration node ../scripts/test-wrapper.js",
+    "test:single": "./run-test.sh",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css}\" \"scripts/**/*.{js,json}\" \"*.{html,json,js}\""
   },
   "dependencies": {
