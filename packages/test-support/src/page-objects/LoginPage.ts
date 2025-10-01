@@ -1,8 +1,11 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
-// Import translation file for text constants
-import translation from '../../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
+// Load translation file at runtime
+const translationPath = join(__dirname, '../../../../webapp-v2/src/locales/en/translation.json');
+const translation = JSON.parse(readFileSync(translationPath, 'utf-8'));
 
 /**
  * Login Page Object Model for Playwright tests

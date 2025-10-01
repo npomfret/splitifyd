@@ -17,7 +17,7 @@ test.describe('Authentication Flow', () => {
     test('should log in successfully and navigate to dashboard', async ({ pageWithLogging: page }) => {
         // 1. Create test user and login page
         const testUser = ClientUserBuilder.validUser().build();
-        const loginPage = new LoginPage(page, testUser);
+        const loginPage = new LoginPage(page);
 
         // 2. Configure mock Firebase for this test
         mockFirebase.mockLoginSuccess(testUser);
@@ -128,7 +128,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
 
     test('should show loading state during login attempt', async ({ pageWithLogging: page }) => {
         const testUser = ClientUserBuilder.validUser().build();
-        const loginPage = new LoginPage(page, testUser);
+        const loginPage = new LoginPage(page);
 
         // Configure mock with delayed response to test loading state
         mockFirebase.mockLoginWithDelay(testUser, 1000);
