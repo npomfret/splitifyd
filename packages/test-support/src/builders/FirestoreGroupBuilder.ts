@@ -87,6 +87,32 @@ export class FirestoreGroupBuilder {
         return this;
     }
 
+    withClientCompatibleTimestamps(): this {
+        // For client-side tests that can't handle Firebase Admin Timestamps
+        this.group.createdAt = new Date();
+        this.group.updatedAt = new Date();
+        this.group.presetAppliedAt = new Date();
+        return this;
+    }
+
+    withServerCompatibleTimestamps(): this {
+        // For server-side tests that expect Firebase Admin Timestamps
+        this.group.createdAt = Timestamp.now();
+        this.group.updatedAt = Timestamp.now();
+        this.group.presetAppliedAt = Timestamp.now();
+        return this;
+    }
+
+    withMemberIds(memberIds: string[]): this {
+        this.group.memberIds = memberIds;
+        return this;
+    }
+
+    withoutMemberIds(): this {
+        delete this.group.memberIds;
+        return this;
+    }
+
     // Helper method to create theme colors with different patterns for testing
     private createDefaultThemeColor(): UserThemeColor {
         const colors = [

@@ -47,7 +47,7 @@
 
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseUpdateBuilder, GroupUpdateBuilder, NotificationDriver, SettlementBuilder } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseUpdateBuilder, GroupUpdateBuilder, NotificationDriver, CreateSettlementRequestBuilder } from '@splitifyd/test-support';
 import { getFirestore } from '../../firebase';
 import { PooledTestUser } from '@splitifyd/shared';
 
@@ -322,7 +322,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                 if (user1CurrencyBalance < 0) {
                     // user2 owes user1 in this currency
                     await apiDriver.createSettlement(
-                        new SettlementBuilder().withGroupId(dynamicGroup.id).withPayer(user2.uid).withPayee(user1.uid).withAmount(Math.abs(user1CurrencyBalance)).withCurrency(currency).build(),
+                        new CreateSettlementRequestBuilder().withGroupId(dynamicGroup.id).withPayerId(user2.uid).withPayeeId(user1.uid).withAmount(Math.abs(user1CurrencyBalance)).withCurrency(currency).build(),
                         user2.token,
                     );
 
@@ -334,7 +334,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                 } else if (user1CurrencyBalance > 0) {
                     // user1 owes user2 in this currency
                     await apiDriver.createSettlement(
-                        new SettlementBuilder().withGroupId(dynamicGroup.id).withPayer(user1.uid).withPayee(user2.uid).withAmount(Math.abs(user1CurrencyBalance)).withCurrency(currency).build(),
+                        new CreateSettlementRequestBuilder().withGroupId(dynamicGroup.id).withPayerId(user1.uid).withPayeeId(user2.uid).withAmount(Math.abs(user1CurrencyBalance)).withCurrency(currency).build(),
                         user1.token,
                     );
 
@@ -522,14 +522,14 @@ describe('Notifications Management - Consolidated Tests', () => {
                 if (user1CurrencyBalance < 0) {
                     // user2 owes user1 in this currency
                     await apiDriver.createSettlement(
-                        new SettlementBuilder().withGroupId(permissionGroup.id).withPayer(user2.uid).withPayee(user1.uid).withAmount(Math.abs(user1CurrencyBalance)).withCurrency(currency).build(),
+                        new CreateSettlementRequestBuilder().withGroupId(permissionGroup.id).withPayerId(user2.uid).withPayeeId(user1.uid).withAmount(Math.abs(user1CurrencyBalance)).withCurrency(currency).build(),
                         user2.token,
                     );
                     settlementsCreated++;
                 } else if (user1CurrencyBalance > 0) {
                     // user1 owes user2 in this currency
                     await apiDriver.createSettlement(
-                        new SettlementBuilder().withGroupId(permissionGroup.id).withPayer(user1.uid).withPayee(user2.uid).withAmount(Math.abs(user1CurrencyBalance)).withCurrency(currency).build(),
+                        new CreateSettlementRequestBuilder().withGroupId(permissionGroup.id).withPayerId(user1.uid).withPayeeId(user2.uid).withAmount(Math.abs(user1CurrencyBalance)).withCurrency(currency).build(),
                         user1.token,
                     );
                     settlementsCreated++;
@@ -639,7 +639,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             notificationDriver.clearEvents();
 
             // ACTION: Test settlement creation notification (user2 pays user1)
-            await apiDriver.createSettlement(new SettlementBuilder().withGroupId(eventGroup.id).withPayer(user2.uid).withPayee(user1.uid).withAmount(15.0).build(), user2.token);
+            await apiDriver.createSettlement(new CreateSettlementRequestBuilder().withGroupId(eventGroup.id).withPayerId(user2.uid).withPayeeId(user1.uid).withAmount(15.0).build(), user2.token);
 
             // WAIT: Wait for settlement transaction notifications
             await user1Listener.waitForEventCount(eventGroup.id, 'transaction', 1);
@@ -987,7 +987,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             notificationDriver.clearEvents();
 
             // ACTION: Create settlement to change balances again
-            const settlement = new SettlementBuilder().withGroupId(balanceGroup.id).withPayer(user2.uid).withPayee(user1.uid).withAmount(30.0).build();
+            const settlement = new CreateSettlementRequestBuilder().withGroupId(balanceGroup.id).withPayerId(user2.uid).withPayeeId(user1.uid).withAmount(30.0).build();
 
             await apiDriver.createSettlement(settlement, user2.token);
 

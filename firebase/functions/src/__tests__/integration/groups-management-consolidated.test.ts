@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, GroupUpdateBuilder, GroupMemberDocumentBuilder, borrowTestUsers, generateShortId, NotificationDriver } from '@splitifyd/test-support';
+import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, GroupUpdateBuilder, GroupMemberDocumentBuilder, borrowTestUsers, generateShortId, NotificationDriver } from '@splitifyd/test-support';
 import { PooledTestUser, FirestoreCollections, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
@@ -233,7 +233,7 @@ describe('Groups Management - Consolidated Tests', () => {
             );
 
             await apiDriver.createSettlement(
-                new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[1].uid).withPayee(users[0].uid).withAmount(20).withNote(`Settlement test ${uniqueId}`).build(),
+                new CreateSettlementRequestBuilder().withGroupId(testGroup.id).withPayerId(users[1].uid).withPayeeId(users[0].uid).withAmount(20).withNote(`Settlement test ${uniqueId}`).build(),
                 users[1].token,
             );
 
@@ -451,7 +451,7 @@ describe('Groups Management - Consolidated Tests', () => {
             const testGroup = await apiDriver.createGroupWithMembers(`Settlement Test ${uuidv4()}`, [users[0], users[1]], users[0].token);
 
             const settlement = await apiDriver.createSettlement(
-                new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(users[1].uid).withAmount(50).withNote('Test settlement').build(),
+                new CreateSettlementRequestBuilder().withGroupId(testGroup.id).withPayerId(users[0].uid).withPayeeId(users[1].uid).withAmount(50).withNote('Test settlement').build(),
                 users[0].token,
             );
 
@@ -722,7 +722,7 @@ describe('Groups Management - Consolidated Tests', () => {
             for (let i = 0; i < 5; i++) {
                 groupPromises.push(apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`List Test Group ${i} ${uuidv4()}`).build(), users[0].token));
             }
-            Promise.all(groupPromises);
+            await Promise.all(groupPromises);
         });
 
         test('should list all user groups', async () => {
@@ -769,7 +769,7 @@ describe('Groups Management - Consolidated Tests', () => {
         });
 
         test('should support ordering', async () => {
-            // Create an additional group with a slight delay to ensure different timestamps
+            // Create an additional group that will be the most recent
             const latestGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`Latest Group ${uuidv4()}`).build(), users[0].token);
 
             const responseDesc = await apiDriver.listGroups(users[0].token, { order: 'desc' });
@@ -1303,7 +1303,7 @@ describe('Groups Management - Consolidated Tests', () => {
             await apiDriver.deleteExpense(expenses[1].id, owner.token);
 
             // Create settlements to populate settlements collection
-            const settlementData = new SettlementBuilder().withGroupId(groupId).withPayer(member1.uid).withPayee(owner.uid).withAmount(50.0).build();
+            const settlementData = new CreateSettlementRequestBuilder().withGroupId(groupId).withPayerId(member1.uid).withPayeeId(owner.uid).withAmount(50.0).build();
             await apiDriver.createSettlement(settlementData, member1.token);
 
             // Create multiple share links to populate shareLinks subcollection

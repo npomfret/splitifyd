@@ -3,7 +3,7 @@ import { validateCreateExpense } from '../../../expenses/validation';
 import { createSettlementSchema } from '../../../settlements/validation';
 import { ApiError } from '../../../utils/errors';
 import type { CreateExpenseRequest, CreateSettlementRequest } from '@splitifyd/shared';
-import { CreateExpenseRequestBuilder, SettlementBuilder, ExpenseSplitBuilder } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, ExpenseSplitBuilder } from '@splitifyd/test-support';
 
 describe('Input Validation Unit Tests', () => {
     describe('Amount Validation', () => {
@@ -284,7 +284,7 @@ describe('Input Validation Unit Tests', () => {
 
     describe('Settlement Validation', () => {
         it('should reject negative settlement amounts', () => {
-            const settlementData = new SettlementBuilder()
+            const settlementData = new CreateSettlementRequestBuilder()
                 .withAmount(-50) // Negative amount
                 .build();
 
@@ -294,7 +294,7 @@ describe('Input Validation Unit Tests', () => {
         });
 
         it('should reject zero settlement amounts', () => {
-            const settlementData = new SettlementBuilder()
+            const settlementData = new CreateSettlementRequestBuilder()
                 .withAmount(0) // Zero amount
                 .build();
 
@@ -304,7 +304,7 @@ describe('Input Validation Unit Tests', () => {
         });
 
         it('should validate settlement amount does not exceed maximum', () => {
-            const settlementData = new SettlementBuilder()
+            const settlementData = new CreateSettlementRequestBuilder()
                 .withAmount(1000000) // Amount exceeds max of 999,999.99
                 .build();
 
@@ -314,10 +314,10 @@ describe('Input Validation Unit Tests', () => {
         });
 
         it('should accept valid settlement amounts', () => {
-            const settlementData = new SettlementBuilder()
+            const settlementData = new CreateSettlementRequestBuilder()
                 .withAmount(50.0)
-                .withPayer('user1')
-                .withPayee('user2')
+                .withPayerId('user1')
+                .withPayeeId('user2')
                 .build();
 
             const { error, value } = createSettlementSchema.validate(settlementData);

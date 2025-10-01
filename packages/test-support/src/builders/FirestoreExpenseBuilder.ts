@@ -9,8 +9,8 @@ export class FirestoreExpenseBuilder extends CreateExpenseRequestBuilder {
     private firestoreFields: any = {
         id: 'expense-1',
         createdBy: 'default-user-id',
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
         deletedAt: null,
         deletedBy: null,
     };
@@ -52,6 +52,18 @@ export class FirestoreExpenseBuilder extends CreateExpenseRequestBuilder {
         return this;
     }
 
+    withMemberIds(memberIds: string[]): FirestoreExpenseBuilder {
+        this.firestoreFields.memberIds = memberIds;
+        return this;
+    }
+
+    withClientCompatibleTimestamps(): FirestoreExpenseBuilder {
+        // For client-side tests that can't handle Firebase Admin Timestamps
+        this.firestoreFields.createdAt = new Date();
+        this.firestoreFields.updatedAt = new Date();
+        return this;
+    }
+
     build(): any {
         const baseExpense = super.build();
         const result = {
@@ -59,8 +71,8 @@ export class FirestoreExpenseBuilder extends CreateExpenseRequestBuilder {
             ...baseExpense,
             // Ensure splits exists for validation
             splits: baseExpense.splits || [{ userId: baseExpense.paidBy, amount: baseExpense.amount }],
-            // Convert date string to Firestore Timestamp
-            date: Timestamp.fromDate(new Date(baseExpense.date)),
+            // Convert date string to Date object for client compatibility
+            date: new Date(baseExpense.date),
         };
         // Remove currency if withoutCurrency was called
         if (this.excludeCurrency) {

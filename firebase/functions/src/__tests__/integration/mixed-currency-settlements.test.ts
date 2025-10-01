@@ -3,7 +3,7 @@
 // This test reproduces the same scenario as the failing e2e test to isolate the issue
 
 import { describe, expect, test } from 'vitest';
-import { ApiDriver, CreateExpenseRequestBuilder, SettlementBuilder, borrowTestUsers, TestGroupManager } from '@splitifyd/test-support';
+import { ApiDriver, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, borrowTestUsers, TestGroupManager } from '@splitifyd/test-support';
 
 describe('Mixed Currency Settlements - API Integration', () => {
     const apiDriver = new ApiDriver();
@@ -42,10 +42,10 @@ describe('Mixed Currency Settlements - API Integration', () => {
         expect(initialDebt?.currency).toBe('USD');
 
         // User2 settles with €75 EUR (different currency than the debt)
-        const settlementData = new SettlementBuilder()
+        const settlementData = new CreateSettlementRequestBuilder()
             .withGroupId(testGroup.id)
-            .withPayer(user2.uid)
-            .withPayee(user1.uid)
+            .withPayerId(user2.uid)
+            .withPayeeId(user1.uid)
             .withAmount(75)
             .withCurrency('EUR')
             .withNote('EUR Settlement for USD Debt')
@@ -107,10 +107,10 @@ describe('Mixed Currency Settlements - API Integration', () => {
         await apiDriver.waitForBalanceUpdate(testGroup.id, user1.token, 3000);
 
         // User2 settles with €75 EUR
-        const settlementData = new SettlementBuilder()
+        const settlementData = new CreateSettlementRequestBuilder()
             .withGroupId(testGroup.id)
-            .withPayer(user2.uid)
-            .withPayee(user1.uid)
+            .withPayerId(user2.uid)
+            .withPayeeId(user1.uid)
             .withAmount(75)
             .withCurrency('EUR')
             .withNote('Testing Currency Conversion Bug')
@@ -162,10 +162,10 @@ describe('Mixed Currency Settlements - API Integration', () => {
         expect(initialDebt?.currency).toBe('USD');
 
         // User2 settles with €75 EUR (different currency than the debt)
-        const settlementData = new SettlementBuilder()
+        const settlementData = new CreateSettlementRequestBuilder()
             .withGroupId(freshTestGroup.id)
-            .withPayer(user2.uid)
-            .withPayee(user1.uid)
+            .withPayerId(user2.uid)
+            .withPayeeId(user1.uid)
             .withAmount(75)
             .withCurrency('EUR')
             .withNote('EUR Settlement for USD Debt')

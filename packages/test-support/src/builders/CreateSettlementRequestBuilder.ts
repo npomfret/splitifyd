@@ -1,5 +1,5 @@
-import { randomString, randomDecimal, randomDate, randomCurrency, generateShortId } from '../test-helpers';
-import { CreateSettlementRequest } from '@splitifyd/shared';
+import { randomDecimal, randomDate, randomString, randomCurrency, generateShortId } from '../test-helpers';
+import type { CreateSettlementRequest } from '@splitifyd/shared';
 
 export class CreateSettlementRequestBuilder {
     private settlement: CreateSettlementRequest;
@@ -9,7 +9,7 @@ export class CreateSettlementRequestBuilder {
             groupId: `group-${generateShortId()}`,
             payerId: `user-${generateShortId()}`,
             payeeId: `user-${generateShortId()}`,
-            amount: randomDecimal(1, 500),
+            amount: randomDecimal(5, 200),
             currency: randomCurrency(),
             date: randomDate(),
             note: `Settlement ${randomString(6)}`,
@@ -36,11 +36,6 @@ export class CreateSettlementRequestBuilder {
         return this;
     }
 
-    withCurrency(currency: string): this {
-        this.settlement.currency = currency;
-        return this;
-    }
-
     withDate(date: string): this {
         this.settlement.date = date;
         return this;
@@ -51,13 +46,18 @@ export class CreateSettlementRequestBuilder {
         return this;
     }
 
-    withoutNote(): this {
-        this.settlement.note = undefined;
+    withCurrency(currency: string): this {
+        this.settlement.currency = currency;
         return this;
     }
 
     withoutDate(): this {
-        this.settlement.date = undefined;
+        delete this.settlement.date;
+        return this;
+    }
+
+    withoutNote(): this {
+        delete this.settlement.note;
         return this;
     }
 

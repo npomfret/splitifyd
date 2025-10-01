@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from 'vitest';
-import { ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, SettlementUpdateBuilder, TestGroupManager, generateShortId } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, TestGroupManager, generateShortId } from '@splitifyd/test-support';
 import { PooledTestUser, UserToken } from '@splitifyd/shared';
 
 describe('Balance & Settlement - Consolidated Tests', () => {
@@ -99,10 +99,10 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
         describe('Settlement Retrieval', () => {
             test('should retrieve a settlement by ID', async () => {
-                const settlementData = new SettlementBuilder()
+                const settlementData = new CreateSettlementRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withPayer(settlementUsers[0].uid)
-                    .withPayee(settlementUsers[1].uid)
+                    .withPayerId(settlementUsers[0].uid)
+                    .withPayeeId(settlementUsers[1].uid)
                     .withAmount(100.0)
                     .withNote('Retrieve test')
                     .build();
@@ -120,7 +120,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             });
 
             test('should reject retrieval by non-group-member', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
+                const settlementData = new CreateSettlementRequestBuilder().withGroupId(testGroup.id).withPayerId(settlementUsers[0].uid).withPayeeId(settlementUsers[1].uid).build();
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
                 const outsiderUser = users[2]; // Get a third user from pool
@@ -135,10 +135,10 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
         describe('Settlement Updates', () => {
             test('should update settlement fields', async () => {
-                const settlementData = new SettlementBuilder()
+                const settlementData = new CreateSettlementRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withPayer(settlementUsers[0].uid)
-                    .withPayee(settlementUsers[1].uid)
+                    .withPayerId(settlementUsers[0].uid)
+                    .withPayeeId(settlementUsers[1].uid)
                     .withAmount(50.0)
                     .withNote('Original note')
                     .build();
@@ -157,7 +157,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             });
 
             test('should reject update by non-creator', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
+                const settlementData = new CreateSettlementRequestBuilder().withGroupId(testGroup.id).withPayerId(settlementUsers[0].uid).withPayeeId(settlementUsers[1].uid).build();
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
@@ -165,7 +165,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             });
 
             test('should validate update data', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
+                const settlementData = new CreateSettlementRequestBuilder().withGroupId(testGroup.id).withPayerId(settlementUsers[0].uid).withPayeeId(settlementUsers[1].uid).build();
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
@@ -175,7 +175,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
         describe('Settlement Deletion', () => {
             test('should delete a settlement', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
+                const settlementData = new CreateSettlementRequestBuilder().withGroupId(testGroup.id).withPayerId(settlementUsers[0].uid).withPayeeId(settlementUsers[1].uid).build();
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
                 await apiDriver.deleteSettlement(created.id, settlementUsers[0].token);
@@ -184,7 +184,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             });
 
             test('should reject deletion by non-creator', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
+                const settlementData = new CreateSettlementRequestBuilder().withGroupId(testGroup.id).withPayerId(settlementUsers[0].uid).withPayeeId(settlementUsers[1].uid).build();
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
@@ -201,20 +201,20 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                 const uniqueId = generateShortId();
                 await Promise.all([
                     apiDriver.createSettlement(
-                        new SettlementBuilder()
+                        new CreateSettlementRequestBuilder()
                             .withGroupId(testGroup.id)
-                            .withPayer(settlementUsers[0].uid)
-                            .withPayee(settlementUsers[1].uid)
+                            .withPayerId(settlementUsers[0].uid)
+                            .withPayeeId(settlementUsers[1].uid)
                             .withAmount(50)
                             .withNote(`First settlement ${uniqueId}`)
                             .build(),
                         settlementUsers[0].token,
                     ),
                     apiDriver.createSettlement(
-                        new SettlementBuilder()
+                        new CreateSettlementRequestBuilder()
                             .withGroupId(testGroup.id)
-                            .withPayer(settlementUsers[1].uid)
-                            .withPayee(settlementUsers[0].uid)
+                            .withPayerId(settlementUsers[1].uid)
+                            .withPayeeId(settlementUsers[0].uid)
                             .withAmount(25)
                             .withNote(`Second settlement ${uniqueId}`)
                             .build(),
@@ -242,10 +242,10 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                 for (let i = 0; i < 5; i++) {
                     settlements.push(
                         apiDriver.createSettlement(
-                            new SettlementBuilder()
+                            new CreateSettlementRequestBuilder()
                                 .withGroupId(testGroup.id)
-                                .withPayer(settlementUsers[0].uid)
-                                .withPayee(settlementUsers[1].uid)
+                                .withPayerId(settlementUsers[0].uid)
+                                .withPayeeId(settlementUsers[1].uid)
                                 .withAmount(10 * (i + 1))
                                 .withNote(`Pagination Settlement ${i + 1} ${uniqueId}`)
                                 .build(),
@@ -316,10 +316,10 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             expect(initialBalances.simplifiedDebts[0].to.uid).toBe(users[0].uid);
 
             // Partial settlement 1: Bob pays Alice €40 (40% of debt)
-            const partialSettlement1 = new SettlementBuilder()
+            const partialSettlement1 = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
-                .withPayer(users[1].uid)
-                .withPayee(users[0].uid)
+                .withPayerId(users[1].uid)
+                .withPayeeId(users[0].uid)
                 .withAmount(40)
                 .withCurrency('EUR')
                 .withNote('Partial payment 1 of 3')
@@ -334,10 +334,10 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             expect(balancesAfter1.balancesByCurrency.EUR[users[0].uid].netBalance).toBe(60);
 
             // Partial settlement 2: Bob pays Alice €35 (partial)
-            const partialSettlement2 = new SettlementBuilder()
+            const partialSettlement2 = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
-                .withPayer(users[1].uid)
-                .withPayee(users[0].uid)
+                .withPayerId(users[1].uid)
+                .withPayeeId(users[0].uid)
                 .withAmount(35)
                 .withCurrency('EUR')
                 .withNote('Partial payment 2 of 3')
@@ -352,10 +352,10 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             expect(balancesAfter2.balancesByCurrency.EUR[users[0].uid].netBalance).toBe(25);
 
             // Final settlement: Bob pays remaining €25
-            const finalSettlement = new SettlementBuilder()
+            const finalSettlement = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
-                .withPayer(users[1].uid)
-                .withPayee(users[0].uid)
+                .withPayerId(users[1].uid)
+                .withPayeeId(users[0].uid)
                 .withAmount(25)
                 .withCurrency('EUR')
                 .withNote('Final settlement payment')
@@ -407,10 +407,10 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             expect(initialBalances.simplifiedDebts[0].from.uid).toBe(users[1].uid);
 
             // Overpayment: Bob pays Alice €100 (exceeds €60 debt)
-            const overpayment = new SettlementBuilder()
+            const overpayment = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
-                .withPayer(users[1].uid)
-                .withPayee(users[0].uid)
+                .withPayerId(users[1].uid)
+                .withPayeeId(users[0].uid)
                 .withAmount(100)
                 .withCurrency('EUR')
                 .withNote('Overpayment settlement')
@@ -475,10 +475,10 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             expect(eurDebt?.amount).toBe(75);
 
             // Partial settlement in USD: Bob pays Alice $60 USD
-            const usdSettlement = new SettlementBuilder()
+            const usdSettlement = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
-                .withPayer(users[1].uid)
-                .withPayee(users[0].uid)
+                .withPayerId(users[1].uid)
+                .withPayeeId(users[0].uid)
                 .withAmount(60)
                 .withCurrency('USD')
                 .withNote('Partial USD settlement')
@@ -496,10 +496,10 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             expect(midEurDebt?.amount).toBe(75); // Unchanged EUR debt
 
             // Partial settlement in EUR: Alice pays Bob €50 EUR
-            const eurSettlement = new SettlementBuilder()
+            const eurSettlement = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
-                .withPayer(users[0].uid)
-                .withPayee(users[1].uid)
+                .withPayerId(users[0].uid)
+                .withPayeeId(users[1].uid)
                 .withAmount(50)
                 .withCurrency('EUR')
                 .withNote('Partial EUR settlement')
