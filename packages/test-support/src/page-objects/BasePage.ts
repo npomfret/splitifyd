@@ -1,5 +1,4 @@
 import { Page, Locator, expect } from '@playwright/test';
-import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
 
 /**
  * Base Page Object Model with shared utilities for Playwright tests

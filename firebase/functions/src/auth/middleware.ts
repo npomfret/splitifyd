@@ -82,7 +82,7 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
  * Admin middleware - requires user to be authenticated and have admin role
  * Must be used after authenticate middleware
  */
-export const requireAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+const requireAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
     // Skip for OPTIONS requests (CORS preflight)
     if (req.method === 'OPTIONS') {
         next();

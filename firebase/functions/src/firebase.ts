@@ -7,11 +7,11 @@ export function isEmulator() {
     return process.env.NODE_ENV === 'development' && process.env.FUNCTIONS_EMULATOR === 'true';
 }
 
-export function isProduction() {
+function isProduction() {
     return process.env.NODE_ENV === 'production';
 }
 
-export function isTest() {
+function isTest() {
     return process.env.NODE_ENV !== 'production' && process.env.FUNCTIONS_EMULATOR !== 'true';
 }
 

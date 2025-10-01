@@ -27,7 +27,7 @@ const envSchema = z.object({
 });
 
 // Type for the CONFIG object
-export interface ClientConfig {
+interface ClientConfig {
     isProduction: boolean;
     requestBodyLimit: string;
     validation: {

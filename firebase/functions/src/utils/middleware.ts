@@ -61,7 +61,7 @@ export const applyStandardMiddleware = (app: express.Application) => {
 /**
  * Middleware to add translation capabilities to requests
  */
-export function i18nMiddleware() {
+function i18nMiddleware() {
     return async (req: LocalizedRequest, res: any, next: any) => {
         try {
             // Ensure i18n is initialized

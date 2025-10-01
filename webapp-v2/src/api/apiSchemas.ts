@@ -8,8 +8,7 @@
 import { z } from 'zod';
 import { SplitTypes } from '@splitifyd/shared';
 
-// Base schemas
-export const UserThemeColorSchema = z.object({
+const UserThemeColorSchema = z.object({
     light: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
     dark: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
     name: z.string().min(1).max(50),
@@ -18,10 +17,7 @@ export const UserThemeColorSchema = z.object({
     colorIndex: z.number().int().min(0),
 });
 
-// Note: MemberSchema was removed as it was unused and had incorrect joinedAt typing
-// GroupMemberSchema below is the correct schema for group member data
-
-export const FirebaseConfigSchema = z.object({
+const FirebaseConfigSchema = z.object({
     apiKey: z.string(),
     authDomain: z.string(),
     projectId: z.string(),
@@ -31,23 +27,22 @@ export const FirebaseConfigSchema = z.object({
     measurementId: z.string().optional(),
 });
 
-export const ApiConfigSchema = z.object({
+const ApiConfigSchema = z.object({
     timeout: z.number(),
     retryAttempts: z.number(),
 });
 
-export const EnvironmentConfigSchema = z.object({
+const EnvironmentConfigSchema = z.object({
     warningBanner: z.string().optional(),
 });
 
-export const FormDefaultsSchema = z.object({
+const FormDefaultsSchema = z.object({
     displayName: z.string().optional(),
     email: z.string().optional(),
     password: z.string().optional(),
 });
 
-// Configuration response
-export const AppConfigurationSchema = z.object({
+const AppConfigurationSchema = z.object({
     firebase: FirebaseConfigSchema,
     api: ApiConfigSchema,
     environment: EnvironmentConfigSchema,

@@ -8,7 +8,7 @@ import { Page } from '@playwright/test';
 /**
  * Page state information for debugging
  */
-export interface PageState {
+interface PageState {
     title: string;
     url: string;
     viewport?: { width: number; height: number };

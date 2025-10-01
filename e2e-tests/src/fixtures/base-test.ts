@@ -42,4 +42,5 @@ export const baseTest = base.extend<{ apiInterceptor: ApiInterceptor }>({
     },
 });
 
-export { expect } from '@playwright/test';
+// Re-export expect for internal use
+const { expect } = require('@playwright/test');

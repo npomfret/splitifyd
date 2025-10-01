@@ -44,7 +44,7 @@ export const SoftDeletionFieldsSchema = z.object({
 /**
  * Document ID field that all Firestore documents have
  */
-export const DocumentIdSchema = z.object({
+const DocumentIdSchema = z.object({
     id: z.string().min(1),
 });
 
@@ -119,7 +119,7 @@ export type FirestoreSecurityFields = z.infer<typeof FirestoreSecurityFieldsSche
 /**
  * Schema configuration options for consistency
  */
-export const SCHEMA_CONFIG = {
+const SCHEMA_CONFIG = {
     // Use passthrough() for forward compatibility unless strict validation is required
     defaultMode: 'passthrough' as const,
 

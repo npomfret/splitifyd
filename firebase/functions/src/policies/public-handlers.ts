@@ -7,18 +7,6 @@ const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
 const policyService = applicationBuilder.buildPolicyService();
 
-/**
- * GET /policies/current - List all current policy versions (public endpoint)
- */
-export const getCurrentPolicies = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const result = await policyService.getCurrentPolicies();
-        res.json(result);
-    } catch (error) {
-        logger.error('Failed to get current policies', error as Error);
-        throw error;
-    }
-};
 
 /**
  * GET /policies/:id/current - Get current version of a specific policy (public endpoint)

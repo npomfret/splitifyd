@@ -133,8 +133,3 @@ class ContextualLoggerImpl implements ContextualLogger {
  * Automatically includes context from AsyncLocalStorage
  */
 export const logger: ContextualLogger = new ContextualLoggerImpl();
-
-/**
- * Also export as contextualLogger for clarity
- */
-export const contextualLogger = logger;

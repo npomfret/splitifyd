@@ -206,23 +206,6 @@ export function logApiResponse(
     }
 }
 
-/**
- * Log a navigation event
- */
-export function logNavigation(from: string, to: string, details?: Record<string, any>): void {
-    const logData = {
-        ...getUserContext(),
-        level: LogLevel.AUDIT,
-        eventType: 'navigation',
-        from,
-        to,
-        ...details,
-    };
-
-    if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
-        console.log(`%c🧭 NAVIGATION: ${from} → ${to}`, LOG_STYLES.navigation, JSON.stringify(logData));
-    }
-}
 
 /**
  * Logs an error with full context information

@@ -26,15 +26,7 @@
     "postinstall": "cd e2e-tests && npx playwright install chromium",
     "prepare": "npm run build -w @splitifyd/shared || true",
     "format": "prettier --write .",
-    "check:unused": "npx knip",
-    "check:unused:webapp": "npx knip --include exports,dependencies,files | grep 'webapp-v2/'",
-    "check:unused:functions": "npx knip --include exports,dependencies,files | grep 'firebase/functions/'",
-    "check:unused:shared": "npx knip --include exports,dependencies,files | grep 'packages/shared/'",
-    "check:unused:e2e": "npx knip --include exports,dependencies,files | grep 'e2e-tests/'",
-    "check:unused:exports": "npx knip --exports",
-    "check:unused:dependencies": "npx knip --dependencies",
-    "check:unused:files": "npx knip --files",
-    "check:unused:production": "npx knip --production"
+    "check:unused:report": "npx knip > knip-analysis-updated.txt"
   },
   "devDependencies": {
     "@types/node": "^24.0.14",

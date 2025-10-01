@@ -14,18 +14,6 @@ export { FirebaseAuthService } from './FirebaseAuthService';
 
 export { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
 
-// Validation functions
-export {
-    validateCreateUser,
-    validateUpdateUser,
-    validateUserId,
-    validateEmail,
-    validatePhoneNumber,
-    validateIdToken,
-    validateCustomClaims,
-    validateListUsersOptions,
-    validateBatchUserIds,
-} from './auth-validation';
+// Validation functions are used internally and don't need to be exported
 
-// Validation schemas (for direct use if needed)
-export { createUserSchema, updateUserSchema, userIdSchema, emailSchema, phoneNumberSchema, idTokenSchema, customClaimsSchema, listUsersOptionsSchema, batchUserIdsSchema } from './auth-validation';
+// Validation schemas are used internally and don't need to be exported

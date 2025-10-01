@@ -137,7 +137,7 @@ class ThemeStoreImpl implements ThemeStore {
 // Singleton instance
 let themeStoreInstance: ThemeStoreImpl | null = null;
 
-export const getThemeStore = (): ThemeStoreImpl => {
+const getThemeStore = (): ThemeStoreImpl => {
     if (!themeStoreInstance) {
         themeStoreInstance = ThemeStoreImpl.create();
     }

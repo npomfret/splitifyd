@@ -14,7 +14,7 @@ export const ExpenseSplitSchema = z.object({
 // Note: GroupMember and GroupData schemas removed - use canonical GroupDocument and GroupMemberDocument from schemas/group.ts and @splitifyd/shared
 
 // Schema for Expense entity used in balance calculations
-export const ExpenseBalanceSchema = z.object({
+const ExpenseBalanceSchema = z.object({
     id: z.string(),
     groupId: z.string(),
     description: z.string(),
@@ -32,7 +32,7 @@ export const ExpenseBalanceSchema = z.object({
 });
 
 // Schema for Settlement entity used in balance calculations
-export const SettlementBalanceSchema = z.object({
+const SettlementBalanceSchema = z.object({
     id: z.string(),
     groupId: z.string(),
     payerId: z.string(),
@@ -45,7 +45,7 @@ export const SettlementBalanceSchema = z.object({
 });
 
 // Schema for UserBalance (from @splitifyd/shared)
-export const UserBalanceSchema = z.object({
+const UserBalanceSchema = z.object({
     uid: z.string(),
     owes: z.record(z.string(), z.number()),
     owedBy: z.record(z.string(), z.number()),
@@ -53,7 +53,7 @@ export const UserBalanceSchema = z.object({
 });
 
 // Schema for SimplifiedDebt (from @splitifyd/shared)
-export const SimplifiedDebtSchema = z.object({
+const SimplifiedDebtSchema = z.object({
     from: z.object({
         uid: z.string(),
     }),
@@ -65,7 +65,7 @@ export const SimplifiedDebtSchema = z.object({
 });
 
 // Schema for CurrencyBalances - record of currency to user balances
-export const CurrencyBalancesSchema = z.record(
+const CurrencyBalancesSchema = z.record(
     z.string(), // currency
     z.record(z.string(), UserBalanceSchema), // userId to UserBalance
 );

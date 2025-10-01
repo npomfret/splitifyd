@@ -1,10 +1,8 @@
 export { GroupHeader } from './GroupHeader';
 export { GroupActions } from './GroupActions';
-export { MembersList } from './MembersList';
 export { MembersListWithManagement } from './MembersListWithManagement';
 export { BalanceSummary } from './BalanceSummary';
 export { ExpensesList } from './ExpensesList';
-export { ExpenseItem } from './ExpenseItem';
 export { ShareGroupModal } from './ShareGroupModal';
 export { EditGroupModal } from './EditGroupModal';
 export { LeaveGroupDialog } from './LeaveGroupDialog';

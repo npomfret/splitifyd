@@ -6,7 +6,7 @@
 /**
  * Base error class for all E2E test errors
  */
-export class E2ETestError extends Error {
+class E2ETestError extends Error {
     public readonly timestamp: string;
     public readonly context: Record<string, any>;
 

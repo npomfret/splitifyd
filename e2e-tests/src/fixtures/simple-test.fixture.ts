@@ -15,7 +15,7 @@ interface BrowserInstance {
     screenshotHandler: ScreenshotHandler;
 }
 
-export interface SimpleTestFixtures {
+interface SimpleTestFixtures {
     newEmptyBrowser(): Promise<{ page: Page; loginPage: LoginPage }>;
 
     /**

@@ -13,26 +13,20 @@
 
 // Common schema fragments and utilities
 export {
-    FirestoreTimestampSchema,
-    AuditFieldsSchema,
-    OptionalAuditFieldsSchema,
-    SoftDeletionFieldsSchema,
-    DocumentIdSchema,
     CurrencyCodeSchema,
     UserIdSchema,
     GroupIdSchema,
     createDocumentSchemas,
-    SCHEMA_CONFIG,
 } from './common';
 
 // Comment schemas
 export { CommentDocumentSchema, CommentDataSchema, type ParsedComment, type CommentData } from './comment';
 
 // Expense schemas
-export { ExpenseDocumentSchema, ExpenseDataSchema, ExpenseSplitSchema, type ExpenseDocument, type ExpenseData } from './expense';
+export { ExpenseDocumentSchema, ExpenseSplitSchema, type ExpenseDocument } from './expense';
 
 // Settlement schemas
-export { SettlementDocumentSchema, SettlementDataSchema, type SettlementDocument, type SettlementData } from './settlement';
+export { SettlementDocumentSchema, type SettlementDocument } from './settlement';
 
 // ShareLink schemas
 export { ShareLinkDocumentSchema, ShareLinkDataSchema, type ParsedShareLink, type ShareLinkData } from './sharelink';
@@ -41,18 +35,18 @@ export { ShareLinkDocumentSchema, ShareLinkDataSchema, type ParsedShareLink, typ
 export { UserDocumentSchema, UserDataSchema, type UserDocument, type UserData } from './user';
 
 // Policy schemas
-export { PolicyDocumentSchema, PolicyDataSchema, PolicyVersionSchema, type PolicyDocument, type PolicyData, type PolicyVersion } from './policy';
+export { PolicyDocumentSchema, PolicyDataSchema, type PolicyDocument, type PolicyData } from './policy';
 
 // Group schemas
-export { GroupDocumentSchema, GroupDataSchema, GroupMemberSchema, GroupMemberDocumentSchema, type GroupDocument, type GroupData, type GroupMember, type ParsedGroupMemberDocument } from './group';
+export { GroupDocumentSchema, GroupDataSchema, GroupMemberDocumentSchema, type GroupDocument, type GroupData, type ParsedGroupMemberDocument } from './group';
 
 // Group membership schemas
 export { TopLevelGroupMemberSchema, type ParsedTopLevelGroupMemberDocument } from './group-membership';
 
-// Validation monitoring and utilities
-export { validateWithMonitoring, validateSafely, EnhancedValidationError, getValidationMetrics, resetValidationMetrics, startValidationMetricsLogging } from './validation-monitor';
+// Validation monitoring and utilities - only export what's actually used
+export { EnhancedValidationError } from './validation-monitor';
 
-export { validateFirestoreDocument, validateBeforeWrite, validateUpdate, monitorValidation, validateDocumentBatch, createValidatedTransform, safeWrite } from './validation-helpers';
+export { validateBeforeWrite, validateUpdate } from './validation-helpers';
 
 // Change tracking schemas
 export { TransactionChangeDocumentSchema, BalanceChangeDocumentSchema, type TransactionChangeDocument, type BalanceChangeDocument } from './change-documents';
@@ -61,20 +55,9 @@ export { TransactionChangeDocumentSchema, BalanceChangeDocumentSchema, type Tran
 export {
     BalanceCalculationResultSchema,
     BalanceCalculationInputSchema,
-    CurrencyBalancesSchema,
-    UserBalanceSchema,
-    SimplifiedDebtSchema,
     BalanceDisplaySchema,
     CurrencyBalanceDisplaySchema,
-    ExpenseBalanceSchema,
-    SettlementBalanceSchema,
     type ParsedBalanceCalculationResult,
     type ParsedBalanceCalculationInput,
     type ParsedCurrencyBalances,
-    type ParsedUserBalance,
-    type ParsedSimplifiedDebt,
-    type ParsedBalanceDisplay,
-    type ParsedCurrencyBalanceDisplay,
-    type ParsedExpenseBalance,
-    type ParsedSettlementBalance,
 } from './balance';

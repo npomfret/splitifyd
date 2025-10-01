@@ -44,7 +44,7 @@ export const ARIA_ROLES = {
     MAIN: 'main',
 } as const;
 
-export const HEADINGS = {
+const HEADINGS = {
     SIGN_IN: translation.loginPage.title,
     CREATE_ACCOUNT: translation.registerPage.title,
     PRICING: 'Pricing',
