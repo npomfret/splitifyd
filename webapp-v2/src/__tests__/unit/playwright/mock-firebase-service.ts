@@ -9,9 +9,10 @@ interface AuthError {
 
 interface MockFirebaseState {
     currentUser: ClientUser | null;
-    loginBehavior: 'success' | 'failure' | 'unconfigured';
+    loginBehavior: 'success' | 'failure' | 'delayed' | 'unconfigured';
     successUser: ClientUser | null;
     failureError: AuthError | null;
+    delayMs?: number;
 }
 
 declare global {
@@ -51,6 +52,7 @@ export class MockFirebase {
             loginBehavior: 'unconfigured',
             successUser: null,
             failureError: null,
+            delayMs: undefined,
         };
     }
 
@@ -142,7 +144,12 @@ export class MockFirebase {
             throw this.state.failureError;
         }
 
-        if (this.state.loginBehavior === 'success' && this.state.successUser) {
+        if ((this.state.loginBehavior === 'success' || this.state.loginBehavior === 'delayed') && this.state.successUser) {
+            // Add delay if configured
+            if (this.state.loginBehavior === 'delayed' && this.state.delayMs) {
+                await new Promise(resolve => setTimeout(resolve, this.state.delayMs));
+            }
+
             this.state.currentUser = this.state.successUser;
 
             // Trigger auth state change with the logged-in user
@@ -159,7 +166,7 @@ export class MockFirebase {
             return;
         }
 
-        throw new Error('Mock login not configured. Use mockLoginSuccess() or mockLoginFailure() first.');
+        throw new Error('Mock login not configured. Use mockLoginSuccess(), mockLoginWithDelay(), or mockLoginFailure() first.');
     }
 
     private async handleSignOut(): Promise<void> {
@@ -185,6 +192,13 @@ export class MockFirebase {
         this.state.loginBehavior = 'failure';
         this.state.successUser = null;
         this.state.failureError = error;
+    }
+
+    public mockLoginWithDelay(user: ClientUser, delayMs: number): void {
+        this.state.loginBehavior = 'delayed';
+        this.state.successUser = user;
+        this.state.failureError = null;
+        this.state.delayMs = delayMs;
     }
 
     public async triggerNotificationUpdate(userId: string, data: UserNotificationDocument): Promise<void> {

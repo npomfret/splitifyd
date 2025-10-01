@@ -100,6 +100,8 @@ npx vitest run --coverage
 
 This project contains the frontend Preact application and uses both Vitest for traditional unit tests and Playwright for browser-based unit tests.
 
+#### Vitest Tests
+
 ```bash
 # Navigate to the webapp-v2 directory first
 cd webapp-v2
@@ -107,14 +109,46 @@ cd webapp-v2
 # Running a single Vitest test file
 npx vitest run src/__tests__/unit/vitest/your-vitest-file.test.ts
 
-# Running a single Playwright test file
-npx playwright test src/__tests__/unit/playwright/your-playwright-file.playwright.test.ts
+# Running tests in watch mode
+npx vitest watch
+```
 
-# Running a single Playwright test case
-npx playwright test src/__tests__/unit/playwright/your-playwright-file.playwright.test.t --grep "should..."
+#### Playwright Tests
 
-# Running all Playwright tests
-npx playwright test
+For Playwright tests in `webapp-v2/src/__tests__/unit/playwright/`, **always use the `run-test.sh` script** instead of running `npx playwright test` directly. This script provides better error handling, automatic port detection, and consistent test execution.
+
+```bash
+# Navigate to the webapp-v2 directory first
+cd webapp-v2
+
+# Running an entire test file (preferred method)
+./run-test.sh login                          # Run all tests in login.test.ts
+./run-test.sh dashboard                      # Run all tests in dashboard.test.ts
+
+# Running a specific test within a file
+./run-test.sh login "should show error"      # Run specific test matching the text
+./run-test.sh login "should log in successfully"
+
+# Running tests with browser visible (for debugging)
+./run-test.sh login --headed                 # Run all login tests with browser visible
+./run-test.sh login "should show error" --headed  # Run specific test with browser visible
+
+# List available test files
+./run-test.sh  # Shows usage and lists all available test files
+```
+
+**Why use `run-test.sh`?**
+- **Automatic port detection**: Works with random ports to avoid conflicts
+- **Better error messages**: Clear feedback when tests fail to run
+- **Consistent environment**: Sets proper environment variables
+- **Simplified syntax**: No need to remember full file paths or complex Playwright flags
+
+**Direct Playwright commands (not recommended for unit tests):**
+```bash
+# These work but are less reliable and harder to use
+npx playwright test src/__tests__/unit/playwright/login.test.ts
+npx playwright test --grep "specific test name"
+npx playwright test  # Run all Playwright tests
 ```
 
 ### `e2e-tests`
