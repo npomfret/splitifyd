@@ -41,9 +41,6 @@ export { TopLevelGroupMemberSchema } from './group-membership';
 // Validation monitoring and utilities - only export what's actually used
 export { validateBeforeWrite, validateUpdate } from './validation-helpers';
 
-// Change tracking schemas
-export { TransactionChangeDocumentSchema, BalanceChangeDocumentSchema } from './change-documents';
-
 // Balance calculation schemas
 export {
     BalanceCalculationResultSchema,

@@ -26,13 +26,15 @@
     "postinstall": "cd e2e-tests && npx playwright install chromium",
     "prepare": "npm run build -w @splitifyd/shared || true",
     "format": "prettier --write .",
-    "check:unused:report": "npx knip > knip-analysis-updated.txt"
+    "check:unused:report": "npx knip > knip-analysis-updated.txt",
+    "check:unused-methods": "npx tsx scripts/find-unused-interface-methods.ts"
   },
   "devDependencies": {
     "@types/node": "^24.0.14",
     "concurrently": "^9.2.0",
     "knip": "^5.64.1",
     "prettier": "^3.6.2",
+    "ts-morph": "^27.0.0",
     "typescript": "^5.8.3"
   }
 }

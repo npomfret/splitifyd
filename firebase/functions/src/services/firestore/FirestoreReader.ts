@@ -37,7 +37,7 @@ import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument, 
 import type { GroupMemberDocument, TopLevelGroupMemberDocument } from '@splitifyd/shared';
 import type { ParsedGroupMemberDocument } from '../../schemas';
 import type { IFirestoreReader, FirestoreOrderField } from './IFirestoreReader';
-import type { QueryOptions, GroupMemberQueryOptions, PaginatedResult, GroupsPaginationCursor, OrderBy, BatchGroupFetchOptions } from './IFirestoreReader';
+import type { QueryOptions, PaginatedResult, GroupsPaginationCursor, OrderBy, BatchGroupFetchOptions } from './IFirestoreReader';
 
 export class FirestoreReader implements IFirestoreReader {
     constructor(private readonly db: Firestore) {}
@@ -318,18 +318,6 @@ export class FirestoreReader implements IFirestoreReader {
     // Collection Read Operations - Minimal Implementation
     // ========================================================================
 
-    async getUsersById(userIds: string[]): Promise<UserDocument[]> {
-        // TODO: Implement batch read
-        const users: UserDocument[] = [];
-        for (const userId of userIds) {
-            const user = await this.getUser(userId);
-            if (user) {
-                users.push(user);
-            }
-        }
-        return users;
-    }
-
     /**
      * ✅ FIXED: Efficient paginated group retrieval with hybrid strategy
      *
@@ -415,59 +403,6 @@ export class FirestoreReader implements IFirestoreReader {
                 totalEstimate: hasMore ? groups.length + 10 : groups.length,
             };
         });
-    }
-
-    async getGroupMembers(groupId: string, options?: GroupMemberQueryOptions): Promise<GroupMemberDocument[]> {
-        try {
-            // Use top-level collection instead of subcollection
-            let query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('groupId', '==', groupId);
-
-            // Apply filters if specified
-            if (options?.includeInactive === false) {
-                query = query.where('memberStatus', '==', 'active');
-            }
-
-            if (options?.roles && options.roles.length > 0) {
-                query = query.where('memberRole', 'in', options.roles);
-            }
-
-            const snapshot = await query.get();
-            const parsedMembers: ParsedGroupMemberDocument[] = [];
-
-            for (const doc of snapshot.docs) {
-                try {
-                    const topLevelData = doc.data() as any; // Use any to handle legacy data
-                    // Handle backward compatibility: support both uid and legacy userId fields
-                    const uid = topLevelData.uid || (topLevelData as any).userId;
-                    if (!uid) {
-                        throw new Error(`Group member document ${doc.id} is missing uid field`);
-                    }
-                    // Convert top-level document back to GroupMemberDocument format
-                    const memberData = GroupMemberDocumentSchema.parse({
-                        id: uid, // Use uid as the document ID
-                        uid: uid,
-                        groupId: topLevelData.groupId,
-                        memberRole: topLevelData.memberRole,
-                        memberStatus: topLevelData.memberStatus,
-                        joinedAt: topLevelData.joinedAt,
-                        theme: topLevelData.theme,
-                        invitedBy: topLevelData.invitedBy,
-                        lastPermissionChange: topLevelData.lastPermissionChange,
-                        createdAt: topLevelData.createdAt,
-                        updatedAt: topLevelData.updatedAt,
-                    });
-                    parsedMembers.push(memberData);
-                } catch (error) {
-                    logger.error('Invalid group member document in getGroupMembers', error);
-                    // Skip invalid documents rather than failing the entire query
-                }
-            }
-
-            return parsedMembers;
-        } catch (error) {
-            logger.error('Failed to get group members', error);
-            throw error;
-        }
     }
 
     async getGroupMember(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
@@ -665,49 +600,6 @@ export class FirestoreReader implements IFirestoreReader {
     // Transaction-aware Read Operations
     // ========================================================================
 
-    async getGroupInTransaction(transaction: Transaction, groupId: string): Promise<GroupDocument | null> {
-        try {
-            const groupRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
-            const groupDoc = await transaction.get(groupRef);
-
-            if (!groupDoc.exists) {
-                return null;
-            }
-
-            const groupData = GroupDocumentSchema.parse({
-                id: groupDoc.id,
-                ...groupDoc.data(),
-            });
-
-            return groupData;
-        } catch (error) {
-            logger.error('Failed to get group in transaction', error);
-            throw error;
-        }
-    }
-
-    async getUserInTransaction(transaction: Transaction, userId: string): Promise<UserDocument | null> {
-        try {
-            const userRef = this.db.collection(FirestoreCollections.USERS).doc(userId);
-            const userDoc = await transaction.get(userRef);
-
-            if (!userDoc.exists) {
-                return null;
-            }
-
-            const userData = UserDocumentSchema.parse({
-                id: userDoc.id,
-                ...userDoc.data(),
-            });
-
-            return userData;
-        } catch (error) {
-            logger.error('Failed to get user in transaction', error);
-            throw error;
-        }
-    }
-
-
     // ========================================================================
     // Real-time Subscription Operations - Minimal Implementation
     // ========================================================================
@@ -771,16 +663,6 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async userNotificationExists(userId: string): Promise<boolean> {
-        try {
-            const doc = await this.db.collection('user-notifications').doc(userId).get();
-            return doc.exists;
-        } catch (error) {
-            logger.error('Failed to check user notification existence', error);
-            throw error;
-        }
-    }
-
     // ========================================================================
     // Share Link Operations
     // ========================================================================
@@ -807,53 +689,6 @@ export class FirestoreReader implements IFirestoreReader {
             return { groupId, shareLink };
         } catch (error) {
             logger.error('Failed to find share link by token', error);
-            throw error;
-        }
-    }
-
-    async getShareLinksForGroup(groupId: string): Promise<ParsedShareLink[]> {
-        try {
-            const snapshot = await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks').where('isActive', '==', true).orderBy('createdAt', 'desc').get();
-
-            const shareLinks: ParsedShareLink[] = [];
-
-            for (const doc of snapshot.docs) {
-                try {
-                    const rawData = doc.data();
-                    const dataWithId = { ...rawData, id: doc.id };
-                    const shareLink = ShareLinkDocumentSchema.parse(dataWithId);
-                    shareLinks.push(shareLink);
-                } catch (error) {
-                    logger.error('Invalid share link document in getShareLinksForGroup', error);
-                    // Skip invalid documents rather than failing the entire query
-                }
-            }
-
-            return shareLinks;
-        } catch (error) {
-            logger.error('Failed to get share links for group', error);
-            throw error;
-        }
-    }
-
-    async getShareLink(groupId: string, shareLinkId: string): Promise<ParsedShareLink | null> {
-        try {
-            const doc = await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks').doc(shareLinkId).get();
-
-            if (!doc.exists) {
-                return null;
-            }
-
-            const rawData = doc.data();
-            if (!rawData) {
-                return null;
-            }
-
-            const dataWithId = { ...rawData, id: doc.id };
-            const shareLink = ShareLinkDocumentSchema.parse(dataWithId);
-            return shareLink;
-        } catch (error) {
-            logger.error('Failed to get share link', error);
             throw error;
         }
     }
@@ -920,28 +755,6 @@ export class FirestoreReader implements IFirestoreReader {
             logger.error('Failed to get comments for target', error);
             throw error;
         }
-    }
-
-    async getCommentByReference(commentDocRef: FirebaseFirestore.DocumentReference): Promise<ParsedComment | null> {
-        return measureDb('FirestoreReader.getCommentByReference', async () => {
-            try {
-                const doc = await commentDocRef.get();
-                if (!doc.exists) {
-                    return null;
-                }
-
-                const rawData = doc.data();
-                if (!rawData) {
-                    return null;
-                }
-
-                const dataWithId = { ...rawData, id: doc.id };
-                return CommentDocumentSchema.parse(dataWithId);
-            } catch (error) {
-                logger.error('Failed to get comment by reference', error);
-                throw error;
-            }
-        });
     }
 
     async getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<ParsedComment | null> {
@@ -1238,22 +1051,6 @@ export class FirestoreReader implements IFirestoreReader {
 
 
 
-
-
-
-
-    async getRawDocumentInTransaction(transaction: FirebaseFirestore.Transaction, collection: string, docId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
-        try {
-            const docRef = this.db.collection(collection).doc(docId);
-            const doc = await transaction.get(docRef);
-            return doc.exists ? doc : null;
-        } catch (error) {
-            logger.error('Failed to get raw document in transaction', error, { collection, docId });
-            throw error;
-        }
-    }
-
-
     async getRawGroupDocument(groupId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
         try {
             const doc = await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).get();
@@ -1306,19 +1103,6 @@ export class FirestoreReader implements IFirestoreReader {
             throw error;
         }
     }
-
-    async getRawUserDocumentInTransaction(transaction: FirebaseFirestore.Transaction, userId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
-        try {
-            const docRef = this.db.collection(FirestoreCollections.USERS).doc(userId);
-            const doc = await transaction.get(docRef);
-            return doc.exists ? doc : null;
-        } catch (error) {
-            logger.error('Failed to get raw user document in transaction', error, { userId });
-            throw error;
-        }
-    }
-
-
 
     async getGroupMembershipsInTransaction(transaction: FirebaseFirestore.Transaction, groupId: string): Promise<FirebaseFirestore.QuerySnapshot> {
         try {

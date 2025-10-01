@@ -130,17 +130,6 @@ export interface IFirestoreReader {
     // Collection Read Operations - User-related
     // ========================================================================
 
-    /**
-     * Get multiple user documents by IDs
-     * @param userIds - Array of user IDs
-     * @returns Array of user documents (missing users are excluded)
-     */
-    getUsersById(userIds: string[]): Promise<UserDocument[]>;
-
-    // ========================================================================
-    // Collection Read Operations - Group-related
-    // ========================================================================
-
 
     /**
      * Get all groups where the user is a member using V2 implementation (top-level collection)
@@ -160,14 +149,6 @@ export interface IFirestoreReader {
             };
         },
     ): Promise<PaginatedResult<GroupDocument[]>>;
-
-    /**
-     * Get group members for a specific group
-     * @param groupId - The group ID
-     * @param options - Options for filtering members
-     * @returns Array of group member documents
-     */
-    getGroupMembers(groupId: string, options?: GroupMemberQueryOptions): Promise<GroupMemberDocument[]>;
 
     /**
      * Get a single member from a group
@@ -258,23 +239,6 @@ export interface IFirestoreReader {
     // Transaction-aware Read Operations
     // ========================================================================
 
-    /**
-     * Get a group document within a transaction context
-     * @param transaction - The transaction context
-     * @param groupId - The group ID
-     * @returns Group document or null if not found
-     */
-    getGroupInTransaction(transaction: Transaction, groupId: string): Promise<GroupDocument | null>;
-
-    /**
-     * Get a user document within a transaction context
-     * @param transaction - The transaction context
-     * @param userId - The user ID
-     * @returns User document or null if not found
-     */
-    getUserInTransaction(transaction: Transaction, userId: string): Promise<UserDocument | null>;
-
-
     // ========================================================================
     // Real-time Subscription Operations
     // ========================================================================
@@ -312,13 +276,6 @@ export interface IFirestoreReader {
      */
     getUserNotification(userId: string): Promise<UserNotificationDocument | null>;
 
-    /**
-     * Check if a user notification document exists
-     * @param userId - The user ID
-     * @returns True if notification document exists, false otherwise
-     */
-    userNotificationExists(userId: string): Promise<boolean>;
-
     // ========================================================================
     // Share Link Operations
     // ========================================================================
@@ -329,21 +286,6 @@ export interface IFirestoreReader {
      * @returns Object with groupId and share link, or null if not found
      */
     findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ParsedShareLink } | null>;
-
-    /**
-     * Get all active share links for a group
-     * @param groupId - The group ID
-     * @returns Array of share link documents
-     */
-    getShareLinksForGroup(groupId: string): Promise<ParsedShareLink[]>;
-
-    /**
-     * Get a specific share link by group and link ID
-     * @param groupId - The group ID
-     * @param shareLinkId - The share link ID
-     * @returns Share link document or null if not found
-     */
-    getShareLink(groupId: string, shareLinkId: string): Promise<ParsedShareLink | null>;
 
     // ========================================================================
     // Comment Operations
@@ -375,15 +317,6 @@ export interface IFirestoreReader {
      * @returns Comment document or null if not found
      */
     getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<ParsedComment | null>;
-
-    /**
-     * Get a comment by its document reference
-     * @param commentDocRef - The comment document reference
-     * @returns Comment document or null if not found
-     */
-    getCommentByReference(commentDocRef: FirebaseFirestore.DocumentReference): Promise<ParsedComment | null>;
-
-
 
     // ========================================================================
     // Group Related Collections Operations
@@ -459,16 +392,6 @@ export interface IFirestoreReader {
 
 
     /**
-     * Get raw document data in a transaction
-     * @param transaction - Firestore transaction
-     * @param collection - Collection name
-     * @param docId - Document ID
-     * @returns Raw document snapshot or null if not found
-     */
-    getRawDocumentInTransaction(transaction: Transaction, collection: string, docId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
-
-
-    /**
      * Get raw group document for optimistic locking scenarios
      * @param groupId - The group ID
      * @returns Raw document snapshot or null if not found
@@ -505,16 +428,6 @@ export interface IFirestoreReader {
      * @returns Raw document snapshot or null if not found
      */
     getRawSettlementDocumentInTransaction(transaction: Transaction, settlementId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
-
-    /**
-     * Get raw user document in a transaction for optimistic locking
-     * @param transaction - Firestore transaction
-     * @param userId - The user ID
-     * @returns Raw document snapshot or null if not found
-     */
-    getRawUserDocumentInTransaction(transaction: Transaction, userId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
-
-
 
     /**
      * Get group membership documents in a transaction

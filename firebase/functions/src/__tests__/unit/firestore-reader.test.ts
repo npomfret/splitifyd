@@ -41,13 +41,8 @@ describe('FirestoreReader', () => {
         expect(typeof reader.getPolicy).toBe('function');
 
         // Collection operations
-        expect(typeof reader.getUsersById).toBe('function');
         expect(typeof reader.getGroupsForUserV2).toBe('function');
         expect(typeof reader.getExpensesForGroup).toBe('function');
-
-        // Transaction operations
-        expect(typeof reader.getGroupInTransaction).toBe('function');
-        expect(typeof reader.getUserInTransaction).toBe('function');
 
         // Utility operations
         expect(typeof reader.documentExists).toBe('function');
@@ -69,7 +64,6 @@ describe('StubFirestoreReader', () => {
         expect(stubReader.getUser).toBeDefined();
         expect(stubReader.getGroup).toBeDefined();
         expect(stubReader.getExpense).toBeDefined();
-        expect(stubReader.getUsersById).toBeDefined();
     });
 
     test('should provide test utilities', () => {

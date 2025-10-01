@@ -217,17 +217,6 @@ export class StubFirestoreReader implements IFirestoreReader {
         return this.rawDocuments.get(policyId) || null;
     }
 
-    // Minimal implementations for other required methods
-    async getUsersById(userIds: string[]): Promise<UserDocument[]> {
-        const users: UserDocument[] = [];
-        for (const userId of userIds) {
-            const user = this.documents.get(`users/${userId}`);
-            if (user) {
-                users.push(user);
-            }
-        }
-        return users;
-    }
     // Mock-enabled getGroupsForUserV2
     async getGroupsForUserV2(userId: string, options?: any): Promise<any> {
         const error = this.methodErrors.get('getGroupsForUserV2');
@@ -282,10 +271,6 @@ export class StubFirestoreReader implements IFirestoreReader {
         }
 
         return { data: [], hasMore: false };
-    }
-
-    async getGroupMembers(): Promise<GroupMemberDocument[]> {
-        return [];
     }
 
     async getGroupMember(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
@@ -371,14 +356,6 @@ export class StubFirestoreReader implements IFirestoreReader {
         );
     }
 
-    async getGroupInTransaction(): Promise<GroupDocument | null> {
-        return null;
-    }
-
-    async getUserInTransaction(): Promise<UserDocument | null> {
-        return null;
-    }
-
     async documentExists(): Promise<boolean> {
         return false;
     }
@@ -387,19 +364,7 @@ export class StubFirestoreReader implements IFirestoreReader {
         return null;
     }
 
-    async userNotificationExists(): Promise<boolean> {
-        return false;
-    }
-
     async findShareLinkByToken(): Promise<any | null> {
-        return null;
-    }
-
-    async getShareLinksForGroup(): Promise<ParsedShareLink[]> {
-        return [];
-    }
-
-    async getShareLink(): Promise<ParsedShareLink | null> {
         return null;
     }
 
@@ -416,10 +381,6 @@ export class StubFirestoreReader implements IFirestoreReader {
     async getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<ParsedComment | null> {
         const comments = sharedCommentStorage.get(`${targetType}:${targetId}`) || [];
         return comments.find((c) => c.id === commentId) || null;
-    }
-
-    async getCommentByReference(): Promise<ParsedComment | null> {
-        return null;
     }
 
     async getGroupDeletionData(): Promise<any> {
@@ -443,10 +404,6 @@ export class StubFirestoreReader implements IFirestoreReader {
 
     async getGroupMembershipsInTransaction(): Promise<any> {
         return {docs: [], size: 0, empty: true};
-    }
-
-    async getRawDocumentInTransaction(): Promise<any | null> {
-        return null;
     }
 
     async getRawExpenseDocumentInTransaction(transaction: any, expenseId: string): Promise<any | null> {
@@ -482,9 +439,6 @@ export class StubFirestoreReader implements IFirestoreReader {
         return null;
     }
 
-    async getRawUserDocumentInTransaction(): Promise<any | null> {
-        return null;
-    }
 }
 
 /**
