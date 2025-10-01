@@ -1,5 +1,5 @@
-import { test, expect } from './console-logging-fixture';
-import { createMockFirebase, setupSuccessfulApiMocks } from './mock-firebase-service';
+import { test, expect } from '../../utils/console-logging-fixture';
+import { createMockFirebase, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 import { ClientUserBuilder, LoginPage } from '@splitifyd/test-support';
 
 test.describe('Authentication Flow', () => {

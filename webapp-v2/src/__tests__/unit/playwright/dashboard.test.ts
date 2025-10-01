@@ -1,5 +1,5 @@
-import { test, expect } from './console-logging-fixture';
-import {createMockFirebase, mockGroupsApi, mockApiFailure, mockFullyAcceptedPoliciesApi, setupSuccessfulApiMocks, MockFirebase} from './mock-firebase-service';
+import { test, expect } from '../../utils/console-logging-fixture';
+import {createMockFirebase, mockGroupsApi, mockApiFailure, mockFullyAcceptedPoliciesApi, setupSuccessfulApiMocks, MockFirebase} from '../../utils/mock-firebase-service';
 import { ClientUserBuilder, GroupBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder, DashboardPage } from '@splitifyd/test-support';
 
 // Configure all tests to run in serial mode for browser reuse
