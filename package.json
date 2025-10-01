@@ -27,7 +27,7 @@
     "prepare": "npm run build -w @splitifyd/shared || true",
     "format": "prettier --write .",
     "check:unused:report": "npx knip > knip-analysis-updated.txt",
-    "check:unused-methods": "npx tsx scripts/find-unused-interface-methods.ts"
+    "check:unused-methods": "npx tsx scripts/find-unused-methods.ts"
   },
   "devDependencies": {
     "@types/node": "^24.0.14",

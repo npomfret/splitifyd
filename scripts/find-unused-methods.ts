@@ -10,6 +10,8 @@ interface MethodInfo {
     lineNumber: number;
     implementations: number;
     invocations: number;
+    testInvocations: number;
+    productionInvocations: number;
     isDeprecated: boolean;
 }
 
@@ -20,17 +22,13 @@ interface InterfaceReport {
     isClass: boolean;
 }
 
-const TARGET_INTERFACES = [
-    'IFirestoreWriter',
-    'IFirestoreReader',
-    'IAuthService',
-];
+function isTestFile(filePath: string): boolean {
+    return filePath.includes('/__tests__/') || filePath.includes('\\__tests__\\');
+}
 
-const TARGET_CLASSES = [
-    'FirestoreWriter',
-    'FirestoreReader',
-    'FirebaseAuthService',
-];
+function isBuilderFile(filePath: string): boolean {
+    return filePath.endsWith('Builder.ts');
+}
 
 function analyzeProject(tsconfigPath: string): InterfaceReport[] {
     console.log('Loading TypeScript project...');
@@ -41,52 +39,54 @@ function analyzeProject(tsconfigPath: string): InterfaceReport[] {
 
     const reports: InterfaceReport[] = [];
 
-    console.log('Finding target interfaces and classes...');
+    console.log('Finding ALL interfaces and classes (excluding node_modules and tests)...');
     const sourceFiles = project.getSourceFiles();
 
     for (const sourceFile of sourceFiles) {
-        if (sourceFile.getFilePath().includes('node_modules')) {
+        const filePath = sourceFile.getFilePath();
+
+        if (filePath.includes('node_modules') || isTestFile(filePath) || isBuilderFile(filePath)) {
             continue;
         }
 
-        // Analyze interfaces
+        // Analyze ALL interfaces
         const interfaces = sourceFile.getDescendantsOfKind(SyntaxKind.InterfaceDeclaration);
         for (const interfaceDecl of interfaces) {
             const interfaceName = interfaceDecl.getName();
 
-            if (!TARGET_INTERFACES.includes(interfaceName)) {
-                continue;
-            }
-
             console.log(`\nAnalyzing interface: ${interfaceName}`);
             const methods = analyzeInterfaceMethods(interfaceDecl, project);
 
-            reports.push({
-                interfaceName,
-                filePath: sourceFile.getFilePath(),
-                methods,
-                isClass: false,
-            });
+            if (methods.length > 0) {
+                reports.push({
+                    interfaceName,
+                    filePath: sourceFile.getFilePath(),
+                    methods,
+                    isClass: false,
+                });
+            }
         }
 
-        // Analyze classes
+        // Analyze ALL classes
         const classes = sourceFile.getDescendantsOfKind(SyntaxKind.ClassDeclaration);
         for (const classDecl of classes) {
             const className = classDecl.getName();
 
-            if (!className || !TARGET_CLASSES.includes(className)) {
+            if (!className) {
                 continue;
             }
 
             console.log(`\nAnalyzing class: ${className}`);
             const methods = analyzeClassMethods(classDecl, project);
 
-            reports.push({
-                interfaceName: className,
-                filePath: sourceFile.getFilePath(),
-                methods,
-                isClass: true,
-            });
+            if (methods.length > 0) {
+                reports.push({
+                    interfaceName: className,
+                    filePath: sourceFile.getFilePath(),
+                    methods,
+                    isClass: true,
+                });
+            }
         }
     }
 
@@ -110,9 +110,9 @@ function analyzeInterfaceMethods(interfaceDecl: InterfaceDeclaration, project: P
         );
 
         const implementations = countImplementations(interfaceName, methodName, project);
-        const invocations = countInvocations(methodName, project);
+        const { total, test, production } = countInvocations(methodName, project);
 
-        console.log(`  - ${methodName}: ${implementations} implementations, ${invocations} invocations${isDeprecated ? ' (DEPRECATED)' : ''}`);
+        console.log(`  - ${methodName}: ${implementations} impl, ${production} prod calls, ${test} test calls${isDeprecated ? ' (DEPRECATED)' : ''}`);
 
         methods.push({
             name: methodName,
@@ -120,7 +120,9 @@ function analyzeInterfaceMethods(interfaceDecl: InterfaceDeclaration, project: P
             filePath: sourceFile.getFilePath(),
             lineNumber,
             implementations,
-            invocations,
+            invocations: total,
+            testInvocations: test,
+            productionInvocations: production,
             isDeprecated,
         });
     }
@@ -149,9 +151,9 @@ function analyzeClassMethods(classDecl: ClassDeclaration, project: Project): Met
             doc.getTags().some(tag => tag.getTagName() === 'deprecated')
         );
 
-        const invocations = countInvocations(methodName, project);
+        const { total, test, production } = countInvocations(methodName, project);
 
-        console.log(`  - ${methodName}: ${invocations} invocations${isDeprecated ? ' (DEPRECATED)' : ''}`);
+        console.log(`  - ${methodName}: ${production} prod calls, ${test} test calls${isDeprecated ? ' (DEPRECATED)' : ''}`);
 
         methods.push({
             name: methodName,
@@ -159,7 +161,9 @@ function analyzeClassMethods(classDecl: ClassDeclaration, project: Project): Met
             filePath: sourceFile.getFilePath(),
             lineNumber,
             implementations: 1, // The class itself is the implementation
-            invocations,
+            invocations: total,
+            testInvocations: test,
+            productionInvocations: production,
             isDeprecated,
         });
     }
@@ -195,14 +199,18 @@ function countImplementations(interfaceName: string, methodName: string, project
     return count;
 }
 
-function countInvocations(methodName: string, project: Project): number {
-    let count = 0;
+function countInvocations(methodName: string, project: Project): { total: number; test: number; production: number } {
+    let testCount = 0;
+    let productionCount = 0;
 
     for (const sourceFile of project.getSourceFiles()) {
-        if (sourceFile.getFilePath().includes('node_modules')) {
+        const filePath = sourceFile.getFilePath();
+
+        if (filePath.includes('node_modules')) {
             continue;
         }
 
+        const isTest = isTestFile(filePath);
         const callExpressions = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
 
         for (const callExpr of callExpressions) {
@@ -213,24 +221,34 @@ function countInvocations(methodName: string, project: Project): number {
                 const name = propAccess.getName();
 
                 if (name === methodName) {
-                    count++;
+                    if (isTest) {
+                        testCount++;
+                    } else {
+                        productionCount++;
+                    }
                 }
             }
         }
     }
 
-    return count;
+    return {
+        total: testCount + productionCount,
+        test: testCount,
+        production: productionCount
+    };
 }
 
 function generateReport(reports: InterfaceReport[]): void {
     console.log('\n\n' + '='.repeat(80));
     console.log('UNUSED INTERFACE/CLASS METHODS REPORT');
+    console.log('(Test invocations are ignored - only production code usage counts)');
     console.log('='.repeat(80) + '\n');
 
     let totalUnused = 0;
 
     for (const report of reports) {
-        const unusedMethods = report.methods.filter(m => m.invocations === 0);
+        // Filter methods with 0 production invocations (test invocations don't count)
+        const unusedMethods = report.methods.filter(m => m.productionInvocations === 0);
 
         if (unusedMethods.length === 0) {
             continue;
@@ -243,16 +261,17 @@ function generateReport(reports: InterfaceReport[]): void {
 
         for (const method of unusedMethods) {
             const deprecatedTag = method.isDeprecated ? ' [DEPRECATED]' : '';
+            const testInfo = method.testInvocations > 0 ? ` (${method.testInvocations} test calls)` : '';
 
             if (report.isClass) {
                 console.log(
                     `  ✗ ${method.name}:${method.lineNumber} - ` +
-                    `${method.invocations} calls${deprecatedTag}`
+                    `${method.productionInvocations} prod calls${testInfo}${deprecatedTag}`
                 );
             } else {
                 console.log(
                     `  ✗ ${method.name}:${method.lineNumber} - ` +
-                    `${method.implementations} impl, ${method.invocations} calls${deprecatedTag}`
+                    `${method.implementations} impl, ${method.productionInvocations} prod calls${testInfo}${deprecatedTag}`
                 );
             }
         }
@@ -264,7 +283,7 @@ function generateReport(reports: InterfaceReport[]): void {
         console.log('\n✅ No unused interface/class methods found!\n');
     } else {
         console.log('\n' + '='.repeat(80));
-        console.log(`Summary: ${totalUnused} unused method(s) found`);
+        console.log(`Summary: ${totalUnused} unused method(s) found (not counting test-only usage)`);
         console.log('='.repeat(80) + '\n');
         console.log('Recommendation: Consider removing unused methods from interfaces, classes, and implementations.\n');
     }
@@ -276,8 +295,8 @@ function main() {
 
     console.log('Project root:', projectRoot);
     console.log('TypeScript config:', tsconfigPath);
-    console.log('Target interfaces:', TARGET_INTERFACES.join(', '));
-    console.log('Target classes:', TARGET_CLASSES.join(', '));
+    console.log('Analyzing ALL interfaces and classes in production code');
+    console.log('Excluded from analysis: test files (__tests__/), builder files (*Builder.ts)');
 
     try {
         const reports = analyzeProject(tsconfigPath);
