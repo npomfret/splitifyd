@@ -17,7 +17,7 @@ interface MockFirebaseState {
 
 declare global {
     interface Window {
-        __SPLITIFYD_MOCK__?: {
+        __TEST_ENV__?: {
             firebase: {
                 currentUser: ClientUser | null;
                 authCallback: Function | null;
@@ -75,22 +75,14 @@ export class MockFirebase {
                 sendPasswordResetEmail: () => Promise.resolve(),
                 onAuthStateChanged: (callback) => {
                     // Store callback for future auth state changes
-                    if (window.__SPLITIFYD_MOCK__) {
-                        window.__SPLITIFYD_MOCK__.firebase.authCallback = callback;
-                    }
+                    window.__TEST_ENV__!.firebase.authCallback = callback;
 
                     // Immediately trigger with initial state
                     const token = initialUser ? `mock-token-for-${initialUser.uid}` : null;
-                    try {
-                        callback(initialUser, token);
-                    } catch (error) {
-                        console.error('MockFirebase: Error in auth callback:', error);
-                    }
+                    callback(initialUser, token);
 
                     return () => {
-                        if (window.__SPLITIFYD_MOCK__) {
-                            window.__SPLITIFYD_MOCK__.firebase.authCallback = null;
-                        }
+                        window.__TEST_ENV__!.firebase.authCallback = null;
                     };
                 },
                 signInWithEmailAndPassword: async (email, password) => {
@@ -101,30 +93,25 @@ export class MockFirebase {
                 },
                 onDocumentSnapshot: (collection, documentId, onData, onError) => {
                     const path = `${collection}/${documentId}`;
-                    if (window.__SPLITIFYD_MOCK__) {
-                        window.__SPLITIFYD_MOCK__.firebase.firestoreListeners.set(path, onData);
-                    }
+                    window.__TEST_ENV__!.firebase.firestoreListeners.set(path, onData);
                     return () => {
-                        if (window.__SPLITIFYD_MOCK__) {
-                            window.__SPLITIFYD_MOCK__.firebase.firestoreListeners.delete(path);
-                        }
+                        window.__TEST_ENV__!.firebase.firestoreListeners.delete(path);
                     };
                 },
                 getCurrentUserId: () => {
-                    const mock = window.__SPLITIFYD_MOCK__;
-                    return mock?.firebase?.currentUser?.uid || null;
+                    return window.__TEST_ENV__!.firebase.currentUser?.uid || null;
                 },
             };
 
-            // Set up mock globals
-            window.__SPLITIFYD_MOCK__ = {
+            // Set up test environment globals
+            window.__TEST_ENV__ = {
                 firebase: {
                     currentUser: initialUser,
                     authCallback: null,
                     firestoreListeners: new Map(),
                 },
                 cleanup: () => {
-                    delete window.__SPLITIFYD_MOCK__;
+                    delete window.__TEST_ENV__;
                     delete (window as any).__MOCK_FIREBASE_SERVICE__;
                 },
             };
@@ -133,13 +120,19 @@ export class MockFirebase {
             (window as any).__MOCK_FIREBASE_SERVICE__ = mockService;
         }, initialUser);
 
-        // Expose sign in/out functions
-        await this.page.exposeFunction('__splitifydMockSignIn', this.handleSignIn.bind(this));
-        await this.page.exposeFunction('__splitifydMockSignOut', this.handleSignOut.bind(this));
+        // Expose sign in/out functions (check if already exposed for browser reuse)
+        try {
+            await this.page.exposeFunction('__splitifydMockSignIn', this.handleSignIn.bind(this));
+            await this.page.exposeFunction('__splitifydMockSignOut', this.handleSignOut.bind(this));
+        } catch (error) {
+            // Functions already exposed (browser reuse) - this is expected and safe to ignore
+            if (error instanceof Error && !error.message?.includes('has been already registered')) {
+                throw error;
+            }
+        }
     }
 
-
-    private async handleSignIn(email: string, password: string): Promise<void> {
+    private async handleSignIn(_email: string, _password: string): Promise<void> {
         if (this.state.loginBehavior === 'failure' && this.state.failureError) {
             throw this.state.failureError;
         }
@@ -154,13 +147,10 @@ export class MockFirebase {
 
             // Trigger auth state change with the logged-in user
             await this.page.evaluate((user) => {
-                const mock = window.__SPLITIFYD_MOCK__;
-                if (mock) {
-                    mock.firebase.currentUser = user;
-                    if (mock.firebase.authCallback) {
-                        const token = user ? `mock-token-for-${user.uid}` : null;
-                        mock.firebase.authCallback(user, token);
-                    }
+                window.__TEST_ENV__!.firebase.currentUser = user;
+                if (window.__TEST_ENV__!.firebase.authCallback) {
+                    const token = user ? `mock-token-for-${user.uid}` : null;
+                    window.__TEST_ENV__!.firebase.authCallback(user, token);
                 }
             }, this.state.currentUser);
             return;
@@ -172,12 +162,9 @@ export class MockFirebase {
     private async handleSignOut(): Promise<void> {
         this.state.currentUser = null;
         await this.page.evaluate(() => {
-            const mock = window.__SPLITIFYD_MOCK__;
-            if (mock) {
-                mock.firebase.currentUser = null;
-                if (mock.firebase.authCallback) {
-                    mock.firebase.authCallback(null, null);
-                }
+            window.__TEST_ENV__!.firebase.currentUser = null;
+            if (window.__TEST_ENV__!.firebase.authCallback) {
+                window.__TEST_ENV__!.firebase.authCallback(null, null);
             }
         });
     }
@@ -203,18 +190,15 @@ export class MockFirebase {
 
     public async triggerNotificationUpdate(userId: string, data: UserNotificationDocument): Promise<void> {
         await this.page.evaluate(({ userId, data }) => {
-            const mock = window.__SPLITIFYD_MOCK__;
-            if (mock) {
-                const path = `user-notifications/${userId}`;
-                const listener = mock.firebase.firestoreListeners.get(path);
-                if (listener) {
-                    // Create a mock snapshot with the notification data
-                    const mockSnapshot = {
-                        exists: () => data !== null,
-                        data: () => data,
-                    };
-                    listener(mockSnapshot);
-                }
+            const path = `user-notifications/${userId}`;
+            const listener = window.__TEST_ENV__!.firebase.firestoreListeners.get(path);
+            if (listener) {
+                // Create a mock snapshot with the notification data
+                const mockSnapshot = {
+                    exists: () => data !== null,
+                    data: () => data,
+                };
+                listener(mockSnapshot);
             }
         }, { userId, data });
     }
@@ -230,7 +214,7 @@ export class MockFirebase {
 
         // Clean up browser globals
         await this.page.evaluate(() => {
-            window.__SPLITIFYD_MOCK__?.cleanup();
+            window.__TEST_ENV__?.cleanup();
         });
 
         this.initialized = false;

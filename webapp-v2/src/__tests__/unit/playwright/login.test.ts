@@ -150,26 +150,27 @@ test.describe('LoginPage Reactivity and UI States', () => {
     });
 
     test('should clear error state when component mounts', async ({ pageWithLogging: page }) => {
+        const loginPage = new LoginPage(page);
+
         // First, trigger an error
         mockFirebase.mockLoginFailure({
             code: 'auth/wrong-password',
             message: 'Invalid email or password.',
         });
 
-        await page.goto('/login');
-        await page.fill('input[type="email"]', 'test@example.com');
-        await page.fill('input[type="password"]', 'wrong-password');
-        await page.click('button[type="submit"]');
+        await loginPage.navigate();
+        await loginPage.fillCredentials('test@example.com', 'wrong-password');
+        await loginPage.submitForm();
 
         // Verify error appears
-        await expect(page.getByTestId('error-message')).toContainText('Invalid email or password.');
+        await loginPage.verifyErrorMessage('Invalid email or password.');
 
         // Navigate away and back to login
         await page.goto('/');
-        await page.goto('/login');
+        await loginPage.navigate();
 
         // Verify error is cleared on mount
-        await expect(page.getByTestId('error-message')).not.toBeVisible();
+        await loginPage.verifyNoErrorMessage();
     });
 
     test('should preserve form data in sessionStorage', async ({ pageWithLogging: page }) => {

@@ -115,6 +115,13 @@ export const test = base.extend<ConsoleLoggingFixtures>({
             consoleMessages.push(`🔴 REQUEST FAILED: ${request.method()} ${request.url()}`);
         });
 
+        // Clean browser state before each test for isolation
+        await page.context().clearCookies();
+
+        // Note: localStorage/sessionStorage clearing temporarily disabled
+        // to avoid interference with test setup. The storageState: undefined
+        // in playwright.config.ts provides isolation between tests.
+
         let testPassed = true;
         let testError: any = null;
 

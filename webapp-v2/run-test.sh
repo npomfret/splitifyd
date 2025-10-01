@@ -81,8 +81,9 @@ else
     exit 1
 fi
 
-# Build the command
-CMD="PLAYWRIGHT_HTML_OPEN=never npx playwright test \"${TEST_PATH}\""
+# Build the command - run chromium project only by default
+# Use --max-failures=0 to run all tests and show all failures (0 means unlimited)
+CMD="PLAYWRIGHT_HTML_OPEN=never npx playwright test \"${TEST_PATH}\" --project=chromium --workers=1"
 
 # Add test name filter if provided
 if [ -n "$TEST_NAME" ]; then
@@ -96,6 +97,13 @@ fi
 
 # Add reporter
 CMD="${CMD} --reporter=list"
+
+# For single test runs, recommend running full file instead for better browser reuse
+if [ -n "$TEST_NAME" ]; then
+    echo -e "${YELLOW}Note: Running single tests requires browser startup/shutdown.${NC}"
+    echo -e "${YELLOW}For faster execution, run: ./run-test.sh ${TEST_FILE}${NC}"
+    echo ""
+fi
 
 # Show what we're running
 echo -e "${GREEN}Running:${NC} ${CMD}"
