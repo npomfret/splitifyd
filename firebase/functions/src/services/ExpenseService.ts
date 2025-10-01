@@ -33,35 +33,12 @@ function toGroup(groupDoc: GroupDocument): Group {
 }
 
 export class ExpenseService {
-    // Injected dependencies or defaults
-    private readonly dateHelpers: typeof dateHelpers;
-    private readonly logger: typeof logger;
-    private readonly loggerContext: typeof LoggerContext;
-    private readonly permissionEngine: typeof PermissionEngineAsync;
-    private readonly measure: typeof measure;
-    private readonly validator: typeof expenseValidation;
-
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly groupMemberService: GroupMemberService,
         private readonly userService: UserService,
-        // Optional dependencies for testing
-        injectedDateHelpers?: typeof dateHelpers,
-        injectedLogger?: typeof logger,
-        injectedLoggerContext?: typeof LoggerContext,
-        injectedPermissionEngine?: typeof PermissionEngineAsync,
-        injectedMeasure?: typeof measure,
-        injectedValidator?: typeof expenseValidation
-    ) {
-        // Use injected dependencies or fall back to imports
-        this.dateHelpers = injectedDateHelpers || dateHelpers;
-        this.logger = injectedLogger || logger;
-        this.loggerContext = injectedLoggerContext || LoggerContext;
-        this.permissionEngine = injectedPermissionEngine || PermissionEngineAsync;
-        this.measure = injectedMeasure || measure;
-        this.validator = injectedValidator || expenseValidation;
-    }
+    ) {}
 
     /**
      * Fetch and validate an expense document
@@ -86,7 +63,7 @@ export class ExpenseService {
                 receiptUrl: validatedData.receiptUrl || undefined,
             };
         } catch (error) {
-            this.logger.error('Invalid expense document structure', error as Error, {
+            logger.error('Invalid expense document structure', error as Error, {
                 expenseId,
                 validationErrors: error instanceof z.ZodError ? error.issues : undefined,
             });
@@ -124,14 +101,14 @@ export class ExpenseService {
             currency: expense.currency,
             description: expense.description,
             category: expense.category,
-            date: expense.date ? this.dateHelpers.timestampToISO(expense.date) : undefined,
+            date: expense.date ? dateHelpers.timestampToISO(expense.date) : undefined,
             splitType: expense.splitType,
             participants: expense.participants,
             splits: expense.splits,
             receiptUrl: expense.receiptUrl,
-            createdAt: expense.createdAt ? this.dateHelpers.timestampToISO(expense.createdAt) : undefined,
-            updatedAt: expense.updatedAt ? this.dateHelpers.timestampToISO(expense.updatedAt) : undefined,
-            deletedAt: expense.deletedAt ? this.dateHelpers.timestampToISO(expense.deletedAt) : null,
+            createdAt: expense.createdAt ? dateHelpers.timestampToISO(expense.createdAt) : undefined,
+            updatedAt: expense.updatedAt ? dateHelpers.timestampToISO(expense.updatedAt) : undefined,
+            deletedAt: expense.deletedAt ? dateHelpers.timestampToISO(expense.deletedAt) : null,
             deletedBy: expense.deletedBy,
         };
     }
@@ -140,7 +117,7 @@ export class ExpenseService {
      * Get a single expense by ID
      */
     async getExpense(expenseId: string, userId: string): Promise<any> {
-        return this.measure.measureDb('ExpenseService.getExpense', async () => this._getExpense(expenseId, userId));
+        return measure.measureDb('ExpenseService.getExpense', async () => this._getExpense(expenseId, userId));
     }
 
     private async _getExpense(expenseId: string, userId: string): Promise<any> {
@@ -159,12 +136,12 @@ export class ExpenseService {
      * Create a new expense
      */
     async createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<any> {
-        return this.measure.measureDb('ExpenseService.createExpense', async () => this._createExpense(userId, expenseData));
+        return measure.measureDb('ExpenseService.createExpense', async () => this._createExpense(userId, expenseData));
     }
 
     private async _createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<any> {
         // Validate the input data early
-        const validatedExpenseData = this.validator.validateCreateExpense(expenseData);
+        const validatedExpenseData = expenseValidation.validateCreateExpense(expenseData);
 
         // Verify user is a member of the group
         await this.firestoreReader.verifyGroupMembership(validatedExpenseData.groupId, userId);
@@ -179,7 +156,7 @@ export class ExpenseService {
         const group = toGroup(groupData);
 
         // Check if user can create expenses in this group
-        const canCreateExpense = await this.permissionEngine.checkPermission(this.firestoreReader, group, userId, 'expenseEditing');
+        const canCreateExpense = await PermissionEngineAsync.checkPermission(this.firestoreReader, group, userId, 'expenseEditing');
         if (!canCreateExpense) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to create expenses in this group');
         }
@@ -198,13 +175,13 @@ export class ExpenseService {
         }
 
         // Create the expense document
-        const now = this.dateHelpers.createOptimisticTimestamp();
+        const now = dateHelpers.createOptimisticTimestamp();
 
         // Generate a unique ID for the expense
         const expenseId = this.firestoreWriter.generateDocumentId(FirestoreCollections.EXPENSES);
 
         // Calculate splits based on split type
-        const splits = this.validator.calculateSplits(validatedExpenseData.amount, validatedExpenseData.splitType, validatedExpenseData.participants, validatedExpenseData.splits);
+        const splits = expenseValidation.calculateSplits(validatedExpenseData.amount, validatedExpenseData.splitType, validatedExpenseData.participants, validatedExpenseData.splits);
 
         const expense: Expense = {
             id: expenseId,
@@ -215,7 +192,7 @@ export class ExpenseService {
             currency: validatedExpenseData.currency,
             description: validatedExpenseData.description,
             category: validatedExpenseData.category,
-            date: this.dateHelpers.parseISOToTimestamp(validatedExpenseData.date)!,
+            date: dateHelpers.parseISOToTimestamp(validatedExpenseData.date)!,
             splitType: validatedExpenseData.splitType,
             participants: validatedExpenseData.participants,
             splits,
@@ -234,14 +211,14 @@ export class ExpenseService {
         try {
             ExpenseDocumentSchema.parse(expense);
         } catch (error) {
-            this.logger.error('Invalid expense document to write', error as Error, {
+            logger.error('Invalid expense document to write', error as Error, {
                 validationErrors: error instanceof z.ZodError ? error.issues : undefined,
             });
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPENSE_DATA', 'Invalid expense data format');
         }
 
         // DEBUGGING: Log the participants before saving to Firestore
-        this.logger.info('ExpenseService creating expense with participants', {
+        logger.info('ExpenseService creating expense with participants', {
             expenseId: expenseId,
             groupId: validatedExpenseData.groupId,
             paidBy: validatedExpenseData.paidBy,
@@ -280,8 +257,8 @@ export class ExpenseService {
         }
 
         // Set business context for logging
-        this.loggerContext.setBusinessContext({ groupId: expenseData.groupId, expenseId: createdExpenseRef.id });
-        this.logger.info('expense-created', { id: createdExpenseRef.id, groupId: expenseData.groupId });
+        LoggerContext.setBusinessContext({ groupId: expenseData.groupId, expenseId: createdExpenseRef.id });
+        logger.info('expense-created', { id: createdExpenseRef.id, groupId: expenseData.groupId });
 
         // Return the expense in response format
         return this.transformExpenseToResponse(expense);
@@ -291,7 +268,7 @@ export class ExpenseService {
      * Update an existing expense
      */
     async updateExpense(expenseId: string, userId: string, updateData: UpdateExpenseRequest): Promise<any> {
-        return this.measure.measureDb('ExpenseService.updateExpense', async () => this._updateExpense(expenseId, userId, updateData));
+        return measure.measureDb('ExpenseService.updateExpense', async () => this._updateExpense(expenseId, userId, updateData));
     }
 
     private async _updateExpense(expenseId: string, userId: string, updateData: UpdateExpenseRequest): Promise<any> {
@@ -334,12 +311,12 @@ export class ExpenseService {
         // with Firestore-specific fields (timestamps) that have different types
         const updates: any = {
             ...updateData,
-            updatedAt: this.dateHelpers.createOptimisticTimestamp(),
+            updatedAt: dateHelpers.createOptimisticTimestamp(),
         };
 
         // Handle date conversion
         if (updateData.date) {
-            updates.date = this.dateHelpers.parseISOToTimestamp(updateData.date);
+            updates.date = dateHelpers.parseISOToTimestamp(updateData.date);
         }
 
         // Handle split recalculation if needed
@@ -360,7 +337,7 @@ export class ExpenseService {
                 }
             }
 
-            updates.splits = this.validator.calculateSplits(amount, finalSplitType, participants, splits);
+            updates.splits = expenseValidation.calculateSplits(amount, finalSplitType, participants, splits);
             updates.splitType = finalSplitType;
         }
 
@@ -393,7 +370,7 @@ export class ExpenseService {
 
                 const historyEntry = {
                     ...cleanExpenseData,
-                    modifiedAt: this.dateHelpers.createOptimisticTimestamp(),
+                    modifiedAt: dateHelpers.createOptimisticTimestamp(),
                     modifiedBy: userId,
                     changeType: 'update' as const,
                     changes: Object.keys(updateData),
@@ -446,7 +423,7 @@ export class ExpenseService {
         hasMore: boolean;
         nextCursor?: string;
     }> {
-        return this.measure.measureDb('ExpenseService.listGroupExpenses', async () => this._listGroupExpenses(groupId, userId, options));
+        return measure.measureDb('ExpenseService.listGroupExpenses', async () => this._listGroupExpenses(groupId, userId, options));
     }
 
     private async _listGroupExpenses(
@@ -490,7 +467,7 @@ export class ExpenseService {
      * Delete an expense (soft delete)
      */
     async deleteExpense(expenseId: string, userId: string): Promise<void> {
-        return this.measure.measureDb('ExpenseService.deleteExpense', async () => this._deleteExpense(expenseId, userId));
+        return measure.measureDb('ExpenseService.deleteExpense', async () => this._deleteExpense(expenseId, userId));
     }
 
     private async _deleteExpense(expenseId: string, userId: string): Promise<void> {
@@ -545,9 +522,9 @@ export class ExpenseService {
 
                     // Step 3: Now do ALL writes - soft delete the expense
                     this.firestoreWriter.updateInTransaction(transaction, expenseDoc.ref.path, {
-                        [DELETED_AT_FIELD]: this.dateHelpers.createOptimisticTimestamp(),
+                        [DELETED_AT_FIELD]: dateHelpers.createOptimisticTimestamp(),
                         deletedBy: userId,
-                        updatedAt: this.dateHelpers.createOptimisticTimestamp(), // Update the timestamp for optimistic locking
+                        updatedAt: dateHelpers.createOptimisticTimestamp(), // Update the timestamp for optimistic locking
                     });
 
                     // Note: Group metadata/balance updates will be handled by the balance aggregation trigger

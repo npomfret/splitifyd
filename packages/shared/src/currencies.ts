@@ -49,17 +49,3 @@ export function getCurrency(code: string): Currency {
 export function isValidCurrency(code: string): boolean {
     return currencyMap.has(code.toUpperCase());
 }
-
-/**
- * Get all available currency codes
- *
- * @returns Array of all currency codes
- */
-export function getAllCurrencyCodes(): string[] {
-    return CURRENCIES.map((c) => c.acronym);
-}
-
-/**
- * Commonly used currencies for UI dropdowns
- */
-export const COMMON_CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'INR', 'MXN', 'BRL', 'ZAR'] as const;

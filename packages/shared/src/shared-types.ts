@@ -533,12 +533,6 @@ export interface CreateGroupRequest {
     description?: string;
 }
 
-export interface PermissionCheckResult {
-    allowed: boolean;
-    reason?: string;
-    userRole?: MemberRole;
-}
-
 // Metadata for real-time change tracking
 export interface ChangeMetadata {
     lastChangeTimestamp: number;
