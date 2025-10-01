@@ -10,6 +10,9 @@ test.describe('Dashboard Real-time Updates', () => {
     test.beforeEach(async ({ page }) => {
         // Set up mock Firebase with authenticated user
         mockFirebase = await createMockFirebase(page, testUser);
+
+        // Mock policies API: /api/user/policies/status -> all policies accepted
+        await mockFullyAcceptedPoliciesApi(page);
     });
 
     test.afterEach(async () => {
@@ -26,10 +29,6 @@ test.describe('Dashboard Real-time Updates', () => {
             .withId('group-abc')
             .withName('New Group Name')
             .build();
-
-        // 2. Mock API endpoints explicitly
-        // Mock policies API: /api/user/policies/status -> all policies accepted
-        await mockFullyAcceptedPoliciesApi(page);
 
         // Mock groups API: /api/groups?includeMetadata=true -> initial group
         await mockGroupsApi(
