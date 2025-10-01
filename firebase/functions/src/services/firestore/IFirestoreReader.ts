@@ -15,6 +15,7 @@
 
 import type { Transaction } from 'firebase-admin/firestore';
 import { FirestoreTimestamp, MemberRole, MemberStatus } from '@splitifyd/shared';
+import type { FirestoreAuditMetadata } from '../../schemas/common';
 
 // FirestoreReader query and pagination types
 export interface PaginationOptions {
@@ -22,6 +23,11 @@ export interface PaginationOptions {
     offset?: number;
     cursor?: string;
 }
+
+/**
+ * Standard Firestore document ordering fields
+ */
+export type FirestoreOrderField = keyof Pick<FirestoreAuditMetadata, 'createdAt' | 'updatedAt'>;
 
 export interface FilterOptions {
     includeDeleted?: boolean;
@@ -356,7 +362,7 @@ export interface IFirestoreReader {
         options?: {
             limit?: number;
             cursor?: string;
-            orderBy?: 'createdAt' | 'updatedAt';
+            orderBy?: FirestoreOrderField;
             direction?: 'asc' | 'desc';
         },
     ): Promise<{ comments: ParsedComment[]; hasMore: boolean; nextCursor?: string }>;

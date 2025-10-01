@@ -3,7 +3,7 @@ import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCom
 import { StubFirestoreReader } from '../../mocks/firestore-stubs';
 import { ApiError } from '../../../../utils/errors';
 import { HTTP_STATUS } from '../../../../constants';
-import { FirestoreExpenseBuilder, FirestoreGroupBuilder } from '@splitifyd/test-support';
+import { ExpenseBuilder, FirestoreGroupBuilder } from '@splitifyd/test-support';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';
 
@@ -26,7 +26,7 @@ describe('ExpenseCommentStrategy', () => {
 
     describe('verifyAccess', () => {
         it('should allow access when expense exists and user is group member', async () => {
-            const testExpense = new FirestoreExpenseBuilder().withId('test-expense').withGroupId('test-group').build();
+            const testExpense = new ExpenseBuilder().withId('test-expense').withGroupId('test-group').build();
             const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
 
             // Simple stub data setup
@@ -50,7 +50,7 @@ describe('ExpenseCommentStrategy', () => {
 
         it('should throw NOT_FOUND when expense is soft deleted', async () => {
             const deletedExpense = {
-                ...new FirestoreExpenseBuilder().withId('deleted-expense').withGroupId('test-group').build(),
+                ...new ExpenseBuilder().withId('deleted-expense').withGroupId('test-group').build(),
                 deletedAt: Timestamp.now(),
             };
 
@@ -65,7 +65,7 @@ describe('ExpenseCommentStrategy', () => {
         });
 
         it('should throw NOT_FOUND when expense group does not exist', async () => {
-            const testExpense = new FirestoreExpenseBuilder().withId('test-expense').withGroupId('nonexistent-group').build();
+            const testExpense = new ExpenseBuilder().withId('test-expense').withGroupId('nonexistent-group').build();
 
             stubFirestoreReader.setDocument('expenses', 'test-expense',testExpense);
             // stubFirestoreReader.getGroup.mockResolvedValue(null);
@@ -80,7 +80,7 @@ describe('ExpenseCommentStrategy', () => {
         });
 
         it('should throw FORBIDDEN when user is not a member of expense group', async () => {
-            const testExpense = new FirestoreExpenseBuilder().withId('test-expense').withGroupId('test-group').build();
+            const testExpense = new ExpenseBuilder().withId('test-expense').withGroupId('test-group').build();
 
             const testGroup = new FirestoreGroupBuilder().withId('test-group').build();
 
@@ -99,7 +99,7 @@ describe('ExpenseCommentStrategy', () => {
 
     describe('resolveGroupId', () => {
         it('should return the expense groupId', async () => {
-            const testExpense = new FirestoreExpenseBuilder().withId('test-expense').withGroupId('resolved-group-123').build();
+            const testExpense = new ExpenseBuilder().withId('test-expense').withGroupId('resolved-group-123').build();
 
             stubFirestoreReader.setDocument('expenses', 'test-expense',testExpense);
 
@@ -122,7 +122,7 @@ describe('ExpenseCommentStrategy', () => {
 
         it('should throw NOT_FOUND when expense is soft deleted', async () => {
             const deletedExpense = {
-                ...new FirestoreExpenseBuilder().withId('deleted-expense').withGroupId('test-group').build(),
+                ...new ExpenseBuilder().withId('deleted-expense').withGroupId('test-group').build(),
                 deletedAt: Timestamp.now(),
             };
 

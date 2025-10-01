@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { BalanceCalculationService } from '../../../services/balance';
 import {StubAuthService, StubFirestoreReader, StubFirestoreWriter} from '../mocks/firestore-stubs';
-import { FirestoreGroupBuilder, FirestoreExpenseBuilder, UserProfileBuilder, AuthUserRecordBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { FirestoreGroupBuilder, ExpenseBuilder, UserProfileBuilder, AuthUserRecordBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import {ApplicationBuilder} from "../../../services/ApplicationBuilder";
 import { UserService } from '../../../services/UserService2';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
@@ -156,7 +156,7 @@ describe('BalanceCalculationService', () => {
                     .withCreatedBy(userId1)
                     .build();
 
-                const testExpense = new FirestoreExpenseBuilder()
+                const testExpense = new ExpenseBuilder()
                     .withId('expense-1')
                     .withGroupId(groupId)
                     .withDescription('Dinner')
@@ -267,7 +267,7 @@ describe('BalanceCalculationService', () => {
 
         it('should handle three-way equal split scenario', async () => {
             // Use builder for expense test data
-            const expense = new FirestoreExpenseBuilder()
+            const expense = new ExpenseBuilder()
                 .withId('expense-1')
                 .withGroupId(testGroupId)
                 .withDescription('Restaurant Bill')
@@ -298,7 +298,7 @@ describe('BalanceCalculationService', () => {
 
         it('should handle unequal split scenario', async () => {
             // Use builder for unequal split expense
-            const expense = new FirestoreExpenseBuilder()
+            const expense = new ExpenseBuilder()
                 .withId('expense-1')
                 .withGroupId(testGroupId)
                 .withDescription('Taxi Share')

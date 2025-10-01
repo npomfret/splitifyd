@@ -36,7 +36,7 @@ import { CommentDocumentSchema, type ParsedComment } from '../../schemas';
 import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument, PolicyDocument } from '../../schemas';
 import type { GroupMemberDocument, TopLevelGroupMemberDocument } from '@splitifyd/shared';
 import type { ParsedGroupMemberDocument } from '../../schemas';
-import type { IFirestoreReader } from './IFirestoreReader';
+import type { IFirestoreReader, FirestoreOrderField } from './IFirestoreReader';
 import type { QueryOptions, GroupMemberQueryOptions, PaginatedResult, GroupsPaginationCursor, OrderBy, BatchGroupFetchOptions } from './IFirestoreReader';
 
 export class FirestoreReader implements IFirestoreReader {
@@ -868,7 +868,7 @@ export class FirestoreReader implements IFirestoreReader {
         options: {
             limit?: number;
             cursor?: string;
-            orderBy?: 'createdAt' | 'updatedAt';
+            orderBy?: FirestoreOrderField;
             direction?: 'asc' | 'desc';
         } = {},
     ): Promise<{ comments: ParsedComment[]; hasMore: boolean; nextCursor?: string }> {

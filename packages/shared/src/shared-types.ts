@@ -311,6 +311,21 @@ export interface BaseDocument {
     updatedAt: string; // ISO string
 }
 
+/**
+ * Firestore audit metadata types for test builders
+ * These use FirestoreTimestamp (server format) vs BaseDocument which uses ISO strings (client format)
+ */
+export interface FirestoreAuditMetadata {
+    id: string;
+    createdAt: FirestoreTimestamp;
+    updatedAt: FirestoreTimestamp;
+}
+
+export interface FirestoreAuditMetadataWithDeletion extends FirestoreAuditMetadata {
+    deletedAt: FirestoreTimestamp | null;
+    deletedBy: string | null;
+}
+
 // Utility type to convert FirestoreTimestamp fields to string for API responses
 export type WithStringTimestamps<T> = {
     [K in keyof T]: T[K] extends FirestoreTimestamp ? string : T[K];

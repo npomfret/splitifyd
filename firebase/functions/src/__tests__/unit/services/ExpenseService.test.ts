@@ -6,7 +6,7 @@ import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { CreateExpenseRequest } from '@splitifyd/shared';
-import { FirestoreExpenseBuilder } from '@splitifyd/test-support';
+import { ExpenseBuilder } from '@splitifyd/test-support';
 
 describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;
@@ -38,7 +38,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user-id';
             const now = Timestamp.now();
 
-            const mockExpense = new FirestoreExpenseBuilder()
+            const mockExpense = new ExpenseBuilder()
                 .withId(expenseId)
                 .withGroupId('test-group-id')
                 .withCreatedBy('creator-id')
@@ -56,7 +56,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withReceiptUrl('https://example.com/receipt.jpg')
                 .withCreatedAt(now)
                 .withUpdatedAt(now)
-                .build();
+                .buildForFirestore();
 
             // Mock the expense data
             setExpenseData(expenseId, mockExpense);
@@ -94,11 +94,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'test-expense-id';
             const userId = 'test-user-id';
 
-            const mockExpense = new FirestoreExpenseBuilder()
+            const mockExpense = new ExpenseBuilder()
                 .withId(expenseId)
                 .withParticipants([userId])
                 // No receiptUrl - this is the key test point
-                .build();
+                .buildForFirestore();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -117,10 +117,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const participantId = 'participant-user';
             const nonParticipantId = 'non-participant-user';
 
-            const mockExpense = new FirestoreExpenseBuilder()
+            const mockExpense = new ExpenseBuilder()
                 .withId(expenseId)
                 .withParticipants([participantId]) // Only one participant - key for access control test
-                .build();
+                .buildForFirestore();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -139,10 +139,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const participant1 = 'participant-1';
             const participant2 = 'participant-2';
 
-            const mockExpense = new FirestoreExpenseBuilder()
+            const mockExpense = new ExpenseBuilder()
                 .withId(expenseId)
                 .withParticipants([participant1, participant2]) // Key: multiple participants for access test
-                .build();
+                .buildForFirestore();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -162,11 +162,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'deleted-expense-id';
             const userId = 'test-user-id';
 
-            const mockDeletedExpense = new FirestoreExpenseBuilder()
+            const mockDeletedExpense = new ExpenseBuilder()
                 .withId(expenseId)
                 .withParticipants([userId])
                 .withDeletedAt(Timestamp.now()) // Key: soft deleted status
-                .build();
+                .buildForFirestore();
 
             setExpenseData(expenseId, mockDeletedExpense);
 
@@ -203,15 +203,15 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user-id';
 
             // Set minimal data (the service handles undefined gracefully)
-            const minimalExpense = new FirestoreExpenseBuilder()
+            const minimalExpense = new ExpenseBuilder()
                 .withId(expenseId)
                 .withGroupId('test-group-id') // Key: expected in assertion
                 .withParticipants([userId]) // Key: user access
-                .build();
+                .buildForFirestore();
 
             // Remove optional fields to test undefined handling
-            delete minimalExpense.amount;
-            delete minimalExpense.description;
+            delete (minimalExpense as any).amount;
+            delete (minimalExpense as any).description;
 
             setExpenseData(expenseId, minimalExpense);
 
@@ -233,10 +233,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'empty-participants-expense';
             const userId = 'test-user-id';
 
-            const mockExpense = new FirestoreExpenseBuilder()
+            const mockExpense = new ExpenseBuilder()
                 .withId(expenseId)
                 .withParticipants([]) // Key: empty participants for access test
-                .build();
+                .buildForFirestore();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -254,10 +254,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'null-participants-expense';
             const userId = 'test-user-id';
 
-            const mockExpense = new FirestoreExpenseBuilder()
+            const mockExpense = new ExpenseBuilder()
                 .withId(expenseId)
                 .withParticipants([]) // Key: empty participants (null equivalent) for access test
-                .build();
+                .buildForFirestore();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -275,12 +275,12 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'decimal-precision-expense';
             const userId = 'test-user-id';
 
-            const mockExpense = new FirestoreExpenseBuilder()
+            const mockExpense = new ExpenseBuilder()
                 .withId(expenseId)
                 .withAmount(100.33) // Key: decimal precision
                 .withParticipants([userId])
                 .withSplits([{ uid: userId, amount: 100.33 }]) // Key: matching decimal amount
-                .build();
+                .buildForFirestore();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -347,11 +347,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'categorized-expense';
             const userId = 'test-user-id';
 
-            const mockExpense = new FirestoreExpenseBuilder()
+            const mockExpense = new ExpenseBuilder()
                 .withId(expenseId)
                 .withCategory('Food & Dining') // Key: specific category to test
                 .withParticipants([userId])
-                .build();
+                .buildForFirestore();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -368,13 +368,13 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user-id';
 
             // Create expense without category by not calling withCategory()
-            const builder = new FirestoreExpenseBuilder()
+            const builder = new ExpenseBuilder()
                 .withId(expenseId)
                 .withParticipants([userId]);
 
             // Build and manually remove category to ensure it's undefined
-            const mockExpense = builder.build();
-            delete mockExpense.category;
+            const mockExpense = builder.buildForFirestore();
+            delete (mockExpense as any).category;
 
             setExpenseData(expenseId, mockExpense);
 
@@ -391,11 +391,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user-id';
             const receiptUrl = 'https://storage.example.com/receipts/receipt123.jpg';
 
-            const mockExpense = new FirestoreExpenseBuilder()
+            const mockExpense = new ExpenseBuilder()
                 .withId(expenseId)
                 .withReceiptUrl(receiptUrl) // Key: receipt URL to test
                 .withParticipants([userId])
-                .build();
+                .buildForFirestore();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -427,11 +427,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const participantId = 'participant-user';
             const expenseId = 'test-expense';
 
-            const expenseData = new FirestoreExpenseBuilder()
+            const expenseData = new ExpenseBuilder()
                 .withId(expenseId)
                 .withDescription('Test expense') // Key: test description for assertion
                 .withParticipants([participantId]) // Key: participant access
-                .build();
+                .buildForFirestore();
 
             stubReader.setDocument('expenses', expenseId, expenseData);
 
@@ -450,10 +450,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const outsiderId = 'outsider-user';
             const expenseId = 'test-expense';
 
-            const expenseData = new FirestoreExpenseBuilder()
+            const expenseData = new ExpenseBuilder()
                 .withId(expenseId)
                 .withParticipants([participantId]) // Key: only one participant for access denial test
-                .build();
+                .buildForFirestore();
 
             stubReader.setDocument('expenses', expenseId, expenseData);
 
@@ -466,11 +466,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user';
             const expenseId = 'deleted-expense';
 
-            const deletedExpense = new FirestoreExpenseBuilder()
+            const deletedExpense = new ExpenseBuilder()
                 .withId(expenseId)
                 .withParticipants([userId])
                 .withDeletedAt(Timestamp.now()) // Key: soft deleted status
-                .build();
+                .buildForFirestore();
 
             stubReader.setDocument('expenses', expenseId, deletedExpense);
 
@@ -486,7 +486,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'test-expense';
             const now = Timestamp.now();
 
-            const expenseData = new FirestoreExpenseBuilder()
+            const expenseData = new ExpenseBuilder()
                 .withId(expenseId)
                 .withGroupId('test-group')
                 .withCreatedBy(userId)
@@ -501,7 +501,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withReceiptUrl('https://example.com/receipt.jpg')
                 .withCreatedAt(now)
                 .withUpdatedAt(now)
-                .build();
+                .buildForFirestore();
 
             stubReader.setDocument('expenses', expenseId, expenseData);
 
@@ -535,11 +535,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user';
             const expenseId = 'test-expense';
 
-            const expenseData = new FirestoreExpenseBuilder()
+            const expenseData = new ExpenseBuilder()
                 .withId(expenseId)
                 .withParticipants([userId])
                 // No receiptUrl - key test point
-                .build();
+                .buildForFirestore();
 
             stubReader.setDocument('expenses', expenseId, expenseData);
 

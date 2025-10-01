@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { Group, MemberRoles, MemberStatuses, SecurityPresets, PermissionLevels } from '@splitifyd/shared';
 import { PermissionEngineAsync } from '../../permissions/permission-engine-async';
 import { StubFirestoreReader } from './mocks/firestore-stubs';
-import { FirestoreGroupBuilder, GroupMemberDocumentBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-support';
+import { FirestoreGroupBuilder, GroupMemberDocumentBuilder, ExpenseBuilder } from '@splitifyd/test-support';
 
 let stubFirestoreReader: StubFirestoreReader;
 
@@ -183,7 +183,7 @@ describe('PermissionEngineAsync', () => {
                 .build();
             stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, memberDoc);
 
-            const mockExpense = new FirestoreExpenseBuilder()
+            const mockExpense = new ExpenseBuilder()
                 .withId('expense123')
                 .withCreatedBy(testUserId)
                 .withGroupId(testGroupId)

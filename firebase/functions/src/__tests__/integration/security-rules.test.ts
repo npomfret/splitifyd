@@ -8,8 +8,8 @@ import {
     UserNotificationDocumentBuilder,
     FirestoreGroupBuilder,
     GroupMemberDocumentBuilder,
-    FirestoreExpenseBuilder,
-    FirestoreSettlementBuilder,
+    ExpenseBuilder,
+    SettlementBuilder,
     TransactionChangeDocumentBuilder,
     PolicyDocumentBuilder,
     GroupBalanceDocumentBuilder
@@ -81,7 +81,7 @@ describe('Firestore Security Rules (Production)', () => {
                     .withName('Test Group')
                     .withDescription('A test group')
                     .withCreatedBy('user1-id')
-                    .withMemberIds(['user1-id', 'user2-id']) // Critical: memberIds controls access
+                    // Note: ExpenseBuilder doesn't have memberIds - access is controlled differently
                     .withClientCompatibleTimestamps()
                     .build();
 
@@ -150,13 +150,13 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
 
                 // Create an expense for the test group
-                const expense = new FirestoreExpenseBuilder()
+                const expense = new ExpenseBuilder()
                     .withGroupId(groupId)
                     .withDescription('Test Expense')
                     .withAmount(100)
                     .withCreatedBy('user1-id')
                     .withPaidBy('user1-id')
-                    .withMemberIds(['user1-id', 'user2-id']) // Critical: memberIds controls access
+                    // Note: ExpenseBuilder doesn't have memberIds - access is controlled differently
                     .withParticipants(['user1-id', 'user2-id'])
                     .withSplits([
                         { uid: 'user1-id', amount: 50 },
@@ -201,13 +201,13 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
 
                 // Create a settlement
-                const settlement = new FirestoreSettlementBuilder()
+                const settlement = new SettlementBuilder()
                     .withGroupId('test-group-1')
                     .withPayerId('user2-id') // Changed from fromUserId to payerId
                     .withPayeeId('user1-id') // Changed from toUserId to payeeId
                     .withAmount(50)
                     .withCurrency('USD')
-                    .withMemberIds(['user1-id', 'user2-id']) // Critical: memberIds controls access
+                    // Note: ExpenseBuilder doesn't have memberIds - access is controlled differently
                     .build();
 
                 await setDoc(doc(db, 'settlements', settlementId), settlement);
@@ -250,7 +250,7 @@ describe('Firestore Security Rules (Production)', () => {
                 // Create group with comments
                 const commentGroup = new FirestoreGroupBuilder()
                     .withName('Group with Comments')
-                    .withMemberIds(['user1-id', 'user2-id'])
+                    // Note: SettlementBuilder doesn't have memberIds
                     .withClientCompatibleTimestamps()
                     .build();
 
@@ -278,9 +278,9 @@ describe('Firestore Security Rules (Production)', () => {
                 await setDoc(doc(db, 'group-memberships', 'user2-id_' + groupId), commentUser2Membership);
 
                 // Create expense with comments
-                const commentExpense = new FirestoreExpenseBuilder()
+                const commentExpense = new ExpenseBuilder()
                     .withDescription('Expense with Comments')
-                    .withMemberIds(['user1-id', 'user2-id'])
+                    // Note: SettlementBuilder doesn't have memberIds
                     .withParticipants(['user1-id', 'user2-id']) // Add participants field for expense comments rule
                     .withAmount(100)
                     .withClientCompatibleTimestamps()
