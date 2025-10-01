@@ -41,8 +41,8 @@ export default defineConfig({
 
         /* Optimize for speed - headless mode and faster navigation */
         headless: true,
-        actionTimeout: 5000,
-        navigationTimeout: 5000,
+        actionTimeout: 1000,
+        navigationTimeout: 1000,
     },
 
     /* Configure projects for major browsers */
