@@ -26,12 +26,15 @@
     "postinstall": "cd e2e-tests && npx playwright install chromium",
     "prepare": "npm run build -w @splitifyd/shared || true",
     "format": "prettier --write .",
-    "check:unused": "npm run check:unused -ws --if-present",
-    "check:unused:webapp": "cd webapp-v2 && npx ts-prune -p tsconfig.json",
-    "check:unused:functions": "cd firebase/functions && npx ts-prune -p tsconfig.json",
-    "check:unused:shared": "cd packages/shared && npx ts-prune -p tsconfig.json",
-    "check:unused:test-support": "cd packages/test-support && npx ts-prune -p tsconfig.json",
-    "analyze:unused": "npx tsx scripts/find-unused-functions.ts"
+    "check:unused": "npx knip",
+    "check:unused:webapp": "npx knip --include exports,dependencies,files | grep 'webapp-v2/'",
+    "check:unused:functions": "npx knip --include exports,dependencies,files | grep 'firebase/functions/'",
+    "check:unused:shared": "npx knip --include exports,dependencies,files | grep 'packages/shared/'",
+    "check:unused:e2e": "npx knip --include exports,dependencies,files | grep 'e2e-tests/'",
+    "check:unused:exports": "npx knip --exports",
+    "check:unused:dependencies": "npx knip --dependencies",
+    "check:unused:files": "npx knip --files",
+    "check:unused:production": "npx knip --production"
   },
   "devDependencies": {
     "@types/node": "^24.0.14",
@@ -40,7 +43,7 @@
     "firebase-tools": "^14.11.0",
     "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
-    "ts-prune": "^0.10.3",
+    "knip": "^5.64.1",
     "typescript": "^5.8.3"
   }
 }
