@@ -1,5 +1,5 @@
 import {FirebaseApp, initializeApp} from 'firebase/app';
-import {Auth, connectAuthEmulator, getAuth, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, User as FirebaseUser, User} from 'firebase/auth';
+import {Auth, connectAuthEmulator, getAuth, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, User as FirebaseUser} from 'firebase/auth';
 import {connectFirestoreEmulator, doc, Firestore, getFirestore, onSnapshot} from 'firebase/firestore';
 import {firebaseConfigManager} from './firebase-config';
 import {mapFirebaseUser} from "@/app/stores/auth-store.ts";

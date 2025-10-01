@@ -1,4 +1,3 @@
-import { Timestamp } from 'firebase-admin/firestore';
 import { CreateExpenseRequestBuilder } from './CreateExpenseRequestBuilder';
 
 /**

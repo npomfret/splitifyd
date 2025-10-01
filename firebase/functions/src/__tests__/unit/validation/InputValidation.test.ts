@@ -2,8 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { validateCreateExpense } from '../../../expenses/validation';
 import { createSettlementSchema } from '../../../settlements/validation';
 import { ApiError } from '../../../utils/errors';
-import type { CreateExpenseRequest, CreateSettlementRequest } from '@splitifyd/shared';
-import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, ExpenseSplitBuilder } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder } from '@splitifyd/test-support';
 
 describe('Input Validation Unit Tests', () => {
     describe('Amount Validation', () => {

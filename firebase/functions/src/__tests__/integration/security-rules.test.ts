@@ -10,7 +10,6 @@ import {
     GroupMemberDocumentBuilder,
     FirestoreExpenseBuilder,
     FirestoreSettlementBuilder,
-    CommentBuilder,
     TransactionChangeDocumentBuilder,
     PolicyDocumentBuilder,
     GroupBalanceDocumentBuilder

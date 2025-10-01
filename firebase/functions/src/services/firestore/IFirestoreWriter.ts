@@ -40,7 +40,7 @@ export interface TransactionOptions {
 import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument } from '../../schemas';
 import type { ParsedComment as CommentDocument } from '../../schemas';
 import type { ShareLink } from '@splitifyd/shared';
-import type { UserNotificationGroup, CreateUserNotificationDocument } from '../../schemas/user-notifications';
+import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
 
 export interface WriteResult {
     id: string;

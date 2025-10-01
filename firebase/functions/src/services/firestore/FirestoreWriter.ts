@@ -18,14 +18,14 @@ import { measureDb } from '../../monitoring/measure';
 
 // Import schemas for validation
 import { UserDocumentSchema, GroupDocumentSchema, ExpenseDocumentSchema, SettlementDocumentSchema, CommentDataSchema, PolicyDocumentSchema } from '../../schemas';
-import { UserNotificationDocumentSchema, UserNotificationGroupSchema } from '../../schemas/user-notifications';
-import { TransactionChangeDocumentSchema, BalanceChangeDocumentSchema } from '../../schemas/change-documents';
-import { TopLevelGroupMemberSchema } from '../../schemas/group-membership';
+import { UserNotificationDocumentSchema } from '../../schemas/user-notifications';
+import { TransactionChangeDocumentSchema, BalanceChangeDocumentSchema } from '../../schemas';
+import { TopLevelGroupMemberSchema } from '../../schemas';
 import { validateUpdate } from '../../schemas';
 
 // Import types
 import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument } from '../../schemas';
-import type { UserNotificationGroup, CreateUserNotificationDocument } from '../../schemas/user-notifications';
+import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
 import type { ParsedComment as CommentDocument } from '../../schemas';
 import type { ShareLink } from '@splitifyd/shared';
 import type { IFirestoreWriter, WriteResult, BatchWriteResult, TransactionOptions } from './IFirestoreWriter';

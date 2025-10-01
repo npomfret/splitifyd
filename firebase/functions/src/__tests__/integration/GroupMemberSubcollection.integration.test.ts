@@ -7,7 +7,6 @@
 
 import { describe, test, expect, beforeEach } from 'vitest';
 import { borrowTestUsers, CreateGroupRequestBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
-import { GroupMemberDocument, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
 import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';

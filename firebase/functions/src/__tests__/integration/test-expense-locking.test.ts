@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
-import { SplitTypes } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
 import { UserToken } from '@splitifyd/shared';
 

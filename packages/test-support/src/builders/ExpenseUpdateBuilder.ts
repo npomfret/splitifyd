@@ -1,4 +1,4 @@
-import { randomString, randomDecimal, randomChoice, randomDate, randomCurrency, randomCategory, generateShortId } from '../test-helpers';
+import { randomString, randomDecimal, randomChoice, randomDate, randomCurrency, randomCategory } from '../test-helpers';
 
 export interface ExpenseUpdate {
     amount?: number;

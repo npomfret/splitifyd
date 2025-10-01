@@ -1,4 +1,3 @@
-import { Timestamp } from 'firebase-admin/firestore';
 import { CreateSettlementRequestBuilder } from './CreateSettlementRequestBuilder';
 import type { Settlement } from '@splitifyd/shared';
 
