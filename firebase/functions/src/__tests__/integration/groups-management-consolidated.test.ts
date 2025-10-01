@@ -1,11 +1,10 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, GroupUpdateBuilder, GroupMemberDocumentBuilder, borrowTestUsers, generateShortId, NotificationDriver } from '@splitifyd/test-support';
-import { PooledTestUser, FirestoreCollections, MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { PooledTestUser, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreReader } from '../../services/firestore';
-import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 
 describe('Groups Management - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();

@@ -1,6 +1,5 @@
 import { expect, describe, it } from 'vitest';
 import { EqualSplitStrategy } from '../../../../services/splits/EqualSplitStrategy';
-import { SplitTypes } from '@splitifyd/shared';
 import { SplitAssertionBuilder, ExpenseSplitBuilder } from '@splitifyd/test-support';
 
 describe('EqualSplitStrategy', () => {

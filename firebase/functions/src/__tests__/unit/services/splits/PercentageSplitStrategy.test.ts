@@ -1,6 +1,5 @@
 import { expect, describe, it } from 'vitest';
 import { PercentageSplitStrategy } from '../../../../services/splits/PercentageSplitStrategy';
-import { SplitTypes } from '@splitifyd/shared';
 import { ApiError } from '../../../../utils/errors';
 import { ExpenseSplitBuilder, SplitAssertionBuilder } from '@splitifyd/test-support';
 

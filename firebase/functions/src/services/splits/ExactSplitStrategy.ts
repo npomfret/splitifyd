@@ -1,4 +1,4 @@
-import { ExpenseSplit, SplitTypes } from '@splitifyd/shared';
+import { ExpenseSplit } from '@splitifyd/shared';
 import { ApiError } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
 import { ISplitStrategy } from './ISplitStrategy';

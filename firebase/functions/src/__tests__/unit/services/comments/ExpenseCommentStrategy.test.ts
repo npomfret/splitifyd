@@ -4,7 +4,6 @@ import { StubFirestoreReader } from '../../mocks/firestore-stubs';
 import { ApiError } from '../../../../utils/errors';
 import { HTTP_STATUS } from '../../../../constants';
 import { ExpenseBuilder, GroupBuilder } from '@splitifyd/test-support';
-import { FirestoreCollections } from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';
 
 const createStubGroupMemberService = () => ({
