@@ -13,35 +13,33 @@
 
 // Common schema fragments and utilities
 export {
-    CurrencyCodeSchema,
-    UserIdSchema,
-    GroupIdSchema,
     createDocumentSchemas,
 } from './common';
 
 // Comment schemas
-export { CommentDocumentSchema, CommentDataSchema, type ParsedComment, type CommentData } from './comment';
+export { CommentDocumentSchema, CommentDataSchema, type ParsedComment } from './comment';
 
 // Expense schemas
-export { ExpenseDocumentSchema, ExpenseSplitSchema, type ExpenseDocument } from './expense';
+export { ExpenseDocumentSchema, type ExpenseDocument } from './expense';
+export { ExpenseSplitSchema } from './balance';
 
 // Settlement schemas
 export { SettlementDocumentSchema, type SettlementDocument } from './settlement';
 
 // ShareLink schemas
-export { ShareLinkDocumentSchema, ShareLinkDataSchema, type ParsedShareLink, type ShareLinkData } from './sharelink';
+export { ShareLinkDocumentSchema, ShareLinkDataSchema, type ParsedShareLink } from './sharelink';
 
 // User schemas
-export { UserDocumentSchema, UserDataSchema, type UserDocument, type UserData } from './user';
+export { UserDocumentSchema, UserDataSchema, type UserDocument } from './user';
 
 // Policy schemas
-export { PolicyDocumentSchema, PolicyDataSchema, type PolicyDocument, type PolicyData } from './policy';
+export { PolicyDocumentSchema, PolicyDataSchema, type PolicyDocument } from './policy';
 
 // Group schemas
-export { GroupDocumentSchema, GroupDataSchema, GroupMemberDocumentSchema, type GroupDocument, type GroupData, type ParsedGroupMemberDocument } from './group';
+export { GroupDocumentSchema, GroupDataSchema, GroupMemberDocumentSchema, type GroupDocument, type ParsedGroupMemberDocument } from './group';
 
 // Group membership schemas
-export { TopLevelGroupMemberSchema, type ParsedTopLevelGroupMemberDocument } from './group-membership';
+export { TopLevelGroupMemberSchema } from './group-membership';
 
 // Validation monitoring and utilities - only export what's actually used
 export { EnhancedValidationError } from './validation-monitor';
@@ -49,7 +47,7 @@ export { EnhancedValidationError } from './validation-monitor';
 export { validateBeforeWrite, validateUpdate } from './validation-helpers';
 
 // Change tracking schemas
-export { TransactionChangeDocumentSchema, BalanceChangeDocumentSchema, type TransactionChangeDocument, type BalanceChangeDocument } from './change-documents';
+export { TransactionChangeDocumentSchema, BalanceChangeDocumentSchema } from './change-documents';
 
 // Balance calculation schemas
 export {

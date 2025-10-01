@@ -88,7 +88,7 @@ export function createDocumentSchemas<T extends z.ZodRawShape>(baseSchema: z.Zod
  * Pure infrastructure metadata - audit fields only
  * These are automatically managed by Firestore/application infrastructure
  */
-export const FirestoreAuditMetadataSchema = z.object({
+const FirestoreAuditMetadataSchema = z.object({
     id: z.string().min(1),
     createdAt: FirestoreTimestampSchema,
     updatedAt: FirestoreTimestampSchema,
@@ -97,7 +97,7 @@ export const FirestoreAuditMetadataSchema = z.object({
 /**
  * Infrastructure metadata with soft deletion support
  */
-export const FirestoreAuditMetadataWithDeletionSchema = FirestoreAuditMetadataSchema.extend({
+const FirestoreAuditMetadataWithDeletionSchema = FirestoreAuditMetadataSchema.extend({
     deletedAt: FirestoreTimestampSchema.nullable(),
     deletedBy: z.string().nullable(), // Note: deletedBy is business logic (who deleted) but paired with deletedAt
 });
@@ -105,7 +105,7 @@ export const FirestoreAuditMetadataWithDeletionSchema = FirestoreAuditMetadataSc
 /**
  * Security-related Firestore fields for documents that need member access control
  */
-export const FirestoreSecurityFieldsSchema = z.object({
+const FirestoreSecurityFieldsSchema = z.object({
     memberIds: z.array(UserIdSchema).optional(),
 });
 

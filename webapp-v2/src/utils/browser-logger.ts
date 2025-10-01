@@ -19,7 +19,7 @@ const LOG_STYLES = {
 };
 
 // Log levels for filtering
-export enum LogLevel {
+enum LogLevel {
     AUDIT = 'AUDIT',
     API = 'API',
     ERROR = 'ERROR',

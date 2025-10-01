@@ -149,7 +149,7 @@ export function createChangeDocument(
  *   groupId?: "group123"    // For expense/settlement changes only
  * }
  */
-export function createMinimalChangeDocument(entityId: string, entityType: 'group' | 'expense' | 'settlement', changeType: ChangeType, affectedUsers: string[], groupId?: string): Record<string, any> {
+function createMinimalChangeDocument(entityId: string, entityType: 'group' | 'expense' | 'settlement', changeType: ChangeType, affectedUsers: string[], groupId?: string): Record<string, any> {
     const builder = builderFactory.getBuilder(entityType);
     const additionalData = groupId ? { groupId } : {};
     return builder.createMinimalChangeDocument(entityId, changeType, affectedUsers, additionalData);

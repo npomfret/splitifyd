@@ -39,7 +39,7 @@ import type {
 
 // All types are now imported from shared-types
 
-export class ApiValidationError extends Error {
+class ApiValidationError extends Error {
     constructor(
         message: string,
         public errors: z.ZodError['issues'],
@@ -166,7 +166,7 @@ function sleep(ms: number): Promise<void> {
 }
 
 // Main API client class
-export class ApiClient {
+class ApiClient {
     private authToken: string | null = null;
     private requestInterceptors: RequestInterceptor[] = [];
     private responseInterceptors: ResponseInterceptor[] = [];

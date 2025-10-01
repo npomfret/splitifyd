@@ -53,7 +53,7 @@ const AppConfigurationSchema = z.object({
 
 // Group schemas
 
-export const GroupSchema = z.object({
+const GroupSchema = z.object({
     id: z.string().min(1),
     name: z.string().min(1),
     description: z.string().optional(),
@@ -88,13 +88,13 @@ export const GroupSchema = z.object({
 });
 
 // Change metadata schema for REST responses
-export const ChangeMetadataSchema = z.object({
+const ChangeMetadataSchema = z.object({
     lastChangeTimestamp: z.number(),
     changeCount: z.number(),
     serverTime: z.number(),
 });
 
-export const ListGroupsResponseSchema = z.object({
+const ListGroupsResponseSchema = z.object({
     groups: z.array(GroupSchema),
     count: z.number(),
     hasMore: z.boolean(),
@@ -107,14 +107,14 @@ export const ListGroupsResponseSchema = z.object({
 });
 
 // Expense schemas
-export const ExpenseSplitSchema = z.object({
+const ExpenseSplitSchema = z.object({
     uid: z.string().min(1),
     amount: z.number(),
     percentage: z.number().optional(),
     userName: z.string().min(1).optional(),
 });
 
-export const ExpenseDataSchema = z.object({
+const ExpenseDataSchema = z.object({
     id: z.string().min(1),
     groupId: z.string().min(1),
     description: z.string().min(1),
@@ -133,28 +133,28 @@ export const ExpenseDataSchema = z.object({
     receiptUrl: z.string().optional(),
 });
 
-export const ExpenseListResponseSchema = z.object({
+const ExpenseListResponseSchema = z.object({
     expenses: z.array(ExpenseDataSchema),
     count: z.number(),
     hasMore: z.boolean(),
     nextCursor: z.string().optional(),
 });
 
-export const SimplifiedDebtSchema = z.object({
+const SimplifiedDebtSchema = z.object({
     from: z.object({ uid: z.string() }),
     to: z.object({ uid: z.string() }),
     amount: z.number(),
     currency: z.string().length(3),
 });
 
-export const GroupBalancesSchema = z.object({
+const GroupBalancesSchema = z.object({
     groupId: z.string(),
     simplifiedDebts: z.array(SimplifiedDebtSchema),
     lastUpdated: z.string(),
 });
 
 // Group member DTO schema - validates the lean DTO returned by API
-export const GroupMemberDTOSchema = z.object({
+const GroupMemberDTOSchema = z.object({
     // User identification
     uid: z.string().min(1),
     displayName: z.string().min(1),
@@ -174,26 +174,26 @@ export const GroupMemberDTOSchema = z.object({
 });
 
 // Group members response schema
-export const GroupMembersResponseSchema = z.object({
+const GroupMembersResponseSchema = z.object({
     members: z.array(GroupMemberDTOSchema),
     hasMore: z.boolean(),
     nextCursor: z.string().optional(),
 });
 
 // Share schemas
-export const ShareableLinkResponseSchema = z.object({
+const ShareableLinkResponseSchema = z.object({
     linkId: z.string(),
     shareablePath: z.string(),
 });
 
-export const JoinGroupResponseSchema = z.object({
+const JoinGroupResponseSchema = z.object({
     groupId: z.string(),
     groupName: z.string(),
     success: z.boolean(),
 });
 
 // Health check schemas
-export const HealthCheckResponseSchema = z.object({
+const HealthCheckResponseSchema = z.object({
     checks: z.object({
         firestore: z.object({
             status: z.enum(['healthy', 'unhealthy']),
@@ -224,7 +224,7 @@ export const ApiErrorResponseSchema = z.union([
 ]);
 
 // Map of endpoints to their response schemas
-export const RegisterResponseSchema = z.object({
+const RegisterResponseSchema = z.object({
     success: z.boolean(),
     message: z.string().min(1),
     user: z.object({
@@ -235,12 +235,12 @@ export const RegisterResponseSchema = z.object({
 });
 
 // Generic message response for operations like DELETE
-export const MessageResponseSchema = z.object({
+const MessageResponseSchema = z.object({
     message: z.string().min(1),
 });
 
 // Settlement schemas
-export const SettlementSchema = z.object({
+const SettlementSchema = z.object({
     id: z.string().min(1),
     groupId: z.string().min(1),
     payerId: z.string().min(1),
@@ -254,7 +254,7 @@ export const SettlementSchema = z.object({
     updatedAt: z.string(),
 });
 
-export const SettlementListItemSchema = z.object({
+const SettlementListItemSchema = z.object({
     id: z.string().min(1),
     groupId: z.string().min(1),
     payer: z.object({
@@ -275,7 +275,7 @@ export const SettlementListItemSchema = z.object({
     createdAt: z.string(),
 });
 
-export const ListSettlementsResponseSchema = z.object({
+const ListSettlementsResponseSchema = z.object({
     settlements: z.array(SettlementListItemSchema),
     count: z.number(),
     hasMore: z.boolean(),
@@ -283,7 +283,7 @@ export const ListSettlementsResponseSchema = z.object({
 });
 
 // Comment schemas
-export const CommentSchema = z.object({
+const CommentSchema = z.object({
     id: z.string().min(1),
     authorId: z.string().min(1),
     authorName: z.string().min(1),
@@ -293,31 +293,31 @@ export const CommentSchema = z.object({
     updatedAt: z.string(),
 });
 
-export const ListCommentsResponseSchema = z.object({
+const ListCommentsResponseSchema = z.object({
     comments: z.array(CommentSchema),
     hasMore: z.boolean(),
     nextCursor: z.string().optional(),
 });
 
-export const CreateCommentResponseSchema = z.object({
+const CreateCommentResponseSchema = z.object({
     success: z.boolean(),
     data: CommentSchema,
 });
 
-export const ListCommentsApiResponseSchema = z.object({
+const ListCommentsApiResponseSchema = z.object({
     success: z.boolean(),
     data: ListCommentsResponseSchema,
 });
 
 // User profile schemas
-export const UserProfileResponseSchema = z.object({
+const UserProfileResponseSchema = z.object({
     uid: z.string().min(1),
     email: z.string().email(),
     displayName: z.string(),
 });
 
 // Group full details schema - combines multiple endpoint responses
-export const GroupFullDetailsSchema = z.object({
+const GroupFullDetailsSchema = z.object({
     group: GroupSchema,
     members: z.object({
         members: z.array(

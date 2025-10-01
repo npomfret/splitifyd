@@ -104,7 +104,7 @@ class ClientPermissionEngine {
 /**
  * Reactive permissions store for frontend
  */
-export class PermissionsStore {
+class PermissionsStore {
     private currentUserId: string | null = null;
     private currentGroup: Group | null = null;
     private currentMembers: GroupMemberDTO[] = [];
