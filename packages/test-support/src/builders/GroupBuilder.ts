@@ -1,4 +1,4 @@
-import type { Group, SecurityPreset, GroupPermissions, MemberRole, MemberStatus, UserThemeColor, FirestoreTimestamp, FirestoreAuditMetadata } from '@splitifyd/shared';
+import type { Group, SecurityPreset, GroupPermissions, UserThemeColor, FirestoreTimestamp, FirestoreAuditMetadata } from '@splitifyd/shared';
 import { SecurityPresets, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { generateShortId, randomChoice, randomString } from '../test-helpers';
 import { Timestamp } from 'firebase-admin/firestore';

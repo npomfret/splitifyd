@@ -218,21 +218,21 @@ export function validateSafely<T extends z.ZodSchema>(
 /**
  * Get current validation metrics
  */
-export function getValidationMetrics() {
+function getValidationMetrics() {
     return ValidationMetrics.getInstance().getMetrics();
 }
 
 /**
  * Reset validation metrics (useful for testing)
  */
-export function resetValidationMetrics() {
+function resetValidationMetrics() {
     ValidationMetrics.getInstance().reset();
 }
 
 /**
  * Middleware to log validation metrics periodically
  */
-export function startValidationMetricsLogging(intervalMinutes: number = 60) {
+function startValidationMetricsLogging(intervalMinutes: number = 60) {
     const intervalMs = intervalMinutes * 60 * 1000;
 
     setInterval(() => {

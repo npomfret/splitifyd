@@ -18,7 +18,7 @@ import { FirestoreTimestampSchema } from './common';
 /**
  * Schema for per-group notification tracking within a user's document
  */
-export const UserNotificationGroupSchema = z.object({
+const UserNotificationGroupSchema = z.object({
     // Timestamps of last changes by type
     lastTransactionChange: FirestoreTimestampSchema.nullable(),
     lastBalanceChange: FirestoreTimestampSchema.nullable(),
@@ -35,7 +35,7 @@ export const UserNotificationGroupSchema = z.object({
 /**
  * Schema for recent changes tracking (debugging and audit)
  */
-export const RecentChangeSchema = z.object({
+const RecentChangeSchema = z.object({
     groupId: z.string().min(1, 'Group ID is required'),
     type: z.enum(['transaction', 'balance', 'group', 'comment']),
     timestamp: FirestoreTimestampSchema,

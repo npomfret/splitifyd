@@ -31,10 +31,9 @@ const { DocumentSchema: SettlementDocumentSchema, DataSchema: SettlementDataSche
  * const settlement = SettlementDocumentSchema.parse(doc.data());
  * ```
  */
-export { SettlementDocumentSchema, SettlementDataSchema };
+export { SettlementDocumentSchema };
 
 /**
  * Type definitions derived from schemas
  */
 export type SettlementDocument = z.infer<typeof SettlementDocumentSchema>;
-export type SettlementData = z.infer<typeof SettlementDataSchema>;

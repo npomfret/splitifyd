@@ -6,7 +6,7 @@ import { FirestoreTimestampSchema, OptionalAuditFieldsSchema, UserIdSchema, crea
  *
  * Each policy can have multiple versions identified by hash keys.
  */
-export const PolicyVersionSchema = z.object({
+const PolicyVersionSchema = z.object({
     text: z.string().min(1, 'Policy text cannot be empty'),
     createdAt: FirestoreTimestampSchema,
     publishedBy: UserIdSchema.optional(), // UID of user who published this version
@@ -45,5 +45,3 @@ export { PolicyDocumentSchema, PolicyDataSchema };
  * Type definitions derived from schemas
  */
 export type PolicyDocument = z.infer<typeof PolicyDocumentSchema>;
-export type PolicyData = z.infer<typeof PolicyDataSchema>;
-export type PolicyVersion = z.infer<typeof PolicyVersionSchema>;

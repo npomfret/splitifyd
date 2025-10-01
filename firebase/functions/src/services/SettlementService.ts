@@ -8,13 +8,9 @@ import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import * as measure from '../monitoring/measure';
 import { Settlement, CreateSettlementRequest, UpdateSettlementRequest, SettlementListItem, RegisteredUser, FirestoreCollections } from '@splitifyd/shared';
-import { SettlementDocumentSchema } from '../schemas';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
-
-// Re-export schema for backward compatibility
-export { SettlementDocumentSchema };
 
 /**
  * Zod schema for User document - ensures critical fields are present

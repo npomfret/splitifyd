@@ -7,7 +7,7 @@ import { FirestoreTimestampSchema, AuditFieldsSchema, UserIdSchema, createDocume
  *
  * Each group member has a role, status, and optional theme color assignment.
  */
-export const GroupMemberSchema = z
+const GroupMemberSchema = z
     .object({
         memberRole: z.nativeEnum(MemberRoles),
         memberStatus: z.nativeEnum(MemberStatuses),
@@ -81,8 +81,6 @@ export { GroupDocumentSchema, GroupDataSchema };
  * Type definitions derived from schemas
  */
 export type GroupDocument = z.infer<typeof GroupDocumentSchema>;
-export type GroupData = z.infer<typeof GroupDataSchema>;
-export type GroupMember = z.infer<typeof GroupMemberSchema>;
 
 /**
  * Zod schema for UserThemeColor validation

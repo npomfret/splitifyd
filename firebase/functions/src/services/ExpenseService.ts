@@ -10,15 +10,13 @@ import * as expenseValidation from '../expenses/validation';
 import type { Expense } from '../expenses/validation';
 import { getMemberDocFromArray } from '../utils/memberHelpers';
 import { PermissionEngineAsync } from '../permissions/permission-engine-async';
-import { ExpenseDocumentSchema, ExpenseSplitSchema } from '../schemas';
+import { ExpenseDocumentSchema } from '../schemas';
 import * as measure from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import type { GroupDocument } from '../schemas';
 import { GroupMemberService } from './GroupMemberService';
 import { UserService } from './UserService2';
-
-export { ExpenseDocumentSchema, ExpenseSplitSchema };
 
 /**
  * Service for managing expenses
@@ -36,12 +34,12 @@ function toGroup(groupDoc: GroupDocument): Group {
 
 export class ExpenseService {
     // Injected dependencies or defaults
-    private readonly dateHelpers: typeof import('../utils/dateHelpers');
-    private readonly logger: typeof import('../logger').logger;
-    private readonly loggerContext: typeof import('../logger').LoggerContext;
+    private readonly dateHelpers: typeof dateHelpers;
+    private readonly logger: typeof logger;
+    private readonly loggerContext: typeof LoggerContext;
     private readonly permissionEngine: typeof PermissionEngineAsync;
-    private readonly measure: typeof import('../monitoring/measure');
-    private readonly validator: typeof import('../expenses/validation');
+    private readonly measure: typeof measure;
+    private readonly validator: typeof expenseValidation;
 
     constructor(
         private readonly firestoreReader: IFirestoreReader,
@@ -49,12 +47,12 @@ export class ExpenseService {
         private readonly groupMemberService: GroupMemberService,
         private readonly userService: UserService,
         // Optional dependencies for testing
-        injectedDateHelpers?: typeof import('../utils/dateHelpers'),
-        injectedLogger?: typeof import('../logger').logger,
-        injectedLoggerContext?: typeof import('../logger').LoggerContext,
+        injectedDateHelpers?: typeof dateHelpers,
+        injectedLogger?: typeof logger,
+        injectedLoggerContext?: typeof LoggerContext,
         injectedPermissionEngine?: typeof PermissionEngineAsync,
-        injectedMeasure?: typeof import('../monitoring/measure'),
-        injectedValidator?: typeof import('../expenses/validation')
+        injectedMeasure?: typeof measure,
+        injectedValidator?: typeof expenseValidation
     ) {
         // Use injected dependencies or fall back to imports
         this.dateHelpers = injectedDateHelpers || dateHelpers;

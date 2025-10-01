@@ -12,9 +12,7 @@
  */
 
 // Common schema fragments and utilities
-export {
-    createDocumentSchemas,
-} from './common';
+// (no exports needed from common.ts currently)
 
 // Comment schemas
 export { CommentDocumentSchema, CommentDataSchema, type ParsedComment } from './comment';
@@ -42,8 +40,6 @@ export { GroupDocumentSchema, GroupDataSchema, GroupMemberDocumentSchema, type G
 export { TopLevelGroupMemberSchema } from './group-membership';
 
 // Validation monitoring and utilities - only export what's actually used
-export { EnhancedValidationError } from './validation-monitor';
-
 export { validateBeforeWrite, validateUpdate } from './validation-helpers';
 
 // Change tracking schemas

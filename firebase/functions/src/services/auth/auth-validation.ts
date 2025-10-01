@@ -24,7 +24,7 @@ const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@
 /**
  * Create user request validation schema
  */
-export const createUserSchema = Joi.object({
+const createUserSchema = Joi.object({
     email: Joi.string().pattern(EMAIL_REGEX).required().messages({
         'string.pattern.base': 'Invalid email format',
         'string.empty': 'Email is required',
@@ -52,7 +52,7 @@ export const createUserSchema = Joi.object({
 /**
  * Update user request validation schema
  */
-export const updateUserSchema = Joi.object({
+const updateUserSchema = Joi.object({
     displayName: displayNameSchema.optional(),
     email: Joi.string().pattern(EMAIL_REGEX).optional().messages({
         'string.pattern.base': 'Invalid email format',
@@ -77,7 +77,7 @@ export const updateUserSchema = Joi.object({
 /**
  * User ID validation schema
  */
-export const userIdSchema = Joi.string()
+const userIdSchema = Joi.string()
     .min(1)
     .max(128)
     .pattern(/^[a-zA-Z0-9_-]+$/)
@@ -93,7 +93,7 @@ export const userIdSchema = Joi.string()
 /**
  * Email validation schema
  */
-export const emailSchema = Joi.string().pattern(EMAIL_REGEX).required().messages({
+const emailSchema = Joi.string().pattern(EMAIL_REGEX).required().messages({
     'string.pattern.base': 'Invalid email format',
     'string.empty': 'Email is required',
     'any.required': 'Email is required',
@@ -102,7 +102,7 @@ export const emailSchema = Joi.string().pattern(EMAIL_REGEX).required().messages
 /**
  * Phone number validation schema
  */
-export const phoneNumberSchema = Joi.string()
+const phoneNumberSchema = Joi.string()
     .pattern(/^\+[1-9]\d{1,14}$/)
     .required()
     .messages({
@@ -114,7 +114,7 @@ export const phoneNumberSchema = Joi.string()
 /**
  * ID token validation schema
  */
-export const idTokenSchema = Joi.string().min(1).required().messages({
+const idTokenSchema = Joi.string().min(1).required().messages({
     'string.min': 'ID token must not be empty',
     'string.empty': 'ID token is required',
     'any.required': 'ID token is required',
@@ -123,14 +123,14 @@ export const idTokenSchema = Joi.string().min(1).required().messages({
 /**
  * Custom claims validation schema
  */
-export const customClaimsSchema = Joi.object().pattern(Joi.string(), Joi.any()).optional().messages({
+const customClaimsSchema = Joi.object().pattern(Joi.string(), Joi.any()).optional().messages({
     'object.base': 'Custom claims must be an object',
 });
 
 /**
  * List users options validation schema
  */
-export const listUsersOptionsSchema = Joi.object({
+const listUsersOptionsSchema = Joi.object({
     maxResults: Joi.number().integer().min(1).max(1000).optional().default(1000).messages({
         'number.base': 'Max results must be a number',
         'number.integer': 'Max results must be an integer',
@@ -145,7 +145,7 @@ export const listUsersOptionsSchema = Joi.object({
 /**
  * Batch user IDs validation schema
  */
-export const batchUserIdsSchema = Joi.array().items(userIdSchema).min(1).max(1000).required().messages({
+const batchUserIdsSchema = Joi.array().items(userIdSchema).min(1).max(1000).required().messages({
     'array.base': 'User IDs must be an array',
     'array.min': 'At least one user ID is required',
     'array.max': 'At most 1000 user IDs are allowed',

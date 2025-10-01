@@ -11,8 +11,7 @@ export { FirebaseAuthService } from './FirebaseAuthService';
 
 // Types and interfaces (only shared/public types)
 // Note: Internal implementation types are now co-located within FirebaseAuthService.ts
-
-export { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
+// Note: AuthErrorCode and FIREBASE_AUTH_ERROR_MAP are unused externally
 
 // Validation functions are used internally and don't need to be exported
 

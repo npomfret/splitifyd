@@ -13,7 +13,7 @@ import type { ContextualLogger } from '../utils/contextual-logger';
 /**
  * Validate a Firestore document after reading
  */
-export function validateFirestoreDocument<T extends z.ZodSchema>(schema: T, doc: admin.firestore.DocumentSnapshot, schemaName: string, logger?: ContextualLogger): z.infer<T> {
+function validateFirestoreDocument<T extends z.ZodSchema>(schema: T, doc: admin.firestore.DocumentSnapshot, schemaName: string, logger?: ContextualLogger): z.infer<T> {
     const data = doc.data();
     if (!data) {
         throw new Error(`Document ${doc.id} does not exist or has no data`);
@@ -77,7 +77,7 @@ export function validateUpdate<T extends z.ZodSchema>(
  * Safely validate with monitoring but don't throw on validation errors
  * Useful for gradual migration or monitoring existing data quality
  */
-export function monitorValidation<T extends z.ZodSchema>(
+function monitorValidation<T extends z.ZodSchema>(
     schema: T,
     doc: admin.firestore.DocumentSnapshot,
     schemaName: string,
@@ -107,7 +107,7 @@ export function monitorValidation<T extends z.ZodSchema>(
 /**
  * Validate an array of documents with error aggregation
  */
-export function validateDocumentBatch<T extends z.ZodSchema>(
+function validateDocumentBatch<T extends z.ZodSchema>(
     schema: T,
     docs: admin.firestore.DocumentSnapshot[],
     schemaName: string,
@@ -156,7 +156,7 @@ export function validateDocumentBatch<T extends z.ZodSchema>(
  * );
  * ```
  */
-export function createValidatedTransform<TSchema extends z.ZodSchema, TResult>(schema: TSchema, schemaName: string, transform: (validatedData: z.infer<TSchema>) => TResult) {
+function createValidatedTransform<TSchema extends z.ZodSchema, TResult>(schema: TSchema, schemaName: string, transform: (validatedData: z.infer<TSchema>) => TResult) {
     return (doc: admin.firestore.DocumentSnapshot, logger?: ContextualLogger): TResult => {
         const validatedData = validateFirestoreDocument(schema, doc, schemaName, logger);
         return transform(validatedData);
@@ -166,7 +166,7 @@ export function createValidatedTransform<TSchema extends z.ZodSchema, TResult>(s
 /**
  * Wrap a Firestore write operation with validation
  */
-export async function safeWrite<T>(
+async function safeWrite<T>(
     writeOperation: () => Promise<T>,
     validationFn: () => void, // Function that performs validation
     context: {
