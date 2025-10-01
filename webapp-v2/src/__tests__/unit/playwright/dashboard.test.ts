@@ -315,11 +315,12 @@ test.describe('Dashboard Real-time Updates', () => {
         await dashboardPage.verifyEmptyGroupsState();
 
         // STEP 1: Send baseline notification (changeVersion=1, no groups) to mark first document as processed
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 1,
-            groups: {},
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .build()
+        );
 
         // Small wait to ensure first notification is processed
         await page.waitForTimeout(100);
@@ -335,22 +336,13 @@ test.describe('Dashboard Real-time Updates', () => {
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([newGroup], 1).build());
 
         // STEP 3: Send notification with new group (changeVersion=2) - should trigger refresh
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 2,
-            groups: {
-                'new-group-123': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .withGroupDetails('new-group-123', 1)
+                .build()
+        );
 
         // Verify new group appears
         await dashboardPage.waitForGroupToAppear('Brand New Group', 2000);
@@ -582,32 +574,14 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await dashboardPage.verifyGroupDisplayed('Will Stay');
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 1,
-            groups: {
-                'group-to-remove': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                },
-                'group-to-keep': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-to-remove', 1)
+                .withGroupDetails('group-to-keep', 1)
+                .build()
+        );
 
         await page.waitForTimeout(100);
 
@@ -616,22 +590,13 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group2], 1).build());
 
         // Simulate user being removed from group - group disappears from notification
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 2,
-            groups: {
-                'group-to-keep': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .withGroupDetails('group-to-keep', 1)
+                .build()
+        );
 
         // Verify removed group disappears
         await dashboardPage.waitForGroupToDisappear('Will Be Removed');
@@ -664,32 +629,14 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await dashboardPage.verifyGroupDisplayed('Will Survive');
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 1,
-            groups: {
-                'group-to-delete': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                },
-                'group-to-survive': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-to-delete', 1)
+                .withGroupDetails('group-to-survive', 1)
+                .build()
+            );
 
         await page.waitForTimeout(100);
 
@@ -698,22 +645,13 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group2], 1).build());
 
         // Simulate group deletion - group disappears from notification
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 2,
-            groups: {
-                'group-to-survive': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .withGroupDetails('group-to-survive', 1)
+                .build()
+            );
 
         // Verify deleted group disappears
         await dashboardPage.waitForGroupToDisappear('Will Be Deleted');
@@ -740,22 +678,13 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await dashboardPage.verifyGroupDisplayed('Only Group');
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 1,
-            groups: {
-                'only-group': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('only-group', 1)
+                .build()
+            );
 
         await page.waitForTimeout(100);
 
@@ -764,11 +693,12 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([], 0).build());
 
         // Simulate removal from last group
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 2,
-            groups: {},
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .build()
+        );
 
         // Verify empty state appears
         await dashboardPage.waitForGroupToDisappear('Only Group');
@@ -804,42 +734,15 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await dashboardPage.verifyGroupsDisplayed(3);
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 1,
-            groups: {
-                'group-1': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                },
-                'group-2': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                },
-                'group-3': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-1', 1)
+                .withGroupDetails('group-2', 1)
+                .withGroupDetails('group-3', 1)
+                .build()
+            );
 
         await page.waitForTimeout(100);
 
@@ -848,22 +751,13 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group3], 1).build());
 
         // Simulate two groups being removed simultaneously
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 2,
-            groups: {
-                'group-3': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .withGroupDetails('group-3', 1)
+                .build()
+            );
 
         // Verify removed groups disappear
         await dashboardPage.waitForGroupToDisappear('Group One');
@@ -910,22 +804,13 @@ test.describe('Dashboard Balance Change Notifications', () => {
         await dashboardPage.verifyGroupDisplayed('Balance Test Group');
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 1,
-            groups: {
-                'group-balance-test': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-balance-test', 1)
+                .build()
+            );
 
         await page.waitForTimeout(100);
 
@@ -934,22 +819,13 @@ test.describe('Dashboard Balance Change Notifications', () => {
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([updatedGroup], 2).build());
 
         // Trigger balance change notification
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 2,
-            groups: {
-                'group-balance-test': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 1,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(Date.now() - 10000),
-                    lastTransactionChange: null,
-                    lastBalanceChange: new Date(),
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .withGroupDetails('group-balance-test', 1)
+                .build()
+            );
 
         // Verify dashboard refreshes (group still visible with updated data)
         await page.waitForTimeout(500);
@@ -977,32 +853,14 @@ test.describe('Dashboard Balance Change Notifications', () => {
         await dashboardPage.verifyGroupsDisplayed(2);
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 1,
-            groups: {
-                'group-1': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                },
-                'group-2': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-1', 1)
+                .withGroupDetails('group-2', 1)
+                .build()
+            );
 
         await page.waitForTimeout(100);
 
@@ -1011,32 +869,14 @@ test.describe('Dashboard Balance Change Notifications', () => {
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group1, group2], 3).build());
 
         // Trigger balance changes for both groups
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 2,
-            groups: {
-                'group-1': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 1,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(Date.now() - 10000),
-                    lastTransactionChange: null,
-                    lastBalanceChange: new Date(),
-                    lastCommentChange: null
-                },
-                'group-2': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 1,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(Date.now() - 10000),
-                    lastTransactionChange: null,
-                    lastBalanceChange: new Date(),
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .withGroupDetails('group-1', 1)
+                .withGroupDetails('group-2', 1)
+                .build()
+            );
 
         // Verify both groups still displayed
         await page.waitForTimeout(500);
@@ -1083,22 +923,13 @@ test.describe('Dashboard Transaction Change Notifications', () => {
         await dashboardPage.verifyGroupDisplayed('Transaction Test Group');
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 1,
-            groups: {
-                'group-transaction-test': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-transaction-test', 1)
+                .build()
+            );
 
         await page.waitForTimeout(100);
 
@@ -1107,22 +938,13 @@ test.describe('Dashboard Transaction Change Notifications', () => {
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([updatedGroup], 2).build());
 
         // Trigger transaction change notification (new expense added)
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 2,
-            groups: {
-                'group-transaction-test': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 1,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(Date.now() - 10000),
-                    lastTransactionChange: new Date(),
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .withGroupDetails('group-transaction-test', 1)
+                .build()
+            );
 
         // Verify dashboard refreshes
         await page.waitForTimeout(500);
@@ -1144,22 +966,13 @@ test.describe('Dashboard Transaction Change Notifications', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 1,
-            groups: {
-                'group-combo-test': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-combo-test', 1)
+                .build()
+            );
 
         await page.waitForTimeout(100);
 
@@ -1168,22 +981,13 @@ test.describe('Dashboard Transaction Change Notifications', () => {
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 2).build());
 
         // Trigger combined transaction and balance change
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 2,
-            groups: {
-                'group-combo-test': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 1,
-                    balanceChangeCount: 1,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(Date.now() - 10000),
-                    lastTransactionChange: new Date(),
-                    lastBalanceChange: new Date(),
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .withGroupDetails('group-combo-test', 1)
+                .build()
+            );
 
         // Verify dashboard handles combined update
         await page.waitForTimeout(500);
@@ -1222,22 +1026,13 @@ test.describe('Dashboard Rapid Notification Updates', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 1,
-            groups: {
-                'group-rapid-test': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-rapid-test', 1)
+                .build()
+            );
 
         await page.waitForTimeout(100);
 
@@ -1248,22 +1043,18 @@ test.describe('Dashboard Rapid Notification Updates', () => {
         for (let i = 2; i <= 5; i++) {
             await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], i).build());
 
-            await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-                changeVersion: i,
-                groups: {
-                    'group-rapid-test': {
+            await mockFirebase.triggerNotificationUpdate(
+                testUser.uid,
+                new UserNotificationDocumentBuilder()
+                    .withChangeVersion(i)
+                    .withGroupChangeCounts('group-rapid-test', {
                         groupDetailsChangeCount: 1,
                         transactionChangeCount: i - 1,
                         balanceChangeCount: i - 1,
-                        commentChangeCount: 0,
-                        lastGroupDetailsChange: new Date(Date.now() - 10000),
-                        lastTransactionChange: new Date(),
-                        lastBalanceChange: new Date(),
-                        lastCommentChange: null
-                    }
-                },
-                lastModified: new Date()
-            });
+                        commentChangeCount: 0
+                    })
+                    .build()
+            );
 
             // Small delay between notifications
             await page.waitForTimeout(50);
@@ -1289,22 +1080,13 @@ test.describe('Dashboard Rapid Notification Updates', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 1,
-            groups: {
-                'group-concurrent-test': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-concurrent-test', 1)
+                .build()
+            );
 
         await page.waitForTimeout(100);
 
@@ -1313,41 +1095,23 @@ test.describe('Dashboard Rapid Notification Updates', () => {
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 2).build());
 
         // Send two notifications in quick succession
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 2,
-            groups: {
-                'group-concurrent-test': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 1,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(Date.now() - 10000),
-                    lastTransactionChange: new Date(),
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .withGroupDetails('group-concurrent-test', 1)
+                .build()
+            );
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 3).build());
 
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 3,
-            groups: {
-                'group-concurrent-test': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 2,
-                    balanceChangeCount: 1,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(Date.now() - 10000),
-                    lastTransactionChange: new Date(),
-                    lastBalanceChange: new Date(),
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(3)
+                .withGroupDetails('group-concurrent-test', 1)
+                .build()
+            );
 
         // Verify dashboard handles overlapping updates
         await page.waitForTimeout(1000);
@@ -1387,22 +1151,13 @@ test.describe('Dashboard Notification Error Handling', () => {
         await dashboardPage.verifyGroupDisplayed('Error Test Group');
 
         // Send valid baseline notification
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 1,
-            groups: {
-                'group-error-test': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-error-test', 1)
+                .build()
+            );
 
         await page.waitForTimeout(100);
 
@@ -1438,52 +1193,25 @@ test.describe('Dashboard Notification Error Handling', () => {
         await dashboardPage.verifyGroupDisplayed('Valid Group');
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 1,
-            groups: {
-                'valid-group': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('valid-group', 1)
+                .build()
+            );
 
         await page.waitForTimeout(100);
 
         // Send notification for non-existent group
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, {
-            changeVersion: 2,
-            groups: {
-                'non-existent-group-id': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 1,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(),
-                    lastTransactionChange: new Date(),
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                },
-                'valid-group': {
-                    groupDetailsChangeCount: 1,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    commentChangeCount: 0,
-                    lastGroupDetailsChange: new Date(Date.now() - 10000),
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastCommentChange: null
-                }
-            },
-            lastModified: new Date()
-        });
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .withGroupDetails('non-existent-group-id', 1)
+                .withGroupDetails('valid-group', 1)
+                .build()
+            );
 
         // Setup response that only includes valid group
         await page.unroute('/api/groups?includeMetadata=true');
