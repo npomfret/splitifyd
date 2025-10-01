@@ -52,28 +52,4 @@ export class ClientUserBuilder {
         return new ClientUserBuilder()
             .withEmailVerified(true);
     }
-
-    static unverifiedUser(): ClientUserBuilder {
-        return new ClientUserBuilder()
-            .withEmailVerified(false);
-    }
-
-    static adminUser(): ClientUserBuilder {
-        return new ClientUserBuilder()
-            .withDisplayName('Admin User')
-            .withEmailVerified(true);
-    }
-
-    /**
-     * Creates a ClientUser from an existing TestUser
-     * Useful for converting authentication test data to client user format
-     */
-    static fromTestUser(testUser: { email: string; displayName: string }, uid?: string): ClientUser {
-        return new ClientUserBuilder()
-            .withUid(uid || `user-${generateShortId()}`)
-            .withEmail(testUser.email)
-            .withDisplayName(testUser.displayName)
-            .withEmailVerified(true)
-            .build();
-    }
 }

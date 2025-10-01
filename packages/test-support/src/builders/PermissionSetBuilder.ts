@@ -69,17 +69,6 @@ export class PermissionSetBuilder {
         return this;
     }
 
-    asStrictPermissions(): this {
-        this.permissions = {
-            expenseEditing: 'admin-only',
-            expenseDeletion: 'admin-only',
-            memberInvitation: 'admin-only',
-            memberApproval: 'admin-required',
-            settingsManagement: 'admin-only',
-        };
-        return this;
-    }
-
     build(): PermissionSet {
         return {
             expenseEditing: this.permissions.expenseEditing,

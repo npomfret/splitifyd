@@ -10,8 +10,6 @@ import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import type { Group, GroupPermissions } from '@splitifyd/shared';
-import type { GroupMemberDocument } from '@splitifyd/shared';
-import { MemberStatuses } from '@splitifyd/shared';
 import type { GroupDocument } from '../schemas';
 
 /**
@@ -154,74 +152,5 @@ export class GroupPermissionService {
             message: 'Permissions updated successfully',
             permissions: updatedPermissions,
         };
-    }
-
-    /**
-     * Calculate user permissions directly without service dependencies
-     * Replicates PermissionEngineAsync logic but uses provided member data
-     */
-    private calculateUserPermissions(group: Group, member: GroupMemberDocument): Record<string, boolean> {
-        if (!group.permissions) {
-            throw new Error(`Group ${group.id} is missing permissions configuration`);
-        }
-
-        // If member is not active, only allow viewing
-        if (member.memberStatus !== MemberStatuses.ACTIVE) {
-            return {
-                canEditAnyExpense: false,
-                canDeleteAnyExpense: false,
-                canInviteMembers: false,
-                canManageSettings: false,
-                canApproveMembers: false,
-                canViewGroup: false,
-            };
-        }
-
-        // Viewers have restricted permissions
-        if (member.memberRole === MemberRoles.VIEWER) {
-            return {
-                canEditAnyExpense: false,
-                canDeleteAnyExpense: false,
-                canInviteMembers: false,
-                canManageSettings: false,
-                canApproveMembers: false,
-                canViewGroup: true,
-            };
-        }
-
-        // For members and admins, check each permission level
-        const permissions = group.permissions;
-
-        return {
-            canEditAnyExpense: this.checkPermissionLevel(permissions.expenseEditing, member.memberRole, group.createdBy, member.uid),
-            canDeleteAnyExpense: this.checkPermissionLevel(permissions.expenseDeletion, member.memberRole, group.createdBy, member.uid),
-            canInviteMembers: this.checkPermissionLevel(permissions.memberInvitation, member.memberRole, group.createdBy, member.uid),
-            canManageSettings: this.checkPermissionLevel(permissions.settingsManagement, member.memberRole, group.createdBy, member.uid),
-            canApproveMembers: this.checkPermissionLevel(permissions.memberApproval, member.memberRole, group.createdBy, member.uid),
-            canViewGroup: true, // All active members can view
-        };
-    }
-
-    /**
-     * Check if a member role meets the required permission level
-     */
-    private checkPermissionLevel(requiredLevel: string, memberRole: string, groupCreatedBy: string, userId: string): boolean {
-        const isOwner = groupCreatedBy === userId;
-        const isAdmin = memberRole === MemberRoles.ADMIN;
-
-        switch (requiredLevel) {
-            case PermissionLevels.ANYONE:
-                return true;
-            case PermissionLevels.OWNER_AND_ADMIN:
-                return isOwner || isAdmin;
-            case PermissionLevels.ADMIN_ONLY:
-                return isAdmin;
-            case 'automatic':
-                return true; // For member approval - automatic approval
-            case 'admin-required':
-                return isAdmin || isOwner; // For member approval - admin required
-            default:
-                return false;
-        }
     }
 }
