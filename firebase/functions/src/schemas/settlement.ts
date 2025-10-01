@@ -20,7 +20,7 @@ const BaseSettlementSchema = z
 /**
  * Create Document and Data schemas using common pattern
  */
-const { DocumentSchema: SettlementDocumentSchema, DataSchema: SettlementDataSchema } = createDocumentSchemas(BaseSettlementSchema);
+const { DocumentSchema: SettlementDocumentSchema } = createDocumentSchemas(BaseSettlementSchema);
 
 /**
  * Zod schema for Settlement document validation

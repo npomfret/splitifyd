@@ -95,35 +95,6 @@ const FirestoreAuditMetadataSchema = z.object({
 });
 
 /**
- * Infrastructure metadata with soft deletion support
- */
-const FirestoreAuditMetadataWithDeletionSchema = FirestoreAuditMetadataSchema.extend({
-    deletedAt: FirestoreTimestampSchema.nullable(),
-    deletedBy: z.string().nullable(), // Note: deletedBy is business logic (who deleted) but paired with deletedAt
-});
-
-/**
- * Security-related Firestore fields for documents that need member access control
- */
-const FirestoreSecurityFieldsSchema = z.object({
-    memberIds: z.array(UserIdSchema).optional(),
-});
-
-/**
  * Type definitions for Firestore document metadata
  */
 export type FirestoreAuditMetadata = z.infer<typeof FirestoreAuditMetadataSchema>;
-type FirestoreAuditMetadataWithDeletion = z.infer<typeof FirestoreAuditMetadataWithDeletionSchema>;
-type FirestoreSecurityFields = z.infer<typeof FirestoreSecurityFieldsSchema>;
-
-/**
- * Schema configuration options for consistency
- */
-const SCHEMA_CONFIG = {
-    // Use passthrough() for forward compatibility unless strict validation is required
-    defaultMode: 'passthrough' as const,
-
-    // Standard validation modes
-    strict: () => ({ strict: true as const }),
-    passthrough: () => ({ passthrough: true as const }),
-} as const;

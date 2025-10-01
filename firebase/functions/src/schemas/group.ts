@@ -3,31 +3,6 @@ import { SecurityPresets, MemberRoles, MemberStatuses, COLOR_PATTERNS } from '@s
 import { FirestoreTimestampSchema, AuditFieldsSchema, UserIdSchema, createDocumentSchemas } from './common';
 
 /**
- * Zod schema for Group member validation
- *
- * Each group member has a role, status, and optional theme color assignment.
- */
-const GroupMemberSchema = z
-    .object({
-        memberRole: z.nativeEnum(MemberRoles),
-        memberStatus: z.nativeEnum(MemberStatuses),
-        joinedAt: FirestoreTimestampSchema,
-        invitedBy: UserIdSchema.optional(),
-        invitedAt: FirestoreTimestampSchema.optional(),
-        color: z
-            .object({
-                light: z.string(),
-                dark: z.string(),
-                name: z.string(),
-                pattern: z.string(),
-                assignedAt: z.string(),
-                colorIndex: z.number(),
-            })
-            .optional(),
-    })
-    .passthrough();
-
-/**
  * Base Group schema without document ID
  *
  * Groups contain metadata about the expense-sharing group including

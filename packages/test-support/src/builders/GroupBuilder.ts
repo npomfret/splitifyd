@@ -236,25 +236,6 @@ export class GroupBuilder {
         return result;
     }
 
-    static basicGroup(): GroupBuilder {
-        return new GroupBuilder()
-            .withName('Test Group')
-            .withDescription('A basic test group');
-    }
-
-    static emptyGroup(): GroupBuilder {
-        return new GroupBuilder()
-            .withName('Empty Group')
-            .withDescription('An empty group for testing')
-            .withBalance({});
-    }
-
-    static groupWithActivity(activity: string): GroupBuilder {
-        return new GroupBuilder()
-            .withLastActivity(activity)
-            .withLastActivityRaw(new Date());
-    }
-
     static groupForUser(userId: string): GroupBuilder {
         return new GroupBuilder()
             .withCreatedBy(userId)
@@ -279,18 +260,4 @@ export class GroupBuilder {
         });
     }
 
-    /**
-     * Creates multiple Firestore groups with sequential IDs
-     */
-    static buildManyForFirestore(count: number, customizer?: (builder: GroupBuilder, index: number) => void): any[] {
-        return Array.from({ length: count }, (_, i) => {
-            const builder = new GroupBuilder().withId(`group-${i + 1}`);
-
-            if (customizer) {
-                customizer(builder, i);
-            }
-
-            return builder.buildForFirestore();
-        });
-    }
 }

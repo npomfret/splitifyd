@@ -35,7 +35,7 @@ const BaseExpenseSchema = z
 /**
  * Create Document and Data schemas using common pattern
  */
-const { DocumentSchema: ExpenseDocumentSchema, DataSchema: ExpenseDataSchema } = createDocumentSchemas(BaseExpenseSchema);
+const { DocumentSchema: ExpenseDocumentSchema } = createDocumentSchemas(BaseExpenseSchema);
 
 /**
  * Zod schemas for expense document validation

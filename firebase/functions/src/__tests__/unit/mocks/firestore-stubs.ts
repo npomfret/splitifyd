@@ -7,7 +7,7 @@ import type {IAuthService} from '../../../services/auth';
 import type {PolicyDocument, UserDocument, GroupDocument, ExpenseDocument, SettlementDocument} from '../../../schemas';
 import type {GroupMemberDocument, CommentTargetType} from '@splitifyd/shared';
 import type {UserNotificationDocument} from '../../../schemas/user-notifications';
-import type {ParsedShareLink, ParsedComment} from '../../../schemas';
+import type {ParsedComment} from '../../../schemas';
 import {ApiError} from '../../../utils/errors';
 import {HTTP_STATUS} from '../../../constants';
 

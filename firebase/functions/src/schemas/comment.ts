@@ -28,8 +28,3 @@ export const CommentDataSchema = CommentDocumentSchema.omit({ id: true });
  * Type-safe parsed Comment document
  */
 export type ParsedComment = z.infer<typeof CommentDocumentSchema>;
-
-/**
- * Type-safe Comment data for writing
- */
-type CommentData = z.infer<typeof CommentDataSchema>;

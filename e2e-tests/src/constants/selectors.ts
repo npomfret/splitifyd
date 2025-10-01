@@ -44,24 +44,6 @@ export const ARIA_ROLES = {
     MAIN: 'main',
 } as const;
 
-const HEADINGS = {
-    SIGN_IN: translation.loginPage.title,
-    CREATE_ACCOUNT: translation.registerPage.title,
-    PRICING: 'Pricing',
-    HOMEPAGE: 'Effortless Bill Splitting, Simplified & Smart.',
-    YOUR_GROUPS: /Your Groups|My Groups/i,
-    BALANCES: translation.balanceSummary.title,
-    EXPENSES: translation.expensesList.title,
-    JOIN_GROUP: translation.common.joinGroup,
-    EXPENSE_DETAILS: translation.expenseBasicFields.title,
-    WHO_PAID: new RegExp(translation.expenseForm.whoPaid),
-    SPLIT_BETWEEN: new RegExp(translation.expenseForm.splitBetween),
-    STATISTICS: translation.dashboardStats.title,
-    UPDATE_PAYMENT: translation.settlementForm.updatePayment,
-    RECORD_PAYMENT: translation.settlementForm.recordPayment,
-    DELETE_PAYMENT: translation.settlementHistory.deletePaymentTitle,
-} as const;
-
 export const BUTTON_TEXTS = {
     SETTLE_UP: new RegExp(translation.common.settleUp, 'i'),
     JOIN_GROUP: new RegExp(translation.common.joinGroup, 'i'),

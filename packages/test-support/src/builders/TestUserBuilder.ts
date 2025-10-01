@@ -39,23 +39,4 @@ export class TestUserBuilder {
     build(): TestUser {
         return { ...this.user };
     }
-
-    static validUser(): TestUserBuilder {
-        return new TestUserBuilder()
-            .withEmail(`test-${generateShortId()}@example.com`)
-            .withPassword('rrRR44$$')
-            .withDisplayName('Test User');
-    }
-
-    static userWithWeakPassword(): TestUserBuilder {
-        const weakPasswords = ['weak', '123', 'password', '12345678', 'abc123'];
-        return new TestUserBuilder()
-            .withPassword(randomChoice(weakPasswords));
-    }
-
-    static userWithStrongPassword(): TestUserBuilder {
-        const strongPasswords = ['StrongPassword123!', 'MySecureP@ssw0rd', 'Complex!Pass123', 'Tr0ub4dor&3', 'correct-horse-battery-staple-123'];
-        return new TestUserBuilder()
-            .withPassword(randomChoice(strongPasswords));
-    }
 }

@@ -76,17 +76,6 @@ export class ThemeBuilder {
     }
 
     /**
-     * Create a green theme with predefined colors
-     */
-    static green(): ThemeBuilder {
-        return new ThemeBuilder()
-            .withLight('#00FF00')
-            .withDark('#00FF00')
-            .withName('green')
-            .withColorIndex(1);
-    }
-
-    /**
      * Create a blue theme with predefined colors
      */
     static blue(): ThemeBuilder {

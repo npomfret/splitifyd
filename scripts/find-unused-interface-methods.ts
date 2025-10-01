@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { Project, SyntaxKind, InterfaceDeclaration, MethodSignature } from 'ts-morph';
+import { Project, SyntaxKind, InterfaceDeclaration } from 'ts-morph';
 import * as path from 'path';
 
 interface MethodInfo {

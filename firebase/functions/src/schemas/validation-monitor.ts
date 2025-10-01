@@ -55,24 +55,6 @@ class ValidationMetrics {
         this.metrics.failures.set(schemaName, count + 1);
     }
 
-    getMetrics() {
-        return {
-            ...this.metrics,
-            successRate: this.metrics.totalValidations > 0 ? (this.metrics.successfulValidations / this.metrics.totalValidations) * 100 : 0,
-            topFailures: Array.from(this.metrics.failures.entries())
-                .sort(([, a], [, b]) => b - a)
-                .slice(0, 5),
-        };
-    }
-
-    reset(): void {
-        this.metrics = {
-            totalValidations: 0,
-            successfulValidations: 0,
-            failedValidations: 0,
-            failures: new Map(),
-        };
-    }
 }
 
 /**
@@ -161,20 +143,6 @@ export class EnhancedValidationError extends Error {
         this.name = 'EnhancedValidationError';
     }
 
-    /**
-     * Get user-friendly error message for API responses
-     */
-    getUserFriendlyMessage(): string {
-        const firstError = this.zodError.issues[0];
-        if (!firstError) {
-            return 'Invalid data format';
-        }
-
-        const field = firstError.path.join('.');
-        const message = firstError.message;
-
-        return field ? `${field}: ${message}` : message;
-    }
 }
 
 /**
@@ -213,32 +181,4 @@ export function validateSafely<T extends z.ZodSchema>(
         }
         throw error; // Re-throw non-validation errors
     }
-}
-
-/**
- * Get current validation metrics
- */
-function getValidationMetrics() {
-    return ValidationMetrics.getInstance().getMetrics();
-}
-
-/**
- * Reset validation metrics (useful for testing)
- */
-function resetValidationMetrics() {
-    ValidationMetrics.getInstance().reset();
-}
-
-/**
- * Middleware to log validation metrics periodically
- */
-function startValidationMetricsLogging(intervalMinutes: number = 60) {
-    const intervalMs = intervalMinutes * 60 * 1000;
-
-    setInterval(() => {
-        const metrics = getValidationMetrics();
-        if (metrics.totalValidations > 0) {
-            logger.info('Validation metrics report', metrics);
-        }
-    }, intervalMs);
 }

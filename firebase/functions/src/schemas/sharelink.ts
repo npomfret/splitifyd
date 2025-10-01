@@ -27,8 +27,3 @@ export const ShareLinkDataSchema = ShareLinkDocumentSchema.omit({ id: true });
  * Type-safe parsed ShareLink document
  */
 export type ParsedShareLink = z.infer<typeof ShareLinkDocumentSchema>;
-
-/**
- * Type-safe ShareLink data for writing
- */
-type ShareLinkData = z.infer<typeof ShareLinkDataSchema>;

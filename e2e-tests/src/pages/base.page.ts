@@ -344,11 +344,6 @@ export abstract class BasePage {
         await this.waitForDomContentLoaded();
     }
 
-    async navigateToLogin(): Promise<void> {
-        await this._page.goto(`${EMULATOR_URL}/login`);
-        await this.waitForDomContentLoaded();
-    }
-
     async navigateToRegister(): Promise<void> {
         await this._page.goto(`${EMULATOR_URL}/register`);
         await this.waitForDomContentLoaded();

@@ -21,18 +21,6 @@ export class DashboardPage extends BasePage {
     // ============================================================================
 
     /**
-     * Main dashboard content area - identified by the dashboard grid layout
-     */
-    getDashboardContainer(): Locator {
-        // Find the main content area within the dashboard layout
-        return this.page.locator('[data-testid="dashboard-content"]').or(
-            this.page.locator('main').filter({
-                has: this.page.getByRole('heading', { name: translation.dashboard.yourGroups })
-            })
-        );
-    }
-
-    /**
      * Groups container - contains all group-related content
      */
     getGroupsContainer(): Locator {

@@ -1,15 +1,11 @@
 import { Page } from '@playwright/test';
 import { LoginPage as BaseLoginPage } from '@splitifyd/test-support';
-import { BUTTON_TEXTS } from '../constants/selectors';
 import { RegisterPage } from './register.page.ts';
 
 export class LoginPage extends BaseLoginPage {
     constructor(page: Page) {
         super(page);
     }
-
-    // E2E-specific constants using centralized selectors
-    readonly signInButton = BUTTON_TEXTS.SIGN_IN;
 
     // Override navigate method to include e2e-specific error handling
     async navigate() {

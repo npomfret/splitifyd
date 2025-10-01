@@ -157,16 +157,6 @@ export class ApiInterceptor {
     }
 
     /**
-     * Set up specific route interceptor for debugging specific API endpoints
-     * Note: This method is deprecated since we now use event listeners instead of route interception
-     * to avoid conflicts with test-specific routes. The general API interceptor will capture all API traffic.
-     */
-    addSpecificInterceptor(pattern: string, debugLabel?: string): void {
-        console.log(`API Interceptor: ${debugLabel || 'Specific interceptor'} for pattern ${pattern} - using general event-based tracking instead`);
-        // No-op since we're using event listeners now
-    }
-
-    /**
      * Update user information for better request/response tracking
      */
     updateUserInfo(userInfo: { userIndex?: number; userEmail?: string }): void {

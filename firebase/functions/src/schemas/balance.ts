@@ -4,46 +4,6 @@ import { ExpenseDocumentSchema } from './expense';
 import { SettlementDocumentSchema } from './settlement';
 import { GroupDocumentSchema } from './group';
 
-// Schema for ExpenseSplit
-const ExpenseSplitSchema = z.object({
-    uid: z.string(),
-    amount: z.number(),
-    percentage: z.number().optional(),
-});
-
-// Note: GroupMember and GroupData schemas removed - use canonical GroupDocument and GroupMemberDocument from schemas/group.ts and @splitifyd/shared
-
-// Schema for Expense entity used in balance calculations
-const ExpenseBalanceSchema = z.object({
-    id: z.string(),
-    groupId: z.string(),
-    description: z.string(),
-    amount: z.number(),
-    currency: z.string(),
-    paidBy: z.string(),
-    splitType: z.enum(['equal', 'exact', 'percentage']),
-    participants: z.array(z.string()),
-    splits: z.array(ExpenseSplitSchema),
-    date: z.string(),
-    category: z.string(),
-    receiptUrl: z.string().optional(),
-    createdAt: FirestoreTimestampSchema.optional(),
-    deletedAt: FirestoreTimestampSchema.optional(),
-});
-
-// Schema for Settlement entity used in balance calculations
-const SettlementBalanceSchema = z.object({
-    id: z.string(),
-    groupId: z.string(),
-    payerId: z.string(),
-    payeeId: z.string(),
-    amount: z.number(),
-    currency: z.string(),
-    date: z.string().optional(),
-    note: z.string().optional(),
-    createdAt: FirestoreTimestampSchema.optional(),
-});
-
 // Schema for UserBalance (from @splitifyd/shared)
 const UserBalanceSchema = z.object({
     uid: z.string(),
@@ -102,12 +62,6 @@ export const BalanceDisplaySchema = z.object({
 });
 
 // Export inferred types
-type ParsedExpenseBalance = z.infer<typeof ExpenseBalanceSchema>;
-type ParsedSettlementBalance = z.infer<typeof SettlementBalanceSchema>;
-type ParsedUserBalance = z.infer<typeof UserBalanceSchema>;
-type ParsedSimplifiedDebt = z.infer<typeof SimplifiedDebtSchema>;
 export type ParsedCurrencyBalances = z.infer<typeof CurrencyBalancesSchema>;
 export type ParsedBalanceCalculationInput = z.infer<typeof BalanceCalculationInputSchema>;
 export type ParsedBalanceCalculationResult = z.infer<typeof BalanceCalculationResultSchema>;
-type ParsedCurrencyBalanceDisplay = z.infer<typeof CurrencyBalanceDisplaySchema>;
-type ParsedBalanceDisplay = z.infer<typeof BalanceDisplaySchema>;

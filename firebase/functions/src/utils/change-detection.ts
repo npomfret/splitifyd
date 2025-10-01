@@ -134,23 +134,3 @@ export function createChangeDocument(
     const builder = builderFactory.getBuilder(entityType);
     return builder.createChangeDocument(entityId, changeType, metadata, additionalData);
 }
-
-/**
- * Create a minimal change document optimized for trigger-based refresh
- * Contains only the essential information needed to trigger client refreshes
- *
- * Structure:
- * {
- *   id: "abc123",           // Entity ID
- *   type: "group",          // Entity type: group, expense, or settlement
- *   action: "updated",      // Action: created, updated, or deleted
- *   timestamp: Timestamp,   // When the change occurred
- *   users: ["user1", ...],  // Affected users who should refresh
- *   groupId?: "group123"    // For expense/settlement changes only
- * }
- */
-function createMinimalChangeDocument(entityId: string, entityType: 'group' | 'expense' | 'settlement', changeType: ChangeType, affectedUsers: string[], groupId?: string): Record<string, any> {
-    const builder = builderFactory.getBuilder(entityType);
-    const additionalData = groupId ? { groupId } : {};
-    return builder.createMinimalChangeDocument(entityId, changeType, affectedUsers, additionalData);
-}

@@ -4,10 +4,6 @@ import { ApiError } from '../../../utils/errors';
 import { CreateExpenseRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
 
 describe('Date Validation Unit Tests', () => {
-    const getBaseValidExpenseData = () => new CreateExpenseRequestBuilder()
-        .withGroupId('test-group-id')
-        .withDescription('Test expense')
-        .build();
 
     describe('Future Date Validation', () => {
         test('should reject expenses with dates more than 24 hours in the future', () => {

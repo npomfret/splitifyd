@@ -14,7 +14,7 @@
  */
 
 import type { Transaction } from 'firebase-admin/firestore';
-import { FirestoreTimestamp, MemberRole, MemberStatus } from '@splitifyd/shared';
+import { FirestoreTimestamp } from '@splitifyd/shared';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 
 // FirestoreReader query and pagination types
@@ -35,12 +35,6 @@ interface FilterOptions {
         start?: FirestoreTimestamp;
         end?: FirestoreTimestamp;
     };
-}
-
-export interface GroupMemberQueryOptions {
-    includeInactive?: boolean;
-    roles?: MemberRole[];
-    statuses?: MemberStatus[];
 }
 
 export interface QueryOptions extends PaginationOptions, FilterOptions {

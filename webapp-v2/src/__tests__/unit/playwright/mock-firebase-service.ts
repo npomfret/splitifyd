@@ -203,10 +203,6 @@ export class MockFirebase {
         }, { userId, data });
     }
 
-    public getCurrentUser(): ClientUser | null {
-        return this.state.currentUser;
-    }
-
     public async dispose(): Promise<void> {
         if (!this.initialized) {
             return;
