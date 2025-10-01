@@ -175,27 +175,6 @@ export interface IFirestoreWriter {
      */
     addComment(targetType: CommentTargetType, targetId: string, commentData: Omit<CommentDocument, 'id'>): Promise<WriteResult>;
 
-    /**
-     * Update a comment
-     * @param targetType - 'expense' or 'settlement'
-     * @param targetId - The expense or settlement ID
-     * @param commentId - The comment ID
-     * @param updates - Partial comment data to update
-     * @returns Write result
-     * @deprecated This method is not used anywhere in the codebase. Consider removing in future versions.
-     */
-    updateComment(targetType: 'expense' | 'settlement', targetId: string, commentId: string, updates: Partial<Omit<CommentDocument, 'id'>>): Promise<WriteResult>;
-
-    /**
-     * Delete a comment
-     * @param targetType - 'expense' or 'settlement'
-     * @param targetId - The expense or settlement ID
-     * @param commentId - The comment ID
-     * @returns Write result
-     * @deprecated This method is not used anywhere in the codebase. Consider removing in future versions.
-     */
-    deleteComment(targetType: 'expense' | 'settlement', targetId: string, commentId: string): Promise<WriteResult>;
-
     // ========================================================================
     // Share Link Operations
     // ========================================================================
@@ -208,18 +187,6 @@ export interface IFirestoreWriter {
      * @returns Document reference
      */
     createShareLinkInTransaction(transaction: Transaction, groupId: string, shareLinkData: Omit<ShareLink, 'id'>): DocumentReference;
-
-    // ========================================================================
-    // Member Operations in Transactions
-    // ========================================================================
-
-    /**
-     * Update a group within a transaction
-     * @param transaction - The transaction object
-     * @param groupId - The group ID
-     * @param updates - The update data
-     */
-    updateGroupInTransaction(transaction: Transaction, groupId: string, updates: any): void;
 
     // ========================================================================
     // Policy Operations

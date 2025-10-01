@@ -578,20 +578,8 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         return result;
     }
 
-    async updateComment(): Promise<WriteResult> {
-        return {id: 'comment', success: true, timestamp: Timestamp.now()};
-    }
-
-    async deleteComment(): Promise<WriteResult> {
-        return {id: 'comment', success: true, timestamp: Timestamp.now()};
-    }
-
     createShareLinkInTransaction(): any {
         return {id: 'link', path: 'shareLinks/link'};
-    }
-
-    async updateGroupInTransaction(): Promise<WriteResult> {
-        return {id: 'group', success: true, timestamp: Timestamp.now()};
     }
 
     async createUserNotification(): Promise<WriteResult> {

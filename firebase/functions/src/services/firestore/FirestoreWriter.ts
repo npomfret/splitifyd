@@ -840,72 +840,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    async updateComment(targetType: 'expense' | 'settlement', targetId: string, commentId: string, updates: Partial<Omit<CommentDocument, 'id'>>): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.updateComment', async () => {
-            try {
-                const collection = targetType === 'expense' ? FirestoreCollections.EXPENSES : FirestoreCollections.SETTLEMENTS;
-
-                // Add updated timestamp
-                const finalUpdates = {
-                    ...updates,
-                    updatedAt: FieldValue.serverTimestamp(),
-                };
-
-                // Always try validation first, handle FieldValue operations gracefully
-                const documentPath = `${collection}/${targetId}/comments/${commentId}`;
-                const mergedData = await this.fetchAndMergeForValidation(documentPath, finalUpdates, commentId);
-
-                // Validate with graceful FieldValue handling
-                const validationResult = this.safeValidateUpdate<CommentDocument>(CommentDataSchema, mergedData, 'CommentDocument', commentId, 'comments');
-
-                // Perform the update
-                await this.db.collection(collection).doc(targetId).collection('comments').doc(commentId).update(finalUpdates);
-
-                const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(validated)';
-                logger.info(`Comment updated ${logType}`, { targetType, targetId, commentId });
-
-                return {
-                    id: commentId,
-                    success: true,
-                    timestamp: new Date() as any,
-                };
-            } catch (error) {
-                logger.error('Failed to update comment', error, { targetType, targetId, commentId, updates: Object.keys(updates) });
-                return {
-                    id: commentId,
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
-
-    async deleteComment(targetType: 'expense' | 'settlement', targetId: string, commentId: string): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.deleteComment', async () => {
-            try {
-                const collection = targetType === 'expense' ? FirestoreCollections.EXPENSES : FirestoreCollections.SETTLEMENTS;
-
-                await this.db.collection(collection).doc(targetId).collection('comments').doc(commentId).delete();
-
-                logger.info('Comment deleted', { targetType, targetId, commentId });
-
-                return {
-                    id: commentId,
-                    success: true,
-                    timestamp: new Date() as any,
-                };
-            } catch (error) {
-                logger.error('Failed to delete comment', error, { targetType, targetId, commentId });
-                return {
-                    id: commentId,
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
-
-
     // ========================================================================
     // Transaction Operations
     // ========================================================================
@@ -1256,38 +1190,6 @@ export class FirestoreWriter implements IFirestoreWriter {
 
         return shareLinkRef;
     }
-
-    // ========================================================================
-    // Member Operations in Transactions
-    // ========================================================================
-
-    /**
-     * Update a group within a transaction
-     * @param transaction - The transaction object
-     * @param groupId - The group ID
-     * @param updates - The update data
-     */
-    updateGroupInTransaction(transaction: Transaction, groupId: string, updates: any): void {
-        const groupRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
-
-        const finalUpdates = {
-            ...updates,
-            updatedAt: FieldValue.serverTimestamp(),
-        };
-
-        // Apply selective validation for group updates in transaction
-        const validationResult = this.validateTransactionData(FirestoreCollections.GROUPS, finalUpdates, groupId);
-        const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(partial validation)';
-
-        logger.info(`Group updated in transaction ${logType}`, {
-            groupId,
-            validatedFields: validationResult.validatedFields ? Object.keys(validationResult.validatedFields) : [],
-            skippedFields: validationResult.skippedFields || [],
-        });
-
-        transaction.update(groupRef, finalUpdates);
-    }
-
 
     // ========================================================================
     // Policy Operations
