@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './console-logging-fixture';
 import { createMockFirebase, mockGroupsApi, mockApiFailure, mockFullyAcceptedPoliciesApi } from './mock-firebase-service';
 import { ClientUserBuilder, GroupBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
 
@@ -7,7 +7,7 @@ test.describe('Dashboard Real-time Updates', () => {
 
     let mockFirebase: any = null;
 
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ pageWithLogging: page }) => {
         // Set up mock Firebase with authenticated user
         mockFirebase = await createMockFirebase(page, testUser);
 
@@ -19,7 +19,7 @@ test.describe('Dashboard Real-time Updates', () => {
         await mockFirebase.dispose();
     });
 
-    test('should update group name on dashboard after notification', async ({ page }) => {
+    test('should update group name on dashboard after notification', async ({ pageWithLogging: page }) => {
         const initialGroup = GroupBuilder.groupForUser(testUser.uid)
             .withId('group-abc')
             .withName('Old Group Name')
@@ -80,7 +80,7 @@ test.describe('Dashboard Real-time Updates', () => {
 test.describe('Dashboard Error Handling', () => {
     let mockFirebase: any = null;
 
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ pageWithLogging: page }) => {
         const testUser = ClientUserBuilder.validUser().build();
         mockFirebase = await createMockFirebase(page, testUser);
     });
@@ -89,7 +89,7 @@ test.describe('Dashboard Error Handling', () => {
         await mockFirebase.dispose();
     });
 
-    test('should handle API errors gracefully', async ({ page }) => {
+    test('should handle API errors gracefully', async ({ pageWithLogging: page }) => {
 
         // Mock API failure: /api/groups?includeMetadata=true -> 500 Internal Server Error
         await mockApiFailure(page, '/api/groups?includeMetadata=true', 500, { error: 'Internal Server Error' });

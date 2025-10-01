@@ -1,11 +1,11 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './console-logging-fixture';
 import { createMockFirebase, setupSuccessfulApiMocks } from './mock-firebase-service';
 import { ClientUserBuilder } from '@splitifyd/test-support';
 
 test.describe('Authentication Flow', () => {
     let mockFirebase: any = null;
 
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ pageWithLogging: page }) => {
         // Set up mock Firebase (start logged out)
         mockFirebase = await createMockFirebase(page, null);
     });
@@ -14,7 +14,7 @@ test.describe('Authentication Flow', () => {
         await mockFirebase.dispose();
     });
 
-    test('should log in successfully and navigate to dashboard', async ({ page }) => {
+    test('should log in successfully and navigate to dashboard', async ({ pageWithLogging: page }) => {
         // 1. Create test user using existing builder
         const testUser = ClientUserBuilder.validUser()
             .build();
@@ -40,7 +40,7 @@ test.describe('Authentication Flow', () => {
         await expect(page.getByText('Your Groups')).toBeVisible();
     });
 
-    test('should show error message for invalid credentials', async ({ page }) => {
+    test('should show error message for invalid credentials', async ({ pageWithLogging: page }) => {
         // 1. Navigate to login page first to ensure clean state
         await page.goto('/login');
 
@@ -62,7 +62,7 @@ test.describe('Authentication Flow', () => {
         await expect(page.locator('input[type="password"]')).toBeVisible();
     });
 
-    test('should handle network errors gracefully', async ({ page }) => {
+    test('should handle network errors gracefully', async ({ pageWithLogging: page }) => {
         // 1. Navigate to login page first to ensure clean state
         await page.goto('/login');
 
@@ -96,7 +96,7 @@ test.describe('Authentication Flow', () => {
 test.describe('Authentication Flow - Already Authenticated', () => {
     let mockFirebase: any = null;
 
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ pageWithLogging: page }) => {
         // Create authenticated user for this test group
         const testUser = ClientUserBuilder.validUser()
             .withDisplayName('Test User')
@@ -112,7 +112,7 @@ test.describe('Authentication Flow - Already Authenticated', () => {
         await mockFirebase.dispose();
     });
 
-    test('should redirect already authenticated user from login page', async ({ page }) => {
+    test('should redirect already authenticated user from login page', async ({ pageWithLogging: page }) => {
         // Try to navigate to login page - should redirect immediately
         await page.goto('/login');
 
