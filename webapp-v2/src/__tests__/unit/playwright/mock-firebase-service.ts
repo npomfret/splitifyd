@@ -300,7 +300,6 @@ export async function setupSuccessfulApiMocks(page: Page): Promise<void> {
             serverTime: Date.now(),
             lastChangeTimestamp: Date.now(),
             changeCount: 0,
-            hasRecentChanges: false,
         },
     });
 }

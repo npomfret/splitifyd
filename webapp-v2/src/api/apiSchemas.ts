@@ -97,7 +97,6 @@ export const ChangeMetadataSchema = z.object({
     lastChangeTimestamp: z.number(),
     changeCount: z.number(),
     serverTime: z.number(),
-    hasRecentChanges: z.boolean().optional(),
 });
 
 export const ListGroupsResponseSchema = z.object({

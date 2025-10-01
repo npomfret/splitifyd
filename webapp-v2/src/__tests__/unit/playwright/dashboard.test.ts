@@ -3,8 +3,7 @@ import { createMockFirebase, mockGroupsApi, mockApiFailure, mockFullyAcceptedPol
 import { ClientUserBuilder, GroupBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
 
 test.describe('Dashboard Real-time Updates', () => {
-    const testUser = ClientUserBuilder.validUser()
-        .build();
+    const testUser = ClientUserBuilder.validUser().build();
 
     let mockFirebase: any = null;
 
@@ -35,9 +34,7 @@ test.describe('Dashboard Real-time Updates', () => {
         // Mock groups API: /api/groups?includeMetadata=true -> initial group
         await mockGroupsApi(
             page,
-            ListGroupsResponseBuilder.responseWithMetadata([initialGroup], 1)
-                .withHasRecentChanges(false)
-                .build()
+            ListGroupsResponseBuilder.responseWithMetadata([initialGroup], 1).build()
         );
 
         // 3. Navigate to dashboard and verify initial state
@@ -65,7 +62,6 @@ test.describe('Dashboard Real-time Updates', () => {
         await mockGroupsApi(
             page,
             ListGroupsResponseBuilder.responseWithMetadata([updatedGroup], 2)
-                .withHasRecentChanges(true)
                 .build()
         );
 

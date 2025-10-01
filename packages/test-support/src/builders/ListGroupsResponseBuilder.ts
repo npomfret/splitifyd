@@ -66,7 +66,6 @@ export class ListGroupsResponseBuilder {
                 serverTime,
                 lastChangeTimestamp: serverTime,
                 changeCount: 0,
-                hasRecentChanges: false,
             };
         } else {
             this.response.metadata.serverTime = serverTime;
@@ -80,7 +79,6 @@ export class ListGroupsResponseBuilder {
                 serverTime: timestamp,
                 lastChangeTimestamp: timestamp,
                 changeCount: 0,
-                hasRecentChanges: false,
             };
         } else {
             this.response.metadata.lastChangeTimestamp = timestamp;
@@ -94,7 +92,6 @@ export class ListGroupsResponseBuilder {
                 serverTime: Date.now(),
                 lastChangeTimestamp: Date.now(),
                 changeCount: count,
-                hasRecentChanges: count > 0,
             };
         } else {
             this.response.metadata.changeCount = count;
@@ -102,19 +99,6 @@ export class ListGroupsResponseBuilder {
         return this;
     }
 
-    withHasRecentChanges(hasRecentChanges: boolean): this {
-        if (!this.response.metadata) {
-            this.response.metadata = {
-                serverTime: Date.now(),
-                lastChangeTimestamp: Date.now(),
-                changeCount: hasRecentChanges ? 1 : 0,
-                hasRecentChanges,
-            };
-        } else {
-            this.response.metadata.hasRecentChanges = hasRecentChanges;
-        }
-        return this;
-    }
 
     build(): ListGroupsResponse {
         return {
@@ -147,8 +131,7 @@ export class ListGroupsResponseBuilder {
             .withGroups(groups)
             .withServerTime(now)
             .withLastChangeTimestamp(now)
-            .withChangeCount(changeCount)
-            .withHasRecentChanges(changeCount > 0);
+            .withChangeCount(changeCount);
     }
 
     static paginatedResponse(groups: Group[], hasMore: boolean, nextCursor?: string): ListGroupsResponseBuilder {

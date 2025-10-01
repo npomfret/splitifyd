@@ -715,16 +715,14 @@ describe('Groups Management - Consolidated Tests', () => {
     });
 
     describe('Group Listing Operations', () => {
-        let multipleGroups: any[] = [];
 
         beforeEach(async () => {
             // Create multiple groups for listing tests
-            multipleGroups = [];
             const groupPromises = [];
             for (let i = 0; i < 5; i++) {
                 groupPromises.push(apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`List Test Group ${i} ${uuidv4()}`).build(), users[0].token));
             }
-            multipleGroups = await Promise.all(groupPromises);
+            Promise.all(groupPromises);
         });
 
         test('should list all user groups', async () => {
@@ -818,7 +816,6 @@ describe('Groups Management - Consolidated Tests', () => {
                 expect(responseWithMeta.metadata).toHaveProperty('lastChangeTimestamp');
                 expect(responseWithMeta.metadata).toHaveProperty('changeCount');
                 expect(responseWithMeta.metadata).toHaveProperty('serverTime');
-                expect(responseWithMeta.metadata).toHaveProperty('hasRecentChanges');
             }
         });
 

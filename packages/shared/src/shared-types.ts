@@ -538,7 +538,6 @@ export interface ChangeMetadata {
     lastChangeTimestamp: number;
     changeCount: number;
     serverTime: number;
-    hasRecentChanges: boolean;
 }
 
 // List groups response
