@@ -20,11 +20,6 @@ export interface ISplitStrategy {
     calculateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[]): ExpenseSplit[];
 
     /**
-     * Returns the split type this strategy handles
-     */
-    getSplitType(): string;
-
-    /**
      * Returns whether this split type requires explicit splits data
      */
     requiresSplitsData(): boolean;

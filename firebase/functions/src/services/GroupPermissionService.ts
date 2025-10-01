@@ -157,45 +157,6 @@ export class GroupPermissionService {
         };
     }
 
-    async getUserPermissions(
-        userId: string,
-        groupId: string,
-    ): Promise<{
-        uid: string;
-        role: any;
-        permissions: any;
-        groupSecurityPreset: any;
-    }> {
-        if (!groupId) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required');
-        }
-
-        const group = await this.firestoreReader.getGroup(groupId);
-        if (!group) {
-            throw Errors.NOT_FOUND('Group');
-        }
-
-        // Get members to check user membership
-        const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
-
-        if (!getMemberDocFromArray(memberDocs, userId)) {
-            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_MEMBER', 'You are not a member of this group');
-        }
-
-        const userMember = getMemberDocFromArray(memberDocs, userId)!;
-        const userRole = userMember.memberRole;
-
-        // Calculate permissions directly without calling PermissionEngineAsync to avoid service dependencies
-        const permissions = this.calculateUserPermissions(toGroup(group), userMember);
-
-        return {
-            uid: userId,
-            role: userRole,
-            permissions,
-            groupSecurityPreset: group.securityPreset,
-        };
-    }
-
     /**
      * Calculate user permissions directly without service dependencies
      * Replicates PermissionEngineAsync logic but uses provided member data

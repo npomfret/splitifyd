@@ -14,25 +14,4 @@ export interface ICommentStrategy {
      * @throws ApiError if access is denied or entity not found
      */
     verifyAccess(targetId: string, userId: string): Promise<void>;
-
-    /**
-     * Resolve the group ID associated with the target entity
-     *
-     * For groups: returns the targetId directly
-     * For expenses: returns the expense's groupId
-     * For settlements: returns the settlement's groupId
-     *
-     * @param targetId - ID of the target entity
-     * @returns The group ID associated with the target
-     * @throws ApiError if entity not found or deleted
-     */
-    resolveGroupId(targetId: string): Promise<string>;
-
-    /**
-     * Get the Firestore collection path for comments on this target type
-     *
-     * @param targetId - ID of the target entity
-     * @returns Firestore collection path string
-     */
-    getCollectionPath(targetId: string): string;
 }

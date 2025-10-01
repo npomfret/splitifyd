@@ -31,8 +31,4 @@ export class SplitStrategyFactory {
         }
         return strategy;
     }
-
-    public getSupportedSplitTypes(): string[] {
-        return Array.from(this.strategies.keys());
-    }
 }

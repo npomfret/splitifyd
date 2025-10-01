@@ -7,12 +7,6 @@ import { ExpenseSplitBuilder, SplitAssertionBuilder } from '@splitifyd/test-supp
 describe('PercentageSplitStrategy', () => {
     const strategy = new PercentageSplitStrategy();
 
-    describe('getSplitType', () => {
-        it('should return PERCENTAGE split type', () => {
-            expect(strategy.getSplitType()).toBe(SplitTypes.PERCENTAGE);
-        });
-    });
-
     describe('requiresSplitsData', () => {
         it('should return true as percentage splits require splits data', () => {
             expect(strategy.requiresSplitsData()).toBe(true);

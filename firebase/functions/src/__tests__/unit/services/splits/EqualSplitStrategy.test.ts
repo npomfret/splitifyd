@@ -6,12 +6,6 @@ import { SplitAssertionBuilder, ExpenseSplitBuilder } from '@splitifyd/test-supp
 describe('EqualSplitStrategy', () => {
     const strategy = new EqualSplitStrategy();
 
-    describe('getSplitType', () => {
-        it('should return EQUAL split type', () => {
-            expect(strategy.getSplitType()).toBe(SplitTypes.EQUAL);
-        });
-    });
-
     describe('requiresSplitsData', () => {
         it('should return false as equal splits do not require splits data', () => {
             expect(strategy.requiresSplitsData()).toBe(false);

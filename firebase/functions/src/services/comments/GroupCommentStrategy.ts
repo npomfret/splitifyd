@@ -30,13 +30,4 @@ export class GroupCommentStrategy implements ICommentStrategy {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group');
         }
     }
-
-    async resolveGroupId(targetId: string): Promise<string> {
-        // For group comments, the target ID is the group ID
-        return targetId;
-    }
-
-    getCollectionPath(targetId: string): string {
-        return `${FirestoreCollections.GROUPS}/${targetId}/${FirestoreCollections.COMMENTS}`;
-    }
 }

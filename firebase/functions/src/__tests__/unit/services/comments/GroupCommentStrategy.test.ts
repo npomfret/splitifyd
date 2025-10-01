@@ -60,34 +60,4 @@ describe('GroupCommentStrategy', () => {
             expect(error.code).toBe('ACCESS_DENIED');
         });
     });
-
-    describe('resolveGroupId', () => {
-        it('should return the targetId directly for group comments', async () => {
-            const groupId = 'test-group-123';
-
-            const result = await strategy.resolveGroupId(groupId);
-
-            expect(result).toBe(groupId);
-        });
-    });
-
-    describe('getCollectionPath', () => {
-        it('should generate correct Firestore collection path for group comments', () => {
-            const groupId = 'test-group-456';
-
-            const path = strategy.getCollectionPath(groupId);
-
-            expect(path).toBe(`${FirestoreCollections.GROUPS}/${groupId}/${FirestoreCollections.COMMENTS}`);
-            expect(path).toBe(`groups/${groupId}/comments`);
-        });
-
-        it('should handle different group IDs correctly', () => {
-            const groupIds = ['group-1', 'group-abc', 'group-with-special-chars'];
-
-            groupIds.forEach((groupId) => {
-                const path = strategy.getCollectionPath(groupId);
-                expect(path).toBe(`groups/${groupId}/comments`);
-            });
-        });
-    });
 });

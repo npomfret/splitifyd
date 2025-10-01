@@ -31,12 +31,4 @@ export class ChangeDocumentBuilderFactory {
                 throw new Error(`Unsupported entity type for change document builder: ${entityType}`);
         }
     }
-
-    /**
-     * Get all supported entity types
-     * @returns Array of supported entity type strings
-     */
-    getSupportedEntityTypes(): Array<'group' | 'expense' | 'settlement'> {
-        return ['group', 'expense', 'settlement'];
-    }
 }

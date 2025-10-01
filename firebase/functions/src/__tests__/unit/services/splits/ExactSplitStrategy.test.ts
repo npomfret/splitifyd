@@ -7,12 +7,6 @@ import { ExpenseSplitBuilder, SplitAssertionBuilder } from '@splitifyd/test-supp
 describe('ExactSplitStrategy', () => {
     const strategy = new ExactSplitStrategy();
 
-    describe('getSplitType', () => {
-        it('should return EXACT split type', () => {
-            expect(strategy.getSplitType()).toBe(SplitTypes.EXACT);
-        });
-    });
-
     describe('requiresSplitsData', () => {
         it('should return true as exact splits require splits data', () => {
             expect(strategy.requiresSplitsData()).toBe(true);

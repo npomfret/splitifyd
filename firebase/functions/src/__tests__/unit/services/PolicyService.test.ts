@@ -347,43 +347,6 @@ describe('PolicyService - Consolidated Unit Tests', () => {
         });
     });
 
-    describe('getCurrentPolicies', () => {
-        it('should return simplified current policy versions', async () => {
-            // Arrange
-            const policy1 = createMockPolicyDocument({
-                id: 'policy1',
-                policyName: 'Privacy Policy',
-                currentVersionHash: 'hash1',
-            });
-            const policy2 = createMockPolicyDocument({
-                id: 'policy2',
-                policyName: 'Terms of Service',
-                currentVersionHash: 'hash2',
-            });
-
-            stubReader.setDocument('policies', 'policy1', policy1);
-            stubReader.setDocument('policies', 'policy2', policy2);
-
-            // Act
-            const result = await policyService.getCurrentPolicies();
-
-            // Assert
-            expect(result).toEqual({
-                policies: {
-                    policy1: {
-                        policyName: 'Privacy Policy',
-                        currentVersionHash: 'hash1',
-                    },
-                    policy2: {
-                        policyName: 'Terms of Service',
-                        currentVersionHash: 'hash2',
-                    },
-                },
-                count: 2,
-            });
-        });
-    });
-
     describe('getCurrentPolicy', () => {
         it('should return current version details', async () => {
             // Arrange
@@ -1146,16 +1109,6 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
             expect(listResult.policies).toHaveLength(2);
             expect(listResult.count).toBe(2);
-
-            // Test getCurrentPolicies
-            const currentResult = await policyService.getCurrentPolicies();
-
-            expect(currentResult.policies).toHaveProperty('list-test-1');
-            expect(currentResult.policies).toHaveProperty('list-test-2');
-            expect(currentResult.policies['list-test-1']).toEqual({
-                policyName: 'List Test 1',
-                currentVersionHash: 'hash1',
-            });
         });
 
         it('should handle non-existent policy operations gracefully', async () => {

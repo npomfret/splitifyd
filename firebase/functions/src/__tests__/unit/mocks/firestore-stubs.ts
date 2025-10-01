@@ -356,10 +356,6 @@ export class StubFirestoreReader implements IFirestoreReader {
         );
     }
 
-    async documentExists(): Promise<boolean> {
-        return false;
-    }
-
     async getUserNotification(): Promise<UserNotificationDocument | null> {
         return null;
     }

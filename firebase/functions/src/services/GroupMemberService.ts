@@ -149,6 +149,7 @@ export class GroupMemberService {
     /**
      * Create a member document in the top-level collection
      * Path: group-memberships/{userId}_{groupId}
+     * @deprecated remove this - only used by tests
      */
     async createMember(groupId: string, memberDoc: GroupMemberDocument): Promise<void> {
         return this.measure.measureDb('CREATE_MEMBER', async () => {
@@ -185,6 +186,7 @@ export class GroupMemberService {
 
     /**
      * Update a member in the top-level collection
+     * @deprecated - remove this - only used by tests
      */
     async updateMember(groupId: string, userId: string, updates: Partial<GroupMemberDocument>): Promise<void> {
         return this.measure.measureDb('UPDATE_MEMBER', async () => {
@@ -204,6 +206,7 @@ export class GroupMemberService {
 
     /**
      * Delete a member from top-level collection
+     * @deprecated - remove this - only used by tests
      */
     async deleteMember(groupId: string, userId: string): Promise<void> {
         return this.measure.measureDb('DELETE_MEMBER', async () => {

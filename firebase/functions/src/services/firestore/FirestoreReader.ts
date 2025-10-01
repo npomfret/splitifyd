@@ -594,30 +594,6 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    // Note: getRecentGroupChanges removed as GROUP_CHANGES collection was unused
-
-    // ========================================================================
-    // Transaction-aware Read Operations
-    // ========================================================================
-
-    // ========================================================================
-    // Real-time Subscription Operations - Minimal Implementation
-    // ========================================================================
-
-    async documentExists(collection: string, documentId: string): Promise<boolean> {
-        try {
-            const doc = await this.db.collection(collection).doc(documentId).get();
-            return doc.exists;
-        } catch (error) {
-            logger.error('Failed to check document existence', error);
-            throw error;
-        }
-    }
-
-    // ========================================================================
-    // User Notification Operations
-    // ========================================================================
-
     async getUserNotification(userId: string): Promise<UserNotificationDocument | null> {
         try {
             const notificationDoc = await this.db.collection('user-notifications').doc(userId).get();

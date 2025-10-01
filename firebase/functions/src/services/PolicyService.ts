@@ -405,40 +405,6 @@ export class PolicyService {
     }
 
     /**
-     * Get all current policy versions (public endpoint)
-     */
-    async getCurrentPolicies(): Promise<{
-        policies: Record<string, { policyName: string; currentVersionHash: string }>;
-        count: number;
-    }> {
-        try {
-            const policies = await this.firestoreReader.getAllPolicies();
-            const currentPolicies: Record<string, { policyName: string; currentVersionHash: string }> = {};
-
-            policies.forEach((policy) => {
-                if (!policy.policyName || !policy.currentVersionHash) {
-                    return;
-                }
-
-                currentPolicies[policy.id] = {
-                    policyName: policy.policyName,
-                    currentVersionHash: policy.currentVersionHash,
-                };
-            });
-
-            logger.info('policies-retrieved', { count: Object.keys(currentPolicies).length });
-
-            return {
-                policies: currentPolicies,
-                count: Object.keys(currentPolicies).length,
-            };
-        } catch (error) {
-            logger.error('Failed to get current policies', error as Error);
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICIES_GET_FAILED', 'Failed to retrieve current policies');
-        }
-    }
-
-    /**
      * Get current version of a specific policy (public endpoint)
      */
     async getCurrentPolicy(id: string): Promise<{

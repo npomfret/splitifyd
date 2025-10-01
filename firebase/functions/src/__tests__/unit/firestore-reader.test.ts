@@ -44,8 +44,6 @@ describe('FirestoreReader', () => {
         expect(typeof reader.getGroupsForUserV2).toBe('function');
         expect(typeof reader.getExpensesForGroup).toBe('function');
 
-        // Utility operations
-        expect(typeof reader.documentExists).toBe('function');
     });
 });
 

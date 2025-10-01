@@ -219,60 +219,12 @@ export interface IFirestoreReader {
      */
     getSettlementsForGroup(groupId: string, options?: QueryOptions): Promise<SettlementDocument[]>;
 
-    // ========================================================================
-    // Collection Read Operations - Comment-related
-    // ========================================================================
-
-    // ========================================================================
-    // Specialized Query Operations
-    // ========================================================================
-
-    // Note: getRecentGroupChanges removed as GROUP_CHANGES collection was unused
-
-    // ========================================================================
-    // Transaction-aware Read Operations
-    // ========================================================================
-
-    // ========================================================================
-    // Real-time Subscription Operations
-    // ========================================================================
-
-    // ========================================================================
-    // Batch Operations
-    // ========================================================================
-
-    // ========================================================================
-    // Performance Metrics Operations
-    // ========================================================================
-
-    // ========================================================================
-    // Utility Operations
-    // ========================================================================
-
-    /**
-     * Check if a document exists without reading its data
-     * @param collection - The collection name
-     * @param documentId - The document ID
-     * @returns True if document exists, false otherwise
-     */
-    documentExists(collection: string, documentId: string): Promise<boolean>;
-
-
-
-    // ========================================================================
-    // User Notification Operations
-    // ========================================================================
-
     /**
      * Get a user notification document by user ID
      * @param userId - The user ID
      * @returns User notification document or null if not found
      */
     getUserNotification(userId: string): Promise<UserNotificationDocument | null>;
-
-    // ========================================================================
-    // Share Link Operations
-    // ========================================================================
 
     /**
      * Find a share link by its token across all groups

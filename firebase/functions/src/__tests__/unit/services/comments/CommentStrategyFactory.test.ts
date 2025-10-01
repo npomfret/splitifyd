@@ -83,10 +83,6 @@ describe('CommentStrategyFactory', () => {
             // Both strategies should be created with the injected dependencies
             expect(groupStrategy).toBeDefined();
             expect(expenseStrategy).toBeDefined();
-
-            // Verify they have access to the collection path methods (indicating proper construction)
-            expect(typeof groupStrategy.getCollectionPath).toBe('function');
-            expect(typeof expenseStrategy.getCollectionPath).toBe('function');
         });
     });
 });

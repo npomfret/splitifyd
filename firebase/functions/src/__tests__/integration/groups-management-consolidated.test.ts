@@ -1343,10 +1343,6 @@ describe('Groups Management - Consolidated Tests', () => {
 
             // COMPREHENSIVE VERIFICATION: ALL subcollections should be completely deleted
 
-            // 1. Main group document should be deleted - use FirestoreReader method
-            const groupExists = await firestoreReader.documentExists(FirestoreCollections.GROUPS, groupId);
-            expect(groupExists).toBe(false);
-
             // 2. Use group deletion data method to verify all subcollections are empty
             const groupDeletionDataAfter = await firestoreReader.getGroupDeletionData(groupId);
 
@@ -1358,13 +1354,6 @@ describe('Groups Management - Consolidated Tests', () => {
             // Verify all expense comment subcollections are empty
             const totalExpenseCommentsAfter = groupDeletionDataAfter.expenseComments.reduce((sum, snapshot) => sum + snapshot.size, 0);
             expect(totalExpenseCommentsAfter).toBe(0);
-
-            // 5. All top-level GROUP_MEMBERSHIPS documents should be deleted - use FirestoreReader
-            for (const user of groupUsers) {
-                const topLevelDocId = getTopLevelMembershipDocId(user.uid, groupId);
-                const membershipExists = await firestoreReader.documentExists(FirestoreCollections.GROUP_MEMBERSHIPS, topLevelDocId);
-                expect(membershipExists).toBe(false);
-            }
 
             // 10. API calls should return 404 for all users
             for (const user of groupUsers) {

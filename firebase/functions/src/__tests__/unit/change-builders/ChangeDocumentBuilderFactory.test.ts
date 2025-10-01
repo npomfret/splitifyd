@@ -48,39 +48,6 @@ describe('ChangeDocumentBuilderFactory', () => {
             expect(builder1).toBeInstanceOf(GroupChangeDocumentBuilder);
             expect(builder2).toBeInstanceOf(GroupChangeDocumentBuilder);
         });
-
-        it('should handle all supported entity types without error', () => {
-            const supportedTypes = factory.getSupportedEntityTypes();
-
-            supportedTypes.forEach((entityType) => {
-                expect(() => {
-                    const builder = factory.getBuilder(entityType);
-                    expect(builder.getEntityType()).toBe(entityType);
-                }).not.toThrow();
-            });
-        });
-    });
-
-    describe('getSupportedEntityTypes', () => {
-        it('should return all supported entity types', () => {
-            const supportedTypes = factory.getSupportedEntityTypes();
-
-            expect(supportedTypes).toEqual(['group', 'expense', 'settlement']);
-        });
-
-        it('should return array with correct length', () => {
-            const supportedTypes = factory.getSupportedEntityTypes();
-
-            expect(supportedTypes).toHaveLength(3);
-        });
-
-        it('should return immutable array', () => {
-            const supportedTypes1 = factory.getSupportedEntityTypes();
-            const supportedTypes2 = factory.getSupportedEntityTypes();
-
-            expect(supportedTypes1).toEqual(supportedTypes2);
-            expect(supportedTypes1).not.toBe(supportedTypes2);
-        });
     });
 
     describe('error handling', () => {

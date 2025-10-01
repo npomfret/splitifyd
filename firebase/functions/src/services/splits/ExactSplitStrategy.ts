@@ -4,9 +4,6 @@ import { HTTP_STATUS } from '../../constants';
 import { ISplitStrategy } from './ISplitStrategy';
 
 export class ExactSplitStrategy implements ISplitStrategy {
-    getSplitType(): string {
-        return SplitTypes.EXACT;
-    }
 
     requiresSplitsData(): boolean {
         return true;

@@ -4,9 +4,6 @@ import { HTTP_STATUS } from '../../constants';
 import { ISplitStrategy } from './ISplitStrategy';
 
 export class PercentageSplitStrategy implements ISplitStrategy {
-    getSplitType(): string {
-        return SplitTypes.PERCENTAGE;
-    }
 
     requiresSplitsData(): boolean {
         return true;

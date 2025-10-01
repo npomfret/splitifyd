@@ -22,19 +22,16 @@ describe('SplitStrategyFactory', () => {
         it('should return EqualSplitStrategy for EQUAL split type', () => {
             const strategy = factory.getStrategy(SplitTypes.EQUAL);
             expect(strategy).toBeInstanceOf(EqualSplitStrategy);
-            expect(strategy.getSplitType()).toBe(SplitTypes.EQUAL);
         });
 
         it('should return ExactSplitStrategy for EXACT split type', () => {
             const strategy = factory.getStrategy(SplitTypes.EXACT);
             expect(strategy).toBeInstanceOf(ExactSplitStrategy);
-            expect(strategy.getSplitType()).toBe(SplitTypes.EXACT);
         });
 
         it('should return PercentageSplitStrategy for PERCENTAGE split type', () => {
             const strategy = factory.getStrategy(SplitTypes.PERCENTAGE);
             expect(strategy).toBeInstanceOf(PercentageSplitStrategy);
-            expect(strategy.getSplitType()).toBe(SplitTypes.PERCENTAGE);
         });
 
         it('should throw error for unsupported split type', () => {
@@ -49,16 +46,4 @@ describe('SplitStrategyFactory', () => {
         });
     });
 
-    describe('getSupportedSplitTypes', () => {
-        const factory = SplitStrategyFactory.getInstance();
-
-        it('should return all supported split types', () => {
-            const supportedTypes = factory.getSupportedSplitTypes();
-
-            expect(supportedTypes).toHaveLength(3);
-            expect(supportedTypes).toContain(SplitTypes.EQUAL);
-            expect(supportedTypes).toContain(SplitTypes.EXACT);
-            expect(supportedTypes).toContain(SplitTypes.PERCENTAGE);
-        });
-    });
 });

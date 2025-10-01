@@ -37,17 +37,4 @@ export class ExpenseCommentStrategy implements ICommentStrategy {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group');
         }
     }
-
-    async resolveGroupId(targetId: string): Promise<string> {
-        // For expense comments, resolve the group ID from the expense
-        const expense = await this.firestoreReader.getExpense(targetId);
-        if (!expense || expense.deletedAt) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found');
-        }
-        return expense.groupId;
-    }
-
-    getCollectionPath(targetId: string): string {
-        return `${FirestoreCollections.EXPENSES}/${targetId}/${FirestoreCollections.COMMENTS}`;
-    }
 }

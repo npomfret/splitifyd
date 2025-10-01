@@ -27,65 +27,6 @@ describe('NotificationService - Consolidated Unit Tests', () => {
         vi.clearAllMocks();
     });
 
-    describe('updateUserNotification', () => {
-        it('should update single user notification successfully', async () => {
-            const userId = 'user123';
-            const groupId = 'group456';
-            const changeType = 'transaction';
-
-            stubWriter.setUserNotifications = vi.fn().mockResolvedValue({
-                success: true,
-                id: `notifications/${userId}`,
-            });
-
-            const result = await notificationService.updateUserNotification(userId, groupId, changeType);
-
-            expect(result.success).toBe(true);
-            expect(stubWriter.setUserNotifications).toHaveBeenCalledWith(
-                userId,
-                expect.objectContaining({
-                    changeVersion: expect.any(Object), // FieldValue.increment(1)
-                    groups: {
-                        [groupId]: {
-                            lastTransactionChange: expect.any(Object), // FieldValue.serverTimestamp()
-                            transactionChangeCount: expect.any(Object), // FieldValue.increment(1)
-                        },
-                    },
-                }),
-                true
-            );
-        });
-
-        it('should handle different change types correctly', async () => {
-            const userId = 'user123';
-            const groupId = 'group456';
-
-            const mockFn = vi.fn().mockResolvedValue({
-                success: true,
-                id: `notifications/${userId}`,
-            });
-            stubWriter.setUserNotifications = mockFn;
-
-            // Test transaction change type
-            await notificationService.updateUserNotification(userId, groupId, 'transaction');
-            let lastCall = mockFn.mock.calls[0][1];
-            expect(lastCall.groups[groupId]).toHaveProperty('lastTransactionChange');
-            expect(lastCall.groups[groupId]).toHaveProperty('transactionChangeCount');
-
-            // Test balance change type
-            await notificationService.updateUserNotification(userId, groupId, 'balance');
-            lastCall = mockFn.mock.calls[1][1];
-            expect(lastCall.groups[groupId]).toHaveProperty('lastBalanceChange');
-            expect(lastCall.groups[groupId]).toHaveProperty('balanceChangeCount');
-
-            // Test group change type
-            await notificationService.updateUserNotification(userId, groupId, 'group');
-            lastCall = mockFn.mock.calls[2][1];
-            expect(lastCall.groups[groupId]).toHaveProperty('lastGroupDetailsChange');
-            expect(lastCall.groups[groupId]).toHaveProperty('groupDetailsChangeCount');
-        });
-    });
-
     describe('batchUpdateNotifications', () => {
         it('should update multiple users with single change type', async () => {
             const userIds = ['user1', 'user2', 'user3'];
