@@ -1,5 +1,3 @@
-import { Timestamp } from 'firebase/firestore';
-
 export const formatLocalDateTime = (utcString: string): string => {
     const date = new Date(utcString);
     return date.toLocaleString();
