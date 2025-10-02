@@ -282,9 +282,16 @@ export class EditGroupModalPage extends BasePage {
 
     /**
      * Close modal by pressing Escape
+     * Uses Playwright's built-in retry mechanism to handle React useEffect timing
      */
     async pressEscapeToClose(): Promise<void> {
-        await this.page.keyboard.press('Escape');
+        const modal = this.getModalContainer();
+
+        // Use Playwright's auto-retry mechanism
+        await expect(async () => {
+            await this.page.keyboard.press('Escape');
+            await expect(modal).not.toBeVisible();
+        }).toPass({ timeout: 5000 });
     }
 
     // ============================================================================

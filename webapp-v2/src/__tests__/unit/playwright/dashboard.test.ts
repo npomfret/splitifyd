@@ -1,5 +1,5 @@
 import { test, expect } from '../../utils/console-logging-fixture';
-import {createMockFirebase, mockGroupsApi, mockApiFailure, mockFullyAcceptedPoliciesApi, setupSuccessfulApiMocks, MockFirebase} from '../../utils/mock-firebase-service';
+import {createMockFirebase, mockGroupsApi, mockApiFailure, mockFullyAcceptedPoliciesApi, setupSuccessfulApiMocks, mockGenerateShareLinkApi, MockFirebase} from '../../utils/mock-firebase-service';
 import { ClientUserBuilder, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder, DashboardPage, CreateGroupModalPage } from '@splitifyd/test-support';
 
 // Configure all tests to run in serial mode for browser reuse
@@ -388,7 +388,7 @@ test.describe('Dashboard Create Group Functionality', () => {
 
     test('should validate group name is required', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
-        const group = GroupBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -414,7 +414,7 @@ test.describe('Dashboard Create Group Functionality', () => {
 
     test('should fill both group name and description', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
-        const group = GroupBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -435,7 +435,7 @@ test.describe('Dashboard Create Group Functionality', () => {
 
     test('should close modal using cancel button', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
-        const group = GroupBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -454,7 +454,7 @@ test.describe('Dashboard Create Group Functionality', () => {
 
     test('should close modal using X button', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
-        const group = GroupBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -470,7 +470,7 @@ test.describe('Dashboard Create Group Functionality', () => {
 
     test('should close modal using Escape key', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
-        const group = GroupBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -486,7 +486,7 @@ test.describe('Dashboard Create Group Functionality', () => {
 
     test('should close modal by clicking backdrop', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
-        const group = GroupBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -502,16 +502,17 @@ test.describe('Dashboard Create Group Functionality', () => {
 
     test('should reopen modal with clean state after closing', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
-        const group = GroupBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
-        await page.goto('/dashboard');
+        await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
 
         // First opening
         const createGroupModal1 = await dashboardPage.clickCreateGroup();
         await createGroupModal1.fillGroupName('Previous Group Name');
         await createGroupModal1.clickCancel();
+        await createGroupModal1.waitForModalToClose();
         await createGroupModal1.verifyModalClosed();
 
         // Second opening - should be clean
@@ -543,7 +544,7 @@ test.describe('Dashboard Create Group Functionality', () => {
 
     test('should clear validation error when user starts typing', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
-        const group = GroupBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -566,7 +567,7 @@ test.describe('Dashboard Create Group Functionality', () => {
 
     test('should handle form submission reactively', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
-        const group = GroupBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -591,7 +592,7 @@ test.describe('Dashboard Create Group Functionality', () => {
 
     test('should open create group modal from mobile button using fluent interface', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
-        const group = GroupBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -608,7 +609,7 @@ test.describe('Dashboard Create Group Functionality', () => {
 
     test('should allow filling only group name without description', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
-        const group = GroupBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -629,7 +630,7 @@ test.describe('Dashboard Create Group Functionality', () => {
 
     test('should maintain form state while modal is open', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
-        const group = GroupBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -654,7 +655,7 @@ test.describe('Dashboard Create Group Functionality', () => {
 
     test('should handle multiple field updates correctly', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
-        const group = GroupBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -1499,5 +1500,757 @@ test.describe('Dashboard Notification Error Handling', () => {
         // Verify dashboard handles invalid group ID gracefully
         await page.waitForTimeout(500);
         await dashboardPage.verifyGroupDisplayed('Valid Group');
+    });
+});
+
+// ============================================================================
+// Dashboard Share Group Modal Tests
+// ============================================================================
+
+test.describe('Dashboard Share Group Modal', () => {
+    const testUser = ClientUserBuilder.validUser().build();
+    let mockFirebase: MockFirebase | null = null;
+
+    test.beforeEach(async ({ pageWithLogging: page }) => {
+        mockFirebase = await createMockFirebase(page, testUser);
+        await mockFullyAcceptedPoliciesApi(page);
+    });
+
+    test.afterEach(async () => {
+        if (mockFirebase) {
+            await mockFirebase.dispose();
+            mockFirebase = null;
+        }
+    });
+
+    test('should open share modal when clicking group card invite button', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGenerateShareLinkApi(page, 'group-123');
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        // Click invite button on group card
+        await dashboardPage.clickGroupCardInviteButton('Test Group');
+
+        // Verify share modal opened
+        await dashboardPage.verifyShareModalOpen();
+    });
+
+    test('should display share link and QR code after generation', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGenerateShareLinkApi(page, 'group-123', 'test-token-abc');
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        await dashboardPage.clickGroupCardInviteButton('Test Group');
+
+        // Wait for share link to be generated
+        await dashboardPage.verifyShareLinkDisplayed();
+
+        // Verify QR code is displayed
+        await dashboardPage.verifyQRCodeDisplayed();
+
+        // Verify link contains expected token
+        const shareLink = await dashboardPage.getShareLinkValue();
+        expect(shareLink).toContain('/join/test-token-abc');
+    });
+
+    test('should close share modal via close button', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGenerateShareLinkApi(page, 'group-123');
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        await dashboardPage.clickGroupCardInviteButton('Test Group');
+        await dashboardPage.verifyShareModalOpen();
+
+        // Close modal
+        await dashboardPage.closeShareModal();
+
+        // Verify modal closed
+        await dashboardPage.verifyShareModalClosed();
+    });
+
+    test('should close share modal via Escape key', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGenerateShareLinkApi(page, 'group-123');
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
+
+        // Close via Escape
+        await shareModal.pressEscapeToClose();
+
+        // Verify modal closed
+        await shareModal.verifyModalClosed();
+    });
+
+    test('should close share modal via backdrop click', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGenerateShareLinkApi(page, 'group-123');
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        await dashboardPage.clickGroupCardInviteButton('Test Group');
+        await dashboardPage.verifyShareModalOpen();
+
+        // Close via backdrop
+        await dashboardPage.closeShareModalViaBackdrop();
+
+        // Verify modal closed
+        await dashboardPage.verifyShareModalClosed();
+    });
+
+    test('should copy share link to clipboard and show toast', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGenerateShareLinkApi(page, 'group-123');
+
+        // Grant clipboard permissions
+        await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        await dashboardPage.clickGroupCardInviteButton('Test Group');
+        await dashboardPage.verifyShareLinkDisplayed();
+
+        // Copy link
+        await dashboardPage.copyShareLink();
+
+        // Verify toast appears
+        await dashboardPage.verifyLinkCopiedToast();
+
+        // Verify clipboard contains link
+        const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
+        expect(clipboardText).toContain('/join/');
+    });
+
+    test('should generate new share link when requested', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGenerateShareLinkApi(page, 'group-123', 'first-token');
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        await dashboardPage.clickGroupCardInviteButton('Test Group');
+        await dashboardPage.verifyShareLinkDisplayed();
+
+        const firstLink = await dashboardPage.getShareLinkValue();
+        expect(firstLink).toContain('first-token');
+
+        // Mock new link generation
+        await mockGenerateShareLinkApi(page, 'group-123', 'second-token');
+
+        // Generate new link
+        await dashboardPage.generateNewShareLink();
+
+        // Wait for new link to appear
+        await page.waitForTimeout(500);
+
+        const secondLink = await dashboardPage.getShareLinkValue();
+        expect(secondLink).toContain('second-token');
+        expect(secondLink).not.toEqual(firstLink);
+    });
+
+    test('should handle share link generation error', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+
+        // Mock API failure for share link generation
+        await mockApiFailure(page, `/api/groups/group-123/share-link`, 500, { error: 'Failed to generate share link' });
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        await dashboardPage.clickGroupCardInviteButton('Test Group');
+
+        // Verify error message displayed
+        await dashboardPage.verifyShareModalError();
+    });
+
+    test('should show loading state while generating share link', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+
+        // Mock delayed response for share link
+        await page.route(`/api/groups/group-123/share-link`, async (route) => {
+            await page.waitForTimeout(1000);
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    success: true,
+                    shareablePath: '/join/delayed-token',
+                    shareToken: 'delayed-token',
+                    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+                })
+            });
+        });
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        await dashboardPage.clickGroupCardInviteButton('Test Group');
+
+        // Verify loading state
+        await dashboardPage.verifyShareModalLoading();
+
+        // Wait for link to load
+        await dashboardPage.verifyShareLinkDisplayed();
+    });
+});
+
+// ============================================================================
+// Dashboard Stats Display Tests
+// ============================================================================
+
+test.describe('Dashboard Stats Display', () => {
+    const testUser = ClientUserBuilder.validUser().build();
+    let mockFirebase: MockFirebase | null = null;
+
+    test.beforeEach(async ({ pageWithLogging: page }) => {
+        mockFirebase = await createMockFirebase(page, testUser);
+        await mockFullyAcceptedPoliciesApi(page);
+    });
+
+    test.afterEach(async () => {
+        if (mockFirebase) {
+            await mockFirebase.dispose();
+            mockFirebase = null;
+        }
+    });
+
+    test('should display loading skeleton while groups are loading', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        // Mock delayed API response to see loading state
+        await page.route('/api/groups?includeMetadata=true', async (route) => {
+            await page.waitForTimeout(1000);
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(ListGroupsResponseBuilder.responseWithMetadata([]).build())
+            });
+        });
+
+        await dashboardPage.navigate();
+
+        // Verify stats show loading skeleton
+        await dashboardPage.verifyStatsLoading();
+    });
+
+    test('should display correct group counts with zero groups', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([]).build());
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        // Verify stats display
+        await dashboardPage.verifyStatsDisplayed(0, 0);
+    });
+
+    test('should display correct group counts with multiple groups', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const groups = [
+            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 1').withId('group-1').build(),
+            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 2').withId('group-2').build(),
+            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 3').withId('group-3').build(),
+        ];
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(groups).build());
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        // Verify stats display 3 groups
+        await dashboardPage.verifyStatsDisplayed(3, 3);
+    });
+
+    test('should update stats when group is added', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        // Start with 2 groups
+        const initialGroups = [
+            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 1').withId('group-1').build(),
+            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 2').withId('group-2').build(),
+        ];
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(initialGroups).build());
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        // Verify initial count
+        await dashboardPage.verifyStatsDisplayed(2, 2);
+
+        // Simulate adding a new group via notification
+        const newGroup = GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 3').withId('group-3').build();
+        const updatedGroups = [...initialGroups, newGroup];
+
+        await page.unroute('/api/groups?includeMetadata=true');
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(updatedGroups, 1).build());
+
+        // Trigger notification
+        await mockFirebase!.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-3', 1)
+                .build()
+        );
+
+        await page.waitForTimeout(500);
+
+        // Verify updated count
+        await dashboardPage.verifyStatsDisplayed(3, 3);
+    });
+
+    test('should update stats when group is removed', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        // Start with 3 groups
+        const initialGroups = [
+            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 1').withId('group-1').build(),
+            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 2').withId('group-2').build(),
+            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 3').withId('group-3').build(),
+        ];
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(initialGroups).build());
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        // Verify initial count
+        await dashboardPage.verifyStatsDisplayed(3, 3);
+
+        // Simulate removing a group
+        const remainingGroups = initialGroups.slice(0, 2);
+
+        await page.unroute('/api/groups?includeMetadata=true');
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(remainingGroups, 1).build());
+
+        // Trigger notification to refresh the dashboard
+        // When a group is deleted, we trigger a notification with updated change version
+        await mockFirebase!.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .withGroupDetails('group-1', 1)
+                .build()
+        );
+
+        await page.waitForTimeout(500);
+
+        // Verify updated count
+        await dashboardPage.verifyStatsDisplayed(2, 2);
+    });
+});
+
+// ============================================================================
+// Dashboard Quick Actions Tests
+// ============================================================================
+
+test.describe('Dashboard Quick Actions', () => {
+    const testUser = ClientUserBuilder.validUser().build();
+    let mockFirebase: MockFirebase | null = null;
+
+    test.beforeEach(async ({ pageWithLogging: page }) => {
+        mockFirebase = await createMockFirebase(page, testUser);
+        await mockFullyAcceptedPoliciesApi(page);
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([]).build());
+    });
+
+    test.afterEach(async () => {
+        if (mockFirebase) {
+            await mockFirebase.dispose();
+            mockFirebase = null;
+        }
+    });
+
+    test('should display quick actions card', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        await dashboardPage.navigate();
+
+        // Verify quick actions displayed
+        await dashboardPage.verifyQuickActionsDisplayed();
+    });
+
+    test('should open create group modal from quick actions', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        await dashboardPage.navigate();
+
+        // Click quick actions create button
+        const createModal = await dashboardPage.clickQuickActionsCreateGroup();
+
+        // Verify modal opened
+        await createModal.verifyModalOpen();
+    });
+
+    test('should have view expenses button disabled', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        await dashboardPage.navigate();
+
+        // Verify view expenses button is disabled (future feature)
+        await dashboardPage.verifyViewExpensesDisabled();
+    });
+});
+
+// ============================================================================
+// Dashboard Group Card Action Buttons Tests
+// ============================================================================
+
+test.describe('Dashboard Group Card Actions', () => {
+    const testUser = ClientUserBuilder.validUser().build();
+    let mockFirebase: MockFirebase | null = null;
+
+    test.beforeEach(async ({ pageWithLogging: page }) => {
+        mockFirebase = await createMockFirebase(page, testUser);
+        await mockFullyAcceptedPoliciesApi(page);
+    });
+
+    test.afterEach(async () => {
+        if (mockFirebase) {
+            await mockFirebase.dispose();
+            mockFirebase = null;
+        }
+    });
+
+    test('should show action buttons on group card hover', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        // Verify action buttons visible on hover
+        await dashboardPage.verifyGroupCardActionsVisible('Test Group');
+    });
+
+    test('should open share modal when clicking invite button', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGenerateShareLinkApi(page, 'group-123');
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        // Click invite button
+        await dashboardPage.clickGroupCardInviteButton('Test Group');
+
+        // Verify share modal opened
+        await dashboardPage.verifyShareModalOpen();
+    });
+
+    test('should navigate to add expense form when clicking add expense button', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        // Click add expense button
+        await dashboardPage.clickGroupCardAddExpenseButton('Test Group');
+
+        // Verify navigation to add expense page
+        await expect(page).toHaveURL(/\/groups\/group-123\/expenses\/add/);
+    });
+
+    test('should not navigate when clicking action buttons', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGenerateShareLinkApi(page, 'group-123');
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        // Click invite button (should not navigate to group detail)
+        await dashboardPage.clickGroupCardInviteButton('Test Group');
+
+        // Verify still on dashboard
+        await expect(page).toHaveURL(/\/dashboard/);
+
+        // Close modal
+        await dashboardPage.closeShareModal();
+    });
+
+    test('should display "settled up" when no debts exist', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Settled Group')
+            .withId('group-123')
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        // Verify settled up message
+        await dashboardPage.verifyGroupCardBalance('Settled Group', 'All settled up');
+    });
+
+    test('should display correct balance for owed money', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Owed Group')
+            .withId('group-123')
+            .withBalance({
+                groupId: 'group-123',
+                lastUpdated: new Date().toISOString(),
+                userBalances: {},
+                simplifiedDebts: [],
+                balancesByCurrency: {
+                    USD: {
+                        currency: 'USD',
+                        netBalance: 50.00,
+                        owes: {},
+                        owedBy: {}
+                    }
+                }
+            })
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        // Verify owed balance display
+        await dashboardPage.verifyGroupCardBalance('Owed Group', 'you are owed');
+    });
+
+    test('should display correct balance for owing money', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Owing Group')
+            .withId('group-123')
+            .withBalance({
+                groupId: 'group-123',
+                lastUpdated: new Date().toISOString(),
+                userBalances: {},
+                simplifiedDebts: [],
+                balancesByCurrency: {
+                    USD: {
+                        currency: 'USD',
+                        netBalance: -50.00,
+                        owes: {},
+                        owedBy: {}
+                    }
+                }
+            })
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        // Verify owing balance display
+        await dashboardPage.verifyGroupCardBalance('Owing Group', 'you owe');
+    });
+});
+
+// ============================================================================
+// Dashboard Navigation Flow Tests
+// ============================================================================
+
+test.describe('Dashboard Navigation Flows', () => {
+    const testUser = ClientUserBuilder.validUser().build();
+    let mockFirebase: MockFirebase | null = null;
+
+    test.beforeEach(async ({ pageWithLogging: page }) => {
+        mockFirebase = await createMockFirebase(page, testUser);
+        await mockFullyAcceptedPoliciesApi(page);
+    });
+
+    test.afterEach(async () => {
+        if (mockFirebase) {
+            await mockFirebase.dispose();
+            mockFirebase = null;
+        }
+    });
+
+    test('should navigate to group detail when clicking group card', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        // Click group card
+        await dashboardPage.clickGroupCard('Test Group');
+
+        // Verify navigation to group detail
+        await expect(page).toHaveURL(/\/groups\/group-123/);
+    });
+
+    test('should return to dashboard from group detail', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        // Navigate to group detail
+        await dashboardPage.clickGroupCard('Test Group');
+        await expect(page).toHaveURL(/\/groups\/group-123/);
+
+        // Go back to dashboard
+        await page.goBack();
+
+        // Verify back on dashboard
+        await dashboardPage.verifyDashboardPageLoaded();
+    });
+
+    test('should maintain dashboard state after modal interactions', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        const groups = [
+            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 1').withId('group-1').build(),
+            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 2').withId('group-2').build(),
+        ];
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(groups).build());
+        await mockGenerateShareLinkApi(page, 'group-1');
+
+        await dashboardPage.navigate();
+        await dashboardPage.waitForGroupsToLoad();
+
+        // Open and close share modal
+        await dashboardPage.clickGroupCardInviteButton('Group 1');
+        await dashboardPage.verifyShareModalOpen();
+        await dashboardPage.closeShareModal();
+
+        // Verify dashboard still shows all groups
+        await dashboardPage.verifyGroupsDisplayed(2);
+        await dashboardPage.verifyGroupDisplayed('Group 1');
+        await dashboardPage.verifyGroupDisplayed('Group 2');
+    });
+
+    test('should update URL correctly when navigating', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([]).build());
+
+        // Navigate to dashboard
+        await dashboardPage.navigate();
+
+        // Verify URL is correct
+        await expect(page).toHaveURL('/dashboard');
+
+        // Verify dashboard loaded
+        await dashboardPage.verifyDashboardPageLoaded();
     });
 });

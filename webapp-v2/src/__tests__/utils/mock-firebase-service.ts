@@ -333,6 +333,32 @@ export async function mockGroupCommentsApi(page: Page, groupId: string, comments
 }
 
 /**
+ * Mock generate share link API endpoint
+ * The endpoint is POST /api/groups/share with body: { groupId }
+ * Response format: { linkId: string, shareablePath: string }
+ */
+export async function mockGenerateShareLinkApi(page: Page, groupId: string, shareToken: string = 'test-share-token-123'): Promise<void> {
+    await page.route('/api/groups/share', async (route) => {
+        const request = route.request();
+        const postData = request.postDataJSON();
+
+        // Only respond if the groupId matches
+        if (postData?.groupId === groupId) {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    linkId: shareToken,
+                    shareablePath: `/join/${shareToken}`
+                })
+            });
+        } else {
+            await route.continue();
+        }
+    });
+}
+
+/**
  * Creates successful API mocks for authenticated user flows
  * Commonly used pattern for tests that need authenticated users with accepted policies
  */

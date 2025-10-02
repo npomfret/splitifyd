@@ -232,6 +232,8 @@ export class CreateGroupModalPage extends BasePage {
      */
     async fillGroupDescription(description: string): Promise<void> {
         const input = this.getGroupDescriptionInput();
+        await expect(input).toBeVisible();
+        await expect(input).toBeEnabled();
         await input.click();
         await input.fill(description);
         await input.dispatchEvent('input');
@@ -292,9 +294,17 @@ export class CreateGroupModalPage extends BasePage {
 
     /**
      * Close modal by pressing Escape key
+     * Uses Playwright's built-in retry mechanism to handle React useEffect timing
      */
     async pressEscapeToClose(): Promise<void> {
-        await this.page.keyboard.press('Escape');
+        const modal = this.getModalContainer();
+
+        // Use Playwright's auto-retry mechanism
+        // Keep pressing Escape until the modal is no longer visible
+        await expect(async () => {
+            await this.page.keyboard.press('Escape');
+            await expect(modal).not.toBeVisible();
+        }).toPass({ timeout: 5000 });
     }
 
     // ============================================================================

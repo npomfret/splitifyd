@@ -194,9 +194,16 @@ export class LeaveGroupDialogPage extends BasePage {
 
     /**
      * Close dialog by pressing Escape
+     * Uses Playwright's built-in retry mechanism to handle React useEffect timing
      */
     async pressEscapeToClose(): Promise<void> {
-        await this.page.keyboard.press('Escape');
+        const dialog = this.getDialogContainer();
+
+        // Use Playwright's auto-retry mechanism
+        await expect(async () => {
+            await this.page.keyboard.press('Escape');
+            await expect(dialog).not.toBeVisible();
+        }).toPass({ timeout: 5000 });
     }
 
     // ============================================================================
