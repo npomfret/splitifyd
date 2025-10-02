@@ -1,4 +1,4 @@
-import type { GroupFullDetails, Group, GroupMemberDTO, ExpenseData, GroupBalances, SettlementListItem } from '@splitifyd/shared';
+import type { GroupFullDetails, GroupDTO, GroupMemberDTO, ExpenseDTO, GroupBalances, SettlementListItem } from '@splitifyd/shared';
 
 /**
  * Builder for creating GroupFullDetails responses for testing
@@ -9,7 +9,7 @@ export class GroupFullDetailsBuilder {
 
     constructor() {
         this.fullDetails = {
-            group: {} as Group,
+            group: {} as GroupDTO,
             members: { members: [] },
             expenses: { expenses: [], hasMore: false },
             balances: {
@@ -23,7 +23,7 @@ export class GroupFullDetailsBuilder {
         };
     }
 
-    withGroup(group: Group): this {
+    withGroup(group: GroupDTO): this {
         this.fullDetails.group = group;
         // Also update balances groupId to match
         if (group.id) {
@@ -37,7 +37,7 @@ export class GroupFullDetailsBuilder {
         return this;
     }
 
-    withExpenses(expenses: ExpenseData[], hasMore: boolean = false, nextCursor?: string): this {
+    withExpenses(expenses: ExpenseDTO[], hasMore: boolean = false, nextCursor?: string): this {
         this.fullDetails.expenses = { expenses, hasMore, nextCursor };
         return this;
     }

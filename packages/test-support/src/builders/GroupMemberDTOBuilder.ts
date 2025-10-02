@@ -1,6 +1,5 @@
 import type { GroupMemberDTO, UserThemeColor, MemberRole, MemberStatus, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { ThemeBuilder } from './ThemeBuilder';
-import { GroupMemberBuilder } from './GroupMemberBuilder';
 
 /**
  * Builder for GroupMemberDTO - the API response format for group members
@@ -10,10 +9,7 @@ export class GroupMemberDTOBuilder {
     private memberDTO: GroupMemberDTO;
 
     constructor() {
-        // Start with GroupMember fields
-        const groupMember = new GroupMemberBuilder().build();
-
-        // Add DTO-specific fields
+        // Initialize with default values for all required GroupMemberDTO fields
         this.memberDTO = {
             uid: 'default-user-id',
             displayName: 'Default User',
@@ -21,7 +17,9 @@ export class GroupMemberDTOBuilder {
             initials: 'DU',
             themeColor: new ThemeBuilder().build(),
             photoURL: null,
-            ...groupMember
+            joinedAt: new Date().toISOString(),
+            memberRole: 'member' as MemberRole,
+            memberStatus: 'active' as MemberStatus
         };
     }
 
