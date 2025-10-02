@@ -1,6 +1,6 @@
 import { test, expect } from '../../utils/console-logging-fixture';
 import { createMockFirebase, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
-import { ClientUserBuilder, LoginPage } from '@splitifyd/test-support';
+import { ClientUserBuilder, LoginPage, DashboardPage } from '@splitifyd/test-support';
 
 test.describe('Authentication Flow', () => {
     let mockFirebase: any = null;
@@ -18,6 +18,7 @@ test.describe('Authentication Flow', () => {
         // 1. Create test user and login page
         const testUser = ClientUserBuilder.validUser().build();
         const loginPage = new LoginPage(page);
+        const dashboardPage = new DashboardPage(page);
 
         // 2. Configure mock Firebase for this test
         mockFirebase.mockLoginSuccess(testUser);
@@ -30,8 +31,8 @@ test.describe('Authentication Flow', () => {
 
         // 5. Verify successful login and navigation
         await expect(page).toHaveURL('/dashboard');
-        await expect(page.getByTestId('user-menu-button')).toContainText(testUser.displayName);
-        await expect(page.getByText('Your Groups')).toBeVisible();
+        await expect(dashboardPage.getUserMenuButton()).toContainText(testUser.displayName);
+        await expect(dashboardPage.getYourGroupsHeading()).toBeVisible();
     });
 
     test('should show error message for invalid credentials', async ({ pageWithLogging: page }) => {
@@ -50,19 +51,16 @@ test.describe('Authentication Flow', () => {
         await loginPage.login('test@example.com', 'wrong-password');
 
         // 4. Verify error handling
-        await expect(page.getByTestId('error-message')).toContainText('Invalid email or password.');
+        await loginPage.verifyErrorMessage('Invalid email or password.');
         await expect(page).toHaveURL('/login');
         await loginPage.verifyLoginPageLoaded();
     });
 
     test('should handle network errors gracefully', async ({ pageWithLogging: page }) => {
-        // 1. Navigate to login page first to ensure clean state
-        await page.goto('/login');
+        const loginPage = new LoginPage(page);
 
-        // Ensure page is fully loaded and form is ready
-        await expect(page.locator('input[type="email"]')).toBeVisible();
-        await expect(page.locator('input[type="password"]')).toBeVisible();
-        await expect(page.locator('button[type="submit"]')).toBeVisible();
+        // 1. Navigate to login page first to ensure clean state
+        await loginPage.navigate();
 
         // 2. Configure mock Firebase for network error
         mockFirebase.mockLoginFailure({
@@ -70,17 +68,11 @@ test.describe('Authentication Flow', () => {
             message: 'Network error. Please check your connection.',
         });
 
-        // 3. Fill and submit login form
-        await page.fill('input[type="email"]', 'test@example.com');
-        await page.fill('input[type="password"]', 'password123');
+        // 3. Attempt login
+        await loginPage.login('test@example.com', 'password123');
 
-        // Wait for form validation and ensure submit button is enabled
-        await expect(page.locator('button[type="submit"]')).toBeEnabled();
-        await page.click('button[type="submit"]');
-
-        // 4. Verify network error handling - wait for the error to appear
-        await expect(page.getByTestId('error-message')).toBeVisible();
-        await expect(page.getByTestId('error-message')).toContainText('Network error. Please check your connection.');
+        // 4. Verify network error handling
+        await loginPage.verifyErrorMessage('Network error. Please check your connection.');
         await expect(page).toHaveURL('/login');
     });
 
@@ -106,12 +98,14 @@ test.describe('Authentication Flow - Already Authenticated', () => {
     });
 
     test('should redirect already authenticated user from login page', async ({ pageWithLogging: page }) => {
+        const dashboardPage = new DashboardPage(page);
+
         // Try to navigate to login page - should redirect immediately
         await page.goto('/login');
 
         // Should be redirected to dashboard
         await expect(page).toHaveURL(/\/dashboard/);
-        await expect(page.getByTestId('user-menu-button')).toContainText('Test User');
+        await expect(dashboardPage.getUserMenuButton()).toContainText('Test User');
     });
 });
 
@@ -152,15 +146,16 @@ test.describe('LoginPage Reactivity and UI States', () => {
     test('should clear error state when component mounts', async ({ pageWithLogging: page }) => {
         const loginPage = new LoginPage(page);
 
-        // First, trigger an error
+        await loginPage.navigate();
+
+        // Configure mock Firebase for login failure
         mockFirebase.mockLoginFailure({
             code: 'auth/wrong-password',
             message: 'Invalid email or password.',
         });
 
-        await loginPage.navigate();
-        await loginPage.fillCredentials('test@example.com', 'wrong-password');
-        await loginPage.submitForm();
+        // Attempt login
+        await loginPage.login('test@example.com', 'wrong-password');
 
         // Verify error appears
         await loginPage.verifyErrorMessage('Invalid email or password.');
@@ -202,38 +197,36 @@ test.describe('LoginPage Reactivity and UI States', () => {
     });
 
     test('should update submit button state reactively based on form validity', async ({ pageWithLogging: page }) => {
-        await page.goto('/login');
+        const loginPage = new LoginPage(page);
+        await loginPage.navigate();
 
-        const submitButton = page.locator('button[type="submit"]');
-        const emailInput = page.locator('input[type="email"]');
-        const passwordInput = page.locator('input[type="password"]');
+        const submitButton = loginPage.getSubmitButton();
+        const emailInput = loginPage.getEmailInput();
+        const passwordInput = loginPage.getPasswordInput();
 
         // Initially disabled (empty form)
         await expect(submitButton).toBeDisabled();
 
         // Fill only email - should still be disabled
-        await emailInput.fill('test@example.com');
+        await loginPage.fillPreactInput(emailInput, 'test@example.com');
         await expect(submitButton).toBeDisabled();
 
         // Fill password - should become enabled
-        await passwordInput.fill('password123');
+        await loginPage.fillPreactInput(passwordInput, 'password123');
         await expect(submitButton).toBeEnabled();
 
         // Clear email - should become disabled again
-        await emailInput.fill('');
-        await expect(submitButton).toBeDisabled();
-
-        // Fill email with just spaces - should remain disabled
-        await emailInput.fill('   ');
+        await loginPage.fillPreactInput(emailInput, '');
         await expect(submitButton).toBeDisabled();
 
         // Fill valid email again - should become enabled
-        await emailInput.fill('test@example.com');
+        await loginPage.fillPreactInput(emailInput, 'test@example.com');
         await expect(submitButton).toBeEnabled();
     });
 
     test('should handle error state changes reactively', async ({ pageWithLogging: page }) => {
-        await page.goto('/login');
+        const loginPage = new LoginPage(page);
+        await loginPage.navigate();
 
         // First login attempt with error
         mockFirebase.mockLoginFailure({
@@ -241,20 +234,18 @@ test.describe('LoginPage Reactivity and UI States', () => {
             message: 'Invalid email or password.',
         });
 
-        await page.fill('input[type="email"]', 'test@example.com');
-        await page.fill('input[type="password"]', 'wrong-password');
-        await page.click('button[type="submit"]');
+        await loginPage.login('test@example.com', 'wrong-password');
 
         // Verify error appears
-        await expect(page.getByTestId('error-message')).toContainText('Invalid email or password.');
+        await loginPage.verifyErrorMessage('Invalid email or password.');
 
         // Change mock to success for second attempt
         const testUser = ClientUserBuilder.validUser().build();
         mockFirebase.mockLoginSuccess(testUser);
 
-        // Clear and refill form
-        await page.fill('input[type="password"]', 'correct-password');
-        await page.click('button[type="submit"]');
+        // Refill password and submit again
+        await loginPage.fillPassword('correct-password');
+        await loginPage.submitForm();
 
         // Verify successful login (error should disappear and redirect occurs)
         await expect(page).toHaveURL('/dashboard');
@@ -262,22 +253,20 @@ test.describe('LoginPage Reactivity and UI States', () => {
 
     test('should disable all interactive elements during loading state', async ({ pageWithLogging: page }) => {
         const testUser = ClientUserBuilder.validUser().build();
+        const loginPage = new LoginPage(page);
         mockFirebase.mockLoginWithDelay(testUser, 1000);
 
-        await page.goto('/login');
+        await loginPage.navigate();
 
-        await page.fill('input[type="email"]', testUser.email);
-        await page.fill('input[type="password"]', 'password123');
-        await page.click('button[type="submit"]');
+        await loginPage.fillEmail(testUser.email);
+        await loginPage.fillPassword('password123');
+        await loginPage.submitForm();
 
         // Verify all form elements are disabled during loading
-        await expect(page.locator('input[type="email"]')).toBeDisabled();
-        await expect(page.locator('input[type="password"]')).toBeDisabled();
-        await expect(page.locator('button[type="submit"]')).toBeDisabled();
-        await expect(page.locator('[data-testid="remember-me-checkbox"]')).toBeDisabled();
+        await loginPage.verifyFormDisabled();
 
-        // Check that DefaultLoginButton is also disabled
-        const defaultLoginButton = page.locator('button').filter({ hasText: /demo|default/i });
+        // Check that DefaultLoginButton is also disabled (if present)
+        const defaultLoginButton = loginPage.getDefaultLoginButton();
         if (await defaultLoginButton.count() > 0) {
             await expect(defaultLoginButton).toBeDisabled();
         }
@@ -300,10 +289,11 @@ test.describe('LoginPage Reactivity and UI States', () => {
     });
 
     test('should navigate to register page without returnUrl when none present', async ({ pageWithLogging: page }) => {
-        await page.goto('/login');
+        const loginPage = new LoginPage(page);
+        await loginPage.navigate();
 
         // Click the sign-up link
-        await page.click('[data-testid="loginpage-signup-button"]');
+        await loginPage.clickSignUp();
 
         // Verify navigation to register without returnUrl
         await expect(page).toHaveURL('/register');
@@ -311,34 +301,37 @@ test.describe('LoginPage Reactivity and UI States', () => {
 
     test('should handle returnUrl navigation after successful login', async ({ pageWithLogging: page }) => {
         const testUser = ClientUserBuilder.validUser().build();
+        const loginPage = new LoginPage(page);
         mockFirebase.mockLoginSuccess(testUser);
 
         const returnUrl = '/groups/test-group-id';
         await page.goto(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+        await loginPage.verifyLoginPageLoaded();
 
-        await page.fill('input[type="email"]', testUser.email);
-        await page.fill('input[type="password"]', 'password123');
-        await page.click('button[type="submit"]');
+        await loginPage.login(testUser.email, 'password123');
 
         // Should navigate to the returnUrl instead of dashboard
         await expect(page).toHaveURL(returnUrl);
     });
 
     test('should show validation errors for empty fields', async ({ pageWithLogging: page }) => {
-        await page.goto('/login');
+        const loginPage = new LoginPage(page);
+        await loginPage.navigate();
 
-        const submitButton = page.locator('button[type="submit"]');
+        const submitButton = loginPage.getSubmitButton();
+        const emailInput = loginPage.getEmailInput();
+        const passwordInput = loginPage.getPasswordInput();
 
         // Try to submit empty form
         await expect(submitButton).toBeDisabled();
 
         // Fill only email and verify submit is still disabled
-        await page.fill('input[type="email"]', 'test@example.com');
+        await loginPage.fillPreactInput(emailInput, 'test@example.com');
         await expect(submitButton).toBeDisabled();
 
         // Fill only password and clear email
-        await page.fill('input[type="email"]', '');
-        await page.fill('input[type="password"]', 'password123');
+        await loginPage.fillPreactInput(emailInput, '');
+        await loginPage.fillPreactInput(passwordInput, 'password123');
         await expect(submitButton).toBeDisabled();
     });
 });

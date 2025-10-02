@@ -8,11 +8,12 @@ import { useTranslation } from 'react-i18next';
 interface GroupHeaderProps {
     group: GroupDTO;
     members: GroupMember[];
+    expenseCount?: number;
     onSettings?: () => void;
     isGroupOwner?: boolean;
 }
 
-export function GroupHeader({ group, members, onSettings, isGroupOwner }: GroupHeaderProps) {
+export function GroupHeader({ group, members, expenseCount = 0, onSettings, isGroupOwner }: GroupHeaderProps) {
     const { t } = useTranslation();
     return (
         <Card className="p-6">
@@ -30,8 +31,8 @@ export function GroupHeader({ group, members, onSettings, isGroupOwner }: GroupH
 
             <div className="flex gap-6 text-sm text-gray-600">
                 <div data-testid="member-count">{t('groupHeader.membersCount', { count: members.length })}</div>
-                <div>
-                    <span className="font-medium">{t('groupHeader.recent')}</span> {t('groupHeader.expenses')}
+                <div data-testid="expense-count">
+                    {expenseCount} <span className="font-medium">{t('groupHeader.recent')}</span> {t('groupHeader.expenses')}
                 </div>
                 {group.createdAt && (
                     <div>

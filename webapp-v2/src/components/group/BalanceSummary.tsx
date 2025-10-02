@@ -70,6 +70,7 @@ export function BalanceSummary({ variant = 'default' }: BalanceSummaryProps) {
                         {debts.map((debt, index) => (
                             <div
                                 key={`${currency}-${index}`}
+                                data-testid="debt-item"
                                 className={
                                     variant === 'sidebar'
                                         ? 'border-b border-gray-50 pb-2 last:border-0'

@@ -35,6 +35,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const error = useComputed(() => enhancedGroupDetailStore.error);
     const members = useComputed(() => enhancedGroupDetailStore.members);
     const balances = useComputed(() => enhancedGroupDetailStore.balances);
+    const expenses = useComputed(() => enhancedGroupDetailStore.expenses);
 
     // Auth store via hook
     const authStore = useAuthRequired();
@@ -226,7 +227,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                 }
                 mainContent={
                     <Stack spacing="lg">
-                        <GroupHeader group={group.value!} members={members.value} onSettings={handleSettings} isGroupOwner={isGroupOwner.value ?? false} />
+                        <GroupHeader group={group.value!} members={members.value} expenseCount={expenses.value.length} onSettings={handleSettings} isGroupOwner={isGroupOwner.value ?? false} />
 
                         {/* Mobile-only quick actions */}
                         <div className="lg:hidden">

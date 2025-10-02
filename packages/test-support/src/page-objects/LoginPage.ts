@@ -44,12 +44,8 @@ export class LoginPage extends BasePage {
      * Error message container within the login form
      */
     getErrorContainer(): Locator {
-        // First look for error with role="alert" within form, then fall back to testid
-        return this.getLoginFormContainer().getByRole('alert').or(
-            this.getLoginFormContainer().getByTestId('error-message')
-        ).or(
-            this.page.getByRole('alert')
-        );
+        // Use testid selector - most reliable for error messages
+        return this.page.getByTestId('error-message');
     }
 
     // ============================================================================

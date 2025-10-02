@@ -42,6 +42,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                 backgroundColor: isDeleted ? '' : `${themeColor}08`, // Very light background
             }}
             onClick={() => onClick?.(expense)}
+            data-testid="expense-item"
         >
             <div className="flex justify-between items-start">
                 <div className="flex-1">

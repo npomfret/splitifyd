@@ -277,6 +277,62 @@ export async function mockApiFailure(page: Page, url: string, status: number, er
 }
 
 /**
+ * Mock group detail API endpoint (full-details)
+ */
+export async function mockGroupDetailApi(page: Page, groupId: string, group: any): Promise<void> {
+    await mockApiRoute(page, `/api/groups/${groupId}/full-details`, group);
+}
+
+/**
+ * Mock group members API endpoint
+ */
+export async function mockGroupMembersApi(page: Page, groupId: string, members: any[]): Promise<void> {
+    await mockApiRoute(page, `/api/groups/${groupId}/members`, { members });
+}
+
+/**
+ * Mock group balances API endpoint
+ */
+export async function mockGroupBalancesApi(page: Page, groupId: string, balances: any): Promise<void> {
+    await mockApiRoute(page, `/api/groups/${groupId}/balances`, balances);
+}
+
+/**
+ * Mock group expenses API endpoint
+ */
+export async function mockGroupExpensesApi(page: Page, groupId: string, expenses: any[]): Promise<void> {
+    await mockApiRoute(page, `/api/groups/${groupId}/expenses`, {
+        expenses,
+        count: expenses.length,
+        hasMore: false
+    });
+}
+
+/**
+ * Mock group settlements API endpoint
+ */
+export async function mockGroupSettlementsApi(page: Page, groupId: string, settlements: any[]): Promise<void> {
+    await mockApiRoute(page, `/api/groups/${groupId}/settlements`, {
+        settlements,
+        count: settlements.length
+    });
+}
+
+/**
+ * Mock group comments API endpoint
+ */
+export async function mockGroupCommentsApi(page: Page, groupId: string, comments: any[] = []): Promise<void> {
+    await mockApiRoute(page, `/api/groups/${groupId}/comments`, {
+        success: true,
+        data: {
+            comments,
+            count: comments.length,
+            hasMore: false
+        }
+    });
+}
+
+/**
  * Creates successful API mocks for authenticated user flows
  * Commonly used pattern for tests that need authenticated users with accepted policies
  */

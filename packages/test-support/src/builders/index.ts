@@ -18,6 +18,7 @@ export { TestUserBuilder } from './TestUserBuilder';
 export { ClientUserBuilder } from './ClientUserBuilder';
 export { GroupDTOBuilder } from './GroupDTOBuilder';
 export { GroupMemberBuilder } from './GroupMemberBuilder';
+export { GroupFullDetailsBuilder } from './GroupFullDetailsBuilder';
 export { ExpenseFormDataBuilder } from './ExpenseFormDataBuilder';
 export type { ExpenseFormData } from './ExpenseFormDataBuilder';
 export { SettlementFormDataBuilder } from './SettlementFormDataBuilder';
