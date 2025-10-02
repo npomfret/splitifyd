@@ -369,6 +369,7 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Click Edit Group button
+     * Non-fluent version - does not return modal page object
      */
     async clickEditGroup(): Promise<void> {
         await this.getEditGroupButton().click();
@@ -376,7 +377,26 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
+     * Click Edit Group button and open edit modal
+     * Fluent version - verifies modal opens and would return EditGroupModalPage (when created)
+     * For now returns void until EditGroupModalPage POM is created
+     */
+    async clickEditGroupAndOpenModal(): Promise<void> {
+        const button = this.getEditGroupButton();
+        await expect(button).toBeVisible();
+        await button.click();
+        await expect(this.getEditGroupModal()).toBeVisible({ timeout: 2000 });
+
+        // TODO: Return EditGroupModalPage when it's created
+        // const { EditGroupModalPage } = await import('./EditGroupModalPage');
+        // const modalPage = new EditGroupModalPage(this.page);
+        // await modalPage.waitForModalToOpen();
+        // return modalPage;
+    }
+
+    /**
      * Click Share Group button
+     * Non-fluent version - does not return modal page object
      */
     async clickShareGroup(): Promise<void> {
         await this.getShareGroupButton().click();
@@ -384,11 +404,48 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
+     * Click Share Group button and open share modal
+     * Fluent version - verifies modal opens and would return ShareGroupModalPage (when created)
+     * For now returns void until ShareGroupModalPage POM is created
+     */
+    async clickShareGroupAndOpenModal(): Promise<void> {
+        const button = this.getShareGroupButton();
+        await expect(button).toBeVisible();
+        await button.click();
+        await expect(this.getShareGroupModal()).toBeVisible({ timeout: 2000 });
+
+        // TODO: Return ShareGroupModalPage when it's created
+        // const { ShareGroupModalPage } = await import('./ShareGroupModalPage');
+        // const modalPage = new ShareGroupModalPage(this.page);
+        // await modalPage.waitForModalToOpen();
+        // return modalPage;
+    }
+
+    /**
      * Click Leave Group button
+     * Non-fluent version - does not return dialog page object
      */
     async clickLeaveGroup(): Promise<void> {
         await this.getLeaveGroupButton().click();
         await expect(this.getLeaveGroupDialog()).toBeVisible();
+    }
+
+    /**
+     * Click Leave Group button and open leave dialog
+     * Fluent version - verifies dialog opens and would return LeaveGroupDialogPage (when created)
+     * For now returns void until LeaveGroupDialogPage POM is created
+     */
+    async clickLeaveGroupAndOpenDialog(): Promise<void> {
+        const button = this.getLeaveGroupButton();
+        await expect(button).toBeVisible();
+        await button.click();
+        await expect(this.getLeaveGroupDialog()).toBeVisible({ timeout: 2000 });
+
+        // TODO: Return LeaveGroupDialogPage when it's created
+        // const { LeaveGroupDialogPage } = await import('./LeaveGroupDialogPage');
+        // const dialogPage = new LeaveGroupDialogPage(this.page);
+        // await dialogPage.waitForDialogToOpen();
+        // return dialogPage;
     }
 
     /**

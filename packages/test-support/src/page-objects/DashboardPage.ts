@@ -1,6 +1,8 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { loadTranslation } from './translation-loader';
+import { CreateGroupModalPage } from './CreateGroupModalPage';
+import { GroupDetailPage } from './GroupDetailPage';
 
 const translation = loadTranslation();
 
@@ -191,20 +193,11 @@ export class DashboardPage extends BasePage {
     }
 
     // ============================================================================
-    // MODAL SELECTORS
+    // MODAL SELECTORS - For modals NOT owned by Dashboard
     // ============================================================================
 
     /**
-     * Create Group Modal
-     */
-    getCreateGroupModal(): Locator {
-        return this.page.getByRole('dialog').filter({
-            has: this.page.getByRole('heading', { name: /create.*group/i })
-        });
-    }
-
-    /**
-     * Share Group Modal
+     * Share Group Modal (not part of dashboard, just for detection)
      */
     getShareGroupModal(): Locator {
         return this.page.getByRole('dialog').filter({
@@ -282,28 +275,58 @@ export class DashboardPage extends BasePage {
 
     /**
      * Create a new group using the primary create button
+     * Returns CreateGroupModalPage for fluent interface
      */
-    async clickCreateGroup(): Promise<void> {
+    async clickCreateGroup(): Promise<CreateGroupModalPage> {
         const button = this.getCreateGroupButton();
         await this.clickButton(button, { buttonName: 'Create Group' });
+
+        const modalPage = new CreateGroupModalPage(this.page);
+        await modalPage.waitForModalToOpen();
+        return modalPage;
     }
 
     /**
      * Create a new group using mobile/quick actions button
+     * Returns CreateGroupModalPage for fluent interface
      */
-    async clickMobileCreateGroup(): Promise<void> {
+    async clickMobileCreateGroup(): Promise<CreateGroupModalPage> {
         const button = this.getMobileCreateGroupButton();
         await this.clickButton(button, { buttonName: 'Create Group (Mobile)' });
+
+        const modalPage = new CreateGroupModalPage(this.page);
+        await modalPage.waitForModalToOpen();
+        return modalPage;
     }
 
     /**
      * Click on a specific group card to navigate to group details
+     * Non-fluent version - does not verify navigation or return page object
      */
     async clickGroupCard(groupName: string): Promise<void> {
         const groupCard = this.getGroupCard(groupName);
         await expect(groupCard).toBeVisible();
         await groupCard.click();
         await this.waitForDomContentLoaded();
+    }
+
+    /**
+     * Click on a specific group card and navigate to group detail page
+     * Fluent version - verifies navigation and returns GroupDetailPage
+     * Use this when you expect navigation to succeed
+     */
+    async clickGroupCardAndNavigateToDetail(groupName: string): Promise<GroupDetailPage> {
+        const groupCard = this.getGroupCard(groupName);
+        await expect(groupCard).toBeVisible();
+        await groupCard.click();
+
+        // Wait for navigation to group detail page
+        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9\-_]+/, { timeout: 5000 });
+
+        // Return group detail page object
+        const groupDetailPage = new GroupDetailPage(this.page);
+        await groupDetailPage.verifyGroupDetailPageLoaded(groupName);
+        return groupDetailPage;
     }
 
     /**
@@ -427,17 +450,4 @@ export class DashboardPage extends BasePage {
         }
     }
 
-    /**
-     * Verify create group modal is open
-     */
-    async verifyCreateGroupModalOpen(): Promise<void> {
-        await expect(this.getCreateGroupModal()).toBeVisible();
-    }
-
-    /**
-     * Verify create group modal is closed
-     */
-    async verifyCreateGroupModalClosed(): Promise<void> {
-        await expect(this.getCreateGroupModal()).not.toBeVisible();
-    }
 }

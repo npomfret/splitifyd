@@ -1,6 +1,7 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { loadTranslation } from './translation-loader';
+import { DashboardPage } from './DashboardPage';
 
 const translation = loadTranslation();
 
@@ -245,10 +246,49 @@ export class LoginPage extends BasePage {
 
     /**
      * Complete login process with credentials
+     * Non-fluent version - does not verify navigation or return page object
      */
     async login(email: string, password: string): Promise<void> {
         await this.fillCredentials(email, password);
         await this.submitForm();
+    }
+
+    /**
+     * Complete login process with credentials and navigate to dashboard
+     * Fluent version - verifies successful login and returns DashboardPage
+     * Use this when you expect login to succeed
+     */
+    async loginAndNavigateToDashboard(email: string, password: string): Promise<DashboardPage> {
+        // Verify form is ready for submission
+        await this.fillCredentials(email, password);
+        await expect(this.getSubmitButton()).toBeEnabled();
+
+        // Submit form
+        await this.submitForm();
+
+        // Wait for navigation to dashboard
+        await expect(this.page).toHaveURL(/\/dashboard/, { timeout: 5000 });
+
+        // Return dashboard page object
+        const dashboardPage = new DashboardPage(this.page);
+        await dashboardPage.verifyDashboardPageLoaded();
+        return dashboardPage;
+    }
+
+    /**
+     * Attempt login with credentials that will fail
+     * Fluent version - verifies we stay on login page and error appears
+     * Use this when you expect login to fail (wrong credentials, network error, etc.)
+     */
+    async loginExpectingFailure(email: string, password: string): Promise<void> {
+        await this.fillCredentials(email, password);
+        await this.submitForm();
+
+        // Verify we stay on login page
+        await expect(this.page).toHaveURL(/\/login/);
+
+        // Wait for error message to appear
+        await expect(this.getErrorContainer()).toBeVisible({ timeout: 5000 });
     }
 
     /**
@@ -262,9 +302,30 @@ export class LoginPage extends BasePage {
 
     /**
      * Click the sign up button to navigate to register page
+     * Non-fluent version - does not return page object
      */
     async clickSignUp(): Promise<void> {
         await this.clickSignUpButton();
+    }
+
+    /**
+     * Click the sign up button and navigate to register page
+     * Fluent version - verifies navigation and would return RegisterPage (when created)
+     * For now returns void until RegisterPage POM is created
+     */
+    async clickSignUpAndNavigateToRegister(): Promise<void> {
+        const button = this.getSignUpButton();
+        await this.clickButton(button, {
+            buttonName: 'Sign Up'
+        });
+        // Wait for navigation to register page
+        await expect(this.page).toHaveURL(/\/register/);
+
+        // TODO: Return RegisterPage when it's created
+        // import { RegisterPage } from './RegisterPage';
+        // const registerPage = new RegisterPage(this.page);
+        // await registerPage.verifyRegisterPageLoaded();
+        // return registerPage;
     }
 
     /**

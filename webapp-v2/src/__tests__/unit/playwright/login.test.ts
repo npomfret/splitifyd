@@ -18,7 +18,6 @@ test.describe('Authentication Flow', () => {
         // 1. Create test user and login page
         const testUser = ClientUserBuilder.validUser().build();
         const loginPage = new LoginPage(page);
-        const dashboardPage = new DashboardPage(page);
 
         // 2. Configure mock Firebase for this test
         mockFirebase.mockLoginSuccess(testUser);
@@ -26,11 +25,10 @@ test.describe('Authentication Flow', () => {
         // 3. Navigate to login page and verify it loaded
         await loginPage.navigate();
 
-        // 4. Login with credentials
-        await loginPage.login(testUser.email, 'password123');
+        // 4. Login with credentials and navigate to dashboard (fluent interface)
+        const dashboardPage = await loginPage.loginAndNavigateToDashboard(testUser.email, 'password123');
 
         // 5. Verify successful login and navigation
-        await expect(page).toHaveURL('/dashboard');
         await expect(dashboardPage.getUserMenuButton()).toContainText(testUser.displayName);
         await expect(dashboardPage.getYourGroupsHeading()).toBeVisible();
     });
@@ -47,13 +45,11 @@ test.describe('Authentication Flow', () => {
             message: 'Invalid email or password.',
         });
 
-        // 3. Attempt login with invalid credentials
-        await loginPage.login('test@example.com', 'wrong-password');
+        // 3. Attempt login expecting failure (fluent interface)
+        await loginPage.loginExpectingFailure('test@example.com', 'wrong-password');
 
         // 4. Verify error handling
         await loginPage.verifyErrorMessage('Invalid email or password.');
-        await expect(page).toHaveURL('/login');
-        await loginPage.verifyLoginPageLoaded();
     });
 
     test('should handle network errors gracefully', async ({ pageWithLogging: page }) => {
@@ -68,12 +64,11 @@ test.describe('Authentication Flow', () => {
             message: 'Network error. Please check your connection.',
         });
 
-        // 3. Attempt login
-        await loginPage.login('test@example.com', 'password123');
+        // 3. Attempt login expecting failure (fluent interface)
+        await loginPage.loginExpectingFailure('test@example.com', 'password123');
 
         // 4. Verify network error handling
         await loginPage.verifyErrorMessage('Network error. Please check your connection.');
-        await expect(page).toHaveURL('/login');
     });
 
 });
@@ -154,8 +149,8 @@ test.describe('LoginPage Reactivity and UI States', () => {
             message: 'Invalid email or password.',
         });
 
-        // Attempt login
-        await loginPage.login('test@example.com', 'wrong-password');
+        // Attempt login expecting failure (waits for error to appear)
+        await loginPage.loginExpectingFailure('test@example.com', 'wrong-password');
 
         // Verify error appears
         await loginPage.verifyErrorMessage('Invalid email or password.');
@@ -234,7 +229,8 @@ test.describe('LoginPage Reactivity and UI States', () => {
             message: 'Invalid email or password.',
         });
 
-        await loginPage.login('test@example.com', 'wrong-password');
+        // Use fluent method that waits for error
+        await loginPage.loginExpectingFailure('test@example.com', 'wrong-password');
 
         // Verify error appears
         await loginPage.verifyErrorMessage('Invalid email or password.');
@@ -308,7 +304,9 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await page.goto(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
         await loginPage.verifyLoginPageLoaded();
 
-        await loginPage.login(testUser.email, 'password123');
+        // Fill and submit manually (not using fluent method since we're checking returnUrl, not dashboard)
+        await loginPage.fillCredentials(testUser.email, 'password123');
+        await loginPage.submitForm();
 
         // Should navigate to the returnUrl instead of dashboard
         await expect(page).toHaveURL(returnUrl);
