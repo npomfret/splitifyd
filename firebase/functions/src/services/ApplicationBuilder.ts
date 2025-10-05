@@ -12,7 +12,6 @@ import { GroupMemberService } from './GroupMemberService';
 import { GroupPermissionService } from './GroupPermissionService';
 import { GroupShareService } from './GroupShareService';
 import { ExpenseMetadataService } from './expenseMetadataService';
-import { FirestoreValidationService } from './FirestoreValidationService';
 import { NotificationService } from './notification-service';
 import { IAuthService } from './auth';
 import { FirebaseAuthService } from './auth';
@@ -21,7 +20,6 @@ import {BalanceCalculationService} from "./balance";
 
 export class ApplicationBuilder {
     // Base infrastructure - created once
-    private validationService?: FirestoreValidationService;
     // Services - created lazily but cached
     private userService?: UserService;
     private groupService?: GroupService;
@@ -159,13 +157,6 @@ export class ApplicationBuilder {
 
     buildFirestoreWriter(): IFirestoreWriter {
         return this.firestoreWriter;
-    }
-
-    buildFirestoreValidationService(): FirestoreValidationService {
-        if (!this.validationService) {
-            this.validationService = FirestoreValidationService.getInstance();
-        }
-        return this.validationService;
     }
 
     buildAuthService(): IAuthService {

@@ -61,13 +61,6 @@ export const UserNotificationDocumentSchema = z.object({
 export type UserNotificationDocument = z.infer<typeof UserNotificationDocumentSchema>;
 
 /**
- * Internal types - inferred from schemas for internal use only
- * @internal
- */
-type UserNotificationGroupDocument = z.infer<typeof UserNotificationGroupSchema>;
-type RecentChangeDocument = z.infer<typeof RecentChangeSchema>;
-
-/**
  * Helper type for creating new notification documents
  */
 export type CreateUserNotificationDocument = Omit<UserNotificationDocument, 'changeVersion' | 'lastModified'>;

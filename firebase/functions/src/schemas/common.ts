@@ -89,11 +89,9 @@ export const GroupIdSchema = z.string().min(1).describe('Firestore Group documen
  */
 export function createDocumentSchemas<T extends z.ZodRawShape>(baseSchema: z.ZodObject<T>) {
     const DocumentSchema = baseSchema.merge(DocumentIdSchema).strict();
-    const DataSchema = baseSchema.strict();
 
     return {
         DocumentSchema,
-        DataSchema,
     };
 }
 

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SecurityPresets, MemberRoles, MemberStatuses, COLOR_PATTERNS } from '@splitifyd/shared';
+import { SecurityPresets } from '@splitifyd/shared';
 import { FirestoreTimestampSchema, AuditFieldsSchema, UserIdSchema, createDocumentSchemas } from './common';
 
 /**
@@ -35,7 +35,7 @@ const BaseGroupSchema = z
 /**
  * Create Document and Data schemas using common pattern
  */
-const { DocumentSchema: GroupDocumentSchema, DataSchema: GroupDataSchema } = createDocumentSchemas(BaseGroupSchema);
+const { DocumentSchema: GroupDocumentSchema } = createDocumentSchemas(BaseGroupSchema);
 
 /**
  * Zod schemas for group document validation
@@ -48,31 +48,3 @@ const { DocumentSchema: GroupDocumentSchema, DataSchema: GroupDataSchema } = cre
  */
 export { GroupDocumentSchema };
 
-/**
- * Zod schema for UserThemeColor validation in Firestore documents
- * Note: assignedAt is a Timestamp because this validates Firestore documents (before ISO → DTO conversion)
- */
-const UserThemeColorSchema = z.object({
-    light: z.string(),
-    dark: z.string(),
-    name: z.string(),
-    pattern: z.enum(COLOR_PATTERNS),
-    assignedAt: FirestoreTimestampSchema,
-    colorIndex: z.number(),
-});
-
-/**
- * Zod schema for GroupMemberDocument validation
- * Used for subcollection member documents with different structure than GroupMember
- */
-const GroupMemberDocumentSchema = z
-    .object({
-        uid: UserIdSchema,
-        groupId: z.string(), // For collectionGroup queries
-        memberRole: z.nativeEnum(MemberRoles),
-        theme: UserThemeColorSchema,
-        joinedAt: FirestoreTimestampSchema,
-        memberStatus: z.nativeEnum(MemberStatuses),
-        invitedBy: UserIdSchema.optional(), // UID of the user who created the share link that was used to join
-    })
-    .strict();

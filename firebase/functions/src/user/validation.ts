@@ -72,43 +72,6 @@ export const validateUpdateUserProfile = (body: unknown, language: string = 'en'
 };
 
 /**
- * Schema for delete user request
- * @internal - Prepared for future delete user endpoint implementation
- */
-const deleteUserSchema = Joi.object({
-    confirmDelete: Joi.boolean().valid(true).required().messages({
-        'any.only': 'Account deletion must be explicitly confirmed',
-        'any.required': 'Account deletion must be explicitly confirmed',
-    }),
-}).required();
-
-/**
- * Delete user request interface
- * @internal - Prepared for future delete user endpoint implementation
- */
-interface DeleteUserRequest {
-    confirmDelete: true;
-}
-
-/**
- * Validate delete user request
- * @internal - Prepared for future delete user endpoint implementation
- */
-const validateDeleteUser = (body: unknown): DeleteUserRequest => {
-    const { error, value } = deleteUserSchema.validate(body, {
-        abortEarly: false,
-        stripUnknown: true,
-    });
-
-    if (error) {
-        const firstError = error.details[0];
-        throw Errors.INVALID_INPUT(firstError.message);
-    }
-
-    return value as DeleteUserRequest;
-};
-
-/**
  * Schema for change password request
  */
 const changePasswordSchema = Joi.object({

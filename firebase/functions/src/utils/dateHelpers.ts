@@ -208,21 +208,6 @@ export const assertTimestamp = (value: unknown, fieldName: string): Timestamp =>
 };
 
 /**
- * Asserts that a value is a Firestore Timestamp and converts to ISO string
- * Follows the "assert don't check" pattern - fails fast with clear errors
- *
- * @param value - Value to check and convert
- * @param fieldName - Name of the field for error message
- * @returns ISO 8601 string
- * @throws Error if value is not a Timestamp
- * @internal - Not exported, internal use only
- */
-const assertTimestampAndConvert = (value: unknown, fieldName: string): string => {
-    const ts = assertTimestamp(value, fieldName);
-    return ts.toDate().toISOString();
-};
-
-/**
  * Validates that a date string is in UTC format and within acceptable range
  * @param isoString - ISO 8601 date string
  * @param maxYearsAgo - Maximum years in the past (default 10)
