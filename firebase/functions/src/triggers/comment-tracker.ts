@@ -3,7 +3,8 @@ import { logger } from '../logger';
 import { measureTrigger } from '../monitoring/measure';
 import { getAuth, getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
-import { FirestoreCollections } from '@splitifyd/shared';
+
+import { FirestoreCollections } from "../constants";
 
 const firestore = getFirestore();
 const appBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());

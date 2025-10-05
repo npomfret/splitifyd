@@ -12,6 +12,7 @@ export const ShareLinkDocumentSchema = z
         token: z.string().min(1), // The actual share token used in URLs
         createdBy: z.string().min(1), // UID of the user who created this share link
         createdAt: z.string().datetime(), // ISO timestamp string
+        updatedAt: z.string().datetime(), // ISO timestamp string
         expiresAt: z.string().datetime().optional(), // Future: expiration support (ISO timestamp)
         isActive: z.boolean(), // For soft deletion/deactivation
     })

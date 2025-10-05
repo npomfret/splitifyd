@@ -11,7 +11,7 @@ import { ExpenseActions } from '../components/expense/ExpenseActions';
 import { CommentsSection } from '@/components/comments';
 import { formatDistanceToNow, formatLocalDateTime, formatExpenseDateTime } from '../utils/dateUtils';
 import { formatCurrency } from '@/utils/currency';
-import { ExpenseDTO, GroupDTO, GroupMemberDTO } from '@splitifyd/shared';
+import { ExpenseDTO, GroupDTO, GroupMember } from '@splitifyd/shared';
 import { logError } from '../utils/browser-logger';
 
 interface ExpenseDetailPageProps {
@@ -36,7 +36,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
 
     // Local state for page data (replaces store dependency)
     const group = useSignal<GroupDTO | null>(null);
-    const members = useSignal<GroupMemberDTO[]>([]);
+    const members = useSignal<GroupMember[]>([]);
 
     // Create member lookup map
     const memberMap = useComputed(() => {

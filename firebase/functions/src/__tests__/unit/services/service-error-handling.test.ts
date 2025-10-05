@@ -4,7 +4,7 @@ import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stu
 import { ApiError } from '../../../utils/errors';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { BalanceCalculationService } from '../../../services/balance';
-import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { GroupMemberDocumentBuilder } from "../../support/GroupMemberDocumentBuilder";
 
 // Create mock services
 const createMockUserService = () => ({

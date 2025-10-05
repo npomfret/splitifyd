@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { ClientUser, ListGroupsResponse, UserPolicyStatusResponse, UserNotificationDocument } from '@splitifyd/shared';
+import { ClientUser, ListGroupsResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
 import { FirebaseService } from '@/app/firebase.ts';
 
 interface AuthError {
@@ -188,7 +188,7 @@ export class MockFirebase {
         this.state.delayMs = delayMs;
     }
 
-    public async triggerNotificationUpdate(userId: string, data: UserNotificationDocument): Promise<void> {
+    public async triggerNotificationUpdate(userId: string, data: any): Promise<void> {
         await this.page.evaluate(({ userId, data }) => {
             const path = `user-notifications/${userId}`;
             const listener = window.__TEST_ENV__!.firebase.firestoreListeners.get(path);

@@ -1,18 +1,17 @@
-import type { GroupDTO, SecurityPreset, GroupPermissions, UserThemeColor, FirestoreTimestamp, FirestoreAuditMetadata } from '@splitifyd/shared';
+import type { GroupDTO, SecurityPreset, GroupPermissions, UserThemeColor } from '@splitifyd/shared';
 import { SecurityPresets, MemberRoles, MemberStatuses } from '@splitifyd/shared';
-import { generateShortId, randomChoice, randomString } from '../test-helpers';
-import { Timestamp } from 'firebase-admin/firestore';
+import { generateShortId, randomChoice, randomString, BuilderTimestamp, timestampToISOString } from '../test-helpers';
 
 /**
  * Builder for creating Group objects for tests
  * Supports both client format (Group) and server format (GroupDocument)
  */
-export class GroupBuilder {
+export class GroupDTOBuilder {
     // Infrastructure audit metadata
-    private auditFields: FirestoreAuditMetadata = {
+    private auditFields = {
         id: `group-${generateShortId()}`,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date() as Date | string | { toDate(): Date },
+        updatedAt: new Date() as Date | string | { toDate(): Date },
     };
 
     // Business logic fields
@@ -21,7 +20,7 @@ export class GroupBuilder {
         name: string;
         description?: string;
         securityPreset: SecurityPreset;
-        presetAppliedAt: FirestoreTimestamp;
+        presetAppliedAt: Date | string | { toDate(): Date };
         permissions: GroupPermissions;
     } = {
         createdBy: `user-${generateShortId()}`,
@@ -50,7 +49,6 @@ export class GroupBuilder {
             balancesByCurrency: Record<string, any>;
         };
         lastActivity?: string;
-        lastActivityRaw?: string;
     } = {};
 
     constructor() {
@@ -60,7 +58,6 @@ export class GroupBuilder {
                 balancesByCurrency: {},
             },
             lastActivity: '2 hours ago',
-            lastActivityRaw: new Date().toISOString(),
         };
     }
 
@@ -105,28 +102,23 @@ export class GroupBuilder {
         return this;
     }
 
-    withCreatedAt(timestamp: any): this {
+    withCreatedAt(timestamp: BuilderTimestamp): this {
         this.auditFields.createdAt = timestamp;
         return this;
     }
 
-    withUpdatedAt(timestamp: any): this {
+    withUpdatedAt(timestamp: BuilderTimestamp): this {
         this.auditFields.updatedAt = timestamp;
         return this;
     }
 
-    withPresetAppliedAt(timestamp: any): this {
+    withPresetAppliedAt(timestamp: BuilderTimestamp): this {
         this.businessFields.presetAppliedAt = timestamp;
         return this;
     }
 
     withLastActivity(activity: string): this {
         this.clientFields.lastActivity = activity;
-        return this;
-    }
-
-    withLastActivityRaw(date: string | Date): this {
-        this.clientFields.lastActivityRaw = date instanceof Date ? date.toISOString() : date;
         return this;
     }
 
@@ -148,36 +140,6 @@ export class GroupBuilder {
     withoutMemberIds(): this {
         delete this.firestoreFields.memberIds;
         return this;
-    }
-
-    withClientCompatibleTimestamps(): this {
-        // For client-side tests that can't handle Firebase Admin Timestamps
-        this.auditFields.createdAt = new Date();
-        this.auditFields.updatedAt = new Date();
-        this.businessFields.presetAppliedAt = new Date();
-        return this;
-    }
-
-    withServerCompatibleTimestamps(): this {
-        // For server-side tests that expect Firebase Admin Timestamps
-        this.auditFields.createdAt = Timestamp.now();
-        this.auditFields.updatedAt = Timestamp.now();
-        this.businessFields.presetAppliedAt = Timestamp.now();
-        return this;
-    }
-
-    /**
-     * Helper to convert FirestoreTimestamp to ISO string
-     */
-    private timestampToISOString(timestamp: FirestoreTimestamp): string {
-        if (typeof timestamp === 'string') {
-            return timestamp;
-        }
-        if (timestamp instanceof Date) {
-            return timestamp.toISOString();
-        }
-        // Firestore Timestamp
-        return (timestamp as any).toDate().toISOString();
     }
 
     /**
@@ -210,34 +172,19 @@ export class GroupBuilder {
             ...this.businessFields,
             ...this.clientFields,
             // Convert audit timestamps to ISO strings for client
-            createdAt: this.timestampToISOString(this.auditFields.createdAt),
-            updatedAt: this.timestampToISOString(this.auditFields.updatedAt),
+            createdAt: timestampToISOString(this.auditFields.createdAt),
+            updatedAt: timestampToISOString(this.auditFields.updatedAt),
             // Convert business field timestamps to ISO strings for client
-            presetAppliedAt: this.timestampToISOString(this.businessFields.presetAppliedAt),
+            presetAppliedAt: timestampToISOString(this.businessFields.presetAppliedAt),
             // Default client fields if not set
             balance: this.clientFields.balance || { balancesByCurrency: {} },
             lastActivity: this.clientFields.lastActivity || '2 hours ago',
-            lastActivityRaw: this.clientFields.lastActivityRaw || new Date().toISOString(),
         };
         return result;
     }
 
-    /**
-     * Build server-format GroupDocument for Firestore operations
-     * Use this when setting data directly in Firestore stubs/mocks
-     */
-    buildForFirestore(): any {
-        const result = {
-            ...this.auditFields,
-            ...this.businessFields,
-            ...this.firestoreFields,
-            // Keep Firestore Timestamps as-is for server format
-        };
-        return result;
-    }
-
-    static groupForUser(userId: string): GroupBuilder {
-        return new GroupBuilder()
+    static groupForUser(userId: string): GroupDTOBuilder {
+        return new GroupDTOBuilder()
             .withCreatedBy(userId)
             .withName(`${userId}'s Group`);
     }
@@ -248,9 +195,9 @@ export class GroupBuilder {
     /**
      * Creates multiple groups with sequential IDs for testing pagination
      */
-    static buildMany(count: number, customizer?: (builder: GroupBuilder, index: number) => void): GroupDTO[] {
+    static buildMany(count: number, customizer?: (builder: GroupDTOBuilder, index: number) => void): GroupDTO[] {
         return Array.from({ length: count }, (_, i) => {
-            const builder = new GroupBuilder().withId(`group-${i + 1}`);
+            const builder = new GroupDTOBuilder().withId(`group-${i + 1}`);
 
             if (customizer) {
                 customizer(builder, i);

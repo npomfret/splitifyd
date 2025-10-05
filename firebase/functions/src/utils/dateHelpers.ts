@@ -11,22 +11,25 @@ import { Timestamp, FieldValue } from 'firebase-admin/firestore';
  */
 
 /**
- * 🎯 CRITICAL: Creates timestamps for optimistic locking - ALWAYS use this for updatedAt in optimistic scenarios
- * This ensures consistent timestamp creation across all optimistic locking operations.
+ * @deprecated Use `new Date().toISOString()` instead - Timestamp objects should only exist in FirestoreReader/Writer
  *
- * USE FOR: Any operation that uses optimistic locking (Groups, Expenses, Settlements, etc.)
+ * This function was used for optimistic locking with Timestamp objects.
+ * Now that we use ISO strings everywhere (DTO-everywhere pattern), this is no longer needed.
  *
- * @returns Firestore Timestamp with current time (set at function execution for consistent comparison)
+ * Migration: Replace `createOptimisticTimestamp()` with `new Date().toISOString()`
  */
 export const createOptimisticTimestamp = (): Timestamp => {
     return Timestamp.now();
 };
 
 /**
- * Creates a true server-side timestamp placeholder
- * USE FOR: Document creation or general updates where precise timing isn't critical for logic
+ * @deprecated Use `new Date().toISOString()` instead - Timestamp objects should only exist in FirestoreReader/Writer
  *
- * @returns FieldValue.serverTimestamp() - set when Firestore processes the write
+ * This function was used to create server-side timestamps.
+ * Now that we use ISO strings everywhere (DTO-everywhere pattern), this is no longer needed.
+ * FirestoreWriter handles the conversion from ISO strings to Timestamps/FieldValue.serverTimestamp().
+ *
+ * Migration: Replace `createTrueServerTimestamp()` with `new Date().toISOString()`
  */
 export const createTrueServerTimestamp = (): FieldValue => {
     return FieldValue.serverTimestamp();
@@ -55,9 +58,11 @@ export const parseISOToTimestamp = (isoString: string): Timestamp | null => {
  * @param value - Firestore Timestamp or Date
  * @returns ISO 8601 string
  */
-export const timestampToISO = (value: Timestamp | Date): string => {
+export const timestampToISO = (value: Timestamp | Date | string): string => {
     if (value instanceof Timestamp) {
         return value.toDate().toISOString();
+    } else if (typeof value === "string") {//hack
+        return value.toString();
     }
     return value.toISOString();
 };

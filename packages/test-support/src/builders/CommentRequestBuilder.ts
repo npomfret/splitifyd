@@ -4,9 +4,12 @@ import type { CreateCommentRequest } from '@splitifyd/shared';
 /**
  * Builder for creating comment request objects for testing
  * Used for validating comment creation and handling various edge cases
+ *
+ * Note: Some methods use 'any' casts intentionally to create invalid test data
+ * for validation testing. This is acceptable in test builders.
  */
 export class CommentRequestBuilder {
-    private request: Record<string, unknown> = {};
+    private request: Partial<CreateCommentRequest> = {};
 
     /**
      * Copy data from an existing comment request object
@@ -16,70 +19,70 @@ export class CommentRequestBuilder {
         return this;
     }
 
-    withText(text: string | null | undefined) {
-        this.request.text = text;
+    withText(text: string | null | undefined): this {
+        (this.request as any).text = text;
         return this;
     }
 
-    withTargetType(targetType: string | number | null | undefined) {
-        this.request.targetType = targetType;
+    withTargetType(targetType: string | number | null | undefined): this {
+        (this.request as any).targetType = targetType;
         return this;
     }
 
-    withGroupTarget(targetId: string) {
+    withGroupTarget(targetId: string): this {
         this.request.targetType = CommentTargetTypes.GROUP;
         this.request.targetId = targetId;
         return this;
     }
 
-    withExpenseTarget(targetId: string, groupId: string) {
+    withExpenseTarget(targetId: string, groupId: string): this {
         this.request.targetType = CommentTargetTypes.EXPENSE;
         this.request.targetId = targetId;
         this.request.groupId = groupId;
         return this;
     }
 
-    withTargetId(targetId: string | null | undefined) {
-        this.request.targetId = targetId;
+    withTargetId(targetId: string | null | undefined): this {
+        (this.request as any).targetId = targetId;
         return this;
     }
 
-    withGroupId(groupId: string | undefined) {
+    withGroupId(groupId: string | undefined): this {
         this.request.groupId = groupId;
         return this;
     }
 
-    withLongText(length: number = 501) {
+    withLongText(length: number = 501): this {
         this.request.text = 'a'.repeat(length);
         return this;
     }
 
-    withWhitespaceText(text: string = 'test') {
+    withWhitespaceText(text: string = 'test'): this {
         this.request.text = `  ${text}  `;
         return this;
     }
 
-    withXSSText() {
+    withXSSText(): this {
         this.request.text = '<script>alert("xss")</script>Safe text';
         return this;
     }
 
-    withXSSTargetId() {
-        this.request.targetId = '<script>group123</script>';
+    withXSSTargetId(): this {
+        (this.request as any).targetId = '<script>group123</script>';
         return this;
     }
 
-    withMissingField(field: string) {
+    withMissingField(field: keyof CreateCommentRequest): this {
         delete this.request[field];
         return this;
     }
 
-    withEmptyField(field: string) {
-        this.request[field] = '';
+    withEmptyField(field: keyof CreateCommentRequest): this {
+        (this.request as any)[field] = '';
         return this;
     }
 
-    build(): CreateCommentRequest | Record<string, unknown> {
-        return { ...this.request };
+    build(): CreateCommentRequest {
+        return { ...this.request } as CreateCommentRequest;
     }
 }

@@ -1,22 +1,19 @@
 import { UpdateRequest, UserRecord } from 'firebase-admin/auth';
-import { Timestamp } from 'firebase-admin/firestore';
 import { AuthErrors, RegisteredUser, SystemUserRoles, UserRegistration, UserThemeColor } from '@splitifyd/shared';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import { ApiError, Errors } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
-import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import { assignThemeColor } from '../user-management/assign-theme-color';
 import { validateRegisterRequest } from '../auth/validation';
 import { validateChangePassword, validateDeleteUser, validateUpdateUserProfile } from '../user/validation';
 import { measureDb } from '../monitoring/measure';
-import { UserDataSchema } from '../schemas';
 import { FirestoreValidationService } from './FirestoreValidationService';
 import { NotificationService } from './notification-service';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import type { IAuthService } from './auth';
-import { type GroupMemberDocument, GroupMembersResponse, GroupMemberDTO } from '@splitifyd/shared/src';
-
+import { GroupMembersResponse, GroupMember, GroupMembershipDTO } from '@splitifyd/shared/src';
+// GroupMemberDocument removed - use GroupMembershipDTO from @splitifyd/shared instead
 
 /**
  * Result of a successful user registration
@@ -38,12 +35,12 @@ interface FirestoreUserDocument {
     email: string;
     displayName: string;
     role: typeof SystemUserRoles.SYSTEM_USER | typeof SystemUserRoles.SYSTEM_ADMIN;
-    createdAt: Timestamp;
-    updatedAt: Timestamp;
+    createdAt: string;
+    updatedAt: string;
     acceptedPolicies: Record<string, string>;
     themeColor: UserThemeColor;
-    termsAcceptedAt?: Timestamp;
-    cookiePolicyAcceptedAt?: Timestamp;
+    termsAcceptedAt?: string;
+    cookiePolicyAcceptedAt?: string;
 }
 
 /**
@@ -125,7 +122,8 @@ export class UserService {
             return profile;
         } catch (error) {
             // Check if error is from Firebase Auth (user not found)
-            if ((error as any).code === 'auth/user-not-found') {
+            const firebaseError = error as { code?: string };
+            if (firebaseError.code === 'auth/user-not-found') {
                 logger.error('User not found in Firebase Auth', error as Error);
                 throw Errors.NOT_FOUND('User not found');
             }
@@ -215,9 +213,8 @@ export class UserService {
             await this.authService.updateUser(userId, authUpdateData);
 
             // Build update object for Firestore
-            const firestoreUpdate: any = {
-                updatedAt: createOptimisticTimestamp(),
-            };
+            // Note: updatedAt is added automatically by FirestoreWriter
+            const firestoreUpdate: any = {};
             if (validatedData.displayName !== undefined) {
                 firestoreUpdate.displayName = validatedData.displayName;
             }
@@ -228,23 +225,8 @@ export class UserService {
                 firestoreUpdate.preferredLanguage = validatedData.preferredLanguage;
             }
 
-            // Validate update object before applying to Firestore
-            try {
-                this.validationService.validateBeforeWrite(UserDataSchema, firestoreUpdate, 'UserData', {
-                    documentId: userId,
-                    collection: 'users',
-                    uid: userId,
-                    operation: 'updateProfile',
-                });
-            } catch (error) {
-                logger.error('User document update validation failed', error as Error, {
-                    userId,
-                    updateData: firestoreUpdate,
-                });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_USER_DATA', 'User document update validation failed');
-            }
-
             // Update Firestore user document
+            // FirestoreWriter handles: ISO→Timestamp conversion, updatedAt injection, and validation
             await this.firestoreWriter.updateUser(userId, firestoreUpdate);
 
             // Return the updated profile
@@ -297,7 +279,7 @@ export class UserService {
 
             // Update Firestore to track password change
             await this.firestoreWriter.updateUser(userId, {
-                passwordChangedAt: createOptimisticTimestamp(),
+                passwordChangedAt: new Date().toISOString(),
             });
 
             logger.info('Password changed successfully');
@@ -395,7 +377,7 @@ export class UserService {
 
         const memberProfiles = await this.getUsers(memberIds);
 
-        const members: GroupMemberDTO[] = memberDocs.map((memberDoc: GroupMemberDocument): GroupMemberDTO => {
+        const members: GroupMember[] = memberDocs.map((memberDoc: GroupMembershipDTO): GroupMember => {
             const profile = memberProfiles.get(memberDoc.uid);
 
             if (!profile) {
@@ -407,11 +389,10 @@ export class UserService {
                     photoURL: null,
                     themeColor: memberDoc.theme,
                     // Group membership metadata
-                    joinedAt: memberDoc.joinedAt,
+                    joinedAt: memberDoc.joinedAt, // Already ISO string from DTO
                     memberRole: memberDoc.memberRole,
                     invitedBy: memberDoc.invitedBy,
                     memberStatus: memberDoc.memberStatus,
-                    lastPermissionChange: memberDoc.lastPermissionChange,
                 };
             }
 
@@ -423,11 +404,10 @@ export class UserService {
                 photoURL: profile.photoURL,
                 themeColor: (typeof profile.themeColor === 'object' ? profile.themeColor : memberDoc.theme) as UserThemeColor,
                 // Group membership metadata (required for permissions)
-                joinedAt: memberDoc.joinedAt,
+                joinedAt: memberDoc.joinedAt, // Already ISO string from DTO
                 memberRole: memberDoc.memberRole,
                 invitedBy: memberDoc.invitedBy,
                 memberStatus: memberDoc.memberStatus,
-                lastPermissionChange: memberDoc.lastPermissionChange,
             };
         });
 
@@ -496,42 +476,33 @@ export class UserService {
 
             // todo: acceptedPolicies should come from the ui
 
-            // Create user document in Firestore
-            const userDoc: FirestoreUserDocument = {
+            // Create user document in Firestore (only fields that belong in the document)
+            // Note: uid is the document ID, not a field. emailVerified is managed by Firebase Auth.
+            const now = new Date().toISOString();
+            const userDoc: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified'> = {
                 email: userRegistration.email, // todo: this looks like a security issue
                 displayName: userRegistration.displayName,
+                photoURL: userRecord.photoURL,
                 role: SystemUserRoles.SYSTEM_USER, // Default role for new users
-                createdAt: createOptimisticTimestamp(),
-                updatedAt: createOptimisticTimestamp(),
+                createdAt: now,
+                updatedAt: now,
                 acceptedPolicies: currentPolicyVersions, // Capture current policy versions
-                themeColor, // Add automatic theme color assignment
+                themeColor: {
+                    ...themeColor,
+                    assignedAt: now, // Ensure assignedAt is ISO string, not Timestamp
+                },
             };
 
             // Only set acceptance timestamps if the user actually accepted the terms
             if (userRegistration.termsAccepted) {
-                userDoc.termsAcceptedAt = createOptimisticTimestamp();
+                userDoc.termsAcceptedAt = now;
             }
             if (userRegistration.cookiePolicyAccepted) {
-                userDoc.cookiePolicyAcceptedAt = createOptimisticTimestamp();
+                userDoc.cookiePolicyAcceptedAt = now;
             }
 
-            // Validate user document before writing to Firestore
-            try {
-                const validationService = this.validationService;
-                validationService.validateBeforeWrite(UserDataSchema, userDoc, 'UserData', {
-                    documentId: userRecord.uid,
-                    collection: 'users',
-                    uid: userRecord.uid,
-                    operation: 'registerUser',
-                });
-            } catch (error) {
-                logger.error('User document validation failed during registration', error as Error, {
-                    userId: userRecord.uid,
-                });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_USER_DATA', 'User document validation failed during registration');
-            }
-
-            await this.firestoreWriter.createUser(userRecord.uid, userDoc as any);
+            // FirestoreWriter handles validation and conversion to Firestore format
+            await this.firestoreWriter.createUser(userRecord.uid, userDoc);
 
             // Initialize notification document for new user
             await this.notificationService.initializeUserNotifications(userRecord.uid);

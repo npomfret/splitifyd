@@ -1,7 +1,6 @@
-import { Timestamp } from 'firebase-admin/firestore';
 import { Errors } from '../utils/errors';
-import { GroupDTO, UpdateGroupRequest, CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets } from '@splitifyd/shared';
-import { BalanceCalculationResultSchema, BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupDataSchema, GroupDocument } from '../schemas';
+import { GroupDTO, UpdateGroupRequest, CreateGroupRequest, DELETED_AT_FIELD, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets, ExpenseDTO, SettlementDTO } from '@splitifyd/shared';
+import { BalanceCalculationResultSchema, BalanceDisplaySchema, CurrencyBalanceDisplaySchema } from '../schemas';
 import { BalanceCalculationService } from './balance';
 import { DOCUMENT_CONFIG, FIRESTORE } from '../constants';
 import { logger, LoggerContext } from '../logger';
@@ -12,8 +11,6 @@ import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import type { BalanceCalculationResult } from './balance';
 import type { RegisteredUser } from '@splitifyd/shared';
-import type { ExpenseDocument } from '../schemas';
-import type { SettlementDocument } from '../schemas';
 import { ExpenseMetadataService } from './expenseMetadataService';
 import { UserService } from './UserService2';
 import { ExpenseService } from './ExpenseService';
@@ -21,14 +18,18 @@ import { SettlementService } from './SettlementService';
 import { GroupMemberService } from './GroupMemberService';
 import { NotificationService } from './notification-service';
 import { GroupShareService } from './GroupShareService';
-import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
+import { getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
+import { FirestoreCollections } from "../constants";
+import type { GroupMembershipDTO } from "@splitifyd/shared";
 
 /**
  * Enhanced types for group data fetching with groupId
+ * Note: ExpenseDTO and SettlementDTO already have groupId, so these types are redundant
+ * but kept for backwards compatibility during refactoring
  */
-type ExpenseWithGroupId = ExpenseDocument & { groupId: string };
-type SettlementWithGroupId = SettlementDocument & { groupId: string };
+type ExpenseWithGroupId = ExpenseDTO & { groupId: string };
+type SettlementWithGroupId = SettlementDTO & { groupId: string };
 
 /**
  * Service for managing group operations
@@ -118,7 +119,6 @@ export class GroupService {
             ...group,
             balance: validatedBalanceDisplay,
             lastActivity: expenseMetadata.lastExpenseTime ? `Last expense ${expenseMetadata.lastExpenseTime.toLocaleDateString()}` : 'No recent activity',
-            lastActivityRaw: expenseMetadata.lastExpenseTime ? expenseMetadata.lastExpenseTime.toISOString() : group.createdAt,
         };
     }
 
@@ -126,24 +126,13 @@ export class GroupService {
      * Fetch a group and verify user access
      */
     private async fetchGroupWithAccess(groupId: string, userId: string, requireWriteAccess: boolean = false): Promise<{ group: GroupDTO }> {
-        const groupData = await this.firestoreReader.getGroup(groupId);
+        const group = await this.firestoreReader.getGroup(groupId);
 
-        if (!groupData) {
+        if (!group) {
             throw Errors.NOT_FOUND('Group');
         }
 
-        // Convert GroupDocument to Group format (the reader returns validated data)
-        const group: GroupDTO = {
-            id: groupData.id,
-            name: groupData.name,
-            description: groupData.description,
-            createdBy: groupData.createdBy,
-            createdAt: this.dateHelpers.assertTimestampAndConvert(groupData.createdAt, 'createdAt'),
-            updatedAt: this.dateHelpers.assertTimestampAndConvert(groupData.updatedAt, 'updatedAt'),
-            securityPreset: groupData.securityPreset!,
-            presetAppliedAt: groupData.presetAppliedAt ? this.dateHelpers.assertTimestampAndConvert(groupData.presetAppliedAt, 'presetAppliedAt') : undefined,
-            permissions: groupData.permissions as any,
-        };
+        // FirestoreReader already returns a GroupDTO with ISO strings - no conversion needed
 
         // Check if user is the owner
         if (await this.groupMemberService.isGroupOwnerAsync(group.id, userId)) {
@@ -232,15 +221,14 @@ export class GroupService {
         for (const [groupId, expenses] of expensesByGroup.entries()) {
             const nonDeletedExpenses = expenses.filter((expense) => !expense[DELETED_AT_FIELD]);
             const sortedExpenses = nonDeletedExpenses.sort((a, b) => {
-                // Assert that all createdAt fields are Timestamps - enforced by FirestoreReader
-                const aTimestamp = this.dateHelpers.assertTimestamp(a.createdAt, 'expense.createdAt');
-                const bTimestamp = this.dateHelpers.assertTimestamp(b.createdAt, 'expense.createdAt');
-                return bTimestamp.toMillis() - aTimestamp.toMillis(); // DESC order
+                // ISO strings are directly comparable (lexicographic ordering matches chronological for ISO 8601)
+                // Sort DESC (newest first)
+                return b.createdAt.localeCompare(a.createdAt);
             });
 
             expenseMetadataByGroup.set(groupId, {
                 count: nonDeletedExpenses.length,
-                lastExpenseTime: sortedExpenses.length > 0 ? this.dateHelpers.assertTimestamp(sortedExpenses[0].createdAt, 'expense.createdAt').toDate() : undefined,
+                lastExpenseTime: sortedExpenses.length > 0 ? new Date(sortedExpenses[0].createdAt) : undefined,
             });
         }
 
@@ -351,20 +339,8 @@ export class GroupService {
             const groupsData = paginatedGroups.data;
 
             // FirestoreReader already handled pagination, use all returned groups
-            const returnedGroups = groupsData;
-
-            // Convert GroupDocument to Group format (the reader returns validated data)
-            const groups: GroupDTO[] = returnedGroups.map((groupData: any) => ({
-                id: groupData.id,
-                name: groupData.name,
-                description: groupData.description,
-                createdBy: groupData.createdBy,
-                createdAt: this.dateHelpers.assertTimestampAndConvert(groupData.createdAt, 'createdAt'),
-                updatedAt: this.dateHelpers.assertTimestampAndConvert(groupData.updatedAt, 'updatedAt'),
-                securityPreset: groupData.securityPreset!,
-                presetAppliedAt: groupData.presetAppliedAt ? this.dateHelpers.assertTimestampAndConvert(groupData.presetAppliedAt, 'presetAppliedAt') : undefined,
-                permissions: groupData.permissions as any,
-            }));
+            // groupsData is already GroupDTO[] with ISO strings - no conversion needed
+            const groups = groupsData;
             const groupIds = groups.map((group) => group.id);
 
             return { groups, groupIds };
@@ -389,7 +365,7 @@ export class GroupService {
             // Collect all member IDs and create mapping
             groups.forEach((group: GroupDTO, index: number) => {
                 const memberDocs = membersArrays[index];
-                const memberIds = memberDocs.map((memberDoc: GroupMemberDocument) => memberDoc.uid);
+                const memberIds = memberDocs.map((memberDoc: GroupMembershipDTO) => memberDoc.uid);
                 membersByGroup.set(group.id, memberIds);
                 memberIds.forEach((memberId: string) => allMemberIds.add(memberId));
             });
@@ -449,7 +425,7 @@ export class GroupService {
                     groupId: group.id,
                     balancesByCurrency: {},
                     simplifiedDebts: [],
-                    lastUpdated: Timestamp.now(),
+                    lastUpdated: new Date().toISOString(),
                 };
 
                 // Calculate currency-specific balances with proper typing
@@ -488,7 +464,6 @@ export class GroupService {
                 // expenseMetadata.lastExpenseTime is Date | undefined, group.updatedAt is ISO string
                 const lastActivityDate = expenseMetadata.lastExpenseTime ?? new Date(group.updatedAt);
                 let lastActivity: string;
-                let lastActivityRaw: string;
 
                 try {
                     // lastActivityDate should always be a Date at this point
@@ -496,15 +471,13 @@ export class GroupService {
                         throw new Error(`Expected valid Date for lastActivityDate but got ${typeof lastActivityDate}`);
                     }
 
-                    lastActivityRaw = lastActivityDate.toISOString();
-                    lastActivity = this.formatRelativeTime(lastActivityRaw);
+                    lastActivity = this.formatRelativeTime(lastActivityDate.toISOString());
                 } catch (error) {
                     this.logger.warn('Failed to format last activity time, using group updatedAt', {
                         error,
                         lastActivityDate,
                         groupId: group.id,
                     });
-                    lastActivityRaw = group.updatedAt;
                     lastActivity = this.formatRelativeTime(group.updatedAt);
                 }
 
@@ -544,7 +517,6 @@ export class GroupService {
                         balancesByCurrency,
                     },
                     lastActivity,
-                    lastActivityRaw,
                 };
             });
         })();
@@ -581,70 +553,49 @@ export class GroupService {
     }
 
     private async _createGroup(userId: string, createGroupRequest: CreateGroupRequest): Promise<GroupDTO> {
-        // Initialize group structure with server timestamps
+        // Initialize group structure with ISO strings (DTOs)
         const groupId = this.firestoreWriter.generateDocumentId(FirestoreCollections.GROUPS);
-        const serverTimestamp = this.dateHelpers.createTrueServerTimestamp();
-        const now = this.dateHelpers.createOptimisticTimestamp();
+        const nowISO = new Date().toISOString();
 
-        // Create the document to write with server timestamps (for Firestore)
+        // Create the document to write (using ISO strings - FirestoreWriter converts to Timestamps)
         const documentToWrite = {
-            id: groupId,
             name: createGroupRequest.name,
             description: createGroupRequest.description ?? '',
             createdBy: userId,
-            createdAt: serverTimestamp,
-            updatedAt: serverTimestamp,
+            createdAt: nowISO,
+            updatedAt: nowISO,
             securityPreset: SecurityPresets.OPEN,
-            presetAppliedAt: serverTimestamp,
+            presetAppliedAt: nowISO,
             permissions: PermissionEngine.getDefaultPermissions(SecurityPresets.OPEN),
         };
 
-        // Create the response object with ISO strings (for API responses)
-        const newGroup: GroupDTO = {
-            id: groupId,
-            name: createGroupRequest.name,
-            description: createGroupRequest.description ?? '',
-            createdBy: userId,
-            createdAt: this.dateHelpers.timestampToISO(now),
-            updatedAt: this.dateHelpers.timestampToISO(now),
-            securityPreset: SecurityPresets.OPEN,
-            presetAppliedAt: this.dateHelpers.timestampToISO(now),
-            permissions: PermissionEngine.getDefaultPermissions(SecurityPresets.OPEN),
-        };
+        // Note: Validation happens in FirestoreWriter after ISO → Timestamp conversion
 
-        try {
-            GroupDataSchema.parse(newGroup);
-        } catch (error) {
-            this.logger.error('Invalid group document to write', error as Error, {
-                groupId: groupId,
-                userId,
-            });
-            throw Errors.INVALID_INPUT();
-        }
-
-        // Pre-calculate member data outside transaction for speed
-
-        const memberDoc: GroupMemberDocument = {
+        // Pre-calculate member data outside transaction for speed (using ISO strings - DTOs)
+        const themeColor = this.groupShareService.getThemeColorForMember(0);
+        const memberDoc = {
             uid: userId,
             groupId: groupId,
             memberRole: MemberRoles.ADMIN,
-            theme: this.groupShareService.getThemeColorForMember(0),
-            joinedAt: now.toDate().toISOString(),
+            theme: themeColor, // ISO string assignedAt
+            joinedAt: nowISO,
             memberStatus: MemberStatuses.ACTIVE,
         };
-
-        const memberServerTimestamp = this.dateHelpers.createTrueServerTimestamp();
 
         // Atomic transaction: create group and member documents
         await this.firestoreWriter.runTransaction(async (transaction) => {
             this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUPS, groupId, documentToWrite);
 
             // Write to top-level collection for improved querying
-            this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, getTopLevelMembershipDocId(userId, groupId), {
-                ...createTopLevelMembershipDocument(memberDoc, this.dateHelpers.timestampToISO(now)),
-                createdAt: memberServerTimestamp,
-                updatedAt: memberServerTimestamp,
-            });
+            const topLevelMemberDoc = {
+                ...memberDoc,
+                groupUpdatedAt: nowISO,
+                createdAt: nowISO,
+                updatedAt: nowISO,
+            };
+
+            // FirestoreWriter.createInTransaction handles conversion and validation
+            this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, getTopLevelMembershipDocId(userId, groupId), topLevelMemberDoc);
 
             // Note: Group notifications are handled by the trackGroupChanges trigger
             // which fires when the group document is created
@@ -659,21 +610,9 @@ export class GroupService {
             throw new Error('Failed to fetch created group');
         }
 
-        // Convert GroupDocument to Group format
-        const group: GroupDTO = {
-            id: groupData.id,
-            name: groupData.name,
-            description: groupData.description,
-            createdBy: groupData.createdBy,
-            createdAt: this.dateHelpers.assertTimestampAndConvert(groupData.createdAt, 'createdAt'),
-            updatedAt: this.dateHelpers.assertTimestampAndConvert(groupData.updatedAt, 'updatedAt'),
-            securityPreset: groupData.securityPreset!,
-            presetAppliedAt: groupData.presetAppliedAt ? this.dateHelpers.assertTimestampAndConvert(groupData.presetAppliedAt, 'presetAppliedAt') : undefined,
-            permissions: groupData.permissions as any,
-        };
-
+        // groupData is already a GroupDTO with ISO strings - no conversion needed
         // Add computed fields before returning
-        return await this.addComputedFields(group, userId);
+        return await this.addComputedFields(groupData, userId);
     }
 
     /**
@@ -700,28 +639,29 @@ export class GroupService {
             // Optimistic locking validation could use originalUpdatedAt if needed
             // const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
 
-            // Create updated data with current timestamp (will be converted to ISO in the data field)
-            const now = this.dateHelpers.createOptimisticTimestamp();
+            // Create updated data with current timestamp for optimistic response
+            const now = new Date().toISOString();
             const updatedData = {
                 ...group,
                 ...updates,
-                updatedAt: now.toDate(),
+                updatedAt: now,
             };
 
             // PHASE 2: ALL WRITES AFTER ALL READS
-            // Update group document using FirestoreWriter
+            // Update group document with ISO timestamp (FirestoreWriter converts to Timestamp)
             const documentPath = `${FirestoreCollections.GROUPS}/${groupId}`;
             this.firestoreWriter.updateInTransaction(transaction, documentPath, {
                 name: updatedData.name,
                 description: updatedData.description,
-                updatedAt: updatedData.updatedAt,
+                updatedAt: now,
             });
 
             // Update denormalized groupUpdatedAt in all membership documents
+            // Use the same ISO timestamp to keep them in sync
             membershipSnapshot.docs.forEach((doc) => {
                 this.firestoreWriter.updateInTransaction(transaction, doc.ref.path, {
-                    groupUpdatedAt: updatedData.updatedAt.toISOString(),
-                    updatedAt: this.dateHelpers.createTrueServerTimestamp(),
+                    groupUpdatedAt: now,
+                    updatedAt: now,
                 });
             });
         });
@@ -769,11 +709,13 @@ export class GroupService {
                 }
 
                 // Mark for deletion
-                const updatedData: Partial<GroupDocument> = {
+                // Note: deletionStatus and deletionAttempts are internal Firestore fields not in GroupDTO
+                const now = new Date().toISOString();
+                const updatedData: any = {
                     deletionStatus: 'deleting' as const,
-                    deletionStartedAt: Timestamp.now(),
+                    deletionStartedAt: now,
                     deletionAttempts: (groupData?.deletionAttempts || 0) + 1,
-                    updatedAt: Timestamp.now(),
+                    updatedAt: now,
                 };
 
                 this.firestoreWriter.updateInTransaction(transaction, groupRef.path, updatedData);
@@ -884,7 +826,7 @@ export class GroupService {
                     if (groupSnap.exists) {
                         this.firestoreWriter.updateInTransaction(transaction, groupRef.path, {
                             deletionStatus: 'failed' as const,
-                            updatedAt: Timestamp.now(),
+                            updatedAt: new Date().toISOString(),
                         });
                     }
                 },
@@ -1114,12 +1056,18 @@ export class GroupService {
         // Validate balance data before returning
         const validatedBalances = BalanceCalculationResultSchema.parse(balancesData);
 
+        // Convert Timestamp to ISO string for DTO
+        const balancesDTO = {
+            ...validatedBalances,
+            lastUpdated: this.dateHelpers.timestampToISO(validatedBalances.lastUpdated),
+        };
+
         // Construct response using existing patterns
         return {
             group,
             members: membersData,
             expenses: expensesData,
-            balances: validatedBalances, // Now properly validated instead of unsafe cast
+            balances: balancesDTO,
             settlements: settlementsData,
         };
     }

@@ -14,7 +14,7 @@ import { SettlementForm, SettlementHistory } from '@/components/settlements';
 import { SidebarCard } from '@/components/ui/SidebarCard';
 import { CommentsSection } from '@/components/comments';
 import { logError, logInfo } from '../utils/browser-logger';
-import type { SettlementListItem } from '@splitifyd/shared';
+import type { SettlementWithMembers } from '@splitifyd/shared';
 
 interface GroupDetailPageProps {
     id?: string;
@@ -166,7 +166,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         modals.openSettlementForm();
     };
 
-    const handleEditSettlement = (settlement: SettlementListItem) => {
+    const handleEditSettlement = (settlement: SettlementWithMembers) => {
         modals.openSettlementForm(settlement);
     };
 

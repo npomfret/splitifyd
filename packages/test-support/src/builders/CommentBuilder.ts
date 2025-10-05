@@ -1,8 +1,8 @@
-import type { CommentApiResponse } from '@splitifyd/shared';
-import { randomString, randomChoice, randomDate, generateShortId } from '../test-helpers';
+import type { CommentDTO } from '@splitifyd/shared';
+import { randomString, randomChoice, randomDate, generateShortId, BuilderTimestamp, timestampToISOString } from '../test-helpers';
 
 export class CommentBuilder {
-    private comment: CommentApiResponse = {
+    private comment: CommentDTO = {
         id: `comment-${generateShortId()}`,
         authorId: `user-${generateShortId()}`,
         authorName: `${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(4)}`,
@@ -37,13 +37,13 @@ export class CommentBuilder {
         return this;
     }
 
-    withCreatedAtTimestamp(timestamp: any): this {
-        this.comment.createdAt = timestamp;
+    withCreatedAtTimestamp(timestamp: BuilderTimestamp): this {
+        this.comment.createdAt = timestampToISOString(timestamp);
         return this;
     }
 
-    withUpdatedAtTimestamp(timestamp: any): this {
-        this.comment.updatedAt = timestamp;
+    withUpdatedAtTimestamp(timestamp: BuilderTimestamp): this {
+        this.comment.updatedAt = timestampToISOString(timestamp);
         return this;
     }
 
@@ -63,7 +63,7 @@ export class CommentBuilder {
         return this;
     }
 
-    build(): CommentApiResponse {
+    build(): CommentDTO {
         return { ...this.comment };
     }
 }

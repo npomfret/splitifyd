@@ -1,15 +1,13 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
-import { collection, getDocs, doc, setDoc, getDoc, onSnapshot, query, limit } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, getDoc, onSnapshot, query, limit, Timestamp } from 'firebase/firestore';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import {
     getFirestorePort,
-    UserNotificationDocumentBuilder,
-    GroupBuilder,
-    GroupMemberDocumentBuilder,
-    ExpenseBuilder,
-    SettlementBuilder,
+    GroupDTOBuilder,
+    ExpenseDTOBuilder,
+    SettlementDTOBuilder,
     PolicyDocumentBuilder,
     GroupBalanceDocumentBuilder
 } from '@splitifyd/test-support';
@@ -76,26 +74,50 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
 
                 // Create a group with user1 and user2 as members
-                const group = new GroupBuilder()
+                const group = new GroupDTOBuilder()
                     .withName('Test Group')
                     .withDescription('A test group')
                     .withCreatedBy('user1-id')
-                    // Note: ExpenseBuilder doesn't have memberIds - access is controlled differently
-                    .withClientCompatibleTimestamps()
                     .build();
 
                 await setDoc(doc(db, 'groups', groupId), group);
 
                 // Create group-memberships documents for security rules
-                const user1Membership = new GroupMemberDocumentBuilder()
-                    .withUserId('user1-id')
-                    .withGroupId(groupId)
-                    .build();
+                // Note: Using client SDK Timestamp.now() instead of builder to avoid admin/client SDK mismatch
+                const now = Timestamp.now();
+                const user1Membership = {
+                    uid: 'user1-id',
+                    groupId: groupId,
+                    memberRole: 'member',
+                    memberStatus: 'active',
+                    joinedAt: now,
+                    invitedBy: 'system',
+                    theme: {
+                        light: '#3B82F6',
+                        dark: '#1E40AF',
+                        name: 'Blue',
+                        pattern: 'solid',
+                        assignedAt: new Date().toISOString(),
+                        colorIndex: 0,
+                    },
+                };
 
-                const user2Membership = new GroupMemberDocumentBuilder()
-                    .withUserId('user2-id')
-                    .withGroupId(groupId)
-                    .build();
+                const user2Membership = {
+                    uid: 'user2-id',
+                    groupId: groupId,
+                    memberRole: 'member',
+                    memberStatus: 'active',
+                    joinedAt: now,
+                    invitedBy: 'system',
+                    theme: {
+                        light: '#F59E0B',
+                        dark: '#D97706',
+                        name: 'Amber',
+                        pattern: 'solid',
+                        assignedAt: new Date().toISOString(),
+                        colorIndex: 1,
+                    },
+                };
 
                 await setDoc(doc(db, 'group-memberships', 'user1-id_' + groupId), user1Membership);
                 await setDoc(doc(db, 'group-memberships', 'user2-id_' + groupId), user2Membership);
@@ -149,19 +171,18 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
 
                 // Create an expense for the test group
-                const expense = new ExpenseBuilder()
+                const expense = new ExpenseDTOBuilder()
                     .withGroupId(groupId)
                     .withDescription('Test Expense')
                     .withAmount(100)
                     .withCreatedBy('user1-id')
                     .withPaidBy('user1-id')
-                    // Note: ExpenseBuilder doesn't have memberIds - access is controlled differently
+                    // Note: ExpenseDTOBuilder doesn't have memberIds - access is controlled differently
                     .withParticipants(['user1-id', 'user2-id'])
                     .withSplits([
                         { uid: 'user1-id', amount: 50 },
                         { uid: 'user2-id', amount: 50 },
                     ])
-                    .withClientCompatibleTimestamps()
                     .build();
 
                 await setDoc(doc(db, 'expenses', expenseId), expense);
@@ -200,13 +221,13 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
 
                 // Create a settlement
-                const settlement = new SettlementBuilder()
+                const settlement = new SettlementDTOBuilder()
                     .withGroupId('test-group-1')
                     .withPayerId('user2-id') // Changed from fromUserId to payerId
                     .withPayeeId('user1-id') // Changed from toUserId to payeeId
                     .withAmount(50)
                     .withCurrency('USD')
-                    // Note: ExpenseBuilder doesn't have memberIds - access is controlled differently
+                    // Note: ExpenseDTOBuilder doesn't have memberIds - access is controlled differently
                     .build();
 
                 await setDoc(doc(db, 'settlements', settlementId), settlement);
@@ -247,10 +268,8 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
 
                 // Create group with comments
-                const commentGroup = new GroupBuilder()
+                const commentGroup = new GroupDTOBuilder()
                     .withName('Group with Comments')
-                    // Note: SettlementBuilder doesn't have memberIds
-                    .withClientCompatibleTimestamps()
                     .build();
 
                 await setDoc(doc(db, 'groups', groupId), commentGroup);
@@ -263,26 +282,50 @@ describe('Firestore Security Rules (Production)', () => {
                 });
 
                 // Create group-memberships for comment group
-                const commentUser1Membership = new GroupMemberDocumentBuilder()
-                    .withUserId('user1-id')
-                    .withGroupId(groupId)
-                    .build();
+                // Note: Using client SDK Timestamp.now() instead of builder to avoid admin/client SDK mismatch
+                const commentNow = Timestamp.now();
+                const commentUser1Membership = {
+                    uid: 'user1-id',
+                    groupId: groupId,
+                    memberRole: 'member',
+                    memberStatus: 'active',
+                    joinedAt: commentNow,
+                    invitedBy: 'system',
+                    theme: {
+                        light: '#3B82F6',
+                        dark: '#1E40AF',
+                        name: 'Blue',
+                        pattern: 'solid',
+                        assignedAt: new Date().toISOString(),
+                        colorIndex: 0,
+                    },
+                };
 
-                const commentUser2Membership = new GroupMemberDocumentBuilder()
-                    .withUserId('user2-id')
-                    .withGroupId(groupId)
-                    .build();
+                const commentUser2Membership = {
+                    uid: 'user2-id',
+                    groupId: groupId,
+                    memberRole: 'member',
+                    memberStatus: 'active',
+                    joinedAt: commentNow,
+                    invitedBy: 'system',
+                    theme: {
+                        light: '#F59E0B',
+                        dark: '#D97706',
+                        name: 'Amber',
+                        pattern: 'solid',
+                        assignedAt: new Date().toISOString(),
+                        colorIndex: 1,
+                    },
+                };
 
                 await setDoc(doc(db, 'group-memberships', 'user1-id_' + groupId), commentUser1Membership);
                 await setDoc(doc(db, 'group-memberships', 'user2-id_' + groupId), commentUser2Membership);
 
                 // Create expense with comments
-                const commentExpense = new ExpenseBuilder()
+                const commentExpense = new ExpenseDTOBuilder()
                     .withDescription('Expense with Comments')
-                    // Note: SettlementBuilder doesn't have memberIds
-                    .withParticipants(['user1-id', 'user2-id']) // Add participants field for expense comments rule
+                    .withParticipants(['user1-id', 'user2-id'])
                     .withAmount(100)
-                    .withClientCompatibleTimestamps()
                     .build();
 
                 await setDoc(doc(db, 'expenses', expenseId), commentExpense);
@@ -331,17 +374,33 @@ describe('Firestore Security Rules (Production)', () => {
             await testEnv.withSecurityRulesDisabled(async (context: any) => {
                 const db = context.firestore();
 
-                // Create user notification documents using builder
-                const user1Notification = new UserNotificationDocumentBuilder()
-                    .withChangeVersion(1)
-                    .withTransactionChange('test-group-1', 5)
-                    .build();
+                const now = Timestamp.now();
+
+                // Create user notification documents inline with client SDK Timestamps
+                const user1Notification = {
+                    changeVersion: 1,
+                    groups: {
+                        'test-group-1': {
+                            lastTransactionChange: now,
+                            lastBalanceChange: null,
+                            lastGroupDetailsChange: null,
+                            lastCommentChange: null,
+                            transactionChangeCount: 5,
+                            balanceChangeCount: 0,
+                            groupDetailsChangeCount: 0,
+                            commentChangeCount: 0,
+                        },
+                    },
+                    lastModified: now,
+                };
 
                 await setDoc(doc(db, 'user-notifications', 'user1-id'), user1Notification);
 
-                const user2Notification = new UserNotificationDocumentBuilder()
-                    .withChangeVersion(1)
-                    .build();
+                const user2Notification = {
+                    changeVersion: 1,
+                    groups: {},
+                    lastModified: now,
+                };
 
                 await setDoc(doc(db, 'user-notifications', 'user2-id'), user2Notification);
             });
@@ -382,9 +441,9 @@ describe('Firestore Security Rules (Production)', () => {
 
                 // Create a policy document
                 const policy = new PolicyDocumentBuilder()
-                    .withType('privacy')
-                    .withVersion('1.0.0')
-                    .withContent('Privacy policy content...')
+                    .withId(policyId)
+                    .withPolicyName('privacy')
+                    .withVersionText('v1.0.0', 'Privacy policy content...')
                     .build();
 
                 await setDoc(doc(db, 'policies', policyId), policy);
@@ -527,10 +586,9 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
 
                 // Create a group with empty memberIds
-                const emptyMembersGroup = new GroupBuilder()
+                const emptyMembersGroup = new GroupDTOBuilder()
                     .withName('Empty Members Group')
-                    .withMemberIds([]) // Empty array
-                    .withClientCompatibleTimestamps()
+                    .withMemberIds([])
                     .build();
 
                 await setDoc(doc(db, 'groups', 'empty-members-group'), emptyMembersGroup);
@@ -546,10 +604,9 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
 
                 // Create a group without memberIds field
-                const noMembersFieldGroup = new GroupBuilder()
+                const noMembersFieldGroup = new GroupDTOBuilder()
                     .withName('No Members Field Group')
-                    .withoutMemberIds() // memberIds is missing
-                    .withClientCompatibleTimestamps()
+                    .withoutMemberIds()
                     .build();
 
                 await setDoc(doc(db, 'groups', 'no-members-field'), noMembersFieldGroup);

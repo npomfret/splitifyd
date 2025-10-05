@@ -79,9 +79,10 @@ export class NotificationService {
                     };
 
                     // Add updates for each change type using nested object structure
+                    const now = new Date().toISOString();
                     for (const changeType of changeTypes) {
                         const { count: countFieldName, last: lastChangeFieldName } = fieldMap[changeType];
-                        updates.groups[groupId][lastChangeFieldName] = FieldValue.serverTimestamp();
+                        updates.groups[groupId][lastChangeFieldName] = now;
                         updates.groups[groupId][countFieldName] = FieldValue.increment(1);
                     }
 

@@ -8,7 +8,7 @@ import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { ConfirmDialog } from '@/components/ui';
 import { UserPlusIcon, UserMinusIcon } from '@heroicons/react/24/outline';
-import { GroupMemberDTO } from '@splitifyd/shared';
+import { GroupMember } from '@splitifyd/shared';
 import { apiClient } from '@/app/apiClient';
 import { logError } from '@/utils/browser-logger';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
@@ -26,7 +26,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
     const { t } = useTranslation();
     const showLeaveConfirm = useSignal(false);
     const showRemoveConfirm = useSignal(false);
-    const memberToRemove = useSignal<GroupMemberDTO | null>(null);
+    const memberToRemove = useSignal<GroupMember | null>(null);
     const isProcessing = useSignal(false);
 
     // Auth store via hook
@@ -118,7 +118,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
         }
     };
 
-    const getMemberRole = (member: GroupMemberDTO): string => {
+    const getMemberRole = (member: GroupMember): string => {
         return member.uid === createdBy ? t('membersList.admin') : '';
     };
 

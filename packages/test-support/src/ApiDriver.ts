@@ -18,7 +18,7 @@ import {
     RegisterResponse,
     RemoveGroupMemberResponse,
     type SettlementDTO,
-    SettlementListItem,
+    SettlementWithMembers,
     ShareLinkResponse,
     UserRegistration,
     UserToken,
@@ -162,7 +162,7 @@ export class ApiDriver {
         return response.data as SettlementDTO;
     }
 
-    async updateSettlement(settlementId: string, updateData: any, token: string): Promise<SettlementListItem> {
+    async updateSettlement(settlementId: string, updateData: any, token: string): Promise<SettlementWithMembers> {
         const response = await this.apiRequest(`/settlements/${settlementId}`, 'PUT', updateData, token);
         return response.data;
     }

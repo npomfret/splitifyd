@@ -14,7 +14,7 @@
  */
 
 import type { Transaction } from 'firebase-admin/firestore';
-import { FirestoreTimestamp } from '@splitifyd/shared';
+import type { ISOString } from '@splitifyd/shared';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 
 // FirestoreReader query and pagination types
@@ -32,8 +32,8 @@ export type FirestoreOrderField = keyof Pick<FirestoreAuditMetadata, 'createdAt'
 interface FilterOptions {
     includeDeleted?: boolean;
     dateRange?: {
-        start?: FirestoreTimestamp;
-        end?: FirestoreTimestamp;
+        start?: ISOString;
+        end?: ISOString;
     };
 }
 
@@ -68,11 +68,10 @@ export interface BatchGroupFetchOptions {
 }
 
 // Import parsed types from schemas
-import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument, PolicyTDO } from '../../schemas';
-import { GroupMemberDocument, CommentTargetType } from '@splitifyd/shared';
+import { CommentTargetType } from '@splitifyd/shared';
 import type { UserNotificationDocument } from '../../schemas/user-notifications';
 import type { ParsedShareLink } from '../../schemas';
-import type { ParsedComment } from '../../schemas';
+import type {ExpenseDTO, GroupDTO, PolicyDTO, RegisteredUser, SettlementDTO, GroupMembershipDTO, CommentDTO} from "@splitifyd/shared/src";
 
 export interface IFirestoreReader {
     // ========================================================================
@@ -84,41 +83,41 @@ export interface IFirestoreReader {
      * @param userId - The user ID
      * @returns User document or null if not found
      */
-    getUser(userId: string): Promise<UserDocument | null>;
+    getUser(userId: string): Promise<RegisteredUser | null>;
 
     /**
      * Get a group document by ID
      * @param groupId - The group ID
      * @returns Group document or null if not found
      */
-    getGroup(groupId: string): Promise<GroupDocument | null>;
+    getGroup(groupId: string): Promise<GroupDTO | null>;
 
     /**
      * Get an expense document by ID
      * @param expenseId - The expense ID
      * @returns Expense document or null if not found
      */
-    getExpense(expenseId: string): Promise<ExpenseDocument | null>;
+    getExpense(expenseId: string): Promise<ExpenseDTO | null>;
 
     /**
      * Get a settlement document by ID
      * @param settlementId - The settlement ID
      * @returns Settlement document or null if not found
      */
-    getSettlement(settlementId: string): Promise<SettlementDocument | null>;
+    getSettlement(settlementId: string): Promise<SettlementDTO | null>;
 
     /**
      * Get a policy document by ID
      * @param policyId - The policy ID
      * @returns Policy document or null if not found
      */
-    getPolicy(policyId: string): Promise<PolicyTDO | null>;
+    getPolicy(policyId: string): Promise<PolicyDTO | null>;
 
     /**
      * Get all policy documents
      * @returns Array of all policy documents
      */
-    getAllPolicies(): Promise<PolicyTDO[]>;
+    getAllPolicies(): Promise<PolicyDTO[]>;
 
     // ========================================================================
     // Collection Read Operations - User-related
@@ -130,7 +129,7 @@ export interface IFirestoreReader {
      * This method provides proper database-level ordering and fixes pagination issues
      * @param userId - The user ID
      * @param options - Query options for pagination and filtering
-     * @returns Paginated result containing group documents, hasMore flag, and nextCursor
+     * @returns Paginated result containing group DTOs, hasMore flag, and nextCursor
      */
     getGroupsForUserV2(
         userId: string,
@@ -142,22 +141,22 @@ export interface IFirestoreReader {
                 direction: 'asc' | 'desc';
             };
         },
-    ): Promise<PaginatedResult<GroupDocument[]>>;
+    ): Promise<PaginatedResult<GroupDTO[]>>;
 
     /**
      * Get a single member from a group
      * @param groupId - The group ID
      * @param userId - The user ID to find
-     * @returns Group member document or null if not found
+     * @returns Group membership DTO or null if not found
      */
-    getGroupMember(groupId: string, userId: string): Promise<GroupMemberDocument | null>;
+    getGroupMember(groupId: string, userId: string): Promise<GroupMembershipDTO | null>;
 
     /**
      * Get all members for a group (simplified method)
      * @param groupId - The group ID
-     * @returns Array of group member documents
+     * @returns Array of group membership DTOs
      */
-    getAllGroupMembers(groupId: string): Promise<GroupMemberDocument[]>;
+    getAllGroupMembers(groupId: string): Promise<GroupMembershipDTO[]>;
 
     getAllGroupMemberIds(groupId: string): Promise<string[]>;
 
@@ -169,9 +168,9 @@ export interface IFirestoreReader {
      * Get all expenses for a specific group
      * @param groupId - The group ID
      * @param options - Query options for pagination and filtering
-     * @returns Array of expense documents
+     * @returns Array of expense DTOs
      */
-    getExpensesForGroup(groupId: string, options?: QueryOptions): Promise<ExpenseDocument[]>;
+    getExpensesForGroup(groupId: string, options?: QueryOptions): Promise<ExpenseDTO[]>;
 
 
     /**
@@ -202,7 +201,7 @@ export interface IFirestoreReader {
             includeDeleted?: boolean;
         },
     ): Promise<{
-        expenses: ExpenseDocument[];
+        expenses: ExpenseDTO[];
         hasMore: boolean;
         nextCursor?: string;
     }>;
@@ -215,9 +214,9 @@ export interface IFirestoreReader {
      * Get all settlements for a specific group
      * @param groupId - The group ID
      * @param options - Query options for pagination and filtering
-     * @returns Array of settlement documents
+     * @returns Array of settlement DTOs
      */
-    getSettlementsForGroup(groupId: string, options?: QueryOptions): Promise<SettlementDocument[]>;
+    getSettlementsForGroup(groupId: string, options?: QueryOptions): Promise<SettlementDTO[]>;
 
     /**
      * Get a user notification document by user ID
@@ -253,7 +252,7 @@ export interface IFirestoreReader {
             orderBy?: FirestoreOrderField;
             direction?: 'asc' | 'desc';
         },
-    ): Promise<{ comments: ParsedComment[]; hasMore: boolean; nextCursor?: string }>;
+    ): Promise<{ comments: CommentDTO[]; hasMore: boolean; nextCursor?: string }>;
 
     /**
      * Get a specific comment by target and comment ID
@@ -262,7 +261,7 @@ export interface IFirestoreReader {
      * @param commentId - The comment ID
      * @returns Comment document or null if not found
      */
-    getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<ParsedComment | null>;
+    getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<CommentDTO | null>;
 
     // ========================================================================
     // Group Related Collections Operations
@@ -302,7 +301,7 @@ export interface IFirestoreReader {
             endDate?: string;
         },
     ): Promise<{
-        settlements: SettlementDocument[];
+        settlements: SettlementDTO[];
         hasMore: boolean;
         nextCursor?: string;
     }>;
@@ -352,6 +351,34 @@ export interface IFirestoreReader {
     getRawPolicyDocument(policyId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
 
     /**
+     * Get group DTO in a transaction with Timestamp → ISO conversion
+     * Use this for optimistic locking with DTOs (DTO-everywhere pattern)
+     * @param transaction - Firestore transaction
+     * @param groupId - The group ID
+     * @returns Group DTO with ISO string dates or null if not found
+     */
+    getGroupInTransaction(transaction: Transaction, groupId: string): Promise<GroupDTO | null>;
+
+    /**
+     * Get expense DTO in a transaction with Timestamp → ISO conversion
+     * Use this for optimistic locking with DTOs (DTO-everywhere pattern)
+     * @param transaction - Firestore transaction
+     * @param expenseId - The expense ID
+     * @returns Expense DTO with ISO string dates or null if not found
+     */
+    getExpenseInTransaction(transaction: Transaction, expenseId: string): Promise<ExpenseDTO | null>;
+
+    /**
+     * Get settlement DTO in a transaction with Timestamp → ISO conversion
+     * Use this for optimistic locking with DTOs (DTO-everywhere pattern)
+     * @param transaction - Firestore transaction
+     * @param settlementId - The settlement ID
+     * @returns Settlement DTO with ISO string dates or null if not found
+     */
+    getSettlementInTransaction(transaction: Transaction, settlementId: string): Promise<SettlementDTO | null>;
+
+    /**
+     * @deprecated Use getGroupInTransaction instead - returns DTO with ISO strings
      * Get raw group document in a transaction for optimistic locking
      * @param transaction - Firestore transaction
      * @param groupId - The group ID
@@ -360,6 +387,7 @@ export interface IFirestoreReader {
     getRawGroupDocumentInTransaction(transaction: Transaction, groupId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
 
     /**
+     * @deprecated Use getExpenseInTransaction instead - returns DTO with ISO strings
      * Get raw expense document in a transaction for optimistic locking
      * @param transaction - Firestore transaction
      * @param expenseId - The expense ID
@@ -368,6 +396,7 @@ export interface IFirestoreReader {
     getRawExpenseDocumentInTransaction(transaction: Transaction, expenseId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
 
     /**
+     * @deprecated Use getSettlementInTransaction instead - returns DTO with ISO strings
      * Get raw settlement document in a transaction for optimistic locking
      * @param transaction - Firestore transaction
      * @param settlementId - The settlement ID

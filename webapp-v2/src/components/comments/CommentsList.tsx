@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { CommentItem } from './CommentItem';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
-import type { CommentApiResponse } from '@splitifyd/shared';
+import type { CommentDTO } from '@splitifyd/shared';
 
 interface CommentsListProps {
-    comments: CommentApiResponse[];
+    comments: CommentDTO[];
     loading?: boolean;
     hasMore?: boolean;
     onLoadMore?: () => Promise<void>;

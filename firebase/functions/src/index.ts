@@ -26,7 +26,6 @@ import { updateUserProfile, changePassword } from './user/handlers';
 import { BUILD_INFO } from './utils/build-info';
 import * as fs from 'fs';
 import * as path from 'path';
-import { FirestoreCollections } from '@splitifyd/shared';
 import { borrowTestUser, returnTestUser } from './test-pool/handlers';
 import { testClearPolicyAcceptances, testPromoteToAdmin } from './test/policy-handlers';
 import { metrics } from './monitoring/lightweight-metrics';
@@ -51,6 +50,7 @@ export function getAppBuilder(): ApplicationBuilder {
 import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker';
 import { trackGroupCommentChanges, trackExpenseCommentChanges } from './triggers/comment-tracker';
 import { logMetrics } from './scheduled/metrics-logger';
+import { FirestoreCollections } from "./constants";
 
 // Removed emulator connection test at module level to prevent connection creation
 // The emulator connection will be tested lazily when first needed

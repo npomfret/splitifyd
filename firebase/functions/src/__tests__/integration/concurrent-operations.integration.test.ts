@@ -1,9 +1,10 @@
 import { describe, test, expect, beforeEach, beforeAll } from 'vitest';
-import { borrowTestUsers, GroupMemberDocumentBuilder, CreateGroupRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
-import { GroupMemberDocument, MemberRoles, GroupDTO } from '@splitifyd/shared';
+import { borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
+import { MemberRoles, GroupDTO, type GroupMembershipDTO } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { getAuth, getFirestore } from '../../firebase';
+import { GroupMemberDocumentBuilder } from "../support/GroupMemberDocumentBuilder";
 
 describe('Concurrent Operations Integration Tests', () => {
     const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth());
@@ -39,7 +40,7 @@ describe('Concurrent Operations Integration Tests', () => {
 
     describe('Concurrent Member Operations', () => {
         test('should handle multiple users joining simultaneously', async () => {
-            const memberDocs: GroupMemberDocument[] = [
+            const memberDocs: GroupMembershipDTO[] = [
                 new GroupMemberDocumentBuilder().withUserId(testUser2.uid).withGroupId(testGroup.id).withThemeIndex(1).withInvitedBy(testUser1.uid).build(),
                 new GroupMemberDocumentBuilder().withUserId(testUser3.uid).withGroupId(testGroup.id).withThemeIndex(2).withInvitedBy(testUser1.uid).build(),
                 new GroupMemberDocumentBuilder().withUserId(testUser4.uid).withGroupId(testGroup.id).withThemeIndex(3).withInvitedBy(testUser1.uid).build(),

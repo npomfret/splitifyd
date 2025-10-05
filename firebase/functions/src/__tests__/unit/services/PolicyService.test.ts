@@ -3,7 +3,6 @@ import * as crypto from 'crypto';
 import { PolicyService } from '../../../services/PolicyService';
 import { StubFirestoreReader, StubFirestoreWriter, createMockPolicyDocument } from '../mocks/firestore-stubs';
 import { HTTP_STATUS } from '../../../constants';
-import { Timestamp } from 'firebase-admin/firestore';
 
 /**
  * Consolidated PolicyService Unit Tests
@@ -32,7 +31,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
     beforeEach(() => {
         stubReader = new StubFirestoreReader();
-        stubWriter = new StubFirestoreWriter();
+        stubWriter = new StubFirestoreWriter(undefined, stubReader); // Pass stubReader so it can update rawDocuments
         policyService = new PolicyService(stubReader, stubWriter);
     });
 
@@ -249,7 +248,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [versionHash]: {
                         text: 'Version content',
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -360,7 +359,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [currentVersionHash]: {
                         text: policyText,
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -405,7 +404,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [versionHash]: {
                         text: versionText,
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -475,11 +474,11 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [currentVersionHash]: {
                         text: 'Current content',
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                     [versionToDelete]: {
                         text: 'Old content',
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -518,11 +517,11 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [currentVersion]: {
                         text: 'Current content',
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                     'another-version': {
                         text: 'Another content',
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -585,7 +584,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [version1Hash]: {
                         text: 'Version 1 content',
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -618,7 +617,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [onlyVersionHash]: {
                         text: 'Only version content',
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -644,7 +643,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [versionHash]: {
                         text: 'Test version content',
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -675,7 +674,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [baseVersionHash]: {
                         text: 'Base content',
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -708,11 +707,11 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [currentVersion]: {
                         text: 'Current content',
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                     [newVersion]: {
                         text: 'New content',
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -754,7 +753,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [initialVersionHash]: {
                         text: initialContent,
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -775,11 +774,11 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [initialVersionHash]: {
                         text: initialContent,
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                     [updateResult.versionHash]: {
                         text: updatedContent,
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -799,11 +798,11 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [initialVersionHash]: {
                         text: initialContent,
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                     [updateResult.versionHash]: {
                         text: updatedContent,
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -847,7 +846,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [initialHash]: {
                         text: initialText,
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -890,11 +889,11 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [initialHash]: {
                         text: initialText,
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                     [updatedHash]: {
                         text: updatedText,
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -953,15 +952,15 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [version1Hash]: {
                         text: 'Version 1',
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                     [version2Hash]: {
                         text: 'Version 2',
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                     [version3Hash]: {
                         text: 'Version 3',
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -1016,7 +1015,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [currentHash]: {
                         text: 'Original',
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -1064,7 +1063,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [baseHash]: {
                         text: baseContent,
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -1150,7 +1149,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [validHash]: {
                         text: 'Content',
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });
@@ -1203,7 +1202,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 versions: {
                     [createResult.currentVersionHash]: {
                         text: content,
-                        createdAt: Timestamp.now(),
+                        createdAt: new Date().toISOString(),
                     },
                 },
             });

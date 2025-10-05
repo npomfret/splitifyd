@@ -59,7 +59,6 @@ const GroupSchema = z.object({
     description: z.string().optional(),
     balance: z.object({}),
     lastActivity: z.string().min(1),
-    lastActivityRaw: z.string(),
     lastExpense: z
         .object({
             description: z.string().min(1),
@@ -170,7 +169,6 @@ const GroupMemberDTOSchema = z.object({
     memberStatus: z.enum(['active', 'pending']),
     joinedAt: z.string().datetime(),
     invitedBy: z.string().optional(),
-    lastPermissionChange: z.string().datetime().optional(),
 });
 
 // Group members response schema

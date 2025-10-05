@@ -77,8 +77,7 @@ class JoinGroupStore {
                 balance: {
                     balancesByCurrency: {},
                 },
-                lastActivity: 'Never',
-                lastActivityRaw: new Date().toISOString(),
+                lastActivity: 'Never'
             };
 
             this.#groupSignal.value = group;

@@ -1,8 +1,122 @@
 import { z } from 'zod';
-import { FirestoreTimestampSchema } from './common';
-import { ExpenseDocumentSchema } from './expense';
-import { SettlementDocumentSchema } from './settlement';
-import { GroupDocumentSchema } from './group';
+import { SplitTypes } from '@splitifyd/shared';
+
+// Schema for ExpenseSplit (from @splitifyd/shared)
+const ExpenseSplitSchema = z.object({
+    uid: z.string(),
+    amount: z.number(),
+    percentage: z.number().optional(),
+});
+
+// Schema for ExpenseDTO (from @splitifyd/shared)
+const ExpenseDTOSchema = z.object({
+    id: z.string(),
+    groupId: z.string(),
+    createdBy: z.string(),
+    paidBy: z.string(),
+    amount: z.number(),
+    currency: z.string(),
+    description: z.string(),
+    category: z.string(),
+    date: z.string(), // ISO string
+    splitType: z.enum([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
+    participants: z.array(z.string()),
+    splits: z.array(ExpenseSplitSchema),
+    receiptUrl: z.string().optional(),
+    deletedAt: z.string().nullable(),
+    deletedBy: z.string().nullable(),
+    createdAt: z.string(), // ISO string
+    updatedAt: z.string(), // ISO string
+});
+
+// Schema for SettlementDTO (from @splitifyd/shared)
+const SettlementDTOSchema = z.object({
+    id: z.string(),
+    groupId: z.string(),
+    payerId: z.string(),
+    payeeId: z.string(),
+    amount: z.number(),
+    currency: z.string(),
+    date: z.string(), // ISO string
+    note: z.string().optional(),
+    createdBy: z.string(),
+    createdAt: z.string(), // ISO string
+    updatedAt: z.string(), // ISO string
+});
+
+// Schema for GroupPermissions (from @splitifyd/shared)
+const GroupPermissionsSchema = z.object({
+    expenseEditing: z.string(),
+    expenseDeletion: z.string(),
+    memberInvitation: z.string(),
+    memberApproval: z.union([z.literal('automatic'), z.literal('admin-required')]),
+    settingsManagement: z.string(),
+});
+
+// Schema for CurrencyBalance (from @splitifyd/shared)
+const CurrencyBalanceSchema = z.object({
+    currency: z.string(),
+    netBalance: z.number(),
+    totalOwed: z.number(),
+    totalOwing: z.number(),
+});
+
+// Schema for GroupDTO (from @splitifyd/shared)
+const GroupDTOSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string().optional(),
+    createdBy: z.string(),
+    createdAt: z.string(), // ISO string
+    updatedAt: z.string(), // ISO string
+    securityPreset: z.enum(['open', 'managed', 'custom']),
+    presetAppliedAt: z.string().optional(), // ISO string
+    permissions: GroupPermissionsSchema,
+    balance: z.object({
+        balancesByCurrency: z.record(z.string(), CurrencyBalanceSchema),
+    }).optional(), // Computed field - added by API layer
+    lastActivity: z.string().optional(),
+});
+
+// Schema for UserThemeColor (from @splitifyd/shared)
+const UserThemeColorSchema = z.object({
+    light: z.string().min(1),
+    dark: z.string().min(1),
+    name: z.string().min(1),
+    pattern: z.string().min(1),
+    assignedAt: z.string().datetime(), // ISO string
+    colorIndex: z.number(),
+});
+
+// Schema for GroupMembershipDTO (from @splitifyd/shared)
+// This validates the DTO format used by application layer (ISO strings, not Timestamps)
+const GroupMembershipDTOSchema = z.object({
+    uid: z.string().min(1),
+    groupId: z.string().min(1),
+    memberRole: z.enum(['admin', 'member', 'viewer']),
+    theme: UserThemeColorSchema,
+    joinedAt: z.string().datetime(), // ISO string for DTOs
+    memberStatus: z.enum(['active', 'pending']),
+    invitedBy: z.string().optional(),
+});
+
+// Schema for RegisteredUser (from @splitifyd/shared)
+// This validates the DTO format used by application layer (ISO strings, not Timestamps)
+const RegisteredUserSchema = z.object({
+    uid: z.string().min(1),
+    email: z.string().email(),
+    displayName: z.string().min(1),
+    photoURL: z.string().url().nullable().optional(),
+    emailVerified: z.boolean().optional(),
+    role: z.string().optional(),
+    termsAcceptedAt: z.string().datetime().optional(), // ISO string for DTOs
+    cookiePolicyAcceptedAt: z.string().datetime().optional(), // ISO string for DTOs
+    acceptedPolicies: z.record(z.string(), z.string()).optional(),
+    themeColor: UserThemeColorSchema.optional(),
+    preferredLanguage: z.string().optional(),
+    createdAt: z.string().datetime().optional(), // ISO string for DTOs
+    updatedAt: z.string().datetime().optional(), // ISO string for DTOs
+});
 
 // Schema for UserBalance (from @splitifyd/shared)
 const UserBalanceSchema = z.object({
@@ -31,20 +145,22 @@ const CurrencyBalancesSchema = z.record(
 );
 
 // Schema for BalanceCalculationInput
+// This validates application-layer DTOs with ISO strings (not Firestore Documents with Timestamps)
 export const BalanceCalculationInputSchema = z.object({
     groupId: z.string(),
-    expenses: z.array(ExpenseDocumentSchema),
-    settlements: z.array(SettlementDocumentSchema),
-    groupDoc: GroupDocumentSchema,
-    memberDocs: z.array(z.any()), // GroupMemberDocument[] - skip validation for now as it's from @splitifyd/shared
-    memberProfiles: z.any(), // Map<string, UserProfile> - skip validation for now
+    expenses: z.array(ExpenseDTOSchema),
+    settlements: z.array(SettlementDTOSchema),
+    groupDoc: GroupDTOSchema,
+    memberDocs: z.array(GroupMembershipDTOSchema), // Changed from GroupMemberDocumentSchema
+    memberProfiles: z.record(z.string(), RegisteredUserSchema), // Changed from UserProfileSchema
 });
 
 // Schema for BalanceCalculationResult / GroupBalance
+// Note: lastUpdated is an ISO string because this validates application-layer DTOs
 export const BalanceCalculationResultSchema = z.object({
     groupId: z.string(),
     simplifiedDebts: z.array(SimplifiedDebtSchema),
-    lastUpdated: FirestoreTimestampSchema,
+    lastUpdated: z.string().datetime(), // ISO string for DTOs (converted to Timestamp by FirestoreWriter)
     balancesByCurrency: CurrencyBalancesSchema,
 });
 

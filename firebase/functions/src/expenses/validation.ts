@@ -2,12 +2,16 @@ import * as Joi from 'joi';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 
-import { Timestamp } from 'firebase-admin/firestore';
 import { sanitizeString } from '../utils/security';
 import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
 import { ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest, SplitTypes } from '@splitifyd/shared';
 import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 
+/**
+ * @deprecated Use ExpenseDTO from @splitifyd/shared instead
+ * This legacy interface used Firestore Timestamp objects.
+ * Now we use DTOs with ISO string dates everywhere.
+ */
 export interface Expense {
     id: string;
     groupId: string;
@@ -17,14 +21,14 @@ export interface Expense {
     currency: string;
     description: string;
     category: string;
-    date: Timestamp | Date;
+    date: string;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
     participants: string[];
     splits: ExpenseSplit[];
     receiptUrl?: string;
-    createdAt: Timestamp | Date;
-    updatedAt: Timestamp | Date;
-    deletedAt: Timestamp | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
     deletedBy: string | null;
 }
 

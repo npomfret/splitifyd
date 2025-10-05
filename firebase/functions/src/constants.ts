@@ -1,3 +1,25 @@
+/**
+ * Application Constants
+ *
+ * This file contains configuration constants used throughout the application.
+ * Separated from types to maintain clean architectural boundaries.
+ */
+
+/**
+ * Firestore collection names
+ * Centralized constant to ensure consistency across the application
+ */
+export const FirestoreCollections = {
+    GROUPS: 'groups',
+    GROUP_MEMBERSHIPS: 'group-memberships',
+    EXPENSES: 'expenses',
+    SETTLEMENTS: 'settlements',
+    USERS: 'users',
+    POLICIES: 'policies',
+    COMMENTS: 'comments',
+    USER_NOTIFICATIONS: 'user-notifications',
+} as const;
+
 // HTTP Status Codes
 export const HTTP_STATUS = {
     OK: 200,

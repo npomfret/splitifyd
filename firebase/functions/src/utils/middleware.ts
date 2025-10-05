@@ -8,6 +8,7 @@ import { LoggerContext } from '../logger';
 import { detectLanguageFromHeader, getTranslationFunction, initializeI18n, LocalizedRequest } from './i18n';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { getAuth, getFirestore } from '../firebase';
+import type { AuthenticatedRequest } from '../auth/middleware';
 
 // Initialize services
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth());
@@ -62,7 +63,7 @@ export const applyStandardMiddleware = (app: express.Application) => {
  * Middleware to add translation capabilities to requests
  */
 function i18nMiddleware() {
-    return async (req: LocalizedRequest, res: any, next: any) => {
+    return async (req: LocalizedRequest & Partial<AuthenticatedRequest>, res: express.Response, next: express.NextFunction) => {
         try {
             // Ensure i18n is initialized
             await initializeI18n();
@@ -75,10 +76,10 @@ function i18nMiddleware() {
             let selectedLanguage = 'en';
 
             // Try to get user's preferred language if authenticated
-            const userId = (req as any).user?.uid;
+            const userId = req.user?.uid;
             if (userId) {
                 const user = await firestoreReader.getUser(userId);
-                const userLanguage = (user?.language || user?.locale) as string;
+                const userLanguage = user?.preferredLanguage;
                 if (userLanguage && typeof userLanguage === 'string') {
                     selectedLanguage = userLanguage;
                 } else {

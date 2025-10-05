@@ -9,10 +9,11 @@
  * - Audit logging for write operations
  */
 
+import { z } from 'zod';
 import type { Firestore, Transaction, DocumentReference } from 'firebase-admin/firestore';
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { logger } from '../../logger';
-import { FirestoreCollections, CommentTargetTypes, type CommentTargetType } from '@splitifyd/shared';
+import { CommentTargetTypes, type CommentTargetType } from '@splitifyd/shared';
 import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 import { measureDb } from '../../monitoring/measure';
 
@@ -23,11 +24,10 @@ import { TopLevelGroupMemberSchema } from '../../schemas';
 import { validateUpdate } from '../../schemas';
 
 // Import types
-import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument } from '../../schemas';
 import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
-import type { ParsedComment as CommentDocument } from '../../schemas';
-import type { ShareLink } from '@splitifyd/shared';
+import type { ShareLinkDTO, RegisteredUser, GroupDTO, ExpenseDTO, SettlementDTO, CommentDTO } from '@splitifyd/shared';
 import type { IFirestoreWriter, WriteResult, BatchWriteResult, TransactionOptions } from './IFirestoreWriter';
+import { FirestoreCollections } from "../../constants";
 
 /**
  * Transaction error classification for monitoring and retry decisions
@@ -62,6 +62,126 @@ interface ValidationMetrics {
 
 export class FirestoreWriter implements IFirestoreWriter {
     constructor(private readonly db: Firestore) {}
+
+    // ========================================================================
+    // Private Timestamp Conversion Utilities (Phase 3: ISO → Timestamp)
+    // ========================================================================
+
+    /**
+     * Convert ISO 8601 string to Firestore Timestamp
+     * LENIENT MODE: During transition, accepts ISO strings, Timestamps, and Dates
+     */
+    private isoToTimestamp(value: any): Timestamp {
+        if (!value) return value; // null/undefined pass through
+        if (value instanceof Timestamp) {
+            return value; // Already a Timestamp
+        }
+        if (value instanceof Date) {
+            return Timestamp.fromDate(value);
+        }
+        if (typeof value === 'string') {
+            // ISO string - convert to Timestamp
+            return Timestamp.fromDate(new Date(value));
+        }
+        // Lenient: if it has a toDate() method (Timestamp-like), use it
+        if (typeof value === 'object' && typeof value.toDate === 'function') {
+            return Timestamp.fromDate(value.toDate());
+        }
+        // Lenient: if it has seconds/nanoseconds (Timestamp-like object), convert
+        if (typeof value === 'object' && typeof value.seconds === 'number') {
+            return new Timestamp(value.seconds, value.nanoseconds || 0);
+        }
+        // Very lenient: return as-is and let Firestore handle it
+        return value;
+    }
+
+    /**
+     * Remove undefined values from an object recursively
+     * Firestore doesn't allow undefined values - they must be null or omitted
+     */
+    private removeUndefinedValues<T>(obj: T): T {
+        if (!obj || typeof obj !== 'object') {
+            return obj;
+        }
+
+        const result: any = Array.isArray(obj) ? [...obj] : { ...obj };
+
+        if (Array.isArray(result)) {
+            return result.map(item =>
+                item && typeof item === 'object' ? this.removeUndefinedValues(item) : item
+            ) as T;
+        }
+
+        for (const [key, value] of Object.entries(result)) {
+            if (value === undefined) {
+                delete result[key];
+            } else if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Timestamp)) {
+                result[key] = this.removeUndefinedValues(value);
+            } else if (Array.isArray(value)) {
+                result[key] = value.map(item =>
+                    item && typeof item === 'object' ? this.removeUndefinedValues(item) : item
+                );
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Recursively convert all ISO string dates to Timestamp objects
+     * LENIENT MODE: Only converts fields known to be dates, leaves others unchanged
+     */
+    /**
+     * Convert ISO 8601 strings to Firestore Timestamps recursively
+     * Accepts any object type and returns the same structure with converted timestamps
+     */
+    private convertISOToTimestamps<T>(obj: T): T {
+        if (!obj || typeof obj !== 'object') {
+            return obj;
+        }
+
+        const result: any = Array.isArray(obj) ? [...obj] : { ...obj };
+
+        // Known date field names across all document types
+        const dateFields = new Set([
+            'createdAt', 'updatedAt', 'deletedAt',
+            'date', 'joinedAt', 'presetAppliedAt',
+            'lastModified', 'lastTransactionChange', 'lastBalanceChange',
+            'lastGroupDetailsChange', 'lastCommentChange', 'timestamp',
+            'expiresAt', 'deletionStartedAt', 'groupUpdatedAt', 'lastUpdated',
+            'assignedAt', // For theme.assignedAt
+            'termsAcceptedAt', 'cookiePolicyAcceptedAt', 'passwordChangedAt' // User policy/auth timestamps
+        ]);
+
+        if (Array.isArray(result)) {
+            // Process arrays
+            return result.map(item =>
+                item && typeof item === 'object' && !(item instanceof Timestamp)
+                    ? this.convertISOToTimestamps(item)
+                    : item
+            ) as T;
+        }
+
+        // Process object properties
+        for (const [key, value] of Object.entries(result)) {
+            if (dateFields.has(key) && value !== null && value !== undefined) {
+                // Convert known date fields
+                result[key] = this.isoToTimestamp(value);
+            } else if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Timestamp)) {
+                // Recursively process nested objects (e.g., theme object)
+                result[key] = this.convertISOToTimestamps(value);
+            } else if (Array.isArray(value)) {
+                // Recursively process arrays of objects
+                result[key] = value.map(item =>
+                    item && typeof item === 'object' && !(item instanceof Timestamp)
+                        ? this.convertISOToTimestamps(item)
+                        : item
+                );
+            }
+        }
+
+        return result;
+    }
 
     // ========================================================================
     // Private Validation Helper Methods
@@ -188,7 +308,7 @@ export class FirestoreWriter implements IFirestoreWriter {
      * Returns null for unknown collections (graceful degradation)
      */
     private getSchemaForCollection(collection: string) {
-        const schemaMap = {
+        const schemaMap: Record<string, z.ZodSchema> = {
             [FirestoreCollections.USERS]: UserDocumentSchema,
             [FirestoreCollections.GROUPS]: GroupDocumentSchema,
             [FirestoreCollections.EXPENSES]: ExpenseDocumentSchema,
@@ -199,7 +319,7 @@ export class FirestoreWriter implements IFirestoreWriter {
             [FirestoreCollections.USER_NOTIFICATIONS]: UserNotificationDocumentSchema,
         };
 
-        const schema = schemaMap[collection as keyof typeof schemaMap];
+        const schema = schemaMap[collection];
         if (!schema) {
             // Log warning but don't fail - allows gradual migration
             logger.warn(`No schema found for collection: ${collection}`, {
@@ -363,13 +483,19 @@ export class FirestoreWriter implements IFirestoreWriter {
     // User Write Operations
     // ========================================================================
 
-    async createUser(userId: string, userData: Omit<UserDocument, 'id'>): Promise<WriteResult> {
+    async createUser(userId: string, userData: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified'>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.createUser', async () => {
             try {
-                // Validate data before writing
+                // Remove undefined values (Firestore doesn't accept them)
+                const cleanedData = this.removeUndefinedValues(userData);
+
+                // LENIENT: Convert ISO strings to Timestamps before validation
+                const convertedData = this.convertISOToTimestamps(cleanedData);
+
+                // Validate data before writing (expects Timestamps after conversion)
                 const validatedData = UserDocumentSchema.parse({
                     id: userId,
-                    ...userData,
+                    ...convertedData,
                 });
 
                 // Remove id from data to write
@@ -389,7 +515,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: userId,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to create user document', error, { userId });
@@ -402,12 +528,15 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    async updateUser(userId: string, updates: Partial<Omit<UserDocument, 'id'>>): Promise<WriteResult> {
+    async updateUser(userId: string, updates: Partial<Omit<RegisteredUser, 'id'>>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.updateUser', async () => {
             try {
+                // LENIENT: Convert ISO strings to Timestamps in the updates
+                const convertedUpdates = this.convertISOToTimestamps(updates);
+
                 // Add updated timestamp
                 const finalUpdates = {
-                    ...updates,
+                    ...convertedUpdates,
                     updatedAt: FieldValue.serverTimestamp(),
                 };
 
@@ -415,8 +544,8 @@ export class FirestoreWriter implements IFirestoreWriter {
                 const documentPath = `${FirestoreCollections.USERS}/${userId}`;
                 const mergedData = await this.fetchAndMergeForValidation(documentPath, finalUpdates, userId);
 
-                // Validate with graceful FieldValue handling
-                const validationResult = this.safeValidateUpdate<UserDocument>(UserDocumentSchema, mergedData, 'UserDocument', userId, FirestoreCollections.USERS);
+                // Validate with graceful FieldValue handling (expects Timestamps after conversion)
+                const validationResult = this.safeValidateUpdate<any>(UserDocumentSchema, mergedData, 'UserDocument', userId, FirestoreCollections.USERS);
 
                 // Perform the update
                 await this.db.collection(FirestoreCollections.USERS).doc(userId).update(finalUpdates);
@@ -427,7 +556,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: userId,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to update user document', error, { userId, updates: Object.keys(updates) });
@@ -450,7 +579,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: userId,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to delete user document', error, { userId });
@@ -467,16 +596,19 @@ export class FirestoreWriter implements IFirestoreWriter {
     // Group Write Operations
     // ========================================================================
 
-    async createGroup(groupData: Omit<GroupDocument, 'id'>): Promise<WriteResult> {
+    async createGroup(groupData: Omit<GroupDTO, 'id'>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.createGroup', async () => {
             try {
                 // Create document reference to get ID
                 const groupRef = this.db.collection(FirestoreCollections.GROUPS).doc();
 
-                // Validate data with generated ID
+                // LENIENT: Convert ISO strings to Timestamps before validation
+                const convertedData = this.convertISOToTimestamps(groupData);
+
+                // Validate data with generated ID (expects Timestamps after conversion)
                 const validatedData = GroupDocumentSchema.parse({
                     id: groupRef.id,
-                    ...groupData,
+                    ...convertedData,
                 });
 
                 // Remove id from data to write
@@ -496,7 +628,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: groupRef.id,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to create group document', error);
@@ -509,12 +641,15 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    async updateGroup(groupId: string, updates: Partial<Omit<GroupDocument, 'id'>>): Promise<WriteResult> {
+    async updateGroup(groupId: string, updates: Partial<Omit<GroupDTO, 'id'>>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.updateGroup', async () => {
             try {
+                // LENIENT: Convert ISO strings to Timestamps in the updates
+                const convertedUpdates = this.convertISOToTimestamps(updates);
+
                 // Add updated timestamp
                 const finalUpdates = {
-                    ...updates,
+                    ...convertedUpdates,
                     updatedAt: FieldValue.serverTimestamp(),
                 };
 
@@ -522,8 +657,8 @@ export class FirestoreWriter implements IFirestoreWriter {
                 const documentPath = `${FirestoreCollections.GROUPS}/${groupId}`;
                 const mergedData = await this.fetchAndMergeForValidation(documentPath, finalUpdates, groupId);
 
-                // Validate with graceful FieldValue handling
-                const validationResult = this.safeValidateUpdate<GroupDocument>(GroupDocumentSchema, mergedData, 'GroupDocument', groupId, FirestoreCollections.GROUPS);
+                // Validate with graceful FieldValue handling (expects Timestamps after conversion)
+                const validationResult = this.safeValidateUpdate<any>(GroupDocumentSchema, mergedData, 'GroupDocument', groupId, FirestoreCollections.GROUPS);
 
                 // Perform the update
                 await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).update(finalUpdates);
@@ -534,7 +669,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: groupId,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to update group document', error, { groupId, updates: Object.keys(updates) });
@@ -561,7 +696,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: groupId,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to delete group document', error, { groupId });
@@ -578,16 +713,19 @@ export class FirestoreWriter implements IFirestoreWriter {
     // Expense Write Operations
     // ========================================================================
 
-    async createExpense(expenseData: Omit<ExpenseDocument, 'id'>): Promise<WriteResult> {
+    async createExpense(expenseData: Omit<ExpenseDTO, 'id'>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.createExpense', async () => {
             try {
                 // Create document reference to get ID
                 const expenseRef = this.db.collection(FirestoreCollections.EXPENSES).doc();
 
-                // Validate data with generated ID
+                // LENIENT: Convert ISO strings to Timestamps before validation
+                const convertedData = this.convertISOToTimestamps(expenseData);
+
+                // Validate data with generated ID (expects Timestamps after conversion)
                 const validatedData = ExpenseDocumentSchema.parse({
                     id: expenseRef.id,
-                    ...expenseData,
+                    ...convertedData,
                 });
 
                 // Remove id from data to write
@@ -610,7 +748,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: expenseRef.id,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to create expense document', error);
@@ -623,12 +761,15 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    async updateExpense(expenseId: string, updates: Partial<Omit<ExpenseDocument, 'id'>>): Promise<WriteResult> {
+    async updateExpense(expenseId: string, updates: Partial<Omit<ExpenseDTO, 'id'>>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.updateExpense', async () => {
             try {
+                // LENIENT: Convert ISO strings to Timestamps in the updates
+                const convertedUpdates = this.convertISOToTimestamps(updates);
+
                 // Add updated timestamp
                 const finalUpdates = {
-                    ...updates,
+                    ...convertedUpdates,
                     updatedAt: FieldValue.serverTimestamp(),
                 };
 
@@ -636,8 +777,8 @@ export class FirestoreWriter implements IFirestoreWriter {
                 const documentPath = `${FirestoreCollections.EXPENSES}/${expenseId}`;
                 const mergedData = await this.fetchAndMergeForValidation(documentPath, finalUpdates, expenseId);
 
-                // Validate with graceful FieldValue handling
-                const validationResult = this.safeValidateUpdate<ExpenseDocument>(ExpenseDocumentSchema, mergedData, 'ExpenseDocument', expenseId, FirestoreCollections.EXPENSES);
+                // Validate with graceful FieldValue handling (expects Timestamps after conversion)
+                const validationResult = this.safeValidateUpdate<any>(ExpenseDocumentSchema, mergedData, 'ExpenseDocument', expenseId, FirestoreCollections.EXPENSES);
 
                 // Perform the update
                 await this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId).update(finalUpdates);
@@ -648,7 +789,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: expenseId,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to update expense document', error, { expenseId, updates: Object.keys(updates) });
@@ -671,7 +812,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: expenseId,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to delete expense document', error, { expenseId });
@@ -688,16 +829,19 @@ export class FirestoreWriter implements IFirestoreWriter {
     // Settlement Write Operations
     // ========================================================================
 
-    async createSettlement(settlementData: Omit<SettlementDocument, 'id'>): Promise<WriteResult> {
+    async createSettlement(settlementData: Omit<SettlementDTO, 'id'>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.createSettlement', async () => {
             try {
                 // Create document reference to get ID
                 const settlementRef = this.db.collection(FirestoreCollections.SETTLEMENTS).doc();
 
-                // Validate data with generated ID
+                // LENIENT: Convert ISO strings to Timestamps before validation
+                const convertedData = this.convertISOToTimestamps(settlementData);
+
+                // Validate data with generated ID (expects Timestamps after conversion)
                 const validatedData = SettlementDocumentSchema.parse({
                     id: settlementRef.id,
-                    ...settlementData,
+                    ...convertedData,
                 });
 
                 // Remove id from data to write
@@ -720,7 +864,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: settlementRef.id,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to create settlement document', error);
@@ -733,12 +877,15 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    async updateSettlement(settlementId: string, updates: Partial<Omit<SettlementDocument, 'id'>>): Promise<WriteResult> {
+    async updateSettlement(settlementId: string, updates: Partial<Omit<SettlementDTO, 'id'>>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.updateSettlement', async () => {
             try {
+                // LENIENT: Convert ISO strings to Timestamps in the updates
+                const convertedUpdates = this.convertISOToTimestamps(updates);
+
                 // Add updated timestamp
                 const finalUpdates = {
-                    ...updates,
+                    ...convertedUpdates,
                     updatedAt: FieldValue.serverTimestamp(),
                 };
 
@@ -746,8 +893,8 @@ export class FirestoreWriter implements IFirestoreWriter {
                 const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
                 const mergedData = await this.fetchAndMergeForValidation(documentPath, finalUpdates, settlementId);
 
-                // Validate with graceful FieldValue handling
-                const validationResult = this.safeValidateUpdate<SettlementDocument>(SettlementDocumentSchema, mergedData, 'SettlementDocument', settlementId, FirestoreCollections.SETTLEMENTS);
+                // Validate with graceful FieldValue handling (expects Timestamps after conversion)
+                const validationResult = this.safeValidateUpdate<any>(SettlementDocumentSchema, mergedData, 'SettlementDocument', settlementId, FirestoreCollections.SETTLEMENTS);
 
                 // Perform the update
                 await this.db.collection(FirestoreCollections.SETTLEMENTS).doc(settlementId).update(finalUpdates);
@@ -758,7 +905,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: settlementId,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to update settlement document', error, { settlementId, updates: Object.keys(updates) });
@@ -781,7 +928,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: settlementId,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to delete settlement document', error, { settlementId });
@@ -798,7 +945,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     // Comment Write Operations
     // ========================================================================
 
-    async addComment(targetType: CommentTargetType, targetId: string, commentData: Omit<CommentDocument, 'id'>): Promise<WriteResult> {
+    async addComment(targetType: CommentTargetType, targetId: string, commentData: Omit<CommentDTO, 'id'>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.addComment', async () => {
             try {
                 // Get collection path using helper method to eliminate type-dispatching
@@ -807,8 +954,14 @@ export class FirestoreWriter implements IFirestoreWriter {
                 // Create comment reference
                 const commentRef = this.db.collection(collectionPath).doc();
 
-                // Validate comment data
-                const validatedData = CommentDataSchema.parse(commentData);
+                // Remove undefined values (Firestore doesn't accept them)
+                const cleanedData = this.removeUndefinedValues(commentData);
+
+                // LENIENT: Convert ISO strings to Timestamps before validation
+                const convertedData = this.convertISOToTimestamps(cleanedData);
+
+                // Validate comment data (expects Timestamps after conversion)
+                const validatedData = CommentDataSchema.parse(convertedData);
 
                 // Use validated data directly
                 const dataToWrite = validatedData;
@@ -827,7 +980,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: commentRef.id,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to add comment', error, { targetType, targetId });
@@ -958,8 +1111,14 @@ export class FirestoreWriter implements IFirestoreWriter {
     createInTransaction(transaction: Transaction, collection: string, documentId: string | null, data: any): DocumentReference {
         const docRef = documentId ? this.db.collection(collection).doc(documentId) : this.db.collection(collection).doc();
 
+        // Remove undefined values (Firestore doesn't accept them)
+        const cleanedData = this.removeUndefinedValues(data);
+
+        // Convert ISO strings to Timestamps before writing (DTO → Firestore conversion)
+        const convertedData = this.convertISOToTimestamps(cleanedData);
+
         const finalData = {
-            ...data,
+            ...convertedData,
             createdAt: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp(),
         };
@@ -982,8 +1141,15 @@ export class FirestoreWriter implements IFirestoreWriter {
 
     updateInTransaction(transaction: Transaction, documentPath: string, updates: any): void {
         const docRef = this.db.doc(documentPath);
+
+        // Remove undefined values (Firestore doesn't accept them)
+        const cleanedUpdates = this.removeUndefinedValues(updates);
+
+        // Convert ISO strings to Timestamps before writing (DTO → Firestore conversion)
+        const convertedUpdates = this.convertISOToTimestamps(cleanedUpdates);
+
         const finalUpdates = {
-            ...updates,
+            ...convertedUpdates,
             updatedAt: FieldValue.serverTimestamp(),
         };
 
@@ -1047,7 +1213,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: userId,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to create user notification document', error, { userId });
@@ -1083,7 +1249,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: userId,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 // If the document doesn't exist, consider the removal successful (idempotent)
@@ -1092,7 +1258,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                     return {
                         id: userId,
                         success: true,
-                        timestamp: new Date() as any,
+                        timestamp: new Date(),
                     };
                 }
 
@@ -1146,7 +1312,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: userId,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to set user notifications', error, { userId });
@@ -1170,7 +1336,7 @@ export class FirestoreWriter implements IFirestoreWriter {
      * @param shareLinkData - The share link data
      * @returns Document reference
      */
-    createShareLinkInTransaction(transaction: Transaction, groupId: string, shareLinkData: Omit<ShareLink, 'id'>): DocumentReference {
+    createShareLinkInTransaction(transaction: Transaction, groupId: string, shareLinkData: Omit<ShareLinkDTO, 'id'>): DocumentReference {
         const shareLinksCollection = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks');
 
         const shareLinkRef = shareLinksCollection.doc();
@@ -1207,24 +1373,33 @@ export class FirestoreWriter implements IFirestoreWriter {
                 const policiesCollection = this.db.collection('policies');
                 const policyRef = policyId ? policiesCollection.doc(policyId) : policiesCollection.doc();
 
+                // Convert ISO strings to Timestamps before validation (DTO → Firestore)
+                const convertedData = this.convertISOToTimestamps(policyData);
+
                 const finalData = {
-                    ...policyData,
+                    ...convertedData,
                     id: policyRef.id,
                     createdAt: FieldValue.serverTimestamp(),
                     updatedAt: FieldValue.serverTimestamp(),
                 };
 
-                // Validate policy document before writing
-                const validatedData = PolicyDocumentSchema.parse(finalData);
+                // Validate with temp timestamps for schema validation
+                const dataForValidation = {
+                    ...convertedData,
+                    id: policyRef.id,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                };
+                PolicyDocumentSchema.parse(dataForValidation);
 
-                await policyRef.set(validatedData);
+                await policyRef.set(finalData);
 
                 logger.info('Policy document created (validated)', { policyId: policyRef.id });
 
                 return {
                     id: policyRef.id,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to create policy document', error, { policyId });
@@ -1246,27 +1421,29 @@ export class FirestoreWriter implements IFirestoreWriter {
     async updatePolicy(policyId: string, updates: any): Promise<WriteResult> {
         return measureDb('FirestoreWriter.updatePolicy', async () => {
             try {
+                // Convert ISO strings to Timestamps in the updates
+                const convertedUpdates = this.convertISOToTimestamps(updates);
+
                 const finalUpdates = {
-                    ...updates,
-                    updatedAt: FieldValue.serverTimestamp(),
+                    ...convertedUpdates,
+                    updatedAt: Timestamp.now(),
                 };
 
-                // Always try validation first, handle FieldValue operations gracefully
+                // Validate before writing
                 const documentPath = `policies/${policyId}`;
                 const mergedData = await this.fetchAndMergeForValidation(documentPath, finalUpdates, policyId);
 
-                // Validate with graceful FieldValue handling
-                const validationResult = this.safeValidateUpdate<any>(PolicyDocumentSchema, mergedData, 'PolicyTDO', policyId, 'policies');
+                // Validate merged data
+                PolicyDocumentSchema.parse(mergedData);
 
                 await this.db.collection('policies').doc(policyId).update(finalUpdates);
 
-                const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(validated)';
-                logger.info(`Policy document updated ${logType}`, { policyId, fields: Object.keys(updates) });
+                logger.info('Policy document updated (validated)', { policyId, fields: Object.keys(updates) });
 
                 return {
                     id: policyId,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to update policy document', error, { policyId });
@@ -1310,7 +1487,8 @@ export class FirestoreWriter implements IFirestoreWriter {
         }
 
         // Check error codes as well
-        if ((error as any).code === 'ABORTED' || (error as any).code === 'FAILED_PRECONDITION' || (error as any).code === 10) {
+        const errorCode = (error as { code?: string | number }).code;
+        if (errorCode === 'ABORTED' || errorCode === 'FAILED_PRECONDITION' || errorCode === 10) {
             return 'concurrency';
         }
 
@@ -1398,7 +1576,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: email,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to create test pool user', error, { email });
@@ -1425,7 +1603,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return {
                     id: email,
                     success: true,
-                    timestamp: new Date() as any,
+                    timestamp: new Date(),
                 };
             } catch (error) {
                 logger.error('Failed to update test pool user', error, { email });
@@ -1558,9 +1736,9 @@ export class FirestoreWriter implements IFirestoreWriter {
                     successCount: 3, // group update + membership deletion + notification removal
                     failureCount: 0,
                     results: [
-                        { id: `group-${groupId}`, success: true, timestamp: new Date() as any },
-                        { id: membershipDocId, success: true, timestamp: new Date() as any },
-                        { id: `user-notification-${userId}-${groupId}`, success: true, timestamp: new Date() as any },
+                        { id: `group-${groupId}`, success: true, timestamp: new Date() },
+                        { id: membershipDocId, success: true, timestamp: new Date() },
+                        { id: `user-notification-${userId}-${groupId}`, success: true, timestamp: new Date() },
                     ],
                 };
             } catch (error) {
@@ -1602,7 +1780,6 @@ export class FirestoreWriter implements IFirestoreWriter {
                 const groupRef = this.db.doc(`${FirestoreCollections.GROUPS}/${groupId}`);
                 batch.update(groupRef, {
                     updatedAt: FieldValue.serverTimestamp(),
-                    lastModified: FieldValue.serverTimestamp(),
                 });
 
                 // Delete membership document
@@ -1629,9 +1806,9 @@ export class FirestoreWriter implements IFirestoreWriter {
                     successCount: 3, // group update + membership deletion + notification removal
                     failureCount: 0,
                     results: [
-                        { id: groupId, success: true, timestamp: new Date() as any },
-                        { id: membershipDocId, success: true, timestamp: new Date() as any },
-                        { id: `user-notification-${userId}-${groupId}`, success: true, timestamp: new Date() as any },
+                        { id: groupId, success: true, timestamp: new Date() },
+                        { id: membershipDocId, success: true, timestamp: new Date() },
+                        { id: `user-notification-${userId}-${groupId}`, success: true, timestamp: new Date() },
                     ],
                 };
             } catch (error) {

@@ -1,16 +1,17 @@
 import { z } from 'zod';
 import { MemberRoles, MemberStatuses, COLOR_PATTERNS } from '@splitifyd/shared';
-import { UserIdSchema } from './common';
+import { UserIdSchema, FirestoreTimestampSchema } from './common';
 
 /**
- * Zod schema for UserThemeColor validation
+ * Zod schema for UserThemeColor validation in Firestore documents
+ * Note: assignedAt is a Timestamp because this validates Firestore documents (after ISO → Timestamp conversion)
  */
 const UserThemeColorSchema = z.object({
     light: z.string(),
     dark: z.string(),
     name: z.string(),
     pattern: z.enum(COLOR_PATTERNS),
-    assignedAt: z.string(),
+    assignedAt: FirestoreTimestampSchema,
     colorIndex: z.number(),
 });
 
@@ -23,11 +24,10 @@ export const TopLevelGroupMemberSchema = z.object({
     groupId: z.string(),
     memberRole: z.nativeEnum(MemberRoles),
     memberStatus: z.nativeEnum(MemberStatuses),
-    joinedAt: z.string(), // ISO string
+    joinedAt: FirestoreTimestampSchema,
     theme: UserThemeColorSchema,
     invitedBy: UserIdSchema.optional(),
-    lastPermissionChange: z.string().optional(), // ISO string
-    groupUpdatedAt: z.string(), // Essential denormalized field
-    createdAt: z.string(),
-    updatedAt: z.string(),
+    groupUpdatedAt: FirestoreTimestampSchema, // Essential denormalized field
+    createdAt: FirestoreTimestampSchema,
+    updatedAt: FirestoreTimestampSchema,
 });

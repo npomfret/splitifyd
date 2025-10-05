@@ -1,11 +1,14 @@
-import { GroupMemberDocument, UserThemeColor, MemberRoles, MemberStatuses, ColorPattern, USER_COLORS, COLOR_PATTERNS } from '@splitifyd/shared';
+import { UserThemeColor, MemberRoles, MemberStatuses, ColorPattern, USER_COLORS, COLOR_PATTERNS, GroupMembershipDTO } from '@splitifyd/shared';
+import { Timestamp } from 'firebase-admin/firestore';
 
 /**
- * Builder for GroupMemberDocument - the subcollection document structure
- * Used for testing subcollection operations
+ * Builder for GroupMembershipDTO - the membership document DTO
+ * Used for testing membership operations
+ *
+ * Note: Internally uses Timestamp for convenience, but build() returns DTOs with ISO strings
  */
 export class GroupMemberDocumentBuilder {
-    private memberDoc: GroupMemberDocument;
+    private memberDoc: any;
 
     constructor() {
         // Default member document with sensible defaults
@@ -14,7 +17,7 @@ export class GroupMemberDocumentBuilder {
             groupId: 'default-group-id',
             memberRole: MemberRoles.MEMBER,
             memberStatus: MemberStatuses.ACTIVE,
-            joinedAt: new Date().toISOString(),
+            joinedAt: Timestamp.now(),
             invitedBy: 'default-inviter',
             theme: {
                 light: '#1f5582',
@@ -47,8 +50,14 @@ export class GroupMemberDocumentBuilder {
         return this;
     }
 
-    withJoinedAt(joinedAt: string): this {
-        this.memberDoc.joinedAt = joinedAt;
+    withJoinedAt(joinedAt: string | Timestamp | Date): this {
+        if (typeof joinedAt === 'string') {
+            this.memberDoc.joinedAt = Timestamp.fromDate(new Date(joinedAt));
+        } else if (joinedAt instanceof Date) {
+            this.memberDoc.joinedAt = Timestamp.fromDate(joinedAt);
+        } else {
+            this.memberDoc.joinedAt = joinedAt;
+        }
         return this;
     }
 
@@ -124,7 +133,20 @@ export class GroupMemberDocumentBuilder {
         return this;
     }
 
-    build(): GroupMemberDocument {
+    build(): GroupMembershipDTO {
+        // Convert Timestamp to ISO string for DTO
+        return {
+            ...this.memberDoc,
+            joinedAt: this.memberDoc.joinedAt.toDate().toISOString(),
+            theme: { ...this.memberDoc.theme }
+        };
+    }
+
+    /**
+     * Build as Firestore document with Timestamp (for internal use only)
+     * @deprecated Tests should use build() which returns DTOs
+     */
+    buildDocument(): any {
         return { ...this.memberDoc, theme: { ...this.memberDoc.theme } };
     }
 }

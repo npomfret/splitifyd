@@ -11,7 +11,7 @@ export class AuthUserRecordBuilder {
         email?: string;
         emailVerified: boolean;
         displayName?: string;
-        photoURL?: string | undefined;
+        photoURL?: string | null | undefined;
         phoneNumber?: string | undefined;
         disabled: boolean;
         customClaims: object;
@@ -26,7 +26,7 @@ export class AuthUserRecordBuilder {
             email: `${userId}@test.com`,
             emailVerified: true,
             displayName: `Test User ${userId.slice(-4)}`,
-            photoURL: undefined,
+            photoURL: null,  // Default to null for CommentService compatibility (expects string | null)
             phoneNumber: undefined,
             disabled: false,
             customClaims: {},
@@ -45,7 +45,7 @@ export class AuthUserRecordBuilder {
         return this;
     }
 
-    withDisplayName(displayName: string): AuthUserRecordBuilder {
+    withDisplayName(displayName: string | undefined): AuthUserRecordBuilder {
         this.data.displayName = displayName;
         return this;
     }
@@ -55,7 +55,7 @@ export class AuthUserRecordBuilder {
         return this;
     }
 
-    withPhotoURL(photoURL: string | undefined): AuthUserRecordBuilder {
+    withPhotoURL(photoURL: string | null | undefined): AuthUserRecordBuilder {
         this.data.photoURL = photoURL;
         return this;
     }

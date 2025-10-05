@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 import { ApiDriver, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
-import type { Group } from '@splitifyd/shared';
+import type { GroupDTO } from '@splitifyd/shared';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
 import { UserRegistration } from '@splitifyd/shared';
 import { AuthenticatedFirebaseUser } from '@splitifyd/shared';
@@ -17,7 +17,7 @@ interface TestExpenseTemplate {
 }
 
 // Group with invite link for test setup
-interface GroupWithInvite extends Group {
+interface GroupWithInvite extends GroupDTO {
     inviteLink: string;
 }
 

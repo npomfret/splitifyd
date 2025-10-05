@@ -6,3 +6,4 @@ export * from './user-colors';
 
 // Export currency definitions and utilities
 export * from './currencies';
+

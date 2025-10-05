@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/preact';
 import { vi, beforeEach, describe, it, expect } from 'vitest';
 import { CommentItem } from '@/components/comments/CommentItem';
 import { CommentBuilder } from '@splitifyd/test-support';
-import type { CommentApiResponse } from '@splitifyd/shared';
+import type { CommentDTO } from '@splitifyd/shared';
 
 // Mock date utils
 vi.mock('@/utils/dateUtils', () => ({
@@ -31,7 +31,7 @@ describe('CommentItem', () => {
         vi.clearAllMocks();
     });
 
-    const renderCommentItem = (comment: CommentApiResponse, props = {}) => {
+    const renderCommentItem = (comment: CommentDTO, props = {}) => {
         return render(<CommentItem comment={comment} {...props} />);
     };
 

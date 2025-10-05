@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeAll } from 'vitest';
 import { z } from 'zod';
-import { GroupDTO, GroupMemberDTO, MemberRoles, MemberStatuses, SecurityPresets, PermissionLevels, UserThemeColor } from '@splitifyd/shared';
+import { GroupDTO, GroupMember, MemberRoles, MemberStatuses, SecurityPresets, PermissionLevels, UserThemeColor } from '@splitifyd/shared';
+import { GroupMemberBuilder, ThemeBuilder, GroupDTOBuilder } from '@splitifyd/test-support';
 
 // Import webapp Zod schemas for validation
 // Note: These are the actual schemas used by the frontend to validate API responses
@@ -20,7 +21,6 @@ const GroupSchema = z.object({
         ),
     }),
     lastActivity: z.string().min(1),
-    lastActivityRaw: z.string(),
     lastExpense: z
         .object({
             description: z.string().min(1),
@@ -70,62 +70,53 @@ const GroupMemberDTOSchema = z.object({
     memberStatus: z.enum(['active', 'pending']),
     joinedAt: z.string().datetime(),
     invitedBy: z.string().optional(),
-    lastPermissionChange: z.string().datetime().optional(),
 });
 
 describe('Cross-Service Schema Validation', () => {
     let mockGroup: GroupDTO;
-    let mockGroupMember: GroupMemberDTO;
+    let groupMember: GroupMember;
     let mockTheme: UserThemeColor;
 
     beforeAll(() => {
         // Create valid test data conforming to TypeScript interfaces
-        mockTheme = {
-            light: '#3B82F6',
-            dark: '#1E40AF',
-            name: 'Blue',
-            pattern: 'solid',
-            assignedAt: '2024-01-01T00:00:00.000Z',
-            colorIndex: 0,
-        };
+        mockTheme = new ThemeBuilder()
+            .withLight('#3B82F6')
+            .withDark('#1E40AF')
+            .withName('Blue')
+            .withPattern('solid')
+            .withColorIndex(0)
+            .withAssignedAt('2024-01-01T00:00:00.000Z')
+            .build();
 
-        mockGroup = {
-            id: 'group-123',
-            name: 'Test Group',
-            description: 'A test group for validation',
-            createdBy: 'user-123',
-            createdAt: '2024-01-01T00:00:00.000Z',
-            updatedAt: '2024-01-01T00:00:00.000Z',
-            securityPreset: SecurityPresets.OPEN,
-            permissions: {
+        mockGroup = new GroupDTOBuilder()
+            .withId('group-123')
+            .withName('Test Group')
+            .withDescription('A test group for validation')
+            .withCreatedBy('user-123')
+            .withCreatedAt('2024-01-01T00:00:00.000Z')
+            .withUpdatedAt('2024-01-01T00:00:00.000Z')
+            .withSecurityPreset(SecurityPresets.OPEN)
+            .withPermissions({
                 expenseEditing: PermissionLevels.ANYONE,
                 expenseDeletion: PermissionLevels.OWNER_AND_ADMIN,
                 memberInvitation: PermissionLevels.ANYONE,
                 memberApproval: 'automatic',
                 settingsManagement: PermissionLevels.ADMIN_ONLY,
-            },
-            inviteLinks: {
-                default: {
-                    createdAt: '2024-01-01T00:00:00.000Z',
-                    createdBy: 'user-123',
-                    maxUses: 10,
-                    usedCount: 0,
-                },
-            },
-        };
+            })
+            .build();
 
-        mockGroupMember = {
-            uid: 'user-456',
-            email: 'test@example.com',
-            displayName: 'Test User',
-            initials: 'TU',
-            photoURL: null,
-            themeColor: mockTheme,
-            joinedAt: '2024-01-01T00:00:00.000Z',
-            memberRole: MemberRoles.MEMBER,
-            memberStatus: MemberStatuses.ACTIVE,
-            invitedBy: 'user-123',
-        };
+        groupMember = new GroupMemberBuilder()
+            .withUid('user-456')
+            .withEmail('test@example.com')
+            .withDisplayName('Test User')
+            .withInitials('TU')
+            .withPhotoURL(null)
+            .withThemeColor(mockTheme)
+            .withJoinedAt('2024-01-01T00:00:00.000Z')
+            .withMemberRole(MemberRoles.MEMBER)
+            .withMemberStatus(MemberStatuses.ACTIVE)
+            .withInvitedBy('user-123')
+            .build();
     });
 
     describe('Group Schema Validation', () => {
@@ -145,7 +136,6 @@ describe('Cross-Service Schema Validation', () => {
                     },
                 },
                 lastActivity: '2 days ago',
-                lastActivityRaw: '2024-01-01T00:00:00.000Z',
                 lastExpense: {
                     description: 'Dinner',
                     amount: 50.0,
@@ -173,7 +163,6 @@ describe('Cross-Service Schema Validation', () => {
                     balancesByCurrency: {},
                 },
                 lastActivity: '2 days ago',
-                lastActivityRaw: '2024-01-01T00:00:00.000Z',
                 createdBy: 'user-123',
                 createdAt: '2024-01-01T00:00:00.000Z',
                 updatedAt: '2024-01-01T00:00:00.000Z',
@@ -190,7 +179,6 @@ describe('Cross-Service Schema Validation', () => {
                     balancesByCurrency: {},
                 },
                 lastActivity: '2 days ago',
-                lastActivityRaw: '2024-01-01T00:00:00.000Z',
                 createdBy: 'user-123',
                 createdAt: '2024-01-01T00:00:00.000Z',
                 updatedAt: '2024-01-01T00:00:00.000Z',
@@ -205,7 +193,6 @@ describe('Cross-Service Schema Validation', () => {
                 name: 'Test Group',
                 balance: { balancesByCurrency: {} },
                 lastActivity: '2 days ago',
-                lastActivityRaw: '2024-01-01T00:00:00.000Z',
                 createdBy: 'user-123',
                 createdAt: '2024-01-01T00:00:00.000Z',
                 updatedAt: '2024-01-01T00:00:00.000Z',
@@ -222,10 +209,10 @@ describe('Cross-Service Schema Validation', () => {
     describe('GroupMemberDTO Schema Validation', () => {
         test('should validate GroupMemberDTO interface against frontend expectations', () => {
             // This should not throw - verifies interface matches frontend expectations
-            expect(() => GroupMemberDTOSchema.parse(mockGroupMember)).not.toThrow();
+            expect(() => GroupMemberDTOSchema.parse(groupMember)).not.toThrow();
 
-            const parsed = GroupMemberDTOSchema.parse(mockGroupMember);
-            expect(parsed.uid).toBe(mockGroupMember.uid);
+            const parsed = GroupMemberDTOSchema.parse(groupMember);
+            expect(parsed.uid).toBe(groupMember.uid);
             expect(parsed.memberRole).toBe('member');
             expect(parsed.memberStatus).toBe('active');
             expect(parsed.themeColor?.name).toBe('Blue');
@@ -233,7 +220,7 @@ describe('Cross-Service Schema Validation', () => {
 
         test('should detect member schema drift - wrong role enum', () => {
             const memberWithInvalidRole = {
-                ...mockGroupMember,
+                ...groupMember,
                 memberRole: 'super-admin', // Not a valid MemberRole
             };
 
@@ -242,7 +229,7 @@ describe('Cross-Service Schema Validation', () => {
 
         test('should detect member schema drift - wrong status enum', () => {
             const memberWithInvalidStatus = {
-                ...mockGroupMember,
+                ...groupMember,
                 memberStatus: 'banned', // Not a valid MemberStatus in current system
             };
 
@@ -259,7 +246,7 @@ describe('Cross-Service Schema Validation', () => {
                 joinedAt: '2024-01-01T00:00:00.000Z',
                 memberRole: MemberRoles.MEMBER,
                 memberStatus: MemberStatuses.ACTIVE,
-                // Optional fields omitted: photoURL, invitedBy, lastPermissionChange
+                // Optional fields omitted: photoURL, invitedBy
             };
 
             expect(() => GroupMemberDTOSchema.parse(minimalMember)).not.toThrow();
@@ -312,7 +299,6 @@ describe('Cross-Service Schema Validation', () => {
                     name: 'test',
                     balance: { balancesByCurrency: {} },
                     lastActivity: 'test',
-                    lastActivityRaw: 'test',
                     createdBy: 'test',
                     createdAt: 'test',
                     updatedAt: 'test',
@@ -334,7 +320,6 @@ describe('Cross-Service Schema Validation', () => {
                 members: [], // This field was removed in Phase 5
                 balance: { balancesByCurrency: {} },
                 lastActivity: 'test',
-                lastActivityRaw: 'test',
                 createdBy: 'test',
                 createdAt: 'test',
                 updatedAt: 'test',

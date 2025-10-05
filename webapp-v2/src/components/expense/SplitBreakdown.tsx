@@ -1,13 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { Avatar } from '../ui/Avatar';
 import { Stack } from '../ui/Stack';
-import { ExpenseDTO, GroupMemberDTO } from '@splitifyd/shared';
+import { ExpenseDTO, GroupMember } from '@splitifyd/shared';
 import { SplitTypes } from '@splitifyd/shared';
 import { formatCurrency } from '@/utils/currency';
 
 interface SplitBreakdownProps {
     expense: ExpenseDTO;
-    members: GroupMemberDTO[];
+    members: GroupMember[];
 }
 
 export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
@@ -17,7 +17,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
             acc[member.uid] = member;
             return acc;
         },
-        {} as Record<string, GroupMemberDTO>,
+        {} as Record<string, GroupMember>,
     );
 
     const getSplitTypeLabel = (type: string) => {

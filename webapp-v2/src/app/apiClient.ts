@@ -11,7 +11,7 @@ import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/br
 import type {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
-    CommentApiResponse,
+    CommentDTO,
     CreateCommentResponse,
     CreateExpenseRequest,
     CreateGroupRequest,
@@ -721,8 +721,7 @@ class ApiClient {
                 settingsManagement: 'admin-only',
             },
             balance: {},
-            lastActivity: 'just now',
-            lastActivityRaw: new Date().toISOString(),
+            lastActivity: 'just now'
         } as GroupDTO;
     }
 
@@ -777,7 +776,7 @@ class ApiClient {
     }
 
     // Comment methods
-    async createGroupComment(groupId: string, text: string): Promise<CommentApiResponse> {
+    async createGroupComment(groupId: string, text: string): Promise<CommentDTO> {
         const response = await this.request<CreateCommentResponse>({
             endpoint: '/groups/:groupId/comments',
             method: 'POST',
@@ -787,7 +786,7 @@ class ApiClient {
         return response.data;
     }
 
-    async createExpenseComment(expenseId: string, text: string): Promise<CommentApiResponse> {
+    async createExpenseComment(expenseId: string, text: string): Promise<CommentDTO> {
         const response = await this.request<CreateCommentResponse>({
             endpoint: '/expenses/:expenseId/comments',
             method: 'POST',

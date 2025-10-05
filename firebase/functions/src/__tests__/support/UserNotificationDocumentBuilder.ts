@@ -1,39 +1,8 @@
-/**
- * Browser-safe builder for creating UserNotificationDocument objects for tests
- * Uses Date objects instead of Firestore Timestamps for webapp compatibility
- *
- * Note: This is a simplified version adapted for browser tests.
- * The server version uses Firestore Timestamps from firebase-admin.
- */
-
-// Browser-safe type definitions (using Date instead of Timestamp)
-interface UserNotificationGroupDocument {
-    lastTransactionChange: Date | null;
-    lastBalanceChange: Date | null;
-    lastGroupDetailsChange: Date | null;
-    lastCommentChange: Date | null;
-    transactionChangeCount: number;
-    balanceChangeCount: number;
-    groupDetailsChangeCount: number;
-    commentChangeCount: number;
-}
-
-interface RecentChangeDocument {
-    groupId: string;
-    type: 'transaction' | 'balance' | 'group' | 'comment';
-    timestamp: Date;
-}
-
-// Using `any` for browser-safe notification data - tests don't need strict typing here
-interface UserNotificationDocument {
-    changeVersion: number;
-    groups: Record<string, UserNotificationGroupDocument>;
-    lastModified: Date;
-    recentChanges?: RecentChangeDocument[];
-}
+import { Timestamp } from 'firebase-admin/firestore';
+import {RecentChangeDocument, UserNotificationDocument, UserNotificationGroupDocument} from "../../types";
 
 /**
- * Builder for creating UserNotificationDocument objects for webapp tests
+ * Builder for creating UserNotificationDocument objects for tests
  * Creates the notification structure used by Firebase real-time notifications
  */
 export class UserNotificationDocumentBuilder {
@@ -43,7 +12,7 @@ export class UserNotificationDocumentBuilder {
         this.document = {
             changeVersion: 1,
             groups: {},
-            lastModified: new Date(),
+            lastModified: Timestamp.now(),
         };
     }
 
@@ -62,7 +31,7 @@ export class UserNotificationDocumentBuilder {
         this.document.groups[groupId] = {
             ...existing,
             groupDetailsChangeCount: changeCount,
-            lastGroupDetailsChange: new Date(),
+            lastGroupDetailsChange: Timestamp.now(),
         };
         return this;
     }
@@ -72,7 +41,7 @@ export class UserNotificationDocumentBuilder {
         this.document.groups[groupId] = {
             ...existing,
             transactionChangeCount: changeCount,
-            lastTransactionChange: new Date(),
+            lastTransactionChange: Timestamp.now(),
         };
         return this;
     }
@@ -82,7 +51,7 @@ export class UserNotificationDocumentBuilder {
         this.document.groups[groupId] = {
             ...existing,
             balanceChangeCount: changeCount,
-            lastBalanceChange: new Date(),
+            lastBalanceChange: Timestamp.now(),
         };
         return this;
     }
@@ -92,7 +61,7 @@ export class UserNotificationDocumentBuilder {
         this.document.groups[groupId] = {
             ...existing,
             commentChangeCount: changeCount,
-            lastCommentChange: new Date(),
+            lastCommentChange: Timestamp.now(),
         };
         return this;
     }
@@ -111,7 +80,7 @@ export class UserNotificationDocumentBuilder {
         return this;
     }
 
-    withLastModified(timestamp: Date): this {
+    withLastModified(timestamp: Timestamp): this {
         this.document.lastModified = timestamp;
         return this;
     }
@@ -121,14 +90,14 @@ export class UserNotificationDocumentBuilder {
         return this;
     }
 
-    addRecentChange(groupId: string, type: 'transaction' | 'balance' | 'group' | 'comment', timestamp?: Date): this {
+    addRecentChange(groupId: string, type: 'transaction' | 'balance' | 'group' | 'comment', timestamp?: Timestamp): this {
         if (!this.document.recentChanges) {
             this.document.recentChanges = [];
         }
         this.document.recentChanges.push({
             groupId,
             type,
-            timestamp: timestamp || new Date(),
+            timestamp: timestamp || Timestamp.now(),
         });
         return this;
     }
@@ -146,8 +115,7 @@ export class UserNotificationDocumentBuilder {
         };
     }
 
-    build(): any {
-        // Return `any` type for browser compatibility - test mocks don't need strict typing
+    build(): UserNotificationDocument {
         return {
             changeVersion: this.document.changeVersion,
             groups: JSON.parse(JSON.stringify(this.document.groups)), // Deep copy

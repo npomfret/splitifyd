@@ -22,8 +22,7 @@ const BaseGroupSchema = z
                 memberApproval: z.union([z.literal('automatic'), z.literal('admin-required')]),
                 settingsManagement: z.string(),
             })
-            .passthrough() // Allow extra fields like settlementCreation, memberManagement, groupManagement
-            .optional(),
+            .strict(),
         presetAppliedAt: FirestoreTimestampSchema.optional(),
         // Phase 3: Deletion state management fields
         deletionStatus: z.enum(['deleting', 'failed']).optional(),
@@ -31,7 +30,7 @@ const BaseGroupSchema = z
         deletionAttempts: z.number().optional(),
     })
     .merge(AuditFieldsSchema)
-    .passthrough();
+    .strict();
 
 /**
  * Create Document and Data schemas using common pattern
@@ -53,19 +52,22 @@ const { DocumentSchema: GroupDocumentSchema, DataSchema: GroupDataSchema } = cre
 export { GroupDocumentSchema, GroupDataSchema };
 
 /**
- * Type definitions derived from schemas
+ * Type definitions derived from schemas (Internal use only)
+ * Note: GroupDocument type removed from exports after DTO migration.
+ * Services should use GroupDTO from @splitifyd/shared instead.
  */
-export type GroupDocument = z.infer<typeof GroupDocumentSchema>;
+type GroupDocument = z.infer<typeof GroupDocumentSchema>;
 
 /**
- * Zod schema for UserThemeColor validation
+ * Zod schema for UserThemeColor validation in Firestore documents
+ * Note: assignedAt is a Timestamp because this validates Firestore documents (before ISO → DTO conversion)
  */
 const UserThemeColorSchema = z.object({
     light: z.string(),
     dark: z.string(),
     name: z.string(),
     pattern: z.enum(COLOR_PATTERNS),
-    assignedAt: z.string(),
+    assignedAt: FirestoreTimestampSchema,
     colorIndex: z.number(),
 });
 
@@ -79,11 +81,14 @@ export const GroupMemberDocumentSchema = z
         groupId: z.string(), // For collectionGroup queries
         memberRole: z.nativeEnum(MemberRoles),
         theme: UserThemeColorSchema,
-        joinedAt: z.string(), // ISO string
+        joinedAt: FirestoreTimestampSchema,
         memberStatus: z.nativeEnum(MemberStatuses),
         invitedBy: UserIdSchema.optional(), // UID of the user who created the share link that was used to join
-        lastPermissionChange: z.string().optional(), // ISO string - Track permission updates
     })
-    .passthrough();
+    .strict();
 
-export type ParsedGroupMemberDocument = z.infer<typeof GroupMemberDocumentSchema>;
+/**
+ * Internal type for schema validation only.
+ * Services should use GroupMembershipDTO from @splitifyd/shared.
+ */
+type ParsedGroupMemberDocument = z.infer<typeof GroupMemberDocumentSchema>;

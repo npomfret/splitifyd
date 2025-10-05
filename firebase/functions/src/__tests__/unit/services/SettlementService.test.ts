@@ -8,7 +8,8 @@ import {
 } from '../mocks/firestore-stubs';
 import { HTTP_STATUS } from '../../../constants';
 import type { CreateSettlementRequest } from '@splitifyd/shared';
-import { CreateSettlementRequestBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { CreateSettlementRequestBuilder } from '@splitifyd/test-support';
+import { GroupMemberDocumentBuilder } from "../../support/GroupMemberDocumentBuilder";
 
 
 describe('SettlementService - Unit Tests', () => {

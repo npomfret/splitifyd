@@ -6,10 +6,11 @@
  */
 
 import { describe, test, expect, beforeEach } from 'vitest';
-import { borrowTestUsers, CreateGroupRequestBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { borrowTestUsers, CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { PooledTestUser } from '@splitifyd/shared';
 import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
+import { GroupMemberDocumentBuilder } from "../support/GroupMemberDocumentBuilder";
 
 describe('GroupMember Subcollection - Integration Tests (Essential Firestore Behavior)', () => {
     const firestore = getFirestore();

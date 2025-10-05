@@ -1,5 +1,5 @@
 import { useSignal } from '@preact/signals';
-import type { SettlementListItem } from '@splitifyd/shared';
+import type { SettlementWithMembers } from '@splitifyd/shared';
 
 /**
  * Custom hook to manage all modals used in the Group Detail page
@@ -13,7 +13,7 @@ export function useGroupModals() {
     const showEditModal = useSignal(false);
 
     // Modal data states
-    const settlementToEdit = useSignal<SettlementListItem | null>(null);
+    const settlementToEdit = useSignal<SettlementWithMembers | null>(null);
 
     // Modal actions
     const openShareModal = () => {
@@ -24,7 +24,7 @@ export function useGroupModals() {
         showShareModal.value = false;
     };
 
-    const openSettlementForm = (settlement?: SettlementListItem) => {
+    const openSettlementForm = (settlement?: SettlementWithMembers) => {
         settlementToEdit.value = settlement || null;
         showSettlementForm.value = true;
     };

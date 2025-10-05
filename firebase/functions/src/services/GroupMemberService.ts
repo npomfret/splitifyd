@@ -1,13 +1,12 @@
 import { Errors, ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
-import { FirestoreCollections } from '@splitifyd/shared';
-import { GroupMemberDocument } from '@splitifyd/shared';
 import { BalanceCalculationService } from './balance';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
-import { MemberRoles } from '@splitifyd/shared';
+import { MemberRoles, type GroupMembershipDTO } from '@splitifyd/shared';
 import { getTopLevelMembershipDocId, createTopLevelMembershipDocument } from '../utils/groupMembershipHelpers';
+import { FirestoreCollections } from "../constants";
 
 export class GroupMemberService {
     // Injected dependencies or defaults
@@ -151,7 +150,7 @@ export class GroupMemberService {
      * Path: group-memberships/{userId}_{groupId}
      * @deprecated remove this - only used by tests
      */
-    async createMember(groupId: string, memberDoc: GroupMemberDocument): Promise<void> {
+    async createMember(groupId: string, memberDoc: GroupMembershipDTO): Promise<void> {
         return this.measure.measureDb('CREATE_MEMBER', async () => {
             const topLevelDocId = getTopLevelMembershipDocId(memberDoc.uid, groupId);
             const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, new Date().toISOString());
@@ -172,7 +171,7 @@ export class GroupMemberService {
      * Get a single member from a group
      * @deprecated Use firestoreReader.getGroupMember() instead
      */
-    async getGroupMember(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
+    async getGroupMember(groupId: string, userId: string): Promise<GroupMembershipDTO | null> {
         return this.firestoreReader.getGroupMember(groupId, userId);
     }
 
@@ -180,7 +179,7 @@ export class GroupMemberService {
      * Get all members for a group
      * @deprecated Use firestoreReader.getAllGroupMembers() instead
      */
-    async getAllGroupMembers(groupId: string): Promise<GroupMemberDocument[]> {
+    async getAllGroupMembers(groupId: string): Promise<GroupMembershipDTO[]> {
         return this.firestoreReader.getAllGroupMembers(groupId);
     }
 
@@ -188,7 +187,7 @@ export class GroupMemberService {
      * Update a member in the top-level collection
      * @deprecated - remove this - only used by tests
      */
-    async updateMember(groupId: string, userId: string, updates: Partial<GroupMemberDocument>): Promise<void> {
+    async updateMember(groupId: string, userId: string, updates: Partial<GroupMembershipDTO>): Promise<void> {
         return this.measure.measureDb('UPDATE_MEMBER', async () => {
             const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
 

@@ -12,35 +12,111 @@
 
 import type { Firestore } from 'firebase-admin/firestore';
 import { logger } from '../../logger';
-import { FirestoreCollections, SecurityPresets, CommentTargetTypes, type CommentTargetType } from '@splitifyd/shared';
+import {
+    SecurityPresets,
+    CommentTargetTypes,
+    type CommentTargetType,
+    type ExpenseDTO,
+    type GroupDTO,
+    type SettlementDTO,
+    type PolicyDTO,
+    type RegisteredUser,
+    type GroupMembershipDTO,
+    type CommentDTO
+} from '@splitifyd/shared';
 import { FieldPath, Timestamp, Filter } from 'firebase-admin/firestore';
 import { measureDb } from '../../monitoring/measure';
 import { safeParseISOToTimestamp, assertTimestamp } from '../../utils/dateHelpers';
 import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 
-// Import all schemas for validation
+// Import all schemas for validation (these still validate Timestamp objects from Firestore)
 import {
     UserDocumentSchema,
     GroupDocumentSchema,
     ExpenseDocumentSchema,
     SettlementDocumentSchema,
     PolicyDocumentSchema,
-    GroupMemberDocumentSchema,
+
     // Note: GroupChangeDocumentSchema removed as unused
 } from '../../schemas';
+import { TopLevelGroupMemberSchema } from '../../schemas';
 import { UserNotificationDocumentSchema, type UserNotificationDocument } from '../../schemas/user-notifications';
 import { ShareLinkDocumentSchema, type ParsedShareLink } from '../../schemas';
-import { CommentDocumentSchema, type ParsedComment } from '../../schemas';
+import { CommentDocumentSchema } from '../../schemas';
 
-// Import types
-import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument, PolicyTDO } from '../../schemas';
-import { GroupMemberDocument, TopLevelGroupMemberDocument } from '@splitifyd/shared';
-import type { ParsedGroupMemberDocument } from '../../schemas';
+// Note: ParsedGroupMemberDocument no longer exported from schemas after DTO migration
+// FirestoreReader now works directly with GroupMembershipDTO from @splitifyd/shared
 import type { IFirestoreReader, FirestoreOrderField } from './IFirestoreReader';
 import type { QueryOptions, PaginatedResult, GroupsPaginationCursor, OrderBy, BatchGroupFetchOptions } from './IFirestoreReader';
+import { FirestoreCollections } from "../../constants";
+import type { TopLevelGroupMemberDocument } from "../../types";
 
 export class FirestoreReader implements IFirestoreReader {
     constructor(private readonly db: Firestore) {}
+
+    // ========================================================================
+    // Timestamp Conversion Utilities
+    // ========================================================================
+
+    /**
+     * Convert Firestore Timestamp to ISO 8601 string
+     * This is the conversion boundary between Firestore storage format and application DTOs
+     *
+     * LENIENT MODE: During transition, accepts anything that looks like a date
+     * Will be made strict once all code is updated to use DTOs consistently
+     */
+    private timestampToISO(value: any): string {
+        if (!value) return value; // null/undefined pass through
+        if (value instanceof Timestamp) {
+            return value.toDate().toISOString();
+        }
+        if (value instanceof Date) {
+            return value.toISOString();
+        }
+        if (typeof value === 'string') {
+            // Already ISO string (from old data or different SDK versions)
+            return value;
+        }
+        // Lenient: if it has a toDate() method (Timestamp-like), use it
+        if (typeof value === 'object' && typeof value.toDate === 'function') {
+            return value.toDate().toISOString();
+        }
+        // Lenient: if it has seconds/nanoseconds (Timestamp-like object), convert
+        if (typeof value === 'object' && typeof value.seconds === 'number') {
+            return new Date(value.seconds * 1000).toISOString();
+        }
+        // Very lenient: return as-is for now, will be caught later when we tighten
+        return value;
+    }
+
+    /**
+     * Recursively convert all Timestamp objects in an object to ISO strings
+     * This enables automatic DTO conversion at the read boundary
+     *
+     * Known date fields that will be converted:
+     * - createdAt, updatedAt, deletedAt
+     * - date (for expenses/settlements)
+     * - joinedAt (for group members)
+     * - presetAppliedAt (for groups)
+     * - lastModified, lastTransactionChange, lastBalanceChange, etc. (for notifications)
+     */
+    private convertTimestampsToISO<T extends Record<string, any>>(obj: T): T {
+        const result: any = { ...obj };
+
+        for (const [key, value] of Object.entries(result)) {
+            if (value instanceof Timestamp) {
+                result[key] = this.timestampToISO(value);
+            } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+                result[key] = this.convertTimestampsToISO(value);
+            } else if (Array.isArray(value)) {
+                result[key] = value.map(item =>
+                    item && typeof item === 'object' ? this.convertTimestampsToISO(item) : item
+                );
+            }
+        }
+
+        return result;
+    }
 
     /**
      * Get the Firestore collection path for comments on a target entity
@@ -61,7 +137,7 @@ export class FirestoreReader implements IFirestoreReader {
     // Document Read Operations
     // ========================================================================
 
-    async getUser(userId: string): Promise<UserDocument | null> {
+    async getUser(userId: string): Promise<RegisteredUser | null> {
         try {
             const userDoc = await this.db.collection(FirestoreCollections.USERS).doc(userId).get();
 
@@ -69,19 +145,24 @@ export class FirestoreReader implements IFirestoreReader {
                 return null;
             }
 
-            const userData = UserDocumentSchema.parse({
+            // Validate with Document schema (expects Timestamps)
+            const rawData = {
                 id: userDoc.id,
                 ...userDoc.data(),
-            });
+            };
+            const userData = UserDocumentSchema.parse(rawData);
 
-            return userData;
+            // Convert Timestamps to ISO strings for DTO
+            const convertedData = this.convertTimestampsToISO(userData);
+
+            return convertedData as unknown as RegisteredUser;
         } catch (error) {
             logger.error('Failed to get user', error);
             throw error;
         }
     }
 
-    async getGroup(groupId: string): Promise<GroupDocument | null> {
+    async getGroup(groupId: string): Promise<GroupDTO | null> {
         try {
             const groupDoc = await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).get();
 
@@ -96,17 +177,20 @@ export class FirestoreReader implements IFirestoreReader {
             };
             const sanitizedData = this.sanitizeGroupData(rawData);
 
-            // Now validate with the sanitized data
+            // Validate with Document schema (expects Timestamps)
             const groupData = GroupDocumentSchema.parse(sanitizedData);
 
-            return groupData;
+            // Convert Timestamps to ISO strings for DTO
+            const convertedData = this.convertTimestampsToISO(groupData);
+
+            return convertedData as unknown as GroupDTO;
         } catch (error) {
             logger.error('Failed to get group', error);
             throw error;
         }
     }
 
-    async getExpense(expenseId: string): Promise<ExpenseDocument | null> {
+    async getExpense(expenseId: string): Promise<ExpenseDTO | null> {
         try {
             const expenseDoc = await this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId).get();
 
@@ -114,19 +198,24 @@ export class FirestoreReader implements IFirestoreReader {
                 return null;
             }
 
-            const expenseData = ExpenseDocumentSchema.parse({
+            // Validate with Document schema (expects Timestamps)
+            const rawData = {
                 id: expenseDoc.id,
                 ...expenseDoc.data(),
-            });
+            };
+            const expenseData = ExpenseDocumentSchema.parse(rawData);
 
-            return expenseData;
+            // Convert Timestamps to ISO strings for DTO
+            const convertedData = this.convertTimestampsToISO(expenseData);
+
+            return convertedData as unknown as ExpenseDTO;
         } catch (error) {
             logger.error('Failed to get expense', error);
             throw error;
         }
     }
 
-    async getSettlement(settlementId: string): Promise<SettlementDocument | null> {
+    async getSettlement(settlementId: string): Promise<SettlementDTO | null> {
         try {
             const settlementDoc = await this.db.collection(FirestoreCollections.SETTLEMENTS).doc(settlementId).get();
 
@@ -134,19 +223,24 @@ export class FirestoreReader implements IFirestoreReader {
                 return null;
             }
 
-            const settlementData = SettlementDocumentSchema.parse({
+            // Validate with Document schema (expects Timestamps)
+            const rawData = {
                 id: settlementDoc.id,
                 ...settlementDoc.data(),
-            });
+            };
+            const settlementData = SettlementDocumentSchema.parse(rawData);
 
-            return settlementData;
+            // Convert Timestamps to ISO strings for DTO
+            const convertedData = this.convertTimestampsToISO(settlementData);
+
+            return convertedData as unknown as SettlementDTO;
         } catch (error) {
             logger.error('Failed to get settlement', error);
             throw error;
         }
     }
 
-    async getPolicy(policyId: string): Promise<PolicyTDO | null> {
+    async getPolicy(policyId: string): Promise<PolicyDTO | null> {
         try {
             const policyDoc = await this.db.collection(FirestoreCollections.POLICIES).doc(policyId).get();
 
@@ -154,31 +248,42 @@ export class FirestoreReader implements IFirestoreReader {
                 return null;
             }
 
-            const policyData = PolicyDocumentSchema.parse({
+            // Validate with Document schema (expects Timestamps)
+            const rawData = {
                 id: policyDoc.id,
                 ...policyDoc.data(),
-            });
+            };
+            const policyData = PolicyDocumentSchema.parse(rawData);
 
-            return policyData;
+            // Convert Timestamps to ISO strings for DTO
+            const convertedData = this.convertTimestampsToISO(policyData);
+
+            return convertedData as unknown as PolicyDTO;
         } catch (error) {
             logger.error('Failed to get policy', error);
             throw error;
         }
     }
 
-    async getAllPolicies(): Promise<PolicyTDO[]> {
+    async getAllPolicies(): Promise<PolicyDTO[]> {
         try {
             const snapshot = await this.db.collection(FirestoreCollections.POLICIES).get();
 
-            const policies: PolicyTDO[] = [];
+            const policies: PolicyDTO[] = [];
 
             snapshot.forEach((doc) => {
                 try {
-                    const policyData = PolicyDocumentSchema.parse({
+                    // Validate with Document schema (expects Timestamps)
+                    const rawData = {
                         id: doc.id,
                         ...doc.data(),
-                    });
-                    policies.push(policyData);
+                    };
+                    const policyData = PolicyDocumentSchema.parse(rawData);
+
+                    // Convert Timestamps to ISO strings for DTO
+                    const convertedData = this.convertTimestampsToISO(policyData);
+
+                    policies.push(convertedData as unknown as PolicyDTO);
                 } catch (validationError) {
                     logger.warn('Skipping invalid policy document during getAllPolicies');
                 }
@@ -199,13 +304,21 @@ export class FirestoreReader implements IFirestoreReader {
      * Sanitizes group data before validation to handle invalid values
      * that may have been inserted into the database
      */
-    private sanitizeGroupData(data: any): any {
-        const sanitized = { ...data };
+    private sanitizeGroupData(data: unknown): Record<string, unknown> {
+        if (typeof data !== 'object' || data === null) {
+            throw new Error('Invalid group data: expected object');
+        }
+        const sanitized = { ...data as Record<string, unknown> };
 
-        // Sanitize securityPreset field
+        // Remove API-only computed fields that should never be in Firestore
+        // These might be present in corrupted data from old migrations or test data
+        delete sanitized.balance;
+        delete sanitized.lastActivity;
+
+        // Sanitize securityPreset field - this is acceptable business logic
         if (sanitized.securityPreset !== undefined) {
-            const validPresets = Object.values(SecurityPresets);
-            if (!validPresets.includes(sanitized.securityPreset)) {
+            const validPresets = Object.values(SecurityPresets) as string[];
+            if (!validPresets.includes(sanitized.securityPreset as string)) {
                 logger.warn('Invalid securityPreset value detected, defaulting to OPEN');
                 // Default to OPEN for invalid values
                 sanitized.securityPreset = SecurityPresets.OPEN;
@@ -213,7 +326,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
 
         // Assert timestamp fields are proper Timestamp objects
-        // This enforces our data contract and prevents mixed-type date handling
+        // DO NOT silently fix corrupted data - let it throw
         sanitized.createdAt = assertTimestamp(sanitized.createdAt, 'createdAt');
         sanitized.updatedAt = assertTimestamp(sanitized.updatedAt, 'updatedAt');
 
@@ -254,10 +367,10 @@ export class FirestoreReader implements IFirestoreReader {
      * @param options - Options for ordering and limiting results
      * @returns Array of group documents, limited and ordered as specified
      */
-    private async getGroupsByIds(groupIds: string[], options: BatchGroupFetchOptions): Promise<GroupDocument[]> {
+    private async getGroupsByIds(groupIds: string[], options: BatchGroupFetchOptions): Promise<GroupDTO[]> {
         if (groupIds.length === 0) return [];
 
-        const allGroups: GroupDocument[] = [];
+        const allGroups: GroupDTO[] = [];
 
         // Process in chunks of 10 (Firestore 'in' query limit)
         // BUT apply limit across ALL chunks to avoid fetching unnecessary data
@@ -287,9 +400,13 @@ export class FirestoreReader implements IFirestoreReader {
                     };
                     const sanitizedData = this.sanitizeGroupData(rawData);
 
-                    // Now validate with the sanitized data
+                    // Validate with Document schema (expects Timestamps)
                     const groupData = GroupDocumentSchema.parse(sanitizedData);
-                    allGroups.push(groupData);
+
+                    // Convert Timestamps to ISO strings for DTO
+                    const convertedData = this.convertTimestampsToISO(groupData);
+
+                    allGroups.push(convertedData as unknown as GroupDTO);
 
                     // Hard stop if we reach the limit
                     if (allGroups.length >= options.limit) break;
@@ -302,8 +419,8 @@ export class FirestoreReader implements IFirestoreReader {
 
         // Final sort since we might have fetched from multiple queries
         // This is much more efficient than sorting ALL groups like the old implementation
-        return allGroups.sort((a: GroupDocument, b: GroupDocument) => {
-            const field = options.orderBy.field as keyof GroupDocument;
+        return allGroups.sort((a: GroupDTO, b: GroupDTO) => {
+            const field = options.orderBy.field as keyof GroupDTO;
             const direction = options.orderBy.direction;
             const aValue = a[field];
             const bValue = b[field];
@@ -340,7 +457,7 @@ export class FirestoreReader implements IFirestoreReader {
      * @param options - Query options including limit, cursor, and orderBy
      * @returns Paginated result with groups ordered by most recent activity
      */
-    async getGroupsForUserV2(userId: string, options?: { limit?: number; cursor?: string; orderBy?: OrderBy }): Promise<PaginatedResult<GroupDocument[]>> {
+    async getGroupsForUserV2(userId: string, options?: { limit?: number; cursor?: string; orderBy?: OrderBy }): Promise<PaginatedResult<GroupDTO[]>> {
         return measureDb('USER_GROUPS_V2', async () => {
             const limit = options?.limit || 10;
 
@@ -352,8 +469,9 @@ export class FirestoreReader implements IFirestoreReader {
             if (options?.cursor) {
                 try {
                     const cursorData = this.decodeCursor(options.cursor);
-                    // Use lastUpdatedAt which should contain groupUpdatedAt for V2 cursors
-                    query = query.startAfter(cursorData.lastUpdatedAt);
+                    // Convert ISO string back to Timestamp for proper comparison
+                    const cursorTimestamp = Timestamp.fromDate(new Date(cursorData.lastUpdatedAt));
+                    query = query.startAfter(cursorTimestamp);
                 } catch (error) {
                     logger.warn('Invalid cursor provided for V2 method, ignoring');
                 }
@@ -367,7 +485,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             if (memberships.length === 0) {
                 return {
-                    data: [] as GroupDocument[],
+                    data: [] as GroupDTO[],
                     hasMore: false,
                 };
             }
@@ -383,15 +501,30 @@ export class FirestoreReader implements IFirestoreReader {
 
             // Preserve the order from the membership query by sorting fetchedGroups by groupIds order
             const groupsMap = new Map(fetchedGroups.map((group) => [group.id, group]));
-            const groups = groupIds.map((id) => groupsMap.get(id)).filter((group): group is GroupDocument => group !== undefined);
+            const groups = groupIds.map((id) => groupsMap.get(id)).filter((group): group is GroupDTO => group !== undefined);
 
             // Generate next cursor if there are more results
             let nextCursor: string | undefined;
             if (hasMore) {
                 const lastMembership = memberships[memberships.length - 1];
+                const timestamp = lastMembership.groupUpdatedAt;
+                // Handle both Timestamp objects and ISO strings (from old data or different SDK versions)
+                let lastUpdatedAtISO: string;
+                if (typeof timestamp === 'string') {
+                    // Already an ISO string (from old data)
+                    lastUpdatedAtISO = timestamp;
+                } else if (timestamp && typeof timestamp.toDate === 'function') {
+                    // Admin Timestamp object
+                    lastUpdatedAtISO = timestamp.toDate().toISOString();
+                } else if (timestamp instanceof Date) {
+                    // Regular Date object
+                    lastUpdatedAtISO = timestamp.toISOString();
+                } else {
+                    throw new Error(`Invalid groupUpdatedAt timestamp type: ${typeof timestamp}`);
+                }
                 nextCursor = this.encodeCursor({
                     lastGroupId: lastMembership.groupId,
-                    lastUpdatedAt: lastMembership.groupUpdatedAt, // Use groupUpdatedAt for V2
+                    lastUpdatedAt: lastUpdatedAtISO,
                     membershipCursor: lastMembership.groupId,
                 });
             }
@@ -405,7 +538,7 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
-    async getGroupMember(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
+    async getGroupMember(groupId: string, userId: string): Promise<GroupMembershipDTO | null> {
         return measureDb('GET_MEMBER', async () => {
             // Use top-level collection instead of subcollection
             const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
@@ -416,27 +549,16 @@ export class FirestoreReader implements IFirestoreReader {
                 return null;
             }
 
-            const topLevelData = memberDoc.data() as any; // Use any to handle legacy data
-            // Handle backward compatibility: support both uid and legacy userId fields
-            const uid = topLevelData.uid || (topLevelData as any).userId;
-            if (!uid) {
-                throw new Error(`Group member document ${memberDoc.id} is missing uid field`);
+            const topLevelData = memberDoc.data();
+            if (!topLevelData) {
+                throw new Error(`Group member document ${memberDoc.id} has no data`);
             }
-            // Convert top-level document back to GroupMemberDocument format
-            const parsedMember = GroupMemberDocumentSchema.parse({
-                id: uid, // Use uid as the document ID
-                uid: uid,
-                groupId: topLevelData.groupId,
-                memberRole: topLevelData.memberRole,
-                memberStatus: topLevelData.memberStatus,
-                joinedAt: topLevelData.joinedAt,
-                theme: topLevelData.theme,
-                invitedBy: topLevelData.invitedBy,
-                lastPermissionChange: topLevelData.lastPermissionChange,
-                createdAt: topLevelData.createdAt,
-                updatedAt: topLevelData.updatedAt,
-            });
-            return parsedMember;
+
+            // Use TopLevelGroupMemberSchema for top-level collection validation (includes groupUpdatedAt, createdAt, updatedAt)
+            const parsedMember = TopLevelGroupMemberSchema.parse(topLevelData);
+
+            // Convert Timestamps to ISO strings (DTO conversion)
+            return this.convertTimestampsToISO(parsedMember) as GroupMembershipDTO;
         });
     }
 
@@ -454,37 +576,30 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
-    async getAllGroupMembers(groupId: string): Promise<GroupMemberDocument[]> {
+    async getAllGroupMembers(groupId: string): Promise<GroupMembershipDTO[]> {
         return measureDb('GET_MEMBERS', async () => {
             // Use top-level collection instead of subcollection
             const membersQuery = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('groupId', '==', groupId);
 
             const snapshot = await membersQuery.get();
-            const parsedMembers: ParsedGroupMemberDocument[] = [];
+            const parsedMembers: GroupMembershipDTO[] = [];
 
             for (const doc of snapshot.docs) {
                 try {
-                    const topLevelData = doc.data() as any; // Use any to handle legacy data
-                    // Handle backward compatibility: support both uid and legacy userId fields
-                    const uid = topLevelData.uid || (topLevelData as any).userId;
-                    if (!uid) {
-                        throw new Error(`Group member document ${doc.id} is missing uid field`);
+                    const topLevelData = doc.data();
+                    if (!topLevelData) {
+                        logger.error('Group member document has no data', { docId: doc.id });
+                        continue;
                     }
-                    // Convert top-level document back to GroupMemberDocument format
-                    const memberData = GroupMemberDocumentSchema.parse({
-                        id: uid, // Use uid as the document ID
-                        uid: uid,
-                        groupId: topLevelData.groupId,
-                        memberRole: topLevelData.memberRole,
-                        memberStatus: topLevelData.memberStatus,
-                        joinedAt: topLevelData.joinedAt,
-                        theme: topLevelData.theme,
-                        invitedBy: topLevelData.invitedBy,
-                        lastPermissionChange: topLevelData.lastPermissionChange,
-                        createdAt: topLevelData.createdAt,
-                        updatedAt: topLevelData.updatedAt,
+
+                    // Schema validation will ensure uid field exists and is correct
+                    const memberData = TopLevelGroupMemberSchema.parse({
+                        ...topLevelData,
+                        id: topLevelData.uid, // Use uid as the document ID
                     });
-                    parsedMembers.push(memberData);
+
+                    // Convert Timestamps to ISO strings (DTO conversion)
+                    parsedMembers.push(this.convertTimestampsToISO(memberData) as GroupMembershipDTO);
                 } catch (error) {
                     logger.error('Invalid group member document in getAllGroupMembers', error);
                     // Skip invalid documents rather than failing the entire query
@@ -495,7 +610,7 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
-    async getExpensesForGroup(groupId: string, options?: QueryOptions): Promise<ExpenseDocument[]> {
+    async getExpensesForGroup(groupId: string, options?: QueryOptions): Promise<ExpenseDTO[]> {
         try {
             let query = this.db.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).where('deletedAt', '==', null);
 
@@ -522,15 +637,21 @@ export class FirestoreReader implements IFirestoreReader {
             }
 
             const snapshot = await query.get();
-            const expenses: ExpenseDocument[] = [];
+            const expenses: ExpenseDTO[] = [];
 
             for (const doc of snapshot.docs) {
                 try {
-                    const expenseData = ExpenseDocumentSchema.parse({
+                    // Validate with Document schema (expects Timestamps)
+                    const rawData = {
                         id: doc.id,
                         ...doc.data(),
-                    });
-                    expenses.push(expenseData);
+                    };
+                    const expenseData = ExpenseDocumentSchema.parse(rawData);
+
+                    // Convert Timestamps to ISO strings for DTO
+                    const convertedData = this.convertTimestampsToISO(expenseData);
+
+                    expenses.push(convertedData as unknown as ExpenseDTO);
                 } catch (error) {
                     logger.error('Invalid expense document in getExpensesForGroup', error);
                     // Skip invalid documents rather than failing the entire query
@@ -545,7 +666,7 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     // todo: this should be paginated
-    async getSettlementsForGroup(groupId: string, options?: QueryOptions): Promise<SettlementDocument[]> {
+    async getSettlementsForGroup(groupId: string, options?: QueryOptions): Promise<SettlementDTO[]> {
         try {
             let query = this.db.collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId);
 
@@ -572,15 +693,21 @@ export class FirestoreReader implements IFirestoreReader {
             }
 
             const snapshot = await query.get();
-            const settlements: SettlementDocument[] = [];
+            const settlements: SettlementDTO[] = [];
 
             for (const doc of snapshot.docs) {
                 try {
-                    const settlementData = SettlementDocumentSchema.parse({
+                    // Validate with Document schema (expects Timestamps)
+                    const rawData = {
                         id: doc.id,
                         ...doc.data(),
-                    });
-                    settlements.push(settlementData);
+                    };
+                    const settlementData = SettlementDocumentSchema.parse(rawData);
+
+                    // Convert Timestamps to ISO strings for DTO
+                    const convertedData = this.convertTimestampsToISO(settlementData);
+
+                    settlements.push(convertedData as unknown as SettlementDTO);
                 } catch (error) {
                     logger.error('Invalid settlement document in getSettlementsForGroup', error);
                     // Skip invalid documents rather than failing the entire query
@@ -682,7 +809,7 @@ export class FirestoreReader implements IFirestoreReader {
             orderBy?: FirestoreOrderField;
             direction?: 'asc' | 'desc';
         } = {},
-    ): Promise<{ comments: ParsedComment[]; hasMore: boolean; nextCursor?: string }> {
+    ): Promise<{ comments: CommentDTO[]; hasMore: boolean; nextCursor?: string }> {
         try {
             const { limit = 50, cursor, orderBy = 'createdAt', direction = 'desc' } = options;
 
@@ -708,14 +835,16 @@ export class FirestoreReader implements IFirestoreReader {
             const hasMore = docs.length > limit;
             const commentsToReturn = hasMore ? docs.slice(0, limit) : docs;
 
-            // Transform documents to ParsedComment objects
-            const comments: ParsedComment[] = [];
+            // Transform documents to CommentDTO objects
+            const comments: CommentDTO[] = [];
             for (const doc of commentsToReturn) {
                 try {
                     const rawData = doc.data();
                     const dataWithId = { ...rawData, id: doc.id };
                     const comment = CommentDocumentSchema.parse(dataWithId);
-                    comments.push(comment);
+                    // Convert Timestamps to ISO strings for DTO
+                    const convertedComment = this.convertTimestampsToISO(comment);
+                    comments.push(convertedComment as unknown as CommentDTO);
                 } catch (error) {
                     logger.error('Invalid comment document in getCommentsForTarget', error);
                     // Skip invalid documents rather than failing the entire query
@@ -733,7 +862,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<ParsedComment | null> {
+    async getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<CommentDTO | null> {
         try {
             // Get the appropriate subcollection reference using collection path helper
             const collectionPath = this.getCommentCollectionPath(targetType, targetId);
@@ -752,7 +881,9 @@ export class FirestoreReader implements IFirestoreReader {
 
             const dataWithId = { ...rawData, id: doc.id };
             const comment = CommentDocumentSchema.parse(dataWithId);
-            return comment;
+            // Convert Timestamps to ISO strings for DTO
+            const convertedComment = this.convertTimestampsToISO(comment);
+            return convertedComment as unknown as CommentDTO;
         } catch (error) {
             logger.error('Failed to get comment', error);
             throw error;
@@ -866,7 +997,7 @@ export class FirestoreReader implements IFirestoreReader {
             includeDeleted?: boolean;
         },
     ): Promise<{
-        expenses: ExpenseDocument[];
+        expenses: ExpenseDTO[];
         hasMore: boolean;
         nextCursor?: string;
     }> {
@@ -918,7 +1049,13 @@ export class FirestoreReader implements IFirestoreReader {
                 const hasMore = snapshot.docs.length > limit;
                 const docs = hasMore ? snapshot.docs.slice(0, limit) : snapshot.docs;
 
-                const expenses = docs.map((doc) => ExpenseDocumentSchema.parse({ id: doc.id, ...doc.data() }));
+                // Validate with Document schema then convert to DTO
+                const expenses = docs.map((doc) => {
+                    const rawData = { id: doc.id, ...doc.data() };
+                    const expenseData = ExpenseDocumentSchema.parse(rawData);
+                    const convertedData = this.convertTimestampsToISO(expenseData);
+                    return convertedData as unknown as ExpenseDTO;
+                });
 
                 let nextCursor: string | undefined;
                 if (hasMore && docs.length > 0) {
@@ -957,7 +1094,7 @@ export class FirestoreReader implements IFirestoreReader {
             endDate?: string;
         },
     ): Promise<{
-        settlements: SettlementDocument[];
+        settlements: SettlementDTO[];
         hasMore: boolean;
         nextCursor?: string;
     }> {
@@ -992,7 +1129,13 @@ export class FirestoreReader implements IFirestoreReader {
                 }
 
                 const snapshot = await query.get();
-                const settlements = snapshot.docs.map((doc) => SettlementDocumentSchema.parse({ id: doc.id, ...doc.data() }));
+                // Validate with Document schema then convert to DTO
+                const settlements = snapshot.docs.map((doc) => {
+                    const rawData = { id: doc.id, ...doc.data() };
+                    const settlementData = SettlementDocumentSchema.parse(rawData);
+                    const convertedData = this.convertTimestampsToISO(settlementData);
+                    return convertedData as unknown as SettlementDTO;
+                });
 
                 const hasMore = settlements.length > limit;
                 const settlementsToReturn = hasMore ? settlements.slice(0, limit) : settlements;
@@ -1047,6 +1190,40 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
+    /**
+     * Get a group DTO in a transaction (with Timestamp → ISO conversion)
+     * Use this for optimistic locking instead of getRawGroupDocumentInTransaction
+     */
+    async getGroupInTransaction(transaction: FirebaseFirestore.Transaction, groupId: string): Promise<GroupDTO | null> {
+        try {
+            const docRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
+            const doc = await transaction.get(docRef);
+
+            if (!doc.exists) {
+                return null;
+            }
+
+            // Validate with Document schema (expects Timestamps)
+            const rawData = {
+                id: doc.id,
+                ...doc.data(),
+            };
+            const groupData = GroupDocumentSchema.parse(rawData);
+
+            // Convert Timestamps to ISO strings for DTO
+            const convertedData = this.convertTimestampsToISO(groupData);
+
+            return convertedData as unknown as GroupDTO;
+        } catch (error) {
+            logger.error('Failed to get group in transaction', error, { groupId });
+            throw error;
+        }
+    }
+
+    /**
+     * @deprecated Use getGroupInTransaction instead - returns DTO with ISO strings
+     * Raw methods leak Firestore Timestamps into application layer
+     */
     async getRawGroupDocumentInTransaction(transaction: FirebaseFirestore.Transaction, groupId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
         try {
             const docRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
@@ -1058,6 +1235,40 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
+    /**
+     * Get an expense DTO in a transaction (with Timestamp → ISO conversion)
+     * Use this for optimistic locking instead of getRawExpenseDocumentInTransaction
+     */
+    async getExpenseInTransaction(transaction: FirebaseFirestore.Transaction, expenseId: string): Promise<ExpenseDTO | null> {
+        try {
+            const docRef = this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId);
+            const doc = await transaction.get(docRef);
+
+            if (!doc.exists) {
+                return null;
+            }
+
+            // Validate with Document schema (expects Timestamps)
+            const rawData = {
+                id: doc.id,
+                ...doc.data(),
+            };
+            const expenseData = ExpenseDocumentSchema.parse(rawData);
+
+            // Convert Timestamps to ISO strings for DTO
+            const convertedData = this.convertTimestampsToISO(expenseData);
+
+            return convertedData as unknown as ExpenseDTO;
+        } catch (error) {
+            logger.error('Failed to get expense in transaction', error, { expenseId });
+            throw error;
+        }
+    }
+
+    /**
+     * @deprecated Use getExpenseInTransaction instead - returns DTO with ISO strings
+     * Raw methods leak Firestore Timestamps into application layer
+     */
     async getRawExpenseDocumentInTransaction(transaction: FirebaseFirestore.Transaction, expenseId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
         try {
             const docRef = this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId);
@@ -1069,6 +1280,40 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
+    /**
+     * Get a settlement DTO in a transaction (with Timestamp → ISO conversion)
+     * Use this for optimistic locking instead of getRawSettlementDocumentInTransaction
+     */
+    async getSettlementInTransaction(transaction: FirebaseFirestore.Transaction, settlementId: string): Promise<SettlementDTO | null> {
+        try {
+            const docRef = this.db.collection(FirestoreCollections.SETTLEMENTS).doc(settlementId);
+            const doc = await transaction.get(docRef);
+
+            if (!doc.exists) {
+                return null;
+            }
+
+            // Validate with Document schema (expects Timestamps)
+            const rawData = {
+                id: doc.id,
+                ...doc.data(),
+            };
+            const settlementData = SettlementDocumentSchema.parse(rawData);
+
+            // Convert Timestamps to ISO strings for DTO
+            const convertedData = this.convertTimestampsToISO(settlementData);
+
+            return convertedData as unknown as SettlementDTO;
+        } catch (error) {
+            logger.error('Failed to get settlement in transaction', error, { settlementId });
+            throw error;
+        }
+    }
+
+    /**
+     * @deprecated Use getSettlementInTransaction instead - returns DTO with ISO strings
+     * Raw methods leak Firestore Timestamps into application layer
+     */
     async getRawSettlementDocumentInTransaction(transaction: FirebaseFirestore.Transaction, settlementId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
         try {
             const docRef = this.db.collection(FirestoreCollections.SETTLEMENTS).doc(settlementId);

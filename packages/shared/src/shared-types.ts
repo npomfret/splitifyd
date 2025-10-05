@@ -1,55 +1,39 @@
 // Single shared type file for webapp
 // This file contains all type definitions used by the webapp client
-import type { ColorPattern } from './user-colors';
+import type {ColorPattern} from './user-colors';
 
 // ========================================================================
 // Type aliases for Firebase types (browser-safe)
 // ========================================================================
 
 /**
- * Client-side Firestore Timestamp type for browser compatibility
+ * Type alias for ISO 8601 datetime strings
  *
- * **IMPORTANT - Understand the three timestamp layers:**
+ * This provides documentation that a string should be a valid ISO 8601 datetime format.
+ * Example: "2025-01-15T10:30:00.000Z"
  *
- * 1. **Server storage (firebase-admin)**: `Timestamp` objects from firebase-admin/firestore
- *    - Used in: Firebase schemas (ExpenseDocument, SettlementDocument, etc.)
- *    - Never sent over the wire directly
+ * Used throughout DTOs for all timestamp fields to ensure consistency with the
+ * DTO-everywhere architecture where:
+ * - Services work with ISO strings
+ * - FirestoreReader converts Timestamp → ISO string when reading
+ * - FirestoreWriter converts ISO string → Timestamp when writing
  *
- * 2. **API responses (wire format)**: ISO 8601 strings (e.g., "2025-01-15T10:30:00.000Z")
- *    - Used in: All DTO types (ExpenseDTO, SettlementDTO, GroupDTO, etc.)
- *    - This is what the client receives from API endpoints
- *
- * 3. **Client runtime (Firebase SDK)**: This union type for browser Firebase SDK compatibility
- *    - Used in: Client-side Firebase listeners and real-time updates
- *    - The Firebase browser SDK may return either Date or Timestamp-like objects
- *
- * In runtime, this will be either Date or firebase.firestore.Timestamp from the browser SDK.
+ * Note: This is a simple type alias, not a branded type, to avoid requiring
+ * explicit casts throughout the codebase while still providing semantic meaning.
  */
-export type FirestoreTimestamp = Date | { toDate(): Date; seconds: number; nanoseconds: number };
+export type ISOString = string;
 
 // ========================================================================
 // Constants
 // ========================================================================
-
-export const FirestoreCollections = {
-    GROUPS: 'groups',
-    GROUP_MEMBERSHIPS: 'group-memberships',
-    EXPENSES: 'expenses',
-    SETTLEMENTS: 'settlements',
-    USERS: 'users',
-    POLICIES: 'policies',
-    COMMENTS: 'comments',
-    USER_NOTIFICATIONS: 'user-notifications',
-} as const;
-
-// Type-safe collection names
-export type FirestoreCollectionName = (typeof FirestoreCollections)[keyof typeof FirestoreCollections];
 
 export const SplitTypes = {
     EQUAL: 'equal',
     EXACT: 'exact',
     PERCENTAGE: 'percentage',
 } as const;
+
+export type SplitType = typeof SplitTypes[keyof typeof SplitTypes];
 
 export const AuthErrors = {
     EMAIL_EXISTS: 'auth/email-already-exists',
@@ -123,17 +107,29 @@ export interface GroupPermissions {
     settingsManagement: PermissionLevel;
 }
 
+/**
+ * Individual permission change entry
+ */
+export interface PermissionChange {
+    field: string; // Field that changed (e.g., 'expenseEditing', 'memberRole')
+    oldValue: string | undefined; // Previous value (PermissionLevel, SecurityPreset, MemberRole, etc.)
+    newValue: string; // New value
+}
+
+/**
+ * Log entry for permission changes
+ */
 export interface PermissionChangeLog {
-    timestamp: string; // ISO string
+    timestamp: ISOString;
     changedBy: string;
     changeType: 'preset' | 'custom' | 'role';
-    changes: Record<string, any>;
+    changes: PermissionChange[];
 }
 
 export interface InviteLink {
-    createdAt: string; // ISO string
+    createdAt: ISOString;
     createdBy: string;
-    expiresAt?: string; // Optional expiry for managed groups (ISO string)
+    expiresAt?: ISOString;
     maxUses?: number; // Optional usage limit
     usedCount: number;
 }
@@ -245,7 +241,7 @@ export interface UserThemeColor {
     dark: string;
     name: string;
     pattern: ColorPattern;
-    assignedAt: string; // ISO timestamp
+    assignedAt: ISOString;
     colorIndex: number;
 }
 
@@ -278,7 +274,7 @@ export interface AuthenticatedFirebaseUser extends FirebaseUser, UserToken {}
 
 /**
  * Registered user type for client-side code.
- * Uses FirestoreTimestamp for fields read from Firestore browser SDK.
+ * Uses ISO 8601 string timestamps consistent with the DTO-everywhere architecture.
  *
  * Note: The canonical storage type is UserDocument in firebase/functions/src/schemas/user.ts
  */
@@ -291,17 +287,20 @@ export interface RegisteredUser extends FirebaseUser {
     role?: SystemUserRole; // Role field for admin access control
 
     // Policy acceptance tracking
-    termsAcceptedAt?: FirestoreTimestamp;
-    cookiePolicyAcceptedAt?: FirestoreTimestamp;
+    termsAcceptedAt?: ISOString;
+    cookiePolicyAcceptedAt?: ISOString;
     acceptedPolicies?: Record<string, string>; // Map of policyId -> versionHash
 
     // User preferences
     themeColor?: UserThemeColor; // Automatic theme color assignment
     preferredLanguage?: string; // User's preferred language code (e.g., 'en', 'es', 'fr')
 
+    // Security tracking
+    passwordChangedAt?: ISOString; // Last password change timestamp
+
     // Document timestamps
-    createdAt?: FirestoreTimestamp;
-    updatedAt?: FirestoreTimestamp;
+    createdAt?: ISOString;
+    updatedAt?: ISOString;
 }
 
 /**
@@ -323,33 +322,13 @@ export type ClientUser = Pick<RegisteredUser, 'uid' | 'email' | 'displayName' | 
 // Base interface for document types with common timestamp fields
 export interface BaseDTO {
     id: string;
-    createdAt: string; // ISO string
-    updatedAt: string; // ISO string
-}
-
-/**
- * Firestore audit metadata types for test builders
- *
- * @deprecated Import from firebase/functions/src/schemas/common.ts instead
- * These are duplicates maintained only for backward compatibility with test-support package
- */
-export interface FirestoreAuditMetadata {
-    id: string;
-    createdAt: FirestoreTimestamp;
-    updatedAt: FirestoreTimestamp;
-}
-
-/**
- * @deprecated Import from firebase/functions/src/schemas/common.ts instead
- */
-export interface FirestoreAuditMetadataWithDeletion extends FirestoreAuditMetadata {
-    deletedAt: FirestoreTimestamp | null;
-    deletedBy: string | null;
+    createdAt: ISOString;
+    updatedAt: ISOString;
 }
 
 export interface PolicyVersion {
     text: string;
-    createdAt: string; // ISO string
+    createdAt: ISOString;
 }
 
 export interface Policy {
@@ -359,54 +338,6 @@ export interface Policy {
 }
 
 export interface PolicyDTO extends Policy, BaseDTO {}
-
-// ========================================================================
-// User Notification Types - Real-time change tracking per user
-// ========================================================================
-
-/**
- * Per-group notification tracking within a user's document
- */
-export interface UserNotificationGroup {
-    // Timestamps of last changes by type
-    lastTransactionChange: FirestoreTimestamp | null;
-    lastBalanceChange: FirestoreTimestamp | null;
-    lastGroupDetailsChange: FirestoreTimestamp | null;
-    lastCommentChange: FirestoreTimestamp | null;
-
-    // Change counters for detecting missed updates
-    transactionChangeCount: number;
-    balanceChangeCount: number;
-    groupDetailsChangeCount: number;
-    commentChangeCount: number;
-}
-
-/**
- * Recent changes tracking (debugging and audit)
- */
-export interface RecentChange {
-    groupId: string;
-    type: 'transaction' | 'balance' | 'group' | 'comment';
-    timestamp: FirestoreTimestamp;
-}
-
-/**
- * User notification document for client-side Firestore listeners.
- * Uses FirestoreTimestamp because it's read directly by browser SDK real-time listeners.
- */
-export interface UserNotificationDocument {
-    // Global version counter - increments on every change
-    changeVersion: number;
-
-    // Per-group change tracking
-    groups: Record<string, UserNotificationGroup>;
-
-    // Document metadata
-    lastModified: FirestoreTimestamp;
-
-    // Optional: Recent changes for debugging (kept to last 10)
-    recentChanges?: RecentChange[];
-}
 
 // ========================================================================
 // Balance Types
@@ -431,15 +362,56 @@ export interface CurrencyBalance {
 // ========================================================================
 
 /**
+ * GroupMembership business fields (without metadata)
+ *
+ * Represents the pure membership document stored in Firestore.
+ * This is the minimal data needed to track a user's membership in a group.
+ */
+export interface GroupMembership {
+    uid: string;
+    groupId: string; // For collectionGroup queries
+    memberRole: MemberRole;
+    memberStatus: MemberStatus;
+    joinedAt: ISOString;
+    invitedBy?: string; // UID of the user who created the share link that was used to join
+    theme: UserThemeColor;
+}
+
+/**
+ * GroupMembership DTO = Business fields (no additional metadata for subcollection docs)
+ *
+ * This is the wire format for membership documents. All timestamps are ISO 8601 strings.
+ * The canonical storage format is GroupMemberDocument in firebase/functions/src/schemas/group.ts
+ * which uses Firestore Timestamp objects.
+ *
+ * Note: Unlike other DTOs, this does NOT extend BaseDTO because membership documents
+ * in the subcollection (groups/{groupId}/members/{uid}) don't have id/createdAt/updatedAt fields.
+ */
+export type GroupMembershipDTO = GroupMembership;
+
+/**
+ * Top-level group membership document with metadata.
+ * Used in the top-level group-memberships collection for efficient pagination.
+ */
+export interface TopLevelGroupMembership extends GroupMembership {
+    groupUpdatedAt: ISOString; // Denormalized from group.updatedAt for sorting
+    createdAt: ISOString;
+    updatedAt: ISOString;
+}
+
+/**
  * Lean DTO for API responses containing only essential fields for group member display.
  * Prevents over-exposure of sensitive user data (acceptedPolicies, timestamps, etc.)
+ *
+ * Note: This is a composite view (User + GroupMembership), not a stored document,
+ * so it does NOT extend BaseDTO (no id/createdAt/updatedAt metadata).
  *
  * Used in:
  * - Group member lists
  * - Permissions calculations
  * - UI components requiring basic user info
  */
-export interface GroupMemberDTO {
+export interface GroupMember {
     // User identification
     uid: string;
     displayName: string;
@@ -453,62 +425,31 @@ export interface GroupMemberDTO {
     // Group membership metadata (required for permissions)
     memberRole: MemberRole;
     memberStatus: MemberStatus;
-    joinedAt: string; // ISO string
+    joinedAt: ISOString;
     invitedBy?: string; // UID of the user who invited this member
-    lastPermissionChange?: string; // ISO string - Track permission updates
 }
 
 /**
- * Document structure for storing members in subcollection: groups/{groupId}/members/{userId}
- *
- * Note: Uses ISO string timestamps (matches API format) rather than FirestoreTimestamp.
- * This is a known pattern where storage format matches wire format.
+ * ShareLink business fields (without metadata)
  */
-export interface GroupMemberDocument {
-    uid: string;
-    groupId: string; // For collectionGroup queries
-    memberRole: MemberRole;
-    theme: UserThemeColor;
-    joinedAt: string; // ISO string
-    memberStatus: MemberStatus;
-    invitedBy?: string; // UID of the user who created the share link that was used to join
-    lastPermissionChange?: string; // ISO string - Track permission updates
-}
-
-/**
- * Document structure for top-level group memberships collection: group-memberships/{userId}_{groupId}
- * This enables efficient pagination queries ordered by group activity
- */
-export interface TopLevelGroupMemberDocument {
-    // Core membership data (identical to subcollection)
-    uid: string;
-    groupId: string;
-    memberRole: MemberRole;
-    memberStatus: MemberStatus;
-    joinedAt: string;
-    theme: UserThemeColor;
-    invitedBy?: string;
-    lastPermissionChange?: string;
-
-    // Essential denormalized field for database-level sorting
-    groupUpdatedAt: string; // From group.updatedAt - enables proper ordering
-
-    // Standard metadata
-    createdAt: string;
-    updatedAt: string;
-}
-
 export interface ShareLink {
-    id: string;
     token: string; // The actual share token used in URLs
     createdBy: string; // UID of the user who created this share link
-    createdAt: string; // ISO timestamp
-    expiresAt?: string; // Future: expiration support (ISO timestamp)
+    expiresAt?: ISOString;
     isActive: boolean; // For soft deletion/deactivation
 }
 
 /**
- * Group DTO for API responses
+ * ShareLink DTO = Business fields + Metadata
+ *
+ * This is the wire format returned by API endpoints. All timestamps are ISO 8601 strings.
+ * The canonical storage format is ShareLinkDocument in firebase/functions/src/schemas/sharelink.ts
+ * which uses Firestore Timestamp objects.
+ */
+export interface ShareLinkDTO extends ShareLink, BaseDTO {}
+
+/**
+ * Group business fields (without metadata)
  *
  * This is the wire format returned by API endpoints. All timestamps are ISO 8601 strings.
  * The canonical storage format is GroupDocument in firebase/functions/src/schemas/group.ts
@@ -517,19 +458,16 @@ export interface ShareLink {
  * This type includes computed fields (balance, lastActivity) that are added by the API layer
  * and do not exist in the storage format.
  */
-export interface GroupDTO {
+export interface Group {
     // Core fields
-    id: string;
     name: string;
     description?: string;
 
     createdBy: string;
-    createdAt: string; // ISO 8601 string
-    updatedAt: string; // ISO 8601 string
 
     // Security Configuration
     securityPreset: SecurityPreset; // default: 'open'
-    presetAppliedAt?: string; // ISO 8601 string - Track when preset was last applied
+    presetAppliedAt?: ISOString;
 
     // Individual permission settings (customizable after preset selection)
     permissions: GroupPermissions;
@@ -545,8 +483,12 @@ export interface GroupDTO {
         balancesByCurrency: Record<string, CurrencyBalance>;
     };
     lastActivity?: string;
-    lastActivityRaw?: string;
 }
+
+/**
+ * Group DTO = Business fields + Metadata
+ */
+export interface GroupDTO extends Group, BaseDTO {}
 
 // Request/Response types
 export interface CreateGroupRequest {
@@ -581,7 +523,7 @@ export interface ListGroupsResponse {
 
 // Group members response
 export interface GroupMembersResponse {
-    members: GroupMemberDTO[];
+    members: GroupMember[];
     hasMore: boolean;
     nextCursor?: string;
 }
@@ -597,14 +539,9 @@ export interface ExpenseSplit {
 }
 
 /**
- * Expense DTO for API responses
- *
- * This is the wire format returned by API endpoints. All timestamps are ISO 8601 strings.
- * The canonical storage format is ExpenseDocument in firebase/functions/src/schemas/expense.ts
- * which uses Firestore Timestamp objects.
+ * Expense business fields (without metadata)
  */
-export interface ExpenseDTO {
-    id: string;
+export interface Expense {
     groupId: string;
     createdBy: string;
     paidBy: string;
@@ -612,16 +549,23 @@ export interface ExpenseDTO {
     currency: string;
     description: string;
     category: string;
-    date: string; // ISO 8601 string
+    date: ISOString;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
     participants: string[];
     splits: ExpenseSplit[];
     receiptUrl?: string;
-    createdAt: string; // ISO 8601 string
-    updatedAt: string; // ISO 8601 string
-    deletedAt: string | null; // ISO 8601 string
+    deletedAt: ISOString | null;
     deletedBy: string | null;
 }
+
+/**
+ * Expense DTO = Business fields + Metadata
+ *
+ * This is the wire format returned by API endpoints. All timestamps are ISO 8601 strings.
+ * The canonical storage format is ExpenseDocument in firebase/functions/src/schemas/expense.ts
+ * which uses Firestore Timestamp objects.
+ */
+export interface ExpenseDTO extends Expense, BaseDTO {}
 
 export interface CreateExpenseRequest {
     groupId: string;
@@ -644,25 +588,27 @@ export type UpdateExpenseRequest = Partial<Omit<CreateExpenseRequest, 'groupId'>
 // ========================================================================
 
 /**
- * Settlement DTO for API responses
- *
- * This is the wire format returned by API endpoints. All timestamps are ISO 8601 strings.
- * The canonical storage format is SettlementDocument in firebase/functions/src/schemas/settlement.ts
- * which uses Firestore Timestamp objects.
+ * Settlement business fields (without metadata)
  */
-export interface SettlementDTO {
-    id: string;
+export interface Settlement {
     groupId: string;
     payerId: string;
     payeeId: string;
     amount: number;
     currency: string;
-    date: string; // ISO 8601 string
-    note?: string | undefined;
+    date: ISOString;
+    note?: string;
     createdBy: string;
-    createdAt: string; // ISO 8601 string
-    updatedAt: string; // ISO 8601 string
 }
+
+/**
+ * Settlement DTO = Business fields + Metadata
+ *
+ * This is the wire format returned by API endpoints. All timestamps are ISO 8601 strings.
+ * The canonical storage format is SettlementDocument in firebase/functions/src/schemas/settlement.ts
+ * which uses Firestore Timestamp objects.
+ */
+export interface SettlementDTO extends Settlement, BaseDTO {}
 
 export interface CreateSettlementRequest {
     groupId: string;
@@ -670,26 +616,42 @@ export interface CreateSettlementRequest {
     payeeId: string;
     amount: number;
     currency: string;
-    date?: string; // ISO string, defaults to today
+    date?: ISOString;
     note?: string;
 }
 
 export type UpdateSettlementRequest = Partial<Omit<CreateSettlementRequest, 'groupId' | 'payerId' | 'payeeId'>>;
 
 /**
- * Enriched settlement with group member details for list displays
- * Used in settlement history and similar UI components
+ * Enriched settlement for API responses with resolved member details.
+ *
+ * This is a composite view (Settlement + resolved GroupMembers), not a stored document,
+ * so it does NOT extend BaseDTO (note: only has id and createdAt, missing updatedAt).
+ *
+ * The payer and payee fields are resolved from UIDs to full GroupMember objects
+ * by the SettlementService for convenient display in UI components. This eliminates
+ * the need for client-side lookups to display member names, avatars, and theme colors.
+ *
+ * Used in:
+ * - Settlement history displays
+ * - Settlement list endpoints (`/api/settlements`, `/api/groups/:id/settlements`)
+ * - UI components requiring member details with settlements
+ *
+ * Relationship to other types:
+ * - Settlement: Business fields only (payerId/payeeId as UIDs)
+ * - SettlementDTO: Settlement + BaseDTO metadata (wire format for individual settlements)
+ * - SettlementWithMembers: Settlement + resolved members (wire format for settlement lists)
  */
-export interface SettlementListItem {
+export interface SettlementWithMembers {
     id: string;
     groupId: string;
-    payer: GroupMemberDTO;
-    payee: GroupMemberDTO;
+    payer: GroupMember;
+    payee: GroupMember;
     amount: number;
     currency: string;
-    date: string; // ISO 8601 string
+    date: ISOString;
     note?: string;
-    createdAt: string; // ISO 8601 string
+    createdAt: ISOString;
 }
 
 // ========================================================================
@@ -698,20 +660,20 @@ export interface SettlementListItem {
 
 export interface GroupFullDetails {
     group: GroupDTO;
-    members: { members: GroupMemberDTO[] };
+    members: { members: GroupMember[] };
     expenses: { expenses: ExpenseDTO[]; hasMore: boolean; nextCursor?: string };
     balances: GroupBalances;
-    settlements: { settlements: SettlementListItem[]; hasMore: boolean; nextCursor?: string };
+    settlements: { settlements: SettlementWithMembers[]; hasMore: boolean; nextCursor?: string };
 }
 
 export interface ExpenseFullDetails {
     expense: ExpenseDTO;
     group: GroupDTO;
-    members: { members: GroupMemberDTO[] };
+    members: { members: GroupMember[] };
 }
 
 export interface ListSettlementsResponse {
-    settlements: SettlementListItem[];
+    settlements: SettlementWithMembers[];
     count: number;
     hasMore: boolean;
     nextCursor?: string;
@@ -770,15 +732,15 @@ export interface CurrentPolicyResponse {
     policyName: string;
     currentVersionHash: string;
     text: string;
-    createdAt: string;
+    createdAt: ISOString;
 }
 
 export interface UserProfileResponse {
     uid: string;
     email: string;
     displayName: string;
-    updatedAt?: string;
-    createdAt?: string;
+    updatedAt?: ISOString;
+    createdAt?: ISOString;
     photoURL?: string | null;
     themeColor?: UserThemeColor;
     preferredLanguage?: string;
@@ -820,7 +782,7 @@ export interface CreateSettlementResponse {
 
 export interface UpdateSettlementResponse {
     success: boolean;
-    data: SettlementListItem;
+    data: SettlementWithMembers;
 }
 
 export interface DeleteSettlementResponse {
@@ -852,7 +814,7 @@ export interface GroupBalances {
     groupId: string;
     userBalances: Record<string, UserBalance>;
     simplifiedDebts: SimplifiedDebt[];
-    lastUpdated: string; // ISO string
+    lastUpdated: ISOString;
     balancesByCurrency: Record<string, Record<string, UserBalance>>;
 }
 
@@ -868,20 +830,19 @@ export const CommentTargetTypes = {
 export type CommentTargetType = (typeof CommentTargetTypes)[keyof typeof CommentTargetTypes];
 
 /**
- * Comment DTO for API responses
+ * Comment business fields (without metadata)
  */
-export interface CommentDTO {
-    id: string;
+export interface Comment {
     authorId: string;
     authorName: string;
     authorAvatar?: string;
     text: string;
-    createdAt: string; // ISO 8601 string
-    updatedAt: string; // ISO 8601 string
 }
 
-/** @deprecated Use CommentDTO instead */
-export type CommentApiResponse = CommentDTO;
+/**
+ * Comment DTO = Business fields + Metadata
+ */
+export interface CommentDTO extends Comment, BaseDTO {}
 
 export interface CreateCommentRequest {
     text: string;
@@ -891,14 +852,14 @@ export interface CreateCommentRequest {
 }
 
 export interface ListCommentsResponse {
-    comments: CommentApiResponse[];
+    comments: CommentDTO[];
     hasMore: boolean;
     nextCursor?: string;
 }
 
 export interface CreateCommentResponse {
     success: boolean;
-    data: CommentApiResponse;
+    data: CommentDTO;
 }
 
 // ========================================================================

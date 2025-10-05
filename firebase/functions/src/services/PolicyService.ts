@@ -1,12 +1,11 @@
 import * as crypto from 'crypto';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
-import { createOptimisticTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import { PolicyDTO, PolicyVersion } from '@splitifyd/shared';
 import { measureDb } from '../monitoring/measure';
-import { PolicyDocumentSchema, PolicyDataSchema } from '../schemas';
+import { PolicyDocumentSchema } from '../schemas';
 import { z } from 'zod';
 import { IFirestoreReader } from './firestore';
 import { IFirestoreWriter } from './firestore';
@@ -152,11 +151,11 @@ export class PolicyService {
             }
 
             const versionHash = this.calculatePolicyHash(text);
-            const now = timestampToISO(createOptimisticTimestamp());
+            const now = new Date().toISOString();
 
             const newVersion: PolicyVersion = {
                 text,
-                createdAt: now,
+                createdAt: now, // DTO with ISO string
             };
 
             const data = doc.data();
@@ -175,7 +174,7 @@ export class PolicyService {
 
             const updates: any = {
                 versions,
-                updatedAt: createOptimisticTimestamp(),
+                // updatedAt is automatically added by FirestoreWriter
             };
 
             // If publish is true, also update currentVersionHash
@@ -231,10 +230,9 @@ export class PolicyService {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'VERSION_NOT_FOUND', 'Policy version not found');
             }
 
-            // Update current version hash
+            // Update current version hash (updatedAt is automatically added by FirestoreWriter)
             await this.firestoreWriter.updatePolicy(id, {
                 currentVersionHash: versionHash,
-                updatedAt: createOptimisticTimestamp(),
             });
 
             // Validate the updated document to ensure it's still valid
@@ -294,35 +292,26 @@ export class PolicyService {
             }
 
             const versionHash = this.calculatePolicyHash(text);
-            const now = createOptimisticTimestamp();
 
             const initialVersion: PolicyVersion = {
                 text,
-                createdAt: timestampToISO(now),
+                createdAt: new Date().toISOString(), // DTO with ISO string
             };
 
-            const policyData: Omit<PolicyDTO, 'id'> = {
+            // Note: createdAt and updatedAt are added by FirestoreWriter.createPolicy()
+            const policyData: Omit<PolicyDTO, 'id' | 'createdAt' | 'updatedAt'> = {
                 policyName,
                 currentVersionHash: versionHash,
                 versions: {
                     [versionHash]: initialVersion,
                 },
-                createdAt: timestampToISO(now),
-                updatedAt: timestampToISO(now),
             };
 
-            // Validate policy data before writing to Firestore
-            try {
-                const validatedPolicyData = PolicyDataSchema.parse(policyData);
-                await this.firestoreWriter.createPolicy(id, validatedPolicyData);
-            } catch (validationError) {
-                logger.error('Policy data validation failed before creation', validationError as Error, {
-                    policyName,
-                    customId,
-                    validationErrors: validationError instanceof z.ZodError ? validationError.issues : undefined,
-                });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_POLICY_DATA', 'Failed to create policy due to invalid data structure');
-            }
+            // FirestoreWriter will:
+            // 1. Convert ISO strings → Timestamps
+            // 2. Add createdAt/updatedAt with FieldValue.serverTimestamp()
+            // 3. Validate the final data with PolicyDataSchema
+            await this.firestoreWriter.createPolicy(id, policyData);
 
             logger.info('Policy created successfully', { policyId: id, policyName, versionHash });
 
@@ -386,9 +375,9 @@ export class PolicyService {
             const updatedVersions = { ...versions };
             delete updatedVersions[hash];
 
+            // updatedAt is automatically added by FirestoreWriter
             await this.firestoreWriter.updatePolicy(id, {
                 versions: updatedVersions,
-                updatedAt: createOptimisticTimestamp(),
             });
 
             // Validate the updated document to ensure it's still valid

@@ -1,12 +1,12 @@
 import { signal, ReadonlySignal } from '@preact/signals';
-import type { CommentApiResponse, CommentTargetType, ListCommentsResponse } from '@splitifyd/shared';
+import type { CommentDTO, CommentTargetType, ListCommentsResponse } from '@splitifyd/shared';
 import { apiClient } from '../app/apiClient';
 import { logError, logInfo } from '../utils/browser-logger';
 import {userNotificationDetector, UserNotificationDetector} from '../utils/user-notification-detector';
 
 interface CommentsStore {
     // State getters - readonly values for external consumers
-    readonly comments: CommentApiResponse[];
+    readonly comments: CommentDTO[];
     readonly loading: boolean;
     readonly submitting: boolean;
     readonly error: string | null;
@@ -15,7 +15,7 @@ interface CommentsStore {
     readonly targetId: string | null;
 
     // Signal accessors for reactive components - return readonly signals
-    readonly commentsSignal: ReadonlySignal<CommentApiResponse[]>;
+    readonly commentsSignal: ReadonlySignal<CommentDTO[]>;
     readonly loadingSignal: ReadonlySignal<boolean>;
     readonly submittingSignal: ReadonlySignal<boolean>;
     readonly errorSignal: ReadonlySignal<string | null>;
@@ -31,7 +31,7 @@ interface CommentsStore {
 
 class CommentsStoreImpl implements CommentsStore {
     // Private signals - encapsulated within the class
-    readonly #commentsSignal = signal<CommentApiResponse[]>([]);
+    readonly #commentsSignal = signal<CommentDTO[]>([]);
     readonly #loadingSignal = signal<boolean>(false);
     readonly #submittingSignal = signal<boolean>(false);
     readonly #errorSignal = signal<string | null>(null);
@@ -75,7 +75,7 @@ class CommentsStoreImpl implements CommentsStore {
     }
 
     // Signal accessors for reactive components - return readonly signals
-    get commentsSignal(): ReadonlySignal<CommentApiResponse[]> {
+    get commentsSignal(): ReadonlySignal<CommentDTO[]> {
         return this.#commentsSignal;
     }
     get loadingSignal(): ReadonlySignal<boolean> {

@@ -6,9 +6,9 @@ import {
     StubFirestoreWriter,
     StubAuthService
 } from '../mocks/firestore-stubs';
-import { GroupBuilder, GroupMemberDocumentBuilder, ThemeBuilder } from '@splitifyd/test-support';
-import { GroupMemberDocument } from '@splitifyd/shared';
-import { MemberRoles } from '@splitifyd/shared';
+import { GroupDTOBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import { MemberRoles, type GroupMembershipDTO } from '@splitifyd/shared';
+import { GroupMemberDocumentBuilder } from "../../support/GroupMemberDocumentBuilder";
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {
     let groupMemberService: GroupMemberService;
@@ -58,7 +58,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         );
 
         // Setup test group using builder
-        const testGroup = new GroupBuilder().withId(testGroupId).withName('Test Group').build();
+        const testGroup = new GroupDTOBuilder().withId(testGroupId).withName('Test Group').build();
         stubReader.setDocument('groups', testGroupId, testGroup);
 
         vi.clearAllMocks();
@@ -104,17 +104,17 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
     describe('getAllGroupMembers', () => {
         it('should return all members for a group', async () => {
-            const testMembers: GroupMemberDocument[] = [
+            const testMembers: GroupMembershipDTO[] = [
                 new GroupMemberDocumentBuilder().withUserId(testUserId1).withGroupId(testGroupId)
                     .withTheme(defaultTheme)
-                    .build(),
+                    .buildDocument(),
                 new GroupMemberDocumentBuilder().withUserId(testUserId2).withGroupId(testGroupId)
                     .withTheme(defaultTheme)
-                    .build(),
+                    .buildDocument(),
                 new GroupMemberDocumentBuilder().withUserId(testUserId3).withGroupId(testGroupId)
                     .withTheme(defaultTheme)
                     .asAdmin()
-                    .build(),
+                    .buildDocument(),
             ];
 
             // Set up group members in stub
@@ -221,7 +221,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     describe('Leave Group Validation', () => {
         test('should prevent group creator from leaving', async () => {
             // Setup: Creator trying to leave their own group
-            const testGroup = new GroupBuilder()
+            const testGroup = new GroupDTOBuilder()
                 .withId(testGroupId)
                 .withCreatedBy(creatorUserId)
                 .build();
@@ -241,7 +241,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should prevent leaving with outstanding balance', async () => {
             // Setup: Member with outstanding balance trying to leave
-            const testGroup = new GroupBuilder()
+            const testGroup = new GroupDTOBuilder()
                 .withId(testGroupId)
                 .withCreatedBy(creatorUserId)
                 .build();
@@ -273,7 +273,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should allow member to leave when balance is settled', async () => {
             // Setup: Member with settled balance leaving
-            const testGroup = new GroupBuilder()
+            const testGroup = new GroupDTOBuilder()
                 .withId(testGroupId)
                 .withCreatedBy(creatorUserId)
                 .build();
@@ -334,7 +334,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should reject leave request for non-member', async () => {
             // Setup: Group exists but user is not a member
-            const testGroup = new GroupBuilder()
+            const testGroup = new GroupDTOBuilder()
                 .withId(testGroupId)
                 .build();
 
@@ -349,7 +349,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     describe('Remove Member Validation', () => {
         test('should prevent non-creator from removing members', async () => {
             // Setup: Non-creator trying to remove another member
-            const testGroup = new GroupBuilder()
+            const testGroup = new GroupDTOBuilder()
                 .withId(testGroupId)
                 .withCreatedBy(creatorUserId)
                 .build();
@@ -368,7 +368,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should prevent removing the group creator', async () => {
             // Setup: Creator trying to remove themselves via removeGroupMember
-            const testGroup = new GroupBuilder()
+            const testGroup = new GroupDTOBuilder()
                 .withId(testGroupId)
                 .withCreatedBy(creatorUserId)
                 .build();
@@ -388,7 +388,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should prevent removing member with outstanding balance', async () => {
             // Setup: Creator trying to remove member with debt
-            const testGroup = new GroupBuilder()
+            const testGroup = new GroupDTOBuilder()
                 .withId(testGroupId)
                 .withCreatedBy(creatorUserId)
                 .build();
@@ -420,7 +420,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should allow creator to remove member with settled balance', async () => {
             // Setup: Creator removing member with zero balance
-            const testGroup = new GroupBuilder()
+            const testGroup = new GroupDTOBuilder()
                 .withId(testGroupId)
                 .withCreatedBy(creatorUserId)
                 .build();
@@ -461,7 +461,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should reject removal of non-existent member', async () => {
             // Setup: Creator trying to remove non-existent member
-            const testGroup = new GroupBuilder()
+            const testGroup = new GroupDTOBuilder()
                 .withId(testGroupId)
                 .withCreatedBy(creatorUserId)
                 .build();

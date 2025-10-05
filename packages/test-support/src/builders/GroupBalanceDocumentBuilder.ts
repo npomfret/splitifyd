@@ -1,9 +1,9 @@
-import { generateShortId } from '../test-helpers';
+import { generateShortId, BuilderTimestamp, timestampToISOString } from '../test-helpers';
 
 interface GroupBalanceDocument {
     groupId: string;
     balances: Record<string, Record<string, number>>;
-    lastUpdated: Date;
+    lastUpdated: string; // ISO string for consistency with DTO pattern
 }
 
 /**
@@ -18,7 +18,7 @@ export class GroupBalanceDocumentBuilder {
         this.document = {
             groupId: groupId,
             balances: {},
-            lastUpdated: new Date(),
+            lastUpdated: new Date().toISOString(),
         };
     }
 
@@ -40,8 +40,8 @@ export class GroupBalanceDocumentBuilder {
         return this;
     }
 
-    withLastUpdated(date: Date): this {
-        this.document.lastUpdated = date;
+    withLastUpdated(timestamp: BuilderTimestamp): this {
+        this.document.lastUpdated = timestampToISOString(timestamp);
         return this;
     }
 

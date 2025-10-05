@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { BalanceCalculationService } from '../../../services/balance';
+import {beforeEach, describe, expect, it} from 'vitest';
+import {BalanceCalculationService} from '../../../services/balance';
 import {StubAuthService, StubFirestoreReader, StubFirestoreWriter} from '../mocks/firestore-stubs';
-import { GroupBuilder, ExpenseBuilder, RegisteredUserBuilder, AuthUserRecordBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import {AuthUserRecordBuilder, ExpenseDTOBuilder, GroupDTOBuilder, RegisteredUserBuilder} from '@splitifyd/test-support';
 import {ApplicationBuilder} from "../../../services/ApplicationBuilder";
-import { UserService } from '../../../services/UserService2';
-import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import {UserService} from '../../../services/UserService2';
+import {MemberRoles, MemberStatuses} from '@splitifyd/shared';
+import {GroupMemberDocumentBuilder} from "../../support/GroupMemberDocumentBuilder";
 
 describe('BalanceCalculationService', () => {
     describe('Core Data Fetching', () => {
@@ -28,15 +29,15 @@ describe('BalanceCalculationService', () => {
                 const userId2 = 'user-2';
 
                 // Set up stub data - much cleaner than complex mock objects
-                const groupDoc = new GroupBuilder()
+                const groupDoc = new GroupDTOBuilder()
                     .withId(groupId)
                     .withName('Test Group')
                     .withMembers({
                         [userId1]: { uid: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
                         [userId2]: { uid: userId2, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
                     })
-                    .withServerCompatibleTimestamps()
-                    .buildForFirestore();
+                    
+                    .build();
 
                 stubFirestoreReader.setDocument('groups', groupId, groupDoc);
 
@@ -66,7 +67,7 @@ describe('BalanceCalculationService', () => {
                 expect(result.settlements).toHaveLength(0); // No settlements set up
                 expect(result.groupDoc.id).toBe(groupId);
                 expect(result.groupDoc.name).toBe('Test Group');
-                expect(result.memberProfiles).toHaveLength(2);
+                expect(Object.keys(result.memberProfiles)).toHaveLength(2);
             });
 
             it('should throw error when group is not found', async () => {
@@ -82,11 +83,11 @@ describe('BalanceCalculationService', () => {
                 const groupId = 'test-group-id';
 
                 // Set up group with no members
-                const groupWithNoMembers = new GroupBuilder()
+                const groupWithNoMembers = new GroupDTOBuilder()
                     .withId(groupId)
                     .withMembers({})
-                    .withServerCompatibleTimestamps()
-                    .buildForFirestore();
+                    
+                    .build();
                 stubFirestoreReader.setDocument('groups', groupId, groupWithNoMembers);
 
                 // Execute and verify error
@@ -98,13 +99,13 @@ describe('BalanceCalculationService', () => {
                 const userId1 = 'user-1';
 
                 // Set up group and member data
-                const groupDoc = new GroupBuilder()
+                const groupDoc = new GroupDTOBuilder()
                     .withId(groupId)
                     .withMembers({
                         [userId1]: { uid: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
                     })
-                    .withServerCompatibleTimestamps()
-                    .buildForFirestore();
+                    
+                    .build();
                 stubFirestoreReader.setDocument('groups', groupId, groupDoc);
 
                 stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`,
@@ -125,7 +126,7 @@ describe('BalanceCalculationService', () => {
                 // we just verify the basic structure works
                 expect(result.expenses).toHaveLength(0); // No expenses set up
                 expect(result.groupDoc.id).toBe(groupId);
-                expect(result.memberProfiles).toHaveLength(1);
+                expect(Object.keys(result.memberProfiles)).toHaveLength(1);
             });
         });
     });
@@ -150,14 +151,13 @@ describe('BalanceCalculationService', () => {
                 const userId1 = 'user-1';
                 const userId2 = 'user-2';
 
-                // Use builders for clean test data setup - but build simple data the stub can handle
-                const testGroup = new GroupBuilder()
+                // Use Firebase builders to create proper Documents with Timestamps
+                const testGroup = new GroupDTOBuilder()
                     .withId(groupId)
                     .withName('Test Group')
-                    .withCreatedBy(userId1)
-                    .build();
+                    .withCreatedBy(userId1).build();
 
-                const testExpense = new ExpenseBuilder()
+                const testExpense = new ExpenseDTOBuilder()
                     .withId('expense-1')
                     .withGroupId(groupId)
                     .withDescription('Dinner')
@@ -166,8 +166,7 @@ describe('BalanceCalculationService', () => {
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
-                    .withCreatedBy(userId1)
-                    .build();
+                    .withCreatedBy(userId1).build();
 
                 const userProfiles = [
                     new RegisteredUserBuilder().withUid(userId1).withDisplayName('User 1').withEmail('user1@test.com').build(),
@@ -221,18 +220,16 @@ describe('BalanceCalculationService', () => {
             userService = applicationBuilder.buildUserService();
             balanceCalculationService = new BalanceCalculationService(stubFirestoreReader, userService);
 
-            // Setup common test group using builder
-            const testGroup = new GroupBuilder()
+            // Setup common test group using Firebase builder with proper Timestamps
+            const testGroup = new GroupDTOBuilder()
                 .withId(testGroupId)
                 .withName('Test Group')
                 .withCreatedBy(userAlice)
                 .withMembers({
-                    [userAlice]: { uid: userAlice, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
-                    [userBob]: { uid: userBob, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
-                    [userCharlie]: { uid: userCharlie, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
-                })
-                .withServerCompatibleTimestamps()
-                .buildForFirestore();
+                    [userAlice]: {uid: userAlice, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE},
+                    [userBob]: {uid: userBob, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE},
+                    [userCharlie]: {uid: userCharlie, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE},
+                }).build();
 
             const userProfiles = [
                 new RegisteredUserBuilder().withUid(userAlice).withDisplayName('Alice').build(),
@@ -266,8 +263,8 @@ describe('BalanceCalculationService', () => {
         });
 
         it('should handle three-way equal split scenario', async () => {
-            // Use builder for expense test data
-            const expense = new ExpenseBuilder()
+            // Use Firebase builder for expense test data with proper Timestamps
+            const expense = new ExpenseDTOBuilder()
                 .withId('expense-1')
                 .withGroupId(testGroupId)
                 .withDescription('Restaurant Bill')
@@ -276,8 +273,12 @@ describe('BalanceCalculationService', () => {
                 .withPaidBy(userAlice)
                 .withSplitType('equal')
                 .withParticipants([userAlice, userBob, userCharlie])
-                .withCreatedBy(userAlice)
-                .build();
+                .withSplits([
+                    { uid: userAlice, amount: 50 },
+                    { uid: userBob, amount: 50 },
+                    { uid: userCharlie, amount: 50 },
+                ])
+                .withCreatedBy(userAlice).build();
 
             stubFirestoreReader.setDocument('expenses', expense.id, expense);
 
@@ -297,8 +298,8 @@ describe('BalanceCalculationService', () => {
         });
 
         it('should handle unequal split scenario', async () => {
-            // Use builder for unequal split expense
-            const expense = new ExpenseBuilder()
+            // Use Firebase builder for unequal split expense with proper Timestamps
+            const expense = new ExpenseDTOBuilder()
                 .withId('expense-1')
                 .withGroupId(testGroupId)
                 .withDescription('Taxi Share')
@@ -308,12 +309,11 @@ describe('BalanceCalculationService', () => {
                 .withSplitType('exact')
                 .withParticipants([userAlice, userBob, userCharlie])
                 .withSplits([
-                    { uid: userAlice, amount: 25 },
-                    { uid: userBob, amount: 25 },
-                    { uid: userCharlie, amount: 50 },
+                    {uid: userAlice, amount: 25},
+                    {uid: userBob, amount: 25},
+                    {uid: userCharlie, amount: 50},
                 ])
-                .withCreatedBy(userBob)
-                .build();
+                .withCreatedBy(userBob).build();
 
             stubFirestoreReader.setDocument('expenses', expense.id, expense);
 

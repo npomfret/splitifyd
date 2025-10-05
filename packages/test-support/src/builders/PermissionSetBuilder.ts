@@ -1,48 +1,45 @@
+import { GroupPermissions, PermissionLevel } from '@splitifyd/shared';
 import { randomChoice } from '../test-helpers';
 
-interface PermissionSet {
-    expenseEditing: string;
-    expenseDeletion: string;
-    memberInvitation: string;
-    memberApproval: string;
-    settingsManagement: string;
-}
-
+/**
+ * Builder for creating GroupPermissions objects for tests
+ * Provides preset configurations (open, managed) and custom permissions
+ */
 export class PermissionSetBuilder {
-    private permissions: PermissionSet;
+    private permissions: GroupPermissions;
 
     constructor() {
         // Default to random permissions for variety
         this.permissions = {
-            expenseEditing: randomChoice(['anyone', 'owner-and-admin', 'admin-only']),
-            expenseDeletion: randomChoice(['anyone', 'owner-and-admin', 'admin-only']),
-            memberInvitation: randomChoice(['anyone', 'owner-and-admin', 'admin-only']),
-            memberApproval: randomChoice(['automatic', 'admin-required']),
-            settingsManagement: randomChoice(['anyone', 'owner-and-admin', 'admin-only']),
+            expenseEditing: randomChoice(['anyone', 'owner-and-admin', 'admin-only'] as PermissionLevel[]),
+            expenseDeletion: randomChoice(['anyone', 'owner-and-admin', 'admin-only'] as PermissionLevel[]),
+            memberInvitation: randomChoice(['anyone', 'owner-and-admin', 'admin-only'] as PermissionLevel[]),
+            memberApproval: randomChoice(['automatic', 'admin-required'] as ('automatic' | 'admin-required')[]),
+            settingsManagement: randomChoice(['anyone', 'owner-and-admin', 'admin-only'] as PermissionLevel[]),
         };
     }
 
-    withExpenseEditing(level: string): this {
+    withExpenseEditing(level: PermissionLevel): this {
         this.permissions.expenseEditing = level;
         return this;
     }
 
-    withExpenseDeletion(level: string): this {
+    withExpenseDeletion(level: PermissionLevel): this {
         this.permissions.expenseDeletion = level;
         return this;
     }
 
-    withMemberInvitation(level: string): this {
+    withMemberInvitation(level: PermissionLevel): this {
         this.permissions.memberInvitation = level;
         return this;
     }
 
-    withMemberApproval(level: string): this {
+    withMemberApproval(level: 'automatic' | 'admin-required'): this {
         this.permissions.memberApproval = level;
         return this;
     }
 
-    withSettingsManagement(level: string): this {
+    withSettingsManagement(level: PermissionLevel): this {
         this.permissions.settingsManagement = level;
         return this;
     }
@@ -69,13 +66,7 @@ export class PermissionSetBuilder {
         return this;
     }
 
-    build(): PermissionSet {
-        return {
-            expenseEditing: this.permissions.expenseEditing,
-            expenseDeletion: this.permissions.expenseDeletion,
-            memberInvitation: this.permissions.memberInvitation,
-            memberApproval: this.permissions.memberApproval,
-            settingsManagement: this.permissions.settingsManagement,
-        };
+    build(): GroupPermissions {
+        return { ...this.permissions };
     }
 }

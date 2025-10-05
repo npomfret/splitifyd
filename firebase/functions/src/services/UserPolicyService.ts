@@ -1,6 +1,5 @@
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
-import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import { measureDb } from '../monitoring/measure';
@@ -83,7 +82,7 @@ export class UserPolicyService {
 
             // Build the update object for user document
             const updateData: any = {
-                updatedAt: createOptimisticTimestamp(),
+                updatedAt: new Date().toISOString(),
             };
 
             acceptances.forEach((acceptance) => {

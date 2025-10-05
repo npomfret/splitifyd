@@ -15,7 +15,7 @@
  */
 
 import type { Transaction, DocumentReference, Timestamp } from 'firebase-admin/firestore';
-import type { CommentTargetType } from '@splitifyd/shared';
+import type { CommentTargetType, ShareLinkDTO, ExpenseDTO, GroupDTO, SettlementDTO, RegisteredUser, CommentDTO } from '@splitifyd/shared';
 
 /**
  * Options for configuring transaction behavior including retry logic
@@ -37,15 +37,12 @@ export interface TransactionOptions {
         [key: string]: any;
     };
 }
-import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument } from '../../schemas';
-import type { ParsedComment as CommentDocument } from '../../schemas';
-import type { ShareLink } from '@splitifyd/shared';
 import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
 
 export interface WriteResult {
     id: string;
     success: boolean;
-    timestamp?: Timestamp;
+    timestamp?: Timestamp | Date;//todo: remove this
     error?: string;
 }
 
@@ -62,19 +59,19 @@ export interface IFirestoreWriter {
 
     /**
      * Create a new user document
-     * @param userId - The user ID (usually from Firebase Auth)
-     * @param userData - The user data to write
+     * @param userId - The user ID (usually from Firebase Auth) - becomes the document ID
+     * @param userData - The user data to write (DTO with ISO strings, excluding uid/emailVerified which are not stored in Firestore)
      * @returns Write result with document ID
      */
-    createUser(userId: string, userData: Omit<UserDocument, 'id'>): Promise<WriteResult>;
+    createUser(userId: string, userData: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified'>): Promise<WriteResult>;
 
     /**
      * Update an existing user document
      * @param userId - The user ID
-     * @param updates - Partial user data to update
+     * @param updates - Partial user data to update (DTO with ISO strings)
      * @returns Write result
      */
-    updateUser(userId: string, updates: Partial<Omit<UserDocument, 'id'>>): Promise<WriteResult>;
+    updateUser(userId: string, updates: Partial<Omit<RegisteredUser, 'id'>>): Promise<WriteResult>;
 
     /**
      * Delete a user document
@@ -90,18 +87,18 @@ export interface IFirestoreWriter {
 
     /**
      * Create a new group document
-     * @param groupData - The group data to write
+     * @param groupData - The group data to write (DTO with ISO strings)
      * @returns Write result with generated document ID
      */
-    createGroup(groupData: Omit<GroupDocument, 'id'>): Promise<WriteResult>;
+    createGroup(groupData: Omit<GroupDTO, 'id'>): Promise<WriteResult>;
 
     /**
      * Update an existing group document
      * @param groupId - The group ID
-     * @param updates - Partial group data to update
+     * @param updates - Partial group data to update (DTO with ISO strings)
      * @returns Write result
      */
-    updateGroup(groupId: string, updates: Partial<Omit<GroupDocument, 'id'>>): Promise<WriteResult>;
+    updateGroup(groupId: string, updates: Partial<Omit<GroupDTO, 'id'>>): Promise<WriteResult>;
 
     /**
      * Delete a group and all its subcollections
@@ -116,18 +113,18 @@ export interface IFirestoreWriter {
 
     /**
      * Create a new expense document
-     * @param expenseData - The expense data to write
+     * @param expenseData - The expense data to write (DTO with ISO strings)
      * @returns Write result with generated document ID
      */
-    createExpense(expenseData: Omit<ExpenseDocument, 'id'>): Promise<WriteResult>;
+    createExpense(expenseData: Omit<ExpenseDTO, 'id'>): Promise<WriteResult>;
 
     /**
      * Update an existing expense document
      * @param expenseId - The expense ID
-     * @param updates - Partial expense data to update
+     * @param updates - Partial expense data to update (DTO with ISO strings)
      * @returns Write result
      */
-    updateExpense(expenseId: string, updates: Partial<Omit<ExpenseDocument, 'id'>>): Promise<WriteResult>;
+    updateExpense(expenseId: string, updates: Partial<Omit<ExpenseDTO, 'id'>>): Promise<WriteResult>;
 
     /**
      * Delete an expense document
@@ -142,18 +139,18 @@ export interface IFirestoreWriter {
 
     /**
      * Create a new settlement document
-     * @param settlementData - The settlement data to write
+     * @param settlementData - The settlement data to write (DTO with ISO strings)
      * @returns Write result with generated document ID
      */
-    createSettlement(settlementData: Omit<SettlementDocument, 'id'>): Promise<WriteResult>;
+    createSettlement(settlementData: Omit<SettlementDTO, 'id'>): Promise<WriteResult>;
 
     /**
      * Update an existing settlement document
      * @param settlementId - The settlement ID
-     * @param updates - Partial settlement data to update
+     * @param updates - Partial settlement data to update (DTO with ISO strings)
      * @returns Write result
      */
-    updateSettlement(settlementId: string, updates: Partial<Omit<SettlementDocument, 'id'>>): Promise<WriteResult>;
+    updateSettlement(settlementId: string, updates: Partial<Omit<SettlementDTO, 'id'>>): Promise<WriteResult>;
 
     /**
      * Delete a settlement document
@@ -170,10 +167,10 @@ export interface IFirestoreWriter {
      * Add a comment to a group, expense or settlement
      * @param targetType - 'group', 'expense' or 'settlement'
      * @param targetId - The group, expense or settlement ID
-     * @param commentData - The comment data
+     * @param commentData - The comment data (DTO with ISO strings)
      * @returns Write result with generated comment ID
      */
-    addComment(targetType: CommentTargetType, targetId: string, commentData: Omit<CommentDocument, 'id'>): Promise<WriteResult>;
+    addComment(targetType: CommentTargetType, targetId: string, commentData: Omit<CommentDTO, 'id'>): Promise<WriteResult>;
 
     // ========================================================================
     // Share Link Operations
@@ -186,7 +183,7 @@ export interface IFirestoreWriter {
      * @param shareLinkData - The share link data
      * @returns Document reference
      */
-    createShareLinkInTransaction(transaction: Transaction, groupId: string, shareLinkData: Omit<ShareLink, 'id'>): DocumentReference;
+    createShareLinkInTransaction(transaction: Transaction, groupId: string, shareLinkData: Omit<ShareLinkDTO, 'id'>): DocumentReference;
 
     // ========================================================================
     // Policy Operations

@@ -1,14 +1,11 @@
-import { Timestamp } from 'firebase-admin/firestore';
 import type { ParsedBalanceCalculationResult as BalanceCalculationResult, ParsedBalanceCalculationInput as BalanceCalculationInput } from '../../schemas';
-import type { ExpenseDocument, SettlementDocument, GroupDocument } from '../../schemas';
-import { GroupMemberDocument } from '@splitifyd/shared';
+import type { ExpenseDTO, SettlementDTO, GroupDTO, GroupMembershipDTO } from '@splitifyd/shared';
 import { ExpenseProcessor } from './ExpenseProcessor';
 import { SettlementProcessor } from './SettlementProcessor';
 import { DebtSimplificationService } from './DebtSimplificationService';
 import { BalanceCalculationResultSchema, BalanceCalculationInputSchema } from '../../schemas';
 import { measureDb } from '../../monitoring/measure';
 import { logger } from '../../logger';
-import { timestampToISO } from '../../utils/dateHelpers';
 import type { IFirestoreReader } from '../firestore';
 import { UserService } from '../UserService2';
 
@@ -43,7 +40,7 @@ export class BalanceCalculationService {
      */
     calculateGroupBalancesWithData(input: BalanceCalculationInput): BalanceCalculationResult {
         // Validate input data for type safety
-        const validatedInput = BalanceCalculationInputSchema.parse(input);
+        const validatedInput = BalanceCalculationInputSchema.parse(input) as BalanceCalculationInput;
 
         const startTime = Date.now();
 
@@ -69,7 +66,7 @@ export class BalanceCalculationService {
         const result = {
             groupId: validatedInput.groupId,
             simplifiedDebts,
-            lastUpdated: timestampToISO(Timestamp.now()),
+            lastUpdated: new Date().toISOString(),
             balancesByCurrency,
         };
 
@@ -96,11 +93,18 @@ export class BalanceCalculationService {
 
     async fetchBalanceCalculationData(groupId: string): Promise<BalanceCalculationInput> {
         // Fetch all required data in parallel for better performance
-        const [expenses, settlements, { groupDoc, memberDocs }] = await Promise.all([this.fetchExpenses(groupId), this.fetchSettlements(groupId), this.fetchGroupData(groupId)]);
+        const [expenses, settlements, { groupDoc, memberDocs }] = await Promise.all([
+            this.fetchExpenses(groupId),
+            this.fetchSettlements(groupId),
+            this.fetchGroupData(groupId)
+        ]);
 
         // Fetch member profiles after we have group data
         const memberIds = memberDocs.map(member => member.uid);
-        const memberProfiles = await this.userService.getUsers(memberIds);
+        const memberProfilesMap = await this.userService.getUsers(memberIds);
+
+        // Convert Map to Record for schema validation
+        const memberProfiles = Object.fromEntries(memberProfilesMap);
 
         return {
             groupId,
@@ -112,24 +116,18 @@ export class BalanceCalculationService {
         };
     }
 
-    private async fetchExpenses(groupId: string): Promise<ExpenseDocument[]> {
-        // Use FirestoreReader for validated data - it handles the Zod parsing and validation
-        const expenseDocuments = await this.firestoreReader.getExpensesForGroup(groupId);
-
-        // No transformation needed - use canonical ExpenseDocument directly
-        return expenseDocuments;
+    private async fetchExpenses(groupId: string): Promise<ExpenseDTO[]> {
+        // Use FirestoreReader for validated data - returns DTOs with ISO strings
+        return await this.firestoreReader.getExpensesForGroup(groupId);
     }
 
-    private async fetchSettlements(groupId: string): Promise<SettlementDocument[]> {
-        // Use FirestoreReader for validated data - it handles the Zod parsing and validation
-        const settlementDocuments = await this.firestoreReader.getSettlementsForGroup(groupId);
-
-        // No transformation needed - use canonical SettlementDocument directly
-        return settlementDocuments;
+    private async fetchSettlements(groupId: string): Promise<SettlementDTO[]> {
+        // Use FirestoreReader for validated data - returns DTOs with ISO strings
+        return await this.firestoreReader.getSettlementsForGroup(groupId);
     }
 
-    private async fetchGroupData(groupId: string): Promise<{ groupDoc: GroupDocument; memberDocs: GroupMemberDocument[] }> {
-        // Use FirestoreReader for validated data
+    private async fetchGroupData(groupId: string): Promise<{ groupDoc: GroupDTO; memberDocs: GroupMembershipDTO[] }> {
+        // Use FirestoreReader for validated data - returns DTOs with ISO strings
         const groupDoc = await this.firestoreReader.getGroup(groupId);
 
         if (!groupDoc) {

@@ -4,12 +4,12 @@ import type {UserRecord, UpdateRequest, CreateRequest, GetUsersResult, DecodedId
 import type {IFirestoreReader} from '../../../services/firestore';
 import type {IFirestoreWriter, WriteResult} from '../../../services/firestore/IFirestoreWriter';
 import type {IAuthService} from '../../../services/auth';
-import type {PolicyTDO, UserDocument, GroupDocument, ExpenseDocument, SettlementDocument} from '../../../schemas';
-import {GroupMemberDocument, CommentTargetType} from '@splitifyd/shared';
+import {CommentTargetType} from '@splitifyd/shared';
 import type {UserNotificationDocument} from '../../../schemas/user-notifications';
-import type {ParsedComment} from '../../../schemas';
 import {ApiError} from '../../../utils/errors';
 import {HTTP_STATUS} from '../../../constants';
+import type { GroupMembershipDTO } from "@splitifyd/shared";
+import type {ExpenseDTO, GroupDTO, PolicyDTO, RegisteredUser, SettlementDTO, CommentDTO} from "@splitifyd/shared/src";
 
 // Shared storage for comments between reader and writer
 const sharedCommentStorage = new Map<string, any[]>();
@@ -80,11 +80,11 @@ export class StubFirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getAllPolicies(): Promise<PolicyTDO[]> {
+    async getAllPolicies(): Promise<PolicyDTO[]> {
         const error = this.methodErrors.get('getAllPolicies');
         if (error) throw error;
 
-        return this.filterCollection<PolicyTDO>('policies');
+        return this.filterCollection<PolicyDTO>('policies');
     }
 
     // Reset helper for test cleanup
@@ -134,15 +134,73 @@ export class StubFirestoreReader implements IFirestoreReader {
         return results;
     }
 
+    /**
+     * Convert ISO strings to Firestore Timestamps in test data
+     * Ensures test data matches what would be stored in real Firestore
+     */
+    private convertISOToTimestamps<T>(obj: T): T {
+        if (!obj || typeof obj !== 'object') {
+            return obj;
+        }
+
+        const result: any = Array.isArray(obj) ? [...obj] : { ...obj };
+
+        // Known date field names across all document types
+        const dateFields = new Set([
+            'createdAt', 'updatedAt', 'deletedAt',
+            'date', 'joinedAt', 'presetAppliedAt',
+            'lastModified', 'lastTransactionChange', 'lastBalanceChange',
+            'lastGroupDetailsChange', 'lastCommentChange', 'timestamp',
+            'expiresAt', 'deletionStartedAt', 'groupUpdatedAt',
+            'assignedAt'
+        ]);
+
+        for (const key in result) {
+            const value = result[key];
+
+            if (value === null || value === undefined) {
+                continue;
+            }
+
+            // Convert date fields from ISO string to Timestamp
+            if (dateFields.has(key) && typeof value === 'string') {
+                try {
+                    const date = new Date(value);
+                    if (!isNaN(date.getTime())) {
+                        result[key] = Timestamp.fromDate(date);
+                    }
+                } catch {
+                    // Keep original value if conversion fails
+                }
+            }
+            // Recursively convert nested objects
+            else if (typeof value === 'object' && !Array.isArray(value) && !(value instanceof Timestamp)) {
+                result[key] = this.convertISOToTimestamps(value);
+            }
+            // Recursively convert arrays
+            else if (Array.isArray(value)) {
+                result[key] = value.map(item =>
+                    typeof item === 'object' && item !== null
+                        ? this.convertISOToTimestamps(item)
+                        : item
+                );
+            }
+        }
+
+        return result;
+    }
+
     setRawDocument(id: string, data: any) {
         if (data === null) {
             this.rawDocuments.delete(id);
         } else {
+            // Convert ISO strings to Timestamps before storing (mirrors Firestore behavior)
+            const convertedData = this.convertISOToTimestamps(data);
             this.rawDocuments.set(id, {
                 id,
                 exists: !!data,
-                data: () => data,
-                get: (field: string) => data?.[field],
+                data: () => convertedData,
+                get: (field: string) => convertedData?.[field],
                 ref: {id, path: `policies/${id}`},
                 readTime: Timestamp.now(),
                 isEqual: (other: any) => other?.id === id,
@@ -151,7 +209,7 @@ export class StubFirestoreReader implements IFirestoreReader {
     }
 
     // Document Read Operations
-    async getUser(userId: string): Promise<UserDocument | null> {
+    async getUser(userId: string): Promise<RegisteredUser | null> {
         const error = this.methodErrors.get('getUser');
         if (error) throw error;
 
@@ -163,7 +221,7 @@ export class StubFirestoreReader implements IFirestoreReader {
         return this.documents.get(key) || null;
     }
 
-    async getGroup(groupId: string): Promise<GroupDocument | null> {
+    async getGroup(groupId: string): Promise<GroupDTO | null> {
         const error = this.methodErrors.get('getGroup');
         if (error) throw error;
 
@@ -175,7 +233,7 @@ export class StubFirestoreReader implements IFirestoreReader {
         return this.documents.get(key) || null;
     }
 
-    async getExpense(expenseId: string): Promise<ExpenseDocument | null> {
+    async getExpense(expenseId: string): Promise<ExpenseDTO | null> {
         const error = this.methodErrors.get('getExpense');
         if (error) throw error;
 
@@ -187,7 +245,7 @@ export class StubFirestoreReader implements IFirestoreReader {
         return this.documents.get(key) || null;
     }
 
-    async getSettlement(settlementId: string): Promise<SettlementDocument | null> {
+    async getSettlement(settlementId: string): Promise<SettlementDTO | null> {
         const error = this.methodErrors.get('getSettlement');
         if (error) throw error;
 
@@ -199,7 +257,7 @@ export class StubFirestoreReader implements IFirestoreReader {
         return this.documents.get(key) || null;
     }
 
-    async getPolicy(policyId: string): Promise<PolicyTDO | null> {
+    async getPolicy(policyId: string): Promise<PolicyDTO | null> {
         const error = this.methodErrors.get('getPolicy');
         if (error) throw error;
 
@@ -273,7 +331,7 @@ export class StubFirestoreReader implements IFirestoreReader {
         return { data: [], hasMore: false };
     }
 
-    async getGroupMember(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
+    async getGroupMember(groupId: string, userId: string): Promise<GroupMembershipDTO | null> {
         const error = this.methodErrors.get('getGroupMember');
         if (error) throw error;
 
@@ -284,11 +342,11 @@ export class StubFirestoreReader implements IFirestoreReader {
     }
 
     // Mock-enabled getAllGroupMembers
-    async getAllGroupMembers(groupId: string): Promise<GroupMemberDocument[]> {
+    async getAllGroupMembers(groupId: string): Promise<GroupMembershipDTO[]> {
         const error = this.methodErrors.get('getAllGroupMembers');
         if (error) throw error;
 
-        return this.filterCollection<GroupMemberDocument>(
+        return this.filterCollection<GroupMembershipDTO>(
             'group-members',
             doc => doc.groupId === groupId
         );
@@ -298,11 +356,11 @@ export class StubFirestoreReader implements IFirestoreReader {
         return [];
     }
 
-    async getExpensesForGroup(groupId: string, options?: any): Promise<ExpenseDocument[]> {
+    async getExpensesForGroup(groupId: string, options?: any): Promise<ExpenseDTO[]> {
         const error = this.methodErrors.get('getExpensesForGroup');
         if (error) throw error;
 
-        return this.filterCollection<ExpenseDocument>(
+        return this.filterCollection<ExpenseDTO>(
             'expenses',
             doc => doc.groupId === groupId && (doc.deletedAt == null || !!options?.includeDeleted),
             options?.orderBy,
@@ -317,13 +375,13 @@ export class StubFirestoreReader implements IFirestoreReader {
     async getExpensesForGroupPaginated(
         groupId: string,
         options?: { limit?: number; cursor?: string; includeDeleted?: boolean }
-    ): Promise<{ expenses: ExpenseDocument[]; hasMore: boolean; nextCursor?: string }> {
+    ): Promise<{ expenses: ExpenseDTO[]; hasMore: boolean; nextCursor?: string }> {
         const error = this.methodErrors.get('getExpensesForGroupPaginated');
         if (error) throw error;
 
         const limit = options?.limit || 20;
 
-        let expenses = this.filterCollection<ExpenseDocument>(
+        let expenses = this.filterCollection<ExpenseDTO>(
             'expenses',
             doc => doc.groupId === groupId && (doc.deletedAt == null || !!options?.includeDeleted),
             { field: 'createdAt', direction: 'desc' } // Default ordering by creation date
@@ -344,20 +402,28 @@ export class StubFirestoreReader implements IFirestoreReader {
         return { expenses: results, hasMore, nextCursor };
     }
 
-    async getSettlementsForGroup(groupId: string, options?: any): Promise<SettlementDocument[]> {
+    async getSettlementsForGroup(groupId: string, options?: any): Promise<SettlementDTO[]> {
         const error = this.methodErrors.get('getSettlementsForGroup');
         if (error) throw error;
 
-        return this.filterCollection<SettlementDocument>(
+        return this.filterCollection<SettlementDTO>(
             'settlements',
-            doc => doc.groupId === groupId && (doc.deletedAt == null || !!options?.includeDeleted),
+            doc => doc.groupId === groupId, // Settlements don't have soft delete
             options?.orderBy,
             options?.limit
         );
     }
 
-    async getUserNotification(): Promise<UserNotificationDocument | null> {
-        return null;
+    async getUserNotification(userId: string): Promise<UserNotificationDocument | null> {
+        const error = this.methodErrors.get('getUserNotification');
+        if (error) throw error;
+
+        const key = `user-notifications/${userId}`;
+        if (this.notFoundDocuments.has(key)) {
+            return null;
+        }
+
+        return this.documents.get(key) || null;
     }
 
     async findShareLinkByToken(): Promise<any | null> {
@@ -369,12 +435,12 @@ export class StubFirestoreReader implements IFirestoreReader {
         sharedCommentStorage.set(`${targetType}:${targetId}`, comments);
     }
 
-    async getCommentsForTarget(targetType: CommentTargetType, targetId: string, options?: any): Promise<any> {
+    async getCommentsForTarget(targetType: CommentTargetType, targetId: string, options?: any): Promise<{ comments: CommentDTO[]; hasMore: boolean; nextCursor?: string }> {
         const comments = sharedCommentStorage.get(`${targetType}:${targetId}`) || [];
-        return {comments, hasMore: false, nextCursor: null};
+        return {comments, hasMore: false, nextCursor: undefined};
     }
 
-    async getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<ParsedComment | null> {
+    async getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<CommentDTO | null> {
         const comments = sharedCommentStorage.get(`${targetType}:${targetId}`) || [];
         return comments.find((c) => c.id === commentId) || null;
     }
@@ -435,6 +501,17 @@ export class StubFirestoreReader implements IFirestoreReader {
         return null;
     }
 
+    getGroupInTransaction(transaction: FirebaseFirestore.Transaction, groupId: string): Promise<GroupDTO | null> {
+        throw new Error("Method not implemented yet");
+    }
+
+    getExpenseInTransaction(transaction: FirebaseFirestore.Transaction, expenseId: string): Promise<ExpenseDTO | null> {
+        throw new Error("Method not implemented yet");
+    }
+
+    getSettlementInTransaction(transaction: FirebaseFirestore.Transaction, settlementId: string): Promise<SettlementDTO | null> {
+        throw new Error("Method not implemented yet");
+    }
 }
 
 /**
@@ -445,11 +522,67 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     private documents = new Map<string, any>();
     private writeResults: WriteResult[] = [];
 
-    constructor(private sharedDocuments?: Map<string, any>) {
+    constructor(
+        private sharedDocuments?: Map<string, any>,
+        private stubReader?: StubFirestoreReader
+    ) {
         // If shared documents are provided, use those instead of our own
         if (sharedDocuments) {
             this.documents = sharedDocuments;
         }
+    }
+
+    /**
+     * Convert ISO strings to Firestore Timestamps
+     * Mirrors the real FirestoreWriter's conversion logic
+     */
+    private convertISOToTimestamps<T>(obj: T): T {
+        if (!obj || typeof obj !== 'object') {
+            return obj;
+        }
+
+        const result: any = Array.isArray(obj) ? [...obj] : { ...obj };
+
+        // Known date field names across all document types
+        const dateFields = new Set([
+            'createdAt', 'updatedAt', 'deletedAt',
+            'date', 'joinedAt', 'presetAppliedAt',
+            'lastModified', 'lastTransactionChange', 'lastBalanceChange',
+            'lastGroupDetailsChange', 'lastCommentChange', 'timestamp',
+            'expiresAt', 'deletionStartedAt', 'groupUpdatedAt',
+            'assignedAt' // For theme.assignedAt
+        ]);
+
+        if (Array.isArray(result)) {
+            // Process arrays
+            return result.map(item =>
+                item && typeof item === 'object' && !(item instanceof Timestamp)
+                    ? this.convertISOToTimestamps(item)
+                    : item
+            ) as T;
+        }
+
+        // Process object properties
+        for (const [key, value] of Object.entries(result)) {
+            if (dateFields.has(key) && value !== null && value !== undefined) {
+                // Convert known date fields from ISO string to Timestamp
+                if (typeof value === 'string') {
+                    result[key] = Timestamp.fromDate(new Date(value));
+                }
+            } else if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Timestamp)) {
+                // Recursively process nested objects (e.g., theme object)
+                result[key] = this.convertISOToTimestamps(value);
+            } else if (Array.isArray(value)) {
+                // Recursively process arrays of objects
+                result[key] = value.map(item =>
+                    item && typeof item === 'object' && !(item instanceof Timestamp)
+                        ? this.convertISOToTimestamps(item)
+                        : item
+                );
+            }
+        }
+
+        return result;
     }
 
     // Helper methods to configure behavior
@@ -483,14 +616,27 @@ export class StubFirestoreWriter implements IFirestoreWriter {
             throw new Error(result.error || 'Write operation failed');
         }
 
-        this.documents.set(`policies/${policyId}`, policyData);
+        // Convert ISO strings to Timestamps before storing (mirrors production FirestoreWriter)
+        const convertedData = this.convertISOToTimestamps(policyData);
+        this.documents.set(`policies/${policyId}`, convertedData);
+        // Also update rawDocuments so getRawPolicyDocument works (if stubReader is available)
+        if (this.stubReader) {
+            this.stubReader.setRawDocument(policyId, convertedData);
+        }
         return result;
     }
 
     async updatePolicy(policyId: string, updates: any): Promise<WriteResult> {
         const existing = this.documents.get(`policies/${policyId}`);
         if (existing) {
-            this.documents.set(`policies/${policyId}`, {...existing, ...updates});
+            // Convert ISO strings to Timestamps before merging (mirrors production FirestoreWriter)
+            const convertedUpdates = this.convertISOToTimestamps(updates);
+            const merged = {...existing, ...convertedUpdates};
+            this.documents.set(`policies/${policyId}`, merged);
+            // Also update rawDocuments so getRawPolicyDocument works (if stubReader is available)
+            if (this.stubReader) {
+                this.stubReader.setRawDocument(policyId, merged);
+            }
         }
         const result = this.getLastWriteResult() || {
             id: policyId,
@@ -506,10 +652,13 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     }
 
     async updateUser(userId: string, updates: any): Promise<WriteResult> {
+        // Convert ISO strings to Timestamps before storing, just like the real FirestoreWriter
+        const convertedUpdates = this.convertISOToTimestamps(updates);
+
         // Update the document in memory
         const existing = this.documents.get(`users/${userId}`);
         if (existing) {
-            this.documents.set(`users/${userId}`, {...existing, ...updates});
+            this.documents.set(`users/${userId}`, {...existing, ...convertedUpdates});
         }
         return {id: userId, success: true, timestamp: Timestamp.now()};
     }
@@ -578,13 +727,14 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         return {id: 'link', path: 'shareLinks/link'};
     }
 
-    async createUserNotification(): Promise<WriteResult> {
-        return {id: 'notification', success: true, timestamp: Timestamp.now()};
+    async createUserNotification(userId: string, notificationData: any): Promise<WriteResult> {
+        this.documents.set(`user-notifications/${userId}`, notificationData);
+        return {id: userId, success: true, timestamp: Timestamp.now()};
     }
 
 
-    async removeUserNotificationGroup(): Promise<WriteResult> {
-        return {id: 'notification', success: true, timestamp: Timestamp.now()};
+    async removeUserNotificationGroup(userId: string, groupId: string): Promise<WriteResult> {
+        return {id: userId, success: true, timestamp: Timestamp.now()};
     }
 
     public setUserNotificationsCalls: {userId: string, updates: any, merge?: boolean}[] = [];
@@ -1050,9 +1200,9 @@ export function createTestExpense(id: string, overrides: any = {}): any {
     };
 }
 
-export function createMockPolicyDocument(overrides: Partial<PolicyTDO> = {}): PolicyTDO {
+export function createMockPolicyDocument(overrides: Partial<PolicyDTO> = {}): PolicyDTO {
     const defaultHash = '4205e9e6ac39b586be85ca281f9eb22a12765bac87ca095f7ebfee54083063e3';
-    const defaultTimestamp = Timestamp.now();
+    const defaultTimestamp = new Date().toISOString(); // DTOs use ISO strings
 
     return {
         id: 'policy-123',

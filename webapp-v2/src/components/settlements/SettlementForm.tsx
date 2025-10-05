@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'preact/hooks';
 import { Button, Form, CurrencyAmountInput } from '../ui';
 import { CurrencyService } from '@/app/services/currencyService.ts';
-import { CreateSettlementRequest, GroupMemberDTO, SimplifiedDebt, SettlementListItem } from '@splitifyd/shared';
+import { CreateSettlementRequest, GroupMember, SimplifiedDebt, SettlementWithMembers } from '@splitifyd/shared';
 import { apiClient } from '@/app/apiClient.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
@@ -16,7 +16,7 @@ interface SettlementFormProps {
     preselectedDebt?: SimplifiedDebt;
     onSuccess?: () => void;
     editMode?: boolean;
-    settlementToEdit?: SettlementListItem;
+    settlementToEdit?: SettlementWithMembers;
 }
 
 export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSuccess, editMode = false, settlementToEdit }: SettlementFormProps) {
@@ -200,7 +200,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     })();
 
     const getMemberName = (userId: string): string => {
-        const member = members.find((m: GroupMemberDTO) => m.uid === userId);
+        const member = members.find((m: GroupMember) => m.uid === userId);
         return member?.displayName || t('common.unknownUser');
     };
 
@@ -242,7 +242,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 disabled={isSubmitting}
                             >
                                 <option value="">{t('settlementForm.selectPersonPlaceholder')}</option>
-                                {members.map((member: GroupMemberDTO) => (
+                                {members.map((member: GroupMember) => (
                                     <option key={member.uid} value={member.uid}>
                                         {member.displayName}
                                         {member.uid === currentUser?.uid && t('settlementForm.youSuffix')}
@@ -266,8 +266,8 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                             >
                                 <option value="">{t('settlementForm.selectPersonPlaceholder')}</option>
                                 {members
-                                    .filter((m: GroupMemberDTO) => m.uid !== payerId)
-                                    .map((member: GroupMemberDTO) => (
+                                    .filter((m: GroupMember) => m.uid !== payerId)
+                                    .map((member: GroupMember) => (
                                         <option key={member.uid} value={member.uid}>
                                             {member.displayName}
                                             {member.uid === currentUser?.uid && t('settlementForm.youSuffix')}

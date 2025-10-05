@@ -1,6 +1,6 @@
 import { test, expect } from '../../utils/console-logging-fixture';
 import {createMockFirebase, mockGroupsApi, mockApiFailure, mockFullyAcceptedPoliciesApi, setupSuccessfulApiMocks, MockFirebase} from '../../utils/mock-firebase-service';
-import { ClientUserBuilder, GroupBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder, DashboardPage } from '@splitifyd/test-support';
+import { ClientUserBuilder, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder, DashboardPage } from '@splitifyd/test-support';
 
 // Configure all tests to run in serial mode for browser reuse
 test.describe.configure({ mode: 'serial' });
@@ -128,9 +128,9 @@ test.describe('Dashboard Groups Display and Loading States', () => {
         const dashboardPage = new DashboardPage(page);
 
         const groups = [
-            GroupBuilder.groupForUser(testUser.uid).withId('group-1').withName('House Expenses').build(),
-            GroupBuilder.groupForUser(testUser.uid).withId('group-2').withName('Trip to Italy').build(),
-            GroupBuilder.groupForUser(testUser.uid).withId('group-3').withName('Weekly Dinners').build()
+            GroupDTOBuilder.groupForUser(testUser.uid).withId('group-1').withName('House Expenses').build(),
+            GroupDTOBuilder.groupForUser(testUser.uid).withId('group-2').withName('Trip to Italy').build(),
+            GroupDTOBuilder.groupForUser(testUser.uid).withId('group-3').withName('Weekly Dinners').build()
         ];
 
         // Mock groups API
@@ -161,7 +161,7 @@ test.describe('Dashboard Groups Display and Loading States', () => {
 
     test('should navigate to group details when clicking group card', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-abc')
             .withName('Test Group')
             .build();
@@ -263,12 +263,12 @@ test.describe('Dashboard Real-time Updates', () => {
     test('should update group name after real-time notification', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const initialGroup = GroupBuilder.groupForUser(testUser.uid)
+        const initialGroup = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-abc')
             .withName('Old Group Name')
             .build();
 
-        const updatedGroup = GroupBuilder.groupForUser(testUser.uid)
+        const updatedGroup = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-abc')
             .withName('New Group Name')
             .build();
@@ -326,7 +326,7 @@ test.describe('Dashboard Real-time Updates', () => {
         await page.waitForTimeout(100);
 
         // Create new group for notification
-        const newGroup = GroupBuilder.groupForUser(testUser.uid)
+        const newGroup = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('new-group-123')
             .withName('Brand New Group')
             .build();
@@ -371,7 +371,7 @@ test.describe('Dashboard Create Group Functionality', () => {
         const dashboardPage = new DashboardPage(page);
 
         // Start with some groups to see the create button
-        const group = GroupBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -461,7 +461,7 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
 
         // Create multiple groups to test grid layout
         const groups = Array.from({ length: 6 }, (_, i) =>
-            GroupBuilder.groupForUser(testUser.uid)
+            GroupDTOBuilder.groupForUser(testUser.uid)
                 .withId(`group-${i + 1}`)
                 .withName(`Test Group ${i + 1}`)
                 .build()
@@ -489,7 +489,7 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
     test('should show group creation loading state in grid', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const existingGroup = GroupBuilder.groupForUser(testUser.uid)
+        const existingGroup = GroupDTOBuilder.groupForUser(testUser.uid)
             .withName('Existing Group')
             .build();
 
@@ -509,7 +509,7 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
     test('should handle group card hover and click interactions', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('interactive-group')
             .withName('Interactive Group')
             .build();
@@ -552,12 +552,12 @@ test.describe('Dashboard Group Removal and Deletion', () => {
     test('should remove group from dashboard when user is removed from group', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group1 = GroupBuilder.groupForUser(testUser.uid)
+        const group1 = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-to-remove')
             .withName('Will Be Removed')
             .build();
 
-        const group2 = GroupBuilder.groupForUser(testUser.uid)
+        const group2 = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-to-keep')
             .withName('Will Stay')
             .build();
@@ -607,12 +607,12 @@ test.describe('Dashboard Group Removal and Deletion', () => {
     test('should remove group from dashboard when group is deleted', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group1 = GroupBuilder.groupForUser(testUser.uid)
+        const group1 = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-to-delete')
             .withName('Will Be Deleted')
             .build();
 
-        const group2 = GroupBuilder.groupForUser(testUser.uid)
+        const group2 = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-to-survive')
             .withName('Will Survive')
             .build();
@@ -662,7 +662,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
     test('should show empty state after last group is removed', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('only-group')
             .withName('Only Group')
             .build();
@@ -709,17 +709,17 @@ test.describe('Dashboard Group Removal and Deletion', () => {
     test('should handle multiple groups being removed simultaneously', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group1 = GroupBuilder.groupForUser(testUser.uid)
+        const group1 = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-1')
             .withName('Group One')
             .build();
 
-        const group2 = GroupBuilder.groupForUser(testUser.uid)
+        const group2 = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-2')
             .withName('Group Two')
             .build();
 
-        const group3 = GroupBuilder.groupForUser(testUser.uid)
+        const group3 = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-3')
             .withName('Group Three')
             .build();
@@ -786,12 +786,12 @@ test.describe('Dashboard Balance Change Notifications', () => {
     test('should refresh dashboard when balance change notification received', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const initialGroup = GroupBuilder.groupForUser(testUser.uid)
+        const initialGroup = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-balance-test')
             .withName('Balance Test Group')
             .build();
 
-        const updatedGroup = GroupBuilder.groupForUser(testUser.uid)
+        const updatedGroup = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-balance-test')
             .withName('Balance Test Group')
             .build();
@@ -835,12 +835,12 @@ test.describe('Dashboard Balance Change Notifications', () => {
     test('should handle balance changes for multiple groups', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group1 = GroupBuilder.groupForUser(testUser.uid)
+        const group1 = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-1')
             .withName('Group One')
             .build();
 
-        const group2 = GroupBuilder.groupForUser(testUser.uid)
+        const group2 = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-2')
             .withName('Group Two')
             .build();
@@ -905,12 +905,12 @@ test.describe('Dashboard Transaction Change Notifications', () => {
     test('should refresh dashboard when transaction change notification received', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const initialGroup = GroupBuilder.groupForUser(testUser.uid)
+        const initialGroup = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-transaction-test')
             .withName('Transaction Test Group')
             .build();
 
-        const updatedGroup = GroupBuilder.groupForUser(testUser.uid)
+        const updatedGroup = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-transaction-test')
             .withName('Transaction Test Group')
             .build();
@@ -954,7 +954,7 @@ test.describe('Dashboard Transaction Change Notifications', () => {
     test('should handle transaction and balance changes together', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-combo-test')
             .withName('Combo Test Group')
             .build();
@@ -1014,7 +1014,7 @@ test.describe('Dashboard Rapid Notification Updates', () => {
     test('should handle rapid successive notifications without missing updates', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-rapid-test')
             .withName('Rapid Test Group')
             .build();
@@ -1068,7 +1068,7 @@ test.describe('Dashboard Rapid Notification Updates', () => {
     test('should handle notifications arriving during active refresh', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-concurrent-test')
             .withName('Concurrent Test Group')
             .build();
@@ -1138,7 +1138,7 @@ test.describe('Dashboard Notification Error Handling', () => {
     test('should handle malformed notification gracefully', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-error-test')
             .withName('Error Test Group')
             .build();
@@ -1180,7 +1180,7 @@ test.describe('Dashboard Notification Error Handling', () => {
     test('should recover from notification with invalid group ID', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('valid-group')
             .withName('Valid Group')
             .build();

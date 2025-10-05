@@ -1,27 +1,13 @@
 import { measureDb } from '../monitoring/measure';
-import { FieldValue } from 'firebase-admin/firestore';
 import { ApiError, Errors } from '../utils/errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
-import { FirestoreCollections, MemberRoles, PermissionChangeLog, SecurityPresets, PermissionLevels } from '@splitifyd/shared';
+import { SecurityPresets } from '@splitifyd/shared';
 import { PermissionEngineAsync } from '../permissions/permission-engine-async';
-import { createOptimisticTimestamp } from '../utils/dateHelpers';
 
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
-import { GroupDTO, GroupPermissions } from '@splitifyd/shared';
-import type { GroupDocument } from '../schemas';
-
-/**
- * Transform GroupDocument (database schema) to Group (API type) with required defaults
- */
-function toGroup(groupDoc: GroupDocument): GroupDTO {
-    return {
-        ...groupDoc,
-        securityPreset: groupDoc.securityPreset!,
-        permissions: groupDoc.permissions as GroupPermissions,
-    };
-}
+import { FirestoreCollections } from "../constants";
 
 export class GroupPermissionService {
     constructor(
@@ -32,8 +18,8 @@ export class GroupPermissionService {
     /**
      * Validates a group document after an update operation
      */
-    private async validateUpdatedGroupDocument(groupDoc: FirebaseFirestore.DocumentReference, operationContext: string): Promise<void> {
-        const group = await this.firestoreReader.getGroup(groupDoc.id);
+    private async validateUpdatedGroupDocument(groupId: string, operationContext: string): Promise<void> {
+        const group = await this.firestoreReader.getGroup(groupId);
         if (!group) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found after update');
         }
@@ -41,7 +27,7 @@ export class GroupPermissionService {
         // Group validation is handled by FirestoreReader using GroupDocumentSchema
         // No additional validation needed here since FirestoreReader already validates
         logger.info('Group document validated successfully after operation', {
-            groupId: groupDoc.id,
+            groupId,
             operationContext,
         });
     }
@@ -79,14 +65,8 @@ export class GroupPermissionService {
             throw Errors.NOT_FOUND('Group');
         }
 
-        // Get raw document for optimistic locking
-        const groupDoc = await this.firestoreReader.getRawGroupDocument(groupId);
-        if (!groupDoc) {
-            throw Errors.NOT_FOUND('Group');
-        }
-        const originalUpdatedAt = groupDoc.data()?.updatedAt; // Store raw Firestore Timestamp for optimistic locking
-
-        if (!(await PermissionEngineAsync.checkPermission(this.firestoreReader, toGroup(group), userId, 'settingsManagement'))) {
+        // Check permissions - group is already a GroupDTO from FirestoreReader
+        if (!(await PermissionEngineAsync.checkPermission(this.firestoreReader, group, userId, 'settingsManagement'))) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to manage group settings');
         }
 
@@ -96,20 +76,14 @@ export class GroupPermissionService {
         // Use transaction with optimistic locking
         await this.firestoreWriter.runTransaction(
             async (transaction) => {
-                // Re-fetch within transaction
-                const groupDocInTx = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
-                if (!groupDocInTx) {
+                // Re-fetch within transaction - using DTO method
+                const currentGroup = await this.firestoreReader.getGroupInTransaction(transaction, groupId);
+                if (!currentGroup) {
                     throw Errors.NOT_FOUND('Group');
                 }
 
-                const currentData = groupDocInTx.data();
-                if (!currentData) {
-                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing');
-                }
-
-                // Optimistic locking check
-                const currentTimestamp = currentData.updatedAt;
-                if (!currentTimestamp || !originalUpdatedAt || !currentTimestamp.isEqual(originalUpdatedAt)) {
+                // Optimistic locking check (compare ISO strings)
+                if (group.updatedAt !== currentGroup.updatedAt) {
                     throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Group was modified by another user. Please refresh and try again.');
                 }
 
@@ -117,17 +91,8 @@ export class GroupPermissionService {
                 const updateData: any = {
                     securityPreset: SecurityPresets.CUSTOM,
                     permissions: updatedPermissions,
-                    updatedAt: createOptimisticTimestamp(),
+                    updatedAt: now, // ISO string
                 };
-
-                const changeLog: PermissionChangeLog = {
-                    timestamp: now,
-                    changedBy: userId,
-                    changeType: 'custom',
-                    changes: { permissions },
-                };
-
-                updateData['permissionHistory'] = FieldValue.arrayUnion(changeLog);
 
                 this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUPS}/${groupId}`, updateData);
             },
@@ -142,7 +107,7 @@ export class GroupPermissionService {
         );
 
         // Validate the group document after update
-        await this.validateUpdatedGroupDocument({ id: groupId } as any, 'group permissions update');
+        await this.validateUpdatedGroupDocument(groupId, 'group permissions update');
 
         // Cache invalidation removed - fetching fresh data on every request
 

@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
-import { COLOR_PATTERNS, FirestoreCollections, GroupMemberDocument, MemberRoles, MemberStatuses, ShareLink, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
+import { COLOR_PATTERNS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
 import * as dateHelpers from '../utils/dateHelpers';
 import * as measure from '../monitoring/measure';
 import { ShareLinkDataSchema } from '../schemas';
@@ -11,6 +11,8 @@ import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import type { GroupMemberService } from './GroupMemberService';
 import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
+import { FirestoreCollections } from "../constants";
+import type { GroupMembershipDTO } from "@splitifyd/shared";
 
 export class GroupShareService {
     // Injected dependencies or defaults
@@ -58,7 +60,7 @@ export class GroupShareService {
         };
     }
 
-    private async findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ShareLink }> {
+    private async findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ShareLinkDTO }> {
         const result = await this.firestoreReader.findShareLinkByToken(token);
 
         if (!result) {
@@ -66,11 +68,12 @@ export class GroupShareService {
         }
 
         // Convert ParsedShareLink to ShareLink format expected by this service
-        const shareLink: ShareLink = {
+        const shareLink: ShareLinkDTO = {
             id: result.shareLink.id,
             token: result.shareLink.token,
             createdBy: result.shareLink.createdBy,
             createdAt: result.shareLink.createdAt,
+            updatedAt: result.shareLink.updatedAt,
             expiresAt: result.shareLink.expiresAt,
             isActive: result.shareLink.isActive,
         };
@@ -116,10 +119,12 @@ export class GroupShareService {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
 
-            const shareLinkData: Omit<ShareLink, 'id'> = {
+            const now = new Date().toISOString();
+            const shareLinkData: Omit<ShareLinkDTO, 'id'> = {
                 token: shareToken,
                 createdBy: userId,
-                createdAt: new Date().toISOString(),
+                createdAt: now,
+                updatedAt: now,
                 isActive: true,
             };
 
@@ -234,17 +239,18 @@ export class GroupShareService {
         const existingMembers = await this.groupMemberService.getAllGroupMembers(groupId);
         const memberIndex = existingMembers.length;
 
-        const memberDoc: GroupMemberDocument = {
+        const themeColor = this.getThemeColorForMember(memberIndex);
+        const memberDoc: GroupMembershipDTO = {
             uid: userId,
             groupId: groupId,
             memberRole: MemberRoles.MEMBER,
-            theme: this.getThemeColorForMember(memberIndex),
-            joinedAt,
+            theme: themeColor,
+            joinedAt: joinedAt,
             memberStatus: MemberStatuses.ACTIVE,
             invitedBy: shareLink.createdBy,
         };
 
-        const serverTimestamp = this.dateHelpers.createTrueServerTimestamp();
+        const now = new Date().toISOString();
 
         // Atomic transaction: check group exists and create member subcollection
         const result = await this.firestoreWriter.runTransaction(
@@ -257,17 +263,21 @@ export class GroupShareService {
 
                 // Update group timestamp to reflect membership change
                 const groupDocumentPath = `${FirestoreCollections.GROUPS}/${groupId}`;
+                const groupUpdatedAt = new Date().toISOString();
                 this.firestoreWriter.updateInTransaction(transaction, groupDocumentPath, {
-                    updatedAt: this.dateHelpers.createTrueServerTimestamp(),
+                    updatedAt: groupUpdatedAt,
                 });
 
-                // Write to top-level collection for improved querying
-                const now = new Date();
-                this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, getTopLevelMembershipDocId(userId, groupId), {
-                    ...createTopLevelMembershipDocument(memberDoc, this.dateHelpers.timestampToISO(now)) /* Use current timestamp since group was just updated */,
-                    createdAt: serverTimestamp,
-                    updatedAt: serverTimestamp,
-                });
+                // Write to top-level collection for improved querying (using ISO strings - DTOs)
+                // Use the same ISO timestamp as the group to keep them in sync
+                const topLevelMemberDoc = {
+                    ...createTopLevelMembershipDocument(memberDoc, groupUpdatedAt),
+                    createdAt: now,
+                    updatedAt: now,
+                };
+
+                // FirestoreWriter.createInTransaction handles conversion and validation
+                this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, getTopLevelMembershipDocId(userId, groupId), topLevelMemberDoc);
 
                 // Note: Group notifications are handled by the trackGroupChanges trigger
                 // which fires when the group's updatedAt timestamp is modified above

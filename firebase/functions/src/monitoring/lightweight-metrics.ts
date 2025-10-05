@@ -20,7 +20,7 @@ export type MetricType = 'api' | 'db' | 'trigger';
 /**
  * Circular buffer implementation for bounded collections
  */
-class CircularBuffer<T> {
+class CircularBuffer<T extends { timestamp: number }> {
     private buffer: T[] = [];
     private pointer = 0;
 
@@ -45,7 +45,7 @@ class CircularBuffer<T> {
     }
 
     clearOlderThan(timestamp: number): void {
-        this.buffer = this.buffer.filter((item) => (item as any).timestamp >= timestamp);
+        this.buffer = this.buffer.filter((item) => item.timestamp >= timestamp);
         this.pointer = 0;
     }
 

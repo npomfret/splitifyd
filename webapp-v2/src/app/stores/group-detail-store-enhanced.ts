@@ -1,17 +1,17 @@
 import {signal, batch} from '@preact/signals';
 import {userNotificationDetector, UserNotificationDetector} from '@/utils/user-notification-detector';
 import {logError, logInfo} from '@/utils/browser-logger';
-import {ExpenseDTO, GroupDTO, GroupBalances, GroupMemberDTO, SettlementListItem} from '@splitifyd/shared';
+import {ExpenseDTO, GroupDTO, GroupBalances, GroupMember, SettlementWithMembers} from '@splitifyd/shared';
 import {apiClient} from '../apiClient';
 import {permissionsStore} from '@/stores/permissions-store.ts';
 
 interface EnhancedGroupDetailStore {
     // State
     group: GroupDTO | null;
-    members: GroupMemberDTO[];
+    members: GroupMember[];
     expenses: ExpenseDTO[];
     balances: GroupBalances | null;
-    settlements: SettlementListItem[];
+    settlements: SettlementWithMembers[];
     loading: boolean;
     loadingMembers: boolean;
     loadingExpenses: boolean;
@@ -45,10 +45,10 @@ interface EnhancedGroupDetailStore {
 class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     // Private signals
     readonly #groupSignal = signal<GroupDTO | null>(null);
-    readonly #membersSignal = signal<GroupMemberDTO[]>([]);
+    readonly #membersSignal = signal<GroupMember[]>([]);
     readonly #expensesSignal = signal<ExpenseDTO[]>([]);
     readonly #balancesSignal = signal<GroupBalances | null>(null);
-    readonly #settlementsSignal = signal<SettlementListItem[]>([]);
+    readonly #settlementsSignal = signal<SettlementWithMembers[]>([]);
     readonly #loadingSignal = signal<boolean>(false);
     readonly #loadingMembersSignal = signal<boolean>(false);
     readonly #loadingExpensesSignal = signal<boolean>(false);

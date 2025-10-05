@@ -45,13 +45,14 @@ export class ExpenseMetadataService {
         // Get the most recent expense (first in the sorted array)
         const latestExpense = expenses[0];
 
+        // ExpenseDTO has ISO strings from FirestoreReader
         return {
             expenseCount,
-            lastExpenseTime: latestExpense.createdAt?.toDate(),
+            lastExpenseTime: new Date(latestExpense.createdAt),
             lastExpense: {
                 description: latestExpense.description,
                 amount: latestExpense.amount,
-                date: latestExpense.date?.toDate()!,
+                date: new Date(latestExpense.date),
             },
         };
     }

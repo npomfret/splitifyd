@@ -4,33 +4,20 @@ import { ApiError, Errors } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import * as dateHelpers from '../utils/dateHelpers';
 import { logger, LoggerContext } from '../logger';
-import { GroupDTO, GroupPermissions } from '@splitifyd/shared';
-import { CreateExpenseRequest, DELETED_AT_FIELD, FirestoreCollections, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
+import { ExpenseDTO, CreateExpenseRequest, DELETED_AT_FIELD, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
 import * as expenseValidation from '../expenses/validation';
-import type { Expense } from '../expenses/validation';
 import { getMemberDocFromArray } from '../utils/memberHelpers';
 import { PermissionEngineAsync } from '../permissions/permission-engine-async';
-import { ExpenseDocumentSchema } from '../schemas';
 import * as measure from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
-import type { GroupDocument } from '../schemas';
 import { GroupMemberService } from './GroupMemberService';
 import { UserService } from './UserService2';
+import { FirestoreCollections } from "../constants";
 
 /**
  * Service for managing expenses
  */
-/**
- * Transform GroupDocument (database schema) to Group (API type) with required defaults
- */
-function toGroup(groupDoc: GroupDocument): GroupDTO {
-    return {
-        ...groupDoc,
-        securityPreset: groupDoc.securityPreset!,
-        permissions: groupDoc.permissions as GroupPermissions,
-    };
-}
 
 export class ExpenseService {
     constructor(
@@ -43,7 +30,7 @@ export class ExpenseService {
     /**
      * Fetch and validate an expense document
      */
-    private async fetchExpense(expenseId: string): Promise<Expense> {
+    private async fetchExpense(expenseId: string): Promise<ExpenseDTO> {
         // Use FirestoreReader for read operation
         const expenseData = await this.firestoreReader.getExpense(expenseId);
 
@@ -52,15 +39,12 @@ export class ExpenseService {
         }
 
         // Validate the expense data structure
-        let expense: Expense;
+        let expense: ExpenseDTO;
         try {
-            // Data already validated by FirestoreReader
-            const validatedData = expenseData;
-            // Use the validated data directly - schema parse guarantees type safety
-            // Convert receiptUrl from null to undefined if needed
+            // Data already validated by FirestoreReader - it's an ExpenseDTO with ISO strings
             expense = {
-                ...validatedData,
-                receiptUrl: validatedData.receiptUrl || undefined,
+                ...expenseData,
+                receiptUrl: expenseData.receiptUrl || undefined,
             };
         } catch (error) {
             logger.error('Invalid expense document structure', error as Error, {
@@ -81,7 +65,7 @@ export class ExpenseService {
     /**
      * Normalize validated expense data to Expense type
      */
-    private normalizeValidatedExpense(validatedData: any): Expense {
+    private normalizeValidatedExpense(validatedData: any): ExpenseDTO {
         return {
             ...validatedData,
             receiptUrl: validatedData.receiptUrl,
@@ -91,7 +75,7 @@ export class ExpenseService {
     /**
      * Transform expense document to response format
      */
-    private transformExpenseToResponse(expense: Expense): any {
+    private transformExpenseToResponse(expense: ExpenseDTO): any {
         return {
             id: expense.id,
             groupId: expense.groupId,
@@ -152,8 +136,8 @@ export class ExpenseService {
             throw Errors.NOT_FOUND('Group');
         }
 
-        // Transform GroupDocument to Group format for PermissionEngine
-        const group = toGroup(groupData);
+        // Group is already a GroupDTO from FirestoreReader
+        const group = groupData;
 
         // Check if user can create expenses in this group
         const canCreateExpense = await PermissionEngineAsync.checkPermission(this.firestoreReader, group, userId, 'expenseEditing');
@@ -175,7 +159,7 @@ export class ExpenseService {
         }
 
         // Create the expense document
-        const now = dateHelpers.createOptimisticTimestamp();
+        const now = new Date().toISOString();
 
         // Generate a unique ID for the expense
         const expenseId = this.firestoreWriter.generateDocumentId(FirestoreCollections.EXPENSES);
@@ -183,7 +167,7 @@ export class ExpenseService {
         // Calculate splits based on split type
         const splits = expenseValidation.calculateSplits(validatedExpenseData.amount, validatedExpenseData.splitType, validatedExpenseData.participants, validatedExpenseData.splits);
 
-        const expense: Expense = {
+        const expense: ExpenseDTO = {
             id: expenseId,
             groupId: validatedExpenseData.groupId,
             createdBy: userId,
@@ -192,7 +176,7 @@ export class ExpenseService {
             currency: validatedExpenseData.currency,
             description: validatedExpenseData.description,
             category: validatedExpenseData.category,
-            date: dateHelpers.parseISOToTimestamp(validatedExpenseData.date)!,
+            date: validatedExpenseData.date, // Already ISO string from request
             splitType: validatedExpenseData.splitType,
             participants: validatedExpenseData.participants,
             splits,
@@ -207,15 +191,7 @@ export class ExpenseService {
             expense.receiptUrl = validatedExpenseData.receiptUrl;
         }
 
-        // Validate the expense document before writing
-        try {
-            ExpenseDocumentSchema.parse(expense);
-        } catch (error) {
-            logger.error('Invalid expense document to write', error as Error, {
-                validationErrors: error instanceof z.ZodError ? error.issues : undefined,
-            });
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPENSE_DATA', 'Invalid expense data format');
-        }
+        // Note: FirestoreWriter handles validation and conversion (ISO → Timestamp)
 
         // DEBUGGING: Log the participants before saving to Firestore
         logger.info('ExpenseService creating expense with participants', {
@@ -230,16 +206,11 @@ export class ExpenseService {
         // Use transaction to create expense atomically
         let createdExpenseRef: DocumentReference | undefined;
         await this.firestoreWriter.runTransaction(async (transaction) => {
-            // Re-verify group exists within transaction
-            const groupDocInTx = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, expenseData.groupId);
+            // Re-verify group exists within transaction - using DTO method
+            const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, expenseData.groupId);
 
-            if (!groupDocInTx) {
+            if (!groupInTx) {
                 throw Errors.NOT_FOUND('Group');
-            }
-
-            const groupDataInTx = groupDocInTx.data();
-            if (!groupDataInTx) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing');
             }
 
             // Create the expense with the pre-generated ID
@@ -281,7 +252,8 @@ export class ExpenseService {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const group = toGroup(groupData);
+        // Group is already a GroupDTO from FirestoreReader
+        const group = groupData;
 
         // Check if user can edit expenses in this group
         // Convert expense to ExpenseData format for permission check
@@ -306,18 +278,16 @@ export class ExpenseService {
             }
         }
 
-        // Build update object with Firestore timestamp
-        // Note: We use 'any' here because we need to mix UpdateExpenseRequest fields
-        // with Firestore-specific fields (timestamps) that have different types
+        // Build update object with ISO timestamp
+        // Note: updatedAt will be set to current ISO timestamp for optimistic locking
+        // FirestoreWriter will convert ISO strings to Timestamps when writing
         const updates: any = {
             ...updateData,
-            updatedAt: dateHelpers.createOptimisticTimestamp(),
+            updatedAt: new Date().toISOString(), // ISO string for DTO
         };
 
-        // Handle date conversion
-        if (updateData.date) {
-            updates.date = dateHelpers.parseISOToTimestamp(updateData.date);
-        }
+        // Date is already an ISO string from updateData, no conversion needed
+        // FirestoreWriter handles ISO → Timestamp conversion
 
         // Handle split recalculation if needed
         if (updateData.splitType || updateData.participants || updateData.splits || updateData.amount) {
@@ -345,41 +315,35 @@ export class ExpenseService {
         await this.firestoreWriter.runTransaction(
             async (transaction) => {
                 // Re-fetch expense within transaction to check for concurrent updates
-                const expenseDocInTx = await this.firestoreReader.getRawExpenseDocumentInTransaction(transaction, expenseId);
+                // Now using DTO method which returns ISO strings
+                const currentExpense = await this.firestoreReader.getExpenseInTransaction(transaction, expenseId);
 
-                if (!expenseDocInTx) {
+                if (!currentExpense) {
                     throw Errors.NOT_FOUND('Expense');
                 }
 
-                const currentData = expenseDocInTx.data();
-                if (!currentData) {
-                    throw Errors.NOT_FOUND('Expense');
-                }
-
-                // Check if expense was updated since we fetched it
-                const originalTimestamp = expense.updatedAt;
-                const currentTimestamp = currentData.updatedAt;
-
-                if (!currentTimestamp || !originalTimestamp || !currentTimestamp.isEqual(originalTimestamp)) {
+                // Check if expense was updated since we fetched it (compare ISO strings)
+                // Both timestamps are now ISO strings, so we can compare directly
+                if (expense.updatedAt !== currentExpense.updatedAt) {
                     throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Expense was modified by another user. Please refresh and try again.');
                 }
 
-                // Create history entry
+                // Create history entry with ISO timestamp
                 // Filter out undefined values for Firestore compatibility
                 const cleanExpenseData = Object.fromEntries(Object.entries(expense).filter(([, value]) => value !== undefined));
 
                 const historyEntry = {
                     ...cleanExpenseData,
-                    modifiedAt: dateHelpers.createOptimisticTimestamp(),
+                    modifiedAt: new Date().toISOString(), // ISO string
                     modifiedBy: userId,
                     changeType: 'update' as const,
                     changes: Object.keys(updateData),
                 };
 
                 // Save history and update expense
-                const historyRef = expenseDocInTx.ref.collection('history').doc();
-                this.firestoreWriter.createInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}/history`, historyRef.id, historyEntry);
-                this.firestoreWriter.updateInTransaction(transaction, expenseDocInTx.ref.path, updates);
+                // FirestoreWriter will convert ISO strings to Timestamps
+                this.firestoreWriter.createInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}/history`, crypto.randomUUID(), historyEntry);
+                this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}`, updates);
             },
             {
                 maxAttempts: 3,
@@ -480,7 +444,8 @@ export class ExpenseService {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const group = toGroup(groupData);
+        // Group is already a GroupDTO from FirestoreReader
+        const group = groupData;
 
         // Check if user can delete expenses in this group
         // Convert expense to ExpenseData format for permission check
@@ -496,35 +461,29 @@ export class ExpenseService {
                 async (transaction) => {
                     // IMPORTANT: All reads must happen before any writes in Firestore transactions
 
-                    // Step 1: Do ALL reads first
-                    const expenseDoc = await this.firestoreReader.getRawExpenseDocumentInTransaction(transaction, expenseId);
-                    if (!expenseDoc) {
+                    // Step 1: Do ALL reads first - using DTO methods
+                    const currentExpense = await this.firestoreReader.getExpenseInTransaction(transaction, expenseId);
+                    if (!currentExpense) {
                         throw Errors.NOT_FOUND('Expense');
                     }
 
-                    // Get the current timestamp for optimistic locking
-                    const originalTimestamp = expenseDoc.data()?.updatedAt;
-                    if (!originalTimestamp) {
-                        throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_EXPENSE_DATA', 'Expense is missing updatedAt timestamp');
-                    }
-
                     // Get group doc to ensure it exists (though we already checked above)
-                    const groupDocInTx = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, expense.groupId);
-                    if (!groupDocInTx) {
+                    const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, expense.groupId);
+                    if (!groupInTx) {
                         throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group not found');
                     }
 
-                    // Step 2: Check for concurrent updates
-                    const currentTimestamp = expenseDoc.data()?.updatedAt;
-                    if (!currentTimestamp || !currentTimestamp.isEqual(originalTimestamp)) {
+                    // Step 2: Check for concurrent updates (compare ISO strings)
+                    if (expense.updatedAt !== currentExpense.updatedAt) {
                         throw Errors.CONCURRENT_UPDATE();
                     }
 
                     // Step 3: Now do ALL writes - soft delete the expense
-                    this.firestoreWriter.updateInTransaction(transaction, expenseDoc.ref.path, {
-                        [DELETED_AT_FIELD]: dateHelpers.createOptimisticTimestamp(),
+                    const now = new Date().toISOString();
+                    this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}`, {
+                        [DELETED_AT_FIELD]: now, // ISO string, FirestoreWriter converts to Timestamp
                         deletedBy: userId,
-                        updatedAt: dateHelpers.createOptimisticTimestamp(), // Update the timestamp for optimistic locking
+                        updatedAt: now, // ISO string for optimistic locking
                     });
 
                     // Note: Group metadata/balance updates will be handled by the balance aggregation trigger
@@ -593,13 +552,15 @@ export class ExpenseService {
         }
 
         // Transform group data using same pattern as groups handler (without deprecated members field)
+        // LENIENT: Handle both ISO strings (from DTOs) and Timestamps during transition
+        // GroupDTO already has ISO strings from FirestoreReader
         const group = {
             id: groupData.id,
             name: groupData.name,
             description: groupData.description,
             createdBy: groupData.createdBy,
-            createdAt: groupData.createdAt.toDate().toISOString(),
-            updatedAt: groupData.updatedAt.toDate().toISOString(),
+            createdAt: groupData.createdAt,
+            updatedAt: groupData.updatedAt,
         };
 
         // Get members data from subcollection (formatted with profiles)

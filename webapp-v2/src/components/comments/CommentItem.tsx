@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { formatDistanceToNow } from '@/utils/dateUtils.ts';
 import { getInitials } from '@/utils/avatar.ts';
-import type { CommentApiResponse } from '@splitifyd/shared';
+import type { CommentDTO } from '@splitifyd/shared';
 
 interface CommentItemProps {
-    comment: CommentApiResponse;
+    comment: CommentDTO;
     showAvatar?: boolean;
     className?: string;
 }

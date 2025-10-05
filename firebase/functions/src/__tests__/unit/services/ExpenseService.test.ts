@@ -6,7 +6,7 @@ import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { CreateExpenseRequest } from '@splitifyd/shared';
-import { ExpenseBuilder } from '@splitifyd/test-support';
+import { ExpenseDTOBuilder } from '@splitifyd/test-support';
 
 describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;
@@ -38,7 +38,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user-id';
             const now = Timestamp.now();
 
-            const mockExpense = new ExpenseBuilder()
+            const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withGroupId('test-group-id')
                 .withCreatedBy('creator-id')
@@ -56,7 +56,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withReceiptUrl('https://example.com/receipt.jpg')
                 .withCreatedAt(now)
                 .withUpdatedAt(now)
-                .buildForFirestore();
+                .build();
 
             // Mock the expense data
             setExpenseData(expenseId, mockExpense);
@@ -94,11 +94,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'test-expense-id';
             const userId = 'test-user-id';
 
-            const mockExpense = new ExpenseBuilder()
+            const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([userId])
                 // No receiptUrl - this is the key test point
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).buildForFirestore();
+                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -117,10 +117,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const participantId = 'participant-user';
             const nonParticipantId = 'non-participant-user';
 
-            const mockExpense = new ExpenseBuilder()
+            const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([participantId]) // Only one participant - key for access control test
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).buildForFirestore();
+                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -139,10 +139,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const participant1 = 'participant-1';
             const participant2 = 'participant-2';
 
-            const mockExpense = new ExpenseBuilder()
+            const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([participant1, participant2]) // Key: multiple participants for access test
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).buildForFirestore();
+                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -162,11 +162,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'deleted-expense-id';
             const userId = 'test-user-id';
 
-            const mockDeletedExpense = new ExpenseBuilder()
+            const mockDeletedExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([userId])
                 .withDeletedAt(Timestamp.now()) // Key: soft deleted status
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).buildForFirestore();
+                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
 
             setExpenseData(expenseId, mockDeletedExpense);
 
@@ -203,11 +203,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user-id';
 
             // Set minimal data (the service handles undefined gracefully)
-            const minimalExpense = new ExpenseBuilder()
+            const minimalExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withGroupId('test-group-id') // Key: expected in assertion
                 .withParticipants([userId]) // Key: user access
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).buildForFirestore();
+                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
 
             // Remove optional fields to test undefined handling
             delete (minimalExpense as any).amount;
@@ -233,10 +233,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'empty-participants-expense';
             const userId = 'test-user-id';
 
-            const mockExpense = new ExpenseBuilder()
+            const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([]) // Key: empty participants for access test
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).buildForFirestore();
+                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -254,10 +254,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'null-participants-expense';
             const userId = 'test-user-id';
 
-            const mockExpense = new ExpenseBuilder()
+            const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([]) // Key: empty participants (null equivalent) for access test
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).buildForFirestore();
+                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -275,12 +275,12 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'decimal-precision-expense';
             const userId = 'test-user-id';
 
-            const mockExpense = new ExpenseBuilder()
+            const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withAmount(100.33) // Key: decimal precision
                 .withParticipants([userId])
                 .withSplits([{ uid: userId, amount: 100.33 }]) // Key: matching decimal amount
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).buildForFirestore();
+                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -347,11 +347,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'categorized-expense';
             const userId = 'test-user-id';
 
-            const mockExpense = new ExpenseBuilder()
+            const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withCategory('Food & Dining') // Key: specific category to test
                 .withParticipants([userId])
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).buildForFirestore();
+                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -368,12 +368,12 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user-id';
 
             // Create expense without category by not calling withCategory()
-            const builder = new ExpenseBuilder()
+            const builder = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([userId]);
 
             // Build and manually remove category to ensure it's undefined
-            const mockExpense = builder.withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).buildForFirestore();
+            const mockExpense = builder.withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
             delete (mockExpense as any).category;
 
             setExpenseData(expenseId, mockExpense);
@@ -391,11 +391,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user-id';
             const receiptUrl = 'https://storage.example.com/receipts/receipt123.jpg';
 
-            const mockExpense = new ExpenseBuilder()
+            const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withReceiptUrl(receiptUrl) // Key: receipt URL to test
                 .withParticipants([userId])
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).buildForFirestore();
+                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -427,11 +427,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const participantId = 'participant-user';
             const expenseId = 'test-expense';
 
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withDescription('Test expense') // Key: test description for assertion
                 .withParticipants([participantId]) // Key: participant access
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).buildForFirestore();
+                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
 
             stubReader.setDocument('expenses', expenseId, expenseData);
 
@@ -450,10 +450,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const outsiderId = 'outsider-user';
             const expenseId = 'test-expense';
 
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([participantId]) // Key: only one participant for access denial test
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).buildForFirestore();
+                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
 
             stubReader.setDocument('expenses', expenseId, expenseData);
 
@@ -466,11 +466,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user';
             const expenseId = 'deleted-expense';
 
-            const deletedExpense = new ExpenseBuilder()
+            const deletedExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([userId])
                 .withDeletedAt(Timestamp.now()) // Key: soft deleted status
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).buildForFirestore();
+                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
 
             stubReader.setDocument('expenses', expenseId, deletedExpense);
 
@@ -486,7 +486,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'test-expense';
             const now = Timestamp.now();
 
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withGroupId('test-group')
                 .withCreatedBy(userId)
@@ -501,7 +501,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withReceiptUrl('https://example.com/receipt.jpg')
                 .withCreatedAt(now)
                 .withUpdatedAt(now)
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).buildForFirestore();
+                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
 
             stubReader.setDocument('expenses', expenseId, expenseData);
 
@@ -535,11 +535,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user';
             const expenseId = 'test-expense';
 
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([userId])
                 // No receiptUrl - key test point
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).buildForFirestore();
+                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
 
             stubReader.setDocument('expenses', expenseId, expenseData);
 

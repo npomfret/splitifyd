@@ -1,10 +1,10 @@
-import { generateShortId } from '../test-helpers';
+import { generateShortId, BuilderTimestamp, timestampToISOString } from '../test-helpers';
 
 interface TransactionChangeDocument {
     groupId: string;
     type: 'expense' | 'settlement' | 'group';
     users: string[];
-    createdAt: Date;
+    createdAt: string; // ISO string for consistency with DTO pattern
 }
 
 /**
@@ -19,7 +19,7 @@ export class TransactionChangeDocumentBuilder {
             groupId: `group-${generateShortId()}`,
             type: 'expense',
             users: [],
-            createdAt: new Date(),
+            createdAt: new Date().toISOString(),
         };
     }
 
@@ -38,8 +38,8 @@ export class TransactionChangeDocumentBuilder {
         return this;
     }
 
-    withCreatedAt(date: Date): this {
-        this.document.createdAt = date;
+    withCreatedAt(timestamp: BuilderTimestamp): this {
+        this.document.createdAt = timestampToISOString(timestamp);
         return this;
     }
 

@@ -3,7 +3,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import assert from 'node:assert';
-import { PolicyIds, FirestoreCollections } from '@splitifyd/shared';
+import { PolicyIds } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
 import { getEnvironment, initializeFirebase } from './firebase-init';
 
@@ -25,6 +25,7 @@ initializeFirebase(env);
 
 import { getAuth, getFirestore } from '../functions/src/firebase';
 import { ApplicationBuilder } from '../functions/src/services/ApplicationBuilder';
+import { FirestoreCollections } from '../functions/src/constants';
 
 // Get Firebase instances
 const firestoreDb = getFirestore();

@@ -9,11 +9,12 @@ import {
 } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
-import { GroupBuilder, ExpenseBuilder, GroupMemberDocumentBuilder, CommentBuilder, CommentRequestBuilder } from '@splitifyd/test-support';
+import { GroupDTOBuilder, ExpenseDTOBuilder, CommentBuilder, CommentRequestBuilder, AuthUserRecordBuilder } from '@splitifyd/test-support';
 import { CommentTargetTypes } from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { CommentTargetType, CreateCommentRequest } from '@splitifyd/shared';
 import { validateCreateComment, validateListCommentsQuery, validateTargetId, validateCommentId } from '../../../comments/validation';
+import { GroupMemberDocumentBuilder } from "../../support/GroupMemberDocumentBuilder";
 
 describe('CommentService - Consolidated Tests', () => {
     let commentService: CommentService;
@@ -31,12 +32,12 @@ describe('CommentService - Consolidated Tests', () => {
         commentService = applicationBuilder.buildCommentService();
 
         // Set up test user in auth stub
-        stubAuth.setUser('user-id', {
-            uid: 'user-id',
-            email: 'test@example.com',
-            displayName: 'Test User',
-            photoURL: 'https://example.com/photo.jpg',
-        });
+        stubAuth.setUser('user-id', new AuthUserRecordBuilder()
+            .withUid('user-id')
+            .withEmail('test@example.com')
+            .withDisplayName('Test User')
+            .withPhotoURL('https://example.com/photo.jpg')
+            .build());
 
         // Reset mocks
         stubAuth.clear();
@@ -46,7 +47,7 @@ describe('CommentService - Consolidated Tests', () => {
 
     describe('verifyCommentAccess for GROUP comments', () => {
         it('should allow access when group exists and user is member', async () => {
-            const testGroup = new GroupBuilder().withId('test-group').build();
+            const testGroup = new GroupDTOBuilder().withId('test-group').build();
             stubReader.setDocument('groups', 'test-group', testGroup);
 
             // Set up group membership
@@ -64,7 +65,7 @@ describe('CommentService - Consolidated Tests', () => {
         });
 
         it('should throw FORBIDDEN when user is not a group member', async () => {
-            const testGroup = new GroupBuilder().withId('test-group').build();
+            const testGroup = new GroupDTOBuilder().withId('test-group').build();
             stubReader.setDocument('groups', 'test-group', testGroup);
             // Don't set up group membership - user will not be a member
 
@@ -74,8 +75,8 @@ describe('CommentService - Consolidated Tests', () => {
 
     describe('verifyCommentAccess for EXPENSE comments', () => {
         it('should allow access when expense exists and user is group member', async () => {
-            const testExpense = new ExpenseBuilder().withId('test-expense').withGroupId('test-group').build();
-            const testGroup = new GroupBuilder().withId('test-group').build();
+            const testExpense = new ExpenseDTOBuilder().withId('test-expense').withGroupId('test-group').build();
+            const testGroup = new GroupDTOBuilder().withId('test-group').build();
 
             stubReader.setDocument('expenses', 'test-expense', testExpense);
             stubReader.setDocument('groups', 'test-group', testGroup);
@@ -96,7 +97,7 @@ describe('CommentService - Consolidated Tests', () => {
 
     describe('listComments', () => {
         it('should return paginated comments for GROUP target', async () => {
-            const testGroup = new GroupBuilder().withId('test-group').build();
+            const testGroup = new GroupDTOBuilder().withId('test-group').build();
 
             const mockComments = [
                 new CommentBuilder()
@@ -133,9 +134,9 @@ describe('CommentService - Consolidated Tests', () => {
         });
 
         it('should return paginated comments for EXPENSE target', async () => {
-            const testExpense = new ExpenseBuilder().withId('test-expense').withGroupId('test-group').build();
+            const testExpense = new ExpenseDTOBuilder().withId('test-expense').withGroupId('test-group').build();
 
-            const testGroup = new GroupBuilder().withId('test-group').build();
+            const testGroup = new GroupDTOBuilder().withId('test-group').build();
 
             // Set up test data in stubs
             stubReader.setDocument('expenses', 'test-expense', testExpense);
@@ -168,7 +169,7 @@ describe('CommentService - Consolidated Tests', () => {
 
     describe('createComment', () => {
         it('should create a GROUP comment successfully', async () => {
-            const testGroup = new GroupBuilder().withId('test-group').build();
+            const testGroup = new GroupDTOBuilder().withId('test-group').build();
 
             const createdComment = new CommentBuilder()
                 .withId('new-comment-id')
@@ -188,12 +189,12 @@ describe('CommentService - Consolidated Tests', () => {
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
             // Set up user in auth stub (CommentService calls authService.getUser)
-            stubAuth.setUser('user-id', {
-                uid: 'user-id',
-                email: 'test@example.com',
-                displayName: 'Test User',
-                photoURL: 'https://example.com/photo.jpg',
-            });
+            stubAuth.setUser('user-id', new AuthUserRecordBuilder()
+                .withUid('user-id')
+                .withEmail('test@example.com')
+                .withDisplayName('Test User')
+                .withPhotoURL('https://example.com/photo.jpg')
+                .build());
 
             // Mock writer and reader methods
             stubWriter.addComment = vi.fn().mockResolvedValue({
@@ -216,7 +217,7 @@ describe('CommentService - Consolidated Tests', () => {
         });
 
         it('should throw error when comment creation fails', async () => {
-            const testGroup = new GroupBuilder().withId('test-group').build();
+            const testGroup = new GroupDTOBuilder().withId('test-group').build();
 
             // Set up test data in stubs
             stubReader.setDocument('groups', 'test-group', testGroup);
@@ -249,7 +250,7 @@ describe('CommentService - Consolidated Tests', () => {
 
     describe('dependency injection', () => {
         it('should use injected FirestoreReader for group reads', async () => {
-            const testGroup = new GroupBuilder().withId('test-group').build();
+            const testGroup = new GroupDTOBuilder().withId('test-group').build();
 
             // Set up test data in stubs
             stubReader.setDocument('groups', 'test-group', testGroup);
@@ -265,8 +266,8 @@ describe('CommentService - Consolidated Tests', () => {
         });
 
         it('should use injected FirestoreReader for expense reads', async () => {
-            const testExpense = new ExpenseBuilder().withId('test-expense').withGroupId('test-group').build();
-            const testGroup = new GroupBuilder().withId('test-group').build();
+            const testExpense = new ExpenseDTOBuilder().withId('test-expense').withGroupId('test-group').build();
+            const testGroup = new GroupDTOBuilder().withId('test-group').build();
 
             // Set up test data in stubs
             stubReader.setDocument('expenses', 'test-expense', testExpense);
@@ -307,7 +308,7 @@ describe('CommentService - Consolidated Tests', () => {
                 };
 
                 // Set up group and membership for real validation
-                const testGroup = new GroupBuilder().withId(targetId).build();
+                const testGroup = new GroupDTOBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
                 const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
@@ -315,11 +316,11 @@ describe('CommentService - Consolidated Tests', () => {
                 stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
 
                 // Set up auth user
-                stubAuth.setUser(userId, {
-                    uid: userId,
-                    email: 'test@example.com',
-                    displayName: 'Test User',
-                });
+                stubAuth.setUser(userId, new AuthUserRecordBuilder()
+                    .withUid(userId)
+                    .withEmail('test@example.com')
+                    .withDisplayName('Test User')
+                    .build());
 
                 stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, true);
 
@@ -345,7 +346,7 @@ describe('CommentService - Consolidated Tests', () => {
                 };
 
                 // Set up group and membership for real validation
-                const testGroup = new GroupBuilder().withId(targetId).build();
+                const testGroup = new GroupDTOBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
                 const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
@@ -353,11 +354,11 @@ describe('CommentService - Consolidated Tests', () => {
                 stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
 
                 // Set up auth user without displayName
-                stubAuth.setUser(userId, {
-                    uid: userId,
-                    email: 'user456@example.com',
-                    // No displayName
-                });
+                stubAuth.setUser(userId, new AuthUserRecordBuilder()
+                    .withUid(userId)
+                    .withEmail('user456@example.com')
+                    .withDisplayName(undefined)  // Explicitly clear displayName for email fallback test
+                    .build());
 
                 stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, true);
 
@@ -393,11 +394,11 @@ describe('CommentService - Consolidated Tests', () => {
                     targetId,
                 };
 
-                stubAuth.setUser(userId, {
-                    uid: userId,
-                    email: 'test@example.com',
-                    displayName: 'Test User',
-                });
+                stubAuth.setUser(userId, new AuthUserRecordBuilder()
+                    .withUid(userId)
+                    .withEmail('test@example.com')
+                    .withDisplayName('Test User')
+                    .build());
 
                 // Access should be denied since no proper setup
                 await expect(
@@ -416,18 +417,18 @@ describe('CommentService - Consolidated Tests', () => {
                 };
 
                 // Set up group and membership for real validation
-                const testGroup = new GroupBuilder().withId(targetId).build();
+                const testGroup = new GroupDTOBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
                 const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
                     .build();
                 stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
 
-                stubAuth.setUser(userId, {
-                    uid: userId,
-                    email: 'test@example.com',
-                    displayName: 'Test User',
-                });
+                stubAuth.setUser(userId, new AuthUserRecordBuilder()
+                    .withUid(userId)
+                    .withEmail('test@example.com')
+                    .withDisplayName('Test User')
+                    .build());
 
                 // Mock firestore write to fail
                 stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, false, 'Write failed');
@@ -445,7 +446,7 @@ describe('CommentService - Consolidated Tests', () => {
                 const targetId = 'group-456';
 
                 // Set up group and membership for real validation
-                const testGroup = new GroupBuilder().withId(targetId).build();
+                const testGroup = new GroupDTOBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
                 const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
@@ -489,7 +490,7 @@ describe('CommentService - Consolidated Tests', () => {
                 const targetId = 'group-456';
 
                 // Set up group and membership for real validation
-                const testGroup = new GroupBuilder().withId(targetId).build();
+                const testGroup = new GroupDTOBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
                 const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
@@ -528,18 +529,18 @@ describe('CommentService - Consolidated Tests', () => {
                 };
 
                 // Set up group and membership for real validation
-                const testGroup = new GroupBuilder().withId(targetId).build();
+                const testGroup = new GroupDTOBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
                 const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
                     .build();
                 stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
 
-                stubAuth.setUser(userId, {
-                    uid: userId,
-                    email: 'test@example.com',
-                    displayName: 'Test User',
-                });
+                stubAuth.setUser(userId, new AuthUserRecordBuilder()
+                    .withUid(userId)
+                    .withEmail('test@example.com')
+                    .withDisplayName('Test User')
+                    .build());
                 stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, true);
 
                 const result = await commentService.createComment(targetType, targetId, commentData, userId);
@@ -559,8 +560,8 @@ describe('CommentService - Consolidated Tests', () => {
                 };
 
                 // Set up expense, group and membership for real validation
-                const testExpense = new ExpenseBuilder().withId(targetId).withGroupId(groupId).build();
-                const testGroup = new GroupBuilder().withId(groupId).build();
+                const testExpense = new ExpenseDTOBuilder().withId(targetId).withGroupId(groupId).build();
+                const testGroup = new GroupDTOBuilder().withId(groupId).build();
 
                 stubReader.setDocument('expenses', targetId, testExpense);
                 stubReader.setDocument('groups', groupId, testGroup);
@@ -569,11 +570,11 @@ describe('CommentService - Consolidated Tests', () => {
                     .build();
                 stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
 
-                stubAuth.setUser(userId, {
-                    uid: userId,
-                    email: 'test@example.com',
-                    displayName: 'Test User',
-                });
+                stubAuth.setUser(userId, new AuthUserRecordBuilder()
+                    .withUid(userId)
+                    .withEmail('test@example.com')
+                    .withDisplayName('Test User')
+                    .build());
                 stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, true);
 
                 const result = await commentService.createComment(targetType, targetId, commentData, userId);
@@ -594,18 +595,18 @@ describe('CommentService - Consolidated Tests', () => {
                 };
 
                 // Set up group and membership for real validation
-                const testGroup = new GroupBuilder().withId(targetId).build();
+                const testGroup = new GroupDTOBuilder().withId(targetId).build();
                 stubReader.setDocument('groups', targetId, testGroup);
 
                 const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(targetId)
                     .build();
                 stubReader.setDocument('group-members', `${targetId}_${userId}`, membershipDoc);
 
-                stubAuth.setUser(userId, {
-                    uid: userId,
-                    email: 'test@example.com',
-                    displayName: 'Test User',
-                });
+                stubAuth.setUser(userId, new AuthUserRecordBuilder()
+                    .withUid(userId)
+                    .withEmail('test@example.com')
+                    .withDisplayName('Test User')
+                    .build());
                 stubWriter.setWriteResult(`${targetType}-comments/${targetId}`, true);
 
                 // Create the comment

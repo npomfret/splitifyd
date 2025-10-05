@@ -84,3 +84,27 @@ export function randomCurrency(): string {
 export function randomCategory(): string {
     return randomChoice(['food', 'transport', 'entertainment', 'utilities', 'shopping', 'other']);
 }
+
+/**
+ * Type for timestamp values in builders
+ * Supports Date objects, ISO strings, and Firestore Timestamps
+ */
+export type BuilderTimestamp = Date | string | { toDate(): Date };
+
+/**
+ * Converts various timestamp formats to ISO string
+ * Handles Date objects, ISO strings, and Firestore Timestamps
+ */
+export function timestampToISOString(timestamp: BuilderTimestamp | null): string {
+    if (!timestamp) {
+        return new Date().toISOString();
+    }
+    if (typeof timestamp === 'string') {
+        return timestamp;
+    }
+    if (timestamp instanceof Date) {
+        return timestamp.toISOString();
+    }
+    // Firestore Timestamp
+    return timestamp.toDate().toISOString();
+}

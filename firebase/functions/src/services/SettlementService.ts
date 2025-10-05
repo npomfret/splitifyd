@@ -3,14 +3,14 @@ import { z } from 'zod';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import * as dateHelpers from '../utils/dateHelpers';
-import { getUpdatedAtTimestamp } from '../utils/optimistic-locking';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import * as measure from '../monitoring/measure';
-import { SettlementDTO, CreateSettlementRequest, UpdateSettlementRequest, SettlementListItem, RegisteredUser, GroupMemberDTO, FirestoreCollections } from '@splitifyd/shared';
+import { SettlementDTO, CreateSettlementRequest, UpdateSettlementRequest, SettlementWithMembers, GroupMember } from '@splitifyd/shared';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
+import { FirestoreCollections } from "../constants";
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -72,7 +72,7 @@ export class SettlementService {
     /**
      * Fetch group member data for settlements
      */
-    private async fetchGroupMemberData(groupId: string, userId: string): Promise<GroupMemberDTO> {
+    private async fetchGroupMemberData(groupId: string, userId: string): Promise<GroupMember> {
         const [userData, memberData] = await Promise.all([
             this.firestoreReader.getUser(userId),
             this.firestoreReader.getGroupMember(groupId, userId)
@@ -107,9 +107,8 @@ export class SettlementService {
                 themeColor: memberData.theme,
                 memberRole: memberData.memberRole,
                 memberStatus: memberData.memberStatus,
-                joinedAt: memberData.joinedAt,
+                joinedAt: memberData.joinedAt, // Already ISO string from DTO
                 invitedBy: memberData.invitedBy,
-                lastPermissionChange: memberData.lastPermissionChange,
             };
         } catch (error) {
             this.logger.error('User document validation failed', error, { userId });
@@ -131,7 +130,7 @@ export class SettlementService {
             endDate?: string;
         } = {},
     ): Promise<{
-        settlements: SettlementListItem[];
+        settlements: SettlementWithMembers[];
         count: number;
         hasMore: boolean;
         nextCursor?: string;
@@ -150,7 +149,7 @@ export class SettlementService {
             endDate?: string;
         } = {},
     ): Promise<{
-        settlements: SettlementListItem[];
+        settlements: SettlementWithMembers[];
         count: number;
         hasMore: boolean;
         nextCursor?: string;
@@ -185,8 +184,8 @@ export class SettlementService {
         await this.firestoreReader.verifyGroupMembership(settlementData.groupId, userId);
         await this.verifyUsersInGroup(settlementData.groupId, [settlementData.payerId, settlementData.payeeId]);
 
-        const now = this.dateHelpers.createOptimisticTimestamp();
-        const settlementDate = settlementData.date ? this.dateHelpers.safeParseISOToTimestamp(settlementData.date) : now;
+        const now = new Date().toISOString();
+        const settlementDate = settlementData.date || now;
 
         const settlementDataToCreate: any = {
             groupId: settlementData.groupId,
@@ -194,9 +193,9 @@ export class SettlementService {
             payeeId: settlementData.payeeId,
             amount: settlementData.amount,
             currency: settlementData.currency,
-            date: settlementDate,
+            date: settlementDate, // ISO string
             createdBy: userId,
-            createdAt: now,
+            createdAt: now, // ISO string
             updatedAt: now,
         };
 
@@ -229,11 +228,11 @@ export class SettlementService {
     /**
      * Update an existing settlement
      */
-    async updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementListItem> {
+    async updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementWithMembers> {
         return this.measure.measureDb('SettlementService.updateSettlement', async () => this._updateSettlement(settlementId, updateData, userId));
     }
 
-    private async _updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementListItem> {
+    private async _updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementWithMembers> {
         this.loggerContext.setBusinessContext({ settlementId });
         this.loggerContext.update({ userId, operation: 'update-settlement' });
 
@@ -253,7 +252,7 @@ export class SettlementService {
         }
 
         const updates: any = {
-            updatedAt: this.dateHelpers.createOptimisticTimestamp(),
+            updatedAt: new Date().toISOString(), // ISO string
         };
 
         if (updateData.amount !== undefined) {
@@ -265,7 +264,7 @@ export class SettlementService {
         }
 
         if (updateData.date !== undefined) {
-            updates.date = this.dateHelpers.safeParseISOToTimestamp(updateData.date);
+            updates.date = updateData.date; // Already ISO string, no conversion needed
         }
 
         if (updateData.note !== undefined) {
@@ -280,15 +279,15 @@ export class SettlementService {
         // Update with optimistic locking
         await this.firestoreWriter.runTransaction(
             async (transaction) => {
-                const freshDoc = await this.firestoreReader.getRawSettlementDocumentInTransaction(transaction, settlementId);
-                if (!freshDoc) {
+                const currentSettlement = await this.firestoreReader.getSettlementInTransaction(transaction, settlementId);
+                if (!currentSettlement) {
                     throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
                 }
 
                 const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
                 this.firestoreWriter.updateInTransaction(transaction, documentPath, {
                     ...updates,
-                    updatedAt: this.dateHelpers.createOptimisticTimestamp(),
+                    updatedAt: new Date().toISOString(), // ISO string, FirestoreWriter converts
                 });
             },
             {
@@ -352,17 +351,14 @@ export class SettlementService {
         // Delete with optimistic locking to prevent concurrent modifications
         await this.firestoreWriter.runTransaction(
             async (transaction) => {
-                // Step 1: Do ALL reads first
-                const freshDoc = await this.firestoreReader.getRawSettlementDocumentInTransaction(transaction, settlementId);
-                if (!freshDoc) {
+                // Step 1: Do ALL reads first - using DTO method
+                const currentSettlement = await this.firestoreReader.getSettlementInTransaction(transaction, settlementId);
+                if (!currentSettlement) {
                     throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
                 }
 
-                const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
-
-                // Step 2: Check for concurrent updates inline (no additional reads needed)
-                const currentTimestamp = freshDoc.data()?.updatedAt;
-                if (!currentTimestamp || !currentTimestamp.isEqual(originalUpdatedAt)) {
+                // Step 2: Check for concurrent updates (compare ISO strings)
+                if (settlement.updatedAt !== currentSettlement.updatedAt) {
                     throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified concurrently');
                 }
 
@@ -397,7 +393,7 @@ export class SettlementService {
             endDate?: string;
         } = {},
     ): Promise<{
-        settlements: SettlementListItem[];
+        settlements: SettlementWithMembers[];
         count: number;
         hasMore: boolean;
         nextCursor?: string;
@@ -419,7 +415,7 @@ export class SettlementService {
             endDate,
         });
 
-        const settlements: SettlementListItem[] = await Promise.all(
+        const settlements: SettlementWithMembers[] = await Promise.all(
             result.settlements.map(async (settlement) => {
                 const [payerData, payeeData] = await Promise.all([
                     this.fetchGroupMemberData(groupId, settlement.payerId),
@@ -436,7 +432,7 @@ export class SettlementService {
                     date: this.dateHelpers.timestampToISO(settlement.date),
                     note: settlement.note,
                     createdAt: this.dateHelpers.timestampToISO(settlement.createdAt),
-                } as SettlementListItem;
+                } as SettlementWithMembers;
             }),
         );
 

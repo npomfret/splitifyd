@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/preact';
 import { vi, describe, it, beforeEach, expect } from 'vitest';
 import { GroupCard } from '@/components/dashboard/GroupCard.tsx';
 import { GroupDTO, RegisteredUser } from '@splitifyd/shared';
-import { generateShortId, TestUserBuilder } from '@splitifyd/test-support';
+import { GroupDTOBuilder, TestUserBuilder } from '@splitifyd/test-support';
 
 // Mock react-i18next
 vi.mock('react-i18next', () => ({
@@ -28,44 +28,42 @@ vi.mock('react-i18next', () => ({
     }),
 }));
 
-// Helper to create test groups - using builder pattern with defaults
+// Helper to create test groups - using GroupDTOBuilder
 function createTestGroup(overrides: Partial<GroupDTO> = {}): GroupDTO {
-    const defaultGroup: GroupDTO = {
-        id: `group-${generateShortId()}`,
-        name: 'Test Group',
-        securityPreset: 'open' as const,
-        permissions: {
-            expenseEditing: 'anyone' as const,
-            expenseDeletion: 'anyone' as const,
-            memberInvitation: 'anyone' as const,
-            memberApproval: 'automatic' as const,
-            settingsManagement: 'anyone' as const,
-        },
-        createdBy: 'test-user',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        balance: {
-            balancesByCurrency: {},
-        },
-        lastActivity: 'Just created',
-        lastActivityRaw: new Date().toISOString(),
-    };
+    const builder = new GroupDTOBuilder();
 
-    // Apply overrides to the default object
-    return { ...defaultGroup, ...overrides };
+    // Apply overrides
+    if (overrides.name) builder.withName(overrides.name);
+    if (overrides.id) builder.withId(overrides.id);
+    if (overrides.balance) builder.withBalance(overrides.balance.balancesByCurrency);
+    if (overrides.createdBy) builder.withCreatedBy(overrides.createdBy);
+    if (overrides.lastActivity) builder.withLastActivity(overrides.lastActivity);
+
+    const group = builder.build();
+
+    // Default lastActivity if not provided
+    if (!overrides.lastActivity) {
+        group.lastActivity = 'Just created';
+    }
+
+    return group;
 }
 
-// Helper to create test users
+// Helper to create test users - using TestUserBuilder for base data
 function createTestUser(overrides: Partial<RegisteredUser> = {}): RegisteredUser {
-    const testUser = new TestUserBuilder().build();
-    return {
-        uid: `user-${generateShortId()}`,
-        email: testUser.email,
-        displayName: testUser.displayName,
+    const baseUser = new TestUserBuilder().build();
+
+    // Create a RegisteredUser with defaults from TestUserBuilder
+    const user: RegisteredUser = {
+        uid: overrides.uid || `user-${Date.now()}`,
+        email: baseUser.email,
+        displayName: baseUser.displayName,
         emailVerified: true,
         photoURL: null,
         ...overrides,
     };
+
+    return user;
 }
 
 describe('GroupCard', () => {

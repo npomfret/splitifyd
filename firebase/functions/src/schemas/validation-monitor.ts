@@ -10,6 +10,16 @@ import type { ContextualLogger } from '../utils/contextual-logger';
  */
 
 /**
+ * Additional context for validation errors
+ */
+interface ValidationContext {
+    requestId?: string;
+    clientVersion?: string;
+    source?: string;
+    [key: string]: string | number | boolean | undefined;
+}
+
+/**
  * Validation error details for monitoring
  */
 interface ValidationError {
@@ -20,7 +30,7 @@ interface ValidationError {
     collection?: string;
     timestamp: Date;
     uid?: string;
-    additionalContext?: Record<string, any>;
+    additionalContext?: ValidationContext;
 }
 
 /**
@@ -70,7 +80,7 @@ export function validateWithMonitoring<T extends z.ZodSchema>(
         collection?: string;
         uid?: string;
         logger?: ContextualLogger;
-        additionalContext?: Record<string, any>;
+        additionalContext?: ValidationContext;
     },
 ): z.infer<T> {
     const metrics = ValidationMetrics.getInstance();

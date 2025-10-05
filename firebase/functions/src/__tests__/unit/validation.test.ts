@@ -1,7 +1,7 @@
 import { validateRegisterRequest } from '../../auth/validation';
 import { validateCreateExpense, validateUpdateExpense } from '../../expenses/validation';
 import { ApiError } from '../../utils/errors';
-import { RegisterRequestBuilder, ValidationExpenseBuilder } from '@splitifyd/test-support';
+import { RegisterRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 
 describe('Auth Validation', () => {
     describe('validateRegisterRequest', () => {
@@ -48,7 +48,13 @@ describe('Auth Validation', () => {
 describe('Expense Validation', () => {
     describe('validateCreateExpense and validateUpdateExpense', () => {
         it('should validate complete expense data including optional fields', () => {
-            const validExpenseData = new ValidationExpenseBuilder().withReceiptUrl('https://example.com/receipt.jpg').build();
+            const validExpenseData = new CreateExpenseRequestBuilder()
+                .withDescription('Dinner at restaurant')
+                .withCategory('food')
+                .withAmount(100.5)
+                .withSplitType('equal')
+                .withReceiptUrl('https://example.com/receipt.jpg')
+                .build();
 
             const result = validateCreateExpense(validExpenseData);
 

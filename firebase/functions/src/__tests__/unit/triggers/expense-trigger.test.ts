@@ -9,7 +9,7 @@
  */
 
 import { describe, test, expect } from 'vitest';
-import { ExpenseBuilder } from '@splitifyd/test-support';
+import { ExpenseDTOBuilder } from '@splitifyd/test-support';
 
 /**
  * Extract affected users from expense data (before and after states)
@@ -34,7 +34,7 @@ describe('Expense Change Tracking Logic', () => {
     describe('Shared Expense Notifications', () => {
         test('should extract all participants when shared expense is created', () => {
             // Arrange: Create a shared expense between 3 users
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new ExpenseDTOBuilder()
                 .withGroupId('test-group-123')
                 .withPaidBy('user1')
                 .withParticipants(['user1', 'user2', 'user3']) // 3 participants
@@ -52,7 +52,7 @@ describe('Expense Change Tracking Logic', () => {
 
         test('should extract both payer and participant when different users', () => {
             // Arrange: User1 pays, User2 participates
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new ExpenseDTOBuilder()
                 .withGroupId('test-group-456')
                 .withPaidBy('user1')
                 .withParticipants(['user2']) // Only user2 participates, but user1 paid
@@ -70,7 +70,7 @@ describe('Expense Change Tracking Logic', () => {
 
         test('should handle duplicate users correctly (payer is also participant)', () => {
             // Arrange: User1 pays and is also a participant (common case)
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new ExpenseDTOBuilder()
                 .withGroupId('test-group-789')
                 .withPaidBy('user1')
                 .withParticipants(['user1', 'user2']) // user1 appears in both paidBy and participants
@@ -91,7 +91,7 @@ describe('Expense Change Tracking Logic', () => {
         test('BUG: should extract User2 when User1 creates shared expense', () => {
             // Arrange: Reproduce the exact scenario from failing integration test
             // User1 creates a shared expense where both User1 and User2 participate
-            const sharedExpenseData = new ExpenseBuilder()
+            const sharedExpenseData = new ExpenseDTOBuilder()
                 .withGroupId('multi-user-test-group')
                 .withPaidBy('user1') // User1 pays
                 .withParticipants(['user1', 'user2']) // Both users participate
@@ -118,7 +118,7 @@ describe('Expense Change Tracking Logic', () => {
 
         test('should handle edge case: empty participants array', () => {
             // Arrange: Expense with no participants (only payer)
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new ExpenseDTOBuilder()
                 .withGroupId('test-group-solo')
                 .withPaidBy('user1')
                 .withParticipants([]) // Empty participants

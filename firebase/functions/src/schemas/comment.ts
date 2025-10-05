@@ -1,21 +1,21 @@
 import { z } from 'zod';
+import { FirestoreTimestampSchema } from './common';
 
 /**
  * Zod schema for Comment documents stored in Firestore
  *
  * Note: Comments are stored in subcollections under groups or expenses:
  * groups/{groupId}/comments/{commentId}
- * expenses/{expenseId}/comments/{commentId}
  */
 export const CommentDocumentSchema = z
     .object({
         id: z.string().min(1), // Document ID
         authorId: z.string().min(1),
         authorName: z.string().min(1),
-        authorAvatar: z.string().nullable(),
+        authorAvatar: z.string().optional().nullable(),
         text: z.string().min(1),
-        createdAt: z.any(), // Firestore Timestamp
-        updatedAt: z.any(), // Firestore Timestamp
+        createdAt: FirestoreTimestampSchema,
+        updatedAt: FirestoreTimestampSchema,
     })
     .strict();
 

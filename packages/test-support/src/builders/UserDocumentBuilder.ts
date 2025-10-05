@@ -1,31 +1,23 @@
-import { SystemUserRoles, USER_COLORS } from '@splitifyd/shared';
+import { SystemUserRoles, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
 import { generateShortId } from '../test-helpers';
 import { Timestamp } from 'firebase-admin/firestore';
 
 // Define UserDocument interface to match the firebase functions schema
 // This avoids circular dependency while matching the expected structure
 interface UserDocument {
-    [x: string]: unknown; // Index signature for Firestore flexibility
     id: string;
     email?: string;
     displayName?: string;
     role?: typeof SystemUserRoles.SYSTEM_USER | typeof SystemUserRoles.SYSTEM_ADMIN;
-    themeColor?: string | {
-        light: string;
-        dark: string;
-        name: string;
-        pattern: string;
-        assignedAt: string;
-        colorIndex: number;
-    };
+    themeColor?: string | UserThemeColor;
     preferredLanguage?: string;
     photoURL?: string | null;
     acceptedPolicies?: Record<string, string>;
-    termsAcceptedAt?: any;
-    cookiePolicyAcceptedAt?: any;
-    passwordChangedAt?: any;
-    createdAt?: any;
-    updatedAt?: any;
+    termsAcceptedAt?: Timestamp;
+    cookiePolicyAcceptedAt?: Timestamp;
+    passwordChangedAt?: Timestamp;
+    createdAt?: Timestamp;
+    updatedAt?: Timestamp;
 }
 
 /**
@@ -77,7 +69,7 @@ export class UserDocumentBuilder {
         return this;
     }
 
-    withThemeColor(themeColor: any): this {
+    withThemeColor(themeColor: string | UserThemeColor): this {
         this.userDoc.themeColor = themeColor;
         return this;
     }
@@ -97,27 +89,27 @@ export class UserDocumentBuilder {
         return this;
     }
 
-    withTermsAcceptedAt(timestamp: any): this {
+    withTermsAcceptedAt(timestamp: Timestamp): this {
         this.userDoc.termsAcceptedAt = timestamp;
         return this;
     }
 
-    withCookiePolicyAcceptedAt(timestamp: any): this {
+    withCookiePolicyAcceptedAt(timestamp: Timestamp): this {
         this.userDoc.cookiePolicyAcceptedAt = timestamp;
         return this;
     }
 
-    withPasswordChangedAt(timestamp: any): this {
+    withPasswordChangedAt(timestamp: Timestamp): this {
         this.userDoc.passwordChangedAt = timestamp;
         return this;
     }
 
-    withCreatedAt(timestamp: any): this {
+    withCreatedAt(timestamp: Timestamp): this {
         this.userDoc.createdAt = timestamp;
         return this;
     }
 
-    withUpdatedAt(timestamp: any): this {
+    withUpdatedAt(timestamp: Timestamp): this {
         this.userDoc.updatedAt = timestamp;
         return this;
     }

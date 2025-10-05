@@ -1,47 +1,65 @@
-interface PolicyTDO {
-    type: 'privacy' | 'terms' | 'cookie';
-    version: string;
-    content: string;
-    createdAt: Date;
-}
+import { PolicyDTO } from '@splitifyd/shared';
+import { BuilderTimestamp, timestampToISOString, generateShortId } from '../test-helpers';
 
 /**
- * Builder for creating policy documents for tests
- * Used for testing Firestore security rules
+ * Builder for creating PolicyDTO objects for tests
+ * Builds the actual PolicyDTO structure used in the application
  */
 export class PolicyDocumentBuilder {
-    private document: PolicyTDO;
+    private policy: PolicyDTO;
 
     constructor() {
-        this.document = {
-            type: 'privacy',
-            version: '1.0.0',
-            content: 'Default policy content for testing...',
-            createdAt: new Date(),
+        const versionHash = 'v1-hash';
+        this.policy = {
+            id: `policy-${generateShortId()}`,
+            policyName: 'privacy',
+            currentVersionHash: versionHash,
+            versions: {
+                [versionHash]: {
+                    text: 'Default policy content for testing...',
+                    createdAt: new Date().toISOString(),
+                },
+            },
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
         };
     }
 
-    withType(type: 'privacy' | 'terms' | 'cookie'): this {
-        this.document.type = type;
+    withId(id: string): this {
+        this.policy.id = id;
         return this;
     }
 
-    withVersion(version: string): this {
-        this.document.version = version;
+    withPolicyName(name: string): this {
+        this.policy.policyName = name;
         return this;
     }
 
-    withContent(content: string): this {
-        this.document.content = content;
+    withVersionText(versionHash: string, text: string): this {
+        this.policy.currentVersionHash = versionHash;
+        this.policy.versions = {
+            [versionHash]: {
+                text,
+                createdAt: new Date().toISOString(),
+            },
+        };
         return this;
     }
 
-    withCreatedAt(date: Date): this {
-        this.document.createdAt = date;
+    withCreatedAt(timestamp: BuilderTimestamp): this {
+        this.policy.createdAt = timestampToISOString(timestamp);
         return this;
     }
 
-    build(): PolicyTDO {
-        return { ...this.document };
+    withUpdatedAt(timestamp: BuilderTimestamp): this {
+        this.policy.updatedAt = timestampToISOString(timestamp);
+        return this;
+    }
+
+    build(): PolicyDTO {
+        return {
+            ...this.policy,
+            versions: { ...this.policy.versions },
+        };
     }
 }

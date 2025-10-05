@@ -3,21 +3,21 @@ import { LoadingSpinner, ConfirmDialog } from '../ui';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { apiClient } from '@/app/apiClient.ts';
-import type { SettlementListItem } from '@splitifyd/shared';
+import type { SettlementWithMembers } from '@splitifyd/shared';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 
 interface SettlementHistoryProps {
     groupId: string;
     userId?: string;
-    onEditSettlement?: (settlement: SettlementListItem) => void;
+    onEditSettlement?: (settlement: SettlementWithMembers) => void;
 }
 
 export function SettlementHistory({ groupId, userId, onEditSettlement }: SettlementHistoryProps) {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
     const currentUser = authStore.user;
-    const [settlementToDelete, setSettlementToDelete] = useState<SettlementListItem | null>(null);
+    const [settlementToDelete, setSettlementToDelete] = useState<SettlementWithMembers | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
     // Use store state
@@ -59,7 +59,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement }: Settlem
         }).format(amount);
     };
 
-    const handleDeleteClick = (settlement: SettlementListItem) => {
+    const handleDeleteClick = (settlement: SettlementWithMembers) => {
         setSettlementToDelete(settlement);
     };
 

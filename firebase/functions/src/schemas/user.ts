@@ -4,13 +4,14 @@ import { FirestoreTimestampSchema, OptionalAuditFieldsSchema, createDocumentSche
 
 /**
  * Schema for UserThemeColor object (complex theme configuration)
+ * Note: assignedAt is a Timestamp because this schema validates Firestore documents after ISO → Timestamp conversion
  */
 const UserThemeColorSchema = z.object({
     light: z.string(),
     dark: z.string(),
     name: z.string(),
     pattern: z.string(),
-    assignedAt: z.string(),
+    assignedAt: FirestoreTimestampSchema,
     colorIndex: z.number(),
 });
 
