@@ -33,15 +33,6 @@ export class NotificationService {
     ) {}
 
     /**
-     * Update a single user's notification document
-     * Delegates to batchUpdateNotificationsMultipleTypes for consistency
-     */
-    async updateUserNotification(userId: string, groupId: string, changeType: ChangeType): Promise<WriteResult> {
-        const batchResult = await this.batchUpdateNotificationsMultipleTypes([userId], groupId, [changeType]);
-        return batchResult.results[0]; // Return the single result from batch of 1
-    }
-
-    /**
      * Batch update multiple users' notification documents
      * Delegates to batchUpdateNotificationsMultipleTypes for consistency
      */
