@@ -288,7 +288,7 @@ export class LoginPage extends BasePage {
         await expect(this.page).toHaveURL(/\/login/);
 
         // Wait for error message to appear
-        await expect(this.getErrorContainer()).toBeVisible({ timeout: 5000 });
+        await expect(this.getErrorContainer()).toBeVisible();
     }
 
     /**

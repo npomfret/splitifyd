@@ -1,4 +1,4 @@
-import type { GroupFullDetails, GroupDTO, GroupMemberDTO, ExpenseDTO, GroupBalances, SettlementListItem } from '@splitifyd/shared';
+import type { GroupFullDetails, GroupDTO, GroupMember, ExpenseDTO, GroupBalances, SettlementWithMembers } from '@splitifyd/shared';
 
 /**
  * Builder for creating GroupFullDetails responses for testing
@@ -32,7 +32,7 @@ export class GroupFullDetailsBuilder {
         return this;
     }
 
-    withMembers(members: GroupMemberDTO[]): this {
+    withMembers(members: GroupMember[]): this {
         this.fullDetails.members = { members };
         return this;
     }
@@ -47,7 +47,7 @@ export class GroupFullDetailsBuilder {
         return this;
     }
 
-    withSettlements(settlements: SettlementListItem[], hasMore: boolean = false, nextCursor?: string): this {
+    withSettlements(settlements: SettlementWithMembers[], hasMore: boolean = false, nextCursor?: string): this {
         this.fullDetails.settlements = { settlements, hasMore, nextCursor };
         return this;
     }

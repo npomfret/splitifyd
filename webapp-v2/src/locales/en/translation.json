@@ -199,6 +199,12 @@
   },
 
   "dashboard": {
+    "title": "Dashboard - Splitifyd",
+    "description": "Manage your groups and expenses with Splitifyd",
+    "welcomeMessage": "Welcome to Splitifyd, {{name}}!",
+    "welcomeDescription": "Get started by creating your first group to track and split expenses with friends.",
+    "yourGroups": "Your Groups",
+    "createGroup": "Create Group",
     "groupCard": {
       "settledUp": "All settled up!",
       "youOwe": "You owe {{amount}}",
@@ -688,14 +694,6 @@
     "passwordsNoMatch": "Passwords do not match",
     "passwordSameAsCurrent": "New password must be different from current password",
     "passwordAndNewRequired": "Current password and new password are required"
-  },
-  "dashboard": {
-    "title": "Dashboard - Splitifyd",
-    "description": "Manage your groups and expenses with Splitifyd",
-    "welcomeMessage": "Welcome to Splitifyd, {{name}}!",
-    "welcomeDescription": "Get started by creating your first group to track and split expenses with friends.",
-    "yourGroups": "Your Groups",
-    "createGroup": "Create Group"
   },
   "emptyGroupsState": {
     "title": "No groups yet",

@@ -203,7 +203,7 @@ test.describe('Dashboard Error Handling', () => {
         // Mock API failure
         await mockApiFailure(page, '/api/groups?includeMetadata=true', 500, { error: 'Internal Server Error' });
 
-        await page.goto('/dashboard');
+        await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
         // Verify error state is displayed
         await dashboardPage.verifyErrorState('Internal Server Error');
@@ -215,7 +215,7 @@ test.describe('Dashboard Error Handling', () => {
         // Mock initial API failure
         await mockApiFailure(page, '/api/groups?includeMetadata=true', 500, { error: 'Server temporarily unavailable' });
 
-        await page.goto('/dashboard');
+        await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
         // Verify error state
         await dashboardPage.verifyErrorState();
@@ -237,7 +237,7 @@ test.describe('Dashboard Error Handling', () => {
         // Mock network timeout
         await mockApiFailure(page, '/api/groups?includeMetadata=true', 408, { error: 'Request timeout' });
 
-        await page.goto('/dashboard');
+        await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
         // Verify timeout error is handled
         await dashboardPage.verifyErrorState('Request timeout');
@@ -1739,27 +1739,34 @@ test.describe('Dashboard Share Group Modal', () => {
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
 
-        // Mock delayed response for share link
-        await page.route(`/api/groups/group-123/share-link`, async (route) => {
-            await page.waitForTimeout(1000);
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({
-                    success: true,
-                    shareablePath: '/join/delayed-token',
-                    shareToken: 'delayed-token',
-                    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-                })
-            });
+        // Mock delayed response for share link (longer delay to ensure we catch loading state)
+        await page.route('/api/groups/share', async (route) => {
+            const request = route.request();
+            const postData = request.postDataJSON();
+
+            // Only respond if the groupId matches
+            if (postData?.groupId === 'group-123') {
+                await page.waitForTimeout(2000);
+                await route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        linkId: 'delayed-token',
+                        shareablePath: '/join/delayed-token'
+                    })
+                });
+            } else {
+                await route.continue();
+            }
         });
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
 
+        // Click invite button - this triggers the share link API call
         await dashboardPage.clickGroupCardInviteButton('Test Group');
 
-        // Verify loading state
+        // Verify loading state appears immediately after modal opens
         await dashboardPage.verifyShareModalLoading();
 
         // Wait for link to load
@@ -1804,6 +1811,9 @@ test.describe('Dashboard Stats Display', () => {
 
         // Verify stats show loading skeleton
         await dashboardPage.verifyStatsLoading();
+
+        // Wait for loading to complete
+        await dashboardPage.waitForGroupsToLoad();
     });
 
     test('should display correct group counts with zero groups', async ({ pageWithLogging: page }) => {
@@ -1853,25 +1863,35 @@ test.describe('Dashboard Stats Display', () => {
         // Verify initial count
         await dashboardPage.verifyStatsDisplayed(2, 2);
 
+        // Establish baseline notification state for both existing groups
+        await mockFirebase!.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-1', 1)
+                .withGroupDetails('group-2', 1)
+                .build()
+        );
+
         // Simulate adding a new group via notification
         const newGroup = GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 3').withId('group-3').build();
         const updatedGroups = [...initialGroups, newGroup];
 
         await page.unroute('/api/groups?includeMetadata=true');
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(updatedGroups, 1).build());
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(updatedGroups, 2).build());
 
-        // Trigger notification
+        // Trigger notification for new group
         await mockFirebase!.triggerNotificationUpdate(
             testUser.uid,
             new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
+                .withChangeVersion(2)
+                .withGroupDetails('group-1', 1)
+                .withGroupDetails('group-2', 1)
                 .withGroupDetails('group-3', 1)
                 .build()
         );
 
-        await page.waitForTimeout(500);
-
-        // Verify updated count
+        // Verify updated count - assertions automatically retry until condition is met
         await dashboardPage.verifyStatsDisplayed(3, 3);
     });
 
@@ -1893,11 +1913,22 @@ test.describe('Dashboard Stats Display', () => {
         // Verify initial count
         await dashboardPage.verifyStatsDisplayed(3, 3);
 
+        // Establish baseline notification state for all groups
+        await mockFirebase!.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-1', 1)
+                .withGroupDetails('group-2', 1)
+                .withGroupDetails('group-3', 1)
+                .build()
+        );
+
         // Simulate removing a group
         const remainingGroups = initialGroups.slice(0, 2);
 
         await page.unroute('/api/groups?includeMetadata=true');
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(remainingGroups, 1).build());
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(remainingGroups, 2).build());
 
         // Trigger notification to refresh the dashboard
         // When a group is deleted, we trigger a notification with updated change version
@@ -1906,12 +1937,11 @@ test.describe('Dashboard Stats Display', () => {
             new UserNotificationDocumentBuilder()
                 .withChangeVersion(2)
                 .withGroupDetails('group-1', 1)
+                .withGroupDetails('group-2', 1)
                 .build()
         );
 
-        await page.waitForTimeout(500);
-
-        // Verify updated count
+        // Verify updated count - assertions automatically retry until condition is met
         await dashboardPage.verifyStatsDisplayed(2, 2);
     });
 });
@@ -2043,7 +2073,7 @@ test.describe('Dashboard Group Card Actions', () => {
         await dashboardPage.clickGroupCardAddExpenseButton('Test Group');
 
         // Verify navigation to add expense page
-        await expect(page).toHaveURL(/\/groups\/group-123\/expenses\/add/);
+        await expect(page).toHaveURL(/\/groups\/group-123\/add-expense/);
     });
 
     test('should not navigate when clicking action buttons', async ({ pageWithLogging: page }) => {
@@ -2084,7 +2114,7 @@ test.describe('Dashboard Group Card Actions', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         // Verify settled up message
-        await dashboardPage.verifyGroupCardBalance('Settled Group', 'All settled up');
+        await dashboardPage.verifyGroupCardBalance('Settled Group', 'Settled up');
     });
 
     test('should display correct balance for owed money', async ({ pageWithLogging: page }) => {
@@ -2094,17 +2124,11 @@ test.describe('Dashboard Group Card Actions', () => {
             .withName('Owed Group')
             .withId('group-123')
             .withBalance({
-                groupId: 'group-123',
-                lastUpdated: new Date().toISOString(),
-                userBalances: {},
-                simplifiedDebts: [],
-                balancesByCurrency: {
-                    USD: {
-                        currency: 'USD',
-                        netBalance: 50.00,
-                        owes: {},
-                        owedBy: {}
-                    }
+                USD: {
+                    currency: 'USD',
+                    netBalance: 50.00,
+                    owes: {},
+                    owedBy: {}
                 }
             })
             .build();
@@ -2114,8 +2138,10 @@ test.describe('Dashboard Group Card Actions', () => {
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
 
-        // Verify owed balance display
-        await dashboardPage.verifyGroupCardBalance('Owed Group', 'you are owed');
+        // Verify owed balance display - contains check to handle "$50.00" formatting
+        const balanceBadge = dashboardPage.getGroupCardBalance('Owed Group');
+        await expect(balanceBadge).toBeVisible();
+        await expect(balanceBadge).toContainText("You're owed");
     });
 
     test('should display correct balance for owing money', async ({ pageWithLogging: page }) => {
@@ -2125,17 +2151,11 @@ test.describe('Dashboard Group Card Actions', () => {
             .withName('Owing Group')
             .withId('group-123')
             .withBalance({
-                groupId: 'group-123',
-                lastUpdated: new Date().toISOString(),
-                userBalances: {},
-                simplifiedDebts: [],
-                balancesByCurrency: {
-                    USD: {
-                        currency: 'USD',
-                        netBalance: -50.00,
-                        owes: {},
-                        owedBy: {}
-                    }
+                USD: {
+                    currency: 'USD',
+                    netBalance: -50.00,
+                    owes: {},
+                    owedBy: {}
                 }
             })
             .build();
@@ -2145,8 +2165,10 @@ test.describe('Dashboard Group Card Actions', () => {
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
 
-        // Verify owing balance display
-        await dashboardPage.verifyGroupCardBalance('Owing Group', 'you owe');
+        // Verify owing balance display - contains check to handle "$50.00" formatting
+        const balanceBadge = dashboardPage.getGroupCardBalance('Owing Group');
+        await expect(balanceBadge).toBeVisible();
+        await expect(balanceBadge).toContainText('You owe');
     });
 });
 

@@ -60,10 +60,14 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
     // Debouncing for refresh operations
     private refreshDebounceTimer: NodeJS.Timeout | null = null;
-    private refreshDebounceDelay = 300; // 300ms debounce
+    private refreshDebounceDelay: number;
     private pendingRefresh = false;
 
-    constructor(private notificationDetector: UserNotificationDetector) {
+    constructor(
+        private notificationDetector: UserNotificationDetector,
+        debounceDelay: number = 300
+    ) {
+        this.refreshDebounceDelay = debounceDelay;
     }
 
 // State getters - readonly values for external consumers
@@ -472,5 +476,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     }
 }
 
-// Export singleton instance
-export const enhancedGroupsStore = new EnhancedGroupsStoreImpl(userNotificationDetector);
+// Export singleton instance with environment-aware debounce delay
+// Use 10ms in test environments for fast unit tests, 300ms in production
+const debounceDelay = import.meta.env.MODE === 'test' ? 10 : 300;
+export const enhancedGroupsStore = new EnhancedGroupsStoreImpl(userNotificationDetector, debounceDelay);

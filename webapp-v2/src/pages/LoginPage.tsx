@@ -15,6 +15,10 @@ export function LoginPage() {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
 
+    // Use computed signals for reactivity - must use useComputed AND access .value in JSX
+    const isLoading = useComputed(() => authStore.loadingSignal.value);
+    const authError = useComputed(() => authStore.errorSignal.value);
+
     // Component state with sessionStorage persistence
     const [email, setEmail] = useState(() => sessionStorage.getItem('login-email') || '');
     const [password, setPassword] = useState(() => sessionStorage.getItem('login-password') || '');
@@ -92,20 +96,16 @@ export function LoginPage() {
 
     const isFormValid = email.trim() && password;
 
-    // Use useComputed for reactive access to auth store values
-    const isSubmitting = useComputed(() => authStore.loading);
-    const displayError = useComputed(() => authStore.error);
-
     return (
         <AuthLayout title={t('loginPage.title')} description={t('loginPage.description')}>
-            <AuthForm onSubmit={handleSubmit} error={displayError.value} disabled={isSubmitting.value}>
-                <EmailInput value={email} onInput={setEmail} autoFocus disabled={isSubmitting.value} />
+            <AuthForm onSubmit={handleSubmit} error={authError.value} disabled={isLoading.value}>
+                <EmailInput value={email} onInput={setEmail} autoFocus disabled={isLoading.value} />
 
-                <PasswordInput value={password} onInput={setPassword} disabled={isSubmitting.value} autoComplete="current-password" />
+                <PasswordInput value={password} onInput={setPassword} disabled={isLoading.value} autoComplete="current-password" />
 
                 <div class="flex items-center justify-between">
                     <label class="flex items-center">
-                        <input type="checkbox" data-testid="remember-me-checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" disabled={isSubmitting.value} />
+                        <input type="checkbox" data-testid="remember-me-checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" disabled={isLoading.value} />
                         <span class="ml-2 block text-sm text-gray-700">{t('loginPage.rememberMe')}</span>
                     </label>
 
@@ -114,11 +114,11 @@ export function LoginPage() {
                     </button>
                 </div>
 
-                <SubmitButton loading={isSubmitting.value} disabled={!isFormValid}>
+                <SubmitButton loading={isLoading.value} disabled={!isFormValid}>
                     {t('loginPage.submitButton')}
                 </SubmitButton>
 
-                <DefaultLoginButton onFillForm={handleFillForm} onSubmit={() => handleSubmit(new Event('submit'))} disabled={isSubmitting.value} />
+                <DefaultLoginButton onFillForm={handleFillForm} onSubmit={() => handleSubmit(new Event('submit'))} disabled={isLoading.value} />
 
                 <div class="text-center">
                     <p class="text-sm text-gray-600">

@@ -1,4 +1,4 @@
-import {ReadonlySignal, signal} from '@preact/signals';
+import {ReadonlySignal, signal, computed} from '@preact/signals';
 import type {User as FirebaseUser} from 'firebase/auth';
 import {firebaseService} from '../firebase';
 import {apiClient} from '../apiClient';
@@ -32,7 +32,10 @@ interface AuthActions {
     refreshAuthToken: () => Promise<string>;
 }
 
-export interface AuthStore extends AuthState, AuthActions {}
+export interface AuthStore extends AuthState, AuthActions {
+    loadingSignal: ReadonlySignal<boolean>;
+    errorSignal: ReadonlySignal<string | null>;
+}
 
 export function mapFirebaseUser(firebaseUser: FirebaseUser): ClientUser {
     return {
@@ -71,7 +74,7 @@ class AuthStoreImpl implements AuthStore {
         return this.#isUpdatingProfileSignal.value;
     }
 
-    // Signal accessors for reactive components - return readonly signals
+    // Signal accessors for reactive components - return raw signals (components will wrap with useComputed)
     get loadingSignal(): ReadonlySignal<boolean> {
         return this.#loadingSignal;
     }

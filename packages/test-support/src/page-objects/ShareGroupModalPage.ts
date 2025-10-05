@@ -224,16 +224,22 @@ export class ShareGroupModalPage extends BasePage {
 
     /**
      * Close modal by pressing Escape
-     * Uses Playwright's built-in retry mechanism to handle React useEffect timing
+     * Waits for modal to be ready and event listener to be attached before pressing Escape
      */
     async pressEscapeToClose(): Promise<void> {
         const modal = this.getModalContainer();
 
-        // Use Playwright's auto-retry mechanism
-        await expect(async () => {
-            await this.page.keyboard.press('Escape');
-            await expect(modal).not.toBeVisible();
-        }).toPass({ timeout: 5000 });
+        // Ensure modal is visible and event listener is attached
+        await expect(modal).toBeVisible();
+
+        // Small delay to ensure React useEffect has run and event listener is attached
+        await this.page.waitForTimeout(50);
+
+        // Press Escape once
+        await this.page.keyboard.press('Escape');
+
+        // Wait for modal to close (reasonable timeout for local unit test)
+        await expect(modal).not.toBeVisible({ timeout: 1000 });
     }
 
     /**

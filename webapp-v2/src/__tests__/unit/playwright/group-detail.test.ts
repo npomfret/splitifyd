@@ -9,11 +9,12 @@ import {
 } from '../../utils/mock-firebase-service';
 import {
     ClientUserBuilder,
-    GroupBuilder,
+    GroupDTOBuilder,
     GroupFullDetailsBuilder,
-    GroupMemberDTOBuilder,
-    ExpenseBuilder,
-    GroupDetailPage
+    GroupMemberBuilder,
+    ExpenseDTOBuilder,
+    GroupDetailPage,
+    ThemeBuilder
 } from '@splitifyd/test-support';
 
 // Configure all tests to run in serial mode for browser reuse
@@ -62,18 +63,18 @@ test.describe('Group Detail - Authentication and Navigation', () => {
         const testUser = ClientUserBuilder.validUser().build();
         const groupDetailPage = new GroupDetailPage(page);
 
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('group-abc')
             .withName('Test Group')
             .withDescription('A test group description')
             .build();
 
         const members = [
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
                 .withEmail(testUser.email)
-                .withThemeName('blue')
+                .withTheme(ThemeBuilder.blue().build())
                 .build()
         ];
 
@@ -116,29 +117,29 @@ test.describe('Group Detail - Members Display', () => {
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'group-members-test';
 
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId(groupId)
             .withName('Members Test Group')
             .build();
 
         const members = [
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
                 .withEmail(testUser.email)
-                .withThemeName('blue')
+                .withTheme(ThemeBuilder.blue().build())
                 .build(),
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('Alice Smith')
                 .withEmail('alice@example.com')
-                .withThemeName('purple')
+                .withTheme(ThemeBuilder.red().build())
                 .build(),
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid('user-3')
                 .withDisplayName('Bob Jones')
                 .withEmail('bob@example.com')
-                .withThemeName('green')
+                .withTheme(new ThemeBuilder().withName('green').build())
                 .build()
         ];
 
@@ -164,23 +165,23 @@ test.describe('Group Detail - Members Display', () => {
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'group-count-test';
 
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId(groupId)
             .withName('Count Test Group')
             .build();
 
         const members = [
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
                 .withEmail(testUser.email)
-                .withThemeName('blue')
+                .withTheme(ThemeBuilder.blue().build())
                 .build(),
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('User 2')
                 .withEmail('user2@example.com')
-                .withThemeName('purple')
+                .withTheme(ThemeBuilder.red().build())
                 .build()
         ];
 
@@ -220,27 +221,27 @@ test.describe('Group Detail - Expenses Display', () => {
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'group-expenses-test';
 
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId(groupId)
             .withName('Expenses Test Group')
             .build();
 
         const members = [
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
                 .withEmail(testUser.email)
-                .withThemeName('blue')
+                .withTheme(ThemeBuilder.blue().build())
                 .build()
         ];
 
         const expenses = [
-            new ExpenseBuilder()
+            new ExpenseDTOBuilder()
                 .withId('exp-1')
                 .withDescription('Groceries')
                 .withAmount(50.00)
                 .build(),
-            new ExpenseBuilder()
+            new ExpenseDTOBuilder()
                 .withId('exp-2')
                 .withDescription('Dinner')
                 .withAmount(75.50)
@@ -269,17 +270,17 @@ test.describe('Group Detail - Expenses Display', () => {
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'group-empty-expenses';
 
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId(groupId)
             .withName('Empty Expenses Group')
             .build();
 
         const members = [
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
                 .withEmail(testUser.email)
-                .withThemeName('blue')
+                .withTheme(ThemeBuilder.blue().build())
                 .build()
         ];
 
@@ -302,24 +303,24 @@ test.describe('Group Detail - Expenses Display', () => {
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'group-expense-count';
 
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId(groupId)
             .withName('Expense Count Group')
             .build();
 
         const members = [
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
                 .withEmail(testUser.email)
-                .withThemeName('blue')
+                .withTheme(ThemeBuilder.blue().build())
                 .build()
         ];
 
         const expenses = [
-            new ExpenseBuilder().withId('exp-1').build(),
-            new ExpenseBuilder().withId('exp-2').build(),
-            new ExpenseBuilder().withId('exp-3').build()
+            new ExpenseDTOBuilder().withId('exp-1').build(),
+            new ExpenseDTOBuilder().withId('exp-2').build(),
+            new ExpenseDTOBuilder().withId('exp-3').build()
         ];
 
         const fullDetails = new GroupFullDetailsBuilder()
@@ -359,17 +360,17 @@ test.describe('Group Detail - Balance Display', () => {
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'group-settled-up';
 
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId(groupId)
             .withName('Settled Group')
             .build();
 
         const members = [
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
                 .withEmail(testUser.email)
-                .withThemeName('blue')
+                .withTheme(ThemeBuilder.blue().build())
                 .build()
         ];
 
@@ -392,23 +393,23 @@ test.describe('Group Detail - Balance Display', () => {
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'group-with-debts';
 
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId(groupId)
             .withName('Group With Debts')
             .build();
 
         const members = [
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
                 .withEmail(testUser.email)
-                .withThemeName('blue')
+                .withTheme(ThemeBuilder.blue().build())
                 .build(),
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('Alice')
                 .withEmail('alice@example.com')
-                .withThemeName('purple')
+                .withTheme(ThemeBuilder.red().build())
                 .build()
         ];
 
@@ -493,24 +494,24 @@ test.describe('Group Detail - Permission Checks', () => {
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'owner-group';
 
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId(groupId)
             .withName('Owner Group')
             .withCreatedBy(testUser.uid)
             .build();
 
         const members = [
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
                 .withEmail(testUser.email)
-                .withThemeName('blue')
+                .withTheme(ThemeBuilder.blue().build())
                 .build(),
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('User 2')
                 .withEmail('user2@example.com')
-                .withThemeName('purple')
+                .withTheme(ThemeBuilder.red().build())
                 .build()
         ];
 
@@ -533,24 +534,24 @@ test.describe('Group Detail - Permission Checks', () => {
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'member-group';
 
-        const group = GroupBuilder.groupForUser('other-user-id')
+        const group = GroupDTOBuilder.groupForUser('other-user-id')
             .withId(groupId)
             .withName('Member Group')
             .withCreatedBy('other-user-id')
             .build();
 
         const members = [
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
                 .withEmail(testUser.email)
-                .withThemeName('blue')
+                .withTheme(ThemeBuilder.blue().build())
                 .build(),
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid('other-user-id')
                 .withDisplayName('Other User')
                 .withEmail('other@example.com')
-                .withThemeName('orange')
+                .withTheme(new ThemeBuilder().withName('orange').build())
                 .build()
         ];
 
@@ -573,18 +574,18 @@ test.describe('Group Detail - Permission Checks', () => {
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'last-member-group';
 
-        const group = GroupBuilder.groupForUser('other-user-id')
+        const group = GroupDTOBuilder.groupForUser('other-user-id')
             .withId(groupId)
             .withName('Last Member Group')
             .withCreatedBy('other-user-id')
             .build();
 
         const members = [
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
                 .withEmail(testUser.email)
-                .withThemeName('blue')
+                .withTheme(ThemeBuilder.blue().build())
                 .build()
         ];
 
@@ -693,18 +694,18 @@ test.describe('Group Detail - Modal Interactions', () => {
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'edit-modal-group';
 
-        const group = GroupBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId(groupId)
             .withName('Edit Modal Group')
             .withCreatedBy(testUser.uid)
             .build();
 
         const members = [
-            new GroupMemberDTOBuilder()
+            new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
                 .withEmail(testUser.email)
-                .withThemeName('blue')
+                .withTheme(ThemeBuilder.blue().build())
                 .build()
         ];
 

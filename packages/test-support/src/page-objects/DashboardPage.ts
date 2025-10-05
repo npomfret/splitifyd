@@ -169,7 +169,7 @@ export class DashboardPage extends BasePage {
      * Quick Actions - Create Group button
      */
     getQuickActionsCreateButton(): Locator {
-        return this.getQuickActionsContainer().getByRole('button', { name: /create.*group/i });
+        return this.getQuickActionsContainer().getByRole('button', { name: translation.quickActions.createNewGroup });
     }
 
     /**

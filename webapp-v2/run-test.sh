@@ -1,11 +1,13 @@
 #!/bin/bash
 
-# Script to run individual Playwright tests quickly
+# Script to run individual Playwright tests quickly and repeatedly
 # Usage:
-#   ./run-test.sh <test-file>                    # Run entire test file
-#   ./run-test.sh <test-file> <test-name>        # Run specific test
-#   ./run-test.sh <test-file> --headed           # Run with browser visible
-#   ./run-test.sh <test-file> <test-name> --headed  # Run specific test with browser visible
+#   ./run-test.sh <test-file>                              # Run entire test file once
+#   ./run-test.sh <test-file> <test-name>                  # Run specific test once
+#   ./run-test.sh <test-file> --headed                     # Run with browser visible
+#   ./run-test.sh <test-file> <test-name> --headed         # Run specific test with browser visible
+#   ./run-test.sh <test-file> <test-name> --repeat 10      # Run test 10 times until failure
+#   ./run-test.sh <test-file> <test-name> --repeat 10 --headed  # Run 10 times with visible browser
 
 set -e
 
@@ -18,15 +20,18 @@ NC='\033[0m' # No Color
 # Function to show usage
 show_usage() {
     echo -e "${YELLOW}Usage:${NC}"
-    echo "  ./run-test.sh <test-file>                    # Run entire test file"
-    echo "  ./run-test.sh <test-file> <test-name>        # Run specific test"
-    echo "  ./run-test.sh <test-file> --headed           # Run with browser visible"
-    echo "  ./run-test.sh <test-file> <test-name> --headed  # Run specific test with browser visible"
+    echo "  ./run-test.sh <test-file>                              # Run entire test file once"
+    echo "  ./run-test.sh <test-file> <test-name>                  # Run specific test once"
+    echo "  ./run-test.sh <test-file> --headed                     # Run with browser visible"
+    echo "  ./run-test.sh <test-file> <test-name> --headed         # Run specific test with browser visible"
+    echo "  ./run-test.sh <test-file> <test-name> --repeat N       # Run test N times until failure"
+    echo "  ./run-test.sh <test-file> <test-name> --repeat N --headed  # Run N times with visible browser"
     echo ""
     echo -e "${YELLOW}Examples:${NC}"
-    echo "  ./run-test.sh login                          # Run all login tests"
-    echo "  ./run-test.sh login \"should show error\"       # Run specific test"
+    echo "  ./run-test.sh login                          # Run all login tests once"
+    echo "  ./run-test.sh login \"should show error\"       # Run specific test once"
     echo "  ./run-test.sh dashboard --headed             # Run dashboard tests with browser"
+    echo "  ./run-test.sh dashboard \"should load groups\" --repeat 50  # Run test 50 times"
     echo ""
     echo -e "${YELLOW}Available test files:${NC}"
     find src/__tests__/unit/playwright -name "*.test.ts" -exec basename {} .test.ts \; | sort
@@ -41,13 +46,29 @@ fi
 TEST_FILE="$1"
 TEST_NAME=""
 HEADED_FLAG=""
+REPEAT_COUNT=3
 
 # Parse arguments
 shift
+EXPLICIT_REPEAT=false
 while [ $# -gt 0 ]; do
     case "$1" in
         --headed)
             HEADED_FLAG="--headed"
+            # Set repeat to 1 for headed mode unless explicitly overridden
+            if [ "$EXPLICIT_REPEAT" = false ]; then
+                REPEAT_COUNT=1
+            fi
+            ;;
+        --repeat)
+            shift
+            if [ $# -eq 0 ] || ! [[ "$1" =~ ^[0-9]+$ ]]; then
+                echo -e "${RED}Error: --repeat requires a number${NC}"
+                show_usage
+                exit 1
+            fi
+            REPEAT_COUNT="$1"
+            EXPLICIT_REPEAT=true
             ;;
         *)
             if [ -z "$TEST_NAME" ]; then
@@ -81,8 +102,7 @@ else
     exit 1
 fi
 
-# Build the command - run chromium project only by default
-# Use --max-failures=0 to run all tests and show all failures (0 means unlimited)
+# Build the command
 CMD="PLAYWRIGHT_HTML_OPEN=never npx playwright test \"${TEST_PATH}\" --project=chromium --workers=1"
 
 # Add test name filter if provided
@@ -98,16 +118,66 @@ fi
 # Add reporter
 CMD="${CMD} --reporter=list"
 
-# For single test runs, recommend running full file instead for better browser reuse
-if [ -n "$TEST_NAME" ]; then
-    echo -e "${YELLOW}Note: Running single tests requires browser startup/shutdown.${NC}"
-    echo -e "${YELLOW}For faster execution, run: ./run-test.sh ${TEST_FILE}${NC}"
+# Run test(s) repeatedly
+if [ "$REPEAT_COUNT" -gt 1 ]; then
+    SUCCESS_COUNT=0
+    START_TIME=$(date +%s)
+
+    echo -e "${YELLOW}Running test repeatedly (up to ${REPEAT_COUNT} times until failure)${NC}"
+    if [ -n "$HEADED_FLAG" ]; then
+        echo -e "${YELLOW}Browser mode: HEADED (visible browser window)${NC}"
+    else
+        echo -e "${YELLOW}Browser mode: HEADLESS (background execution)${NC}"
+    fi
     echo ""
+
+    for ((RUN=1; RUN<=REPEAT_COUNT; RUN++)); do
+        CURRENT_TIME=$(date +%s)
+        ELAPSED=$((CURRENT_TIME - START_TIME))
+
+        echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${GREEN}Run #${RUN}/${REPEAT_COUNT} (${ELAPSED}s elapsed) - $(date '+%H:%M:%S')${NC}"
+        echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+        # Run the test
+        if ! eval $CMD; then
+            FINAL_TIME=$(date +%s)
+            TOTAL_ELAPSED=$((FINAL_TIME - START_TIME))
+            echo ""
+            echo -e "${RED}💥 TEST FAILED on run #${RUN}!${NC}"
+            echo -e "${YELLOW}⏱️  Total time: ${TOTAL_ELAPSED}s${NC}"
+            echo -e "${YELLOW}📊 Average time per run: $((TOTAL_ELAPSED / RUN))s${NC}"
+            echo -e "${YELLOW}🏁 Stopped at: $(date)${NC}"
+            exit 1
+        fi
+
+        SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+        echo -e "${GREEN}✅ Run #${RUN} completed successfully (${SUCCESS_COUNT}/${REPEAT_COUNT} successes)${NC}"
+        echo ""
+
+        # Small delay to avoid overwhelming the system
+        if [ $RUN -lt $REPEAT_COUNT ]; then
+            sleep 1
+        fi
+    done
+
+    FINAL_TIME=$(date +%s)
+    TOTAL_ELAPSED=$((FINAL_TIME - START_TIME))
+    echo ""
+    echo -e "${GREEN}🎉 SUCCESS! Completed ${REPEAT_COUNT} runs without failure${NC}"
+    echo -e "${YELLOW}⏱️  Total time: ${TOTAL_ELAPSED}s${NC}"
+    echo -e "${YELLOW}📊 Average time per run: $((TOTAL_ELAPSED / REPEAT_COUNT))s${NC}"
+    echo -e "${YELLOW}🏁 Stopped at: $(date)${NC}"
+else
+    # Single run
+    if [ -n "$TEST_NAME" ]; then
+        echo -e "${YELLOW}Note: Running single tests requires browser startup/shutdown.${NC}"
+        echo -e "${YELLOW}For faster execution, run: ./run-test.sh ${TEST_FILE}${NC}"
+        echo ""
+    fi
+
+    echo -e "${GREEN}Running:${NC} ${CMD}"
+    echo ""
+
+    eval $CMD
 fi
-
-# Show what we're running
-echo -e "${GREEN}Running:${NC} ${CMD}"
-echo ""
-
-# Execute the command
-eval $CMD

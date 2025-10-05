@@ -214,9 +214,10 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Empty expenses state - looks for "no expenses" message
+     * Targets the <p> element specifically to avoid matching parent containers
      */
     getEmptyExpensesState(): Locator {
-        return this.getExpensesContainer().getByText(/no.*expenses/i);
+        return this.getExpensesContainer().locator('p').filter({ hasText: /no.*expenses/i });
     }
 
     // ============================================================================
