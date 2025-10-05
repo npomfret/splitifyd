@@ -23,7 +23,10 @@ interface InterfaceReport {
 }
 
 function isTestFile(filePath: string): boolean {
-    return filePath.includes('/__tests__/') || filePath.includes('\\__tests__\\');
+    return filePath.includes('/__tests__/') ||
+           filePath.includes('\\__tests__\\') ||
+           filePath.includes('/test-support/') ||
+           filePath.includes('\\test-support\\');
 }
 
 function isBuilderFile(filePath: string): boolean {
@@ -296,7 +299,7 @@ function main() {
     console.log('Project root:', projectRoot);
     console.log('TypeScript config:', tsconfigPath);
     console.log('Analyzing ALL interfaces and classes in production code');
-    console.log('Excluded from analysis: test files (__tests__/), builder files (*Builder.ts)');
+    console.log('Excluded from analysis: test files (__tests__/, test-support/), builder files (*Builder.ts)');
 
     try {
         const reports = analyzeProject(tsconfigPath);
