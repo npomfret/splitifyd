@@ -60,13 +60,7 @@ export class ApplicationBuilder {
 
     buildUserService(): UserService {
         if (!this.userService) {
-            this.userService = new UserService(
-                this.buildFirestoreReader(),
-                this.buildFirestoreWriter(),
-                this.buildFirestoreValidationService(),
-                this.buildNotificationService(),
-                this.buildAuthService(),
-            );
+            this.userService = new UserService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildNotificationService(), this.buildAuthService());
         }
         return this.userService!;
     }
@@ -97,7 +91,7 @@ export class ApplicationBuilder {
 
     buildSettlementService(): SettlementService {
         if (!this.settlementService) {
-            this.settlementService = new SettlementService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService());
+            this.settlementService = new SettlementService(this.buildFirestoreReader(), this.buildFirestoreWriter());
         }
         return this.settlementService;
     }

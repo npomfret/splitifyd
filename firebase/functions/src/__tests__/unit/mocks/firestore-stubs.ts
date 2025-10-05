@@ -50,10 +50,6 @@ export class StubFirestoreReader implements IFirestoreReader {
         this.paginationBehavior.set(userId, { groups: allGroups, pageSize });
     }
 
-    setNotFound(collection: string, id: string) {
-        this.notFoundDocuments.add(`${collection}/${id}`);
-    }
-
     // Mock helpers for compatibility
     clearAllMocks() {
         this.resetAllMocks();

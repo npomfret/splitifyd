@@ -8,9 +8,9 @@
 import { metrics, MetricType } from './lightweight-metrics';
 
 /**
- * Generic measurement wrapper
+ * Generic measurement wrapper (internal use only)
  */
-export async function measure<T>(type: MetricType, operation: string, fn: () => Promise<T>): Promise<T> {
+async function measure<T>(type: MetricType, operation: string, fn: () => Promise<T>): Promise<T> {
     const start = Date.now();
     let success = true;
 

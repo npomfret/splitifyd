@@ -32,8 +32,3 @@ const { DocumentSchema: SettlementDocumentSchema } = createDocumentSchemas(BaseS
  * ```
  */
 export { SettlementDocumentSchema };
-
-/**
- * Type definitions derived from schemas
- */
-export type SettlementDocument = z.infer<typeof SettlementDocumentSchema>;

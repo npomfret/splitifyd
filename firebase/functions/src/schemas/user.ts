@@ -45,7 +45,7 @@ const BaseUserSchema = z
 /**
  * Create Document and Data schemas using common pattern
  */
-const { DocumentSchema: UserDocumentSchema, DataSchema: UserDataSchema } = createDocumentSchemas(BaseUserSchema);
+const { DocumentSchema: UserDocumentSchema } = createDocumentSchemas(BaseUserSchema);
 
 /**
  * Zod schema for User document validation
@@ -55,9 +55,4 @@ const { DocumentSchema: UserDocumentSchema, DataSchema: UserDataSchema } = creat
  * const userData = UserDocumentSchema.parse(doc.data());
  * ```
  */
-export { UserDocumentSchema, UserDataSchema };
-
-/**
- * Type definitions derived from schemas
- */
-export type UserDocument = z.infer<typeof UserDocumentSchema>;
+export { UserDocumentSchema };

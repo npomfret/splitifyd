@@ -33,8 +33,6 @@ export const SplitTypes = {
     PERCENTAGE: 'percentage',
 } as const;
 
-export type SplitType = typeof SplitTypes[keyof typeof SplitTypes];
-
 export const AuthErrors = {
     EMAIL_EXISTS: 'auth/email-already-exists',
     EMAIL_EXISTS_CODE: 'EMAIL_EXISTS',
@@ -388,16 +386,6 @@ export interface GroupMembership {
  * in the subcollection (groups/{groupId}/members/{uid}) don't have id/createdAt/updatedAt fields.
  */
 export type GroupMembershipDTO = GroupMembership;
-
-/**
- * Top-level group membership document with metadata.
- * Used in the top-level group-memberships collection for efficient pagination.
- */
-export interface TopLevelGroupMembership extends GroupMembership {
-    groupUpdatedAt: ISOString; // Denormalized from group.updatedAt for sorting
-    createdAt: ISOString;
-    updatedAt: ISOString;
-}
 
 /**
  * Lean DTO for API responses containing only essential fields for group member display.

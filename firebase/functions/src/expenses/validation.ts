@@ -7,31 +7,6 @@ import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
 import { ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest, SplitTypes } from '@splitifyd/shared';
 import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 
-/**
- * @deprecated Use ExpenseDTO from @splitifyd/shared instead
- * This legacy interface used Firestore Timestamp objects.
- * Now we use DTOs with ISO string dates everywhere.
- */
-export interface Expense {
-    id: string;
-    groupId: string;
-    createdBy: string;
-    paidBy: string;
-    amount: number;
-    currency: string;
-    description: string;
-    category: string;
-    date: string;
-    splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
-    participants: string[];
-    splits: ExpenseSplit[];
-    receiptUrl?: string;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt: string | null;
-    deletedBy: string | null;
-}
-
 const expenseSplitSchema = Joi.object({
     uid: Joi.string().required(),
     amount: Joi.number().positive().required(),

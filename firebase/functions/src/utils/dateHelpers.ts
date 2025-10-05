@@ -215,8 +215,9 @@ export const assertTimestamp = (value: unknown, fieldName: string): Timestamp =>
  * @param fieldName - Name of the field for error message
  * @returns ISO 8601 string
  * @throws Error if value is not a Timestamp
+ * @internal - Not exported, internal use only
  */
-export const assertTimestampAndConvert = (value: unknown, fieldName: string): string => {
+const assertTimestampAndConvert = (value: unknown, fieldName: string): string => {
     const ts = assertTimestamp(value, fieldName);
     return ts.toDate().toISOString();
 };

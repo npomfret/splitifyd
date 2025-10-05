@@ -33,49 +33,6 @@ export interface TopLevelGroupMemberDocument {
     updatedAt: Timestamp;
 }
 
-/**
- * Per-group notification tracking within a user's document
- */
-export interface UserNotificationGroupDocument {
-    // Timestamps of last changes by type
-    lastTransactionChange: Timestamp | null;
-    lastBalanceChange: Timestamp | null;
-    lastGroupDetailsChange: Timestamp | null;
-    lastCommentChange: Timestamp | null;
-
-    // Change counters for detecting missed updates
-    transactionChangeCount: number;
-    balanceChangeCount: number;
-    groupDetailsChangeCount: number;
-    commentChangeCount: number;
-}
-
-/**
- * Recent changes tracking (debugging and audit)
- */
-export interface RecentChangeDocument {
-    groupId: string;
-    type: 'transaction' | 'balance' | 'group' | 'comment';
-    timestamp: Timestamp;
-}
-
-/**
- * User notification document for client-side Firestore listeners.
- * Uses Timestamp because it's read directly by browser SDK real-time listeners.
- */
-export interface UserNotificationDocument {
-    // Global version counter - increments on every change
-    changeVersion: number;
-
-    // Per-group change tracking
-    groups: Record<string, UserNotificationGroupDocument>;
-
-    // Document metadata
-    lastModified: Timestamp;
-
-    // Optional: Recent changes for debugging (kept to last 10)
-    recentChanges?: RecentChangeDocument[];
-}
 
 /**
  * FirestoreCollections moved to '../constants'

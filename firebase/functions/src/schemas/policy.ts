@@ -29,7 +29,7 @@ const BasePolicySchema = z
 /**
  * Create Document and Data schemas using common pattern
  */
-const { DocumentSchema: PolicyDocumentSchema, DataSchema: PolicyDataSchema } = createDocumentSchemas(BasePolicySchema);
+const { DocumentSchema: PolicyDocumentSchema } = createDocumentSchemas(BasePolicySchema);
 
 /**
  * Zod schema for Policy document validation
@@ -39,10 +39,4 @@ const { DocumentSchema: PolicyDocumentSchema, DataSchema: PolicyDataSchema } = c
  * const policyData = PolicyDocumentSchema.parse(doc.data());
  * ```
  */
-export { PolicyDocumentSchema, PolicyDataSchema };
-
-/**
- * Type definitions derived from schemas
- */
-export type PolicyDocument = z.infer<typeof PolicyDocumentSchema>;
-export type PolicyVersionDocument = z.infer<typeof PolicyVersionSchema>;
+export { PolicyDocumentSchema };

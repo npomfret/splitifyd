@@ -6,14 +6,12 @@ import { ApiError, Errors } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { assignThemeColor } from '../user-management/assign-theme-color';
 import { validateRegisterRequest } from '../auth/validation';
-import { validateChangePassword, validateDeleteUser, validateUpdateUserProfile } from '../user/validation';
+import { validateChangePassword, validateUpdateUserProfile } from '../user/validation';
 import { measureDb } from '../monitoring/measure';
-import { FirestoreValidationService } from './FirestoreValidationService';
 import { NotificationService } from './notification-service';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import type { IAuthService } from './auth';
 import { GroupMembersResponse, GroupMember, GroupMembershipDTO } from '@splitifyd/shared/src';
-// GroupMemberDocument removed - use GroupMembershipDTO from @splitifyd/shared instead
 
 /**
  * Result of a successful user registration
@@ -29,28 +27,12 @@ interface RegisterUserResult {
 }
 
 /**
- * Firestore user document structure for registration
- */
-interface FirestoreUserDocument {
-    email: string;
-    displayName: string;
-    role: typeof SystemUserRoles.SYSTEM_USER | typeof SystemUserRoles.SYSTEM_ADMIN;
-    createdAt: string;
-    updatedAt: string;
-    acceptedPolicies: Record<string, string>;
-    themeColor: UserThemeColor;
-    termsAcceptedAt?: string;
-    cookiePolicyAcceptedAt?: string;
-}
-
-/**
  * Service for fetching user profiles from Firebase Auth
  */
 export class UserService {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
-        private readonly validationService: FirestoreValidationService,
         private readonly notificationService: NotificationService,
         private readonly authService: IAuthService,
     ) {}
@@ -297,13 +279,6 @@ export class UserService {
             logger.error('Failed to change password', error as unknown as Error);
             throw error;
         }
-    }
-
-    async getUserGroupsViaSubcollection(userId: string): Promise<string[]> {
-        // Use a high limit to maintain backward compatibility
-        // This method is expected to return ALL groups for a user
-        const paginatedGroups = await this.firestoreReader.getGroupsForUserV2(userId, { limit: 1000 });
-        return paginatedGroups.data.map((group: any) => group.id);
     }
 
     async getGroupMembersResponseFromSubcollection(groupId: string): Promise<GroupMembersResponse> {

@@ -32,7 +32,7 @@
 // Services should import DTOs from @splitifyd/shared instead.
 
 // Comment schemas
-export { CommentDocumentSchema, CommentDataSchema, type ParsedComment } from './comment';
+export { CommentDocumentSchema, CommentDataSchema } from './comment';
 
 // Expense schemas
 export { ExpenseDocumentSchema } from './expense';
@@ -44,13 +44,13 @@ export { SettlementDocumentSchema } from './settlement';
 export { ShareLinkDocumentSchema, ShareLinkDataSchema, type ParsedShareLink } from './sharelink';
 
 // User schemas
-export { UserDocumentSchema, UserDataSchema } from './user';
+export { UserDocumentSchema } from './user';
 
-// Policy schemas - Note: PolicyVersionDocument still exported for specific use case
-export { PolicyDocumentSchema, PolicyDataSchema, type PolicyVersionDocument } from './policy';
+// Policy schemas
+export { PolicyDocumentSchema } from './policy';
 
-// Group schemas - Note: ParsedGroupMemberDocument removed, use GroupMembershipDTO from @splitifyd/shared
-export { GroupDocumentSchema, GroupDataSchema, GroupMemberDocumentSchema } from './group';
+// Group schemas
+export { GroupDocumentSchema } from './group';
 
 // Group membership schemas
 export { TopLevelGroupMemberSchema } from './group-membership';

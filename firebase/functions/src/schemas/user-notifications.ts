@@ -59,6 +59,8 @@ export const UserNotificationDocumentSchema = z.object({
 });
 
 export type UserNotificationDocument = z.infer<typeof UserNotificationDocumentSchema>;
+export type UserNotificationGroupDocument = z.infer<typeof UserNotificationGroupSchema>;
+export type RecentChangeDocument = z.infer<typeof RecentChangeSchema>;
 
 /**
  * Helper type for creating new notification documents

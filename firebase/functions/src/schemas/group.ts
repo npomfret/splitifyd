@@ -44,19 +44,9 @@ const { DocumentSchema: GroupDocumentSchema, DataSchema: GroupDataSchema } = cre
  * ```typescript
  * // For reading groups with flat structure
  * const group = GroupDocumentSchema.parse({...doc.data(), id: doc.id});
- *
- * // For validating data before writing
- * const validData = GroupDataSchema.parse(groupData);
  * ```
  */
-export { GroupDocumentSchema, GroupDataSchema };
-
-/**
- * Type definitions derived from schemas (Internal use only)
- * Note: GroupDocument type removed from exports after DTO migration.
- * Services should use GroupDTO from @splitifyd/shared instead.
- */
-type GroupDocument = z.infer<typeof GroupDocumentSchema>;
+export { GroupDocumentSchema };
 
 /**
  * Zod schema for UserThemeColor validation in Firestore documents
@@ -75,7 +65,7 @@ const UserThemeColorSchema = z.object({
  * Zod schema for GroupMemberDocument validation
  * Used for subcollection member documents with different structure than GroupMember
  */
-export const GroupMemberDocumentSchema = z
+const GroupMemberDocumentSchema = z
     .object({
         uid: UserIdSchema,
         groupId: z.string(), // For collectionGroup queries
@@ -86,9 +76,3 @@ export const GroupMemberDocumentSchema = z
         invitedBy: UserIdSchema.optional(), // UID of the user who created the share link that was used to join
     })
     .strict();
-
-/**
- * Internal type for schema validation only.
- * Services should use GroupMembershipDTO from @splitifyd/shared.
- */
-type ParsedGroupMemberDocument = z.infer<typeof GroupMemberDocumentSchema>;

@@ -47,8 +47,3 @@ const { DocumentSchema: ExpenseDocumentSchema } = createDocumentSchemas(BaseExpe
  * ```
  */
 export { ExpenseDocumentSchema };
-
-/**
- * Type definitions derived from schemas
- */
-export type ExpenseDocument = z.infer<typeof ExpenseDocumentSchema>;

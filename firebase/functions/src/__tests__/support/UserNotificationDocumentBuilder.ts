@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import {RecentChangeDocument, UserNotificationDocument, UserNotificationGroupDocument} from "../../types";
+import { RecentChangeDocument, UserNotificationDocument, UserNotificationGroupDocument } from '../../schemas/user-notifications';
 
 /**
  * Builder for creating UserNotificationDocument objects for tests

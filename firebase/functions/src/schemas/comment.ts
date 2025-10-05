@@ -23,8 +23,3 @@ export const CommentDocumentSchema = z
  * Zod schema for Comment data without the ID (for writing to Firestore)
  */
 export const CommentDataSchema = CommentDocumentSchema.omit({ id: true });
-
-/**
- * Type-safe parsed Comment document
- */
-export type ParsedComment = z.infer<typeof CommentDocumentSchema>;
