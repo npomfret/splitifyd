@@ -58,7 +58,7 @@ export { TopLevelGroupMemberSchema } from './group-membership';
 // ==========================================
 // VALIDATION UTILITIES
 // ==========================================
-export { validateBeforeWrite, validateUpdate } from './validation-helpers';
+export { validateUpdate } from './validation-helpers';
 
 // ==========================================
 // BALANCE CALCULATION SCHEMAS

@@ -3,27 +3,6 @@ import { validateWithMonitoring } from './validation-monitor';
 import type { ContextualLogger } from '../utils/contextual-logger';
 
 /**
- * Validate data before writing to Firestore
- */
-export function validateBeforeWrite<T extends z.ZodSchema>(
-    schema: T,
-    data: unknown,
-    schemaName: string,
-    context: {
-        documentId?: string;
-        collection?: string;
-        uid?: string;
-        logger?: ContextualLogger;
-    },
-): z.infer<T> {
-    return validateWithMonitoring(schema, data, {
-        schemaName,
-        operation: 'write',
-        ...context,
-    });
-}
-
-/**
  * Validate data during update operations
  */
 export function validateUpdate<T extends z.ZodSchema>(

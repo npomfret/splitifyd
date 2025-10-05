@@ -1,7 +1,4 @@
-import { z } from 'zod';
-import { validateBeforeWrite } from '../schemas';
 import { ContextualLogger } from '../utils/contextual-logger';
-import { LoggerContext } from '../utils/logger-context';
 import { logger } from '../logger';
 
 /**
@@ -34,42 +31,4 @@ export class FirestoreValidationService {
         return FirestoreValidationService.instance;
     }
 
-    /**
-     * Validate data before writing to Firestore with performance monitoring
-     *
-     * @param schema - Zod schema to validate against
-     * @param data - Data to validate
-     * @param schemaName - Name of schema for monitoring
-     * @param context - Validation and business context
-     */
-    validateBeforeWrite<T extends z.ZodSchema>(
-        schema: T,
-        data: unknown,
-        schemaName: string,
-        context: {
-            documentId?: string;
-            collection?: string;
-            uid?: string;
-            operation?: string;
-            additionalContext?: Record<string, any>;
-        } = {},
-    ): z.infer<T> {
-        // Set business context for logging
-        LoggerContext.update({
-            operation: context.operation || 'write',
-            documentId: context.documentId,
-            collection: context.collection,
-        });
-
-        if (context.uid) {
-            LoggerContext.update({ uid: context.uid });
-        }
-
-        return validateBeforeWrite(schema, data, schemaName, {
-            documentId: context.documentId,
-            collection: context.collection,
-            uid: context.uid,
-            logger: this.logger,
-        });
-    }
 }
