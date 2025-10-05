@@ -346,17 +346,6 @@ export interface IFirestoreWriter {
      */
     getDocumentReferenceInTransaction(transaction: Transaction, collection: string, documentId: string): FirebaseFirestore.DocumentReference;
 
-
-
-    /**
-     * Atomically delete a group membership and remove the user from notification tracking
-     * @param membershipDocId - The membership document ID to delete
-     * @param userId - The user ID to remove from notifications
-     * @param groupId - The group ID to remove from notifications
-     * @returns Batch write result
-     */
-    deleteMemberAndNotifications(membershipDocId: string, userId: string, groupId: string): Promise<BatchWriteResult>;
-
     /**
      * Atomically update group timestamp, delete membership, and remove from notifications
      * @param groupId - The group ID to update

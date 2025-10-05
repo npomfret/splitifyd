@@ -8,6 +8,7 @@ import { GroupMemberDocumentBuilder } from "../support/GroupMemberDocumentBuilde
 
 describe('Concurrent Operations Integration Tests', () => {
     const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth());
+    const firestoreReader = applicationBuilder.buildFirestoreReader();
     const groupService = applicationBuilder.buildGroupService();
     const groupMemberService = applicationBuilder.buildGroupMemberService();
     const expenseService = applicationBuilder.buildExpenseService();
@@ -76,8 +77,7 @@ describe('Concurrent Operations Integration Tests', () => {
             const operations = [
                 // Query operations
                 () => groupMemberService.getAllGroupMembers(testGroup.id),
-                () => groupMemberService.getGroupMember(testGroup.id, testUser2.uid),
-                () => groupMemberService.getUserGroupsViaSubcollection(testUser1.uid),
+                () => firestoreReader.getGroupMember(testGroup.id, testUser2.uid),
 
                 // Modification operations (production code paths)
                 () => groupShareService.joinGroupByLink(testUser3.uid, testUser3.email, concurrentLinkId),
@@ -214,52 +214,6 @@ describe('Concurrent Operations Integration Tests', () => {
         });
     });
 
-    describe('Race Condition Validation', () => {
-        // NOTE: Rapid add/remove test removed - it tested database-level operations with fake user IDs
-        // that don't exist in Firebase Auth, which is not a realistic production scenario.
-        // Real concurrent member operations are tested in other tests using share links.
-
-        test('should handle collectionGroup queries during concurrent modifications', async () => {
-            const groupShareService = applicationBuilder.buildGroupShareService();
-
-            // Add initial members via share link (production code path)
-            const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
-            for (const user of [testUser2, testUser3, testUser4]) {
-                await groupShareService.joinGroupByLink(user.uid, user.email, linkId);
-            }
-
-            // Run concurrent collectionGroup queries while modifying data
-            const queryPromises = Array(5)
-                .fill(0)
-                .map(() => groupMemberService.getUserGroupsViaSubcollection(testUser1.uid));
-
-            // Generate new share link for concurrent join
-            const { linkId: newLinkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
-
-            const modificationPromises = [
-                groupMemberService.removeGroupMember(testUser1.uid, testGroup.id, testUser3.uid),
-                groupShareService.joinGroupByLink(users[5].uid, users[5].email, newLinkId),
-            ];
-
-            // Execute queries and modifications concurrently
-            const allPromises = [...queryPromises, ...modificationPromises];
-            const results = await Promise.allSettled(allPromises);
-
-            // Verify that most operations succeeded
-            const succeeded = results.filter((r) => r.status === 'fulfilled').length;
-            expect(succeeded).toBeGreaterThan(allPromises.length / 2); // At least half should succeed
-
-            // Verify collectionGroup queries returned valid results
-            const queryResults = results.slice(0, queryPromises.length);
-            queryResults.forEach((result) => {
-                if (result.status === 'fulfilled') {
-                    expect(Array.isArray(result.value)).toBe(true);
-                    expect(result.value).toContain(testGroup.id);
-                }
-            });
-        });
-    });
-
     describe('Error Recovery During Concurrent Operations', () => {
         test('should handle partial failures gracefully', async () => {
             const groupShareService = applicationBuilder.buildGroupShareService();
@@ -272,10 +226,10 @@ describe('Concurrent Operations Integration Tests', () => {
             const operations = [
                 // Valid operations
                 () => groupMemberService.getAllGroupMembers(testGroup.id),
-                () => groupMemberService.getGroupMember(testGroup.id, testUser2.uid),
+                () => firestoreReader.getGroupMember(testGroup.id, testUser2.uid),
 
                 // Operations that will return null for non-existent member (valid behavior)
-                () => groupMemberService.getGroupMember(testGroup.id, 'non-existent-user-id'),
+                () => firestoreReader.getGroupMember(testGroup.id, 'non-existent-user-id'),
             ];
 
             // Execute all operations concurrently

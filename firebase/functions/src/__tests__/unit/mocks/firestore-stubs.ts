@@ -803,10 +803,6 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         };
     }
 
-    async deleteMemberAndNotifications(): Promise<any> {
-        return {successCount: 1, failureCount: 0, results: []};
-    }
-
     async leaveGroupAtomic(): Promise<any> {
         return {successCount: 1, failureCount: 0, results: []};
     }

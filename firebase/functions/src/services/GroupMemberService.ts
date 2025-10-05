@@ -126,30 +126,11 @@ export class GroupMemberService {
     }
 
     /**
-     * Get a single member from a group
-     * @deprecated Use firestoreReader.getGroupMember() instead - only used by tests
-     */
-    async getGroupMember(groupId: string, userId: string): Promise<GroupMembershipDTO | null> {
-        return this.firestoreReader.getGroupMember(groupId, userId);
-    }
-
-    /**
      * Get all members for a group
      * @deprecated Use firestoreReader.getAllGroupMembers() instead - only used by tests
      */
     async getAllGroupMembers(groupId: string): Promise<GroupMembershipDTO[]> {
         return this.firestoreReader.getAllGroupMembers(groupId);
-    }
-
-    /**
-     * Get all groups for a user using top-level collection query
-     * @deprecated Use firestoreReader.getGroupsForUserV2() instead
-     */
-    async getUserGroupsViaSubcollection(userId: string): Promise<string[]> {
-        // Use a high limit to maintain backward compatibility
-        // This method is expected to return ALL groups for a user
-        const paginatedGroups = await this.firestoreReader.getGroupsForUserV2(userId, { limit: 1000 });
-        return paginatedGroups.data.map((group: any) => group.id);
     }
 
     async isGroupMemberAsync(groupId: string, userId: string): Promise<boolean> {

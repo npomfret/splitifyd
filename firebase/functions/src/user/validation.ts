@@ -73,6 +73,7 @@ export const validateUpdateUserProfile = (body: unknown, language: string = 'en'
 
 /**
  * Schema for delete user request
+ * @internal - Prepared for future delete user endpoint implementation
  */
 const deleteUserSchema = Joi.object({
     confirmDelete: Joi.boolean().valid(true).required().messages({
@@ -83,6 +84,7 @@ const deleteUserSchema = Joi.object({
 
 /**
  * Delete user request interface
+ * @internal - Prepared for future delete user endpoint implementation
  */
 interface DeleteUserRequest {
     confirmDelete: true;
@@ -90,8 +92,9 @@ interface DeleteUserRequest {
 
 /**
  * Validate delete user request
+ * @internal - Prepared for future delete user endpoint implementation
  */
-export const validateDeleteUser = (body: unknown): DeleteUserRequest => {
+const validateDeleteUser = (body: unknown): DeleteUserRequest => {
     const { error, value } = deleteUserSchema.validate(body, {
         abortEarly: false,
         stripUnknown: true,

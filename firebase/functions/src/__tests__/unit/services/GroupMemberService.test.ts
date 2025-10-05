@@ -64,44 +64,6 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         vi.clearAllMocks();
     });
 
-    describe('getGroupMember', () => {
-        it('should return member if exists', async () => {
-            const testMember = new GroupMemberDocumentBuilder().withUserId(testUserId1).withGroupId(testGroupId)
-                .withTheme(defaultTheme)
-                .build();
-
-            stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, testMember);
-
-            const result = await groupMemberService.getGroupMember(testGroupId, testUserId1);
-
-            expect(result).toEqual(testMember);
-        });
-
-        it('should return null if member does not exist', async () => {
-            const nonExistentUserId = 'nonexistent-user';
-
-            const result = await groupMemberService.getGroupMember(testGroupId, nonExistentUserId);
-
-            expect(result).toBeNull();
-        });
-
-        it('should handle invalid group ID', async () => {
-            const invalidGroupId = '';
-
-            const result = await groupMemberService.getGroupMember(invalidGroupId, testUserId1);
-
-            expect(result).toBeNull();
-        });
-
-        it('should handle invalid user ID', async () => {
-            const invalidUserId = '';
-
-            const result = await groupMemberService.getGroupMember(testGroupId, invalidUserId);
-
-            expect(result).toBeNull();
-        });
-    });
-
     describe('getAllGroupMembers', () => {
         it('should return all members for a group', async () => {
             const testMembers: GroupMembershipDTO[] = [
@@ -179,38 +141,6 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const result = await groupMemberService.isGroupMemberAsync(testGroupId, invalidUserId);
 
             expect(result).toBe(false);
-        });
-    });
-
-    describe('member document structure validation', () => {
-        it('should handle member documents with all required fields', async () => {
-            const completeMember = new GroupMemberDocumentBuilder().withUserId(testUserId1).withGroupId(testGroupId)
-                .withTheme(defaultTheme)
-                .build();
-
-            stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, completeMember);
-
-            const result = await groupMemberService.getGroupMember(testGroupId, testUserId1);
-
-            expect(result).toBeDefined();
-            expect(result?.uid).toBe(testUserId1);
-            expect(result?.groupId).toBe(testGroupId);
-            expect(result?.memberRole).toBe('member');
-            expect(result?.joinedAt).toBeDefined();
-        });
-
-        it('should handle member documents with admin role', async () => {
-            const adminMember = new GroupMemberDocumentBuilder().withUserId(testUserId1).withGroupId(testGroupId)
-                .withTheme(defaultTheme)
-                .asAdmin()
-                .build();
-
-            stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, adminMember);
-
-            const result = await groupMemberService.getGroupMember(testGroupId, testUserId1);
-
-            expect(result).toBeDefined();
-            expect(result?.memberRole).toBe('admin');
         });
     });
 

@@ -1,5 +1,11 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { RecentChangeDocument, UserNotificationDocument, UserNotificationGroupDocument } from '../../schemas/user-notifications';
+import { UserNotificationDocument } from '../../schemas/user-notifications';
+
+/**
+ * Internal type aliases inferred from UserNotificationDocument
+ */
+type UserNotificationGroupDocument = UserNotificationDocument['groups'][string];
+type RecentChangeDocument = NonNullable<UserNotificationDocument['recentChanges']>[number];
 
 /**
  * Builder for creating UserNotificationDocument objects for tests

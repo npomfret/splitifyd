@@ -1387,7 +1387,7 @@ describe('Groups Management - Consolidated Tests', () => {
                 await groupShareService.joinGroupByLink(users[1].uid, users[1].email, linkId);
 
                 // Verify member was created
-                const retrievedMember = await groupMemberService.getGroupMember(testGroup.id, users[1].uid);
+                const retrievedMember = await firestoreReader.getGroupMember(testGroup.id, users[1].uid);
                 expect(retrievedMember).toBeDefined();
                 expect(retrievedMember?.uid).toBe(users[1].uid);
                 expect(retrievedMember?.groupId).toBe(testGroup.id);
@@ -1404,10 +1404,10 @@ describe('Groups Management - Consolidated Tests', () => {
                         .build()
                 );
 
-                const result = await groupMemberService.getGroupMember(testGroup.id, 'non-existent-user');
+                const result = await firestoreReader.getGroupMember(testGroup.id, 'non-existent-user');
                 expect(result).toBeNull();
 
-                const result2 = await groupMemberService.getGroupMember('non-existent-group', users[0].uid);
+                const result2 = await firestoreReader.getGroupMember('non-existent-group', users[0].uid);
                 expect(result2).toBeNull();
             });
         });
@@ -1458,14 +1458,14 @@ describe('Groups Management - Consolidated Tests', () => {
                 await groupShareService.joinGroupByLink(users[1].uid, users[1].email, linkId);
 
                 // Verify member exists
-                let member = await groupMemberService.getGroupMember(testGroup.id, users[1].uid);
+                let member = await firestoreReader.getGroupMember(testGroup.id, users[1].uid);
                 expect(member).toBeDefined();
 
                 // Remove member using production code path
                 await groupMemberService.removeGroupMember(users[0].uid, testGroup.id, users[1].uid);
 
                 // Verify member is deleted
-                member = await groupMemberService.getGroupMember(testGroup.id, users[1].uid);
+                member = await firestoreReader.getGroupMember(testGroup.id, users[1].uid);
                 expect(member).toBeNull();
             });
 
