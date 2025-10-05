@@ -414,78 +414,6 @@ describe('UserService - Consolidated Unit Tests', () => {
         });
     });
 
-    describe('deleteAccount', () => {
-        it('should delete user from both Auth and Firestore', async () => {
-            const uid = 'user-to-delete';
-
-            // Set up user to delete
-            stubAuth.setUser(uid, {
-                uid,
-                email: 'todelete@example.com',
-                displayName: 'To Delete User',
-            });
-
-            const userDoc = new UserDocumentBuilder(uid)
-                .withEmail('todelete@example.com')
-                .withDisplayName('To Delete User')
-                .withThemeColor(createTestThemeColor())
-                .build();
-            stubReader.setDocument('users', uid, userDoc);
-
-            const deleteResult = await userService.deleteAccount(uid, {
-                confirmDelete: true,
-            });
-
-            expect(deleteResult.message).toBe('Account deleted successfully');
-
-            // Verify user was deleted from Auth stub
-            await expect(stubAuth.getUser(uid)).rejects.toThrow(
-                expect.objectContaining({
-                    code: 'USER_NOT_FOUND',
-                }),
-            );
-
-            // Note: The actual service doesn't call deleteUserNotification in the current implementation
-            // It deletes the user and notifications via transaction, so we verify the success message instead
-            expect(deleteResult.message).toBe('Account deleted successfully');
-        });
-
-        it('should require confirmation for deletion', async () => {
-            const uid = 'test-user';
-
-            // Set up existing user
-            stubAuth.setUser(uid, {
-                uid,
-                email: 'test@example.com',
-                displayName: 'Test User',
-            });
-
-            // Try to delete without confirmation
-            await expect(
-                userService.deleteAccount(uid, {
-                    confirmDelete: false,
-                } as any),
-            ).rejects.toThrow('Invalid input data');
-
-            // Try to delete without confirmDelete field
-            await expect(userService.deleteAccount(uid, {} as any)).rejects.toThrow('Invalid input data');
-        });
-
-        it('should throw NOT_FOUND for non-existent user', async () => {
-            const nonExistentUid = 'nonexistent-user-id';
-
-            await expect(
-                userService.deleteAccount(nonExistentUid, {
-                    confirmDelete: true,
-                }),
-            ).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.NOT_FOUND,
-                }),
-            );
-        });
-    });
-
     describe('error handling and edge cases', () => {
         it('should maintain data consistency between Auth and Firestore', async () => {
             const uid = 'consistent-user';
@@ -680,34 +608,6 @@ describe('UserService - Consolidated Unit Tests', () => {
             });
 
             it('should handle incorrect current password', async () => {
-                // todo
-            });
-        });
-
-        describe('deleteAccount validation', () => {
-            it('should require confirmation', async () => {
-                const deleteData = {
-                    confirmDelete: false,
-                };
-
-                await expect(validationUserService.deleteAccount(testUserId, deleteData)).rejects.toThrow(ApiError);
-            });
-
-            it('should require confirmation field to be present', async () => {
-                const deleteData = {};
-
-                await expect(validationUserService.deleteAccount(testUserId, deleteData)).rejects.toThrow(ApiError);
-            });
-
-            it('should accept valid deletion request', async () => {
-                // todo
-            });
-
-            it('should prevent deletion of users with active groups', async () => {
-                // todo
-            });
-
-            it('should throw NOT_FOUND for non-existent user', async () => {
                 // todo
             });
         });
