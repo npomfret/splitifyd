@@ -15,28 +15,11 @@ import { FirestoreCollections } from "../constants";
 import type { GroupMembershipDTO } from "@splitifyd/shared";
 
 export class GroupShareService {
-    // Injected dependencies or defaults
-    private readonly logger: typeof import('../logger').logger;
-    private readonly loggerContext: typeof import('../logger').LoggerContext;
-    private readonly dateHelpers: typeof import('../utils/dateHelpers');
-    private readonly measure: typeof import('../monitoring/measure');
-
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly groupMemberService: GroupMemberService,
-        // Optional dependencies for testing
-        injectedLogger?: typeof import('../logger').logger,
-        injectedLoggerContext?: typeof import('../logger').LoggerContext,
-        injectedDateHelpers?: typeof import('../utils/dateHelpers'),
-        injectedMeasure?: typeof import('../monitoring/measure')
-    ) {
-        // Use injected dependencies or fall back to imports
-        this.logger = injectedLogger || logger;
-        this.loggerContext = injectedLoggerContext || LoggerContext;
-        this.dateHelpers = injectedDateHelpers || dateHelpers;
-        this.measure = injectedMeasure || measure;
-    }
+    ) {}
 
     private generateShareToken(): string {
         const bytes = randomBytes(12);
@@ -88,7 +71,7 @@ export class GroupShareService {
         shareablePath: string;
         linkId: string;
     }> {
-        return this.measure.measureDb('GroupShareService.generateShareableLink', async () => this._generateShareableLink(userId, groupId));
+        return measure.measureDb('GroupShareService.generateShareableLink', async () => this._generateShareableLink(userId, groupId));
     }
 
     private async _generateShareableLink(
@@ -133,7 +116,7 @@ export class GroupShareService {
                 const validatedShareLinkData = ShareLinkDataSchema.parse(shareLinkData);
                 this.firestoreWriter.createShareLinkInTransaction(transaction, groupId, validatedShareLinkData);
             } catch (error) {
-                this.logger.error('ShareLink data validation failed before write', error as Error, {
+                logger.error('ShareLink data validation failed before write', error as Error, {
                     groupId,
                     createdBy: userId,
                     validationErrors: error instanceof z.ZodError ? error.issues : undefined,
@@ -144,8 +127,8 @@ export class GroupShareService {
 
         const shareablePath = `/join?linkId=${shareToken}`;
 
-        this.loggerContext.setBusinessContext({ groupId });
-        this.logger.info('share-link-created', { id: shareToken, groupId, createdBy: userId });
+        LoggerContext.setBusinessContext({ groupId });
+        logger.info('share-link-created', { id: shareToken, groupId, createdBy: userId });
 
         return {
             shareablePath,
@@ -197,7 +180,7 @@ export class GroupShareService {
         message: string;
         success: boolean;
     }> {
-        return this.measure.measureDb('GroupShareService.joinGroupByLink', async () => this._joinGroupByLink(userId, userEmail, linkId));
+        return measure.measureDb('GroupShareService.joinGroupByLink', async () => this._joinGroupByLink(userId, userEmail, linkId));
     }
 
     private async _joinGroupByLink(
@@ -299,7 +282,7 @@ export class GroupShareService {
             },
         );
 
-        this.logger.info('User joined group via share link', {
+        logger.info('User joined group via share link', {
             groupId,
             userId,
             userName,

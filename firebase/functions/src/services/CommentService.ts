@@ -18,7 +18,7 @@ export class CommentService {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
-        private readonly groupMemberService: GroupMemberService,
+        readonly groupMemberService: GroupMemberService,
         private readonly authService: IAuthService,
     ) {
         this.strategyFactory = new CommentStrategyFactory(firestoreReader, groupMemberService);

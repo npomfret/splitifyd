@@ -37,12 +37,6 @@ type SettlementWithGroupId = SettlementDTO & { groupId: string };
 export class GroupService {
     private balanceService: BalanceCalculationService;
 
-    // Injected dependencies or defaults
-    private readonly logger: typeof import('../logger').logger;
-    private readonly loggerContext: typeof import('../logger').LoggerContext;
-    private readonly dateHelpers: typeof import('../utils/dateHelpers');
-    private readonly measure: typeof import('../monitoring/measure');
-
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
@@ -53,19 +47,8 @@ export class GroupService {
         private readonly notificationService: NotificationService,
         private readonly expenseMetadataService: ExpenseMetadataService,
         private readonly groupShareService: GroupShareService,
-        // Optional dependencies for testing
-        injectedLogger?: typeof import('../logger').logger,
-        injectedLoggerContext?: typeof import('../logger').LoggerContext,
-        injectedDateHelpers?: typeof import('../utils/dateHelpers'),
-        injectedMeasure?: typeof import('../monitoring/measure')
     ) {
         this.balanceService = new BalanceCalculationService(firestoreReader, userService);
-
-        // Use injected dependencies or fall back to imports
-        this.logger = injectedLogger || logger;
-        this.loggerContext = injectedLoggerContext || LoggerContext;
-        this.dateHelpers = injectedDateHelpers || dateHelpers;
-        this.measure = injectedMeasure || measure;
     }
 
     /**
@@ -263,11 +246,11 @@ export class GroupService {
      * Format a date as relative time (e.g., "2 hours ago")
      */
     private formatRelativeTime(dateStr: string): string {
-        const timestamp = this.dateHelpers.parseISOToTimestamp(dateStr);
+        const timestamp = dateHelpers.parseISOToTimestamp(dateStr);
         if (!timestamp) {
             return 'unknown';
         }
-        return this.dateHelpers.getRelativeTime(timestamp);
+        return dateHelpers.getRelativeTime(timestamp);
     }
 
     /**
@@ -283,7 +266,7 @@ export class GroupService {
             includeMetadata?: boolean;
         } = {},
     ): Promise<ListGroupsResponse> {
-        return this.measure.measureDb('listGroups', async () => this._listGroups(userId, options));
+        return measure.measureDb('listGroups', async () => this._listGroups(userId, options));
     }
 
     private async _listGroups(
@@ -295,7 +278,7 @@ export class GroupService {
             includeMetadata?: boolean;
         } = {},
     ): Promise<ListGroupsResponse> {
-        return this.measure.measureDb('list-groups', async () => {
+        return measure.measureDb('list-groups', async () => {
             return this._executeListGroups(userId, options);
         });
     }
@@ -385,7 +368,7 @@ export class GroupService {
 
             const balancePromises = groupsWithExpenses.map((group: GroupDTO) =>
                 this.balanceService.calculateGroupBalances(group.id).catch((error: Error) => {
-                    this.logger.error('Error calculating balances', error, { groupId: group.id });
+                    logger.error('Error calculating balances', error, { groupId: group.id });
                     return {
                         groupId: group.id,
                         balancesByCurrency: {},
@@ -473,7 +456,7 @@ export class GroupService {
 
                     lastActivity = this.formatRelativeTime(lastActivityDate.toISOString());
                 } catch (error) {
-                    this.logger.warn('Failed to format last activity time, using group updatedAt', {
+                    logger.warn('Failed to format last activity time, using group updatedAt', {
                         error,
                         lastActivityDate,
                         groupId: group.id,
@@ -549,7 +532,7 @@ export class GroupService {
      * IMPORTANT: The creator is automatically added as a member with 'owner' role
      */
     async createGroup(userId: string, groupData: CreateGroupRequest = new CreateGroupRequestBuilder().build()): Promise<GroupDTO> {
-        return this.measure.measureDb('createGroup', async () => this._createGroup(userId, groupData));
+        return measure.measureDb('createGroup', async () => this._createGroup(userId, groupData));
     }
 
     private async _createGroup(userId: string, createGroupRequest: CreateGroupRequest): Promise<GroupDTO> {
@@ -602,7 +585,7 @@ export class GroupService {
         });
 
         // Add group context to logger
-        this.loggerContext.setBusinessContext({ groupId: groupId });
+        LoggerContext.setBusinessContext({ groupId: groupId });
 
         // Fetch the created document to get server-side timestamps
         const groupData = await this.firestoreReader.getGroup(groupId);
@@ -667,10 +650,10 @@ export class GroupService {
         });
 
         // Set group context
-        this.loggerContext.setBusinessContext({ groupId });
+        LoggerContext.setBusinessContext({ groupId });
 
         // Log without explicitly passing userId - it will be automatically included
-        this.logger.info('group-updated', { id: groupId });
+        logger.info('group-updated', { id: groupId });
 
         return { message: 'Group updated successfully' };
     }
@@ -699,7 +682,7 @@ export class GroupService {
 
                 // Check if already deleting
                 if (groupData?.deletionStatus === 'deleting') {
-                    this.logger.warn('Group is already marked for deletion', { groupId });
+                    logger.warn('Group is already marked for deletion', { groupId });
                     throw new Error('Group deletion is already in progress');
                 }
 
@@ -720,7 +703,7 @@ export class GroupService {
 
                 this.firestoreWriter.updateInTransaction(transaction, groupRef.path, updatedData);
 
-                this.logger.info('Group marked for deletion', {
+                logger.info('Group marked for deletion', {
                     groupId,
                     attempt: updatedData.deletionAttempts,
                 });
@@ -741,7 +724,7 @@ export class GroupService {
      */
     private async deleteBatch(collectionType: string, groupId: string, documentPaths: string[]): Promise<void> {
         if (documentPaths.length === 0) {
-            this.logger.info('No documents to delete for collection type', { collectionType, groupId });
+            logger.info('No documents to delete for collection type', { collectionType, groupId });
             return;
         }
 
@@ -751,7 +734,7 @@ export class GroupService {
             chunks.push(documentPaths.slice(i, i + FIRESTORE.DELETION_BATCH_SIZE));
         }
 
-        this.logger.info('Deleting documents in batches', {
+        logger.info('Deleting documents in batches', {
             collectionType,
             groupId,
             totalDocuments: documentPaths.length,
@@ -767,7 +750,7 @@ export class GroupService {
             try {
                 await this.firestoreWriter.runTransaction(
                     async (transaction) => {
-                        this.logger.info('Processing deletion batch', {
+                        logger.info('Processing deletion batch', {
                             collectionType,
                             groupId,
                             batchNumber,
@@ -789,14 +772,14 @@ export class GroupService {
                     },
                 );
 
-                this.logger.info('Deletion batch completed successfully', {
+                logger.info('Deletion batch completed successfully', {
                     collectionType,
                     groupId,
                     batchNumber,
                     batchSize: chunk.length,
                 });
             } catch (error) {
-                this.logger.error('Deletion batch failed', {
+                logger.error('Deletion batch failed', {
                     collectionType,
                     groupId,
                     batchNumber,
@@ -836,9 +819,9 @@ export class GroupService {
                 },
             );
 
-            this.logger.error('Group deletion marked as failed', { groupId, errorMessage });
+            logger.error('Group deletion marked as failed', { groupId, errorMessage });
         } catch (markError) {
-            this.logger.error('Failed to mark group deletion as failed', {
+            logger.error('Failed to mark group deletion as failed', {
                 groupId,
                 originalError: errorMessage,
                 markError: markError instanceof Error ? markError.message : String(markError),
@@ -858,7 +841,7 @@ export class GroupService {
                 const groupSnap = await transaction.get(groupRef);
 
                 if (!groupSnap.exists) {
-                    this.logger.warn('Group document not found during finalization', { groupId });
+                    logger.warn('Group document not found during finalization', { groupId });
                     return;
                 }
 
@@ -872,7 +855,7 @@ export class GroupService {
                 // Delete the main group document
                 transaction.delete(groupRef);
 
-                this.logger.info('Group document deleted successfully', { groupId });
+                logger.info('Group document deleted successfully', { groupId });
             },
             {
                 maxAttempts: 3,
@@ -889,7 +872,7 @@ export class GroupService {
         const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
         const memberIds = memberDocs ? memberDocs.map((doc) => doc.uid) : [];
 
-        this.logger.info('Initiating atomic group deletion', {
+        logger.info('Initiating atomic group deletion', {
             groupId,
             memberCount: memberIds.length,
             members: memberIds,
@@ -898,18 +881,18 @@ export class GroupService {
 
         try {
             // PHASE 1: Mark group for deletion (atomic)
-            this.logger.info('Step 1: Marking group for deletion', { groupId });
+            logger.info('Step 1: Marking group for deletion', { groupId });
             await this.markGroupForDeletion(groupId);
 
             // PHASE 2: Discover all related data
-            this.logger.info('Step 2: Discovering all related data', { groupId });
+            logger.info('Step 2: Discovering all related data', { groupId });
             const { expenses, settlements, shareLinks, groupComments, expenseComments: expenseCommentSnapshots } = await this.firestoreReader.getGroupDeletionData(groupId);
 
             // Calculate total documents for logging
             const totalDocuments =
                 expenses.size + settlements.size + shareLinks.size + groupComments.size + (memberDocs?.length || 0) + expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0);
 
-            this.logger.info('Data discovery complete', {
+            logger.info('Data discovery complete', {
                 groupId,
                 totalDocuments,
                 breakdown: {
@@ -923,7 +906,7 @@ export class GroupService {
             });
 
             // PHASE 3: Delete collections in atomic batches
-            this.logger.info('Step 3: Deleting collections atomically', { groupId });
+            logger.info('Step 3: Deleting collections atomically', { groupId });
 
             // Delete expenses
             const expensePaths = expenses.docs.map((doc) => doc.ref.path);
@@ -960,12 +943,12 @@ export class GroupService {
             await this.deleteBatch('memberships', groupId, membershipPaths);
 
             // PHASE 4: Finalize by deleting main group document (atomic)
-            this.logger.info('Step 4: Finalizing group deletion', { groupId });
+            logger.info('Step 4: Finalizing group deletion', { groupId });
             await this.finalizeGroupDeletion(groupId);
 
             // PHASE 5: Clean up user notification documents (AFTER all triggers have finished)
             // Since we removed trackMembershipDeletion trigger, we need to manually clean up notifications
-            this.logger.info('Step 5: Cleaning up user notification documents', { groupId });
+            logger.info('Step 5: Cleaning up user notification documents', { groupId });
             if (memberIds.length > 0) {
                 const results = [];
                 for (const memberId of memberIds) {
@@ -973,7 +956,7 @@ export class GroupService {
                     results.push(result);
                 }
                 const successfulCleanups = results.filter((r) => r.success).length;
-                this.logger.info('Notification cleanup completed', {
+                logger.info('Notification cleanup completed', {
                     groupId,
                     totalUsers: memberIds.length,
                     successfulCleanups,
@@ -982,9 +965,9 @@ export class GroupService {
             }
 
             // Set group context
-            this.loggerContext.setBusinessContext({ groupId });
+            LoggerContext.setBusinessContext({ groupId });
 
-            this.logger.info('Atomic group deletion completed successfully', {
+            logger.info('Atomic group deletion completed successfully', {
                 groupId,
                 totalDocuments,
                 operation: 'ATOMIC_DELETE_SUCCESS',
@@ -992,7 +975,7 @@ export class GroupService {
 
             return { message: 'Group and all associated data deleted permanently' };
         } catch (error) {
-            this.logger.error('Atomic group deletion failed', {
+            logger.error('Atomic group deletion failed', {
                 groupId,
                 error: error instanceof Error ? error.message : String(error),
                 operation: 'ATOMIC_DELETE_FAILED',
@@ -1059,7 +1042,7 @@ export class GroupService {
         // Convert Timestamp to ISO string for DTO
         const balancesDTO = {
             ...validatedBalances,
-            lastUpdated: this.dateHelpers.timestampToISO(validatedBalances.lastUpdated),
+            lastUpdated: dateHelpers.timestampToISO(validatedBalances.lastUpdated),
             userBalances: {}, // TODO: Populate from balancesByCurrency if needed by client
         };
 
