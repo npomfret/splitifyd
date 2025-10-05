@@ -5,8 +5,6 @@ import { BalanceCalculationService } from './balance';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import { MemberRoles, type GroupMembershipDTO } from '@splitifyd/shared';
-import { getTopLevelMembershipDocId, createTopLevelMembershipDocument } from '../utils/groupMembershipHelpers';
-import { FirestoreCollections } from "../constants";
 
 export class GroupMemberService {
     constructor(
@@ -127,35 +125,9 @@ export class GroupMemberService {
         };
     }
 
-    // ========================================================================
-    // NEW SUBCOLLECTION METHODS - For Scalable Architecture
-    // ========================================================================
-
-    /**
-     * Create a member document in the top-level collection
-     * Path: group-memberships/{userId}_{groupId}
-     * @deprecated remove this - only used by tests
-     */
-    async createMember(groupId: string, memberDoc: GroupMembershipDTO): Promise<void> {
-        return measure.measureDb('CREATE_MEMBER', async () => {
-            const topLevelDocId = getTopLevelMembershipDocId(memberDoc.uid, groupId);
-            const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, new Date().toISOString());
-
-            await this.firestoreWriter.runTransaction(async (transaction) => {
-                this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, topLevelDocId, topLevelMemberDoc);
-            });
-
-            logger.info('Member added to top-level collection', {
-                groupId,
-                userId: memberDoc.uid,
-                memberRole: memberDoc.memberRole,
-            });
-        });
-    }
-
     /**
      * Get a single member from a group
-     * @deprecated Use firestoreReader.getGroupMember() instead
+     * @deprecated Use firestoreReader.getGroupMember() instead - only used by tests
      */
     async getGroupMember(groupId: string, userId: string): Promise<GroupMembershipDTO | null> {
         return this.firestoreReader.getGroupMember(groupId, userId);
@@ -163,45 +135,10 @@ export class GroupMemberService {
 
     /**
      * Get all members for a group
-     * @deprecated Use firestoreReader.getAllGroupMembers() instead
+     * @deprecated Use firestoreReader.getAllGroupMembers() instead - only used by tests
      */
     async getAllGroupMembers(groupId: string): Promise<GroupMembershipDTO[]> {
         return this.firestoreReader.getAllGroupMembers(groupId);
-    }
-
-    /**
-     * Update a member in the top-level collection
-     * @deprecated - remove this - only used by tests
-     */
-    async updateMember(groupId: string, userId: string, updates: Partial<GroupMembershipDTO>): Promise<void> {
-        return measure.measureDb('UPDATE_MEMBER', async () => {
-            const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
-
-            await this.firestoreWriter.runTransaction(async (transaction) => {
-                this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`, updates);
-            });
-
-            logger.info('Member updated in top-level collection', {
-                groupId,
-                userId,
-                updates: Object.keys(updates),
-            });
-        });
-    }
-
-    /**
-     * Delete a member from top-level collection
-     * @deprecated - remove this - only used by tests
-     */
-    async deleteMember(groupId: string, userId: string): Promise<void> {
-        return measure.measureDb('DELETE_MEMBER', async () => {
-            const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
-
-            // Use atomic batch operation to delete membership and remove from notifications
-            await this.firestoreWriter.deleteMemberAndNotifications(topLevelDocId, userId, groupId);
-
-            logger.info('Member and notification tracking deleted atomically', { groupId, userId });
-        });
     }
 
     /**
@@ -216,12 +153,12 @@ export class GroupMemberService {
     }
 
     async isGroupMemberAsync(groupId: string, userId: string): Promise<boolean> {
-        const member = await this.getGroupMember(groupId, userId);
+        const member = await this.firestoreReader.getGroupMember(groupId, userId);
         return member !== null;
     }
 
     async isGroupOwnerAsync(groupId: string, userId: string): Promise<boolean> {
-        const member = await this.getGroupMember(groupId, userId);
+        const member = await this.firestoreReader.getGroupMember(groupId, userId);
         return member?.memberRole === MemberRoles.ADMIN || false;
     }
 }

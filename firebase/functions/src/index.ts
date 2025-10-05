@@ -10,7 +10,7 @@ import { sendHealthCheckResponse, ApiError } from './utils/errors';
 import { APP_VERSION } from './utils/version';
 import { HTTP_STATUS, SYSTEM } from './constants';
 import { disableETags } from './middleware/cache-control';
-import { createOptimisticTimestamp, timestampToISO } from './utils/dateHelpers';
+import { timestampToISO } from './utils/dateHelpers';
 import { createExpense, updateExpense, deleteExpense, getExpenseHistory, getExpenseFullDetails } from './expenses/handlers';
 import { generateShareableLink, previewGroupByLink, joinGroupByLink } from './groups/shareHandlers';
 import { leaveGroup, removeGroupMember } from './groups/memberHandlers';
@@ -131,7 +131,7 @@ function setupRoutes(app: express.Application): void {
         const memUsage = process.memoryUsage();
 
         res.json({
-            timestamp: timestampToISO(createOptimisticTimestamp()),
+            timestamp: timestampToISO(new Date()),
             uptime: process.uptime(),
             memory: {
                 rss: `${Math.round(memUsage.rss / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,

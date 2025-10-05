@@ -1374,7 +1374,7 @@ describe('Groups Management - Consolidated Tests', () => {
         // Consolidated from GroupMemberSubcollection.integration.test.ts - basic member CRUD operations
 
         describe('Member Creation', () => {
-            test('should create member document using service layer', async () => {
+            test('should create member via share link (production code path)', async () => {
                 const testGroup = await groupService.createGroup(users[0].uid,
                     new CreateGroupRequestBuilder()
                         .withName('Member Creation Test Group')
@@ -1382,14 +1382,9 @@ describe('Groups Management - Consolidated Tests', () => {
                         .build()
                 );
 
-                const memberDoc = new GroupMemberDocumentBuilder().withUserId(users[1].uid).withGroupId(testGroup.id)
-                    .withRole('member')
-                    .withStatus('active')
-                    .withTheme(groupShareService.getThemeColorForMember(1))
-                    .withInvitedBy(users[0].uid)
-                    .build();
-
-                await groupMemberService.createMember(testGroup.id, memberDoc);
+                // Create member via share link (production code path)
+                const { linkId } = await groupShareService.generateShareableLink(users[0].uid, testGroup.id);
+                await groupShareService.joinGroupByLink(users[1].uid, users[1].email, linkId);
 
                 // Verify member was created
                 const retrievedMember = await groupMemberService.getGroupMember(testGroup.id, users[1].uid);
@@ -1426,14 +1421,9 @@ describe('Groups Management - Consolidated Tests', () => {
                         .build()
                 );
 
-                // Add second member
-                const memberDoc = new GroupMemberDocumentBuilder().withUserId(users[1].uid).withGroupId(testGroup.id)
-                    .withRole('member')
-                    .withStatus('active')
-                    .withTheme(groupShareService.getThemeColorForMember(1))
-                    .withInvitedBy(users[0].uid)
-                    .build();
-                await groupMemberService.createMember(testGroup.id, memberDoc);
+                // Add second member via share link (production code path)
+                const { linkId } = await groupShareService.generateShareableLink(users[0].uid, testGroup.id);
+                await groupShareService.joinGroupByLink(users[1].uid, users[1].email, linkId);
 
                 // Get all members
                 const members = await groupMemberService.getAllGroupMembers(testGroup.id);
@@ -1447,56 +1437,15 @@ describe('Groups Management - Consolidated Tests', () => {
                 expect(creator?.memberRole).toBe(MemberRoles.ADMIN);
             });
 
-            test('should return empty array for group with no members', async () => {
-                const newGroup = await groupService.createGroup(users[0].uid,
-                    new CreateGroupRequestBuilder()
-                        .withName('Empty Members Group')
-                        .withDescription('No members for testing')
-                        .build()
-                );
-
-                // Delete the auto-created member for this test
-                await groupMemberService.deleteMember(newGroup.id, users[0].uid);
-
-                const members = await groupMemberService.getAllGroupMembers(newGroup.id);
-                expect(members).toHaveLength(0);
-            });
+            // NOTE: Test for "empty group with no members" removed - this is an impossible state
+            // Groups always have at least one member (the creator), who cannot leave their own group
         });
 
-        describe('Member Updates', () => {
-            test('should update member role and status', async () => {
-                const testGroup = await groupService.createGroup(users[0].uid,
-                    new CreateGroupRequestBuilder()
-                        .withName('Member Update Test Group')
-                        .withDescription('Testing member updates')
-                        .build()
-                );
-
-                // Add member first
-                const memberDoc = new GroupMemberDocumentBuilder().withUserId(users[1].uid).withGroupId(testGroup.id)
-                    .withRole('member')
-                    .withStatus('active')
-                    .withTheme(groupShareService.getThemeColorForMember(1))
-                    .withInvitedBy(users[0].uid)
-                    .build();
-                await groupMemberService.createMember(testGroup.id, memberDoc);
-
-                // Update the member
-                await groupMemberService.updateMember(testGroup.id, users[1].uid, {
-                    memberRole: MemberRoles.ADMIN,
-                    memberStatus: MemberStatuses.PENDING,
-                });
-
-                // Verify update
-                const updatedMember = await groupMemberService.getGroupMember(testGroup.id, users[1].uid);
-                expect(updatedMember?.memberRole).toBe(MemberRoles.ADMIN);
-                expect(updatedMember?.memberStatus).toBe(MemberStatuses.PENDING);
-                expect(updatedMember?.uid).toBe(users[1].uid); // Other fields unchanged
-            });
-        });
+        // NOTE: Member Updates tests removed - no production code path exists for updating member roles/status
+        // If member update functionality is implemented in the future, add appropriate tests here
 
         describe('Member Deletion', () => {
-            test('should delete member from group', async () => {
+            test('should remove member from group (production code path)', async () => {
                 const testGroup = await groupService.createGroup(users[0].uid,
                     new CreateGroupRequestBuilder()
                         .withName('Member Deletion Test Group')
@@ -1504,38 +1453,25 @@ describe('Groups Management - Consolidated Tests', () => {
                         .build()
                 );
 
-                // Add member first
-                const memberDoc = new GroupMemberDocumentBuilder().withUserId(users[1].uid).withGroupId(testGroup.id)
-                    .withRole('member')
-                    .withStatus('active')
-                    .withTheme(groupShareService.getThemeColorForMember(1))
-                    .withInvitedBy(users[0].uid)
-                    .build();
-                await groupMemberService.createMember(testGroup.id, memberDoc);
+                // Add member via share link (production code path)
+                const { linkId } = await groupShareService.generateShareableLink(users[0].uid, testGroup.id);
+                await groupShareService.joinGroupByLink(users[1].uid, users[1].email, linkId);
 
                 // Verify member exists
                 let member = await groupMemberService.getGroupMember(testGroup.id, users[1].uid);
                 expect(member).toBeDefined();
 
-                // Delete member
-                await groupMemberService.deleteMember(testGroup.id, users[1].uid);
+                // Remove member using production code path
+                await groupMemberService.removeGroupMember(users[0].uid, testGroup.id, users[1].uid);
 
                 // Verify member is deleted
                 member = await groupMemberService.getGroupMember(testGroup.id, users[1].uid);
                 expect(member).toBeNull();
             });
 
-            test('should not throw error when deleting non-existent member', async () => {
-                const testGroup = await groupService.createGroup(users[0].uid,
-                    new CreateGroupRequestBuilder()
-                        .withName('Non-existent Delete Test')
-                        .withDescription('Testing non-existent member deletion')
-                        .build()
-                );
-
-                // Should not throw - idempotent operation
-                await expect(groupMemberService.deleteMember(testGroup.id, 'non-existent-user')).resolves.not.toThrow();
-            });
+            // NOTE: Test for "should not throw error when deleting non-existent member" removed
+            // Production code (removeGroupMember) correctly throws an error when trying to remove a non-existent member
+            // The old deleteMember was lenient, but production code should validate properly
         });
     });
 });

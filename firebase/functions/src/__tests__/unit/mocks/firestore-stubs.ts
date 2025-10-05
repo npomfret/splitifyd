@@ -468,21 +468,6 @@ export class StubFirestoreReader implements IFirestoreReader {
         return {docs: [], size: 0, empty: true};
     }
 
-    async getRawExpenseDocumentInTransaction(transaction: any, expenseId: string): Promise<any | null> {
-        const expenseData = this.documents.get(`expenses/${expenseId}`);
-        if (!expenseData) return null;
-
-        return {
-            exists: true,
-            data: () => expenseData,
-            ref: {id: expenseId, path: `expenses/${expenseId}`},
-        };
-    }
-
-    async getRawGroupDocument(): Promise<any | null> {
-        return null;
-    }
-
     async getRawGroupDocumentInTransaction(transaction: any, groupId: string): Promise<any | null> {
         const groupData = this.documents.get(`groups/${groupId}`);
         if (!groupData) {
@@ -495,10 +480,6 @@ export class StubFirestoreReader implements IFirestoreReader {
             get: (field: string) => groupData?.[field],
             ref: {id: groupId, path: `groups/${groupId}`},
         };
-    }
-
-    async getRawSettlementDocumentInTransaction(): Promise<any | null> {
-        return null;
     }
 
     getGroupInTransaction(transaction: FirebaseFirestore.Transaction, groupId: string): Promise<GroupDTO | null> {

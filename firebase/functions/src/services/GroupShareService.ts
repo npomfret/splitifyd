@@ -4,7 +4,6 @@ import { ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { COLOR_PATTERNS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
-import * as dateHelpers from '../utils/dateHelpers';
 import * as measure from '../monitoring/measure';
 import { ShareLinkDataSchema } from '../schemas';
 import type { IFirestoreReader } from './firestore';
@@ -159,7 +158,7 @@ export class GroupShareService {
         const isAlreadyMember = await this.groupMemberService.isGroupMemberAsync(group.id, userId);
 
         // Get member count from subcollection
-        const memberDocs = await this.groupMemberService.getAllGroupMembers(group.id);
+        const memberDocs = await this.firestoreReader.getAllGroupMembers(group.id);
 
         return {
             groupId: group.id,
@@ -209,7 +208,7 @@ export class GroupShareService {
         }
 
         // Early membership check to avoid transaction if user is already a member
-        const existingMember = await this.groupMemberService.getGroupMember(groupId, userId);
+        const existingMember = await this.firestoreReader.getGroupMember(groupId, userId);
         if (existingMember) {
             throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already a member of this group');
         }
@@ -219,7 +218,7 @@ export class GroupShareService {
 
         // Pre-compute member data outside transaction for speed
         const joinedAt = new Date().toISOString();
-        const existingMembers = await this.groupMemberService.getAllGroupMembers(groupId);
+        const existingMembers = await this.firestoreReader.getAllGroupMembers(groupId);
         const memberIndex = existingMembers.length;
 
         const themeColor = this.getThemeColorForMember(memberIndex);

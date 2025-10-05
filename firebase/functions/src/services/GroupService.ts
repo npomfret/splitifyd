@@ -342,7 +342,7 @@ export class GroupService {
             const membersByGroup = new Map<string, string[]>();
 
             // Fetch members for each group
-            const memberPromises = groups.map((group: GroupDTO) => this.groupMemberService.getAllGroupMembers(group.id));
+            const memberPromises = groups.map((group: GroupDTO) => this.firestoreReader.getAllGroupMembers(group.id));
             const membersArrays = await Promise.all(memberPromises);
 
             // Collect all member IDs and create mapping

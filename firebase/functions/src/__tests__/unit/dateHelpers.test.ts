@@ -1,13 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
 import {
-    createOptimisticTimestamp,
     createTrueServerTimestamp,
     parseISOToTimestamp,
     timestampToISO,
     isDateInValidRange,
     getRelativeTime,
-    dateToTimestamp,
     safeParseISOToTimestamp,
     formatForLog,
     isInDateRange,
@@ -21,23 +19,6 @@ import {
 describe('dateHelpers', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-    });
-
-    describe('createOptimisticTimestamp', () => {
-        it('should create a Timestamp instance', () => {
-            const timestamp = createOptimisticTimestamp();
-            expect(timestamp).toBeInstanceOf(Timestamp);
-        });
-
-        it('should create timestamps close to current time', () => {
-            const before = Date.now();
-            const timestamp = createOptimisticTimestamp();
-            const after = Date.now();
-
-            const timestampMillis = timestamp.toMillis();
-            expect(timestampMillis).toBeGreaterThanOrEqual(before);
-            expect(timestampMillis).toBeLessThanOrEqual(after);
-        });
     });
 
     describe('createTrueServerTimestamp', () => {
@@ -149,26 +130,6 @@ describe('dateHelpers', () => {
         it('should return days for timestamps within a week', () => {
             const threeDaysAgo = Timestamp.fromMillis(Date.now() - 3 * 24 * 60 * 60 * 1000);
             expect(getRelativeTime(threeDaysAgo)).toBe('3 days ago');
-        });
-    });
-
-    describe('dateToTimestamp', () => {
-        it('should convert Date to Timestamp', () => {
-            const date = new Date('2024-01-15T10:30:00.000Z');
-            const timestamp = dateToTimestamp(date);
-
-            expect(timestamp).toBeInstanceOf(Timestamp);
-            expect(timestamp.toDate().toISOString()).toBe(date.toISOString());
-        });
-
-        it('should return current timestamp for null', () => {
-            const timestamp = dateToTimestamp(null);
-            expect(timestamp).toBeInstanceOf(Timestamp);
-        });
-
-        it('should return current timestamp for undefined', () => {
-            const timestamp = dateToTimestamp(undefined);
-            expect(timestamp).toBeInstanceOf(Timestamp);
         });
     });
 

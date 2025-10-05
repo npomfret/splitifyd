@@ -337,13 +337,6 @@ export interface IFirestoreReader {
 
 
     /**
-     * Get raw group document for optimistic locking scenarios
-     * @param groupId - The group ID
-     * @returns Raw document snapshot or null if not found
-     */
-    getRawGroupDocument(groupId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
-
-    /**
      * Get raw policy document for optimistic locking scenarios
      * @param policyId - The policy ID
      * @returns Raw document snapshot or null if not found
@@ -385,24 +378,6 @@ export interface IFirestoreReader {
      * @returns Raw document snapshot or null if not found
      */
     getRawGroupDocumentInTransaction(transaction: Transaction, groupId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
-
-    /**
-     * @deprecated Use getExpenseInTransaction instead - returns DTO with ISO strings
-     * Get raw expense document in a transaction for optimistic locking
-     * @param transaction - Firestore transaction
-     * @param expenseId - The expense ID
-     * @returns Raw document snapshot or null if not found
-     */
-    getRawExpenseDocumentInTransaction(transaction: Transaction, expenseId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
-
-    /**
-     * @deprecated Use getSettlementInTransaction instead - returns DTO with ISO strings
-     * Get raw settlement document in a transaction for optimistic locking
-     * @param transaction - Firestore transaction
-     * @param settlementId - The settlement ID
-     * @returns Raw document snapshot or null if not found
-     */
-    getRawSettlementDocumentInTransaction(transaction: Transaction, settlementId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
 
     /**
      * Get group membership documents in a transaction

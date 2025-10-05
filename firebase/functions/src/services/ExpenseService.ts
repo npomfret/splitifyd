@@ -146,7 +146,7 @@ export class ExpenseService {
         }
 
         // Get current members to validate participants
-        const members = await this.groupMemberService.getAllGroupMembers(validatedExpenseData.groupId);
+        const members = await this.firestoreReader.getAllGroupMembers(validatedExpenseData.groupId);
 
         if (!getMemberDocFromArray(members, validatedExpenseData.paidBy)) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
@@ -264,7 +264,7 @@ export class ExpenseService {
         }
 
         // If updating paidBy or participants, validate they are group members
-        const members = await this.groupMemberService.getAllGroupMembers(expense.groupId);
+        const members = await this.firestoreReader.getAllGroupMembers(expense.groupId);
 
         if (updateData.paidBy && !getMemberDocFromArray(members, updateData.paidBy)) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');

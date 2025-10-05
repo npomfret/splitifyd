@@ -47,14 +47,9 @@ describe('GroupMember Subcollection - Integration Tests (Essential Firestore Beh
                     .build()
             );
 
-            // Add testUser1 to group2 via subcollection
-            const memberDoc = new GroupMemberDocumentBuilder().withUserId(testUser1.uid).withGroupId(group2.id)
-                .asMember()
-                .asActive()
-                .withTheme(groupShareService.getThemeColorForMember(1))
-                .withInvitedBy(testUser2.uid)
-                .build();
-            await groupMemberService.createMember(group2.id, memberDoc);
+            // Add testUser1 to group2 via share link (production code path)
+            const { linkId } = await groupShareService.generateShareableLink(testUser2.uid, group2.id);
+            await groupShareService.joinGroupByLink(testUser1.uid, testUser1.email, linkId);
 
             // Test the actual Firestore collectionGroup query
             const userGroups = await groupMemberService.getUserGroupsViaSubcollection(testUser1.uid);

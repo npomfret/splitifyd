@@ -18,7 +18,7 @@ import { Timestamp, FieldValue } from 'firebase-admin/firestore';
  *
  * Migration: Replace `createOptimisticTimestamp()` with `new Date().toISOString()`
  */
-export const createOptimisticTimestamp = (): Timestamp => {
+const createOptimisticTimestamp = (): Timestamp => {
     return Timestamp.now();
 };
 
@@ -99,18 +99,6 @@ export const getRelativeTime = (timestamp: Timestamp): string => {
     if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
 
     return timestamp.toDate().toLocaleDateString();
-};
-
-/**
- * Creates a Timestamp from a Date object or returns current timestamp if null
- * @param date - Date object or null
- * @returns Firestore Timestamp
- */
-export const dateToTimestamp = (date: Date | null | undefined): Timestamp => {
-    if (!date) {
-        return createOptimisticTimestamp();
-    }
-    return Timestamp.fromDate(date);
 };
 
 /**

@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, beforeAll } from 'vitest';
 import { borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
-import { MemberRoles, GroupDTO, type GroupMembershipDTO } from '@splitifyd/shared';
+import { GroupDTO } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { getAuth, getFirestore } from '../../firebase';
@@ -40,14 +40,15 @@ describe('Concurrent Operations Integration Tests', () => {
 
     describe('Concurrent Member Operations', () => {
         test('should handle multiple users joining simultaneously', async () => {
-            const memberDocs: GroupMembershipDTO[] = [
-                new GroupMemberDocumentBuilder().withUserId(testUser2.uid).withGroupId(testGroup.id).withThemeIndex(1).withInvitedBy(testUser1.uid).build(),
-                new GroupMemberDocumentBuilder().withUserId(testUser3.uid).withGroupId(testGroup.id).withThemeIndex(2).withInvitedBy(testUser1.uid).build(),
-                new GroupMemberDocumentBuilder().withUserId(testUser4.uid).withGroupId(testGroup.id).withThemeIndex(3).withInvitedBy(testUser1.uid).build(),
-            ];
+            // Generate share link for concurrent joins (production code path)
+            const { linkId } = await applicationBuilder.buildGroupShareService().generateShareableLink(testUser1.uid, testGroup.id);
 
-            // Execute all member additions concurrently
-            const addPromises = memberDocs.map((memberDoc) => groupMemberService.createMember(testGroup.id, memberDoc));
+            // Execute all member additions concurrently via share link
+            const addPromises = [
+                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser2.uid, testUser2.email, linkId),
+                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser3.uid, testUser3.email, linkId),
+                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser4.uid, testUser4.email, linkId),
+            ];
 
             // All operations should complete successfully
             await Promise.all(addPromises);
@@ -64,22 +65,23 @@ describe('Concurrent Operations Integration Tests', () => {
         });
 
         test('should handle concurrent member queries during membership changes', async () => {
-            // Add initial member
-            const initialMember = new GroupMemberDocumentBuilder().withUserId(testUser2.uid).withGroupId(testGroup.id).withThemeIndex(1).withInvitedBy(testUser1.uid).build();
-            await groupMemberService.createMember(testGroup.id, initialMember);
+            const groupShareService = applicationBuilder.buildGroupShareService();
+
+            // Add initial member via share link (production code path)
+            const { linkId: initialLinkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
+            await groupShareService.joinGroupByLink(testUser2.uid, testUser2.email, initialLinkId);
 
             // Run concurrent operations: queries while adding/removing members
+            const { linkId: concurrentLinkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
             const operations = [
                 // Query operations
                 () => groupMemberService.getAllGroupMembers(testGroup.id),
                 () => groupMemberService.getGroupMember(testGroup.id, testUser2.uid),
                 () => groupMemberService.getUserGroupsViaSubcollection(testUser1.uid),
 
-                // Modification operations
-                () => groupMemberService.createMember(testGroup.id, new GroupMemberDocumentBuilder().withUserId(testUser3.uid).withGroupId(testGroup.id).withThemeIndex(2).withInvitedBy(testUser1.uid).build()),
-                () =>
-                    groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberDocumentBuilder().asAdmin().build()),
-                () => groupMemberService.deleteMember(testGroup.id, testUser2.uid),
+                // Modification operations (production code paths)
+                () => groupShareService.joinGroupByLink(testUser3.uid, testUser3.email, concurrentLinkId),
+                () => groupMemberService.removeGroupMember(testUser1.uid, testGroup.id, testUser2.uid),
             ];
 
             // Execute all operations concurrently
@@ -98,40 +100,18 @@ describe('Concurrent Operations Integration Tests', () => {
             expect(Array.isArray(finalMembers)).toBe(true);
         });
 
-        test('should handle concurrent role updates', async () => {
-            // Add test member
-            const memberDoc = new GroupMemberDocumentBuilder().withUserId(testUser2.uid).withGroupId(testGroup.id).withThemeIndex(1).withInvitedBy(testUser1.uid).build();
-            await groupMemberService.createMember(testGroup.id, memberDoc);
-
-            // Execute multiple role updates concurrently
-            const updatePromises = [
-                groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberDocumentBuilder().asAdmin().build()),
-                groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberDocumentBuilder().asViewer().build()),
-                groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberDocumentBuilder().asMember().build()),
-            ];
-
-            // All updates should complete (last write wins)
-            await Promise.allSettled(updatePromises);
-
-            // Verify member still exists with one of the roles
-            const updatedMember = await groupMemberService.getGroupMember(testGroup.id, testUser2.uid);
-            expect(updatedMember).toBeDefined();
-            expect([MemberRoles.ADMIN, MemberRoles.VIEWER, MemberRoles.MEMBER]).toContain(updatedMember!.memberRole);
-        });
+        // NOTE: Concurrent role updates test removed - no production code path exists for updating member roles
+        // If role update functionality is implemented in the future, add appropriate concurrent tests here
     });
 
     describe('Concurrent Group Operations', () => {
         test('should handle concurrent expense creation by multiple members', async () => {
-            // Add members to group first
-            const memberDocs = [testUser2, testUser3, testUser4].map((user, index) =>
-                new GroupMemberDocumentBuilder().withUserId(user.uid).withGroupId(testGroup.id)
-                    .withThemeIndex(index + 1)
-                    .withInvitedBy(testUser1.uid)
-                    .build(),
-            );
+            const groupShareService = applicationBuilder.buildGroupShareService();
 
-            for (const memberDoc of memberDocs) {
-                await groupMemberService.createMember(testGroup.id, memberDoc);
+            // Add members to group via share link (production code path)
+            const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
+            for (const user of [testUser2, testUser3, testUser4]) {
+                await groupShareService.joinGroupByLink(user.uid, user.email, linkId);
             }
 
             // Create concurrent expenses
@@ -189,9 +169,11 @@ describe('Concurrent Operations Integration Tests', () => {
         });
 
         test('should handle member leaving during balance calculation', async () => {
-            // Add member and create expense
-            const memberDoc = new GroupMemberDocumentBuilder().withUserId(testUser2.uid).withGroupId(testGroup.id).withThemeIndex(1).withInvitedBy(testUser1.uid).build();
-            await groupMemberService.createMember(testGroup.id, memberDoc);
+            const groupShareService = applicationBuilder.buildGroupShareService();
+
+            // Add member via share link (production code path)
+            const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
+            await groupShareService.joinGroupByLink(testUser2.uid, testUser2.email, linkId);
 
             // Create expense
             await expenseService.createExpense(testUser1.uid,
@@ -214,8 +196,8 @@ describe('Concurrent Operations Integration Tests', () => {
                 () => groupMemberService.getAllGroupMembers(testGroup.id),
                 () => expenseService.listGroupExpenses(testGroup.id, testUser1.uid),
 
-                // Member removal during balance calculation
-                () => groupMemberService.deleteMember(testGroup.id, testUser2.uid),
+                // Member removal during balance calculation (production code path)
+                () => groupMemberService.removeGroupMember(testUser1.uid, testGroup.id, testUser2.uid),
             ];
 
             // Execute operations concurrently
@@ -233,68 +215,17 @@ describe('Concurrent Operations Integration Tests', () => {
     });
 
     describe('Race Condition Validation', () => {
-        test('should maintain data consistency during rapid membership changes', async () => {
-            const iterations = 10;
-            const operations: Promise<any>[] = [];
-
-            // Create multiple rapid add/remove operations
-            for (let i = 0; i < iterations; i++) {
-                const userId = `test-user-${i}`;
-
-                // Add member
-                operations.push(
-                    groupMemberService
-                        .createMember(
-                            testGroup.id,
-                            new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(testGroup.id)
-                                .withThemeIndex(i % 10)
-                                .withInvitedBy(testUser1.uid)
-                                .build(),
-                        )
-                        .then(() => ({ operation: 'add', userId, success: true }))
-                        .catch((error) => ({ operation: 'add', userId, success: false, error })),
-                );
-
-                // Immediately try to remove (some will fail due to timing)
-                operations.push(
-                    groupMemberService
-                        .deleteMember(testGroup.id, userId)
-                        .then(() => ({ operation: 'remove', userId, success: true }))
-                        .catch((error) => ({ operation: 'remove', userId, success: false, error })),
-                );
-            }
-
-            // Execute all operations concurrently
-            const results = await Promise.allSettled(operations);
-
-            // Verify system remains stable
-            expect(results).toHaveLength(iterations * 2);
-
-            // Final state should be consistent
-            const finalMembers = await groupMemberService.getAllGroupMembers(testGroup.id);
-            expect(Array.isArray(finalMembers)).toBe(true);
-            expect(finalMembers.length).toBeGreaterThanOrEqual(1); // At least testUser1 should remain
-
-            // All members should have valid data structure
-            finalMembers.forEach((member) => {
-                expect(member.uid).toBeDefined();
-                expect(member.groupId).toBe(testGroup.id);
-                expect(member.memberRole).toBeDefined();
-                expect(member.memberStatus).toBeDefined();
-            });
-        });
+        // NOTE: Rapid add/remove test removed - it tested database-level operations with fake user IDs
+        // that don't exist in Firebase Auth, which is not a realistic production scenario.
+        // Real concurrent member operations are tested in other tests using share links.
 
         test('should handle collectionGroup queries during concurrent modifications', async () => {
-            // Add initial members
-            const memberDocs = [testUser2, testUser3, testUser4].map((user, index) =>
-                new GroupMemberDocumentBuilder().withUserId(user.uid).withGroupId(testGroup.id)
-                    .withThemeIndex(index + 1)
-                    .withInvitedBy(testUser1.uid)
-                    .build(),
-            );
+            const groupShareService = applicationBuilder.buildGroupShareService();
 
-            for (const memberDoc of memberDocs) {
-                await groupMemberService.createMember(testGroup.id, memberDoc);
+            // Add initial members via share link (production code path)
+            const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
+            for (const user of [testUser2, testUser3, testUser4]) {
+                await groupShareService.joinGroupByLink(user.uid, user.email, linkId);
             }
 
             // Run concurrent collectionGroup queries while modifying data
@@ -302,10 +233,12 @@ describe('Concurrent Operations Integration Tests', () => {
                 .fill(0)
                 .map(() => groupMemberService.getUserGroupsViaSubcollection(testUser1.uid));
 
+            // Generate new share link for concurrent join
+            const { linkId: newLinkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
+
             const modificationPromises = [
-                groupMemberService.updateMember(testGroup.id, testUser2.uid, new GroupMemberDocumentBuilder().asAdmin().build()),
-                groupMemberService.deleteMember(testGroup.id, testUser3.uid),
-                groupMemberService.createMember(testGroup.id, new GroupMemberDocumentBuilder().withUserId(users[5].uid).withGroupId(testGroup.id).withThemeIndex(4).withInvitedBy(testUser1.uid).build()),
+                groupMemberService.removeGroupMember(testUser1.uid, testGroup.id, testUser3.uid),
+                groupShareService.joinGroupByLink(users[5].uid, users[5].email, newLinkId),
             ];
 
             // Execute queries and modifications concurrently
@@ -329,8 +262,11 @@ describe('Concurrent Operations Integration Tests', () => {
 
     describe('Error Recovery During Concurrent Operations', () => {
         test('should handle partial failures gracefully', async () => {
-            // Add a member first
-            await groupMemberService.createMember(testGroup.id, new GroupMemberDocumentBuilder().withUserId(testUser2.uid).withGroupId(testGroup.id).withThemeIndex(1).withInvitedBy(testUser1.uid).build());
+            const groupShareService = applicationBuilder.buildGroupShareService();
+
+            // Add a member via share link (production code path)
+            const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
+            await groupShareService.joinGroupByLink(testUser2.uid, testUser2.email, linkId);
 
             // Create operations where some will succeed and some will fail
             const operations = [
@@ -338,21 +274,17 @@ describe('Concurrent Operations Integration Tests', () => {
                 () => groupMemberService.getAllGroupMembers(testGroup.id),
                 () => groupMemberService.getGroupMember(testGroup.id, testUser2.uid),
 
-                // Operations that will fail - trying to access non-existent member
+                // Operations that will return null for non-existent member (valid behavior)
                 () => groupMemberService.getGroupMember(testGroup.id, 'non-existent-user-id'),
-                () =>
-                    groupMemberService.updateMember(testGroup.id, 'non-existent-user-id', new GroupMemberDocumentBuilder().asAdmin().build()),
             ];
 
             // Execute all operations concurrently
             const results = await Promise.allSettled(operations.map((op) => op()));
 
-            // Verify mixed results (some operations return null for non-existent members, which is valid)
+            // Verify operations completed
             const succeeded = results.filter((r) => r.status === 'fulfilled');
-            const failed = results.filter((r) => r.status === 'rejected');
 
-            expect(succeeded.length).toBeGreaterThan(0);
-            expect(succeeded.length + failed.length).toBe(operations.length);
+            expect(succeeded.length).toBe(operations.length); // All should succeed (null is valid for non-existent)
 
             // Verify valid operations returned expected results
             expect(results[0].status).toBe('fulfilled'); // getAllGroupMembers should succeed

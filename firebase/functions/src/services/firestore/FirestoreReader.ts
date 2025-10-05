@@ -1168,18 +1168,6 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-
-
-    async getRawGroupDocument(groupId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
-        try {
-            const doc = await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).get();
-            return doc.exists ? doc : null;
-        } catch (error) {
-            logger.error('Failed to get raw group document', error, { groupId });
-            throw error;
-        }
-    }
-
     async getRawPolicyDocument(policyId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
         try {
             const doc = await this.db.collection(FirestoreCollections.POLICIES).doc(policyId).get();
@@ -1266,21 +1254,6 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     /**
-     * @deprecated Use getExpenseInTransaction instead - returns DTO with ISO strings
-     * Raw methods leak Firestore Timestamps into application layer
-     */
-    async getRawExpenseDocumentInTransaction(transaction: FirebaseFirestore.Transaction, expenseId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
-        try {
-            const docRef = this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId);
-            const doc = await transaction.get(docRef);
-            return doc.exists ? doc : null;
-        } catch (error) {
-            logger.error('Failed to get raw expense document in transaction', error, { expenseId });
-            throw error;
-        }
-    }
-
-    /**
      * Get a settlement DTO in a transaction (with Timestamp → ISO conversion)
      * Use this for optimistic locking instead of getRawSettlementDocumentInTransaction
      */
@@ -1306,21 +1279,6 @@ export class FirestoreReader implements IFirestoreReader {
             return convertedData as unknown as SettlementDTO;
         } catch (error) {
             logger.error('Failed to get settlement in transaction', error, { settlementId });
-            throw error;
-        }
-    }
-
-    /**
-     * @deprecated Use getSettlementInTransaction instead - returns DTO with ISO strings
-     * Raw methods leak Firestore Timestamps into application layer
-     */
-    async getRawSettlementDocumentInTransaction(transaction: FirebaseFirestore.Transaction, settlementId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
-        try {
-            const docRef = this.db.collection(FirestoreCollections.SETTLEMENTS).doc(settlementId);
-            const doc = await transaction.get(docRef);
-            return doc.exists ? doc : null;
-        } catch (error) {
-            logger.error('Failed to get raw settlement document in transaction', error, { settlementId });
             throw error;
         }
     }

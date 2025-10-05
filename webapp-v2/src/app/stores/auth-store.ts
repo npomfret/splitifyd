@@ -1,4 +1,4 @@
-import {ReadonlySignal, signal, computed} from '@preact/signals';
+import {ReadonlySignal, signal} from '@preact/signals';
 import type {User as FirebaseUser} from 'firebase/auth';
 import {firebaseService} from '../firebase';
 import {apiClient} from '../apiClient';

@@ -45,7 +45,7 @@ export class SettlementService {
 
         // Verify each user is a member
         for (const userId of userIds) {
-            const member = await this.groupMemberService.getGroupMember(groupId, userId);
+            const member = await this.firestoreReader.getGroupMember(groupId, userId);
             if (!member) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'USER_NOT_IN_GROUP', `User ${userId} is not a member of this group`);
             }
