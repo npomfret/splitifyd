@@ -4,7 +4,7 @@ import { ApiError, Errors } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import * as dateHelpers from '../utils/dateHelpers';
 import { logger, LoggerContext } from '../logger';
-import { ExpenseDTO, CreateExpenseRequest, DELETED_AT_FIELD, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
+import { ExpenseDTO, CreateExpenseRequest, DELETED_AT_FIELD, SplitTypes, UpdateExpenseRequest, ExpenseFullDetailsDTO, GroupDTO } from '@splitifyd/shared';
 import * as expenseValidation from '../expenses/validation';
 import { getMemberDocFromArray } from '../utils/memberHelpers';
 import { PermissionEngineAsync } from '../permissions/permission-engine-async';
@@ -528,11 +528,7 @@ export class ExpenseService {
     async getExpenseFullDetails(
         expenseId: string,
         userId: string,
-    ): Promise<{
-        expense: any;
-        group: any;
-        members: any;
-    }> {
+    ): Promise<ExpenseFullDetailsDTO> {
         // Fetch the expense
         const expense = await this.fetchExpense(expenseId);
 
@@ -554,13 +550,15 @@ export class ExpenseService {
         // Transform group data using same pattern as groups handler (without deprecated members field)
         // LENIENT: Handle both ISO strings (from DTOs) and Timestamps during transition
         // GroupDTO already has ISO strings from FirestoreReader
-        const group = {
+        const group: GroupDTO = {
             id: groupData.id,
             name: groupData.name,
             description: groupData.description,
             createdBy: groupData.createdBy,
             createdAt: groupData.createdAt,
             updatedAt: groupData.updatedAt,
+            securityPreset: groupData.securityPreset,
+            permissions: groupData.permissions,
         };
 
         // Get members data from subcollection (formatted with profiles)

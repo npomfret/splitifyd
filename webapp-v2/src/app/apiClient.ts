@@ -19,15 +19,15 @@ import type {
     CreateSettlementResponse,
     CurrentPolicyResponse,
     ExpenseDTO,
-    ExpenseFullDetails,
+    ExpenseFullDetailsDTO,
     GroupDTO,
-    GroupFullDetails,
+    GroupFullDetailsDTO,
     JoinGroupResponse,
     LeaveGroupResponse,
     ListCommentsResponse,
     ListGroupsResponse,
     MessageResponse,
-    PolicyAcceptanceStatus,
+    PolicyAcceptanceStatusDTO,
     PreviewGroupResponse,
     RegisterResponse,
     RemoveGroupMemberResponse,
@@ -560,7 +560,7 @@ class ApiClient {
             settlementLimit?: number;
             settlementCursor?: string;
         },
-    ): Promise<GroupFullDetails> {
+    ): Promise<GroupFullDetailsDTO> {
         const queryParams: Record<string, string> = {};
 
         if (options?.expenseLimit) {
@@ -646,7 +646,7 @@ class ApiClient {
         });
     }
 
-    async getExpenseFullDetails(expenseId: string): Promise<ExpenseFullDetails> {
+    async getExpenseFullDetails(expenseId: string): Promise<ExpenseFullDetailsDTO> {
         return this.request({
             endpoint: `/expenses/${expenseId}/full-details`,
             method: 'GET',
@@ -824,7 +824,7 @@ class ApiClient {
 }
 
 // Export types for external use
-export type { PolicyAcceptanceStatus };
+export type { PolicyAcceptanceStatusDTO };
 
 // Export a singleton instance
 export const apiClient = new ApiClient();

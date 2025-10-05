@@ -1,11 +1,11 @@
-import type { GroupFullDetails, GroupDTO, GroupMember, ExpenseDTO, GroupBalances, SettlementWithMembers } from '@splitifyd/shared';
+import type { GroupFullDetailsDTO, GroupDTO, GroupMember, ExpenseDTO, GroupBalances, SettlementWithMembers } from '@splitifyd/shared';
 
 /**
  * Builder for creating GroupFullDetails responses for testing
  * This matches the structure returned by GET /api/groups/:id/full-details
  */
 export class GroupFullDetailsBuilder {
-    private fullDetails: GroupFullDetails;
+    private fullDetails: GroupFullDetailsDTO;
 
     constructor() {
         this.fullDetails = {
@@ -52,7 +52,7 @@ export class GroupFullDetailsBuilder {
         return this;
     }
 
-    build(): GroupFullDetails {
+    build(): GroupFullDetailsDTO {
         return this.fullDetails;
     }
 }

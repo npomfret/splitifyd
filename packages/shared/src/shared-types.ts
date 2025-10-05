@@ -658,7 +658,7 @@ export interface SettlementWithMembers {
 // Full Details Response Types
 // ========================================================================
 
-export interface GroupFullDetails {
+export interface GroupFullDetailsDTO {
     group: GroupDTO;
     members: { members: GroupMember[] };
     expenses: { expenses: ExpenseDTO[]; hasMore: boolean; nextCursor?: string };
@@ -666,7 +666,7 @@ export interface GroupFullDetails {
     settlements: { settlements: SettlementWithMembers[]; hasMore: boolean; nextCursor?: string };
 }
 
-export interface ExpenseFullDetails {
+export interface ExpenseFullDetailsDTO {
     expense: ExpenseDTO;
     group: GroupDTO;
     members: { members: GroupMember[] };
@@ -685,7 +685,6 @@ export interface ListSettlementsResponse {
 
 export interface MessageResponse {
     message: string;
-    resetLink?: string;
 }
 
 export interface LeaveGroupResponse {
@@ -756,7 +755,7 @@ export interface AcceptMultiplePoliciesResponse {
     }>;
 }
 
-export interface PolicyAcceptanceStatus {
+export interface PolicyAcceptanceStatusDTO {
     policyId: string;
     currentVersionHash: string;
     userAcceptedHash?: string;
@@ -766,7 +765,7 @@ export interface PolicyAcceptanceStatus {
 
 export interface UserPolicyStatusResponse {
     needsAcceptance: boolean;
-    policies: PolicyAcceptanceStatus[];
+    policies: PolicyAcceptanceStatusDTO[];
     totalPending: number;
 }
 

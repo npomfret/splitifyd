@@ -5,26 +5,7 @@ import { LoggerContext } from '../utils/logger-context';
 import { measureDb } from '../monitoring/measure';
 import { IFirestoreReader } from './firestore';
 import { IFirestoreWriter } from './firestore';
-
-/**
- * Interface for policy acceptance status
- */
-interface PolicyAcceptanceStatus {
-    policyId: string;
-    currentVersionHash: string;
-    userAcceptedHash?: string;
-    needsAcceptance: boolean;
-    policyName: string;
-}
-
-/**
- * Interface for user policy status response
- */
-interface UserPolicyStatusResponse {
-    needsAcceptance: boolean;
-    policies: PolicyAcceptanceStatus[];
-    totalPending: number;
-}
+import { PolicyAcceptanceStatusDTO, UserPolicyStatusResponse } from '@splitifyd/shared';
 
 /**
  * Interface for policy acceptance request
@@ -129,7 +110,7 @@ export class UserPolicyService {
             }
 
             const userAcceptedPolicies = user.acceptedPolicies || {};
-            const policies: PolicyAcceptanceStatus[] = [];
+            const policies: PolicyAcceptanceStatusDTO[] = [];
             let totalPending = 0;
 
             allPolicies.forEach((policy) => {

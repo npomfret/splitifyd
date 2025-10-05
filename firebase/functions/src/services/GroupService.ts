@@ -1,5 +1,5 @@
 import { Errors } from '../utils/errors';
-import { GroupDTO, UpdateGroupRequest, CreateGroupRequest, DELETED_AT_FIELD, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets, ExpenseDTO, SettlementDTO } from '@splitifyd/shared';
+import { GroupDTO, UpdateGroupRequest, CreateGroupRequest, DELETED_AT_FIELD, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets, ExpenseDTO, SettlementDTO, GroupFullDetailsDTO } from '@splitifyd/shared';
 import { BalanceCalculationResultSchema, BalanceDisplaySchema, CurrencyBalanceDisplaySchema } from '../schemas';
 import { BalanceCalculationService } from './balance';
 import { DOCUMENT_CONFIG, FIRESTORE } from '../constants';
@@ -1020,7 +1020,7 @@ export class GroupService {
             settlementLimit?: number;
             settlementCursor?: string;
         } = {},
-    ) {
+    ): Promise<GroupFullDetailsDTO> {
         if (!userId) {
             throw Errors.UNAUTHORIZED();
         }
@@ -1060,6 +1060,7 @@ export class GroupService {
         const balancesDTO = {
             ...validatedBalances,
             lastUpdated: this.dateHelpers.timestampToISO(validatedBalances.lastUpdated),
+            userBalances: {}, // TODO: Populate from balancesByCurrency if needed by client
         };
 
         // Construct response using existing patterns

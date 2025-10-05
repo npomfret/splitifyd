@@ -1,4 +1,4 @@
-import type { GroupMemberDTO, UserThemeColor, MemberRole, MemberStatus, MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import type { GroupMember, UserThemeColor, MemberRole, MemberStatus, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { ThemeBuilder } from './ThemeBuilder';
 
 /**
@@ -6,7 +6,7 @@ import { ThemeBuilder } from './ThemeBuilder';
  * Combines user profile data with group membership data
  */
 export class GroupMemberDTOBuilder {
-    private memberDTO: GroupMemberDTO;
+    private memberDTO: GroupMember;
 
     constructor() {
         // Initialize with default values for all required GroupMemberDTO fields
@@ -108,7 +108,7 @@ export class GroupMemberDTOBuilder {
         return this;
     }
 
-    build(): GroupMemberDTO {
+    build(): GroupMember {
         return { ...this.memberDTO };
     }
 }

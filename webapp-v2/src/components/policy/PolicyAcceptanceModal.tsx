@@ -7,11 +7,11 @@ import { LoadingSpinner } from '@/components/ui';
 import { ErrorState } from '@/components/ui';
 import { Container } from '../ui/Container';
 import { PolicyRenderer } from './PolicyRenderer';
-import { apiClient, type PolicyAcceptanceStatus } from '@/app/apiClient.ts';
+import { apiClient, type PolicyAcceptanceStatusDTO } from '@/app/apiClient.ts';
 import { logError } from '@/utils/browser-logger.ts';
 
 interface PolicyAcceptanceModalProps {
-    policies: PolicyAcceptanceStatus[];
+    policies: PolicyAcceptanceStatusDTO[];
     onAccept: () => void;
     onClose?: () => void;
 }

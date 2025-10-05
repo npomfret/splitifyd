@@ -4,10 +4,10 @@ import {
     type CreateExpenseRequest,
     CurrentPolicyResponse,
     ExpenseDTO,
-    ExpenseFullDetails,
+    ExpenseFullDetailsDTO,
     GroupDTO,
     GroupBalances,
-    GroupFullDetails,
+    GroupFullDetailsDTO,
     JoinGroupResponse,
     LeaveGroupResponse,
     ListCommentsResponse,
@@ -252,7 +252,7 @@ export class ApiDriver {
             settlementLimit?: number;
             settlementCursor?: string;
         },
-    ): Promise<GroupFullDetails> {
+    ): Promise<GroupFullDetailsDTO> {
         let url = `/groups/${groupId}/full-details`;
         const queryParams: string[] = [];
 
@@ -276,7 +276,7 @@ export class ApiDriver {
         return await this.apiRequest(url, 'GET', null, token);
     }
 
-    async getExpenseFullDetails(expenseId: string, token: string): Promise<ExpenseFullDetails> {
+    async getExpenseFullDetails(expenseId: string, token: string): Promise<ExpenseFullDetailsDTO> {
         return await this.apiRequest(`/expenses/${expenseId}/full-details`, 'GET', null, token);
     }
 

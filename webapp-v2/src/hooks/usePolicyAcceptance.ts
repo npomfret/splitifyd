@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'preact/hooks';
-import { apiClient, type PolicyAcceptanceStatus } from '../app/apiClient';
+import { apiClient, type PolicyAcceptanceStatusDTO } from '../app/apiClient';
 import { logError } from '../utils/browser-logger';
 import { useAuth } from '../app/hooks/useAuth';
 
 interface PolicyAcceptanceState {
     needsAcceptance: boolean;
-    pendingPolicies: PolicyAcceptanceStatus[];
+    pendingPolicies: PolicyAcceptanceStatusDTO[];
     totalPending: number;
     loading: boolean;
     error: string | null;
@@ -17,7 +17,7 @@ export function usePolicyAcceptance(): PolicyAcceptanceState {
     const user = authStore?.user;
     const authLoading = authStore?.loading ?? false;
     const [needsAcceptance, setNeedsAcceptance] = useState(false);
-    const [pendingPolicies, setPendingPolicies] = useState<PolicyAcceptanceStatus[]>([]);
+    const [pendingPolicies, setPendingPolicies] = useState<PolicyAcceptanceStatusDTO[]>([]);
     const [totalPending, setTotalPending] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -53,7 +53,7 @@ export function usePolicyAcceptance(): PolicyAcceptanceState {
             // Only update state if this request wasn't aborted
             if (!controller.signal.aborted) {
                 setNeedsAcceptance(response.needsAcceptance);
-                setPendingPolicies(response.policies.filter((p: PolicyAcceptanceStatus) => p.needsAcceptance));
+                setPendingPolicies(response.policies.filter((p: PolicyAcceptanceStatusDTO) => p.needsAcceptance));
                 setTotalPending(response.totalPending);
             }
         } catch (err) {
