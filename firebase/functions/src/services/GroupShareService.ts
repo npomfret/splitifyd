@@ -244,16 +244,11 @@ export class GroupShareService {
                 }
 
                 // Update group timestamp to reflect membership change
-                const groupDocumentPath = `${FirestoreCollections.GROUPS}/${groupId}`;
-                const groupUpdatedAt = new Date().toISOString();
-                this.firestoreWriter.updateInTransaction(transaction, groupDocumentPath, {
-                    updatedAt: groupUpdatedAt,
-                });
+                await this.firestoreWriter.touchGroup(groupId, transaction);
 
                 // Write to top-level collection for improved querying (using ISO strings - DTOs)
-                // Use the same ISO timestamp as the group to keep them in sync
                 const topLevelMemberDoc = {
-                    ...createTopLevelMembershipDocument(memberDoc, groupUpdatedAt),
+                    ...createTopLevelMembershipDocument(memberDoc, now),
                     createdAt: now,
                     updatedAt: now,
                 };

@@ -430,16 +430,6 @@ export class FirestoreWriter implements IFirestoreWriter {
                 skippedFields: skippedFields.length > 0 ? skippedFields : undefined,
             });
 
-            logger.info('Transaction validation completed (partial)', {
-                collection,
-                documentId,
-                validatedFieldCount: Object.keys(validatedFields).length,
-                skippedFieldCount: skippedFields.length,
-                validatedFields: Object.keys(validatedFields),
-                skippedFields,
-                operation: 'validateTransactionData',
-            });
-
             return {
                 isValid: true,
                 validatedFields,
@@ -707,6 +697,19 @@ export class FirestoreWriter implements IFirestoreWriter {
                 };
             }
         });
+    }
+
+    async touchGroup(groupId: string, transactionOrBatch?: Transaction | FirebaseFirestore.WriteBatch): Promise<void> {
+        const now = Timestamp.now();
+        const groupRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
+
+        if (transactionOrBatch) {
+            // Both Transaction and WriteBatch have update(ref, data) signature
+            // TypeScript may require explicit casting for union type
+            (transactionOrBatch as any).update(groupRef, { updatedAt: now });
+        } else {
+            await groupRef.update({ updatedAt: now });
+        }
     }
 
     // ========================================================================
@@ -1127,13 +1130,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         const validationResult = this.validateTransactionData(collection, finalData, docRef.id);
         const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(partial validation)';
 
-        logger.info(`Document created in transaction ${logType}`, {
-            collection,
-            documentId: docRef.id,
-            validatedFields: validationResult.validatedFields ? Object.keys(validationResult.validatedFields) : [],
-            skippedFields: validationResult.skippedFields || [],
-        });
-
         transaction.set(docRef, finalData);
 
         return docRef;
@@ -1348,11 +1344,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         };
 
         transaction.create(shareLinkRef, finalData);
-
-        logger.info('Share link created in transaction', {
-            groupId,
-            shareLinkId: shareLinkRef.id,
-        });
 
         return shareLinkRef;
     }
@@ -1708,10 +1699,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 const batch = this.db.batch();
 
                 // Update group timestamp (triggers group change notifications for remaining members)
-                const groupRef = this.db.doc(`${FirestoreCollections.GROUPS}/${groupId}`);
-                batch.update(groupRef, {
-                    updatedAt: FieldValue.serverTimestamp(),
-                });
+                await this.touchGroup(groupId, batch);
 
                 // Delete membership document
                 const membershipRef = this.db.doc(`${FirestoreCollections.GROUP_MEMBERSHIPS}/${membershipDocId}`);

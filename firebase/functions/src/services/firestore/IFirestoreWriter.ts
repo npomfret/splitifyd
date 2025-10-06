@@ -107,6 +107,14 @@ export interface IFirestoreWriter {
      */
     deleteGroup(groupId: string): Promise<WriteResult>;
 
+    /**
+     * Update a group's updatedAt timestamp to mark activity
+     * Use this whenever any group-related operation occurs (expenses, settlements, members, comments)
+     * @param groupId - The group ID
+     * @param transactionOrBatch - Optional transaction or batch to perform update within
+     */
+    touchGroup(groupId: string, transactionOrBatch?: Transaction | FirebaseFirestore.WriteBatch): Promise<void>;
+
     // ========================================================================
     // Expense Write Operations
     // ========================================================================

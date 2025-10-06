@@ -106,12 +106,13 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.createExpense(new CreateExpenseRequestBuilder().withGroupId(group.id).withPaidBy(user1.uid).withParticipants([user1.uid, user2.uid]).build(), user1.token);
 
             // Wait for transaction, balance, and group notifications for BOTH users - expense creation triggers all three event types
+            // NOTE: Phase 1 of group activity tracking adds touchGroup() to expense operations, which increments groupDetailsChangeCount
             await user1Listener.waitForTransactionEvent(group.id, 1);
             await user2Listener.waitForTransactionEvent(group.id, 1);
             await user1Listener.waitForBalanceEvent(group.id, 1);
             await user2Listener.waitForBalanceEvent(group.id, 1);
-            await user1Listener.waitForGroupEvent(group.id, 2);
-            await user2Listener.waitForGroupEvent(group.id, 1);
+            await user1Listener.waitForGroupEvent(group.id, 3); // Was 2 before Phase 1; touchGroup() increments from 2→3
+            await user2Listener.waitForGroupEvent(group.id, 2); // Was 1 before Phase 1; touchGroup() increments from 1→2
 
             // Assert exact event counts - expense creation should trigger transaction, balance, and group events (3 total)
             user1Listener.assertEventCount(group.id, 1, 'transaction');

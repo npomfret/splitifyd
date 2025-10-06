@@ -220,6 +220,9 @@ export class ExpenseService {
                 expenseId, // Use the specific ID we generated
                 expense,
             );
+
+            // Update group timestamp to track activity
+            await this.firestoreWriter.touchGroup(expenseData.groupId, transaction);
         });
 
         // Ensure the expense was created successfully
@@ -344,6 +347,9 @@ export class ExpenseService {
                 // FirestoreWriter will convert ISO strings to Timestamps
                 this.firestoreWriter.createInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}/history`, crypto.randomUUID(), historyEntry);
                 this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}`, updates);
+
+                // Update group timestamp to track activity
+                await this.firestoreWriter.touchGroup(expense.groupId, transaction);
             },
             {
                 maxAttempts: 3,
@@ -485,6 +491,9 @@ export class ExpenseService {
                         deletedBy: userId,
                         updatedAt: now, // ISO string for optimistic locking
                     });
+
+                    // Update group timestamp to track activity
+                    await this.firestoreWriter.touchGroup(expense.groupId, transaction);
 
                     // Note: Group metadata/balance updates will be handled by the balance aggregation trigger
                 },

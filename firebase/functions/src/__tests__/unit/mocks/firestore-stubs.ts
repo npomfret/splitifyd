@@ -478,16 +478,31 @@ export class StubFirestoreReader implements IFirestoreReader {
         };
     }
 
-    getGroupInTransaction(transaction: FirebaseFirestore.Transaction, groupId: string): Promise<GroupDTO | null> {
-        throw new Error("Method not implemented yet");
+    async getGroupInTransaction(transaction: FirebaseFirestore.Transaction, groupId: string): Promise<GroupDTO | null> {
+        // In stub, transaction reads work the same as non-transaction reads
+        const key = `groups/${groupId}`;
+        if (this.notFoundDocuments.has(key)) {
+            return null;
+        }
+        return this.documents.get(key) || null;
     }
 
-    getExpenseInTransaction(transaction: FirebaseFirestore.Transaction, expenseId: string): Promise<ExpenseDTO | null> {
-        throw new Error("Method not implemented yet");
+    async getExpenseInTransaction(transaction: FirebaseFirestore.Transaction, expenseId: string): Promise<ExpenseDTO | null> {
+        // In stub, transaction reads work the same as non-transaction reads
+        const key = `expenses/${expenseId}`;
+        if (this.notFoundDocuments.has(key)) {
+            return null;
+        }
+        return this.documents.get(key) || null;
     }
 
-    getSettlementInTransaction(transaction: FirebaseFirestore.Transaction, settlementId: string): Promise<SettlementDTO | null> {
-        throw new Error("Method not implemented yet");
+    async getSettlementInTransaction(transaction: FirebaseFirestore.Transaction, settlementId: string): Promise<SettlementDTO | null> {
+        // In stub, transaction reads work the same as non-transaction reads
+        const key = `settlements/${settlementId}`;
+        if (this.notFoundDocuments.has(key)) {
+            return null;
+        }
+        return this.documents.get(key) || null;
     }
 }
 
@@ -825,6 +840,13 @@ export class StubFirestoreWriter implements IFirestoreWriter {
             success: true,
             timestamp: Timestamp.now(),
         };
+    }
+
+    async touchGroup(groupId: string, transactionOrBatch?: any): Promise<void> {
+        const groupPath = `groups/${groupId}`;
+        const existingGroup = this.documents.get(groupPath) || {};
+        const updatedGroup = { ...existingGroup, updatedAt: Timestamp.now() };
+        this.documents.set(groupPath, updatedGroup);
     }
 }
 

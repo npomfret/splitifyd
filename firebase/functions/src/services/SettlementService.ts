@@ -1,16 +1,14 @@
-import { FieldValue } from 'firebase-admin/firestore';
-import { z } from 'zod';
-import { ApiError } from '../utils/errors';
-import { HTTP_STATUS } from '../constants';
+import {FieldValue} from 'firebase-admin/firestore';
+import {z} from 'zod';
+import {ApiError} from '../utils/errors';
+import {FirestoreCollections, HTTP_STATUS} from '../constants';
 import * as dateHelpers from '../utils/dateHelpers';
-import { logger } from '../logger';
-import { LoggerContext } from '../utils/logger-context';
+import {logger} from '../logger';
+import {LoggerContext} from '../utils/logger-context';
 import * as measure from '../monitoring/measure';
-import { SettlementDTO, CreateSettlementRequest, UpdateSettlementRequest, SettlementWithMembers, GroupMember } from '@splitifyd/shared';
-import type { IFirestoreReader } from './firestore';
-import type { IFirestoreWriter } from './firestore';
-import { GroupMemberService } from './GroupMemberService';
-import { FirestoreCollections } from "../constants";
+import {CreateSettlementRequest, GroupMember, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest} from '@splitifyd/shared';
+import type {IFirestoreReader, IFirestoreWriter} from './firestore';
+import {GroupMemberService} from './GroupMemberService';
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -186,9 +184,38 @@ export class SettlementService {
             settlementDataToCreate.note = settlementData.note;
         }
 
-        // Create settlement - FirestoreWriter will generate ID and handle validation
-        const createResult = await this.firestoreWriter.createSettlement(settlementDataToCreate);
-        const settlementId = createResult.id;
+        // Generate settlement ID before transaction
+        const settlementId = this.firestoreWriter.generateDocumentId(FirestoreCollections.SETTLEMENTS);
+
+        // Create settlement and update group timestamp atomically
+        await this.firestoreWriter.runTransaction(
+            async (transaction) => {
+                // Verify group still exists
+                const groupData = await this.firestoreReader.getGroupInTransaction(transaction, settlementData.groupId);
+                if (!groupData) {
+                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+                }
+
+                // Create settlement in transaction
+                this.firestoreWriter.createInTransaction(
+                    transaction,
+                    FirestoreCollections.SETTLEMENTS,
+                    settlementId,
+                    settlementDataToCreate,
+                );
+
+                // Update group timestamp to track activity
+                await this.firestoreWriter.touchGroup(settlementData.groupId, transaction);
+            },
+            {
+                maxAttempts: 3,
+                context: {
+                    operation: 'createSettlement',
+                    userId,
+                    groupId: settlementData.groupId,
+                },
+            },
+        );
 
         // Update context with the created settlement ID
         LoggerContext.setBusinessContext({ settlementId });
@@ -271,6 +298,9 @@ export class SettlementService {
                     ...updates,
                     updatedAt: new Date().toISOString(), // ISO string, FirestoreWriter converts
                 });
+
+                // Update group timestamp to track activity
+                await this.firestoreWriter.touchGroup(settlement.groupId, transaction);
             },
             {
                 maxAttempts: 3,
@@ -346,8 +376,10 @@ export class SettlementService {
 
                 // Step 3: Now do ALL writes
                 // Delete the settlement
-                const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
-                this.firestoreWriter.deleteInTransaction(transaction, documentPath);
+                this.firestoreWriter.deleteInTransaction(transaction, `${FirestoreCollections.SETTLEMENTS}/${settlementId}`);
+
+                // Update group timestamp to track activity
+                await this.firestoreWriter.touchGroup(settlement.groupId, transaction);
             },
             {
                 maxAttempts: 3,

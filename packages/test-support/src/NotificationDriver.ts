@@ -98,6 +98,7 @@ export class NotificationListener {
     private listener: (() => void) | null = null;
     private receivedEvents: UserNotificationDocument[] = [];
     private isStarted = false;
+    private baselineCounters: Map<string, GroupNotificationState> = new Map();
 
     constructor(
         private firestore: admin.firestore.Firestore,
@@ -169,16 +170,30 @@ export class NotificationListener {
 
     /**
      * Clear all received events (useful for isolating test actions)
+     * Saves current counter values as baseline to prevent counting pre-clear events
      */
     clearEvents(): void {
+        // Save current counter values as baseline before clearing
+        if (this.receivedEvents.length > 0) {
+            const lastDoc = this.receivedEvents[this.receivedEvents.length - 1];
+            if (lastDoc.groups) {
+                for (const [groupId, groupState] of Object.entries(lastDoc.groups)) {
+                    this.baselineCounters.set(groupId, { ...groupState });
+                }
+            }
+        }
         this.receivedEvents = [];
     }
 
     /**
      * Get events for a group, optionally filtered by type
+     * Only creates events when a counter actually changes (increments), not just when it exists
+     * Uses baseline counters from clearEvents() to avoid counting pre-clear events
      */
     getGroupEvents(groupId: string, eventType?: 'transaction' | 'balance' | 'group' | 'comment'): NotificationEvent[] {
         const events: NotificationEvent[] = [];
+        const baseline = this.baselineCounters.get(groupId);
+        let previousGroupState: GroupNotificationState | null = baseline ?? null;
 
         for (const doc of this.receivedEvents) {
             if (!doc.groups || !doc.groups[groupId]) continue;
@@ -191,27 +206,38 @@ export class NotificationListener {
                 groupState,
             };
 
-            // Create events for each type that has counters
+            // Only create events for counters that changed (increased)
             if (!eventType || eventType === 'transaction') {
-                if (groupState.transactionChangeCount !== undefined) {
+                const prevCount = previousGroupState?.transactionChangeCount ?? 0;
+                const currCount = groupState.transactionChangeCount ?? 0;
+                if (currCount > prevCount) {
                     events.push({ ...baseEvent, type: 'transaction' });
                 }
             }
             if (!eventType || eventType === 'balance') {
-                if (groupState.balanceChangeCount !== undefined) {
+                const prevCount = previousGroupState?.balanceChangeCount ?? 0;
+                const currCount = groupState.balanceChangeCount ?? 0;
+                if (currCount > prevCount) {
                     events.push({ ...baseEvent, type: 'balance' });
                 }
             }
             if (!eventType || eventType === 'group') {
-                if (groupState.groupDetailsChangeCount !== undefined) {
+                const prevCount = previousGroupState?.groupDetailsChangeCount ?? 0;
+                const currCount = groupState.groupDetailsChangeCount ?? 0;
+                if (currCount > prevCount) {
                     events.push({ ...baseEvent, type: 'group' });
                 }
             }
             if (!eventType || eventType === 'comment') {
-                if (groupState.commentChangeCount !== undefined) {
+                const prevCount = previousGroupState?.commentChangeCount ?? 0;
+                const currCount = groupState.commentChangeCount ?? 0;
+                if (currCount > prevCount) {
                     events.push({ ...baseEvent, type: 'comment' });
                 }
             }
+
+            // Update previous state for next iteration
+            previousGroupState = groupState;
         }
 
         return events;

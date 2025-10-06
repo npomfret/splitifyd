@@ -74,8 +74,8 @@ describe('SettlementService - Unit Tests', () => {
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
-            // Mock writer to return successful result
-            stubWriter.createSettlement = () => Promise.resolve({ id: 'new-settlement-id', success: true });
+            // Mock writer to return expected ID
+            stubWriter.generateDocumentId = () => 'new-settlement-id';
 
             // Act
             const result = await settlementService.createSettlement(validSettlementData, userId);
@@ -171,8 +171,8 @@ describe('SettlementService - Unit Tests', () => {
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
-            // Mock dependencies
-            stubWriter.createSettlement = () => Promise.resolve({ id: 'new-settlement-id', success: true });
+            // Mock writer to return expected ID
+            stubWriter.generateDocumentId = () => 'new-settlement-id';
 
             // Act
             const result = await settlementService.createSettlement(settlementDataWithoutNote, userId);

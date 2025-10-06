@@ -231,26 +231,7 @@ export class FirebaseAuthService implements IAuthService {
         return this.executeWithMetrics(
             'FirebaseAuthService.getUsers',
             async () => {
-                logger.info('Attempting to look up users', {
-                    ...context,
-                    originalUids: uids,
-                    validatedUids: validatedUids,
-                });
-
                 const result = await this.auth.getUsers(uids);
-
-                logger.info('Batch user lookup completed', {
-                    ...context,
-                    requestedCount: validatedUids.length,
-                    foundCount: result.users.length,
-                    notFoundCount: result.notFound.length,
-                    notFoundIds: result.notFound.map((nf) => {
-                        if ('uid' in nf) return nf.uid;
-                        if ('email' in nf) return nf.email;
-                        if ('phoneNumber' in nf) return nf.phoneNumber;
-                        return 'unknown';
-                    }),
-                });
 
                 return result;
             },
