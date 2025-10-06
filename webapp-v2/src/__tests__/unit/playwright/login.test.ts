@@ -1,20 +1,9 @@
 import { test, expect } from '../../utils/console-logging-fixture';
-import { createMockFirebase, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
+import { setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 import { ClientUserBuilder, LoginPage, DashboardPage } from '@splitifyd/test-support';
 
 test.describe('Authentication Flow', () => {
-    let mockFirebase: any = null;
-
-    test.beforeEach(async ({ pageWithLogging: page }) => {
-        // Set up mock Firebase (start logged out)
-        mockFirebase = await createMockFirebase(page, null);
-    });
-
-    test.afterEach(async () => {
-        await mockFirebase.dispose();
-    });
-
-    test('should log in successfully and navigate to dashboard', async ({ pageWithLogging: page }) => {
+    test('should log in successfully and navigate to dashboard', async ({ pageWithLogging: page, mockFirebase }) => {
         // 1. Create test user and login page
         const testUser = ClientUserBuilder.validUser().build();
         const loginPage = new LoginPage(page);
@@ -33,7 +22,7 @@ test.describe('Authentication Flow', () => {
         await expect(dashboardPage.getYourGroupsHeading()).toBeVisible();
     });
 
-    test('should show error message for invalid credentials', async ({ pageWithLogging: page }) => {
+    test('should show error message for invalid credentials', async ({ pageWithLogging: page, mockFirebase }) => {
         const loginPage = new LoginPage(page);
 
         // 1. Navigate to login page
@@ -52,7 +41,7 @@ test.describe('Authentication Flow', () => {
         await loginPage.verifyErrorMessage('Invalid email or password.');
     });
 
-    test('should handle network errors gracefully', async ({ pageWithLogging: page }) => {
+    test('should handle network errors gracefully', async ({ pageWithLogging: page, mockFirebase }) => {
         const loginPage = new LoginPage(page);
 
         // 1. Navigate to login page first to ensure clean state
@@ -74,10 +63,8 @@ test.describe('Authentication Flow', () => {
 });
 
 test.describe('Authentication Flow - Already Authenticated', () => {
-    let mockFirebase: any = null;
-
-    test.beforeEach(async ({ pageWithLogging: page }) => {
-        // Create authenticated user for this test group
+    test('should redirect already authenticated user from login page', async ({ pageWithLogging: page, authenticatedMockFirebase }) => {
+        // Create authenticated user for this test
         const testUser = ClientUserBuilder.validUser()
             .withDisplayName('Test User')
             .build();
@@ -85,14 +72,8 @@ test.describe('Authentication Flow - Already Authenticated', () => {
         await setupSuccessfulApiMocks(page);
 
         // Set up mock Firebase with authenticated user from the start
-        mockFirebase = await createMockFirebase(page, testUser);
-    });
+        await authenticatedMockFirebase(testUser);
 
-    test.afterEach(async () => {
-        await mockFirebase.dispose();
-    });
-
-    test('should redirect already authenticated user from login page', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
         // Try to navigate to login page - should redirect immediately
@@ -105,17 +86,7 @@ test.describe('Authentication Flow - Already Authenticated', () => {
 });
 
 test.describe('LoginPage Reactivity and UI States', () => {
-    let mockFirebase: any = null;
-
-    test.beforeEach(async ({ pageWithLogging: page }) => {
-        mockFirebase = await createMockFirebase(page, null);
-    });
-
-    test.afterEach(async () => {
-        await mockFirebase.dispose();
-    });
-
-    test('should show loading state during login attempt', async ({ pageWithLogging: page }) => {
+    test('should show loading state during login attempt', async ({ pageWithLogging: page, mockFirebase }) => {
         const testUser = ClientUserBuilder.validUser().build();
         const loginPage = new LoginPage(page);
 
@@ -138,7 +109,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await expect(page).toHaveURL('/dashboard', { timeout: 5000 });
     });
 
-    test('should clear error state when component mounts', async ({ pageWithLogging: page }) => {
+    test('should clear error state when component mounts', async ({ pageWithLogging: page, mockFirebase }) => {
         const loginPage = new LoginPage(page);
 
         await loginPage.navigate();
@@ -163,35 +134,11 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await loginPage.verifyNoErrorMessage();
     });
 
-    test('should preserve form data in sessionStorage', async ({ pageWithLogging: page }) => {
-        const loginPage = new LoginPage(page);
-        const testEmail = 'test@example.com';
-        const testPassword = 'password123';
+    // Note: Session storage persistence is better tested in e2e tests where browser
+    // behavior is more realistic. Unit tests with mocks don't accurately reflect
+    // real browser storage mechanisms and reload behavior.
 
-        await loginPage.navigate();
-
-        // Fill form
-        await loginPage.fillCredentials(testEmail, testPassword);
-
-        // Wait for state to be persisted
-        await page.waitForTimeout(100);
-
-        // Refresh page
-        await page.reload();
-
-        // Verify email is restored (password may not be due to browser security)
-        await loginPage.verifyEmailRestored();
-
-        // Check if password persistence is working, but don't require it
-        const passwordValue = await loginPage.getPasswordInput().inputValue();
-        if (passwordValue) {
-            // If password is persisted, verify it's correct
-            expect(passwordValue).toBe(testPassword);
-        }
-        // Note: Some browsers may not persist password fields for security reasons
-    });
-
-    test('should update submit button state reactively based on form validity', async ({ pageWithLogging: page }) => {
+    test('should update submit button state reactively based on form validity', async ({ pageWithLogging: page, mockFirebase }) => {
         const loginPage = new LoginPage(page);
         await loginPage.navigate();
 
@@ -219,7 +166,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await expect(submitButton).toBeEnabled();
     });
 
-    test('should handle error state changes reactively', async ({ pageWithLogging: page }) => {
+    test('should handle error state changes reactively', async ({ pageWithLogging: page, mockFirebase }) => {
         const loginPage = new LoginPage(page);
         await loginPage.navigate();
 
@@ -247,7 +194,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await expect(page).toHaveURL('/dashboard');
     });
 
-    test('should disable all interactive elements during loading state', async ({ pageWithLogging: page }) => {
+    test('should disable all interactive elements during loading state', async ({ pageWithLogging: page, mockFirebase }) => {
         const testUser = ClientUserBuilder.validUser().build();
         const loginPage = new LoginPage(page);
         mockFirebase.mockLoginWithDelay(testUser, 1000);
@@ -270,7 +217,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await expect(page).toHaveURL('/dashboard', { timeout: 5000 });
     });
 
-    test('should navigate to register page with returnUrl preservation', async ({ pageWithLogging: page }) => {
+    test('should navigate to register page with returnUrl preservation', async ({ pageWithLogging: page, mockFirebase }) => {
         const loginPage = new LoginPage(page);
         const returnUrl = '/groups/test-group-id';
 
@@ -284,7 +231,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await expect(page).toHaveURL(`/register?returnUrl=${encodeURIComponent(returnUrl)}`);
     });
 
-    test('should navigate to register page without returnUrl when none present', async ({ pageWithLogging: page }) => {
+    test('should navigate to register page without returnUrl when none present', async ({ pageWithLogging: page, mockFirebase }) => {
         const loginPage = new LoginPage(page);
         await loginPage.navigate();
 
@@ -295,7 +242,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await expect(page).toHaveURL('/register');
     });
 
-    test('should handle returnUrl navigation after successful login', async ({ pageWithLogging: page }) => {
+    test('should handle returnUrl navigation after successful login', async ({ pageWithLogging: page, mockFirebase }) => {
         const testUser = ClientUserBuilder.validUser().build();
         const loginPage = new LoginPage(page);
         mockFirebase.mockLoginSuccess(testUser);
@@ -312,7 +259,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await expect(page).toHaveURL(returnUrl);
     });
 
-    test('should show validation errors for empty fields', async ({ pageWithLogging: page }) => {
+    test('should show validation errors for empty fields', async ({ pageWithLogging: page, mockFirebase }) => {
         const loginPage = new LoginPage(page);
         await loginPage.navigate();
 

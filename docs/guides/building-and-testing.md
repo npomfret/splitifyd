@@ -133,6 +133,10 @@ cd webapp-v2
 ./run-test.sh login --headed                 # Run all login tests with browser visible
 ./run-test.sh login "should show error" --headed  # Run specific test with browser visible
 
+# Testing for flaky tests (runs until failure or N times)
+./run-test.sh login "should log in" --repeat 10   # Run test 10 times
+./run-test.sh dashboard --repeat 5                # Run entire file 5 times
+
 # List available test files
 ./run-test.sh  # Shows usage and lists all available test files
 ```
@@ -142,6 +146,7 @@ cd webapp-v2
 - **Better error messages**: Clear feedback when tests fail to run
 - **Consistent environment**: Sets proper environment variables
 - **Simplified syntax**: No need to remember full file paths or complex Playwright flags
+- **Flakiness detection**: Built-in `--repeat` flag for testing test reliability
 
 **Direct Playwright commands (not recommended for unit tests):**
 ```bash

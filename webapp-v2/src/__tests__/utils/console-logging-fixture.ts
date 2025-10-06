@@ -1,6 +1,8 @@
 import { test as base, Page } from '@playwright/test';
 import * as fs from 'fs';
 import { createTestDirectory, createConsoleLogPath, createScreenshotPath, logTestArtifactPaths } from './test-utils';
+import { createMockFirebase, MockFirebase } from './mock-firebase-service';
+import { ClientUser } from '@splitifyd/shared';
 
 /**
  * Extended test fixture that provides automatic console logging and enhanced failure handling
@@ -8,6 +10,8 @@ import { createTestDirectory, createConsoleLogPath, createScreenshotPath, logTes
 
 type ConsoleLoggingFixtures = {
     pageWithLogging: Page;
+    mockFirebase: MockFirebase;
+    authenticatedMockFirebase: (user: ClientUser) => Promise<MockFirebase>;
 };
 
 // Add an afterEach hook to handle final reporting
@@ -38,25 +42,58 @@ base.afterEach(async ({}, testInfo) => {
         logTestArtifactPaths('', artifactPaths);
 
         // Show browser errors from console log if any exist
-        const logContent = fs.readFileSync(consoleLogPath, 'utf8');
-        const browserErrors = logContent.split('\n').filter(line =>
-            line.includes('ERROR:') || line.includes('PAGE_ERROR:') || line.includes('REQUEST_FAILED:')
-        );
+        if (fs.existsSync(consoleLogPath)) {
+            const logContent = fs.readFileSync(consoleLogPath, 'utf8');
+            const browserErrors = logContent.split('\n').filter(line =>
+                line.includes('ERROR:') || line.includes('PAGE_ERROR:') || line.includes('REQUEST_FAILED:')
+            );
 
-        if (browserErrors.length > 0) {
-            console.log(`🔴 Browser issues detected:`);
-            browserErrors.slice(0, 5).forEach(error => {
-                const cleanError = error.replace(/^\[[^\]]+\]\s*/, '').trim();
-                if (cleanError) console.log(`   ${cleanError}`);
-            });
-            if (browserErrors.length > 5) {
-                console.log(`   ... and ${browserErrors.length - 5} more (see console.log file)`);
+            if (browserErrors.length > 0) {
+                console.log(`🔴 Browser issues detected:`);
+                browserErrors.slice(0, 5).forEach(error => {
+                    const cleanError = error.replace(/^\[[^\]]+\]\s*/, '').trim();
+                    if (cleanError) console.log(`   ${cleanError}`);
+                });
+                if (browserErrors.length > 5) {
+                    console.log(`   ... and ${browserErrors.length - 5} more (see console.log file)`);
+                }
             }
+        } else {
+            console.log(`⚠️  Console log file not found at: ${consoleLogPath}`);
         }
     }
 });
 
 export const test = base.extend<ConsoleLoggingFixtures>({
+    /**
+     * Mock Firebase fixture - automatically disposed after each test
+     * Starts with no authenticated user (logged out state)
+     */
+    mockFirebase: async ({ pageWithLogging }, use) => {
+        const mock = await createMockFirebase(pageWithLogging, null);
+        await use(mock);
+        await mock.dispose();
+    },
+
+    /**
+     * Factory fixture for creating authenticated mock Firebase
+     * Useful when you need to create mock with a specific user
+     */
+    authenticatedMockFirebase: async ({ pageWithLogging }, use) => {
+        const mocks: MockFirebase[] = [];
+
+        await use(async (user: ClientUser) => {
+            const mock = await createMockFirebase(pageWithLogging, user);
+            mocks.push(mock);
+            return mock;
+        });
+
+        // Cleanup all mocks created during the test
+        for (const mock of mocks) {
+            await mock.dispose();
+        }
+    },
+
     pageWithLogging: async ({ page }, use, testInfo) => {
         // Create test-specific directory
         const testDir = createTestDirectory(testInfo);

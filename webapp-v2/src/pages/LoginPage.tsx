@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef } from 'preact/hooks';
-import { useComputed } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
 import { navigationService } from '@/services/navigation.service';
 import { AuthLayout } from '../components/auth/AuthLayout';
@@ -15,9 +14,8 @@ export function LoginPage() {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
 
-    // Use computed signals for reactivity - must use useComputed AND access .value in JSX
-    const isLoading = useComputed(() => authStore.loadingSignal.value);
-    const authError = useComputed(() => authStore.errorSignal.value);
+    // Access signal values directly in JSX for reactivity (Preact signals auto-subscribe)
+    // Note: Do NOT use useComputed here - it breaks reactivity when passed to child components
 
     // Component state with sessionStorage persistence
     const [email, setEmail] = useState(() => sessionStorage.getItem('login-email') || '');
@@ -32,10 +30,7 @@ export function LoginPage() {
         sessionStorage.setItem('login-password', password);
     }, [password]);
 
-    // Clear any previous errors when component mounts
-    useEffect(() => {
-        authStore.clearError();
-    }, []);
+    // Note: Error clearing is handled by auth-store.login() which clears errors before attempting login
 
     // Redirect if already logged in
     useEffect(() => {
@@ -73,6 +68,7 @@ export function LoginPage() {
             // Redirect will happen via useEffect when user state updates
         } catch (error) {
             logError('Login attempt failed', error, { email: trimmedEmail });
+            // Error is already set in authStore.errorSignal by the login() method
         }
     };
 
@@ -96,16 +92,19 @@ export function LoginPage() {
 
     const isFormValid = email.trim() && password;
 
+    const errorValue = authStore.errorSignal.value;
+    const loadingValue = authStore.loadingSignal.value;
+
     return (
         <AuthLayout title={t('loginPage.title')} description={t('loginPage.description')}>
-            <AuthForm onSubmit={handleSubmit} error={authError.value} disabled={isLoading.value}>
-                <EmailInput value={email} onInput={setEmail} autoFocus disabled={isLoading.value} />
+            <AuthForm onSubmit={handleSubmit} error={errorValue} disabled={loadingValue}>
+                <EmailInput value={email} onInput={setEmail} autoFocus disabled={loadingValue} />
 
-                <PasswordInput value={password} onInput={setPassword} disabled={isLoading.value} autoComplete="current-password" />
+                <PasswordInput value={password} onInput={setPassword} disabled={loadingValue} autoComplete="current-password" />
 
                 <div class="flex items-center justify-between">
                     <label class="flex items-center">
-                        <input type="checkbox" data-testid="remember-me-checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" disabled={isLoading.value} />
+                        <input type="checkbox" data-testid="remember-me-checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" disabled={loadingValue} />
                         <span class="ml-2 block text-sm text-gray-700">{t('loginPage.rememberMe')}</span>
                     </label>
 
@@ -114,11 +113,11 @@ export function LoginPage() {
                     </button>
                 </div>
 
-                <SubmitButton loading={isLoading.value} disabled={!isFormValid}>
+                <SubmitButton loading={loadingValue} disabled={!isFormValid}>
                     {t('loginPage.submitButton')}
                 </SubmitButton>
 
-                <DefaultLoginButton onFillForm={handleFillForm} onSubmit={() => handleSubmit(new Event('submit'))} disabled={isLoading.value} />
+                <DefaultLoginButton onFillForm={handleFillForm} onSubmit={() => handleSubmit(new Event('submit'))} disabled={loadingValue} />
 
                 <div class="text-center">
                     <p class="text-sm text-gray-600">
@@ -127,20 +126,13 @@ export function LoginPage() {
                             type="button"
                             data-testid="loginpage-signup-button"
                             onClick={() => {
-                                const buildTime = '__ULTRA_FRESH_BUILD_' + Date.now() + '_NEW_HASH__';
-                                console.log('🚀🚀🚀 COMPLETELY NEW LOGIN CODE EXECUTING!!! BUILD:', buildTime);
-                                console.log('🚀🚀🚀 BUTTON CLICKED - NEW MODULE HASH - TIMESTAMP:', Date.now());
                                 // Preserve returnUrl when navigating to register
                                 const urlParams = new URLSearchParams(window.location.search);
                                 const returnUrl = urlParams.get('returnUrl');
-                                console.log('🚀🚀🚀 LOGIN PAGE URL PARAMS:', window.location.search);
-                                console.log('🚀🚀🚀 LOGIN PAGE RETURN URL:', returnUrl);
                                 if (returnUrl) {
                                     const targetUrl = `/register?returnUrl=${encodeURIComponent(returnUrl)}`;
-                                    console.log('🔥🔥🔥 NEW HASH - Navigating to:', targetUrl);
                                     navigationService.navigateTo(targetUrl);
                                 } else {
-                                    console.log('🔥🔥🔥 NEW HASH - No returnUrl, going to register default');
                                     navigationService.goToRegister();
                                 }
                             }}

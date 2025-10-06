@@ -59,7 +59,7 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
     }
 
     return (
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" data-testid="groups-grid">
             {enhancedGroupsStore.isCreatingGroup && (
                 <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 flex items-center justify-center">
                     <LoadingSpinner />

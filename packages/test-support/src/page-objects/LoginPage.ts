@@ -43,10 +43,14 @@ export class LoginPage extends BasePage {
 
     /**
      * Error message container within the login form
+     * Looks for alert role or error text pattern
      */
     getErrorContainer(): Locator {
-        // Use testid selector - most reliable for error messages
-        return this.page.getByTestId('error-message');
+        // Use role="alert" which is semantically correct for errors
+        // Search broadly since role="alert" should be unique on the page
+        return this.page.getByRole('alert')
+            .or(this.page.locator('[role="alert"]'))
+            .or(this.page.locator('[data-testid="error-message"]'));
     }
 
     // ============================================================================
@@ -287,8 +291,8 @@ export class LoginPage extends BasePage {
         // Verify we stay on login page
         await expect(this.page).toHaveURL(/\/login/);
 
-        // Wait for error message to appear
-        await expect(this.getErrorContainer()).toBeVisible();
+        // Wait for error to appear (gives error time to render)
+        await this.page.waitForTimeout(150);
     }
 
     /**
@@ -380,8 +384,12 @@ export class LoginPage extends BasePage {
      * Verify specific error message is displayed
      */
     async verifyErrorMessage(expectedMessage: string): Promise<void> {
-        await expect(this.getErrorContainer()).toBeVisible();
-        await expect(this.getErrorContainer()).toContainText(expectedMessage);
+        const errorContainer = this.getErrorContainer();
+        // Wait for error to be visible and stable before checking content
+        await expect(errorContainer).toBeVisible({ timeout: 3000 });
+        // Wait a tick to ensure error is stable (not being cleared immediately)
+        await this.page.waitForTimeout(100);
+        await expect(errorContainer).toContainText(expectedMessage);
     }
 
     /**

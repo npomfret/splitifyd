@@ -17,111 +17,28 @@ export abstract class BasePage {
     }
 
     /**
-     * Wait for focus on an input element
+     * Fill input with proper handling for Preact controlled inputs
+     * Uses direct DOM manipulation to work with Preact's signal-based reactivity
      */
-    private async waitForFocus(input: Locator, timeout = 2000): Promise<void> {
-        await expect(input).toBeFocused({ timeout });
-    }
-
-    /**
-     * Validate that input has expected value
-     */
-    private async validateInputValue(input: Locator, expectedValue: string): Promise<void> {
-        const actualValue = await input.inputValue();
-        const inputType = await input.getAttribute('type');
-
-        // For number inputs, compare numeric values to handle normalization (e.g., "75.50" -> "75.5")
-        if (inputType === 'number') {
-            const expectedNum = parseFloat(expectedValue);
-            const actualNum = parseFloat(actualValue);
-            // Check if both parse as valid numbers and are equal
-            if (!isNaN(expectedNum) && !isNaN(actualNum) && expectedNum === actualNum) {
-                return; // Values are numerically equal
-            }
-        }
-
-        // For non-number inputs or when numeric comparison fails, use string comparison
-        if (actualValue !== expectedValue) {
-            throw new Error(`Input validation failed. Expected: "${expectedValue}", Actual: "${actualValue}"`);
-        }
-    }
-
-    /**
-     * Fill input with proper Preact async handling
-     * Essential for handling Preact's async nature and onChange events
-     */
-    async fillPreactInput(selector: string | Locator, value: string, maxRetries = 3) {
+    async fillPreactInput(selector: string | Locator, value: string) {
         const input = typeof selector === 'string' ? this._page.locator(selector) : selector;
-        await expect(input).toBeVisible();
-        await expect(input).toBeEnabled();
 
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                // Single click and wait for focus
-                await input.click();
-                await this.waitForFocus(input);
+        // Focus the input first
+        await input.focus();
 
-                // Clear and validate
-                await input.fill('');
-                await this.validateInputValue(input, '');
+        // Set value and dispatch events directly in browser context
+        // This works better with Preact controlled inputs than Playwright's fill()
+        await input.evaluate((el: any, val: string) => {
+            el.value = val;
+            // Dispatch input event to trigger Preact signal updates
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+        }, value);
 
-                // Ensure still focused before typing
-                await this.waitForFocus(input);
-                await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
+        // Verify value is set (ensures Preact signal has processed)
+        await expect(input).toHaveValue(value, { timeout: 2000 });
 
-                // Check if this is a number input or has decimal inputMode
-                const inputType = await input.getAttribute('type');
-                const inputMode = await input.getAttribute('inputMode');
-
-                // Use fill() for number inputs or decimal inputs to handle decimals correctly
-                if (inputType === 'number' || inputMode === 'decimal') {
-                    await input.fill(value);
-                } else {
-                    await input.pressSequentially(value);
-                }
-
-                // Manually trigger input event to ensure Preact onChange handlers are called
-                // This is crucial for Preact components that rely on onChange events to update their state
-                await input.dispatchEvent('input');
-
-                // Blur to trigger Preact validation
-                await input.blur();
-
-                // Check if input was successful
-                const actualValue = await input.inputValue();
-                if (actualValue === value) {
-                    await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
-                    return; // Success!
-                }
-
-                // For number/decimal inputs, check if values are numerically equal (handles decimal normalization)
-                if (inputType === 'number' || inputMode === 'decimal') {
-                    const expectedNum = parseFloat(value);
-                    const actualNum = parseFloat(actualValue);
-                    if (!isNaN(expectedNum) && !isNaN(actualNum) && expectedNum === actualNum) {
-                        await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
-                        return; // Success!
-                    }
-                }
-
-                if (attempt === maxRetries) {
-                    throw new Error(`Failed to fill input after ${maxRetries} attempts. Expected: "${value}", Got: "${actualValue}"`);
-                }
-
-                // Wait before retry
-                await this._page.waitForTimeout(100);
-            } catch (error) {
-                if (attempt === maxRetries) {
-                    throw error;
-                }
-                // Wait before retry
-                await this._page.waitForTimeout(100);
-            }
-        }
-
-        // Final validation
-        await this.validateInputValue(input, value);
-        await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
+        // Blur to trigger any onBlur validation
+        await input.blur();
     }
 
     /**

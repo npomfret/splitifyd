@@ -106,7 +106,7 @@ test.describe('Dashboard Groups Display and Loading States', () => {
         const dashboardPage = new DashboardPage(page);
 
         // Don't mock groups API immediately to see loading state
-        await page.goto('/dashboard');
+        await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
         // Wait for page to load but groups might still be loading
         await expect(page).toHaveURL('/dashboard');
@@ -136,7 +136,7 @@ test.describe('Dashboard Groups Display and Loading States', () => {
         // Mock groups API
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(groups, groups.length).build());
 
-        await page.goto('/dashboard');
+        await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
         // Verify all groups are displayed
         await dashboardPage.verifyGroupsDisplayed(3);

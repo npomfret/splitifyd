@@ -24,10 +24,12 @@ export class DashboardPage extends BasePage {
     // ============================================================================
 
     /**
-     * Groups container - contains all group-related content
+     * Groups container - found by the "Your Groups" heading
      */
     getGroupsContainer(): Locator {
-        return this.page.getByTestId('groups-container');
+        return this.page.locator('section, div').filter({
+            has: this.page.getByRole('heading', { name: translation.dashboard.yourGroups })
+        }).first();
     }
 
     /**
@@ -99,7 +101,8 @@ export class DashboardPage extends BasePage {
      * Groups grid/list container
      */
     getGroupsGrid(): Locator {
-        return this.getGroupsContainer().locator('.grid, [data-testid="groups-grid"]');
+        // Use data-testid for specificity to avoid matching layout grids
+        return this.getGroupsContainer().locator('[data-testid="groups-grid"]');
     }
 
     /**
@@ -128,9 +131,12 @@ export class DashboardPage extends BasePage {
 
     /**
      * Loading spinner for groups
+     * Uses role="status" for semantic loading indicators
      */
     getGroupsLoadingSpinner(): Locator {
-        return this.getGroupsContainer().locator('[data-testid="loading-spinner"], .animate-spin');
+        return this.getGroupsContainer().getByRole('status')
+            .or(this.getGroupsContainer().locator('[aria-live="polite"]'))
+            .or(this.getGroupsContainer().locator('.animate-spin'));
     }
 
     // ============================================================================
@@ -160,9 +166,13 @@ export class DashboardPage extends BasePage {
 
     /**
      * User menu button (profile/settings access)
+     * Finds button with user display name or profile icon in navigation
      */
     getUserMenuButton(): Locator {
-        return this.page.getByTestId('user-menu-button');
+        // Look for button in navigation area (typically top-right) with aria-label or user name
+        return this.page.getByRole('button', { name: /user menu|profile|settings|account/i })
+            .or(this.page.locator('nav, header').getByRole('button').filter({ hasText: /.+@.+/ }))
+            .or(this.page.locator('nav, header').getByRole('button').last());
     }
 
     /**
@@ -181,16 +191,30 @@ export class DashboardPage extends BasePage {
 
     /**
      * Dashboard Stats - Total groups value
+     * Finds the numeric value in the stat item containing "Total Groups" text
      */
     getStatsTotalGroups(): Locator {
-        return this.getStatsContainer().locator('text=/total.*groups/i').locator('..').locator('span').last();
+        // Find the stat item by its label, then get the visible number
+        return this.getStatsContainer()
+            .locator('div, li')
+            .filter({ hasText: /total.*groups/i })
+            .first()
+            .getByText(/^\d+$/)
+            .first();
     }
 
     /**
      * Dashboard Stats - Active groups value
+     * Finds the numeric value in the stat item containing "Active Groups" text
      */
     getStatsActiveGroups(): Locator {
-        return this.getStatsContainer().locator('text=/active.*groups/i').locator('..').locator('span').last();
+        // Find the stat item by its label, then get the visible number
+        return this.getStatsContainer()
+            .locator('div, li')
+            .filter({ hasText: /active.*groups/i })
+            .first()
+            .getByText(/^\d+$/)
+            .first();
     }
 
     /**
