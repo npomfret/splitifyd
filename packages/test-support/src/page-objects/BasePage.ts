@@ -38,19 +38,13 @@ export abstract class BasePage {
             try {
                 // Wait for it to actually be empty (with timeout)
                 await expect(input).toHaveValue('', { timeout: 1000 });
-
-                if (attempt > 0) {
-                    console.log(`✅ clearPreactInput succeeded on attempt ${attempt + 1}`);
-                }
                 return; // Success!
             } catch (error) {
-                console.log(`❌ clearPreactInput attempt ${attempt + 1} timed out waiting for empty value`);
                 // Loop continues to next attempt
             }
         }
 
         // Final verification - will throw if still not empty
-        console.log('❌ clearPreactInput exhausted all attempts, throwing error');
         await expect(input).toHaveValue('', { timeout: 2000 });
     }
 
@@ -86,14 +80,9 @@ export abstract class BasePage {
 
             const currentValue = await input.inputValue();
             if (currentValue === value) {
-                if (attempt > 0) {
-                    console.log(`✅ fillPreactInput succeeded on attempt ${attempt + 1}: "${value}"`);
-                }
                 await input.blur();
                 return; // Success!
             }
-
-            console.log(`❌ fillPreactInput attempt ${attempt + 1} failed: value="${currentValue}", expected="${value}"`);
 
             // Clear for next attempt
             await this.clearPreactInput(input);
@@ -102,7 +91,6 @@ export abstract class BasePage {
         }
 
         // Final verification - will throw if still not set
-        console.log(`❌ fillPreactInput exhausted all attempts for value "${value}", throwing error`);
         await expect(input).toHaveValue(value, { timeout: 2000 });
         await input.blur();
     }
