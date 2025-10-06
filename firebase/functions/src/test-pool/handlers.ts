@@ -1,9 +1,9 @@
-import type {Request, Response} from 'express';
-import {TestUserPoolService} from './TestUserPoolService';
-import {getAuth, getFirestore, isEmulator} from '../firebase';
-import {logger} from '../logger';
-import {ApplicationBuilder} from '../services/ApplicationBuilder';
-import {ReturnTestUserResponse} from '@splitifyd/shared';
+import type { Request, Response } from 'express';
+import { TestUserPoolService } from './TestUserPoolService';
+import { getAuth, getFirestore, isEmulator } from '../firebase';
+import { logger } from '../logger';
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { ReturnTestUserResponse } from '@splitifyd/shared';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
@@ -16,7 +16,7 @@ const pool = TestUserPoolService.getInstance(firestoreWriter, userService, authS
 export async function borrowTestUser(req: Request, res: Response): Promise<void> {
     // Only allow in test environment
     if (!isEmulator()) {
-        res.status(403).json({error: 'Test pool only available in emulator'});
+        res.status(403).json({ error: 'Test pool only available in emulator' });
         return;
     }
 
@@ -35,14 +35,14 @@ export async function borrowTestUser(req: Request, res: Response): Promise<void>
 
 export async function returnTestUser(req: Request, res: Response): Promise<void> {
     if (!isEmulator()) {
-        res.status(403).json({error: 'Test pool only available in emulator'});
+        res.status(403).json({ error: 'Test pool only available in emulator' });
         return;
     }
 
-    const {email} = req.body;
+    const { email } = req.body;
 
     if (!email) {
-        res.status(400).json({error: 'Email required'});
+        res.status(400).json({ error: 'Email required' });
         return;
     }
 

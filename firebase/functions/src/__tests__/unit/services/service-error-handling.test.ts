@@ -4,7 +4,7 @@ import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stu
 import { ApiError } from '../../../utils/errors';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { BalanceCalculationService } from '../../../services/balance';
-import { GroupMemberDocumentBuilder } from "../../support/GroupMemberDocumentBuilder";
+import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
 
 // Create mock services
 const createMockUserService = () => ({
@@ -54,11 +54,7 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
         mockGroupMemberServiceRef = createMockGroupMemberService();
 
         // Create GroupMemberService without stub utilities (they'll use defaults)
-        groupMemberService = new GroupMemberService(
-            stubFirestoreReader,
-            stubFirestoreWriter,
-            mockBalanceService
-        );
+        groupMemberService = new GroupMemberService(stubFirestoreReader, stubFirestoreWriter, mockBalanceService);
     });
 
     // Note: This test file focuses on subcollection query error handling patterns.
@@ -100,12 +96,7 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
         test('should handle large subcollection results without memory issues', async () => {
             // Mock large result set (1000 members) through MockFirestoreReader
             const largeMemberSet = Array.from({ length: 1000 }, (_, i) =>
-                new GroupMemberDocumentBuilder()
-                    .withUserId(`user-${i}`)
-                    .withGroupId('large-group')
-                    .withRole(MemberRoles.MEMBER)
-                    .withStatus(MemberStatuses.ACTIVE)
-                    .build()
+                new GroupMemberDocumentBuilder().withUserId(`user-${i}`).withGroupId('large-group').withRole(MemberRoles.MEMBER).withStatus(MemberStatuses.ACTIVE).build(),
             );
 
             vi.spyOn(stubFirestoreReader, 'getAllGroupMembers').mockResolvedValue(largeMemberSet);
@@ -122,12 +113,7 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
             // Mock mixed valid and corrupted documents through MockFirestoreReader
             // The MockFirestoreReader should handle validation, so we just return what it would process
             const mixedMembers = [
-                new GroupMemberDocumentBuilder()
-                    .withUserId('user-1')
-                    .withGroupId('group-123')
-                    .withRole(MemberRoles.MEMBER)
-                    .withStatus(MemberStatuses.ACTIVE)
-                    .build(),
+                new GroupMemberDocumentBuilder().withUserId('user-1').withGroupId('group-123').withRole(MemberRoles.MEMBER).withStatus(MemberStatuses.ACTIVE).build(),
                 // Simulate a partially corrupted document
                 {
                     uid: 'user-3',

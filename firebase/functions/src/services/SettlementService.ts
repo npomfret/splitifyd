@@ -1,14 +1,14 @@
-import {FieldValue} from 'firebase-admin/firestore';
-import {z} from 'zod';
-import {ApiError} from '../utils/errors';
-import {FirestoreCollections, HTTP_STATUS} from '../constants';
+import { FieldValue } from 'firebase-admin/firestore';
+import { z } from 'zod';
+import { ApiError } from '../utils/errors';
+import { FirestoreCollections, HTTP_STATUS } from '../constants';
 import * as dateHelpers from '../utils/dateHelpers';
-import {logger} from '../logger';
-import {LoggerContext} from '../utils/logger-context';
+import { logger } from '../logger';
+import { LoggerContext } from '../utils/logger-context';
 import * as measure from '../monitoring/measure';
-import {CreateSettlementRequest, GroupMember, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest} from '@splitifyd/shared';
-import type {IFirestoreReader, IFirestoreWriter} from './firestore';
-import {GroupMemberService} from './GroupMemberService';
+import { CreateSettlementRequest, GroupMember, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest } from '@splitifyd/shared';
+import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import { GroupMemberService } from './GroupMemberService';
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -53,10 +53,7 @@ export class SettlementService {
      * Fetch group member data for settlements
      */
     private async fetchGroupMemberData(groupId: string, userId: string): Promise<GroupMember> {
-        const [userData, memberData] = await Promise.all([
-            this.firestoreReader.getUser(userId),
-            this.firestoreReader.getGroupMember(groupId, userId)
-        ]);
+        const [userData, memberData] = await Promise.all([this.firestoreReader.getUser(userId), this.firestoreReader.getGroupMember(groupId, userId)]);
 
         if (!userData) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${userId} not found`);
@@ -73,7 +70,7 @@ export class SettlementService {
             // Generate initials from display name
             const initials = validatedData.displayName
                 .split(' ')
-                .map(n => n[0])
+                .map((n) => n[0])
                 .join('')
                 .toUpperCase()
                 .slice(0, 2);
@@ -200,12 +197,7 @@ export class SettlementService {
                 }
 
                 // Create settlement in transaction
-                this.firestoreWriter.createInTransaction(
-                    transaction,
-                    FirestoreCollections.SETTLEMENTS,
-                    settlementId,
-                    settlementDataToCreate,
-                );
+                this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.SETTLEMENTS, settlementId, settlementDataToCreate);
 
                 // Update group timestamp to track activity
                 await this.firestoreWriter.touchGroup(settlementData.groupId, transaction);
@@ -321,7 +313,7 @@ export class SettlementService {
         // Fetch group member data for payer and payee to return complete response
         const [payerData, payeeData] = await Promise.all([
             this.fetchGroupMemberData(updatedSettlement!.groupId, updatedSettlement!.payerId),
-            this.fetchGroupMemberData(updatedSettlement!.groupId, updatedSettlement!.payeeId)
+            this.fetchGroupMemberData(updatedSettlement!.groupId, updatedSettlement!.payeeId),
         ]);
 
         return {
@@ -529,10 +521,7 @@ export class SettlementService {
 
         const settlements: SettlementWithMembers[] = await Promise.all(
             result.settlements.map(async (settlement) => {
-                const [payerData, payeeData] = await Promise.all([
-                    this.fetchGroupMemberData(groupId, settlement.payerId),
-                    this.fetchGroupMemberData(groupId, settlement.payeeId)
-                ]);
+                const [payerData, payeeData] = await Promise.all([this.fetchGroupMemberData(groupId, settlement.payerId), this.fetchGroupMemberData(groupId, settlement.payeeId)]);
 
                 return {
                     id: settlement.id,

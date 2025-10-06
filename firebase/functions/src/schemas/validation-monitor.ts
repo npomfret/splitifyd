@@ -64,7 +64,6 @@ class ValidationMetrics {
         const count = this.metrics.failures.get(schemaName) || 0;
         this.metrics.failures.set(schemaName, count + 1);
     }
-
 }
 
 /**

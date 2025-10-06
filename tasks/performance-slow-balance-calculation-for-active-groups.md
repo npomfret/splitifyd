@@ -54,7 +54,7 @@ export const UserBalanceSchema = z.object({
  */
 export const CurrencyBalancesSchema = z.record(
     z.string(), // userId
-    UserBalanceSchema
+    UserBalanceSchema,
 );
 
 /**
@@ -69,12 +69,14 @@ export const GroupBalanceDocumentSchema = z.object({
     balancesByCurrency: z.record(z.string(), CurrencyBalancesSchema),
 
     // Simplified debts for display (computed from balancesByCurrency)
-    simplifiedDebts: z.array(z.object({
-        from: z.object({ uid: z.string() }),
-        to: z.object({ uid: z.string() }),
-        amount: z.number(),
-        currency: z.string(),
-    })),
+    simplifiedDebts: z.array(
+        z.object({
+            from: z.object({ uid: z.string() }),
+            to: z.object({ uid: z.string() }),
+            amount: z.number(),
+            currency: z.string(),
+        }),
+    ),
 
     // Metadata
     lastUpdatedAt: z.instanceof(Timestamp),
@@ -93,6 +95,7 @@ export type GroupBalanceDTO = z.infer<typeof GroupBalanceDTOSchema>;
 ```
 
 **Key Design Decisions**:
+
 - Store at `groups/{groupId}/metadata/balance` for logical grouping
 - Use same `balancesByCurrency` structure as current `BalanceCalculationResult` for compatibility
 - Include `version` field for future schema evolution
@@ -272,15 +275,8 @@ export class IncrementalBalanceService {
     /**
      * Apply the impact of a newly created expense to existing balance
      */
-    applyExpenseCreated(
-        currentBalance: GroupBalanceDTO,
-        expense: ExpenseDTO,
-        memberIds: string[]
-    ): GroupBalanceDTO {
-        const deltaBalance = this.expenseProcessor.processExpenses(
-            [expense],
-            memberIds
-        );
+    applyExpenseCreated(currentBalance: GroupBalanceDTO, expense: ExpenseDTO, memberIds: string[]): GroupBalanceDTO {
+        const deltaBalance = this.expenseProcessor.processExpenses([expense], memberIds);
 
         return this.mergeBalances(currentBalance, deltaBalance);
     }
@@ -288,15 +284,8 @@ export class IncrementalBalanceService {
     /**
      * Revert the impact of a deleted expense from existing balance
      */
-    applyExpenseDeleted(
-        currentBalance: GroupBalanceDTO,
-        expense: ExpenseDTO,
-        memberIds: string[]
-    ): GroupBalanceDTO {
-        const deltaBalance = this.expenseProcessor.processExpenses(
-            [expense],
-            memberIds
-        );
+    applyExpenseDeleted(currentBalance: GroupBalanceDTO, expense: ExpenseDTO, memberIds: string[]): GroupBalanceDTO {
+        const deltaBalance = this.expenseProcessor.processExpenses([expense], memberIds);
 
         return this.mergeBalances(currentBalance, deltaBalance, 'subtract');
     }
@@ -305,23 +294,10 @@ export class IncrementalBalanceService {
      * Update balance when an expense is edited
      * Two-step atomic operation: revert old, apply new
      */
-    applyExpenseUpdated(
-        currentBalance: GroupBalanceDTO,
-        oldExpense: ExpenseDTO,
-        newExpense: ExpenseDTO,
-        memberIds: string[]
-    ): GroupBalanceDTO {
-        let updatedBalance = this.applyExpenseDeleted(
-            currentBalance,
-            oldExpense,
-            memberIds
-        );
+    applyExpenseUpdated(currentBalance: GroupBalanceDTO, oldExpense: ExpenseDTO, newExpense: ExpenseDTO, memberIds: string[]): GroupBalanceDTO {
+        let updatedBalance = this.applyExpenseDeleted(currentBalance, oldExpense, memberIds);
 
-        updatedBalance = this.applyExpenseCreated(
-            updatedBalance,
-            newExpense,
-            memberIds
-        );
+        updatedBalance = this.applyExpenseCreated(updatedBalance, newExpense, memberIds);
 
         return updatedBalance;
     }
@@ -329,21 +305,13 @@ export class IncrementalBalanceService {
     /**
      * Apply settlement created
      */
-    applySettlementCreated(
-        currentBalance: GroupBalanceDTO,
-        settlement: SettlementDTO
-    ): GroupBalanceDTO {
+    applySettlementCreated(currentBalance: GroupBalanceDTO, settlement: SettlementDTO): GroupBalanceDTO {
         const { currency } = settlement;
         const currencyBalance = currentBalance.balancesByCurrency[currency] || {};
 
-        this.settlementProcessor.processSettlements(
-            [settlement],
-            { [currency]: currencyBalance }
-        );
+        this.settlementProcessor.processSettlements([settlement], { [currency]: currencyBalance });
 
-        const simplifiedDebts = this.debtSimplifier.simplifyDebtsForAllCurrencies(
-            currentBalance.balancesByCurrency
-        );
+        const simplifiedDebts = this.debtSimplifier.simplifyDebtsForAllCurrencies(currentBalance.balancesByCurrency);
 
         return {
             ...currentBalance,
@@ -359,10 +327,7 @@ export class IncrementalBalanceService {
     /**
      * Revert settlement deleted
      */
-    applySettlementDeleted(
-        currentBalance: GroupBalanceDTO,
-        settlement: SettlementDTO
-    ): GroupBalanceDTO {
+    applySettlementDeleted(currentBalance: GroupBalanceDTO, settlement: SettlementDTO): GroupBalanceDTO {
         const inverseSettlement: SettlementDTO = {
             ...settlement,
             payerId: settlement.payeeId,
@@ -375,11 +340,7 @@ export class IncrementalBalanceService {
     /**
      * Update balance when settlement is edited
      */
-    applySettlementUpdated(
-        currentBalance: GroupBalanceDTO,
-        oldSettlement: SettlementDTO,
-        newSettlement: SettlementDTO
-    ): GroupBalanceDTO {
+    applySettlementUpdated(currentBalance: GroupBalanceDTO, oldSettlement: SettlementDTO, newSettlement: SettlementDTO): GroupBalanceDTO {
         let updated = this.applySettlementDeleted(currentBalance, oldSettlement);
         updated = this.applySettlementCreated(updated, newSettlement);
         return updated;
@@ -388,11 +349,7 @@ export class IncrementalBalanceService {
     /**
      * Merge two balance states (add or subtract)
      */
-    private mergeBalances(
-        base: GroupBalanceDTO,
-        delta: Record<string, Record<string, UserBalance>>,
-        operation: 'add' | 'subtract' = 'add'
-    ): GroupBalanceDTO {
+    private mergeBalances(base: GroupBalanceDTO, delta: Record<string, Record<string, UserBalance>>, operation: 'add' | 'subtract' = 'add'): GroupBalanceDTO {
         const merged = { ...base.balancesByCurrency };
         const multiplier = operation === 'add' ? 1 : -1;
 
@@ -412,7 +369,7 @@ export class IncrementalBalanceService {
                 // Merge owes
                 for (const [ownedUserId, amount] of Object.entries(deltaBalance.owes)) {
                     const currentAmount = current.owes[ownedUserId] || 0;
-                    current.owes[ownedUserId] = currentAmount + (amount * multiplier);
+                    current.owes[ownedUserId] = currentAmount + amount * multiplier;
 
                     if (Math.abs(current.owes[ownedUserId]) < 0.01) {
                         delete current.owes[ownedUserId];
@@ -422,7 +379,7 @@ export class IncrementalBalanceService {
                 // Merge owedBy
                 for (const [owingUserId, amount] of Object.entries(deltaBalance.owedBy)) {
                     const currentAmount = current.owedBy[owingUserId] || 0;
-                    current.owedBy[owingUserId] = currentAmount + (amount * multiplier);
+                    current.owedBy[owingUserId] = currentAmount + amount * multiplier;
 
                     if (Math.abs(current.owedBy[owingUserId]) < 0.01) {
                         delete current.owedBy[owingUserId];
@@ -430,7 +387,7 @@ export class IncrementalBalanceService {
                 }
 
                 // Update net balance
-                current.netBalance = current.netBalance + (deltaBalance.netBalance * multiplier);
+                current.netBalance = current.netBalance + deltaBalance.netBalance * multiplier;
 
                 merged[currency][userId] = current;
             }
@@ -699,6 +656,7 @@ describe('Incremental Balance Integration', () => {
 ### 6.3. E2E Test Verification
 
 Run existing e2e tests with new architecture:
+
 ```bash
 cd e2e-tests
 PLAYWRIGHT_HTML_OPEN=never ./run-until-fail.sh 3
@@ -713,13 +671,13 @@ All tests should pass without modification (API contract unchanged).
 ### 7.1. Deployment Steps
 
 1. **Deploy new code**
-   - All groups will automatically get balance initialized on creation
-   - Existing groups don't exist (new project)
+    - All groups will automatically get balance initialized on creation
+    - Existing groups don't exist (new project)
 
 2. **Monitor performance**
-   - Check API latency metrics for `_executeListGroups`
-   - Monitor error rates for balance updates
-   - Verify incremental updates are atomic
+    - Check API latency metrics for `_executeListGroups`
+    - Monitor error rates for balance updates
+    - Verify incremental updates are atomic
 
 ---
 
@@ -730,9 +688,9 @@ All tests should pass without modification (API contract unchanged).
 ```typescript
 // Add to monitoring/measure.ts
 export const balanceMetrics = {
-    precomputedReads: 0,     // Reads from pre-computed balance
-    incrementalUpdates: 0,   // Successful incremental updates
-    updateFailures: 0,       // Failed incremental updates
+    precomputedReads: 0, // Reads from pre-computed balance
+    incrementalUpdates: 0, // Successful incremental updates
+    updateFailures: 0, // Failed incremental updates
 };
 ```
 
@@ -757,28 +715,28 @@ export const balanceMetrics = {
 
 ## Risk Mitigation
 
-| Risk | Mitigation |
-|------|-----------|
-| **Race conditions in concurrent updates** | Use Firestore transactions for atomicity |
-| **Incremental logic bugs** | Extensive unit tests + consistency checks |
-| **Performance regression** | Monitor latency, rollback if needed |
-| **Data corruption** | Firestore transactions prevent partial updates |
+| Risk                                      | Mitigation                                     |
+| ----------------------------------------- | ---------------------------------------------- |
+| **Race conditions in concurrent updates** | Use Firestore transactions for atomicity       |
+| **Incremental logic bugs**                | Extensive unit tests + consistency checks      |
+| **Performance regression**                | Monitor latency, rollback if needed            |
+| **Data corruption**                       | Firestore transactions prevent partial updates |
 
 ---
 
 ## Estimated Timeline
 
-| Phase | Effort | Duration |
-|-------|--------|----------|
-| Schema & Types | Small | 1-2 hours |
-| Firestore I/O | Small | 2-3 hours |
-| IncrementalBalanceService | Medium | 4-6 hours |
-| Service Integration | Medium | 3-4 hours |
-| API Layer Updates | Small | 1-2 hours |
-| Unit Tests | Medium | 4-5 hours |
-| Integration Tests | Medium | 3-4 hours |
-| E2E Verification | Small | 1 hour |
-| **Total** | **~20-28 hours** | **3-4 days** |
+| Phase                     | Effort           | Duration     |
+| ------------------------- | ---------------- | ------------ |
+| Schema & Types            | Small            | 1-2 hours    |
+| Firestore I/O             | Small            | 2-3 hours    |
+| IncrementalBalanceService | Medium           | 4-6 hours    |
+| Service Integration       | Medium           | 3-4 hours    |
+| API Layer Updates         | Small            | 1-2 hours    |
+| Unit Tests                | Medium           | 4-5 hours    |
+| Integration Tests         | Medium           | 3-4 hours    |
+| E2E Verification          | Small            | 1 hour       |
+| **Total**                 | **~20-28 hours** | **3-4 days** |
 
 ---
 

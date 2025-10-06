@@ -17,9 +17,9 @@ export class GroupFullDetailsBuilder {
                 lastUpdated: new Date().toISOString(),
                 userBalances: {},
                 simplifiedDebts: [],
-                balancesByCurrency: {}
+                balancesByCurrency: {},
             },
-            settlements: { settlements: [], hasMore: false }
+            settlements: { settlements: [], hasMore: false },
         };
     }
 

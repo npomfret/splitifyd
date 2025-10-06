@@ -17,7 +17,7 @@
  **Zero direct writes**
  **Comprehensive monitoring**
 
-**Risk reduced from HIGH í LOW** for data layer security.
+**Risk reduced from HIGH ÔøΩ LOW** for data layer security.
 
 **See archive section at bottom for Phase 1 details.**
 
@@ -31,6 +31,7 @@ Phase 1 hardened the **data layer** (Firestore validation and security rules).
 Phase 2 addresses **application-layer security gaps** identified in January 2025 security audit.
 
 **Risk Assessment**: Current application-layer risk is **MEDIUM** due to:
+
 - Information disclosure in health endpoint
 - Email enumeration vectors
 - Sensitive data potentially logged
@@ -40,11 +41,12 @@ Phase 2 addresses **application-layer security gaps** identified in January 2025
 
 ## High Priority Issues
 
-### 3. User Email Duplication - Data Consistency Issue † HIGH
+### 3. User Email Duplication - Data Consistency Issue ÔøΩ HIGH
 
 **Issue**: Email and displayName are stored in both Firebase Auth (authoritative) and Firestore (denormalized copy), creating data consistency risk.
 
 **Discovery**: Line 393 in `UserService2.ts` has a TODO comment:
+
 ```typescript
 email: userRegistration.email, // todo: this looks like a security issue
 ```
@@ -52,6 +54,7 @@ email: userRegistration.email, // todo: this looks like a security issue
 **Architecture Analysis**:
 
 **Firebase Auth stores** (authoritative):
+
 - email
 - password hash
 - emailVerified
@@ -59,23 +62,27 @@ email: userRegistration.email, // todo: this looks like a security issue
 - photoURL
 
 **Firestore `users` collection stores** (duplicated):
+
 - email L (unnecessary duplicate)
 - displayName L (unnecessary duplicate)
 - role, themeColor, preferences, policy acceptances  (correct usage)
 
 **Problems**:
-1. **Data consistency risk**: User changes email in Firebase Auth í Firestore becomes stale
+
+1. **Data consistency risk**: User changes email in Firebase Auth ÔøΩ Firestore becomes stale
 2. **Violates single source of truth**: Email should only exist in Firebase Auth
 3. **No queries use email**: Confirmed zero Firestore queries on email field
 4. **Schema marked optional**: `user.ts:27` says "Email might be in Auth only" - acknowledging it shouldn't be duplicated
 5. **Inconsistent with existing patterns**: Commit `3f16093a` removed similar denormalizations for this exact reason
 
 **Historical Context**:
+
 - Commit `3f16093a` (July 2025): "remove user denormalization patterns from Firebase functions"
 - That commit eliminated denormalized user data throughout the codebase
 - Email/displayName in Firestore were overlooked
 
 **Current Data Flow**:
+
 ```typescript
 // All user fetching goes through Firebase Auth FIRST
 const userRecord = await this.authService.getUser(userId); // Auth is source of truth
@@ -84,10 +91,10 @@ const userData = await this.firestoreReader.getUser(userId); // Enrichment only
 // Returns composite with Auth fields taking precedence
 return {
     uid: userRecord.uid,
-    email: userRecord.email,        // ê From Auth (correct)
-    displayName: userRecord.displayName, // ê From Auth (correct)
-    role: userData?.role,            // ê From Firestore (correct)
-    themeColor: userData?.themeColor, // ê From Firestore (correct)
+    email: userRecord.email, // ÔøΩ From Auth (correct)
+    displayName: userRecord.displayName, // ÔøΩ From Auth (correct)
+    role: userData?.role, // ÔøΩ From Firestore (correct)
+    themeColor: userData?.themeColor, // ÔøΩ From Firestore (correct)
     // ...
 };
 ```
@@ -95,6 +102,7 @@ return {
 **Recommendation**: Remove email and displayName from Firestore entirely
 
 **Files to Modify**:
+
 1. `firebase/functions/src/services/UserService2.ts` - Remove from write operations
 2. `firebase/functions/src/schemas/user.ts` - Remove from schema
 3. `firebase/functions/src/services/firestore/IFirestoreWriter.ts` - Update interface types
@@ -102,6 +110,7 @@ return {
 **Implementation**:
 
 **Step 1: Remove from user creation**
+
 ```typescript
 // firebase/functions/src/services/UserService2.ts:389-404
 // BEFORE:
@@ -129,6 +138,7 @@ const userDoc: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified' | 'email' | '
 ```
 
 **Step 2: Remove from profile updates**
+
 ```typescript
 // firebase/functions/src/services/UserService2.ts:184-225
 async updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<RegisteredUser> {
@@ -164,26 +174,27 @@ async updateProfile(userId: string, requestBody: unknown, language: string = 'en
 ```
 
 **Step 3: Update schema**
+
 ```typescript
 // firebase/functions/src/schemas/user.ts:25-42
-const BaseUserSchema = z.object({
-    // L REMOVE: email: z.string().email().optional(),
-    // L REMOVE: displayName: z.string().optional(),
-    themeColor: z.union([
-        z.string(),
-        UserThemeColorSchema,
-    ]).optional(),
-    preferredLanguage: z.string().optional(),
-    role: z.nativeEnum(SystemUserRoles).optional(),
-    acceptedPolicies: z.record(z.string(), z.string()).optional(),
-    termsAcceptedAt: FirestoreTimestampSchema.optional(),
-    cookiePolicyAcceptedAt: FirestoreTimestampSchema.optional(),
-    passwordChangedAt: FirestoreTimestampSchema.optional(),
-    photoURL: z.string().nullable().optional(), // L REMOVE (managed by Auth)
-}).merge(OptionalAuditFieldsSchema);
+const BaseUserSchema = z
+    .object({
+        // L REMOVE: email: z.string().email().optional(),
+        // L REMOVE: displayName: z.string().optional(),
+        themeColor: z.union([z.string(), UserThemeColorSchema]).optional(),
+        preferredLanguage: z.string().optional(),
+        role: z.nativeEnum(SystemUserRoles).optional(),
+        acceptedPolicies: z.record(z.string(), z.string()).optional(),
+        termsAcceptedAt: FirestoreTimestampSchema.optional(),
+        cookiePolicyAcceptedAt: FirestoreTimestampSchema.optional(),
+        passwordChangedAt: FirestoreTimestampSchema.optional(),
+        photoURL: z.string().nullable().optional(), // L REMOVE (managed by Auth)
+    })
+    .merge(OptionalAuditFieldsSchema);
 ```
 
 **Step 4: Update interface type**
+
 ```typescript
 // firebase/functions/src/services/firestore/IFirestoreWriter.ts:66
 /**
@@ -199,6 +210,7 @@ createUser(
 ```
 
 **Migration Strategy**:
+
 - **No migration required** - email field is optional and not queried
 - Existing documents with email field will be ignored
 - New documents won't include email
@@ -213,6 +225,7 @@ createUser(
  Clearer separation of concerns (Auth vs App data)
 
 **Testing**:
+
 - Verify user registration still works
 - Verify profile updates work (Auth fields vs Firestore fields)
 - Verify user fetching returns correct email/displayName from Auth
@@ -230,6 +243,7 @@ createUser(
 **Issue**: `/health` endpoint exposes sensitive system information without authentication
 
 **Exposed Information** (lines 157-281 in index.ts):
+
 - All environment variables (line 257) - includes secrets
 - Complete file system structure and permissions (line 276-279)
 - Memory usage details
@@ -238,11 +252,13 @@ createUser(
 - Current working directory
 
 **Risk**:
+
 - Attackers can map infrastructure
 - Environment variables may contain secrets
 - File system info aids in finding vulnerabilities
 
 **Current State**:
+
 ```typescript
 app.get('/health', async (req, res) => {
     res.json({
@@ -283,8 +299,7 @@ app.get('/health', async (req: express.Request, res: express.Response) => {
         checks.auth = { status: 'unhealthy' };
     }
 
-    const overallStatus = Object.values(checks).every(c => c.status === 'healthy')
-        ? 'healthy' : 'unhealthy';
+    const overallStatus = Object.values(checks).every((c) => c.status === 'healthy') ? 'healthy' : 'unhealthy';
 
     res.status(overallStatus === 'healthy' ? 200 : 503).json({
         status: overallStatus,
@@ -298,15 +313,21 @@ app.get('/health/detailed', authenticateAdmin, async (req, res) => {
     // Sanitize environment variables - remove secrets
     const sensitiveKeys = ['SECRET', 'KEY', 'PASSWORD', 'TOKEN', 'API_KEY', 'PRIVATE'];
     const sanitizedEnv = Object.keys(process.env)
-        .filter(key => !sensitiveKeys.some(sensitive => key.toUpperCase().includes(sensitive)))
+        .filter((key) => !sensitiveKeys.some((sensitive) => key.toUpperCase().includes(sensitive)))
         .reduce((obj, key) => ({ ...obj, [key]: process.env[key] }), {});
 
     // ... include detailed system info with sanitized data
     res.json({
         env: sanitizedEnv, //  Sanitized environment variables
-        build: { /* build info */ },
-        runtime: { /* uptime, etc */ },
-        memory: { /* memory usage */ },
+        build: {
+            /* build info */
+        },
+        runtime: {
+            /* uptime, etc */
+        },
+        memory: {
+            /* memory usage */
+        },
         // L REMOVE filesystem info - security risk
     });
 });
@@ -322,11 +343,13 @@ app.get('/health/detailed', authenticateAdmin, async (req, res) => {
 **Issue**: Registration endpoint may reveal whether an email exists based on error messages and response timing.
 
 **Attack Vector**:
+
 - Attacker can enumerate valid user emails
 - Different error messages for "email exists" vs "invalid data"
 - Response timing differences reveal email existence
 
 **Current State**:
+
 - `auth/email-already-exists` error reveals email is registered
 - Fast response for existing emails vs slow response for validation
 
@@ -370,6 +393,7 @@ async createUserDirect(userRegistration: UserRegistration): Promise<RegisteredUs
 ```
 
 **Additional Hardening**:
+
 - Log registration attempts with IP address
 - Implement rate limiting on registration endpoint (see Issue #1)
 - Consider CAPTCHA for registration
@@ -384,11 +408,13 @@ async createUserDirect(userRegistration: UserRegistration): Promise<RegisteredUs
 **Issue**: Logger doesn't sanitize sensitive fields (passwords, tokens, API keys)
 
 **Risk**:
+
 - Credentials leaked in logs
 - API keys exposed in error logs
 - PII logged without sanitization
 
 **Current State**:
+
 ```typescript
 // firebase/functions/src/utils/contextual-logger.ts:56-62
 if (data) {
@@ -409,21 +435,7 @@ if (data) {
 
 class ContextualLoggerImpl implements ContextualLogger {
     // Sensitive field patterns to redact
-    private readonly SENSITIVE_PATTERNS = [
-        'password',
-        'token',
-        'apiKey',
-        'api_key',
-        'secret',
-        'authorization',
-        'auth',
-        'bearer',
-        'credential',
-        'privateKey',
-        'private_key',
-        'sessionId',
-        'session_id',
-    ];
+    private readonly SENSITIVE_PATTERNS = ['password', 'token', 'apiKey', 'api_key', 'secret', 'authorization', 'auth', 'bearer', 'credential', 'privateKey', 'private_key', 'sessionId', 'session_id'];
 
     /**
      * Recursively sanitize sensitive data before logging
@@ -434,7 +446,7 @@ class ContextualLoggerImpl implements ContextualLogger {
         }
 
         if (Array.isArray(data)) {
-            return data.map(item => this.sanitizeSensitiveData(item));
+            return data.map((item) => this.sanitizeSensitiveData(item));
         }
 
         const sanitized: Record<string, any> = {};
@@ -443,7 +455,7 @@ class ContextualLoggerImpl implements ContextualLogger {
             const keyLower = key.toLowerCase();
 
             // Check if key matches sensitive pattern
-            if (this.SENSITIVE_PATTERNS.some(pattern => keyLower.includes(pattern))) {
+            if (this.SENSITIVE_PATTERNS.some((pattern) => keyLower.includes(pattern))) {
                 sanitized[key] = '[REDACTED]';
             } else if (value && typeof value === 'object') {
                 sanitized[key] = this.sanitizeSensitiveData(value);
@@ -489,6 +501,7 @@ class ContextualLoggerImpl implements ContextualLogger {
 ```
 
 **Testing**:
+
 - Unit tests for sanitization logic
 - Test various sensitive field patterns
 - Verify nested object sanitization
@@ -503,6 +516,7 @@ class ContextualLoggerImpl implements ContextualLogger {
 **Issue**: Admin operations (policy management, user promotion) lack dedicated audit trail
 
 **Missing Audit Trail**:
+
 - Policy creation/updates/deletion
 - User role promotions (especially to admin)
 - Admin-level configuration changes
@@ -510,6 +524,7 @@ class ContextualLoggerImpl implements ContextualLogger {
 - No user agent logging
 
 **Risk**:
+
 - Cannot track who made admin changes
 - No forensic trail for security incidents
 - Compliance issues (GDPR, SOC2)
@@ -526,15 +541,15 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../logger';
 
 export interface AuditLogEntry {
-    action: string;           // e.g., 'policy.create', 'user.promote'
-    userId: string;           // Who performed the action
-    targetUserId?: string;    // Who was affected (for user operations)
+    action: string; // e.g., 'policy.create', 'user.promote'
+    userId: string; // Who performed the action
+    targetUserId?: string; // Who was affected (for user operations)
     targetResourceId?: string; // What was affected (policy ID, etc)
     details: Record<string, any>; // Action-specific details
-    ipAddress?: string;       // Client IP address
-    userAgent?: string;       // Client user agent
+    ipAddress?: string; // Client IP address
+    userAgent?: string; // Client user agent
     result: 'success' | 'failure'; // Action outcome
-    errorMessage?: string;    // Error details if failed
+    errorMessage?: string; // Error details if failed
 }
 
 export class AuditLogger {
@@ -553,7 +568,7 @@ export class AuditLogger {
                 null, // No transaction needed for audit logs
                 'audit-logs',
                 null,
-                auditDoc
+                auditDoc,
             );
 
             // Also log to application logger for immediate visibility
@@ -568,13 +583,7 @@ export class AuditLogger {
         }
     }
 
-    async logPolicyAction(
-        action: 'create' | 'update' | 'publish' | 'delete',
-        userId: string,
-        policyId: string,
-        details: Record<string, any>,
-        req: Express.Request
-    ): Promise<void> {
+    async logPolicyAction(action: 'create' | 'update' | 'publish' | 'delete', userId: string, policyId: string, details: Record<string, any>, req: Express.Request): Promise<void> {
         await this.logAdminAction({
             action: `policy.${action}`,
             userId,
@@ -586,12 +595,7 @@ export class AuditLogger {
         });
     }
 
-    async logUserPromotion(
-        adminUserId: string,
-        targetUserId: string,
-        newRole: string,
-        req: Express.Request
-    ): Promise<void> {
+    async logUserPromotion(adminUserId: string, targetUserId: string, newRole: string, req: Express.Request): Promise<void> {
         await this.logAdminAction({
             action: 'user.promote',
             userId: adminUserId,
@@ -617,13 +621,7 @@ export const createPolicy = async (req: AuthenticatedRequest, res: Response) => 
         const result = await policyService.createPolicy(validatedData);
 
         // Audit log
-        await auditLogger.logPolicyAction(
-            'create',
-            req.user!.uid,
-            result.id,
-            { policyData: validatedData },
-            req
-        );
+        await auditLogger.logPolicyAction('create', req.user!.uid, result.id, { policyData: validatedData }, req);
 
         res.status(HTTP_STATUS.CREATED).json(result);
     } catch (error) {
@@ -691,7 +689,7 @@ export function applySecurityHeaders(req: Request, res: Response, next: NextFunc
         res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
 
         // Existing CSP...
-        res.setHeader('Content-Security-Policy', /* ... */);
+        res.setHeader('Content-Security-Policy' /* ... */);
     }
 
     next();
@@ -710,6 +708,7 @@ export function applySecurityHeaders(req: Request, res: Response, next: NextFunc
 **Enhancement**: Ensure sanitization is consistently applied
 
 **Verification needed**:
+
 - Confirm `sanitizeString()` is used on all user-generated content before storage
 - Audit comment creation, group names, expense descriptions
 - Verify output encoding in responses
@@ -722,27 +721,31 @@ export function applySecurityHeaders(req: Request, res: Response, next: NextFunc
 ## Implementation Priority
 
 ### Phase 2A (Critical - Do First)
+
 1. ‚úÖ Test Endpoints Guard (Issue #2) - Prevents privilege escalation - COMPLETE
 2.  Email Duplication Fix (Issue #3) - Fixes data consistency
 
 **Estimated Effort**: 4-6 hours
-**Risk Reduction**: HIGH í MEDIUM
+**Risk Reduction**: HIGH ÔøΩ MEDIUM
 
 ### Phase 2B (Important - Do Second)
+
 1.  Health Endpoint Security (Issue #4) - Reduces information disclosure
 2.  Email Enumeration (Issue #5) - Protects user privacy
 3.  Log Sanitization (Issue #6) - Prevents credential leakage
 
 **Estimated Effort**: 7-10 hours
-**Risk Reduction**: MEDIUM í LOW-MEDIUM
+**Risk Reduction**: MEDIUM ÔøΩ LOW-MEDIUM
 
 ### Phase 2C (Compliance - Do Third)
+
 1.  Audit Logging (Issue #7) - Compliance and forensics
 
 **Estimated Effort**: 6-8 hours
 **Risk Reduction**: Compliance improvement
 
 ### Phase 2D (Hardening - Optional)
+
 1. ‚úÖ Enhanced Headers (Issue #8) - Defense in depth - COMPLETE
 2.  Input Sanitization Audit (Issue #9) - Verification
 
@@ -754,22 +757,26 @@ export function applySecurityHeaders(req: Request, res: Response, next: NextFunc
 ## Testing Strategy
 
 ### Unit Tests
+
 - Log sanitization logic
 - Email enumeration timing-safe responses
 - Environment guard logic
 
 ### Integration Tests
+
 - Test endpoint blocking in production
 - User creation without email duplication
 - Health endpoint authorization
 - Audit log creation
 
 ### Security Tests
+
 - Email enumeration attempts
 - Log inspection for sensitive data
 - Test endpoint access attempts in production
 
 ### Load Tests
+
 - Health endpoint performance
 
 ---
@@ -794,15 +801,18 @@ Each issue can be rolled back independently:
 ## Success Metrics
 
 ### Security Metrics
+
 - Zero test endpoint access in production
 - Zero email enumeration successes
 - Zero credentials logged
 - 100% admin actions audited
 
 ### Performance Metrics
+
 - Health endpoint responds <100ms (public) and <500ms (detailed)
 
 ### Quality Metrics
+
 - All new code has >90% test coverage
 - Zero regression in existing tests
 - All security tests pass
@@ -814,11 +824,13 @@ Each issue can be rolled back independently:
 ### What Was Accomplished
 
 #### 1. Schema Validation for All Writes
+
 -  All FirestoreWriter methods validate data using Zod schemas before writing to Firestore
 -  Comprehensive schema validation for: Users, Groups, Expenses, Settlements, Comments, Policies, Group Memberships, User Notifications
 -  Graceful handling of Firestore FieldValue operations (serverTimestamp, arrayUnion, etc.)
 
 #### 2. Production-Ready Security Rules
+
 -  Database-level access control in `firebase/firestore.rules`
 -  Proper group membership checking using `group-memberships` collection (not in-memory arrays)
 -  Settlement access restricted to payer/payee only
@@ -829,16 +841,19 @@ Each issue can be rolled back independently:
 **File**: `firebase/firestore.rules` (unified rules for all environments)
 
 #### 3. Transaction Validation Implementation
+
 -  Selective field validation for transaction operations
 -  All transaction methods validated: `createInTransaction()`, `updateInTransaction()`, `bulkDeleteInTransaction()`
 -  GroupService migrated to use validated FirestoreWriter methods
 
 #### 4. Direct Write Elimination
+
 -  All direct Firestore writes replaced with FirestoreWriter
 -  Test utilities use proper FirestoreWriter methods
 -  Zero unvalidated write paths to Firestore
 
 #### 5. Comprehensive Monitoring
+
 -  Validation metrics tracking
 -  Bulk operation monitoring
 -  Enhanced audit trail for all write operations
@@ -846,6 +861,7 @@ Each issue can be rolled back independently:
 ### Security Posture Before/After Phase 1
 
 **Before Phase 1:**
+
 - L Transaction methods bypassed all validation
 - L Direct Firestore writes in multiple places
 - L Simplified security rules for emulator only
@@ -854,6 +870,7 @@ Each issue can be rolled back independently:
 - **Risk Level: HIGH**
 
 **After Phase 1:**
+
 -  100% validation coverage for all writes
 -  Zero unvalidated write paths
 -  Production-ready security rules
@@ -864,32 +881,36 @@ Each issue can be rolled back independently:
 ### Architecture (Phase 1)
 
 #### Write Path Security
+
 ```
 Application Layer
-    ì
+    ÔøΩ
 FirestoreWriter (with validation)
-    ì (DTO with ISO strings í Timestamp conversion)
+    ÔøΩ (DTO with ISO strings ÔøΩ Timestamp conversion)
 Firestore Database
-    ì
+    ÔøΩ
 Security Rules (database-level enforcement)
 ```
 
 #### Key Components
 
 **FirestoreWriter** (`firebase/functions/src/services/firestore/FirestoreWriter.ts`)
+
 - Centralized write operations
 - Zod schema validation
 - Selective field validation for transactions
-- Automatic timestamp conversion (ISO í Timestamp)
+- Automatic timestamp conversion (ISO ÔøΩ Timestamp)
 - Comprehensive metrics and logging
 
 **Security Rules** (`firebase/firestore.rules`)
+
 - Production-ready access control
 - Group membership via collection lookups
 - Server-function-only write enforcement
 - Self-management policies
 
 **Validation Strategy**
+
 - Full validation for direct writes (create, update, delete)
 - Selective validation for transaction updates (skip FieldValue operations)
 - Skip validation only when necessary (with logging)

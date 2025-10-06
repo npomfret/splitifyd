@@ -3,7 +3,7 @@ import { GroupDTO, PermissionLevels } from '@splitifyd/shared';
 import { PermissionEngineAsync } from '../../permissions/permission-engine-async';
 import { StubFirestoreReader } from './mocks/firestore-stubs';
 import { GroupDTOBuilder, ExpenseDTOBuilder } from '@splitifyd/test-support';
-import { GroupMemberDocumentBuilder } from "../support/GroupMemberDocumentBuilder";
+import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
 
 let stubFirestoreReader: StubFirestoreReader;
 
@@ -241,5 +241,4 @@ describe('PermissionEngineAsync', () => {
             );
         });
     });
-
 });

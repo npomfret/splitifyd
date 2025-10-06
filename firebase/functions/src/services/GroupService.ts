@@ -1,5 +1,18 @@
 import { Errors } from '../utils/errors';
-import { GroupDTO, UpdateGroupRequest, CreateGroupRequest, DELETED_AT_FIELD, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets, ExpenseDTO, SettlementDTO, GroupFullDetailsDTO } from '@splitifyd/shared';
+import {
+    GroupDTO,
+    UpdateGroupRequest,
+    CreateGroupRequest,
+    DELETED_AT_FIELD,
+    ListGroupsResponse,
+    MemberRoles,
+    MemberStatuses,
+    MessageResponse,
+    SecurityPresets,
+    ExpenseDTO,
+    SettlementDTO,
+    GroupFullDetailsDTO,
+} from '@splitifyd/shared';
 import { BalanceCalculationResultSchema, BalanceDisplaySchema, CurrencyBalanceDisplaySchema } from '../schemas';
 import { BalanceCalculationService } from './balance';
 import { DOCUMENT_CONFIG, FIRESTORE } from '../constants';
@@ -19,8 +32,8 @@ import { NotificationService } from './notification-service';
 import { GroupShareService } from './GroupShareService';
 import { getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import { FirestoreCollections } from "../constants";
-import type { GroupMembershipDTO } from "@splitifyd/shared";
+import { FirestoreCollections } from '../constants';
+import type { GroupMembershipDTO } from '@splitifyd/shared';
 
 /**
  * Enhanced types for group data fetching with groupId

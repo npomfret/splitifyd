@@ -18,7 +18,7 @@ export class RegisteredUserBuilder {
             name: randomChoice(['Red', 'Teal', 'Blue', 'Green', 'Yellow', 'Purple']),
             pattern: randomChoice(['solid', 'dots', 'stripes', 'diagonal']),
             assignedAt: new Date().toISOString(),
-            colorIndex: Math.floor(Math.random() * 10)
+            colorIndex: Math.floor(Math.random() * 10),
         },
         preferredLanguage: randomChoice(['en', 'es', 'fr', 'de', 'it', 'pt']),
     };

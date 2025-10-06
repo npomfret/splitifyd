@@ -39,10 +39,7 @@ export class ExpenseSplitBuilder {
     /**
      * Create a percentage split for the given participants with specified percentages
      */
-    static percentageSplit(
-        totalAmount: number,
-        userPercentages: Array<{ uid: string; percentage: number }>
-    ): ExpenseSplitBuilder {
+    static percentageSplit(totalAmount: number, userPercentages: Array<{ uid: string; percentage: number }>): ExpenseSplitBuilder {
         const builder = new ExpenseSplitBuilder();
 
         for (const { uid, percentage } of userPercentages) {
@@ -73,7 +70,7 @@ export class ExpenseSplitBuilder {
      * Replace a split by uid
      */
     withUpdatedSplit(uid: string, amount: number, percentage?: number): this {
-        const index = this.splits.findIndex(split => split.uid === uid);
+        const index = this.splits.findIndex((split) => split.uid === uid);
         if (index >= 0) {
             this.splits[index] = { uid, amount, percentage };
         } else {
@@ -118,7 +115,7 @@ export class ExpenseSplitBuilder {
      */
     withRoundingIssues(participants: string[], totalAmount: number): this {
         const baseAmount = Math.floor((totalAmount / participants.length) * 100) / 100;
-        const remainder = totalAmount - (baseAmount * (participants.length - 1));
+        const remainder = totalAmount - baseAmount * (participants.length - 1);
 
         for (let i = 0; i < participants.length; i++) {
             const amount = i === participants.length - 1 ? remainder : baseAmount;

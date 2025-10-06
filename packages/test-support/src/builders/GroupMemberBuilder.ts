@@ -159,10 +159,7 @@ export class GroupMemberBuilder {
      * Create an admin member
      */
     static admin(uid: string = `admin-${generateShortId()}`): GroupMemberBuilder {
-        return new GroupMemberBuilder()
-            .withUid(uid)
-            .withDisplayName('Admin User')
-            .asAdmin();
+        return new GroupMemberBuilder().withUid(uid).withDisplayName('Admin User').asAdmin();
     }
 
     /**
@@ -170,9 +167,7 @@ export class GroupMemberBuilder {
      */
     static buildMany(count: number, customizer?: (builder: GroupMemberBuilder, index: number) => void): GroupMember[] {
         return Array.from({ length: count }, (_, i) => {
-            const builder = new GroupMemberBuilder()
-                .withUid(`user-${i + 1}`)
-                .withDisplayName(`User ${i + 1}`);
+            const builder = new GroupMemberBuilder().withUid(`user-${i + 1}`).withDisplayName(`User ${i + 1}`);
 
             if (customizer) {
                 customizer(builder, i);

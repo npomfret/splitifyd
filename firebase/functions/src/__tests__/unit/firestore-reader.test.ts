@@ -43,7 +43,6 @@ describe('FirestoreReader', () => {
         // Collection operations
         expect(typeof reader.getGroupsForUserV2).toBe('function');
         expect(typeof reader.getExpensesForGroup).toBe('function');
-
     });
 });
 

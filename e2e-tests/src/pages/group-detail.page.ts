@@ -1,13 +1,13 @@
-import {expect, Locator, Page} from '@playwright/test';
-import {BasePage} from './base.page';
-import {ExpenseFormPage} from './expense-form.page';
-import {ExpenseDetailPage} from './expense-detail.page';
-import {SettlementFormPage} from './settlement-form.page';
-import {EditGroupModalPage} from './edit-group-modal.page';
-import {LeaveGroupModalPage} from './leave-group-modal.page';
-import {RemoveMemberModalPage} from './remove-member-modal.page';
-import {ShareGroupModalPage} from './share-group-modal.page';
-import {DashboardPage} from './dashboard.page.ts';
+import { expect, Locator, Page } from '@playwright/test';
+import { BasePage } from './base.page';
+import { ExpenseFormPage } from './expense-form.page';
+import { ExpenseDetailPage } from './expense-detail.page';
+import { SettlementFormPage } from './settlement-form.page';
+import { EditGroupModalPage } from './edit-group-modal.page';
+import { LeaveGroupModalPage } from './leave-group-modal.page';
+import { RemoveMemberModalPage } from './remove-member-modal.page';
+import { ShareGroupModalPage } from './share-group-modal.page';
+import { DashboardPage } from './dashboard.page.ts';
 
 export class GroupDetailPage extends BasePage {
     constructor(page: Page) {
@@ -78,10 +78,10 @@ export class GroupDetailPage extends BasePage {
     }
 
     async clickAddExpenseButton(): Promise<ExpenseFormPage> {
-        const expectedMemberCount = await this.getCurrentMemberCount()
+        const expectedMemberCount = await this.getCurrentMemberCount();
         const memberNames = await this.getMemberNames();
-        expect(memberNames.length).toBeGreaterThan(0);// sanity check
-        expect(memberNames.length).toBe(expectedMemberCount);// sanity check
+        expect(memberNames.length).toBeGreaterThan(0); // sanity check
+        expect(memberNames.length).toBe(expectedMemberCount); // sanity check
 
         const addButton = this.getAddExpenseButton();
         const groupId = this.inferGroupId();

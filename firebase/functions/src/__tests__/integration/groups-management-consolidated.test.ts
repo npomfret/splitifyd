@@ -1,11 +1,20 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, GroupUpdateBuilder, borrowTestUsers, generateShortId, NotificationDriver } from '@splitifyd/test-support';
+import {
+    ApiDriver,
+    CreateGroupRequestBuilder,
+    CreateExpenseRequestBuilder,
+    CreateSettlementRequestBuilder,
+    GroupUpdateBuilder,
+    borrowTestUsers,
+    generateShortId,
+    NotificationDriver,
+} from '@splitifyd/test-support';
 import { PooledTestUser, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreReader } from '../../services/firestore';
-import { GroupMemberDocumentBuilder } from "../support/GroupMemberDocumentBuilder";
+import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
 
 describe('Groups Management - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();
@@ -44,12 +53,7 @@ describe('Groups Management - Consolidated Tests', () => {
         // NOTE: Group validation logic is now comprehensively tested in unit tests:
         // GroupService.test.ts - This integration test focuses on Firebase Auth integration only
         test('should require authentication for group creation', async () => {
-            await expect(apiDriver.createGroup(
-                new CreateGroupRequestBuilder()
-                    .withName('Test')
-                    .build(),
-                ''
-            )).rejects.toThrow(/401|unauthorized/i);
+            await expect(apiDriver.createGroup(new CreateGroupRequestBuilder().withName('Test').build(), '')).rejects.toThrow(/401|unauthorized/i);
         });
     });
 
@@ -176,10 +180,7 @@ describe('Groups Management - Consolidated Tests', () => {
         // NOTE: Group update business logic, validation, and authorization are now tested in unit tests: GroupService.test.ts
         // This integration test focuses on API endpoints and Firebase transaction behavior
         test('should handle group updates via API with transaction consistency', async () => {
-            const updateData = new GroupUpdateBuilder()
-                .withName('Updated Group Name API')
-                .withDescription('Updated via API')
-                .build();
+            const updateData = new GroupUpdateBuilder().withName('Updated Group Name API').withDescription('Updated via API').build();
 
             // Test API update endpoint with authentication
             const result = await apiDriver.updateGroup(testGroup.id, updateData, users[0].token);
@@ -537,9 +538,7 @@ describe('Groups Management - Consolidated Tests', () => {
             const memberResult = await groupService.getGroupFullDetails(testGroup.id, users[1].uid);
             expect(memberResult.group.id).toBe(testGroup.id);
 
-            await expect(groupService.updateGroup(testGroup.id, users[1].uid,
-                new GroupUpdateBuilder().withName('Hacked Name').build()
-            )).rejects.toThrow();
+            await expect(groupService.updateGroup(testGroup.id, users[1].uid, new GroupUpdateBuilder().withName('Hacked Name').build())).rejects.toThrow();
             await expect(groupService.deleteGroup(testGroup.id, users[1].uid)).rejects.toThrow();
         });
     });
@@ -715,13 +714,12 @@ describe('Groups Management - Consolidated Tests', () => {
     });
 
     describe('Group Listing Operations', () => {
-
         beforeEach(async () => {
             // Create multiple groups for listing tests sequentially to ensure distinct timestamps
             for (let i = 0; i < 5; i++) {
                 await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`List Test Group ${i} ${uuidv4()}`).build(), users[0].token);
                 // Delay to ensure different server timestamps
-                await new Promise(resolve => setTimeout(resolve, 50));
+                await new Promise((resolve) => setTimeout(resolve, 50));
             }
         });
 
@@ -770,7 +768,7 @@ describe('Groups Management - Consolidated Tests', () => {
 
         test('should support ordering', async () => {
             // Wait to ensure different timestamp from beforeEach groups
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 1000));
 
             // Create an additional group that will be the most recent
             const latestGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`Latest Group ${uuidv4()}`).build(), users[0].token);
@@ -1366,7 +1364,6 @@ describe('Groups Management - Consolidated Tests', () => {
             for (const expense of expenses) {
                 await expect(apiDriver.getExpense(expense.id, owner.token)).rejects.toThrow(/404|not found/i);
             }
-
         }, 5000); // Fast timeout for comprehensive test
     });
 
@@ -1375,11 +1372,9 @@ describe('Groups Management - Consolidated Tests', () => {
 
         describe('Member Creation', () => {
             test('should create member via share link (production code path)', async () => {
-                const testGroup = await groupService.createGroup(users[0].uid,
-                    new CreateGroupRequestBuilder()
-                        .withName('Member Creation Test Group')
-                        .withDescription('Testing member creation functionality')
-                        .build()
+                const testGroup = await groupService.createGroup(
+                    users[0].uid,
+                    new CreateGroupRequestBuilder().withName('Member Creation Test Group').withDescription('Testing member creation functionality').build(),
                 );
 
                 // Create member via share link (production code path)
@@ -1397,11 +1392,9 @@ describe('Groups Management - Consolidated Tests', () => {
             });
 
             test('should return null for non-existent member queries', async () => {
-                const testGroup = await groupService.createGroup(users[0].uid,
-                    new CreateGroupRequestBuilder()
-                        .withName('Non-existent Member Test')
-                        .withDescription('Testing non-existent member queries')
-                        .build()
+                const testGroup = await groupService.createGroup(
+                    users[0].uid,
+                    new CreateGroupRequestBuilder().withName('Non-existent Member Test').withDescription('Testing non-existent member queries').build(),
                 );
 
                 const result = await firestoreReader.getGroupMember(testGroup.id, 'non-existent-user');
@@ -1414,12 +1407,7 @@ describe('Groups Management - Consolidated Tests', () => {
 
         describe('Member Retrieval', () => {
             test('should return all members for a group', async () => {
-                const testGroup = await groupService.createGroup(users[0].uid,
-                    new CreateGroupRequestBuilder()
-                        .withName('All Members Test Group')
-                        .withDescription('Testing member retrieval')
-                        .build()
-                );
+                const testGroup = await groupService.createGroup(users[0].uid, new CreateGroupRequestBuilder().withName('All Members Test Group').withDescription('Testing member retrieval').build());
 
                 // Add second member via share link (production code path)
                 const { linkId } = await groupShareService.generateShareableLink(users[0].uid, testGroup.id);
@@ -1446,11 +1434,9 @@ describe('Groups Management - Consolidated Tests', () => {
 
         describe('Member Deletion', () => {
             test('should remove member from group (production code path)', async () => {
-                const testGroup = await groupService.createGroup(users[0].uid,
-                    new CreateGroupRequestBuilder()
-                        .withName('Member Deletion Test Group')
-                        .withDescription('Testing member deletion')
-                        .build()
+                const testGroup = await groupService.createGroup(
+                    users[0].uid,
+                    new CreateGroupRequestBuilder().withName('Member Deletion Test Group').withDescription('Testing member deletion').build(),
                 );
 
                 // Add member via share link (production code path)

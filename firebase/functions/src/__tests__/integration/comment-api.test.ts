@@ -83,8 +83,8 @@ describe('Comment API - Integration Tests', () => {
             expect(secondPage.nextCursor).toBeDefined();
 
             // Verify no overlap between pages
-            const firstPageIds = firstPage.comments.map(c => c.id);
-            const secondPageIds = secondPage.comments.map(c => c.id);
+            const firstPageIds = firstPage.comments.map((c) => c.id);
+            const secondPageIds = secondPage.comments.map((c) => c.id);
             expect(firstPageIds).not.toEqual(expect.arrayContaining(secondPageIds));
         });
 

@@ -60,7 +60,8 @@ export const parseISOToTimestamp = (isoString: string): Timestamp | null => {
 export const timestampToISO = (value: Timestamp | Date | string): string => {
     if (value instanceof Timestamp) {
         return value.toDate().toISOString();
-    } else if (typeof value === "string") {//hack
+    } else if (typeof value === 'string') {
+        //hack
         return value.toString();
     }
     return value.toISOString();

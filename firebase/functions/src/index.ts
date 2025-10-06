@@ -50,7 +50,7 @@ export function getAppBuilder(): ApplicationBuilder {
 import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker';
 import { trackGroupCommentChanges, trackExpenseCommentChanges } from './triggers/comment-tracker';
 import { logMetrics } from './scheduled/metrics-logger';
-import { FirestoreCollections } from "./constants";
+import { FirestoreCollections } from './constants';
 
 // Removed emulator connection test at module level to prevent connection creation
 // The emulator connection will be tested lazily when first needed

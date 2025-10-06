@@ -23,10 +23,7 @@ interface InterfaceReport {
 }
 
 function isTestFile(filePath: string): boolean {
-    return filePath.includes('/__tests__/') ||
-           filePath.includes('\\__tests__\\') ||
-           filePath.includes('/test-support/') ||
-           filePath.includes('\\test-support\\');
+    return filePath.includes('/__tests__/') || filePath.includes('\\__tests__\\') || filePath.includes('/test-support/') || filePath.includes('\\test-support\\');
 }
 
 function isBuilderFile(filePath: string): boolean {
@@ -108,9 +105,7 @@ function analyzeInterfaceMethods(interfaceDecl: InterfaceDeclaration, project: P
         const lineNumber = methodSig.getStartLineNumber();
 
         const jsDocs = methodSig.getJsDocs();
-        const isDeprecated = jsDocs.some(doc =>
-            doc.getTags().some(tag => tag.getTagName() === 'deprecated')
-        );
+        const isDeprecated = jsDocs.some((doc) => doc.getTags().some((tag) => tag.getTagName() === 'deprecated'));
 
         const implementations = countImplementations(interfaceName, methodName, project);
         const { total, test, production } = countInvocations(methodName, project);
@@ -150,9 +145,7 @@ function analyzeClassMethods(classDecl: ClassDeclaration, project: Project): Met
         const lineNumber = method.getStartLineNumber();
 
         const jsDocs = method.getJsDocs();
-        const isDeprecated = jsDocs.some(doc =>
-            doc.getTags().some(tag => tag.getTagName() === 'deprecated')
-        );
+        const isDeprecated = jsDocs.some((doc) => doc.getTags().some((tag) => tag.getTagName() === 'deprecated'));
 
         const { total, test, production } = countInvocations(methodName, project);
 
@@ -186,9 +179,7 @@ function countImplementations(interfaceName: string, methodName: string, project
 
         for (const classDecl of classes) {
             const implementsClauses = classDecl.getImplements();
-            const implementsTarget = implementsClauses.some(clause =>
-                clause.getText().includes(interfaceName)
-            );
+            const implementsTarget = implementsClauses.some((clause) => clause.getText().includes(interfaceName));
 
             if (implementsTarget) {
                 const method = classDecl.getMethod(methodName);
@@ -237,7 +228,7 @@ function countInvocations(methodName: string, project: Project): { total: number
     return {
         total: testCount + productionCount,
         test: testCount,
-        production: productionCount
+        production: productionCount,
     };
 }
 
@@ -251,7 +242,7 @@ function generateReport(reports: InterfaceReport[]): void {
 
     for (const report of reports) {
         // Filter methods with 0 production invocations (test invocations don't count)
-        const unusedMethods = report.methods.filter(m => m.productionInvocations === 0);
+        const unusedMethods = report.methods.filter((m) => m.productionInvocations === 0);
 
         if (unusedMethods.length === 0) {
             continue;
@@ -267,15 +258,9 @@ function generateReport(reports: InterfaceReport[]): void {
             const testInfo = method.testInvocations > 0 ? ` (${method.testInvocations} test calls)` : '';
 
             if (report.isClass) {
-                console.log(
-                    `  ✗ ${method.name}:${method.lineNumber} - ` +
-                    `${method.productionInvocations} prod calls${testInfo}${deprecatedTag}`
-                );
+                console.log(`  ✗ ${method.name}:${method.lineNumber} - ` + `${method.productionInvocations} prod calls${testInfo}${deprecatedTag}`);
             } else {
-                console.log(
-                    `  ✗ ${method.name}:${method.lineNumber} - ` +
-                    `${method.implementations} impl, ${method.productionInvocations} prod calls${testInfo}${deprecatedTag}`
-                );
+                console.log(`  ✗ ${method.name}:${method.lineNumber} - ` + `${method.implementations} impl, ${method.productionInvocations} prod calls${testInfo}${deprecatedTag}`);
             }
         }
 

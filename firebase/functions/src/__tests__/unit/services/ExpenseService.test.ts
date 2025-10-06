@@ -98,7 +98,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withId(expenseId)
                 .withParticipants([userId])
                 // No receiptUrl - this is the key test point
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
+                .withCreatedAt(Timestamp.now())
+                .withUpdatedAt(Timestamp.now())
+                .build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -120,7 +122,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([participantId]) // Only one participant - key for access control test
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
+                .withCreatedAt(Timestamp.now())
+                .withUpdatedAt(Timestamp.now())
+                .build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -142,7 +146,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([participant1, participant2]) // Key: multiple participants for access test
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
+                .withCreatedAt(Timestamp.now())
+                .withUpdatedAt(Timestamp.now())
+                .build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -166,7 +172,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withId(expenseId)
                 .withParticipants([userId])
                 .withDeletedAt(Timestamp.now()) // Key: soft deleted status
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
+                .withCreatedAt(Timestamp.now())
+                .withUpdatedAt(Timestamp.now())
+                .build();
 
             setExpenseData(expenseId, mockDeletedExpense);
 
@@ -207,7 +215,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withId(expenseId)
                 .withGroupId('test-group-id') // Key: expected in assertion
                 .withParticipants([userId]) // Key: user access
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
+                .withCreatedAt(Timestamp.now())
+                .withUpdatedAt(Timestamp.now())
+                .build();
 
             // Remove optional fields to test undefined handling
             delete (minimalExpense as any).amount;
@@ -236,7 +246,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([]) // Key: empty participants for access test
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
+                .withCreatedAt(Timestamp.now())
+                .withUpdatedAt(Timestamp.now())
+                .build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -257,7 +269,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([]) // Key: empty participants (null equivalent) for access test
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
+                .withCreatedAt(Timestamp.now())
+                .withUpdatedAt(Timestamp.now())
+                .build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -280,7 +294,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withAmount(100.33) // Key: decimal precision
                 .withParticipants([userId])
                 .withSplits([{ uid: userId, amount: 100.33 }]) // Key: matching decimal amount
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
+                .withCreatedAt(Timestamp.now())
+                .withUpdatedAt(Timestamp.now())
+                .build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -351,7 +367,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withId(expenseId)
                 .withCategory('Food & Dining') // Key: specific category to test
                 .withParticipants([userId])
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
+                .withCreatedAt(Timestamp.now())
+                .withUpdatedAt(Timestamp.now())
+                .build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -368,9 +386,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user-id';
 
             // Create expense without category by not calling withCategory()
-            const builder = new ExpenseDTOBuilder()
-                .withId(expenseId)
-                .withParticipants([userId]);
+            const builder = new ExpenseDTOBuilder().withId(expenseId).withParticipants([userId]);
 
             // Build and manually remove category to ensure it's undefined
             const mockExpense = builder.withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
@@ -395,7 +411,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withId(expenseId)
                 .withReceiptUrl(receiptUrl) // Key: receipt URL to test
                 .withParticipants([userId])
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
+                .withCreatedAt(Timestamp.now())
+                .withUpdatedAt(Timestamp.now())
+                .build();
 
             setExpenseData(expenseId, mockExpense);
 
@@ -431,7 +449,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withId(expenseId)
                 .withDescription('Test expense') // Key: test description for assertion
                 .withParticipants([participantId]) // Key: participant access
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
+                .withCreatedAt(Timestamp.now())
+                .withUpdatedAt(Timestamp.now())
+                .build();
 
             stubReader.setDocument('expenses', expenseId, expenseData);
 
@@ -453,7 +473,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseData = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([participantId]) // Key: only one participant for access denial test
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
+                .withCreatedAt(Timestamp.now())
+                .withUpdatedAt(Timestamp.now())
+                .build();
 
             stubReader.setDocument('expenses', expenseId, expenseData);
 
@@ -470,7 +492,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withId(expenseId)
                 .withParticipants([userId])
                 .withDeletedAt(Timestamp.now()) // Key: soft deleted status
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
+                .withCreatedAt(Timestamp.now())
+                .withUpdatedAt(Timestamp.now())
+                .build();
 
             stubReader.setDocument('expenses', expenseId, deletedExpense);
 
@@ -501,7 +525,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withReceiptUrl('https://example.com/receipt.jpg')
                 .withCreatedAt(now)
                 .withUpdatedAt(now)
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
+                .withCreatedAt(Timestamp.now())
+                .withUpdatedAt(Timestamp.now())
+                .build();
 
             stubReader.setDocument('expenses', expenseId, expenseData);
 
@@ -539,7 +565,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withId(expenseId)
                 .withParticipants([userId])
                 // No receiptUrl - key test point
-                .withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
+                .withCreatedAt(Timestamp.now())
+                .withUpdatedAt(Timestamp.now())
+                .build();
 
             stubReader.setDocument('expenses', expenseId, expenseData);
 

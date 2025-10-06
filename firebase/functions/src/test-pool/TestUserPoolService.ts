@@ -43,9 +43,7 @@ export class TestUserPoolService {
                 // Query for available users directly within transaction
                 // Since we deleted the deprecated getTestUsersByStatus method,
                 // we implement this query directly using the Firestore instance
-                const availableUsersQuery = this.db.collection(POOL_COLLECTION)
-                    .where('status', '==', 'available')
-                    .limit(1);
+                const availableUsersQuery = this.db.collection(POOL_COLLECTION).where('status', '==', 'available').limit(1);
                 const availableUsersSnapshot = await transaction.get(availableUsersQuery);
 
                 if (!availableUsersSnapshot.empty) {

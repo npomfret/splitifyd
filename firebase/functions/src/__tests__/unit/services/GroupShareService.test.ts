@@ -1,15 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GroupShareService } from '../../../services/GroupShareService';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import {
-    StubFirestoreReader,
-    StubFirestoreWriter,
-    StubAuthService
-} from '../mocks/firestore-stubs';
+import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { GroupDTOBuilder } from '@splitifyd/test-support';
-import { GroupMemberDocumentBuilder } from "../../support/GroupMemberDocumentBuilder";
+import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
 import { MAX_GROUP_MEMBERS } from '@splitifyd/shared';
 
 describe('GroupShareService', () => {
@@ -75,9 +71,7 @@ describe('GroupShareService', () => {
             stubReader.setDocument('groups', groupId, testGroup);
 
             // Set up group membership so user has access (as owner)
-            const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(groupId)
-                .asAdmin()
-                .build();
+            const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(groupId).asAdmin().build();
             stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
 
             const result = await groupShareService.generateShareableLink(userId, groupId);
@@ -104,10 +98,7 @@ describe('GroupShareService', () => {
 
         beforeEach(() => {
             // Set up test group
-            const testGroup = new GroupDTOBuilder()
-                .withId(groupId)
-                .withCreatedBy('owner-id')
-                .build();
+            const testGroup = new GroupDTOBuilder().withId(groupId).withCreatedBy('owner-id').build();
             stubReader.setDocument('groups', groupId, testGroup);
 
             // Set up share link
@@ -117,36 +108,24 @@ describe('GroupShareService', () => {
                 createdBy: 'owner-id',
                 isActive: true,
                 createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                updatedAt: new Date().toISOString(),
             };
             stubReader.setShareLink(groupId, linkId, shareLink);
         });
 
         it(`should succeed when group has ${MAX_GROUP_MEMBERS - 1} members`, async () => {
             // Create MAX_GROUP_MEMBERS - 1 existing members
-            const existingMembers = Array.from({ length: MAX_GROUP_MEMBERS - 1 }, (_, i) =>
-                new GroupMemberDocumentBuilder()
-                    .withUserId(`user-${i}`)
-                    .withGroupId(groupId)
-                    .build()
-            );
+            const existingMembers = Array.from({ length: MAX_GROUP_MEMBERS - 1 }, (_, i) => new GroupMemberDocumentBuilder().withUserId(`user-${i}`).withGroupId(groupId).build());
 
             stubReader.setGroupMembers(groupId, existingMembers);
 
             // Should succeed - we're at 49 members, adding 1 more = 50 (at cap, but still allowed)
-            await expect(
-                groupShareService.joinGroupByLink(newUserId, newUserEmail, linkId)
-            ).resolves.toBeDefined();
+            await expect(groupShareService.joinGroupByLink(newUserId, newUserEmail, linkId)).resolves.toBeDefined();
         });
 
         it(`should fail when group already has ${MAX_GROUP_MEMBERS} members`, async () => {
             // Create exactly MAX_GROUP_MEMBERS existing members
-            const existingMembers = Array.from({ length: MAX_GROUP_MEMBERS }, (_, i) =>
-                new GroupMemberDocumentBuilder()
-                    .withUserId(`user-${i}`)
-                    .withGroupId(groupId)
-                    .build()
-            );
+            const existingMembers = Array.from({ length: MAX_GROUP_MEMBERS }, (_, i) => new GroupMemberDocumentBuilder().withUserId(`user-${i}`).withGroupId(groupId).build());
 
             stubReader.setGroupMembers(groupId, existingMembers);
 
@@ -167,12 +146,7 @@ describe('GroupShareService', () => {
         it(`should detect overflow in getAllGroupMembers when group has > ${MAX_GROUP_MEMBERS}`, async () => {
             // Create MAX_GROUP_MEMBERS + 1 members (edge case - should never happen in practice)
             // This tests the overflow detection in FirestoreReader.getAllGroupMembers directly
-            const tooManyMembers = Array.from({ length: MAX_GROUP_MEMBERS + 1 }, (_, i) =>
-                new GroupMemberDocumentBuilder()
-                    .withUserId(`user-${i}`)
-                    .withGroupId(groupId)
-                    .build()
-            );
+            const tooManyMembers = Array.from({ length: MAX_GROUP_MEMBERS + 1 }, (_, i) => new GroupMemberDocumentBuilder().withUserId(`user-${i}`).withGroupId(groupId).build());
 
             stubReader.setGroupMembers(groupId, tooManyMembers);
 

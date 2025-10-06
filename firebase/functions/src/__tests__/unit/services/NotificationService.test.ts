@@ -71,11 +71,7 @@ describe('NotificationService - Comprehensive Unit Tests', () => {
             const groupId = 'group-1';
             const changeTypes: ChangeType[] = ['transaction', 'balance'];
 
-            const result = await notificationService.batchUpdateNotificationsMultipleTypes(
-                userIds,
-                groupId,
-                changeTypes,
-            );
+            const result = await notificationService.batchUpdateNotificationsMultipleTypes(userIds, groupId, changeTypes);
 
             expect(result.successCount).toBe(2);
             expect(result.failureCount).toBe(0);
@@ -112,11 +108,7 @@ describe('NotificationService - Comprehensive Unit Tests', () => {
             const groupId = 'group-1';
             const changeTypes: ChangeType[] = ['transaction', 'balance', 'group', 'comment'];
 
-            const result = await notificationService.batchUpdateNotificationsMultipleTypes(
-                userIds,
-                groupId,
-                changeTypes,
-            );
+            const result = await notificationService.batchUpdateNotificationsMultipleTypes(userIds, groupId, changeTypes);
 
             expect(result.successCount).toBe(1);
 
@@ -177,11 +169,7 @@ describe('NotificationService - Comprehensive Unit Tests', () => {
             const groupId = 'group-1';
             const changeTypes: ChangeType[] = ['comment'];
 
-            const result = await notificationService.batchUpdateNotificationsMultipleTypes(
-                userIds,
-                groupId,
-                changeTypes,
-            );
+            const result = await notificationService.batchUpdateNotificationsMultipleTypes(userIds, groupId, changeTypes);
 
             expect(result.successCount).toBe(1);
             expect(result.results[0].success).toBe(true);
@@ -360,11 +348,7 @@ describe('NotificationService - Comprehensive Unit Tests', () => {
             const userIds = ['user-1', 'user-2', 'user-3'];
             const groupId = 'group-1';
 
-            const result = await notificationService.batchUpdateNotificationsMultipleTypes(
-                userIds,
-                groupId,
-                ['transaction', 'balance'],
-            );
+            const result = await notificationService.batchUpdateNotificationsMultipleTypes(userIds, groupId, ['transaction', 'balance']);
 
             expect(result.results).toHaveLength(3);
             expect(result.results.every((r) => r.success)).toBe(true);
@@ -434,7 +418,6 @@ describe('NotificationService - Comprehensive Unit Tests', () => {
     });
 
     describe('integration scenarios', () => {
-
         it('should handle workflow: batch update then remove user from group', async () => {
             const userIds = ['user-1', 'user-2', 'user-3'];
             const groupId = 'group-1';
@@ -446,6 +429,5 @@ describe('NotificationService - Comprehensive Unit Tests', () => {
             const removeResult = await notificationService.removeUserFromGroup('user-2', groupId);
             expect(removeResult.success).toBe(true);
         });
-
     });
 });

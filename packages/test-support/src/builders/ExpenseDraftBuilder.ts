@@ -34,7 +34,7 @@ export class ExpenseDraftBuilder {
             splitType: randomChoice([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
             participants: [userId],
             splits: [{ userId, amount }],
-            timestamp: now - (Math.random() * 60 * 60 * 1000), // Random time in last hour
+            timestamp: now - Math.random() * 60 * 60 * 1000, // Random time in last hour
         };
     }
 

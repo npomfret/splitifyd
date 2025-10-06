@@ -1,15 +1,15 @@
-import {vi} from 'vitest';
-import {Timestamp} from 'firebase-admin/firestore';
-import type {UserRecord, UpdateRequest, CreateRequest, GetUsersResult, DecodedIdToken, ListUsersResult, DeleteUsersResult} from 'firebase-admin/auth';
-import type {IFirestoreReader, QueryOptions} from '../../../services/firestore';
-import type {IFirestoreWriter, WriteResult} from '../../../services/firestore/IFirestoreWriter';
-import type {IAuthService} from '../../../services/auth';
-import {CommentTargetType} from '@splitifyd/shared';
-import type {UserNotificationDocument} from '../../../schemas/user-notifications';
-import {ApiError} from '../../../utils/errors';
-import {HTTP_STATUS} from '../../../constants';
-import type { GroupMembershipDTO } from "@splitifyd/shared";
-import type {ExpenseDTO, GroupDTO, PolicyDTO, RegisteredUser, SettlementDTO, CommentDTO} from "@splitifyd/shared/src";
+import { vi } from 'vitest';
+import { Timestamp } from 'firebase-admin/firestore';
+import type { UserRecord, UpdateRequest, CreateRequest, GetUsersResult, DecodedIdToken, ListUsersResult, DeleteUsersResult } from 'firebase-admin/auth';
+import type { IFirestoreReader, QueryOptions } from '../../../services/firestore';
+import type { IFirestoreWriter, WriteResult } from '../../../services/firestore/IFirestoreWriter';
+import type { IAuthService } from '../../../services/auth';
+import { CommentTargetType } from '@splitifyd/shared';
+import type { UserNotificationDocument } from '../../../schemas/user-notifications';
+import { ApiError } from '../../../utils/errors';
+import { HTTP_STATUS } from '../../../constants';
+import type { GroupMembershipDTO } from '@splitifyd/shared';
+import type { ExpenseDTO, GroupDTO, PolicyDTO, RegisteredUser, SettlementDTO, CommentDTO } from '@splitifyd/shared/src';
 
 // Shared storage for comments between reader and writer
 const sharedCommentStorage = new Map<string, any[]>();
@@ -22,7 +22,7 @@ export class StubFirestoreReader implements IFirestoreReader {
     private documents = new Map<string, any>();
     private rawDocuments = new Map<string, any>();
     private userGroups = new Map<string, any>(); // userId -> pagination result or groups[]
-    private paginationBehavior = new Map<string, { groups: any[], pageSize: number }>(); // userId -> pagination config
+    private paginationBehavior = new Map<string, { groups: any[]; pageSize: number }>(); // userId -> pagination config
     private methodErrors = new Map<string, Error>(); // methodName -> error to throw
     private notFoundDocuments = new Set<string>(); // Track which docs should return null
 
@@ -77,7 +77,7 @@ export class StubFirestoreReader implements IFirestoreReader {
     }
 
     setGroupMembers(groupId: string, members: GroupMembershipDTO[]) {
-        members.forEach(member => {
+        members.forEach((member) => {
             this.setDocument('group-members', `${groupId}_${member.uid}`, member);
         });
     }
@@ -106,12 +106,7 @@ export class StubFirestoreReader implements IFirestoreReader {
     }
 
     // Helper method for filtering collections with ordering and limiting
-    private filterCollection<T>(
-        collectionPrefix: string,
-        filter?: (doc: T) => boolean,
-        orderBy?: { field: string; direction: 'asc' | 'desc' },
-        limit?: number
-    ): T[] {
+    private filterCollection<T>(collectionPrefix: string, filter?: (doc: T) => boolean, orderBy?: { field: string; direction: 'asc' | 'desc' }, limit?: number): T[] {
         let results: T[] = [];
 
         // Get all documents from collection
@@ -154,12 +149,22 @@ export class StubFirestoreReader implements IFirestoreReader {
 
         // Known date field names across all document types
         const dateFields = new Set([
-            'createdAt', 'updatedAt', 'deletedAt',
-            'date', 'joinedAt', 'presetAppliedAt',
-            'lastModified', 'lastTransactionChange', 'lastBalanceChange',
-            'lastGroupDetailsChange', 'lastCommentChange', 'timestamp',
-            'expiresAt', 'deletionStartedAt', 'groupUpdatedAt',
-            'assignedAt'
+            'createdAt',
+            'updatedAt',
+            'deletedAt',
+            'date',
+            'joinedAt',
+            'presetAppliedAt',
+            'lastModified',
+            'lastTransactionChange',
+            'lastBalanceChange',
+            'lastGroupDetailsChange',
+            'lastCommentChange',
+            'timestamp',
+            'expiresAt',
+            'deletionStartedAt',
+            'groupUpdatedAt',
+            'assignedAt',
         ]);
 
         for (const key in result) {
@@ -186,11 +191,7 @@ export class StubFirestoreReader implements IFirestoreReader {
             }
             // Recursively convert arrays
             else if (Array.isArray(value)) {
-                result[key] = value.map(item =>
-                    typeof item === 'object' && item !== null
-                        ? this.convertISOToTimestamps(item)
-                        : item
-                );
+                result[key] = value.map((item) => (typeof item === 'object' && item !== null ? this.convertISOToTimestamps(item) : item));
             }
         }
 
@@ -208,7 +209,7 @@ export class StubFirestoreReader implements IFirestoreReader {
                 exists: !!data,
                 data: () => convertedData,
                 get: (field: string) => convertedData?.[field],
-                ref: {id, path: `policies/${id}`},
+                ref: { id, path: `policies/${id}` },
                 readTime: Timestamp.now(),
                 isEqual: (other: any) => other?.id === id,
             });
@@ -275,7 +276,6 @@ export class StubFirestoreReader implements IFirestoreReader {
 
         return this.documents.get(key) || null;
     }
-
 
     // Raw document operations (used by PolicyService)
     async getRawPolicyDocument(policyId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
@@ -353,19 +353,12 @@ export class StubFirestoreReader implements IFirestoreReader {
         const error = this.methodErrors.get('getAllGroupMembers');
         if (error) throw error;
 
-        const members = this.filterCollection<GroupMembershipDTO>(
-            'group-members',
-            doc => doc.groupId === groupId
-        );
+        const members = this.filterCollection<GroupMembershipDTO>('group-members', (doc) => doc.groupId === groupId);
 
         // Enforce hard cap - mirror real FirestoreReader behavior
         const MAX_GROUP_MEMBERS = 50; // Import not available in stub, hardcode
         if (members.length > MAX_GROUP_MEMBERS) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'GROUP_TOO_LARGE',
-                `Group exceeds maximum size of ${MAX_GROUP_MEMBERS} members`
-            );
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'GROUP_TOO_LARGE', `Group exceeds maximum size of ${MAX_GROUP_MEMBERS} members`);
         }
 
         return members;
@@ -379,21 +372,16 @@ export class StubFirestoreReader implements IFirestoreReader {
         const error = this.methodErrors.get('getExpensesForGroup');
         if (error) throw error;
 
-        return this.filterCollection<ExpenseDTO>(
-            'expenses',
-            doc => doc.groupId === groupId && (doc.deletedAt == null || !!options.includeDeleted),
-            options.orderBy,
-            options.limit
-        );
+        return this.filterCollection<ExpenseDTO>('expenses', (doc) => doc.groupId === groupId && (doc.deletedAt == null || !!options.includeDeleted), options.orderBy, options.limit);
     }
 
     async getExpenseHistory(): Promise<any> {
-        return {history: [], count: 0};
+        return { history: [], count: 0 };
     }
 
     async getExpensesForGroupPaginated(
         groupId: string,
-        options?: { limit?: number; cursor?: string; includeDeleted?: boolean }
+        options?: { limit?: number; cursor?: string; includeDeleted?: boolean },
     ): Promise<{ expenses: ExpenseDTO[]; hasMore: boolean; nextCursor?: string }> {
         const error = this.methodErrors.get('getExpensesForGroupPaginated');
         if (error) throw error;
@@ -402,13 +390,13 @@ export class StubFirestoreReader implements IFirestoreReader {
 
         let expenses = this.filterCollection<ExpenseDTO>(
             'expenses',
-            doc => doc.groupId === groupId && (doc.deletedAt == null || !!options?.includeDeleted),
-            { field: 'createdAt', direction: 'desc' } // Default ordering by creation date
+            (doc) => doc.groupId === groupId && (doc.deletedAt == null || !!options?.includeDeleted),
+            { field: 'createdAt', direction: 'desc' }, // Default ordering by creation date
         );
 
         // Handle cursor-based pagination
         if (options?.cursor) {
-            const cursorIndex = expenses.findIndex(e => e.id === options.cursor);
+            const cursorIndex = expenses.findIndex((e) => e.id === options.cursor);
             if (cursorIndex >= 0) {
                 expenses = expenses.slice(cursorIndex + 1);
             }
@@ -421,7 +409,10 @@ export class StubFirestoreReader implements IFirestoreReader {
         return { expenses: results, hasMore, nextCursor };
     }
 
-    async getSettlementsForGroup(groupId: string, options: QueryOptions): Promise<{
+    async getSettlementsForGroup(
+        groupId: string,
+        options: QueryOptions,
+    ): Promise<{
         settlements: SettlementDTO[];
         hasMore: boolean;
         nextCursor?: string;
@@ -429,12 +420,7 @@ export class StubFirestoreReader implements IFirestoreReader {
         const error = this.methodErrors.get('getSettlementsForGroup');
         if (error) throw error;
 
-        const settlements = this.filterCollection<SettlementDTO>(
-            'settlements',
-            doc => doc.groupId === groupId,
-            options.orderBy,
-            options.limit
-        );
+        const settlements = this.filterCollection<SettlementDTO>('settlements', (doc) => doc.groupId === groupId, options.orderBy, options.limit);
 
         return {
             settlements,
@@ -474,7 +460,7 @@ export class StubFirestoreReader implements IFirestoreReader {
 
     async getCommentsForTarget(targetType: CommentTargetType, targetId: string, options?: any): Promise<{ comments: CommentDTO[]; hasMore: boolean; nextCursor?: string }> {
         const comments = sharedCommentStorage.get(`${targetType}:${targetId}`) || [];
-        return {comments, hasMore: false, nextCursor: undefined};
+        return { comments, hasMore: false, nextCursor: undefined };
     }
 
     async getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<CommentDTO | null> {
@@ -484,10 +470,10 @@ export class StubFirestoreReader implements IFirestoreReader {
 
     async getGroupDeletionData(): Promise<any> {
         return {
-            expenses: {size: 0, docs: []},
-            settlements: {size: 0, docs: []},
-            shareLinks: {size: 0, docs: []},
-            groupComments: {size: 0, docs: []},
+            expenses: { size: 0, docs: [] },
+            settlements: { size: 0, docs: [] },
+            shareLinks: { size: 0, docs: [] },
+            groupComments: { size: 0, docs: [] },
             expenseComments: [],
         };
     }
@@ -498,7 +484,7 @@ export class StubFirestoreReader implements IFirestoreReader {
     }
 
     async getGroupMembershipsInTransaction(): Promise<any> {
-        return {docs: [], size: 0, empty: true};
+        return { docs: [], size: 0, empty: true };
     }
 
     async getRawGroupDocumentInTransaction(transaction: any, groupId: string): Promise<any | null> {
@@ -511,7 +497,7 @@ export class StubFirestoreReader implements IFirestoreReader {
             exists: true,
             data: () => groupData,
             get: (field: string) => groupData?.[field],
-            ref: {id: groupId, path: `groups/${groupId}`},
+            ref: { id: groupId, path: `groups/${groupId}` },
         };
     }
 
@@ -553,7 +539,7 @@ export class StubFirestoreWriter implements IFirestoreWriter {
 
     constructor(
         private sharedDocuments?: Map<string, any>,
-        private stubReader?: StubFirestoreReader
+        private stubReader?: StubFirestoreReader,
     ) {
         // If shared documents are provided, use those instead of our own
         if (sharedDocuments) {
@@ -574,21 +560,27 @@ export class StubFirestoreWriter implements IFirestoreWriter {
 
         // Known date field names across all document types
         const dateFields = new Set([
-            'createdAt', 'updatedAt', 'deletedAt',
-            'date', 'joinedAt', 'presetAppliedAt',
-            'lastModified', 'lastTransactionChange', 'lastBalanceChange',
-            'lastGroupDetailsChange', 'lastCommentChange', 'timestamp',
-            'expiresAt', 'deletionStartedAt', 'groupUpdatedAt',
-            'assignedAt' // For theme.assignedAt
+            'createdAt',
+            'updatedAt',
+            'deletedAt',
+            'date',
+            'joinedAt',
+            'presetAppliedAt',
+            'lastModified',
+            'lastTransactionChange',
+            'lastBalanceChange',
+            'lastGroupDetailsChange',
+            'lastCommentChange',
+            'timestamp',
+            'expiresAt',
+            'deletionStartedAt',
+            'groupUpdatedAt',
+            'assignedAt', // For theme.assignedAt
         ]);
 
         if (Array.isArray(result)) {
             // Process arrays
-            return result.map(item =>
-                item && typeof item === 'object' && !(item instanceof Timestamp)
-                    ? this.convertISOToTimestamps(item)
-                    : item
-            ) as T;
+            return result.map((item) => (item && typeof item === 'object' && !(item instanceof Timestamp) ? this.convertISOToTimestamps(item) : item)) as T;
         }
 
         // Process object properties
@@ -603,11 +595,7 @@ export class StubFirestoreWriter implements IFirestoreWriter {
                 result[key] = this.convertISOToTimestamps(value);
             } else if (Array.isArray(value)) {
                 // Recursively process arrays of objects
-                result[key] = value.map(item =>
-                    item && typeof item === 'object' && !(item instanceof Timestamp)
-                        ? this.convertISOToTimestamps(item)
-                        : item
-                );
+                result[key] = value.map((item) => (item && typeof item === 'object' && !(item instanceof Timestamp) ? this.convertISOToTimestamps(item) : item));
             }
         }
 
@@ -660,7 +648,7 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         if (existing) {
             // Convert ISO strings to Timestamps before merging (mirrors production FirestoreWriter)
             const convertedUpdates = this.convertISOToTimestamps(updates);
-            const merged = {...existing, ...convertedUpdates};
+            const merged = { ...existing, ...convertedUpdates };
             this.documents.set(`policies/${policyId}`, merged);
             // Also update rawDocuments so getRawPolicyDocument works (if stubReader is available)
             if (this.stubReader) {
@@ -677,7 +665,7 @@ export class StubFirestoreWriter implements IFirestoreWriter {
 
     // Minimal implementations for other required methods
     async createUser(): Promise<WriteResult> {
-        return {id: 'user', success: true, timestamp: Timestamp.now()};
+        return { id: 'user', success: true, timestamp: Timestamp.now() };
     }
 
     async updateUser(userId: string, updates: any): Promise<WriteResult> {
@@ -687,54 +675,54 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         // Update the document in memory
         const existing = this.documents.get(`users/${userId}`);
         if (existing) {
-            this.documents.set(`users/${userId}`, {...existing, ...convertedUpdates});
+            this.documents.set(`users/${userId}`, { ...existing, ...convertedUpdates });
         }
-        return {id: userId, success: true, timestamp: Timestamp.now()};
+        return { id: userId, success: true, timestamp: Timestamp.now() };
     }
 
     async deleteUser(): Promise<WriteResult> {
-        return {id: 'user', success: true, timestamp: Timestamp.now()};
+        return { id: 'user', success: true, timestamp: Timestamp.now() };
     }
 
     async createGroup(): Promise<WriteResult> {
-        return {id: 'group', success: true, timestamp: Timestamp.now()};
+        return { id: 'group', success: true, timestamp: Timestamp.now() };
     }
 
     async updateGroup(): Promise<WriteResult> {
-        return {id: 'group', success: true, timestamp: Timestamp.now()};
+        return { id: 'group', success: true, timestamp: Timestamp.now() };
     }
 
     async deleteGroup(): Promise<WriteResult> {
-        return {id: 'group', success: true, timestamp: Timestamp.now()};
+        return { id: 'group', success: true, timestamp: Timestamp.now() };
     }
 
     async createExpense(): Promise<WriteResult> {
-        return {id: 'expense', success: true, timestamp: Timestamp.now()};
+        return { id: 'expense', success: true, timestamp: Timestamp.now() };
     }
 
     async updateExpense(): Promise<WriteResult> {
-        return {id: 'expense', success: true, timestamp: Timestamp.now()};
+        return { id: 'expense', success: true, timestamp: Timestamp.now() };
     }
 
     async deleteExpense(): Promise<WriteResult> {
-        return {id: 'expense', success: true, timestamp: Timestamp.now()};
+        return { id: 'expense', success: true, timestamp: Timestamp.now() };
     }
 
     async createSettlement(): Promise<WriteResult> {
-        return {id: 'settlement', success: true, timestamp: Timestamp.now()};
+        return { id: 'settlement', success: true, timestamp: Timestamp.now() };
     }
 
     async updateSettlement(): Promise<WriteResult> {
-        return {id: 'settlement', success: true, timestamp: Timestamp.now()};
+        return { id: 'settlement', success: true, timestamp: Timestamp.now() };
     }
 
     async deleteSettlement(): Promise<WriteResult> {
-        return {id: 'settlement', success: true, timestamp: Timestamp.now()};
+        return { id: 'settlement', success: true, timestamp: Timestamp.now() };
     }
 
     async addComment(targetType: CommentTargetType, targetId: string, commentData: any): Promise<WriteResult> {
         const id = `comment-${Date.now()}`;
-        const result = this.getLastWriteResult() || {id, success: true, timestamp: Timestamp.now()};
+        const result = this.getLastWriteResult() || { id, success: true, timestamp: Timestamp.now() };
 
         if (!result.success) {
             throw new Error(result.error || 'Write failed');
@@ -753,26 +741,24 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     }
 
     createShareLinkInTransaction(): any {
-        return {id: 'link', path: 'shareLinks/link'};
+        return { id: 'link', path: 'shareLinks/link' };
     }
 
     async createUserNotification(userId: string, notificationData: any): Promise<WriteResult> {
         this.documents.set(`user-notifications/${userId}`, notificationData);
-        return {id: userId, success: true, timestamp: Timestamp.now()};
+        return { id: userId, success: true, timestamp: Timestamp.now() };
     }
-
 
     async removeUserNotificationGroup(userId: string, groupId: string): Promise<WriteResult> {
-        return {id: userId, success: true, timestamp: Timestamp.now()};
+        return { id: userId, success: true, timestamp: Timestamp.now() };
     }
 
-    public setUserNotificationsCalls: {userId: string, updates: any, merge?: boolean}[] = [];
+    public setUserNotificationsCalls: { userId: string; updates: any; merge?: boolean }[] = [];
 
     async setUserNotifications(userId: string, updates: any, merge?: boolean): Promise<WriteResult> {
-        this.setUserNotificationsCalls.push({userId, updates, merge});
-        return {id: userId, success: true, timestamp: Timestamp.now()};
+        this.setUserNotificationsCalls.push({ userId, updates, merge });
+        return { id: userId, success: true, timestamp: Timestamp.now() };
     }
-
 
     async runTransaction(transactionFn: (transaction: any) => Promise<any>): Promise<any> {
         const mockTransaction = {
@@ -803,7 +789,7 @@ export class StubFirestoreWriter implements IFirestoreWriter {
                 // Update the document in our mock storage
                 const path = docRef.path || docRef.id || '';
                 const existingData = this.documents.get(path) || {};
-                this.documents.set(path, {...existingData, ...data});
+                this.documents.set(path, { ...existingData, ...data });
             }),
             set: vi.fn().mockImplementation((docRef: any, data: any) => {
                 // Set the document in our mock storage
@@ -821,7 +807,7 @@ export class StubFirestoreWriter implements IFirestoreWriter {
 
     createInTransaction(transaction: any, collection: string, documentId: string | null, data: any): any {
         const id = documentId || this.generateDocumentId();
-        return {id, path: `${collection}/${id}`};
+        return { id, path: `${collection}/${id}` };
     }
 
     updateInTransaction = vi.fn().mockImplementation((transaction: any, documentPath: string, updates: any): void => {
@@ -832,7 +818,7 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     });
 
     async deleteInTransaction(): Promise<WriteResult> {
-        return {id: 'doc', success: true, timestamp: Timestamp.now()};
+        return { id: 'doc', success: true, timestamp: Timestamp.now() };
     }
 
     generateDocumentId(): string {
@@ -840,23 +826,23 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     }
 
     async performHealthCheck(): Promise<{ success: boolean; responseTime: number }> {
-        return {success: true, responseTime: 50};
+        return { success: true, responseTime: 50 };
     }
 
     async bulkDeleteInTransaction(): Promise<any> {
-        return {successCount: 0, failureCount: 0, results: []};
+        return { successCount: 0, failureCount: 0, results: [] };
     }
 
     getDocumentReferenceInTransaction(transaction: any, collection: string, documentId: string): any {
         return {
             id: documentId,
             path: `${collection}/${documentId}`,
-            collection: {id: collection},
+            collection: { id: collection },
         };
     }
 
     async leaveGroupAtomic(): Promise<any> {
-        return {successCount: 1, failureCount: 0, results: []};
+        return { successCount: 1, failureCount: 0, results: [] };
     }
 
     // Test Pool Operations
@@ -997,16 +983,16 @@ export class StubAuthService implements IAuthService {
         const users: UserRecord[] = [];
         const notFound: { uid: string }[] = [];
 
-        for (const {uid} of uids) {
+        for (const { uid } of uids) {
             const user = this.users.get(uid);
             if (user && !this.deletedUsers.has(uid)) {
                 users.push(user);
             } else {
-                notFound.push({uid});
+                notFound.push({ uid });
             }
         }
 
-        return {users, notFound};
+        return { users, notFound };
     }
 
     async updateUser(uid: string, updates: UpdateRequest): Promise<UserRecord> {
@@ -1109,7 +1095,7 @@ export class StubAuthService implements IAuthService {
                 await this.deleteUser(uid);
                 successCount++;
             } catch (error) {
-                errors.push({index: uids.indexOf(uid), error});
+                errors.push({ index: uids.indexOf(uid), error });
             }
         }
 
@@ -1144,7 +1130,7 @@ export class StubAuthService implements IAuthService {
         this.customClaims.set(uid, customClaims);
 
         // Update the user record with custom claims
-        const updatedUser = {...user, customClaims, toJSON: () => ({})};
+        const updatedUser = { ...user, customClaims, toJSON: () => ({}) };
         this.users.set(uid, updatedUser);
     }
 

@@ -10,8 +10,8 @@ import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import type { GroupMemberService } from './GroupMemberService';
 import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
-import { FirestoreCollections } from "../constants";
-import type { GroupMembershipDTO } from "@splitifyd/shared";
+import { FirestoreCollections } from '../constants';
+import type { GroupMembershipDTO } from '@splitifyd/shared';
 
 export class GroupShareService {
     constructor(
@@ -222,11 +222,7 @@ export class GroupShareService {
 
         // Enforce hard cap on group size
         if (existingMembers.length >= MAX_GROUP_MEMBERS) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'GROUP_AT_CAPACITY',
-                `Cannot add member. Group has reached maximum size of ${MAX_GROUP_MEMBERS} members`
-            );
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'GROUP_AT_CAPACITY', `Cannot add member. Group has reached maximum size of ${MAX_GROUP_MEMBERS} members`);
         }
 
         const memberIndex = existingMembers.length;

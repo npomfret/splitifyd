@@ -53,7 +53,7 @@ describe('ExpenseCommentStrategy', () => {
                 deletedAt: Timestamp.now(),
             };
 
-            stubFirestoreReader.setDocument('expenses', 'test-expense',deletedExpense);
+            stubFirestoreReader.setDocument('expenses', 'test-expense', deletedExpense);
 
             await expect(strategy.verifyAccess('deleted-expense', 'user-id')).rejects.toThrow(ApiError);
 
@@ -66,7 +66,7 @@ describe('ExpenseCommentStrategy', () => {
         it('should throw NOT_FOUND when expense group does not exist', async () => {
             const testExpense = new ExpenseDTOBuilder().withId('test-expense').withGroupId('nonexistent-group').build();
 
-            stubFirestoreReader.setDocument('expenses', 'test-expense',testExpense);
+            stubFirestoreReader.setDocument('expenses', 'test-expense', testExpense);
             // stubFirestoreReader.getGroup.mockResolvedValue(null);
 
             await expect(strategy.verifyAccess('test-expense', 'user-id')).rejects.toThrow(ApiError);

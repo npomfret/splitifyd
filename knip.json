@@ -6,92 +6,30 @@
       "project": ["scripts/**/*.ts"]
     },
     "webapp-v2": {
-      "entry": [
-        "src/main.tsx",
-        "src/App.tsx",
-        "vite.config.ts",
-        "vitest.config.ts",
-        "playwright.config.ts"
-      ],
-      "project": [
-        "src/**/*.{ts,tsx}",
-        "vite.config.ts",
-        "vitest.config.ts",
-        "playwright.config.ts"
-      ],
-      "ignore": [
-        "src/**/*.test.{ts,tsx}",
-        "src/**/*.spec.{ts,tsx}",
-        "src/__tests__/**/*",
-        "dist/**/*",
-        "node_modules/**/*"
-      ],
-      "ignoreDependencies": [
-        "@types/*",
-        "vite",
-        "vitest",
-        "@vitejs/*"
-      ]
+      "entry": ["src/main.tsx", "src/App.tsx", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"],
+      "project": ["src/**/*.{ts,tsx}", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"],
+      "ignore": ["src/**/*.test.{ts,tsx}", "src/**/*.spec.{ts,tsx}", "src/__tests__/**/*", "dist/**/*", "node_modules/**/*"],
+      "ignoreDependencies": ["@types/*", "vite", "vitest", "@vitejs/*"]
     },
     "firebase/functions": {
-      "entry": [
-        "src/index.ts"
-      ],
-      "project": [
-        "src/**/*.ts"
-      ],
-      "ignore": [
-        "src/**/*.test.ts",
-        "src/**/*.spec.ts",
-        "src/__tests__/**/*",
-        "lib/**/*",
-        "node_modules/**/*"
-      ],
-      "ignoreDependencies": [
-        "@types/*",
-        "firebase-functions-test",
-        "typescript"
-      ]
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"],
+      "ignore": ["src/**/*.test.ts", "src/**/*.spec.ts", "src/__tests__/**/*", "lib/**/*", "node_modules/**/*"],
+      "ignoreDependencies": ["@types/*", "firebase-functions-test", "typescript"]
     },
     "packages/shared": {
-      "entry": [
-        "src/index.ts"
-      ],
-      "project": [
-        "src/**/*.ts"
-      ],
-      "ignore": [
-        "dist/**/*",
-        "node_modules/**/*"
-      ]
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"],
+      "ignore": ["dist/**/*", "node_modules/**/*"]
     },
     "e2e-tests": {
-      "entry": [
-        "src/**/*.test.ts",
-        "playwright.config.ts"
-      ],
-      "project": [
-        "src/**/*.ts",
-        "playwright.config.ts"
-      ],
-      "ignore": [
-        "node_modules/**/*",
-        "test-results/**/*",
-        "playwright-report/**/*"
-      ]
+      "entry": ["src/**/*.test.ts", "playwright.config.ts"],
+      "project": ["src/**/*.ts", "playwright.config.ts"],
+      "ignore": ["node_modules/**/*", "test-results/**/*", "playwright-report/**/*"]
     }
   },
-  "ignore": [
-    "**/*.d.ts",
-    "**/node_modules/**",
-    "**/dist/**",
-    "**/lib/**",
-    "**/build/**",
-    "**/coverage/**"
-  ],
-  "ignoreDependencies": [
-    "@types/*"
-  ],
+  "ignore": ["**/*.d.ts", "**/node_modules/**", "**/dist/**", "**/lib/**", "**/build/**", "**/coverage/**"],
+  "ignoreDependencies": ["@types/*"],
   "rules": {
     "files": "error",
     "dependencies": "error",

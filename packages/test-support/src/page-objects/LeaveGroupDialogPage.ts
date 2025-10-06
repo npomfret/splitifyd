@@ -98,14 +98,14 @@ export class LeaveGroupDialogPage extends BasePage {
      * Get dialog message text
      */
     async getMessageText(): Promise<string> {
-        return await this.getDialogMessage().textContent() || '';
+        return (await this.getDialogMessage().textContent()) || '';
     }
 
     /**
      * Get confirm button text
      */
     async getConfirmButtonText(): Promise<string> {
-        return await this.getConfirmButton().textContent() || '';
+        return (await this.getConfirmButton().textContent()) || '';
     }
 
     // ============================================================================

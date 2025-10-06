@@ -4,7 +4,7 @@ import { GroupDTO } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { getAuth, getFirestore } from '../../firebase';
-import { GroupMemberDocumentBuilder } from "../support/GroupMemberDocumentBuilder";
+import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
 
 describe('Concurrent Operations Integration Tests', () => {
     const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth());
@@ -31,11 +31,9 @@ describe('Concurrent Operations Integration Tests', () => {
         testUser4 = users[3];
 
         // Create test group
-        testGroup = await groupService.createGroup(testUser1.uid,
-            new CreateGroupRequestBuilder()
-                .withName('Concurrent Operations Test Group')
-                .withDescription('Testing concurrent operations')
-                .build()
+        testGroup = await groupService.createGroup(
+            testUser1.uid,
+            new CreateGroupRequestBuilder().withName('Concurrent Operations Test Group').withDescription('Testing concurrent operations').build(),
         );
     });
 
@@ -116,7 +114,8 @@ describe('Concurrent Operations Integration Tests', () => {
 
             // Create concurrent expenses
             const expensePromises = [
-                expenseService.createExpense(testUser1.uid,
+                expenseService.createExpense(
+                    testUser1.uid,
                     new CreateExpenseRequestBuilder()
                         .withGroupId(testGroup.id)
                         .withPaidBy(testUser1.uid)
@@ -127,9 +126,10 @@ describe('Concurrent Operations Integration Tests', () => {
                         .withDate(new Date().toISOString())
                         .withSplitType('equal')
                         .withParticipants([testUser1.uid, testUser2.uid])
-                        .build()
+                        .build(),
                 ),
-                expenseService.createExpense(testUser2.uid,
+                expenseService.createExpense(
+                    testUser2.uid,
                     new CreateExpenseRequestBuilder()
                         .withGroupId(testGroup.id)
                         .withPaidBy(testUser2.uid)
@@ -140,9 +140,10 @@ describe('Concurrent Operations Integration Tests', () => {
                         .withDate(new Date().toISOString())
                         .withSplitType('equal')
                         .withParticipants([testUser2.uid, testUser3.uid])
-                        .build()
+                        .build(),
                 ),
-                expenseService.createExpense(testUser3.uid,
+                expenseService.createExpense(
+                    testUser3.uid,
                     new CreateExpenseRequestBuilder()
                         .withGroupId(testGroup.id)
                         .withPaidBy(testUser3.uid)
@@ -153,7 +154,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         .withDate(new Date().toISOString())
                         .withSplitType('equal')
                         .withParticipants([testUser3.uid, testUser4.uid])
-                        .build()
+                        .build(),
                 ),
             ];
 
@@ -176,7 +177,8 @@ describe('Concurrent Operations Integration Tests', () => {
             await groupShareService.joinGroupByLink(testUser2.uid, testUser2.email, linkId);
 
             // Create expense
-            await expenseService.createExpense(testUser1.uid,
+            await expenseService.createExpense(
+                testUser1.uid,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(testUser1.uid)
@@ -187,7 +189,7 @@ describe('Concurrent Operations Integration Tests', () => {
                     .withDate(new Date().toISOString())
                     .withSplitType('equal')
                     .withParticipants([testUser1.uid, testUser2.uid])
-                    .build()
+                    .build(),
             );
 
             // Simulate concurrent operations: balance queries and member removal

@@ -13,15 +13,9 @@ export class SettlementWithMembersBuilder {
 
     constructor() {
         // Create default payer and payee members
-        const payer = new GroupMemberBuilder()
-            .withUid('payer-user')
-            .withDisplayName('Payer User')
-            .build();
+        const payer = new GroupMemberBuilder().withUid('payer-user').withDisplayName('Payer User').build();
 
-        const payee = new GroupMemberBuilder()
-            .withUid('payee-user')
-            .withDisplayName('Payee User')
-            .build();
+        const payee = new GroupMemberBuilder().withUid('payee-user').withDisplayName('Payee User').build();
 
         this.settlement = {
             id: `settlement-${generateShortId()}`,
@@ -104,34 +98,22 @@ export class SettlementWithMembersBuilder {
      * Create a settlement between two specific users
      */
     static between(payerId: string, payeeId: string, amount: number = 100): SettlementWithMembersBuilder {
-        return new SettlementWithMembersBuilder()
-            .withPayerId(payerId)
-            .withPayeeId(payeeId)
-            .withAmount(amount);
+        return new SettlementWithMembersBuilder().withPayerId(payerId).withPayeeId(payeeId).withAmount(amount);
     }
 
     /**
      * Create a settlement with full member objects
      */
     static withMembers(payer: GroupMember, payee: GroupMember, amount: number = 100): SettlementWithMembersBuilder {
-        return new SettlementWithMembersBuilder()
-            .withPayer(payer)
-            .withPayee(payee)
-            .withAmount(amount);
+        return new SettlementWithMembersBuilder().withPayer(payer).withPayee(payee).withAmount(amount);
     }
 
     /**
      * Create multiple settlements for a group
      */
-    static buildMany(
-        count: number,
-        groupId: string,
-        customizer?: (builder: SettlementWithMembersBuilder, index: number) => void
-    ): SettlementWithMembers[] {
+    static buildMany(count: number, groupId: string, customizer?: (builder: SettlementWithMembersBuilder, index: number) => void): SettlementWithMembers[] {
         return Array.from({ length: count }, (_, i) => {
-            const builder = new SettlementWithMembersBuilder()
-                .withId(`settlement-${i + 1}`)
-                .withGroupId(groupId);
+            const builder = new SettlementWithMembersBuilder().withId(`settlement-${i + 1}`).withGroupId(groupId);
 
             if (customizer) {
                 customizer(builder, i);

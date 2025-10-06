@@ -23,7 +23,7 @@ export class EditGroupModalPage extends BasePage {
      */
     getModalContainer(): Locator {
         return this.page.locator('[role="dialog"]').filter({
-            has: this.page.getByTestId('edit-group-modal-title')
+            has: this.page.getByTestId('edit-group-modal-title'),
         });
     }
 
@@ -39,7 +39,7 @@ export class EditGroupModalPage extends BasePage {
      */
     getModalBackdrop(): Locator {
         return this.page.locator('[role="presentation"]').filter({
-            has: this.page.locator('[role="dialog"]')
+            has: this.page.locator('[role="dialog"]'),
         });
     }
 
@@ -90,9 +90,12 @@ export class EditGroupModalPage extends BasePage {
      * Close button (X icon)
      */
     getCloseButton(): Locator {
-        return this.getModalContainer().locator('button').filter({
-            has: this.page.locator('svg')
-        }).first();
+        return this.getModalContainer()
+            .locator('button')
+            .filter({
+                has: this.page.locator('svg'),
+            })
+            .first();
     }
 
     // ============================================================================
@@ -110,7 +113,9 @@ export class EditGroupModalPage extends BasePage {
      * Confirm delete button in dialog
      */
     getConfirmDeleteButton(): Locator {
-        return this.getDeleteDialog().getByRole('button', { name: /delete/i }).last();
+        return this.getDeleteDialog()
+            .getByRole('button', { name: /delete/i })
+            .last();
     }
 
     /**
@@ -137,7 +142,6 @@ export class EditGroupModalPage extends BasePage {
     getDeleteError(): Locator {
         return this.getDeleteDialog().locator('[role="alert"]');
     }
-
 
     // ============================================================================
     // ACTION METHODS - Modal

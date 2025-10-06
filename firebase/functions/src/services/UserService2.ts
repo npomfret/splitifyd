@@ -463,7 +463,6 @@ export class UserService {
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_SERVICE_UNAVAILABLE', 'Registration temporarily unavailable - unable to retrieve policy versions');
         }
     }
-
 }
 
 // ServiceRegistry handles service instantiation

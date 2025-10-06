@@ -74,9 +74,11 @@ const GroupDTOSchema = z.object({
     securityPreset: z.enum(['open', 'managed', 'custom']),
     presetAppliedAt: z.string().optional(), // ISO string
     permissions: GroupPermissionsSchema,
-    balance: z.object({
-        balancesByCurrency: z.record(z.string(), CurrencyBalanceSchema),
-    }).optional(), // Computed field - added by API layer
+    balance: z
+        .object({
+            balancesByCurrency: z.record(z.string(), CurrencyBalanceSchema),
+        })
+        .optional(), // Computed field - added by API layer
     lastActivity: z.string().optional(),
 });
 

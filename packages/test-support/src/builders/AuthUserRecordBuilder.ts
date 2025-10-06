@@ -26,7 +26,7 @@ export class AuthUserRecordBuilder {
             email: `${userId}@test.com`,
             emailVerified: true,
             displayName: `Test User ${userId.slice(-4)}`,
-            photoURL: null,  // Default to null for CommentService compatibility (expects string | null)
+            photoURL: null, // Default to null for CommentService compatibility (expects string | null)
             phoneNumber: undefined,
             disabled: false,
             customClaims: {},

@@ -27,9 +27,12 @@ export class DashboardPage extends BasePage {
      * Groups container - found by the "Your Groups" heading
      */
     getGroupsContainer(): Locator {
-        return this.page.locator('section, div').filter({
-            has: this.page.getByRole('heading', { name: translation.dashboard.yourGroups })
-        }).first();
+        return this.page
+            .locator('section, div')
+            .filter({
+                has: this.page.getByRole('heading', { name: translation.dashboard.yourGroups }),
+            })
+            .first();
     }
 
     /**
@@ -37,9 +40,12 @@ export class DashboardPage extends BasePage {
      */
     getQuickActionsContainer(): Locator {
         // Find the container with Quick Actions heading
-        return this.page.locator('div').filter({
-            has: this.page.getByRole('heading', { name: translation.quickActions.title, exact: true })
-        }).first();
+        return this.page
+            .locator('div')
+            .filter({
+                has: this.page.getByRole('heading', { name: translation.quickActions.title, exact: true }),
+            })
+            .first();
     }
 
     /**
@@ -47,9 +53,12 @@ export class DashboardPage extends BasePage {
      */
     getStatsContainer(): Locator {
         // Find the stats container by heading
-        return this.page.locator('div').filter({
-            has: this.page.getByRole('heading', { name: translation.dashboardStats.title, exact: true })
-        }).first();
+        return this.page
+            .locator('div')
+            .filter({
+                has: this.page.getByRole('heading', { name: translation.dashboardStats.title, exact: true }),
+            })
+            .first();
     }
 
     /**
@@ -57,7 +66,7 @@ export class DashboardPage extends BasePage {
      */
     getWelcomeSection(): Locator {
         return this.page.locator('div').filter({
-            has: this.page.getByRole('heading', { level: 2 }).filter({ hasText: /welcome/i })
+            has: this.page.getByRole('heading', { level: 2 }).filter({ hasText: /welcome/i }),
         });
     }
 
@@ -118,7 +127,7 @@ export class DashboardPage extends BasePage {
      */
     getGroupCard(groupName: string): Locator {
         return this.getGroupCards().filter({
-            has: this.page.getByText(groupName, { exact: true })
+            has: this.page.getByText(groupName, { exact: true }),
         });
     }
 
@@ -248,18 +257,22 @@ export class DashboardPage extends BasePage {
      * Loading indicator for creating new group
      */
     getCreateGroupLoadingIndicator(): Locator {
-        return this.getGroupsGrid().locator('div').filter({
-            has: this.page.getByText(translation.dashboardComponents.groupsList.creating)
-        });
+        return this.getGroupsGrid()
+            .locator('div')
+            .filter({
+                has: this.page.getByText(translation.dashboardComponents.groupsList.creating),
+            });
     }
 
     /**
      * Group update loading overlay
      */
     getGroupUpdateLoadingOverlay(groupId?: string): Locator {
-        const baseSelector = this.getGroupsGrid().locator('.absolute.inset-0').filter({
-            has: this.page.locator('[data-testid="loading-spinner"], .animate-spin')
-        });
+        const baseSelector = this.getGroupsGrid()
+            .locator('.absolute.inset-0')
+            .filter({
+                has: this.page.locator('[data-testid="loading-spinner"], .animate-spin'),
+            });
 
         if (groupId) {
             return this.getGroupCard(`[data-group-id="${groupId}"]`).locator('.absolute.inset-0');
@@ -277,7 +290,7 @@ export class DashboardPage extends BasePage {
      */
     getShareGroupModal(): Locator {
         return this.page.getByRole('dialog').filter({
-            has: this.page.getByRole('heading', { name: translation.shareGroupModal.title })
+            has: this.page.getByRole('heading', { name: translation.shareGroupModal.title }),
         });
     }
 
@@ -335,7 +348,7 @@ export class DashboardPage extends BasePage {
      */
     getShareLinkCopiedToast(): Locator {
         return this.page.locator('.fixed.bottom-4.right-4').filter({
-            hasText: /copied/i
+            hasText: /copied/i,
         });
     }
 
@@ -447,9 +460,7 @@ export class DashboardPage extends BasePage {
 
         // After loading completes, either groups or empty state must be visible
         // Use .or() on the locator to wait for whichever appears first
-        await expect(
-            this.getGroupCards().first().or(this.getEmptyGroupsState())
-        ).toBeVisible({ timeout });
+        await expect(this.getGroupCards().first().or(this.getEmptyGroupsState())).toBeVisible({ timeout });
     }
 
     /**
@@ -528,7 +539,6 @@ export class DashboardPage extends BasePage {
         await this.clickButton(closeButton, { buttonName: 'Close Share Modal' });
         await expect(this.getShareGroupModal()).not.toBeVisible();
     }
-
 
     /**
      * Close share modal via backdrop click
@@ -739,5 +749,4 @@ export class DashboardPage extends BasePage {
         await expect(balanceBadge).toBeVisible();
         await expect(balanceBadge).toContainText(expectedText);
     }
-
 }

@@ -1,7 +1,9 @@
 # Bug Report: Flaky Login Error Message Display - Preact Signals Reactivity Issue
 
 ## Priority: HIGH
+
 ## Status: ACTIVE INVESTIGATION
+
 ## Date Reported: 2025-10-05
 
 ---
@@ -19,6 +21,7 @@ The login page error message display is **intermittently failing** to show authe
 ## Symptoms
 
 ### What Happens
+
 1. ✅ User submits login form with invalid credentials
 2. ✅ Firebase Auth rejects the login (error logged in console)
 3. ✅ Auth store's `errorSignal` is set with error message
@@ -27,6 +30,7 @@ The login page error message display is **intermittently failing** to show authe
 6. ❌ Test fails waiting for error message element
 
 ### Evidence from Console Logs
+
 ```
 [2025-10-05T18:09:26.148Z] ERROR: Login attempt failed: {
     "timestamp":"2025-10-05T18:09:26.148Z",
@@ -34,10 +38,13 @@ The login page error message display is **intermittently failing** to show authe
     "error":{"code":"auth/wrong-password","message":"Invalid email or password."}
 }
 ```
+
 **The error IS being thrown and logged, but the UI doesn't update.**
 
 ### Screenshot Evidence
+
 When test fails, screenshot shows:
+
 - Login form filled with credentials
 - **NO error message visible**
 - Page still on `/login` route
@@ -48,11 +55,13 @@ When test fails, screenshot shows:
 ## Test Failure Details
 
 ### Location
+
 - **File**: `webapp-v2/src/__tests__/unit/playwright/login.test.ts:36`
 - **Test Name**: `should show error message for invalid credentials`
 - **Failing Line**: LoginPage.ts:383 (in `verifyErrorMessage()`)
 
 ### Error Message
+
 ```
 Error: expect(locator).toBeVisible() failed
 
@@ -63,12 +72,14 @@ Timeout: 5000ms
 ```
 
 ### Reproduction Steps
+
 1. Navigate to login page
 2. Mock Firebase to fail login with `auth/wrong-password` error
 3. Call `loginPage.loginExpectingFailure('test@example.com', 'wrong-password')`
 4. Verify error message appears - **FAILS INTERMITTENTLY**
 
 ### Stress Test Results
+
 - Run #1: **PASS** ✅
 - Run #2: **PASS** ✅
 - Run #3: **FAIL** ❌
@@ -124,12 +135,12 @@ class AuthStoreImpl implements AuthStore {
 
     async login(email: string, password: string): Promise<void> {
         this.#loadingSignal.value = true;
-        this.#errorSignal.value = null;  // ✅ Clear error
+        this.#errorSignal.value = null; // ✅ Clear error
 
         try {
             await firebaseService.signInWithEmailAndPassword(email, password);
         } catch (error: any) {
-            this.#errorSignal.value = this.getAuthErrorMessage(error);  // ✅ Set error
+            this.#errorSignal.value = this.getAuthErrorMessage(error); // ✅ Set error
             throw error;
         } finally {
             this.#loadingSignal.value = false;
@@ -145,31 +156,39 @@ class AuthStoreImpl implements AuthStore {
 ## Attempted Fixes
 
 ### Attempt 1: Use `useComputed` to Wrap Signals ❌
+
 **Theory**: Need `useComputed` to create reactive subscription
 **Implementation**:
+
 ```typescript
 const authError = useComputed(() => authStore.errorSignal.value);
 // Use in JSX:
 <AuthForm error={authError.value} />
 ```
+
 **Result**: Still flaky - FAILED on run #3, #5, #7
 
 ---
 
 ### Attempt 2: Access Signals Directly in JSX ❌
+
 **Theory**: Direct `.value` access in JSX should be reactive
 **Implementation**:
+
 ```typescript
 // No useComputed wrapper
 <AuthForm error={authStore.errorSignal.value} disabled={authStore.loadingSignal.value}>
 ```
+
 **Result**: Still flaky - FAILED on run #3
 
 ---
 
 ### Attempt 3: Return Computed Signals from Store ❌
+
 **Theory**: Store should return computed signals for reactivity
 **Implementation**:
+
 ```typescript
 // In auth-store.ts
 readonly #loadingComputed = computed(() => this.#loadingSignal.value);
@@ -182,25 +201,31 @@ get errorSignal(): ReadonlySignal<string | null> {
     return this.#errorComputed;
 }
 ```
+
 **Result**: Still flaky - FAILED on run #11
 
 ---
 
 ### Attempt 4: Cache Computed Signals in Store ❌
+
 **Theory**: Creating new computed signals on each access breaks reactivity
 **Implementation**:
+
 ```typescript
 // Cache computed signals as class fields
 readonly #loadingComputed = computed(() => this.#loadingSignal.value);
 readonly #errorComputed = computed(() => this.#errorSignal.value);
 ```
+
 **Result**: FAILED immediately on run #1
 
 ---
 
 ### Attempt 5: Return Raw Signals (Let Components Wrap) ❌
+
 **Theory**: Double-wrapping with computed breaks reactivity
 **Implementation**:
+
 ```typescript
 // Store returns raw signals
 get errorSignal(): ReadonlySignal<string | null> {
@@ -210,6 +235,7 @@ get errorSignal(): ReadonlySignal<string | null> {
 // Component wraps with useComputed
 const authError = useComputed(() => authStore.errorSignal.value);
 ```
+
 **Result**: FAILED immediately on run #1
 
 ---
@@ -270,6 +296,7 @@ export function CreateGroupModal() {
 
 **Pattern**: Accesses signal directly in JSX without `useComputed`.
 **Store Implementation**: Returns computed signal:
+
 ```typescript
 get errorSignal(): ReadonlySignal<string | null> {
     return computed(() => this.#validationErrorSignal.value || this.#networkErrorSignal.value);
@@ -283,10 +310,12 @@ get errorSignal(): ReadonlySignal<string | null> {
 ## Key Findings
 
 ### 🔍 The Pattern That Works
+
 1. **Store**: Returns a `computed()` signal (not raw signal)
 2. **Component**: Accesses `.value` directly in JSX (no `useComputed`)
 
 **Example** (CreateGroupModal + EnhancedGroupsStore):
+
 ```typescript
 // Store
 get errorSignal() {
@@ -298,10 +327,12 @@ get errorSignal() {
 ```
 
 ### 🔍 The Pattern That's Unreliable
+
 1. **Store**: Returns raw signal
 2. **Component**: Wraps with `useComputed` and accesses `.value`
 
 **Example** (LoginPage + AuthStore):
+
 ```typescript
 // Store
 get errorSignal() {
@@ -314,12 +345,15 @@ const authError = useComputed(() => authStore.errorSignal.value);
 ```
 
 ### 🔍 Why CommentsSection Works (But LoginPage Doesn't)
+
 **UNKNOWN** - Both use identical patterns:
+
 - Both stores return raw signals
 - Both components use `useComputed`
 - Both access `.value` in JSX
 
 **Possible factors**:
+
 1. **Context vs Direct Import**: AuthStore accessed via `useContext`, CommentsStore imported directly
 2. **Async Initialization**: AuthStore created async via `AuthStoreImpl.create()`, CommentsStore created synchronously
 3. **Signal Timing**: Error set during async operation vs synchronous operation
@@ -414,12 +448,14 @@ export function LoginPage() {
 ## Impact Assessment
 
 ### User Impact
+
 - **Severity**: MEDIUM
 - **Frequency**: Intermittent (~15-20% of login failures)
 - **User Experience**: Users see no feedback when login fails - appears broken
 - **Workaround**: Refresh page or try logging in again
 
 ### Development Impact
+
 - **Test Reliability**: HIGH - causes flaky test failures
 - **Developer Confidence**: LOW - unclear what triggers the bug
 - **Debugging Difficulty**: HIGH - requires deep Preact signals knowledge
@@ -429,18 +465,21 @@ export function LoginPage() {
 ## Next Steps
 
 ### Immediate Actions
+
 1. ✅ Document bug with all attempted fixes (this report)
 2. ⏳ **Test Option A** - Make auth store return computed signals AND remove useComputed from LoginPage
 3. ⏳ **Add comprehensive logging** to understand signal subscription lifecycle
 4. ⏳ **Create minimal reproduction** outside of login context
 
 ### Investigation Tasks
+
 - [ ] Compare CommentsStore vs AuthStore initialization
 - [ ] Check if AuthProvider context wrapping affects reactivity
 - [ ] Verify signal subscription timing with async auth initialization
 - [ ] Test if other pages using auth store have same issue (RegisterPage, ResetPasswordPage)
 
 ### Long-term Solutions
+
 - [ ] **Standardize signal patterns** across all stores (either all computed or all raw)
 - [ ] **Document Preact signals best practices** in project guidelines
 - [ ] **Add automated tests** for signal reactivity
@@ -451,16 +490,19 @@ export function LoginPage() {
 ## Related Files
 
 ### Application Code
+
 - `webapp-v2/src/pages/LoginPage.tsx` - Component with reactivity issue
 - `webapp-v2/src/app/stores/auth-store.ts` - Store with signal implementation
 - `webapp-v2/src/components/auth/AuthForm.tsx` - Error message display wrapper
 - `webapp-v2/src/components/auth/ErrorMessage.tsx` - Error message component
 
 ### Test Code
+
 - `webapp-v2/src/__tests__/unit/playwright/login.test.ts:36` - Flaky test
 - `packages/test-support/src/page-objects/LoginPage.ts:383` - POM verifyErrorMessage()
 
 ### Working Examples (for comparison)
+
 - `webapp-v2/src/components/comments/CommentsSection.tsx` - Same pattern, works reliably
 - `webapp-v2/src/components/dashboard/CreateGroupModal.tsx` - Different pattern, works reliably
 - `webapp-v2/src/app/stores/groups-store-enhanced.ts` - Returns computed signals
@@ -483,6 +525,7 @@ This issue reveals a **fundamental inconsistency** in how Preact signals are use
 ## Appendix: Test Execution Logs
 
 ### Successful Run Example
+
 ```
 ✅ should show error message for invalid credentials (5 console messages logged)
   ✓  1 [chromium] › src/__tests__/unit/playwright/login.test.ts:36:5 (1.8s)
@@ -491,6 +534,7 @@ This issue reveals a **fundamental inconsistency** in how Preact signals are use
 ```
 
 ### Failed Run Example
+
 ```
 💥 TEST FAILED: should show error message for invalid credentials
 

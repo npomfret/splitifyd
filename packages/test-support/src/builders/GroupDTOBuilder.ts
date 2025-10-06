@@ -184,9 +184,7 @@ export class GroupDTOBuilder {
     }
 
     static groupForUser(userId: string): GroupDTOBuilder {
-        return new GroupDTOBuilder()
-            .withCreatedBy(userId)
-            .withName(`${userId}'s Group`);
+        return new GroupDTOBuilder().withCreatedBy(userId).withName(`${userId}'s Group`);
     }
 
     /**
@@ -206,5 +204,4 @@ export class GroupDTOBuilder {
             return builder.build();
         });
     }
-
 }

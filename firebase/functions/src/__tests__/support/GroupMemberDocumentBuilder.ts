@@ -138,7 +138,7 @@ export class GroupMemberDocumentBuilder {
         return {
             ...this.memberDoc,
             joinedAt: this.memberDoc.joinedAt.toDate().toISOString(),
-            theme: { ...this.memberDoc.theme }
+            theme: { ...this.memberDoc.theme },
         };
     }
 

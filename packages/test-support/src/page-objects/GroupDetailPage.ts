@@ -37,36 +37,48 @@ export class GroupDetailPage extends BasePage {
      * Members section container - found by "Members" heading
      */
     getMembersContainer(): Locator {
-        return this.page.locator('div').filter({
-            has: this.page.getByRole('heading').filter({ hasText: /^members$/i })
-        }).first();
+        return this.page
+            .locator('div')
+            .filter({
+                has: this.page.getByRole('heading').filter({ hasText: /^members$/i }),
+            })
+            .first();
     }
 
     /**
      * Expenses section container - found by "Expenses" or "Recent Expenses" heading
      */
     getExpensesContainer(): Locator {
-        return this.page.locator('div').filter({
-            has: this.page.getByRole('heading').filter({ hasText: /expenses/i })
-        }).first();
+        return this.page
+            .locator('div')
+            .filter({
+                has: this.page.getByRole('heading').filter({ hasText: /expenses/i }),
+            })
+            .first();
     }
 
     /**
      * Balance/Debts section container - found by "Balance" or "Balances" heading
      */
     getBalanceContainer(): Locator {
-        return this.page.locator('div').filter({
-            has: this.page.getByRole('heading').filter({ hasText: /balance/i })
-        }).first();
+        return this.page
+            .locator('div')
+            .filter({
+                has: this.page.getByRole('heading').filter({ hasText: /balance/i }),
+            })
+            .first();
     }
 
     /**
      * Settlement section container - found by "Settlements" heading
      */
     getSettlementContainer(): Locator {
-        return this.page.locator('div').filter({
-            has: this.page.getByRole('heading').filter({ hasText: /settlement/i })
-        }).first();
+        return this.page
+            .locator('div')
+            .filter({
+                has: this.page.getByRole('heading').filter({ hasText: /settlement/i }),
+            })
+            .first();
     }
 
     /**
@@ -99,7 +111,7 @@ export class GroupDetailPage extends BasePage {
      */
     getGroupDescription(): Locator {
         // Find description near the group name heading
-        return this.page.locator('p').filter({ hasText: /./  }).first();
+        return this.page.locator('p').filter({ hasText: /./ }).first();
     }
 
     /**
@@ -214,7 +226,9 @@ export class GroupDetailPage extends BasePage {
      * Targets the <p> element specifically to avoid matching parent containers
      */
     getEmptyExpensesState(): Locator {
-        return this.getExpensesContainer().locator('p').filter({ hasText: /no.*expenses/i });
+        return this.getExpensesContainer()
+            .locator('p')
+            .filter({ hasText: /no.*expenses/i });
     }
 
     // ============================================================================
@@ -252,7 +266,7 @@ export class GroupDetailPage extends BasePage {
      */
     getEditGroupModal(): Locator {
         return this.page.locator('[role="dialog"]').filter({
-            has: this.page.getByRole('heading', { name: translation.group.edit.title })
+            has: this.page.getByRole('heading', { name: translation.group.edit.title }),
         });
     }
 
@@ -261,7 +275,7 @@ export class GroupDetailPage extends BasePage {
      */
     getShareGroupModal(): Locator {
         return this.page.locator('[role="dialog"]').filter({
-            has: this.page.getByRole('heading', { name: translation.group.share.title })
+            has: this.page.getByRole('heading', { name: translation.group.share.title }),
         });
     }
 
@@ -270,7 +284,7 @@ export class GroupDetailPage extends BasePage {
      */
     getLeaveGroupDialog(): Locator {
         return this.page.locator('[role="dialog"]').filter({
-            has: this.page.getByText(/leave.*group/i)
+            has: this.page.getByText(/leave.*group/i),
         });
     }
 

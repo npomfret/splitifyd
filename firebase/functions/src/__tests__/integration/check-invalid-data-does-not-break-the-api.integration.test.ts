@@ -18,8 +18,8 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { ApiDriver, CreateGroupRequestBuilder, GroupDTOBuilder } from '@splitifyd/test-support';
 import { FirestoreReader } from '../../services/firestore';
 import { getTopLevelMembershipDocId, createTopLevelMembershipDocument } from '../../utils/groupMembershipHelpers';
-import { GroupMemberDocumentBuilder } from "../support/GroupMemberDocumentBuilder";
-import { FirestoreCollections } from "../../constants";
+import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
+import { FirestoreCollections } from '../../constants';
 
 describe('Invalid Data Resilience - API should not break with bad data', () => {
     const firestore = getFirestore();

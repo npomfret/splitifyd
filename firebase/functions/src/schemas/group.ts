@@ -47,4 +47,3 @@ const { DocumentSchema: GroupDocumentSchema } = createDocumentSchemas(BaseGroupS
  * ```
  */
 export { GroupDocumentSchema };
-

@@ -56,9 +56,7 @@ export class SplitAssertionBuilder {
      * Static convenience method to create a split with user ID and amount
      */
     static split(uid: string, amount: number, percentage?: number): ExpenseSplit {
-        const builder = new SplitAssertionBuilder()
-            .forUser(uid)
-            .withAmount(amount);
+        const builder = new SplitAssertionBuilder().forUser(uid).withAmount(amount);
 
         if (percentage !== undefined) {
             builder.withPercentage(percentage);
@@ -71,11 +69,7 @@ export class SplitAssertionBuilder {
      * Static convenience method to create a split with user ID, amount, and percentage
      */
     static splitWithPercentage(uid: string, amount: number, percentage: number): ExpenseSplit {
-        return new SplitAssertionBuilder()
-            .forUser(uid)
-            .withAmount(amount)
-            .withPercentage(percentage)
-            .build();
+        return new SplitAssertionBuilder().forUser(uid).withAmount(amount).withPercentage(percentage).build();
     }
 
     build(): ExpenseSplit {

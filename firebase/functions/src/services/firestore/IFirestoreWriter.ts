@@ -42,7 +42,7 @@ import type { CreateUserNotificationDocument } from '../../schemas/user-notifica
 export interface WriteResult {
     id: string;
     success: boolean;
-    timestamp?: Timestamp | Date;//todo: remove this
+    timestamp?: Timestamp | Date; //todo: remove this
     error?: string;
 }
 
@@ -290,7 +290,6 @@ export interface IFirestoreWriter {
      */
     setUserNotifications(userId: string, data: any, merge?: boolean): Promise<WriteResult>;
 
-
     // ========================================================================
     // Test Pool Operations (for TestUserPoolService)
     // ========================================================================
@@ -301,12 +300,15 @@ export interface IFirestoreWriter {
      * @param userData - The test pool user data
      * @returns Write result
      */
-    createTestPoolUser(email: string, userData: {
-        email: string;
-        token: string;
-        password: string;
-        status: 'available' | 'borrowed';
-    }): Promise<WriteResult>;
+    createTestPoolUser(
+        email: string,
+        userData: {
+            email: string;
+            token: string;
+            password: string;
+            status: 'available' | 'borrowed';
+        },
+    ): Promise<WriteResult>;
 
     /**
      * Update a test pool user document
@@ -337,9 +339,6 @@ export interface IFirestoreWriter {
      * @throws Error if any deletion fails (transaction will be aborted)
      */
     bulkDeleteInTransaction(transaction: Transaction, documentPaths: string[]): void;
-
-
-
 
     // ========================================================================
     // Group Deletion and Recovery Operations

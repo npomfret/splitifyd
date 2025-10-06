@@ -15,7 +15,7 @@
 
 - `/agent-list` - See subagents (quality enforcement)
 
-Use agents freely, appropiately and liberally! 
+Use agents freely, appropiately and liberally!
 
 **Direct usage (optional):**
 

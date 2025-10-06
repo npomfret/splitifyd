@@ -45,9 +45,7 @@ export class DashboardPage extends BaseDashboardPage {
     // Implementation
     async createMultiUserGroup(optionsOrBuilder: CreateGroupFormData | CreateGroupFormDataBuilder, ...dashboardPages: DashboardPage[]): Promise<GroupDetailPage[]> {
         // Handle both builder and plain object inputs
-        const options = optionsOrBuilder instanceof CreateGroupFormDataBuilder
-            ? optionsOrBuilder.build()
-            : optionsOrBuilder;
+        const options = optionsOrBuilder instanceof CreateGroupFormDataBuilder ? optionsOrBuilder.build() : optionsOrBuilder;
 
         const groupName = options.name ?? `g-${++i} ${randomString(4)} ${randomString(6)} ${randomString(8)}`;
         const groupDescription = options.description ?? `descr for ${groupName}`;
@@ -158,10 +156,22 @@ export class DashboardPage extends BaseDashboardPage {
 
         // E2E-specific: Comprehensive state polling for all possible outcomes
         await expect(async () => {
-            const hasGroupsContainer = await super.getGroupsContainer().isVisible().catch(() => false);
-            const hasEmptyState = await super.getEmptyGroupsState().isVisible().catch(() => false);
-            const hasErrorState = await super.getErrorContainer().isVisible().catch(() => false);
-            const hasLoadingSpinner = await super.getGroupsLoadingSpinner().isVisible().catch(() => false);
+            const hasGroupsContainer = await super
+                .getGroupsContainer()
+                .isVisible()
+                .catch(() => false);
+            const hasEmptyState = await super
+                .getEmptyGroupsState()
+                .isVisible()
+                .catch(() => false);
+            const hasErrorState = await super
+                .getErrorContainer()
+                .isVisible()
+                .catch(() => false);
+            const hasLoadingSpinner = await super
+                .getGroupsLoadingSpinner()
+                .isVisible()
+                .catch(() => false);
 
             if (!hasGroupsContainer && !hasEmptyState && !hasErrorState && !hasLoadingSpinner) {
                 throw new Error('Groups content not yet loaded - waiting for groups container, empty state, error state, or loading spinner');
@@ -192,7 +202,7 @@ export class DashboardPage extends BaseDashboardPage {
      * Accepts options object for backwards compatibility
      */
     async waitForGroupToAppear(groupName: string, options: { timeout?: number } | number = {}) {
-        const timeout = typeof options === 'number' ? options : (options.timeout || 5000);
+        const timeout = typeof options === 'number' ? options : options.timeout || 5000;
         await super.waitForGroupToAppear(groupName, timeout);
     }
 

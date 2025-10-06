@@ -175,7 +175,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
                     .withName('Valid Group Test ' + Date.now())
                     .withDescription('Testing valid security preset')
                     .build(),
-                testUser.token
+                testUser.token,
             );
 
             // Insert group with invalid securityPreset directly via Firestore
@@ -226,13 +226,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
             // Create multiple valid groups
             const validGroups: GroupDTO[] = [];
             for (let i = 0; i < 3; i++) {
-                const group = await apiDriver.createGroup(
-                    new CreateGroupRequestBuilder()
-                        .withName(`Valid Group ${i} - ${Date.now()}`)
-                        .withDescription(`Valid group ${i}`)
-                        .build(),
-                    testUser.token,
-                );
+                const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`Valid Group ${i} - ${Date.now()}`).withDescription(`Valid group ${i}`).build(), testUser.token);
                 validGroups.push(group);
             }
 
@@ -241,8 +235,8 @@ describe('Security and Permissions - Consolidated Tests', () => {
             expect(listResponse.groups.length).toBeGreaterThanOrEqual(3);
 
             // Verify all groups were created
-            const createdGroupIds = validGroups.map(g => g.id);
-            const listedGroupIds = listResponse.groups.map(g => g.id);
+            const createdGroupIds = validGroups.map((g) => g.id);
+            const listedGroupIds = listResponse.groups.map((g) => g.id);
 
             for (const groupId of createdGroupIds) {
                 expect(listedGroupIds).toContain(groupId);

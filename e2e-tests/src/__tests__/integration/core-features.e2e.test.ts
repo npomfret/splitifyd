@@ -55,7 +55,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
         const [groupDetailPage, memberGroupDetailPage] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), user2DashboardPage);
 
         // Verify member sees Leave Group button
-        await groupDetailPage.waitForMemberCount(2);// sanity check
+        await groupDetailPage.waitForMemberCount(2); // sanity check
         await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
 
         // Member clicks Leave Group
@@ -147,7 +147,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
                 .withPaidByDisplayName(ownerDisplayName)
                 .withSplitType('equal')
                 .withParticipants([ownerDisplayName, memberDisplayName])
-                .build()
+                .build(),
         );
 
         // Wait for expense to be processed and balances to update
@@ -228,7 +228,11 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
         // Get display names
         const member1DisplayName = await member1DashboardPage.header.getCurrentUserDisplayName();
 
-        const [groupDetailPage, member1GroupDetailPage, member2GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), member1DashboardPage, member2DashboardPage);
+        const [groupDetailPage, member1GroupDetailPage, member2GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup(
+            new CreateGroupFormDataBuilder(),
+            member1DashboardPage,
+            member2DashboardPage,
+        );
 
         // Owner removes Member1
         const removeMember1Modal = await groupDetailPage.clickRemoveMember(member1DisplayName);
@@ -265,7 +269,11 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
         const leavingDisplayName = await leavingDashboardPage.header.getCurrentUserDisplayName();
 
         // Setup group
-        const [creatorGroupDetailPage, leavingGroupDetailPage, watchingGroupDetailPage] = await creatorDashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), leavingDashboardPage, watchingDashboardPage);
+        const [creatorGroupDetailPage, leavingGroupDetailPage, watchingGroupDetailPage] = await creatorDashboardPage.createMultiUserGroup(
+            new CreateGroupFormDataBuilder(),
+            leavingDashboardPage,
+            watchingDashboardPage,
+        );
         const groupId = creatorGroupDetailPage.inferGroupId();
 
         // LeavingUser leaves
@@ -381,10 +389,7 @@ simpleTest.describe('Group Settings & Management', () => {
 
     simpleTest('should not show settings button for non-owner', async ({ createLoggedInBrowsers }) => {
         // Create two browser sessions with pooled users
-        const [
-            { page: ownerPage, dashboardPage },
-            { page: memberPage, dashboardPage: memberDashboardPage },
-        ] = await createLoggedInBrowsers(2);
+        const [{ page: ownerPage, dashboardPage }, { page: memberPage, dashboardPage: memberDashboardPage }] = await createLoggedInBrowsers(2);
 
         // Owner creates a group with member
         const [ownerGroupDetailPage, memberGroupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), memberDashboardPage);
@@ -465,10 +470,7 @@ simpleTest.describe('Group Deletion', () => {
 
 simpleTest.describe('Group Comments - Real-time Communication', () => {
     simpleTest('should support real-time group-level comments between multiple users', async ({ createLoggedInBrowsers }, testInfo) => {
-        const [
-            { dashboardPage: aliceDashboardPage },
-            { dashboardPage: bobDashboardPage }
-        ] = await createLoggedInBrowsers(2);
+        const [{ dashboardPage: aliceDashboardPage }, { dashboardPage: bobDashboardPage }] = await createLoggedInBrowsers(2);
 
         testInfo.setTimeout(20000); // 20 seconds for multi-user test
 

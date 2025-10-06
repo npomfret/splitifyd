@@ -23,7 +23,7 @@ export class CreateGroupModalPage extends BasePage {
      */
     getModalContainer(): Locator {
         return this.page.locator('[role="dialog"]').filter({
-            has: this.page.getByRole('heading', { name: translation.createGroupModal.title })
+            has: this.page.getByRole('heading', { name: translation.createGroupModal.title }),
         });
     }
 
@@ -32,7 +32,7 @@ export class CreateGroupModalPage extends BasePage {
      */
     getModalBackdrop(): Locator {
         return this.page.locator('[role="presentation"]').filter({
-            has: this.page.locator('[role="dialog"]')
+            has: this.page.locator('[role="dialog"]'),
         });
     }
 
@@ -102,9 +102,12 @@ export class CreateGroupModalPage extends BasePage {
      */
     getCloseButton(): Locator {
         // The close button is in the header and has an SVG icon
-        return this.getModalContainer().locator('button').filter({
-            has: this.page.locator('svg')
-        }).first();
+        return this.getModalContainer()
+            .locator('button')
+            .filter({
+                has: this.page.locator('svg'),
+            })
+            .first();
     }
 
     // ============================================================================
@@ -124,7 +127,7 @@ export class CreateGroupModalPage extends BasePage {
     getValidationError(): Locator {
         // Input component shows error with role="alert" adjacent to input
         return this.getModalContainer().locator('[role="alert"]').filter({
-            hasText: /.+/ // Must have some text
+            hasText: /.+/, // Must have some text
         });
     }
 

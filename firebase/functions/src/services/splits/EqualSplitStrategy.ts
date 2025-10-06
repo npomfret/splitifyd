@@ -2,7 +2,6 @@ import { ExpenseSplit } from '@splitifyd/shared';
 import { ISplitStrategy } from './ISplitStrategy';
 
 export class EqualSplitStrategy implements ISplitStrategy {
-
     requiresSplitsData(): boolean {
         return false;
     }

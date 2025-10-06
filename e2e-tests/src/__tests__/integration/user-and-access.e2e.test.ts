@@ -441,11 +441,7 @@ simpleTest.describe('Share Link Access Management', () => {
             const [{ dashboardPage: user1DashboardPage }, { page: page2 }] = await createLoggedInBrowsers(2);
 
             const groupName = generateTestGroupName(`ShareLink`);
-            const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup(
-                new CreateGroupFormDataBuilder()
-                    .withName(groupName)
-                    .withDescription('Testing already member scenario')
-            );
+            const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().withName(groupName).withDescription('Testing already member scenario'));
             const groupId = groupDetailPage.inferGroupId();
             const shareLink = await groupDetailPage.getShareLink();
 

@@ -14,7 +14,7 @@ import { NotificationService } from './notification-service';
 import { IAuthService } from './auth';
 import { FirebaseAuthService } from './auth';
 import * as admin from 'firebase-admin';
-import {BalanceCalculationService} from "./balance";
+import { BalanceCalculationService } from './balance';
 
 export class ApplicationBuilder {
     // Base infrastructure - created once

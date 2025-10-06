@@ -81,6 +81,7 @@ assert(res)...
 The project provides builders for all common test data types:
 
 **Request Builders:**
+
 - `CreateExpenseRequestBuilder` - For expense creation requests
 - `CreateGroupRequestBuilder` - For group creation requests
 - `CreateSettlementRequestBuilder` - For settlement creation requests
@@ -89,16 +90,19 @@ The project provides builders for all common test data types:
 - `RegisterRequestBuilder` - For registration requests
 
 **Document Builders:**
+
 - `FirestoreGroupBuilder` - For Firestore group documents
 - `FirestoreExpenseBuilder` - For Firestore expense documents
 - `GroupMemberDocumentBuilder` - For group membership documents
 
 **Update Builders:**
+
 - `GroupUpdateBuilder` - For group update operations
 - `UserUpdateBuilder` - For user profile updates
 - `PasswordChangeBuilder` - For password change operations
 
 **Test Support Builders:**
+
 - `ExpenseSplitBuilder` - For expense split data
 - `SplitAssertionBuilder` - For test assertions on splits
 - `ChangeMetadataBuilder` - For change tracking metadata
@@ -125,6 +129,7 @@ expect(() => validateCreateExpense(invalidExpense)).toThrow('Amount must be posi
 ### Builder Pattern Compliance
 
 As of September 2025, the project maintains **100% builder pattern compliance** across all test files:
+
 - 257+ test instances migrated across 17 test files
 - Zero manual object creation remaining in core tests
 - All new tests must follow this pattern

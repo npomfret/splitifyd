@@ -73,7 +73,7 @@ export interface BatchGroupFetchOptions {
 import { CommentTargetType } from '@splitifyd/shared';
 import type { UserNotificationDocument } from '../../schemas/user-notifications';
 import type { ParsedShareLink } from '../../schemas';
-import type {ExpenseDTO, GroupDTO, PolicyDTO, RegisteredUser, SettlementDTO, GroupMembershipDTO, CommentDTO} from "@splitifyd/shared/src";
+import type { ExpenseDTO, GroupDTO, PolicyDTO, RegisteredUser, SettlementDTO, GroupMembershipDTO, CommentDTO } from '@splitifyd/shared/src';
 
 export interface IFirestoreReader {
     // ========================================================================
@@ -124,7 +124,6 @@ export interface IFirestoreReader {
     // ========================================================================
     // Collection Read Operations - User-related
     // ========================================================================
-
 
     /**
      * Get all groups where the user is a member using V2 implementation (top-level collection)
@@ -242,7 +241,10 @@ export interface IFirestoreReader {
      *   dateRange: { start: '2025-01-01', end: '2025-12-31' }
      * });
      */
-    getSettlementsForGroup(groupId: string, options: QueryOptions): Promise<{
+    getSettlementsForGroup(
+        groupId: string,
+        options: QueryOptions,
+    ): Promise<{
         settlements: SettlementDTO[];
         hasMore: boolean;
         nextCursor?: string;
@@ -310,16 +312,13 @@ export interface IFirestoreReader {
         expenseComments: FirebaseFirestore.QuerySnapshot[];
     }>;
 
-
     // ========================================================================
     // Settlement Query Operations
     // ========================================================================
 
-
     // ========================================================================
     // System Document Operations
     // ========================================================================
-
 
     // ========================================================================
     // Group Membership Verification
@@ -337,14 +336,9 @@ export interface IFirestoreReader {
     // Subcollection Operations
     // ========================================================================
 
-
-
-
-
     // ========================================================================
     // Raw Document Access (for special cases like optimistic locking)
     // ========================================================================
-
 
     /**
      * Get raw policy document for optimistic locking scenarios

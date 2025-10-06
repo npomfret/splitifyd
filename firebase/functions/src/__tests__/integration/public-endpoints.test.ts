@@ -284,7 +284,7 @@ describe('Public Endpoints Tests', () => {
 
         test('should handle filesystem access errors gracefully', async () => {
             const response = await fetch(`${apiDriver.getBaseUrl()}/env`);
-            const data = await response.json() as any;
+            const data = (await response.json()) as any;
 
             // If filesystem access fails, should still return valid structure
             expect(data.filesystem).toBeDefined();
@@ -313,7 +313,7 @@ describe('Public Endpoints Tests', () => {
 
             expect(response.status).toBe(404);
 
-            const data = await response.json() as any;
+            const data = (await response.json()) as any;
             expect(data).toHaveProperty('error');
             expect(data.error).toHaveProperty('code');
             expect(data.error).toHaveProperty('message');
@@ -338,9 +338,7 @@ describe('Public Endpoints Tests', () => {
         });
 
         test('should reject registration with invalid email format', async () => {
-            const invalidData = new RegisterRequestBuilder()
-                .withEmail('invalid-email-format')
-                .build();
+            const invalidData = new RegisterRequestBuilder().withEmail('invalid-email-format').build();
 
             const response = await fetch(`${apiDriver.getBaseUrl()}/register`, {
                 method: 'POST',

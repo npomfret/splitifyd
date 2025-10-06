@@ -1,6 +1,6 @@
-import {expect, simpleTest} from '../../fixtures';
-import {generateShortId, ExpenseFormDataBuilder, SettlementFormDataBuilder, CreateGroupFormDataBuilder} from '@splitifyd/test-support';
-import {groupDetailUrlPattern} from '../../pages/group-detail.page';
+import { expect, simpleTest } from '../../fixtures';
+import { generateShortId, ExpenseFormDataBuilder, SettlementFormDataBuilder, CreateGroupFormDataBuilder } from '@splitifyd/test-support';
+import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 
 /**
  * Consolidated Expense and Balance Lifecycle E2E Tests
@@ -43,7 +43,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withCurrency('EUR')
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
-                .build()
+                .build(),
         );
 
         // Verify expense appears and balance is calculated correctly (€50 each)
@@ -120,7 +120,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withCurrency('JPY')
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
-                .build()
+                .build(),
         );
 
         // PHASE 2: Test BHD (3 decimals) - add to same group
@@ -133,7 +133,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withCurrency('BHD')
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
-                .build()
+                .build(),
         );
 
         // PHASE 3: Test KWD (3 decimals) - comprehensive currency test
@@ -146,7 +146,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withCurrency('KWD')
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
-                .build()
+                .build(),
         );
 
         // Verify all currency amounts are displayed with correct precision
@@ -182,13 +182,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // PHASE 4: Test cross-currency settlement (settle with different currency)
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
         await settlementForm.submitSettlement(
-            new SettlementFormDataBuilder()
-                .withPayerName(user2DisplayName)
-                .withPayeeName(user1DisplayName)
-                .withAmount('25')
-                .withCurrency('EUR')
-                .withNote('Cross-currency settlement test')
-                .build(),
+            new SettlementFormDataBuilder().withPayerName(user2DisplayName).withPayeeName(user1DisplayName).withAmount('25').withCurrency('EUR').withNote('Cross-currency settlement test').build(),
             2,
         );
 
@@ -280,7 +274,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withCurrency('EUR')
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
-                .build()
+                .build(),
         );
 
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€150.00');
@@ -296,7 +290,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withCurrency('EUR')
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
-                .build()
+                .build(),
         );
 
         // Net calculation: User2 owes €150 - €50 = €100
@@ -334,7 +328,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withCurrency('EUR')
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
-                .build()
+                .build(),
         );
 
         // Final net: €40 + €25 = €65
@@ -367,7 +361,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withCurrency('JPY')
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName, user3DisplayName])
-                .build()
+                .build(),
         );
 
         // Verify initial state across all pages
@@ -382,14 +376,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const settlementNote1 = 'Partial payment from user2';
         const settlementFormPage2 = await groupDetailPage1.clickSettleUpButton(memberCount);
         await settlementFormPage2.submitSettlement(
-            new SettlementFormDataBuilder()
-                .withPayerName(user2DisplayName)
-                .withPayeeName(user1DisplayName)
-                .withAmount('30')
-                .withCurrency('JPY')
-                .withNote(settlementNote1)
-                .build(),
-            memberCount
+            new SettlementFormDataBuilder().withPayerName(user2DisplayName).withPayeeName(user1DisplayName).withAmount('30').withCurrency('JPY').withNote(settlementNote1).build(),
+            memberCount,
         );
 
         // Verify real-time updates for partial settlement
@@ -404,14 +392,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const settlementNote2 = 'Final payment from user2 - all settled!';
         const settlementFormPage1 = await groupDetailPage1.clickSettleUpButton(memberCount);
         await settlementFormPage1.submitSettlement(
-            new SettlementFormDataBuilder()
-                .withPayerName(user2DisplayName)
-                .withPayeeName(user1DisplayName)
-                .withAmount('10')
-                .withCurrency('JPY')
-                .withNote(settlementNote2)
-                .build(),
-            memberCount
+            new SettlementFormDataBuilder().withPayerName(user2DisplayName).withPayeeName(user1DisplayName).withAmount('10').withCurrency('JPY').withNote(settlementNote2).build(),
+            memberCount,
         );
 
         // Verify real-time updates for final settlement
@@ -426,14 +408,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const settlementNote3 = 'User3 partial payment';
         const settlementFormPage = await groupDetailPage1.clickSettleUpButton(memberCount);
         await settlementFormPage.submitSettlement(
-            new SettlementFormDataBuilder()
-                .withPayerName(user3DisplayName)
-                .withPayeeName(user1DisplayName)
-                .withAmount('25')
-                .withCurrency('JPY')
-                .withNote(settlementNote3)
-                .build(),
-            memberCount
+            new SettlementFormDataBuilder().withPayerName(user3DisplayName).withPayeeName(user1DisplayName).withAmount('25').withCurrency('JPY').withNote(settlementNote3).build(),
+            memberCount,
         );
 
         // Verify final real-time state
@@ -521,10 +497,7 @@ simpleTest.describe('Real-time Comments', () => {
     simpleTest('should support real-time expense comments', async ({ createLoggedInBrowsers }, testInfo) => {
         testInfo.setTimeout(20000); // 20 seconds
         // Create two browser instances - Alice and Bob
-        const [
-            { dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage },
-        ] = await createLoggedInBrowsers(2);
+        const [{ dashboardPage: user1DashboardPage }, { dashboardPage: user2DashboardPage }] = await createLoggedInBrowsers(2);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -542,7 +515,7 @@ simpleTest.describe('Real-time Comments', () => {
                 .withPaidByDisplayName(user1DisplayName)
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
-                .build()
+                .build(),
         );
 
         await user1GroupDetailPage.waitForExpense(expenseDescription);
@@ -586,13 +559,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
 
         // Test 1: Normal settlement creation and display
         const settlementForm1 = await groupDetailPage.clickSettleUpButton(2);
-        const settlementData1 = new SettlementFormDataBuilder()
-            .withPayerName(payerName)
-            .withPayeeName(payeeName)
-            .withAmount('100.50')
-            .withCurrency('JPY')
-            .withNote('Test payment for history')
-            .build();
+        const settlementData1 = new SettlementFormDataBuilder().withPayerName(payerName).withPayeeName(payeeName).withAmount('100.50').withCurrency('JPY').withNote('Test payment for history').build();
 
         await settlementForm1.submitSettlement(settlementData1, 2);
         await groupDetailPage.openHistoryIfClosed();
@@ -602,8 +569,8 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         // Test 2: Settlement where creator is payee (different permissions scenario)
         const settlementForm2 = await groupDetailPage.clickSettleUpButton(2);
         const settlementData2 = new SettlementFormDataBuilder()
-            .withPayerName(payeeName)  // Other user pays
-            .withPayeeName(payerName)  // Creator receives
+            .withPayerName(payeeName) // Other user pays
+            .withPayeeName(payerName) // Creator receives
             .withAmount('75.00')
             .withCurrency('JPY')
             .withNote('Creator receives payment')
@@ -629,13 +596,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
 
         // Create settlement for editing
         let settlementForm = await groupDetailPage.clickSettleUpButton(2);
-        const initialData = new SettlementFormDataBuilder()
-            .withPayerName(payerName)
-            .withPayeeName(payeeName)
-            .withAmount('100.50')
-            .withCurrency('JPY')
-            .withNote('Initial test payment')
-            .build();
+        const initialData = new SettlementFormDataBuilder().withPayerName(payerName).withPayeeName(payeeName).withAmount('100.50').withCurrency('JPY').withNote('Initial test payment').build();
 
         await settlementForm.submitSettlement(initialData, 2);
         await groupDetailPage.verifySettlementDetails({ note: initialData.note });
@@ -695,25 +656,13 @@ simpleTest.describe('Settlement CRUD Operations', () => {
 
         // Create settlements for testing deletion flows
         const settlementForm1 = await groupDetailPage.clickSettleUpButton(2);
-        const settlementData1 = new SettlementFormDataBuilder()
-            .withPayerName(payerName)
-            .withPayeeName(payeeName)
-            .withAmount('100.00')
-            .withCurrency('JPY')
-            .withNote('Payment to be deleted')
-            .build();
+        const settlementData1 = new SettlementFormDataBuilder().withPayerName(payerName).withPayeeName(payeeName).withAmount('100.00').withCurrency('JPY').withNote('Payment to be deleted').build();
 
         await settlementForm1.submitSettlement(settlementData1, 2);
         await groupDetailPage.verifySettlementDetails({ note: settlementData1.note });
 
         const settlementForm2 = await groupDetailPage.clickSettleUpButton(2);
-        const settlementData2 = new SettlementFormDataBuilder()
-            .withPayerName(payerName)
-            .withPayeeName(payeeName)
-            .withAmount('75.00')
-            .withCurrency('JPY')
-            .withNote('Payment to keep')
-            .build();
+        const settlementData2 = new SettlementFormDataBuilder().withPayerName(payerName).withPayeeName(payeeName).withAmount('75.00').withCurrency('JPY').withNote('Payment to keep').build();
 
         await settlementForm2.submitSettlement(settlementData2, 2);
         await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
@@ -753,7 +702,7 @@ simpleTest.describe('Copy Expense Feature', () => {
                 .withPaidByDisplayName(user1DisplayName)
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
-                .build()
+                .build(),
         );
 
         // Step 2: Navigate to expense detail page
@@ -820,7 +769,7 @@ simpleTest.describe('Copy Expense Feature', () => {
                 .withPaidByDisplayName(user2DisplayName) // User2 pays
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName, user3DisplayName]) // Split 3 ways
-                .build()
+                .build(),
         );
 
         // Wait for all users to see the original expense

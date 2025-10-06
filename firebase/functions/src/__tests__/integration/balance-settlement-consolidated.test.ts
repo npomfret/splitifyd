@@ -145,10 +145,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
-                const updateData = new SettlementUpdateBuilder()
-                    .withAmount(75.25)
-                    .withNote('Updated note')
-                    .build();
+                const updateData = new SettlementUpdateBuilder().withAmount(75.25).withNote('Updated note').build();
 
                 const updated = await apiDriver.updateSettlement(created.id, updateData, settlementUsers[0].token);
 
@@ -161,7 +158,9 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
-                await expect(apiDriver.updateSettlement(created.id, new SettlementUpdateBuilder().withAmount(100).build(), settlementUsers[1].token)).rejects.toThrow(/status 403.*NOT_SETTLEMENT_CREATOR/);
+                await expect(apiDriver.updateSettlement(created.id, new SettlementUpdateBuilder().withAmount(100).build(), settlementUsers[1].token)).rejects.toThrow(
+                    /status 403.*NOT_SETTLEMENT_CREATOR/,
+                );
             });
 
             test('should validate update data', async () => {
@@ -195,7 +194,6 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                 await expect(apiDriver.deleteSettlement('non-existent-id', settlementUsers[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
             });
         });
-
     });
 
     describe('Advanced Settlement Scenarios', () => {

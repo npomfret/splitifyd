@@ -488,11 +488,7 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Verify that form fields are pre-filled with expected values from copied expense
      */
-    async verifyPreFilledValues(expectedValues: {
-        description?: string;
-        amount?: string;
-        category?: string;
-    }): Promise<void> {
+    async verifyPreFilledValues(expectedValues: { description?: string; amount?: string; category?: string }): Promise<void> {
         if (expectedValues.description) {
             const descriptionInput = this.getExpenseDescriptionField();
             await expect(descriptionInput).toHaveValue(expectedValues.description);

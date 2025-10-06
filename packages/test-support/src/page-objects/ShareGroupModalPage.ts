@@ -23,7 +23,7 @@ export class ShareGroupModalPage extends BasePage {
      */
     getModalContainer(): Locator {
         return this.page.locator('[role="dialog"]').filter({
-            has: this.page.locator('#share-modal-title')
+            has: this.page.locator('#share-modal-title'),
         });
     }
 
@@ -32,7 +32,7 @@ export class ShareGroupModalPage extends BasePage {
      */
     getModalBackdrop(): Locator {
         return this.page.locator('[role="presentation"]').filter({
-            has: this.page.locator('[role="dialog"]')
+            has: this.page.locator('[role="dialog"]'),
         });
     }
 

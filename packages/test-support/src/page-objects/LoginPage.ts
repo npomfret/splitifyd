@@ -27,7 +27,7 @@ export class LoginPage extends BasePage {
     getLoginFormContainer(): Locator {
         // Find the form that contains login-specific elements
         return this.page.locator('form').filter({
-            has: this.page.locator('input[type="email"]')
+            has: this.page.locator('input[type="email"]'),
         });
     }
 
@@ -35,7 +35,9 @@ export class LoginPage extends BasePage {
      * Login page heading container - helps identify we're on the right page
      */
     getPageHeading(): Locator {
-        return this.getLoginFormContainer().locator('..').getByRole('heading', { name: /sign.*in/i });
+        return this.getLoginFormContainer()
+            .locator('..')
+            .getByRole('heading', { name: /sign.*in/i });
     }
 
     /**
@@ -108,7 +110,7 @@ export class LoginPage extends BasePage {
      */
     getDefaultLoginButton(): Locator {
         return this.getLoginFormContainer().locator('button').filter({
-            hasText: /demo/i
+            hasText: /demo/i,
         });
     }
 
@@ -133,7 +135,7 @@ export class LoginPage extends BasePage {
      */
     async getErrorMessage(): Promise<string> {
         await expect(this.getErrorContainer()).toBeVisible();
-        return await this.getErrorContainer().textContent() || '';
+        return (await this.getErrorContainer().textContent()) || '';
     }
 
     // ============================================================================
@@ -257,7 +259,7 @@ export class LoginPage extends BasePage {
      */
     async clickForgotPassword(): Promise<void> {
         await this.clickButton(this.getForgotPasswordButton(), {
-            buttonName: 'Forgot Password'
+            buttonName: 'Forgot Password',
         });
     }
 
@@ -277,7 +279,7 @@ export class LoginPage extends BasePage {
     async clickSignUpAndNavigateToRegister(): Promise<void> {
         const button = this.getSignUpButton();
         await this.clickButton(button, {
-            buttonName: 'Sign Up'
+            buttonName: 'Sign Up',
         });
         // Wait for navigation to register page
         await expect(this.page).toHaveURL(/\/register/);
@@ -295,7 +297,7 @@ export class LoginPage extends BasePage {
     protected async clickSignUpButton(): Promise<void> {
         const button = this.getSignUpButton();
         await this.clickButton(button, {
-            buttonName: 'Sign Up'
+            buttonName: 'Sign Up',
         });
         // Wait for navigation to register page
         await expect(this.page).toHaveURL(/\/register/);
@@ -353,5 +355,4 @@ export class LoginPage extends BasePage {
             await expect(this.getSubmitButton()).toBeDisabled();
         }
     }
-
 }

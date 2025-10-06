@@ -45,5 +45,4 @@ describe('SplitStrategyFactory', () => {
             expect(strategy1).toBe(strategy2);
         });
     });
-
 });

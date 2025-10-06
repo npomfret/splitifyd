@@ -23,6 +23,7 @@ Warn the user when they are about to record a settlement that will not change th
 - Note: Expense schema already uses `.positive()` so this brings consistency
 
 **File: `firebase/functions/src/schemas/expense.ts:22`** (verify existing)
+
 - Expense already has `.positive()` validation - no changes needed
 
 ### 2. Frontend UI Changes
@@ -30,89 +31,95 @@ Warn the user when they are about to record a settlement that will not change th
 **File: `webapp-v2/src/components/settlements/SettlementForm.tsx`**
 
 #### Add Warning State (after line 26)
+
 ```typescript
 const [warningMessage, setWarningMessage] = useState<string | null>(null);
 ```
 
 #### Add Helper Function (after `getMemberName` function)
+
 ```typescript
 const getCurrentDebt = (): number => {
-  if (!payerId || !payeeId || !currency || !enhancedGroupDetailStore.balances) {
-    return 0;
-  }
+    if (!payerId || !payeeId || !currency || !enhancedGroupDetailStore.balances) {
+        return 0;
+    }
 
-  const balancesByCurrency = enhancedGroupDetailStore.balances.balancesByCurrency;
-  const currencyBalances = balancesByCurrency[currency];
+    const balancesByCurrency = enhancedGroupDetailStore.balances.balancesByCurrency;
+    const currencyBalances = balancesByCurrency[currency];
 
-  if (!currencyBalances) return 0;
+    if (!currencyBalances) return 0;
 
-  const payerBalance = currencyBalances[payerId];
-  if (!payerBalance) return 0;
+    const payerBalance = currencyBalances[payerId];
+    if (!payerBalance) return 0;
 
-  // Find how much payer owes to payee
-  const debtToPayee = payerBalance.perPersonBalances?.[payeeId] || 0;
+    // Find how much payer owes to payee
+    const debtToPayee = payerBalance.perPersonBalances?.[payeeId] || 0;
 
-  // Negative balance means payer owes payee (return absolute value)
-  return debtToPayee < 0 ? Math.abs(debtToPayee) : 0;
+    // Negative balance means payer owes payee (return absolute value)
+    return debtToPayee < 0 ? Math.abs(debtToPayee) : 0;
 };
 ```
 
 #### Add Real-time Warning Calculation (new useEffect after line 98)
+
 ```typescript
 useEffect(() => {
-  if (!payerId || !payeeId || !currency || !amount) {
+    if (!payerId || !payeeId || !currency || !amount) {
+        setWarningMessage(null);
+        return;
+    }
+
+    const amountNum = parseFloat(amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+        setWarningMessage(null);
+        return;
+    }
+
+    const currentDebt = getCurrentDebt();
+
+    // Warning Case 1: Payer doesn't owe payee anything
+    if (currentDebt === 0) {
+        const payerName = getMemberName(payerId);
+        const payeeName = getMemberName(payeeId);
+        setWarningMessage(t('settlementForm.warnings.noDebt', { payer: payerName, payee: payeeName, currency }));
+        return;
+    }
+
+    // Warning Case 2: Overpayment (settlement > current debt)
+    if (amountNum > currentDebt) {
+        const payerName = getMemberName(payerId);
+        const payeeName = getMemberName(payeeId);
+        setWarningMessage(
+            t('settlementForm.warnings.overpayment', {
+                payer: payerName,
+                payee: payeeName,
+                debt: formatCurrency(currentDebt, currency),
+                amount: formatCurrency(amountNum, currency),
+            }),
+        );
+        return;
+    }
+
+    // No warning
     setWarningMessage(null);
-    return;
-  }
-
-  const amountNum = parseFloat(amount);
-  if (isNaN(amountNum) || amountNum <= 0) {
-    setWarningMessage(null);
-    return;
-  }
-
-  const currentDebt = getCurrentDebt();
-
-  // Warning Case 1: Payer doesn't owe payee anything
-  if (currentDebt === 0) {
-    const payerName = getMemberName(payerId);
-    const payeeName = getMemberName(payeeId);
-    setWarningMessage(
-      t('settlementForm.warnings.noDebt', { payer: payerName, payee: payeeName, currency })
-    );
-    return;
-  }
-
-  // Warning Case 2: Overpayment (settlement > current debt)
-  if (amountNum > currentDebt) {
-    const payerName = getMemberName(payerId);
-    const payeeName = getMemberName(payeeId);
-    setWarningMessage(
-      t('settlementForm.warnings.overpayment', {
-        payer: payerName,
-        payee: payeeName,
-        debt: formatCurrency(currentDebt, currency),
-        amount: formatCurrency(amountNum, currency)
-      })
-    );
-    return;
-  }
-
-  // No warning
-  setWarningMessage(null);
 }, [payerId, payeeId, amount, currency, enhancedGroupDetailStore.balances]);
 ```
 
 #### Display Warning (after Summary section, before Error Message around line 348)
+
 ```tsx
-{/* Warning Message */}
-{warningMessage && (
-  <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-    <p class="text-sm text-yellow-800" role="status" data-testid="settlement-warning-message">
-      ⚠️ {warningMessage}
-    </p>
-  </div>
-)}
+{
+    /* Warning Message */
+}
+{
+    warningMessage && (
+        <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <p class="text-sm text-yellow-800" role="status" data-testid="settlement-warning-message">
+                ⚠️ {warningMessage}
+            </p>
+        </div>
+    );
+}
 ```
 
 ### 3. Translation Updates
@@ -120,6 +127,7 @@ useEffect(() => {
 **File: `webapp-v2/src/locales/en/translation.json`**
 
 Add new section under `settlementForm` (after `validation`):
+
 ```json
 "warnings": {
   "noDebt": "{{payer}} does not owe {{payee}} any money in {{currency}}. This settlement will create a debt in the opposite direction.",
@@ -128,6 +136,7 @@ Add new section under `settlementForm` (after `validation`):
 ```
 
 Update validation message for clarity:
+
 ```json
 "validAmountRequired": "Please enter an amount greater than 0"
 ```
@@ -135,18 +144,21 @@ Update validation message for clarity:
 ## User Experience
 
 ### Scenario 1: No Debt
+
 - **User Action:** User tries to record a settlement from Alice to Bob
 - **Current State:** Alice owes Bob $0 in USD
 - **System Response:** Inline warning appears: "⚠️ Alice does not owe Bob any money in USD. This settlement will create a debt in the opposite direction."
 - **Result:** Warning is shown but user can still submit if they want
 
 ### Scenario 2: Overpayment
+
 - **User Action:** User tries to settle $100 from Alice to Bob
 - **Current State:** Alice owes Bob $50 in USD
 - **System Response:** Inline warning appears: "⚠️ Alice only owes Bob $50.00, but you're settling $100.00. This will create a debt in the opposite direction."
 - **Result:** Warning is shown but user can still submit if they want
 
 ### Scenario 3: Zero Amount
+
 - **User Action:** User enters $0 as amount
 - **System Response:** Submit button is disabled (existing validation)
 - **Result:** Form cannot be submitted

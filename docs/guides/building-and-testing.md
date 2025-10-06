@@ -142,6 +142,7 @@ cd webapp-v2
 ```
 
 **Why use `run-test.sh`?**
+
 - **Automatic port detection**: Works with random ports to avoid conflicts
 - **Better error messages**: Clear feedback when tests fail to run
 - **Consistent environment**: Sets proper environment variables
@@ -149,6 +150,7 @@ cd webapp-v2
 - **Flakiness detection**: Built-in `--repeat` flag for testing test reliability
 
 **Direct Playwright commands (not recommended for unit tests):**
+
 ```bash
 # These work but are less reliable and harder to use
 npx playwright test src/__tests__/unit/playwright/login.test.ts
@@ -172,7 +174,6 @@ cd e2e-tests
 These tests output lots of useful data for debugging including screenshots, per-use browser console logs as files, and even api request logs.
 
 You MUST carefully analyse the console output from this test script. I contains a lot of useful information that will help debug the test.
-
 
 ### Other Packages
 

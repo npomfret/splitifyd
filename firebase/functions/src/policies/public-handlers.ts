@@ -7,7 +7,6 @@ const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
 const policyService = applicationBuilder.buildPolicyService();
 
-
 /**
  * GET /policies/:id/current - Get current version of a specific policy (public endpoint)
  */

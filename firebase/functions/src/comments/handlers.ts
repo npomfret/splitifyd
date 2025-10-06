@@ -69,15 +69,12 @@ export const listGroupComments = async (req: AuthenticatedRequest, res: Response
 
         const { cursor, limit = 20 } = req.query;
 
-        const responseData = await getAppBuilder().buildCommentService().listComments(
-            CommentTargetTypes.GROUP,
-            groupId,
-            userId,
-            {
+        const responseData = await getAppBuilder()
+            .buildCommentService()
+            .listComments(CommentTargetTypes.GROUP, groupId, userId, {
                 cursor: cursor as string,
                 limit: parseInt(limit as string, 10) || 20,
-            }
-        );
+            });
 
         const response: { success: boolean; data: ListCommentsResponse } = {
             success: true,
@@ -116,15 +113,12 @@ export const listExpenseComments = async (req: AuthenticatedRequest, res: Respon
 
         const { cursor, limit = 20 } = req.query;
 
-        const responseData = await getAppBuilder().buildCommentService().listComments(
-            CommentTargetTypes.EXPENSE,
-            expenseId,
-            userId,
-            {
+        const responseData = await getAppBuilder()
+            .buildCommentService()
+            .listComments(CommentTargetTypes.EXPENSE, expenseId, userId, {
                 cursor: cursor as string,
                 limit: parseInt(limit as string, 10) || 20,
-            }
-        );
+            });
 
         const response: { success: boolean; data: ListCommentsResponse } = {
             success: true,

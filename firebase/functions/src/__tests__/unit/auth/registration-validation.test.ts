@@ -62,10 +62,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
         });
 
         it('should normalize email to lowercase and trim whitespace', () => {
-            const data = new UserRegistrationBuilder()
-                .from(validRegistrationData)
-                .withEmail('  TEST@EXAMPLE.COM  ')
-                .build();
+            const data = new UserRegistrationBuilder().from(validRegistrationData).withEmail('  TEST@EXAMPLE.COM  ').build();
             const result = validateRegisterRequest(data);
             expect(result.email).toBe('test@example.com');
         });
@@ -76,10 +73,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
             const strongPasswords = ['SecurePass123!', 'MyP@ssw0rd2024', 'Tr0ub4dor&3', 'Complex!Pass1', 'Str0ng&Secure!'];
 
             for (const password of strongPasswords) {
-                const data = new UserRegistrationBuilder()
-                    .from(validRegistrationData)
-                    .withPassword(password)
-                    .build();
+                const data = new UserRegistrationBuilder().from(validRegistrationData).withPassword(password).build();
                 expect(() => validateRegisterRequest(data)).not.toThrow();
             }
         });
@@ -100,10 +94,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
             ];
 
             for (const password of weakPasswords) {
-                const data = new UserRegistrationBuilder()
-                    .from(validRegistrationData)
-                    .withPassword(password)
-                    .build();
+                const data = new UserRegistrationBuilder().from(validRegistrationData).withPassword(password).build();
                 expect(() => validateRegisterRequest(data)).toThrow(
                     expect.objectContaining({
                         statusCode: HTTP_STATUS.BAD_REQUEST,
@@ -115,10 +106,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
         });
 
         it('should provide specific error message for password requirements', () => {
-            const data = new UserRegistrationBuilder()
-                .from(validRegistrationData)
-                .withPassword('weak')
-                .build();
+            const data = new UserRegistrationBuilder().from(validRegistrationData).withPassword('weak').build();
             expect(() => validateRegisterRequest(data)).toThrow(
                 new ApiError(
                     HTTP_STATUS.BAD_REQUEST,
@@ -142,10 +130,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
             ];
 
             for (const displayName of validNames) {
-                const data = new UserRegistrationBuilder()
-                    .from(validRegistrationData)
-                    .withDisplayName(displayName)
-                    .build();
+                const data = new UserRegistrationBuilder().from(validRegistrationData).withDisplayName(displayName).build();
                 expect(() => validateRegisterRequest(data)).not.toThrow();
             }
         });
@@ -166,10 +151,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
             ];
 
             for (const displayName of invalidNames) {
-                const data = new UserRegistrationBuilder()
-                    .from(validRegistrationData)
-                    .withDisplayName(displayName)
-                    .build();
+                const data = new UserRegistrationBuilder().from(validRegistrationData).withDisplayName(displayName).build();
                 expect(() => validateRegisterRequest(data)).toThrow(
                     expect.objectContaining({
                         statusCode: HTTP_STATUS.BAD_REQUEST,
@@ -181,12 +163,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
 
         it('should provide specific error messages for display name issues', () => {
             // Too short
-            expect(() => validateRegisterRequest(
-                new UserRegistrationBuilder()
-                    .from(validRegistrationData)
-                    .withDisplayName('A')
-                    .build()
-            )).toThrow(
+            expect(() => validateRegisterRequest(new UserRegistrationBuilder().from(validRegistrationData).withDisplayName('A').build())).toThrow(
                 expect.objectContaining({
                     code: 'DISPLAY_NAME_TOO_SHORT',
                     message: 'Display name must be at least 2 characters',
@@ -194,12 +171,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
             );
 
             // Too long
-            expect(() => validateRegisterRequest(
-                new UserRegistrationBuilder()
-                    .from(validRegistrationData)
-                    .withDisplayName('A'.repeat(51))
-                    .build()
-            )).toThrow(
+            expect(() => validateRegisterRequest(new UserRegistrationBuilder().from(validRegistrationData).withDisplayName('A'.repeat(51)).build())).toThrow(
                 expect.objectContaining({
                     code: 'DISPLAY_NAME_TOO_LONG',
                     message: 'Display name cannot exceed 50 characters',
@@ -207,12 +179,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
             );
 
             // Invalid characters
-            expect(() => validateRegisterRequest(
-                new UserRegistrationBuilder()
-                    .from(validRegistrationData)
-                    .withDisplayName('User@Name')
-                    .build()
-            )).toThrow(
+            expect(() => validateRegisterRequest(new UserRegistrationBuilder().from(validRegistrationData).withDisplayName('User@Name').build())).toThrow(
                 expect.objectContaining({
                     code: 'INVALID_DISPLAY_NAME_CHARS',
                     message: 'Display name can only contain letters, numbers, spaces, hyphens, underscores, and periods',
@@ -221,10 +188,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
         });
 
         it('should trim whitespace from display names', () => {
-            const data = new UserRegistrationBuilder()
-                .from(validRegistrationData)
-                .withDisplayName('  Test User  ')
-                .build();
+            const data = new UserRegistrationBuilder().from(validRegistrationData).withDisplayName('  Test User  ').build();
             const result = validateRegisterRequest(data);
             expect(result.displayName).toBe('Test User');
         });
@@ -303,12 +267,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
 
         it('should provide specific error messages for policy acceptance', () => {
             // Terms not accepted
-            expect(() => validateRegisterRequest(
-                new UserRegistrationBuilder()
-                    .from(validRegistrationData)
-                    .withTermsAccepted(false)
-                    .build()
-            )).toThrow(
+            expect(() => validateRegisterRequest(new UserRegistrationBuilder().from(validRegistrationData).withTermsAccepted(false).build())).toThrow(
                 expect.objectContaining({
                     code: 'TERMS_NOT_ACCEPTED',
                     message: 'You must accept the Terms of Service',
@@ -316,12 +275,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
             );
 
             // Cookie policy not accepted
-            expect(() => validateRegisterRequest(
-                new UserRegistrationBuilder()
-                    .from(validRegistrationData)
-                    .withCookiePolicyAccepted(false)
-                    .build()
-            )).toThrow(
+            expect(() => validateRegisterRequest(new UserRegistrationBuilder().from(validRegistrationData).withCookiePolicyAccepted(false).build())).toThrow(
                 expect.objectContaining({
                     code: 'COOKIE_POLICY_NOT_ACCEPTED',
                     message: 'You must accept the Cookie Policy',
@@ -332,10 +286,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
 
     describe('Validation Error Handling', () => {
         it('should throw ApiError with proper structure', () => {
-            const data = new UserRegistrationBuilder()
-                .from(validRegistrationData)
-                .withEmail('invalid-email')
-                .build();
+            const data = new UserRegistrationBuilder().from(validRegistrationData).withEmail('invalid-email').build();
 
             try {
                 validateRegisterRequest(data);
@@ -389,10 +340,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
         });
 
         it('should preserve password exactly as provided (no normalization)', () => {
-            const data = new UserRegistrationBuilder()
-                .from(validRegistrationData)
-                .withPassword('  MyP@ssw0rd123!  ')
-                .build();
+            const data = new UserRegistrationBuilder().from(validRegistrationData).withPassword('  MyP@ssw0rd123!  ').build();
             const result = validateRegisterRequest(data);
             expect(result.password).toBe('  MyP@ssw0rd123!  '); // Passwords should not be trimmed
         });
@@ -403,10 +351,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
             const commonWeakPasswords = ['password123', 'admin123', 'qwerty123', '12345678', 'password!', 'Password1'];
 
             for (const password of commonWeakPasswords) {
-                const data = new UserRegistrationBuilder()
-                    .from(validRegistrationData)
-                    .withPassword(password)
-                    .build();
+                const data = new UserRegistrationBuilder().from(validRegistrationData).withPassword(password).build();
                 expect(() => validateRegisterRequest(data)).toThrow(
                     expect.objectContaining({
                         statusCode: HTTP_STATUS.BAD_REQUEST,
@@ -426,10 +371,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
             ];
 
             for (const password of insufficientPasswords) {
-                const data = new UserRegistrationBuilder()
-                    .from(validRegistrationData)
-                    .withPassword(password)
-                    .build();
+                const data = new UserRegistrationBuilder().from(validRegistrationData).withPassword(password).build();
                 expect(() => validateRegisterRequest(data)).toThrow(
                     expect.objectContaining({
                         code: 'WEAK_PASSWORD',

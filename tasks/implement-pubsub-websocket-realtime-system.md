@@ -7,7 +7,7 @@ This document outlines a plan to completely refactor the real-time notification 
 ## 2. Current Architecture & Its Limitations
 
 - **Mechanism:** The current system uses Firestore triggers (`trackGroupChanges`, `trackExpenseChanges`) to detect database modifications.
-- **Data Flow:** When a change occurs, a Cloud Function is executed, which then writes an update to the `user-notifications` document for *every single member* of the affected group.
+- **Data Flow:** When a change occurs, a Cloud Function is executed, which then writes an update to the `user-notifications` document for _every single member_ of the affected group.
 - **Client-Side:** Each client listens for changes on their own unique document in the `user-notifications` collection to receive updates.
 
 ### Limitations:
@@ -87,7 +87,7 @@ The new architecture will be a true "push" system composed of three components:
 
 ## 5. Benefits of This Approach
 
--   **Scalability & Cost:** Reduces Firestore writes from O(N) to O(1) for group-wide events, dramatically lowering costs and improving performance.
--   **Reduced Latency:** A direct push model is significantly faster than the multi-step trigger-based system.
--   **Simplicity & Maintainability:** The event flow becomes explicit and easier to trace. Business logic and notification logic are co-located.
--   **Flexibility:** Pushing specific event types enables more intelligent, granular updates on the client-side, leading to a more responsive UI.
+- **Scalability & Cost:** Reduces Firestore writes from O(N) to O(1) for group-wide events, dramatically lowering costs and improving performance.
+- **Reduced Latency:** A direct push model is significantly faster than the multi-step trigger-based system.
+- **Simplicity & Maintainability:** The event flow becomes explicit and easier to trace. Business logic and notification logic are co-located.
+- **Flexibility:** Pushing specific event types enables more intelligent, granular updates on the client-side, leading to a more responsive UI.

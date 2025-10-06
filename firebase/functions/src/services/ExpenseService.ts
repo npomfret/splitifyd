@@ -13,7 +13,7 @@ import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
 import { UserService } from './UserService2';
-import { FirestoreCollections } from "../constants";
+import { FirestoreCollections } from '../constants';
 
 /**
  * Service for managing expenses
@@ -523,10 +523,7 @@ export class ExpenseService {
      * Get consolidated expense details (expense + group + members)
      * Eliminates race conditions by providing all needed data in one request
      */
-    async getExpenseFullDetails(
-        expenseId: string,
-        userId: string,
-    ): Promise<ExpenseFullDetailsDTO> {
+    async getExpenseFullDetails(expenseId: string, userId: string): Promise<ExpenseFullDetailsDTO> {
         // Fetch the expense
         const expense = await this.fetchExpense(expenseId);
 

@@ -23,7 +23,7 @@ import {
     type PolicyDTO,
     type RegisteredUser,
     type GroupMembershipDTO,
-    type CommentDTO
+    type CommentDTO,
 } from '@splitifyd/shared';
 import { ApiError } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
@@ -51,8 +51,8 @@ import { CommentDocumentSchema } from '../../schemas';
 // FirestoreReader now works directly with GroupMembershipDTO from @splitifyd/shared
 import type { IFirestoreReader, FirestoreOrderField } from './IFirestoreReader';
 import type { QueryOptions, PaginatedResult, GroupsPaginationCursor, OrderBy, BatchGroupFetchOptions } from './IFirestoreReader';
-import { FirestoreCollections } from "../../constants";
-import type { TopLevelGroupMemberDocument } from "../../types";
+import { FirestoreCollections } from '../../constants';
+import type { TopLevelGroupMemberDocument } from '../../types';
 
 export class FirestoreReader implements IFirestoreReader {
     constructor(private readonly db: Firestore) {}
@@ -112,9 +112,7 @@ export class FirestoreReader implements IFirestoreReader {
             } else if (value && typeof value === 'object' && !Array.isArray(value)) {
                 result[key] = this.convertTimestampsToISO(value);
             } else if (Array.isArray(value)) {
-                result[key] = value.map(item =>
-                    item && typeof item === 'object' ? this.convertTimestampsToISO(item) : item
-                );
+                result[key] = value.map((item) => (item && typeof item === 'object' ? this.convertTimestampsToISO(item) : item));
             }
         }
 
@@ -282,7 +280,7 @@ export class FirestoreReader implements IFirestoreReader {
         if (typeof data !== 'object' || data === null) {
             throw new Error('Invalid group data: expected object');
         }
-        const sanitized = { ...data as Record<string, unknown> };
+        const sanitized = { ...(data as Record<string, unknown>) };
 
         // Remove API-only computed fields that should never be in Firestore
         // These might be present in corrupted data from old migrations or test data
@@ -522,7 +520,7 @@ export class FirestoreReader implements IFirestoreReader {
         return measureDb('GET_MEMBER_IDS', async () => {
             // Delegate to getAllGroupMembers for DRY and consistent hard cap enforcement
             const members = await this.getAllGroupMembers(groupId);
-            return members.map(member => member.uid);
+            return members.map((member) => member.uid);
         });
     }
 
@@ -539,11 +537,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             // Detect overflow - group exceeds maximum size - should never happen!
             if (snapshot.size > MAX_GROUP_MEMBERS) {
-                throw new ApiError(
-                    HTTP_STATUS.BAD_REQUEST,
-                    'GROUP_TOO_LARGE',
-                    `Group exceeds maximum size of ${MAX_GROUP_MEMBERS} members`
-                );
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'GROUP_TOO_LARGE', `Group exceeds maximum size of ${MAX_GROUP_MEMBERS} members`);
             }
 
             const parsedMembers: GroupMembershipDTO[] = [];
@@ -678,10 +672,7 @@ export class FirestoreReader implements IFirestoreReader {
      * @private
      */
     private buildBaseSettlementQuery(groupId: string): FirebaseFirestore.Query {
-        return this.db
-            .collection(FirestoreCollections.SETTLEMENTS)
-            .where('groupId', '==', groupId)
-            .where('deletedAt', '==', null);
+        return this.db.collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId).where('deletedAt', '==', null);
     }
 
     /**
@@ -706,7 +697,10 @@ export class FirestoreReader implements IFirestoreReader {
         return settlements;
     }
 
-    async getSettlementsForGroup(groupId: string, options: QueryOptions): Promise<{
+    async getSettlementsForGroup(
+        groupId: string,
+        options: QueryOptions,
+    ): Promise<{
         settlements: SettlementDTO[];
         hasMore: boolean;
         nextCursor?: string;
@@ -723,12 +717,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             // Apply user filter (for settlements involving specific user)
             if (options.filterUserId) {
-                query = query.where(
-                    Filter.or(
-                        Filter.where('payerId', '==', options.filterUserId),
-                        Filter.where('payeeId', '==', options.filterUserId)
-                    )
-                );
+                query = query.where(Filter.or(Filter.where('payerId', '==', options.filterUserId), Filter.where('payeeId', '==', options.filterUserId)));
             }
 
             // Apply date range filter
@@ -766,9 +755,7 @@ export class FirestoreReader implements IFirestoreReader {
             if (options.cursor) {
                 hasMore = settlements.length > options.limit;
                 settlementsToReturn = hasMore ? settlements.slice(0, options.limit) : settlements;
-                nextCursor = hasMore && settlementsToReturn.length > 0
-                    ? settlementsToReturn[settlementsToReturn.length - 1].id
-                    : undefined;
+                nextCursor = hasMore && settlementsToReturn.length > 0 ? settlementsToReturn[settlementsToReturn.length - 1].id : undefined;
             }
 
             return {
@@ -955,23 +942,13 @@ export class FirestoreReader implements IFirestoreReader {
     // Test User Pool Operations
     // ========================================================================
 
-
-
-
-
     // ========================================================================
     // System Metrics Operations
     // ========================================================================
 
-
-
-
-
-
     // ========================================================================
     // New Methods for Centralizing Firestore Access
     // ========================================================================
-
 
     async getExpenseHistory(
         expenseId: string,
@@ -1011,8 +988,6 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
-
-
     async getGroupDeletionData(groupId: string): Promise<{
         expenses: FirebaseFirestore.QuerySnapshot;
         settlements: FirebaseFirestore.QuerySnapshot;
@@ -1047,8 +1022,6 @@ export class FirestoreReader implements IFirestoreReader {
             }
         });
     }
-
-
 
     async getExpensesForGroupPaginated(
         groupId: string,

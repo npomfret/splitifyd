@@ -21,7 +21,6 @@ export class ScreenshotHandler {
         this.userSuffix = `browser-${userIndex + 1}`;
     }
 
-
     /**
      * Take a screenshot and save it with organized naming and directory structure
      */

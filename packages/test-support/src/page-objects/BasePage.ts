@@ -5,9 +5,7 @@ import { Page, Locator, expect } from '@playwright/test';
  * Extracted from e2e-tests/src/pages/base.page.ts for reuse in unit tests
  */
 export abstract class BasePage {
-
-    constructor(protected _page: Page) {
-    }
+    constructor(protected _page: Page) {}
 
     /**
      * Public getter for the page property
@@ -164,10 +162,7 @@ export abstract class BasePage {
      * @param modalContainer - The modal container locator
      * @param timeout - Maximum time to wait for modal to close (default: 5000ms)
      */
-    async pressEscapeToClose(
-        modalContainer: Locator,
-        timeout: number = 5000
-    ): Promise<void> {
+    async pressEscapeToClose(modalContainer: Locator, timeout: number = 5000): Promise<void> {
         // Verify the modal is visible before attempting to close
         await expect(modalContainer).toBeVisible({ timeout: 1000 });
 

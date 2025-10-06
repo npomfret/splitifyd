@@ -8,11 +8,7 @@ describe('Input Validation Unit Tests', () => {
     describe('Amount Validation', () => {
         describe('Decimal Precision Edge Cases', () => {
             it('should handle very small amounts with proper precision', () => {
-                const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(0.01)
-                    .withParticipants(['user1', 'user2'])
-                    .withPaidBy('user1')
-                    .build();
+                const expenseData = new CreateExpenseRequestBuilder().withAmount(0.01).withParticipants(['user1', 'user2']).withPaidBy('user1').build();
 
                 const result = validateCreateExpense(expenseData);
                 expect(result.amount).toBe(0.01);
@@ -20,11 +16,7 @@ describe('Input Validation Unit Tests', () => {
             });
 
             it('should handle amounts with many decimal places', () => {
-                const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(33.333333)
-                    .withParticipants(['user1', 'user2', 'user3'])
-                    .withPaidBy('user1')
-                    .build();
+                const expenseData = new CreateExpenseRequestBuilder().withAmount(33.333333).withParticipants(['user1', 'user2', 'user3']).withPaidBy('user1').build();
 
                 const result = validateCreateExpense(expenseData);
                 expect(result.amount).toBe(33.333333);
@@ -32,11 +24,7 @@ describe('Input Validation Unit Tests', () => {
             });
 
             it('should handle very large amounts', () => {
-                const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(999999.99)
-                    .withParticipants(['user1', 'user2'])
-                    .withPaidBy('user1')
-                    .build();
+                const expenseData = new CreateExpenseRequestBuilder().withAmount(999999.99).withParticipants(['user1', 'user2']).withPaidBy('user1').build();
 
                 const result = validateCreateExpense(expenseData);
                 expect(result.amount).toBe(999999.99);
@@ -46,41 +34,31 @@ describe('Input Validation Unit Tests', () => {
 
         describe('Invalid Amount Validation', () => {
             it('should reject zero amounts', () => {
-                const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(0)
-                    .build();
+                const expenseData = new CreateExpenseRequestBuilder().withAmount(0).build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should reject negative amounts', () => {
-                const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(-50)
-                    .build();
+                const expenseData = new CreateExpenseRequestBuilder().withAmount(-50).build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should reject very small negative numbers', () => {
-                const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(-0.01)
-                    .build();
+                const expenseData = new CreateExpenseRequestBuilder().withAmount(-0.01).build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should reject negative infinity', () => {
-                const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(Number.NEGATIVE_INFINITY)
-                    .build();
+                const expenseData = new CreateExpenseRequestBuilder().withAmount(Number.NEGATIVE_INFINITY).build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should handle NaN values gracefully', () => {
-                const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(NaN)
-                    .build();
+                const expenseData = new CreateExpenseRequestBuilder().withAmount(NaN).build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
@@ -313,11 +291,7 @@ describe('Input Validation Unit Tests', () => {
         });
 
         it('should accept valid settlement amounts', () => {
-            const settlementData = new CreateSettlementRequestBuilder()
-                .withAmount(50.0)
-                .withPayerId('user1')
-                .withPayeeId('user2')
-                .build();
+            const settlementData = new CreateSettlementRequestBuilder().withAmount(50.0).withPayerId('user1').withPayeeId('user2').build();
 
             const { error, value } = createSettlementSchema.validate(settlementData);
             expect(error).toBeUndefined();
@@ -332,9 +306,7 @@ describe('Input Validation Unit Tests', () => {
             const futureDate = new Date();
             futureDate.setFullYear(futureDate.getFullYear() + 1);
 
-            const expenseData = new CreateExpenseRequestBuilder()
-                .withDate(futureDate.toISOString())
-                .build();
+            const expenseData = new CreateExpenseRequestBuilder().withDate(futureDate.toISOString()).build();
 
             expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
         });
@@ -343,10 +315,7 @@ describe('Input Validation Unit Tests', () => {
             const validDate = new Date();
             validDate.setMonth(validDate.getMonth() - 1);
 
-            const expenseData = new CreateExpenseRequestBuilder()
-                .withDate(validDate.toISOString())
-                .withAmount(100)
-                .build();
+            const expenseData = new CreateExpenseRequestBuilder().withDate(validDate.toISOString()).withAmount(100).build();
 
             const result = validateCreateExpense(expenseData);
             expect(result.groupId).toBeDefined();
@@ -356,9 +325,7 @@ describe('Input Validation Unit Tests', () => {
 
     describe('Category Validation', () => {
         it('should accept valid category', () => {
-            const expenseData = new CreateExpenseRequestBuilder()
-                .withCategory('food')
-                .build();
+            const expenseData = new CreateExpenseRequestBuilder().withCategory('food').build();
 
             const result = validateCreateExpense(expenseData);
             expect(result.groupId).toBeDefined();

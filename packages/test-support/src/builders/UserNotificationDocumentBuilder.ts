@@ -97,12 +97,15 @@ export class UserNotificationDocumentBuilder {
         return this;
     }
 
-    withGroupChangeCounts(groupId: string, counts: {
-        groupDetailsChangeCount?: number;
-        transactionChangeCount?: number;
-        balanceChangeCount?: number;
-        commentChangeCount?: number;
-    }): this {
+    withGroupChangeCounts(
+        groupId: string,
+        counts: {
+            groupDetailsChangeCount?: number;
+            transactionChangeCount?: number;
+            balanceChangeCount?: number;
+            commentChangeCount?: number;
+        },
+    ): this {
         const existing = this.document.groups[groupId] || this.createDefaultGroupData();
         this.document.groups[groupId] = {
             ...existing,
@@ -157,33 +160,27 @@ export class UserNotificationDocumentBuilder {
     }
 
     static withBaseline(groupId: string, changeVersion: number = 1): UserNotificationDocumentBuilder {
-        return new UserNotificationDocumentBuilder()
-            .withChangeVersion(changeVersion)
-            .withGroupChangeCounts(groupId, {
-                groupDetailsChangeCount: 1,
-                transactionChangeCount: 1,
-                balanceChangeCount: 1,
-                commentChangeCount: 0,
-            });
+        return new UserNotificationDocumentBuilder().withChangeVersion(changeVersion).withGroupChangeCounts(groupId, {
+            groupDetailsChangeCount: 1,
+            transactionChangeCount: 1,
+            balanceChangeCount: 1,
+            commentChangeCount: 0,
+        });
     }
 
     static withGroupDetailsChange(groupId: string, changeVersion: number = 2): UserNotificationDocumentBuilder {
-        return UserNotificationDocumentBuilder.withBaseline(groupId, changeVersion)
-            .withGroupDetails(groupId, 2);
+        return UserNotificationDocumentBuilder.withBaseline(groupId, changeVersion).withGroupDetails(groupId, 2);
     }
 
     static withTransactionChange(groupId: string, changeVersion: number = 2): UserNotificationDocumentBuilder {
-        return UserNotificationDocumentBuilder.withBaseline(groupId, changeVersion)
-            .withTransactionChange(groupId, 2);
+        return UserNotificationDocumentBuilder.withBaseline(groupId, changeVersion).withTransactionChange(groupId, 2);
     }
 
     static withBalanceChange(groupId: string, changeVersion: number = 2): UserNotificationDocumentBuilder {
-        return UserNotificationDocumentBuilder.withBaseline(groupId, changeVersion)
-            .withBalanceChange(groupId, 2);
+        return UserNotificationDocumentBuilder.withBaseline(groupId, changeVersion).withBalanceChange(groupId, 2);
     }
 
     static withCommentChange(groupId: string, changeVersion: number = 2): UserNotificationDocumentBuilder {
-        return UserNotificationDocumentBuilder.withBaseline(groupId, changeVersion)
-            .withCommentChange(groupId, 2);
+        return UserNotificationDocumentBuilder.withBaseline(groupId, changeVersion).withCommentChange(groupId, 2);
     }
 }

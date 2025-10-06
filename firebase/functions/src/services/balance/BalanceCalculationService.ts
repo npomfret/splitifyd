@@ -45,7 +45,7 @@ export class BalanceCalculationService {
         const startTime = Date.now();
 
         // 1. Extract member IDs for initialization
-        const memberIds = validatedInput.memberDocs.map(member => member.uid);
+        const memberIds = validatedInput.memberDocs.map((member) => member.uid);
 
         // 2. Process expenses to calculate initial balances by currency
         const expenseProcessingStart = Date.now();
@@ -93,14 +93,10 @@ export class BalanceCalculationService {
 
     async fetchBalanceCalculationData(groupId: string): Promise<BalanceCalculationInput> {
         // Fetch all required data in parallel for better performance
-        const [expenses, settlements, { groupDoc, memberDocs }] = await Promise.all([
-            this.fetchExpenses(groupId),
-            this.fetchSettlements(groupId),
-            this.fetchGroupData(groupId)
-        ]);
+        const [expenses, settlements, { groupDoc, memberDocs }] = await Promise.all([this.fetchExpenses(groupId), this.fetchSettlements(groupId), this.fetchGroupData(groupId)]);
 
         // Fetch member profiles after we have group data
-        const memberIds = memberDocs.map(member => member.uid);
+        const memberIds = memberDocs.map((member) => member.uid);
         const memberProfilesMap = await this.userService.getUsers(memberIds);
 
         // Convert Map to Record for schema validation

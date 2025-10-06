@@ -1,11 +1,11 @@
-import {beforeEach, describe, expect, it} from 'vitest';
-import {BalanceCalculationService} from '../../../services/balance';
-import {StubAuthService, StubFirestoreReader, StubFirestoreWriter} from '../mocks/firestore-stubs';
-import {AuthUserRecordBuilder, ExpenseDTOBuilder, GroupDTOBuilder, RegisteredUserBuilder} from '@splitifyd/test-support';
-import {ApplicationBuilder} from "../../../services/ApplicationBuilder";
-import {UserService} from '../../../services/UserService2';
-import {MemberRoles, MemberStatuses} from '@splitifyd/shared';
-import {GroupMemberDocumentBuilder} from "../../support/GroupMemberDocumentBuilder";
+import { beforeEach, describe, expect, it } from 'vitest';
+import { BalanceCalculationService } from '../../../services/balance';
+import { StubAuthService, StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { AuthUserRecordBuilder, ExpenseDTOBuilder, GroupDTOBuilder, RegisteredUserBuilder } from '@splitifyd/test-support';
+import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { UserService } from '../../../services/UserService2';
+import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
 
 describe('BalanceCalculationService', () => {
     describe('Core Data Fetching', () => {
@@ -36,27 +36,21 @@ describe('BalanceCalculationService', () => {
                         [userId1]: { uid: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
                         [userId2]: { uid: userId2, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
                     })
-                    
+
                     .build();
 
                 stubFirestoreReader.setDocument('groups', groupId, groupDoc);
 
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`,
-                    new GroupMemberDocumentBuilder().withUserId(userId1).withGroupId(groupId).build());
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId2}`,
-                    new GroupMemberDocumentBuilder().withUserId(userId2).withGroupId(groupId).build());
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, new GroupMemberDocumentBuilder().withUserId(userId1).withGroupId(groupId).build());
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId2}`, new GroupMemberDocumentBuilder().withUserId(userId2).withGroupId(groupId).build());
 
                 // Set up user records in Auth service (required for UserService2)
-                stubAuthService.setUser(userId1,
-                    new AuthUserRecordBuilder().withUid(userId1).withEmail('user1@test.com').withDisplayName('User 1').build());
-                stubAuthService.setUser(userId2,
-                    new AuthUserRecordBuilder().withUid(userId2).withEmail('user2@test.com').withDisplayName('User 2').build());
+                stubAuthService.setUser(userId1, new AuthUserRecordBuilder().withUid(userId1).withEmail('user1@test.com').withDisplayName('User 1').build());
+                stubAuthService.setUser(userId2, new AuthUserRecordBuilder().withUid(userId2).withEmail('user2@test.com').withDisplayName('User 2').build());
 
                 // Set up user documents in Firestore
-                stubFirestoreReader.setDocument('users', userId1,
-                    new RegisteredUserBuilder().withUid(userId1).withEmail('user1@test.com').withDisplayName('User 1').build());
-                stubFirestoreReader.setDocument('users', userId2,
-                    new RegisteredUserBuilder().withUid(userId2).withEmail('user2@test.com').withDisplayName('User 2').build());
+                stubFirestoreReader.setDocument('users', userId1, new RegisteredUserBuilder().withUid(userId1).withEmail('user1@test.com').withDisplayName('User 1').build());
+                stubFirestoreReader.setDocument('users', userId2, new RegisteredUserBuilder().withUid(userId2).withEmail('user2@test.com').withDisplayName('User 2').build());
 
                 // Execute
                 const result = await balanceCalculationService.fetchBalanceCalculationData(groupId);
@@ -86,7 +80,7 @@ describe('BalanceCalculationService', () => {
                 const groupWithNoMembers = new GroupDTOBuilder()
                     .withId(groupId)
                     .withMembers({})
-                    
+
                     .build();
                 stubFirestoreReader.setDocument('groups', groupId, groupWithNoMembers);
 
@@ -104,20 +98,17 @@ describe('BalanceCalculationService', () => {
                     .withMembers({
                         [userId1]: { uid: userId1, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
                     })
-                    
+
                     .build();
                 stubFirestoreReader.setDocument('groups', groupId, groupDoc);
 
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`,
-                    new GroupMemberDocumentBuilder().withUserId(userId1).withGroupId(groupId).build());
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, new GroupMemberDocumentBuilder().withUserId(userId1).withGroupId(groupId).build());
 
                 // Set up user record in Auth service (required for UserService2)
-                stubAuthService.setUser(userId1,
-                    new AuthUserRecordBuilder().withUid(userId1).withEmail('user1@test.com').withDisplayName('User 1').build());
+                stubAuthService.setUser(userId1, new AuthUserRecordBuilder().withUid(userId1).withEmail('user1@test.com').withDisplayName('User 1').build());
 
                 // Set up user documents in Firestore
-                stubFirestoreReader.setDocument('users', userId1,
-                    new RegisteredUserBuilder().withUid(userId1).withEmail('user1@test.com').withDisplayName('User 1').build());
+                stubFirestoreReader.setDocument('users', userId1, new RegisteredUserBuilder().withUid(userId1).withEmail('user1@test.com').withDisplayName('User 1').build());
 
                 // Execute
                 const result = await balanceCalculationService.fetchBalanceCalculationData(groupId);
@@ -152,10 +143,7 @@ describe('BalanceCalculationService', () => {
                 const userId2 = 'user-2';
 
                 // Use Firebase builders to create proper Documents with Timestamps
-                const testGroup = new GroupDTOBuilder()
-                    .withId(groupId)
-                    .withName('Test Group')
-                    .withCreatedBy(userId1).build();
+                const testGroup = new GroupDTOBuilder().withId(groupId).withName('Test Group').withCreatedBy(userId1).build();
 
                 const testExpense = new ExpenseDTOBuilder()
                     .withId('expense-1')
@@ -166,7 +154,8 @@ describe('BalanceCalculationService', () => {
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
-                    .withCreatedBy(userId1).build();
+                    .withCreatedBy(userId1)
+                    .build();
 
                 const userProfiles = [
                     new RegisteredUserBuilder().withUid(userId1).withDisplayName('User 1').withEmail('user1@test.com').build(),
@@ -176,18 +165,16 @@ describe('BalanceCalculationService', () => {
                 // Set up stub data using builders - the stub works by exact method calls
                 stubFirestoreReader.setDocument('groups', groupId, testGroup);
                 stubFirestoreReader.setDocument('expenses', testExpense.id, testExpense);
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`,
-                    new GroupMemberDocumentBuilder().withUserId(userId1).withGroupId(groupId).asAdmin().build());
-                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId2}`,
-                    new GroupMemberDocumentBuilder().withUserId(userId2).withGroupId(groupId).asMember().build());
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId1}`, new GroupMemberDocumentBuilder().withUserId(userId1).withGroupId(groupId).asAdmin().build());
+                stubFirestoreReader.setDocument('group-members', `${groupId}_${userId2}`, new GroupMemberDocumentBuilder().withUserId(userId2).withGroupId(groupId).asMember().build());
 
                 // Set up user records in Auth service (required for UserService2)
-                userProfiles.forEach(profile => {
+                userProfiles.forEach((profile) => {
                     stubAuthService.setUser(profile.uid, { uid: profile.uid, email: profile.email, displayName: profile.displayName });
                 });
 
                 // Set up user documents in Firestore
-                userProfiles.forEach(profile => {
+                userProfiles.forEach((profile) => {
                     stubFirestoreReader.setDocument('users', profile.uid, profile);
                 });
 
@@ -226,10 +213,11 @@ describe('BalanceCalculationService', () => {
                 .withName('Test Group')
                 .withCreatedBy(userAlice)
                 .withMembers({
-                    [userAlice]: {uid: userAlice, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE},
-                    [userBob]: {uid: userBob, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE},
-                    [userCharlie]: {uid: userCharlie, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE},
-                }).build();
+                    [userAlice]: { uid: userAlice, memberRole: MemberRoles.ADMIN, memberStatus: MemberStatuses.ACTIVE },
+                    [userBob]: { uid: userBob, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
+                    [userCharlie]: { uid: userCharlie, memberRole: MemberRoles.MEMBER, memberStatus: MemberStatuses.ACTIVE },
+                })
+                .build();
 
             const userProfiles = [
                 new RegisteredUserBuilder().withUid(userAlice).withDisplayName('Alice').build(),
@@ -239,25 +227,24 @@ describe('BalanceCalculationService', () => {
 
             // Set up common stub data
             stubFirestoreReader.setDocument('groups', testGroupId, testGroup);
-            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${userAlice}`,
-                new GroupMemberDocumentBuilder().withUserId(userAlice).withGroupId(testGroupId).asAdmin().build());
-            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${userBob}`,
-                new GroupMemberDocumentBuilder().withUserId(userBob).withGroupId(testGroupId).asMember().build());
-            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${userCharlie}`,
-                new GroupMemberDocumentBuilder().withUserId(userCharlie).withGroupId(testGroupId).asMember().build());
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${userAlice}`, new GroupMemberDocumentBuilder().withUserId(userAlice).withGroupId(testGroupId).asAdmin().build());
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${userBob}`, new GroupMemberDocumentBuilder().withUserId(userBob).withGroupId(testGroupId).asMember().build());
+            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${userCharlie}`, new GroupMemberDocumentBuilder().withUserId(userCharlie).withGroupId(testGroupId).asMember().build());
 
             // Set up user records in Auth service (required for UserService2)
-            userProfiles.forEach(profile => {
-                stubAuthService.setUser(profile.uid,
+            userProfiles.forEach((profile) => {
+                stubAuthService.setUser(
+                    profile.uid,
                     new AuthUserRecordBuilder()
                         .withUid(profile.uid)
                         .withEmail(profile.email || `${profile.uid}@test.com`)
                         .withDisplayName(profile.displayName)
-                        .build());
+                        .build(),
+                );
             });
 
             // Set up user documents in Firestore
-            userProfiles.forEach(profile => {
+            userProfiles.forEach((profile) => {
                 stubFirestoreReader.setDocument('users', profile.uid, profile);
             });
         });
@@ -278,7 +265,8 @@ describe('BalanceCalculationService', () => {
                     { uid: userBob, amount: 50 },
                     { uid: userCharlie, amount: 50 },
                 ])
-                .withCreatedBy(userAlice).build();
+                .withCreatedBy(userAlice)
+                .build();
 
             stubFirestoreReader.setDocument('expenses', expense.id, expense);
 
@@ -309,11 +297,12 @@ describe('BalanceCalculationService', () => {
                 .withSplitType('exact')
                 .withParticipants([userAlice, userBob, userCharlie])
                 .withSplits([
-                    {uid: userAlice, amount: 25},
-                    {uid: userBob, amount: 25},
-                    {uid: userCharlie, amount: 50},
+                    { uid: userAlice, amount: 25 },
+                    { uid: userBob, amount: 25 },
+                    { uid: userCharlie, amount: 50 },
                 ])
-                .withCreatedBy(userBob).build();
+                .withCreatedBy(userBob)
+                .build();
 
             stubFirestoreReader.setDocument('expenses', expense.id, expense);
 

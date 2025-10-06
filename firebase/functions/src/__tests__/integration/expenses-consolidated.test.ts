@@ -124,11 +124,7 @@ describe('Expenses Management - Consolidated Tests', () => {
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
 
             // Test API update
-            const apiUpdateData = new ExpenseUpdateBuilder()
-                .withDescription('Updated Test Expense')
-                .withAmount(150.5)
-                .withCategory('food')
-                .build();
+            const apiUpdateData = new ExpenseUpdateBuilder().withDescription('Updated Test Expense').withAmount(150.5).withCategory('food').build();
             await apiDriver.updateExpense(createdExpense.id, apiUpdateData, users[0].token);
 
             const apiUpdatedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);

@@ -1,4 +1,4 @@
-import { Timestamp } from "firebase-admin/firestore";
+import { Timestamp } from 'firebase-admin/firestore';
 
 /**
  * Document structure for top-level group memberships collection: group-memberships/{userId}_{groupId}
@@ -32,7 +32,6 @@ export interface TopLevelGroupMemberDocument {
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
-
 
 /**
  * FirestoreCollections moved to '../constants'

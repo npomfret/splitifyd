@@ -27,7 +27,7 @@ import { validateUpdate } from '../../schemas';
 import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
 import type { ShareLinkDTO, RegisteredUser, GroupDTO, ExpenseDTO, SettlementDTO, CommentDTO } from '@splitifyd/shared';
 import type { IFirestoreWriter, WriteResult, BatchWriteResult, TransactionOptions } from './IFirestoreWriter';
-import { FirestoreCollections } from "../../constants";
+import { FirestoreCollections } from '../../constants';
 
 /**
  * Transaction error classification for monitoring and retry decisions
@@ -107,9 +107,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         const result: any = Array.isArray(obj) ? [...obj] : { ...obj };
 
         if (Array.isArray(result)) {
-            return result.map(item =>
-                item && typeof item === 'object' ? this.removeUndefinedValues(item) : item
-            ) as T;
+            return result.map((item) => (item && typeof item === 'object' ? this.removeUndefinedValues(item) : item)) as T;
         }
 
         for (const [key, value] of Object.entries(result)) {
@@ -118,9 +116,7 @@ export class FirestoreWriter implements IFirestoreWriter {
             } else if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Timestamp)) {
                 result[key] = this.removeUndefinedValues(value);
             } else if (Array.isArray(value)) {
-                result[key] = value.map(item =>
-                    item && typeof item === 'object' ? this.removeUndefinedValues(item) : item
-                );
+                result[key] = value.map((item) => (item && typeof item === 'object' ? this.removeUndefinedValues(item) : item));
             }
         }
 
@@ -144,22 +140,31 @@ export class FirestoreWriter implements IFirestoreWriter {
 
         // Known date field names across all document types
         const dateFields = new Set([
-            'createdAt', 'updatedAt', 'deletedAt',
-            'date', 'joinedAt', 'presetAppliedAt',
-            'lastModified', 'lastTransactionChange', 'lastBalanceChange',
-            'lastGroupDetailsChange', 'lastCommentChange', 'timestamp',
-            'expiresAt', 'deletionStartedAt', 'groupUpdatedAt', 'lastUpdated',
+            'createdAt',
+            'updatedAt',
+            'deletedAt',
+            'date',
+            'joinedAt',
+            'presetAppliedAt',
+            'lastModified',
+            'lastTransactionChange',
+            'lastBalanceChange',
+            'lastGroupDetailsChange',
+            'lastCommentChange',
+            'timestamp',
+            'expiresAt',
+            'deletionStartedAt',
+            'groupUpdatedAt',
+            'lastUpdated',
             'assignedAt', // For theme.assignedAt
-            'termsAcceptedAt', 'cookiePolicyAcceptedAt', 'passwordChangedAt' // User policy/auth timestamps
+            'termsAcceptedAt',
+            'cookiePolicyAcceptedAt',
+            'passwordChangedAt', // User policy/auth timestamps
         ]);
 
         if (Array.isArray(result)) {
             // Process arrays
-            return result.map(item =>
-                item && typeof item === 'object' && !(item instanceof Timestamp)
-                    ? this.convertISOToTimestamps(item)
-                    : item
-            ) as T;
+            return result.map((item) => (item && typeof item === 'object' && !(item instanceof Timestamp) ? this.convertISOToTimestamps(item) : item)) as T;
         }
 
         // Process object properties
@@ -172,11 +177,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 result[key] = this.convertISOToTimestamps(value);
             } else if (Array.isArray(value)) {
                 // Recursively process arrays of objects
-                result[key] = value.map(item =>
-                    item && typeof item === 'object' && !(item instanceof Timestamp)
-                        ? this.convertISOToTimestamps(item)
-                        : item
-                );
+                result[key] = value.map((item) => (item && typeof item === 'object' && !(item instanceof Timestamp) ? this.convertISOToTimestamps(item) : item));
             }
         }
 
@@ -201,9 +202,12 @@ export class FirestoreWriter implements IFirestoreWriter {
             validatedFields: metrics.validatedFields || [],
             skippedFields: metrics.skippedFields || [],
             skipReason: metrics.skipReason,
-            validationCoveragePercent: metrics.validatedFieldCount && metrics.skippedFieldCount
-                ? Math.round((metrics.validatedFieldCount / (metrics.validatedFieldCount + metrics.skippedFieldCount)) * 100)
-                : metrics.validationType === 'full' ? 100 : 0,
+            validationCoveragePercent:
+                metrics.validatedFieldCount && metrics.skippedFieldCount
+                    ? Math.round((metrics.validatedFieldCount / (metrics.validatedFieldCount + metrics.skippedFieldCount)) * 100)
+                    : metrics.validationType === 'full'
+                      ? 100
+                      : 0,
         });
     }
 
@@ -344,19 +348,18 @@ export class FirestoreWriter implements IFirestoreWriter {
         }
 
         // Check for FieldValue operations by examining the constructor name or known properties
-        return (
-            value.constructor?.name?.includes('Transform') ||
-            value.operand !== undefined ||
-            value._delegate?.type !== undefined ||
-            (typeof value.isEqual === 'function')
-        );
+        return value.constructor?.name?.includes('Transform') || value.operand !== undefined || value._delegate?.type !== undefined || typeof value.isEqual === 'function';
     }
 
     /**
      * Validate transaction data using selective field validation
      * Only validates fields that aren't FieldValue operations
      */
-    private validateTransactionData(collection: string, data: any, documentId: string): {
+    private validateTransactionData(
+        collection: string,
+        data: any,
+        documentId: string,
+    ): {
         isValid: boolean;
         skipValidation?: boolean;
         validatedFields?: Record<string, any>;
@@ -433,7 +436,7 @@ export class FirestoreWriter implements IFirestoreWriter {
             return {
                 isValid: true,
                 validatedFields,
-                skippedFields: skippedFields.length > 0 ? skippedFields : undefined
+                skippedFields: skippedFields.length > 0 ? skippedFields : undefined,
             };
         } catch (error) {
             this.trackValidationMetrics({
@@ -1167,7 +1170,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         transaction.delete(docRef);
     }
 
-
     // ========================================================================
     // Utility Operations
     // ========================================================================
@@ -1500,7 +1502,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         }
     }
 
-
     /**
      * Perform health check operations (lightweight connectivity check)
      * @returns Health check result with timing information
@@ -1534,7 +1535,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-
     // ========================================================================
     // Test Pool Operations (for TestUserPoolService)
     // ========================================================================
@@ -1543,12 +1543,15 @@ export class FirestoreWriter implements IFirestoreWriter {
      * Create a test pool user document
      * Note: This bypasses schema validation as test-user-pool is not a canonical collection
      */
-    async createTestPoolUser(email: string, userData: {
-        email: string;
-        token: string;
-        password: string;
-        status: 'available' | 'borrowed';
-    }): Promise<WriteResult> {
+    async createTestPoolUser(
+        email: string,
+        userData: {
+            email: string;
+            token: string;
+            password: string;
+            status: 'available' | 'borrowed';
+        },
+    ): Promise<WriteResult> {
         return measureDb('FirestoreWriter.createTestPoolUser', async () => {
             try {
                 const finalData = {
@@ -1673,7 +1676,6 @@ export class FirestoreWriter implements IFirestoreWriter {
             validationStatus: 'all paths validated',
         });
     }
-
 
     // ========================================================================
     // Group Deletion and Recovery Operations
