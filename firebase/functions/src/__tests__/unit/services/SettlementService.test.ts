@@ -24,6 +24,18 @@ describe('SettlementService - Unit Tests', () => {
         stubReader.setDocument('groups', groupId, groupData);
     };
 
+    // Helper to initialize balance document for a group
+    const initializeGroupBalance = async (groupId: string) => {
+        const initialBalance = {
+            groupId,
+            balancesByCurrency: {},
+            simplifiedDebts: [],
+            lastUpdatedAt: new Date().toISOString(),
+            version: 0,
+        };
+        await stubWriter.setGroupBalance(groupId, initialBalance);
+    };
+
     beforeEach(() => {
         // Create stubs
         stubReader = new StubFirestoreReader();
@@ -50,6 +62,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Mock required data
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
+            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
@@ -137,6 +150,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Mock required data
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
+            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
@@ -182,6 +196,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Mock other dependencies
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
+            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
 
             // Set up group memberships for both users
             const payerMembershipDoc = new GroupMemberDocumentBuilder().withUserId('valid-payer').withGroupId(groupId).withRole('member').withStatus('active').build();
@@ -207,6 +222,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Mock basic setup
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
+            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
 
             // Set up group memberships for both users
             const payerMembershipDoc = new GroupMemberDocumentBuilder().withUserId('payer-user').withGroupId(groupId).withRole('member').withStatus('active').build();
@@ -230,6 +246,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Mock valid data
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
+            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
@@ -255,6 +272,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Mock group and user data
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
+            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
             stubReader.verifyGroupMembership = () => Promise.resolve(true);
 
             // Set up group memberships - payee is member, payer is not
@@ -286,6 +304,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Mock group data
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
+            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
             stubReader.verifyGroupMembership = () => Promise.resolve(true);
 
             // Set up group memberships - payer is member, payee is not
@@ -342,6 +361,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Mock required data
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
+            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
@@ -374,6 +394,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Mock required data
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
+            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
@@ -403,6 +424,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Mock required data
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
+            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 

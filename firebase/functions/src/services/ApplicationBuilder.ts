@@ -14,7 +14,7 @@ import { NotificationService } from './notification-service';
 import { IAuthService } from './auth';
 import { FirebaseAuthService } from './auth';
 import * as admin from 'firebase-admin';
-import { BalanceCalculationService } from './balance';
+import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 
 export class ApplicationBuilder {
     // Base infrastructure - created once
@@ -29,6 +29,7 @@ export class ApplicationBuilder {
     private groupMemberService?: GroupMemberService;
     private groupShareService?: GroupShareService;
     private notificationService?: NotificationService;
+    private incrementalBalanceService?: IncrementalBalanceService;
 
     constructor(
         private firestoreReader: IFirestoreReader,
@@ -77,14 +78,24 @@ export class ApplicationBuilder {
 
     buildExpenseService(): ExpenseService {
         if (!this.expenseService) {
-            this.expenseService = new ExpenseService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService(), this.buildUserService());
+            this.expenseService = new ExpenseService(
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
+                this.buildGroupMemberService(),
+                this.buildUserService(),
+                this.buildIncrementalBalanceService(),
+            );
         }
         return this.expenseService;
     }
 
     buildSettlementService(): SettlementService {
         if (!this.settlementService) {
-            this.settlementService = new SettlementService(this.buildFirestoreReader(), this.buildFirestoreWriter());
+            this.settlementService = new SettlementService(
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
+                this.buildIncrementalBalanceService(),
+            );
         }
         return this.settlementService;
     }
@@ -112,10 +123,16 @@ export class ApplicationBuilder {
 
     buildGroupMemberService(): GroupMemberService {
         if (!this.groupMemberService) {
-            const balanceCalculationService = new BalanceCalculationService(this.buildFirestoreReader(), this.buildUserService());
-            this.groupMemberService = new GroupMemberService(this.buildFirestoreReader(), this.buildFirestoreWriter(), balanceCalculationService);
+            this.groupMemberService = new GroupMemberService(this.buildFirestoreReader(), this.buildFirestoreWriter());
         }
         return this.groupMemberService;
+    }
+
+    buildIncrementalBalanceService(): IncrementalBalanceService {
+        if (!this.incrementalBalanceService) {
+            this.incrementalBalanceService = new IncrementalBalanceService(this.buildFirestoreWriter());
+        }
+        return this.incrementalBalanceService;
     }
 
     buildGroupShareService(): GroupShareService {

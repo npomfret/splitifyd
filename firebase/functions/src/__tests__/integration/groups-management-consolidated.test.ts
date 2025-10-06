@@ -1379,7 +1379,7 @@ describe('Groups Management - Consolidated Tests', () => {
 
                 // Create member via share link (production code path)
                 const { linkId } = await groupShareService.generateShareableLink(users[0].uid, testGroup.id);
-                await groupShareService.joinGroupByLink(users[1].uid, users[1].email, linkId);
+                await groupShareService.joinGroupByLink(users[1].uid, linkId);
 
                 // Verify member was created
                 const retrievedMember = await firestoreReader.getGroupMember(testGroup.id, users[1].uid);
@@ -1411,11 +1411,13 @@ describe('Groups Management - Consolidated Tests', () => {
 
                 // Add second member via share link (production code path)
                 const { linkId } = await groupShareService.generateShareableLink(users[0].uid, testGroup.id);
-                await groupShareService.joinGroupByLink(users[1].uid, users[1].email, linkId);
+                await groupShareService.joinGroupByLink(users[1].uid, linkId);
 
                 // Get all members
-                const members = await groupMemberService.getAllGroupMembers(testGroup.id);
+                const members = await firestoreReader.getAllGroupMembers(testGroup.id);
+                const memberIds = await firestoreReader.getAllGroupMemberIds(testGroup.id);
 
+                expect(members.length).toEqual(memberIds.length); // users[0] (creator) + users[1]
                 expect(members).toHaveLength(2); // users[0] (creator) + users[1]
                 const userIds = members.map((m: any) => m.uid);
                 expect(userIds).toContain(users[0].uid);
@@ -1441,7 +1443,7 @@ describe('Groups Management - Consolidated Tests', () => {
 
                 // Add member via share link (production code path)
                 const { linkId } = await groupShareService.generateShareableLink(users[0].uid, testGroup.id);
-                await groupShareService.joinGroupByLink(users[1].uid, users[1].email, linkId);
+                await groupShareService.joinGroupByLink(users[1].uid, linkId);
 
                 // Verify member exists
                 let member = await firestoreReader.getGroupMember(testGroup.id, users[1].uid);

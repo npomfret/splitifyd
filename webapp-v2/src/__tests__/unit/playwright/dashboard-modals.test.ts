@@ -1,6 +1,6 @@
 import { expect, test } from '../../utils/console-logging-fixture';
 import {createMockFirebase, mockApiFailure, MockFirebase, mockFullyAcceptedPoliciesApi, mockGenerateShareLinkApi, mockGroupsApi, setupSuccessfulApiMocks} from '../../utils/mock-firebase-service';
-import {ClientUserBuilder, CreateGroupModalPage, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, randomString, UserNotificationDocumentBuilder} from '@splitifyd/test-support';
+import {ClientUserBuilder, CreateGroupModalPage, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, randomString} from '@splitifyd/test-support';
 
 // ============================================================================
 // Dashboard Create Group Functionality

@@ -13,18 +13,21 @@ import { z } from 'zod';
 import type { Firestore, Transaction, DocumentReference } from 'firebase-admin/firestore';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { logger } from '../../logger';
+import { ApiError } from '../../utils/errors';
+import { HTTP_STATUS } from '../../constants';
 import { CommentTargetTypes, type CommentTargetType } from '@splitifyd/shared';
 import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 import { measureDb } from '../../monitoring/measure';
 
 // Import schemas for validation
-import { UserDocumentSchema, GroupDocumentSchema, ExpenseDocumentSchema, SettlementDocumentSchema, CommentDataSchema, PolicyDocumentSchema } from '../../schemas';
+import { UserDocumentSchema, GroupDocumentSchema, ExpenseDocumentSchema, SettlementDocumentSchema, CommentDataSchema, PolicyDocumentSchema, GroupBalanceDocumentSchema } from '../../schemas';
 import { UserNotificationDocumentSchema } from '../../schemas/user-notifications';
 import { TopLevelGroupMemberSchema } from '../../schemas';
 import { validateUpdate } from '../../schemas';
 
 // Import types
 import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
+import type { GroupBalanceDTO } from '../../schemas';
 import type { ShareLinkDTO, RegisteredUser, GroupDTO, ExpenseDTO, SettlementDTO, CommentDTO } from '@splitifyd/shared';
 import type { IFirestoreWriter, WriteResult, BatchWriteResult, TransactionOptions } from './IFirestoreWriter';
 import { FirestoreCollections } from '../../constants';
@@ -93,6 +96,64 @@ export class FirestoreWriter implements IFirestoreWriter {
         }
         // Very lenient: return as-is and let Firestore handle it
         return value;
+    }
+
+    /**
+     * Convert Firestore Timestamp to ISO 8601 string
+     * This is the conversion boundary between Firestore storage format and application DTOs
+     *
+     * LENIENT MODE: During transition, accepts anything that looks like a date
+     * Will be made strict once all code is updated to use DTOs consistently
+     */
+    private timestampToISO(value: any): string {
+        if (!value) return value; // null/undefined pass through
+        if (value instanceof Timestamp) {
+            return value.toDate().toISOString();
+        }
+        if (value instanceof Date) {
+            return value.toISOString();
+        }
+        if (typeof value === 'string') {
+            // Already ISO string (from old data or different SDK versions)
+            return value;
+        }
+        // Lenient: if it has a toDate() method (Timestamp-like), use it
+        if (typeof value === 'object' && typeof value.toDate === 'function') {
+            return value.toDate().toISOString();
+        }
+        // Lenient: if it has seconds/nanoseconds (Timestamp-like object), convert
+        if (typeof value === 'object' && typeof value.seconds === 'number') {
+            return new Date(value.seconds * 1000).toISOString();
+        }
+        // Very lenient: return as-is for now, will be caught later when we tighten
+        return value;
+    }
+
+    /**
+     * Recursively convert all Timestamp objects in an object to ISO strings
+     * This enables automatic DTO conversion at the read boundary
+     *
+     * Known date fields that will be converted:
+     * - createdAt, updatedAt, deletedAt
+     * - date (for expenses/settlements)
+     * - joinedAt (for group members)
+     * - presetAppliedAt (for groups)
+     * - lastModified, lastTransactionChange, lastBalanceChange, etc. (for notifications)
+     */
+    private convertTimestampsToISO<T extends Record<string, any>>(obj: T): T {
+        const result: any = { ...obj };
+
+        for (const [key, value] of Object.entries(result)) {
+            if (value instanceof Timestamp) {
+                result[key] = this.timestampToISO(value);
+            } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+                result[key] = this.convertTimestampsToISO(value);
+            } else if (Array.isArray(value)) {
+                result[key] = value.map((item) => (item && typeof item === 'object' ? this.convertTimestampsToISO(item) : item));
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -713,6 +774,109 @@ export class FirestoreWriter implements IFirestoreWriter {
         } else {
             await groupRef.update({ updatedAt: now });
         }
+    }
+
+    // ========================================================================
+    // Group Balance Operations
+    // ========================================================================
+
+    async setGroupBalance(groupId: string, balance: GroupBalanceDTO): Promise<void> {
+        try {
+            const balanceRef = this.db
+                .collection(FirestoreCollections.GROUPS)
+                .doc(groupId)
+                .collection('metadata')
+                .doc('balance');
+
+            // Convert DTO to Firestore document (ISO strings → Timestamps)
+            const convertedData = this.convertISOToTimestamps(balance);
+            const docData = {
+                ...convertedData,
+                lastUpdatedAt: Timestamp.now(),
+            };
+
+            await balanceRef.set(docData);
+
+            logger.info('Group balance document created/updated', { groupId });
+        } catch (error) {
+            logger.error('Failed to set group balance', error, { groupId });
+            throw error;
+        }
+    }
+
+    setGroupBalanceInTransaction(transaction: Transaction, groupId: string, balance: GroupBalanceDTO): void {
+        const balanceRef = this.db
+            .collection(FirestoreCollections.GROUPS)
+            .doc(groupId)
+            .collection('metadata')
+            .doc('balance');
+
+        // Convert DTO to Firestore document (ISO strings → Timestamps)
+        const convertedData = this.convertISOToTimestamps(balance);
+        const docData = {
+            ...convertedData,
+            lastUpdatedAt: Timestamp.now(),
+        };
+
+        transaction.set(balanceRef, docData);
+        logger.info('Group balance document created/updated in transaction', { groupId });
+    }
+
+    async getGroupBalanceInTransaction(transaction: Transaction, groupId: string): Promise<GroupBalanceDTO> {
+        const balanceRef = this.db
+            .collection(FirestoreCollections.GROUPS)
+            .doc(groupId)
+            .collection('metadata')
+            .doc('balance');
+
+        const doc = await transaction.get(balanceRef);
+
+        if (!doc.exists) {
+            throw new ApiError(
+                HTTP_STATUS.INTERNAL_ERROR,
+                'BALANCE_NOT_FOUND',
+                `Balance not found for group ${groupId}`
+            );
+        }
+
+        const data = doc.data();
+        if (!data) {
+            throw new ApiError(
+                HTTP_STATUS.INTERNAL_ERROR,
+                'BALANCE_READ_ERROR',
+                'Balance document is empty'
+            );
+        }
+
+        // Validate and convert to DTO (Timestamps → ISO strings)
+        const validated = GroupBalanceDocumentSchema.parse(data);
+        return this.convertTimestampsToISO(validated) as any as GroupBalanceDTO;
+    }
+
+    updateGroupBalanceInTransaction(
+        transaction: Transaction,
+        groupId: string,
+        currentBalance: GroupBalanceDTO,
+        updater: (current: GroupBalanceDTO) => GroupBalanceDTO
+    ): void {
+        const balanceRef = this.db
+            .collection(FirestoreCollections.GROUPS)
+            .doc(groupId)
+            .collection('metadata')
+            .doc('balance');
+
+        // Apply update function
+        const newBalance = updater(currentBalance);
+
+        // Convert back to Firestore document (ISO strings → Timestamps)
+        const convertedData = this.convertISOToTimestamps(newBalance);
+        const docData = {
+            ...convertedData,
+            lastUpdatedAt: Timestamp.now(),
+        };
+
+        transaction.set(balanceRef, docData);
+        logger.info('Group balance updated in transaction', { groupId, version: newBalance.version });
     }
 
     // ========================================================================

@@ -39,6 +39,8 @@ import {
     ExpenseDocumentSchema,
     SettlementDocumentSchema,
     PolicyDocumentSchema,
+    GroupBalanceDocumentSchema,
+    type GroupBalanceDTO,
 
     // Note: GroupChangeDocumentSchema removed as unused
 } from '../../schemas';
@@ -187,6 +189,44 @@ export class FirestoreReader implements IFirestoreReader {
             return convertedData as unknown as GroupDTO;
         } catch (error) {
             logger.error('Failed to get group', error);
+            throw error;
+        }
+    }
+
+    async getGroupBalance(groupId: string): Promise<GroupBalanceDTO> {
+        try {
+            const doc = await this.db
+                .collection(FirestoreCollections.GROUPS)
+                .doc(groupId)
+                .collection('metadata')
+                .doc('balance')
+                .get();
+
+            if (!doc.exists) {
+                throw new ApiError(
+                    HTTP_STATUS.INTERNAL_ERROR,
+                    'BALANCE_NOT_FOUND',
+                    `Balance not found for group ${groupId}`
+                );
+            }
+
+            const data = doc.data();
+            if (!data) {
+                throw new ApiError(
+                    HTTP_STATUS.INTERNAL_ERROR,
+                    'BALANCE_READ_ERROR',
+                    'Balance document is empty'
+                );
+            }
+
+            // Validate with Firestore schema (expects Timestamps)
+            const { GroupBalanceDocumentSchema } = await import('../../schemas');
+            const validated = GroupBalanceDocumentSchema.parse(data);
+
+            // Convert Timestamps to ISO strings for DTO
+            return this.convertTimestampsToISO(validated) as any as GroupBalanceDTO;
+        } catch (error) {
+            logger.error('Failed to get group balance', error, { groupId });
             throw error;
         }
     }
@@ -518,9 +558,22 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getAllGroupMemberIds(groupId: string): Promise<string[]> {
         return measureDb('GET_MEMBER_IDS', async () => {
-            // Delegate to getAllGroupMembers for DRY and consistent hard cap enforcement
-            const members = await this.getAllGroupMembers(groupId);
-            return members.map((member) => member.uid);
+            // Optimized: Only fetch uid field from Firestore
+            const membersQuery = this.db
+                .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                .where('groupId', '==', groupId)
+                .select('uid')
+                .limit(MAX_GROUP_MEMBERS + 1);
+
+            const snapshot = await membersQuery.get();
+
+            // Detect overflow - group exceeds maximum size
+            if (snapshot.size > MAX_GROUP_MEMBERS) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'GROUP_TOO_LARGE', `Group exceeds maximum size of ${MAX_GROUP_MEMBERS} members`);
+            }
+
+            // Extract uids directly without schema validation or timestamp conversion
+            return snapshot.docs.map((doc) => doc.data().uid).filter((uid): uid is string => typeof uid === 'string');
         });
     }
 

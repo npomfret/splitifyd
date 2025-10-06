@@ -16,6 +16,7 @@
 
 import type { Transaction, DocumentReference, Timestamp } from 'firebase-admin/firestore';
 import type { CommentTargetType, ShareLinkDTO, ExpenseDTO, GroupDTO, SettlementDTO, RegisteredUser, CommentDTO } from '@splitifyd/shared';
+import type { GroupBalanceDTO } from '../../schemas';
 
 /**
  * Options for configuring transaction behavior including retry logic
@@ -327,6 +328,52 @@ export interface IFirestoreWriter {
      * @returns Health check result with timing information
      */
     performHealthCheck(): Promise<{ success: boolean; responseTime: number }>;
+
+    // ========================================================================
+    // Group Balance Operations
+    // ========================================================================
+
+    /**
+     * Create or replace group balance document
+     * Used when creating a new group
+     * @param groupId - The group ID
+     * @param balance - The balance DTO with ISO string dates
+     * @returns Write result
+     */
+    setGroupBalance(groupId: string, balance: GroupBalanceDTO): Promise<void>;
+
+    /**
+     * Set group balance within a transaction
+     * Used for atomic initialization of balance documents
+     * @param transaction - The transaction context
+     * @param groupId - The group ID
+     * @param balance - The balance data to set
+     */
+    setGroupBalanceInTransaction(transaction: Transaction, groupId: string, balance: GroupBalanceDTO): void;
+
+    /**
+     * Get group balance within a transaction (must be called before any writes)
+     * @param transaction - The transaction context
+     * @param groupId - The group ID
+     * @returns The current group balance
+     * @throws ApiError if balance not found
+     */
+    getGroupBalanceInTransaction(transaction: Transaction, groupId: string): Promise<GroupBalanceDTO>;
+
+    /**
+     * Update group balance within a transaction (requires balance to be read first)
+     * Used for incremental updates when expenses/settlements change
+     * @param transaction - The transaction context
+     * @param groupId - The group ID
+     * @param currentBalance - The current balance (already read in transaction)
+     * @param updater - Function that takes current balance and returns updated balance
+     */
+    updateGroupBalanceInTransaction(
+        transaction: Transaction,
+        groupId: string,
+        currentBalance: GroupBalanceDTO,
+        updater: (current: GroupBalanceDTO) => GroupBalanceDTO
+    ): void;
 
     // ========================================================================
     // Transaction Helper Methods (Phase 1 - Transaction Foundation)

@@ -13,8 +13,7 @@ import {
     SettlementDTO,
     GroupFullDetailsDTO,
 } from '@splitifyd/shared';
-import { BalanceCalculationResultSchema, BalanceDisplaySchema, CurrencyBalanceDisplaySchema } from '../schemas';
-import { BalanceCalculationService } from './balance';
+import { BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupBalanceDTO } from '../schemas';
 import { DOCUMENT_CONFIG, FIRESTORE } from '../constants';
 import { logger, LoggerContext } from '../logger';
 import * as dateHelpers from '../utils/dateHelpers';
@@ -33,7 +32,6 @@ import { GroupShareService } from './GroupShareService';
 import { getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { FirestoreCollections } from '../constants';
-import type { GroupMembershipDTO } from '@splitifyd/shared';
 
 /**
  * Enhanced types for group data fetching with groupId
@@ -47,8 +45,6 @@ type SettlementWithGroupId = SettlementDTO & { groupId: string };
  * Service for managing group operations
  */
 export class GroupService {
-    private balanceService: BalanceCalculationService;
-
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
@@ -58,24 +54,20 @@ export class GroupService {
         private readonly groupMemberService: GroupMemberService,
         private readonly notificationService: NotificationService,
         private readonly groupShareService: GroupShareService,
-    ) {
-        this.balanceService = new BalanceCalculationService(firestoreReader, userService);
-    }
+    ) {}
 
     /**
      * Add computed fields to Group (balance, last activity)
+     * Now reads pre-computed balance from Firestore instead of calculating on-the-fly
      */
     private async addComputedFields(group: GroupDTO, userId: string): Promise<GroupDTO> {
-        // Calculate real balance for the user
-        const groupBalances = await this.balanceService.calculateGroupBalances(group.id);
-
-        // Validate the balance calculation result for type safety
-        const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
+        // Read pre-computed balance from Firestore (O(1) read vs O(N) calculation)
+        const groupBalance = await this.firestoreReader.getGroupBalance(group.id);
 
         // Use group.updatedAt for last activity (updated by touchGroup() on any group activity)
         const lastActivity = this.formatRelativeTime(group.updatedAt);
 
-        // Calculate currency-specific balances with proper typing
+        // Calculate currency-specific balances for current user with proper typing
         const balancesByCurrency: Record<
             string,
             {
@@ -86,8 +78,8 @@ export class GroupService {
             }
         > = {};
 
-        if (validatedBalances.balancesByCurrency) {
-            for (const [currency, currencyBalances] of Object.entries(validatedBalances.balancesByCurrency)) {
+        if (groupBalance.balancesByCurrency) {
+            for (const [currency, currencyBalances] of Object.entries(groupBalance.balancesByCurrency)) {
                 const currencyUserBalance = currencyBalances[userId];
                 if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
                     const currencyDisplayData = {
@@ -366,46 +358,47 @@ export class GroupService {
             const membersByGroup = new Map<string, string[]>();
 
             // Fetch members for each group
-            const memberPromises = groups.map((group: GroupDTO) => this.firestoreReader.getAllGroupMembers(group.id));
-            const membersArrays = await Promise.all(memberPromises);
-
-            // Collect all member IDs and create mapping
-            groups.forEach((group: GroupDTO, index: number) => {
-                const memberDocs = membersArrays[index];
-                const memberIds = memberDocs.map((memberDoc: GroupMembershipDTO) => memberDoc.uid);
+            await Promise.all(groups.map(async (group: GroupDTO, index: number) => {
+                const memberIds = await this.firestoreReader.getAllGroupMemberIds(group.id);
                 membersByGroup.set(group.id, memberIds);
                 memberIds.forEach((memberId: string) => allMemberIds.add(memberId));
-            });
+            }));
 
             const allMemberProfiles = await this.userService.getUsers(Array.from(allMemberIds));
 
             return { allMemberProfiles, membersByGroup };
         })();
 
-        // Step 5: Calculate balances for groups with expenses
+        // Step 5: Read pre-computed balances for all groups (O(N) reads vs O(N×M) calculations)
         const balanceMap = await (async () => {
-            // Calculate balances for groups that have expenses
-            const groupsWithExpenses = groups.filter((group: GroupDTO) => {
-                const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
-                return expenseMetadata.count > 0;
-            });
-
-            const balancePromises = groupsWithExpenses.map((group: GroupDTO) =>
-                this.balanceService.calculateGroupBalances(group.id).catch((error: Error) => {
-                    logger.error('Error calculating balances', error, { groupId: group.id });
+            // Fetch pre-computed balances for all groups in parallel
+            const balancePromises = groups.map((group: GroupDTO) =>
+                this.firestoreReader.getGroupBalance(group.id).catch((error: Error) => {
+                    logger.error('Error reading group balance', error, { groupId: group.id });
+                    // Return empty balance on error (matches GroupBalanceDTO structure)
                     return {
                         groupId: group.id,
                         balancesByCurrency: {},
                         simplifiedDebts: [],
-                        lastUpdated: new Date().toISOString(),
+                        lastUpdatedAt: new Date().toISOString(),
+                        version: 0,
                     };
                 }),
             );
 
             const balanceResults = await Promise.all(balancePromises);
             const balanceMap = new Map<string, BalanceCalculationResult>();
-            groupsWithExpenses.forEach((group: GroupDTO, index: number) => {
-                balanceMap.set(group.id, balanceResults[index]);
+
+            // Convert GroupBalanceDTO to BalanceCalculationResult format
+            groups.forEach((group: GroupDTO, index: number) => {
+                const groupBalance = balanceResults[index];
+                const balanceResult: BalanceCalculationResult = {
+                    groupId: groupBalance.groupId,
+                    balancesByCurrency: groupBalance.balancesByCurrency,
+                    simplifiedDebts: groupBalance.simplifiedDebts,
+                    lastUpdated: groupBalance.lastUpdatedAt, // Map lastUpdatedAt → lastUpdated
+                };
+                balanceMap.set(group.id, balanceResult);
             });
 
             return balanceMap;
@@ -447,10 +440,8 @@ export class GroupService {
                 > = {};
 
                 if (groupBalances.balancesByCurrency) {
-                    // Validate the balance data with schema first
-                    const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
-
-                    for (const [currency, currencyBalances] of Object.entries(validatedBalances.balancesByCurrency)) {
+                    // groupBalances is already validated by GroupBalanceDTO from getGroupBalance()
+                    for (const [currency, currencyBalances] of Object.entries(groupBalances.balancesByCurrency)) {
                         const currencyUserBalance = currencyBalances[userId];
                         if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
                             const currencyDisplayData = {
@@ -500,9 +491,8 @@ export class GroupService {
                 };
 
                 if (groupBalances.balancesByCurrency) {
-                    // Use validated balance data from above
-                    const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
-                    const currencyBalancesArray = Object.values(validatedBalances.balancesByCurrency);
+                    // groupBalances is already validated by GroupBalanceDTO from getGroupBalance()
+                    const currencyBalancesArray = Object.values(groupBalances.balancesByCurrency);
 
                     if (currencyBalancesArray.length > 0) {
                         const firstCurrencyBalances = currencyBalancesArray[0];
@@ -589,7 +579,16 @@ export class GroupService {
             memberStatus: MemberStatuses.ACTIVE,
         };
 
-        // Atomic transaction: create group and member documents
+        // Initialize empty group balance (no expenses/settlements yet)
+        const initialBalance: GroupBalanceDTO = {
+            groupId,
+            balancesByCurrency: {},
+            simplifiedDebts: [],
+            lastUpdatedAt: nowISO,
+            version: 0,
+        };
+
+        // Atomic transaction: create group, member, and balance documents
         await this.firestoreWriter.runTransaction(async (transaction) => {
             this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUPS, groupId, documentToWrite);
 
@@ -603,6 +602,9 @@ export class GroupService {
 
             // FirestoreWriter.createInTransaction handles conversion and validation
             this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, getTopLevelMembershipDocId(userId, groupId), topLevelMemberDoc);
+
+            // Initialize balance document atomically with group creation
+            this.firestoreWriter.setGroupBalanceInTransaction(transaction, groupId, initialBalance);
 
             // Note: Group notifications are handled by the trackGroupChanges trigger
             // which fires when the group document is created
@@ -892,7 +894,7 @@ export class GroupService {
         await this.fetchGroupWithAccess(groupId, userId, true);
 
         // Get member list BEFORE deletion for change tracking
-        const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
+        const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);// todo: this should use getAllGroupMemberIds()
         const memberIds = memberDocs ? memberDocs.map((doc) => doc.uid) : [];
 
         logger.info('Initiating atomic group deletion', {
@@ -1049,8 +1051,8 @@ export class GroupService {
                 cursor: options.expenseCursor,
             }),
 
-            // Get balances using existing calculator
-            this.balanceService.calculateGroupBalances(groupId),
+            // Get pre-computed balances from Firestore (O(1) read)
+            this.firestoreReader.getGroupBalance(groupId),
 
             // Get settlements using service layer with pagination
             this.settlementService.listSettlements(groupId, userId, {
@@ -1059,13 +1061,11 @@ export class GroupService {
             }),
         ]);
 
-        // Validate balance data before returning
-        const validatedBalances = BalanceCalculationResultSchema.parse(balancesData);
-
-        // Convert Timestamp to ISO string for DTO
+        // balancesData is already validated GroupBalanceDTO from getGroupBalance()
+        // Map lastUpdatedAt to lastUpdated for API response compatibility
         const balancesDTO = {
-            ...validatedBalances,
-            lastUpdated: dateHelpers.timestampToISO(validatedBalances.lastUpdated),
+            ...balancesData,
+            lastUpdated: balancesData.lastUpdatedAt,
             userBalances: {}, // TODO: Populate from balancesByCurrency if needed by client
         };
 

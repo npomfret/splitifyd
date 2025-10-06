@@ -154,8 +154,8 @@ export const BalanceCalculationInputSchema = z.object({
     groupId: z.string(),
     expenses: z.array(ExpenseDTOSchema),
     settlements: z.array(SettlementDTOSchema),
+    memberIds: z.array(z.string()),
     groupDoc: GroupDTOSchema,
-    memberDocs: z.array(GroupMembershipDTOSchema), // Changed from GroupMemberDocumentSchema
     memberProfiles: z.record(z.string(), RegisteredUserSchema), // Changed from UserProfileSchema
 });
 

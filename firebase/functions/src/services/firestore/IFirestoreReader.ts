@@ -72,7 +72,7 @@ export interface BatchGroupFetchOptions {
 // Import parsed types from schemas
 import { CommentTargetType } from '@splitifyd/shared';
 import type { UserNotificationDocument } from '../../schemas/user-notifications';
-import type { ParsedShareLink } from '../../schemas';
+import type { ParsedShareLink, GroupBalanceDTO } from '../../schemas';
 import type { ExpenseDTO, GroupDTO, PolicyDTO, RegisteredUser, SettlementDTO, GroupMembershipDTO, CommentDTO } from '@splitifyd/shared/src';
 
 export interface IFirestoreReader {
@@ -315,6 +315,18 @@ export interface IFirestoreReader {
     // ========================================================================
     // Settlement Query Operations
     // ========================================================================
+
+    // ========================================================================
+    // Group Balance Operations
+    // ========================================================================
+
+    /**
+     * Get pre-computed balance for a group
+     * @param groupId - The group ID
+     * @returns GroupBalanceDTO with ISO string dates
+     * @throws ApiError if balance not found or read fails
+     */
+    getGroupBalance(groupId: string): Promise<GroupBalanceDTO>;
 
     // ========================================================================
     // System Document Operations

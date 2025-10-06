@@ -1,6 +1,6 @@
 import { expect, test } from '../../utils/console-logging-fixture';
 import { createMockFirebase, MockFirebase, mockFullyAcceptedPoliciesApi, mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
-import {ClientUserBuilder, CreateGroupModalPage, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder} from '@splitifyd/test-support';
+import {ClientUserBuilder, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder} from '@splitifyd/test-support';
 
 test.describe('Dashboard Stats Display', () => {
     const testUser = ClientUserBuilder.validUser().build();

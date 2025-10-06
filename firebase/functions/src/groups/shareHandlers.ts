@@ -54,7 +54,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
     const userEmail = req.user!.email;
 
     try {
-        const result = await groupShareService.joinGroupByLink(userId, userEmail, linkId);
+        const result = await groupShareService.joinGroupByLink(userId, linkId);
         res.status(HTTP_STATUS.OK).json(result);
     } catch (error) {
         if (error instanceof ApiError) throw error;

@@ -44,16 +44,16 @@ describe('Concurrent Operations Integration Tests', () => {
 
             // Execute all member additions concurrently via share link
             const addPromises = [
-                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser2.uid, testUser2.email, linkId),
-                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser3.uid, testUser3.email, linkId),
-                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser4.uid, testUser4.email, linkId),
+                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser2.uid, linkId),
+                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser3.uid, linkId),
+                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser4.uid, linkId),
             ];
 
             // All operations should complete successfully
             await Promise.all(addPromises);
 
             // Verify all members were added
-            const finalMembers = await groupMemberService.getAllGroupMembers(testGroup.id);
+            const finalMembers = await firestoreReader.getAllGroupMembers(testGroup.id);
             expect(finalMembers).toHaveLength(4); // testUser1 (admin) + 3 new members
 
             const memberIds = finalMembers.map((m) => m.uid);
@@ -68,17 +68,17 @@ describe('Concurrent Operations Integration Tests', () => {
 
             // Add initial member via share link (production code path)
             const { linkId: initialLinkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
-            await groupShareService.joinGroupByLink(testUser2.uid, testUser2.email, initialLinkId);
+            await groupShareService.joinGroupByLink(testUser2.uid, initialLinkId);
 
             // Run concurrent operations: queries while adding/removing members
             const { linkId: concurrentLinkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
             const operations = [
                 // Query operations
-                () => groupMemberService.getAllGroupMembers(testGroup.id),
+                () => firestoreReader.getAllGroupMembers(testGroup.id),
                 () => firestoreReader.getGroupMember(testGroup.id, testUser2.uid),
 
                 // Modification operations (production code paths)
-                () => groupShareService.joinGroupByLink(testUser3.uid, testUser3.email, concurrentLinkId),
+                () => groupShareService.joinGroupByLink(testUser3.uid, concurrentLinkId),
                 () => groupMemberService.removeGroupMember(testUser1.uid, testGroup.id, testUser2.uid),
             ];
 
@@ -94,7 +94,7 @@ describe('Concurrent Operations Integration Tests', () => {
             expect(succeeded).toBeGreaterThan(0); // At least some operations should succeed
 
             // System should be in a consistent state
-            const finalMembers = await groupMemberService.getAllGroupMembers(testGroup.id);
+            const finalMembers = await firestoreReader.getAllGroupMembers(testGroup.id);
             expect(Array.isArray(finalMembers)).toBe(true);
         });
 
@@ -109,7 +109,7 @@ describe('Concurrent Operations Integration Tests', () => {
             // Add members to group via share link (production code path)
             const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
             for (const user of [testUser2, testUser3, testUser4]) {
-                await groupShareService.joinGroupByLink(user.uid, user.email, linkId);
+                await groupShareService.joinGroupByLink(user.uid, linkId);
             }
 
             // Create concurrent expenses
@@ -174,7 +174,7 @@ describe('Concurrent Operations Integration Tests', () => {
 
             // Add member via share link (production code path)
             const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
-            await groupShareService.joinGroupByLink(testUser2.uid, testUser2.email, linkId);
+            await groupShareService.joinGroupByLink(testUser2.uid, linkId);
 
             // Create expense
             await expenseService.createExpense(
@@ -195,7 +195,7 @@ describe('Concurrent Operations Integration Tests', () => {
             // Simulate concurrent operations: balance queries and member removal
             const operations = [
                 // Balance-related queries that might be running
-                () => groupMemberService.getAllGroupMembers(testGroup.id),
+                () => firestoreReader.getAllGroupMembers(testGroup.id),
                 () => expenseService.listGroupExpenses(testGroup.id, testUser1.uid),
 
                 // Member removal during balance calculation (production code path)
@@ -211,7 +211,7 @@ describe('Concurrent Operations Integration Tests', () => {
             expect(succeeded).toBeGreaterThan(0);
 
             // Check final state is consistent
-            const finalMembers = await groupMemberService.getAllGroupMembers(testGroup.id);
+            const finalMembers = await firestoreReader.getAllGroupMembers(testGroup.id);
             expect(Array.isArray(finalMembers)).toBe(true);
         });
     });
@@ -222,12 +222,12 @@ describe('Concurrent Operations Integration Tests', () => {
 
             // Add a member via share link (production code path)
             const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
-            await groupShareService.joinGroupByLink(testUser2.uid, testUser2.email, linkId);
+            await groupShareService.joinGroupByLink(testUser2.uid, linkId);
 
             // Create operations where some will succeed and some will fail
             const operations = [
                 // Valid operations
-                () => groupMemberService.getAllGroupMembers(testGroup.id),
+                () => firestoreReader.getAllGroupMembers(testGroup.id),
                 () => firestoreReader.getGroupMember(testGroup.id, testUser2.uid),
 
                 // Operations that will return null for non-existent member (valid behavior)
@@ -247,7 +247,7 @@ describe('Concurrent Operations Integration Tests', () => {
             expect(results[1].status).toBe('fulfilled'); // getGroupMember for existing user should succeed
 
             // System should still be in valid state
-            const finalMembers = await groupMemberService.getAllGroupMembers(testGroup.id);
+            const finalMembers = await firestoreReader.getAllGroupMembers(testGroup.id);
             expect(Array.isArray(finalMembers)).toBe(true);
             expect(finalMembers.some((m) => m.uid === testUser2.uid)).toBe(true);
         });

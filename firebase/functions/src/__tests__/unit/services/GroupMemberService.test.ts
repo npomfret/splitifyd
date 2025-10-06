@@ -1,4 +1,4 @@
-import { describe, it, test, expect, beforeEach, vi } from 'vitest';
+import { describe, it, test, expect, beforeEach } from 'vitest';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
@@ -11,8 +11,6 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     let stubReader: StubFirestoreReader;
     let stubWriter: StubFirestoreWriter;
     let stubAuth: StubAuthService;
-    let applicationBuilder: ApplicationBuilder;
-    let mockBalanceService: any;
 
     // Test data
     const testGroupId = 'test-group-id';
@@ -25,29 +23,32 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
     const defaultTheme = new ThemeBuilder().withLight('#FF6B6B').withDark('#FF6B6B').withName('Test Theme').withPattern('solid').withColorIndex(0).build();
 
-    beforeEach(() => {
-        // Create stubs
+    // Helper to initialize balance document for a group
+    const initializeGroupBalance = async (groupId: string) => {
+        const initialBalance = {
+            groupId,
+            balancesByCurrency: {},
+            simplifiedDebts: [],
+            lastUpdatedAt: new Date().toISOString(),
+            version: 0,
+        };
+        await stubWriter.setGroupBalance(groupId, initialBalance);
+    };
+
+    beforeEach(async () => {
+        // Create stubs with shared documents map
         stubReader = new StubFirestoreReader();
-        stubWriter = new StubFirestoreWriter();
+        stubWriter = new StubFirestoreWriter(stubReader.getDocuments());
         stubAuth = new StubAuthService();
 
-        // Create a mock balance service for tests that need to control balance calculations
-        mockBalanceService = {
-            calculateGroupBalances: vi.fn(),
-        };
-
-        // Create ApplicationBuilder and GroupMemberService
-        applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
-
-        // For tests that need to control balance calculations, create with mock balance service
-        // For others, use the ApplicationBuilder version
-        groupMemberService = new GroupMemberService(stubReader, stubWriter, mockBalanceService);
+        // GroupMemberService uses pre-computed balances from Firestore now (no balance service needed)
+        groupMemberService = new GroupMemberService(stubReader, stubWriter);
 
         // Setup test group using builder
         const testGroup = new GroupDTOBuilder().withId(testGroupId).withName('Test Group').build();
         stubReader.setDocument('groups', testGroupId, testGroup);
+        await initializeGroupBalance(testGroupId); // Initialize balance for incremental updates
 
-        vi.clearAllMocks();
     });
 
     describe('getAllGroupMembers', () => {
@@ -63,14 +64,14 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 stubReader.setDocument('group-members', `${testGroupId}_${member.uid}`, member);
             });
 
-            const result = await groupMemberService.getAllGroupMembers(testGroupId);
+            const result = await stubReader.getAllGroupMembers(testGroupId);
 
             expect(result).toEqual(testMembers);
             expect(result).toHaveLength(3);
         });
 
         it('should return empty array for group with no members', async () => {
-            const result = await groupMemberService.getAllGroupMembers(testGroupId);
+            const result = await stubReader.getAllGroupMembers(testGroupId);
 
             expect(result).toEqual([]);
             expect(result).toHaveLength(0);
@@ -79,7 +80,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         it('should handle invalid group ID', async () => {
             const invalidGroupId = '';
 
-            const result = await groupMemberService.getAllGroupMembers(invalidGroupId);
+            const result = await stubReader.getAllGroupMembers(invalidGroupId);
 
             expect(result).toEqual([]);
         });
@@ -145,17 +146,22 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
             const memberDoc = new GroupMemberDocumentBuilder().withUserId(memberUserId).withGroupId(testGroupId).build();
 
-            // Mock balance calculation to return outstanding balance
-            mockBalanceService.calculateGroupBalances.mockResolvedValue({
+            // Set up balance document with outstanding balance
+            await stubWriter.setGroupBalance(testGroupId, {
+                groupId: testGroupId,
                 balancesByCurrency: {
                     USD: {
                         [memberUserId]: {
+                            uid: memberUserId,
+                            owes: {},
+                            owedBy: {},
                             netBalance: -50.0, // Member owes $50
-                            totalPaid: 0,
-                            totalOwed: 50,
                         },
                     },
                 },
+                simplifiedDebts: [],
+                lastUpdatedAt: new Date().toISOString(),
+                version: 1,
             });
 
             stubReader.setDocument('groups', testGroupId, testGroup);
@@ -171,17 +177,22 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
             const memberDoc = new GroupMemberDocumentBuilder().withUserId(memberUserId).withGroupId(testGroupId).build();
 
-            // Mock balance calculation to return zero balance
-            mockBalanceService.calculateGroupBalances.mockResolvedValue({
+            // Set up balance document with zero balance
+            await stubWriter.setGroupBalance(testGroupId, {
+                groupId: testGroupId,
                 balancesByCurrency: {
                     USD: {
                         [memberUserId]: {
+                            uid: memberUserId,
+                            owes: {},
+                            owedBy: {},
                             netBalance: 0.0, // Member has settled balance
-                            totalPaid: 25,
-                            totalOwed: 25,
                         },
                     },
                 },
+                simplifiedDebts: [],
+                lastUpdatedAt: new Date().toISOString(),
+                version: 1,
             });
 
             // Add another member so the group has multiple members (needed for leave validation)
@@ -262,17 +273,22 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
             const memberDoc = new GroupMemberDocumentBuilder().withUserId(memberUserId).withGroupId(testGroupId).build();
 
-            // Mock balance calculation to return outstanding balance
-            mockBalanceService.calculateGroupBalances.mockResolvedValue({
+            // Set up balance document with outstanding balance
+            await stubWriter.setGroupBalance(testGroupId, {
+                groupId: testGroupId,
                 balancesByCurrency: {
                     USD: {
                         [memberUserId]: {
+                            uid: memberUserId,
+                            owes: {},
+                            owedBy: {},
                             netBalance: 25.0, // Member is owed $25
-                            totalPaid: 50,
-                            totalOwed: 25,
                         },
                     },
                 },
+                simplifiedDebts: [],
+                lastUpdatedAt: new Date().toISOString(),
+                version: 1,
             });
 
             stubReader.setDocument('groups', testGroupId, testGroup);
@@ -288,17 +304,22 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
             const memberDoc = new GroupMemberDocumentBuilder().withUserId(memberUserId).withGroupId(testGroupId).build();
 
-            // Mock balance calculation to return zero balance
-            mockBalanceService.calculateGroupBalances.mockResolvedValue({
+            // Set up balance document with zero balance
+            await stubWriter.setGroupBalance(testGroupId, {
+                groupId: testGroupId,
                 balancesByCurrency: {
                     USD: {
                         [memberUserId]: {
+                            uid: memberUserId,
+                            owes: {},
+                            owedBy: {},
                             netBalance: 0.0, // Member has settled balance
-                            totalPaid: 25,
-                            totalOwed: 25,
                         },
                     },
                 },
+                simplifiedDebts: [],
+                lastUpdatedAt: new Date().toISOString(),
+                version: 1,
             });
 
             stubReader.setDocument('groups', testGroupId, testGroup);

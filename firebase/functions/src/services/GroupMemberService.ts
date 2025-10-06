@@ -1,16 +1,14 @@
 import { Errors, ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
-import { BalanceCalculationService } from './balance';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
-import { MemberRoles, type GroupMembershipDTO } from '@splitifyd/shared';
+import { MemberRoles } from '@splitifyd/shared';
 
 export class GroupMemberService {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
-        private readonly balanceService: BalanceCalculationService,
     ) {}
 
     async leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string }> {
@@ -62,8 +60,8 @@ export class GroupMemberService {
                 throw Errors.INVALID_INPUT({ message: 'Group creator cannot leave the group' });
             }
 
-            const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
-            if (memberDocs.length === 1) {
+            const memberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
+            if (memberIds.length === 1) {
                 throw Errors.INVALID_INPUT({ message: 'Cannot leave group - you are the only member' });
             }
         } else {
@@ -78,8 +76,9 @@ export class GroupMemberService {
         }
 
         // Balance validation (same logic for both scenarios)
+        // Use pre-computed balance from Firestore (O(1) read)
         try {
-            const groupBalance = await this.balanceService.calculateGroupBalances(groupId);
+            const groupBalance = await this.firestoreReader.getGroupBalance(groupId);
             const balancesByCurrency = groupBalance.balancesByCurrency;
 
             for (const currency in balancesByCurrency) {
@@ -123,14 +122,6 @@ export class GroupMemberService {
             success: true,
             message: isLeaving ? 'Successfully left the group' : 'Member removed successfully',
         };
-    }
-
-    /**
-     * Get all members for a group
-     * @deprecated Use firestoreReader.getAllGroupMembers() instead - only used by tests
-     */
-    async getAllGroupMembers(groupId: string): Promise<GroupMembershipDTO[]> {
-        return this.firestoreReader.getAllGroupMembers(groupId);
     }
 
     async isGroupMemberAsync(groupId: string, userId: string): Promise<boolean> {

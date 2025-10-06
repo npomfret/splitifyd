@@ -1,5 +1,5 @@
 import type { ParsedBalanceCalculationResult as BalanceCalculationResult, ParsedBalanceCalculationInput as BalanceCalculationInput } from '../../schemas';
-import type { ExpenseDTO, SettlementDTO, GroupDTO, GroupMembershipDTO } from '@splitifyd/shared';
+import type { ExpenseDTO, SettlementDTO, GroupDTO } from '@splitifyd/shared';
 import { ExpenseProcessor } from './ExpenseProcessor';
 import { SettlementProcessor } from './SettlementProcessor';
 import { DebtSimplificationService } from './DebtSimplificationService';
@@ -25,6 +25,8 @@ export class BalanceCalculationService {
 
     async calculateGroupBalances(groupId: string): Promise<BalanceCalculationResult> {
         return measureDb('balance-calculation', async () => {
+            // todo: inline all this
+
             // Step 1: Fetch all required data
             const input = await this.fetchBalanceCalculationData(groupId);
 
@@ -38,14 +40,14 @@ export class BalanceCalculationService {
     /**
      * Calculate group balances using pre-fetched data (optimized for batch operations)
      */
-    calculateGroupBalancesWithData(input: BalanceCalculationInput): BalanceCalculationResult {
+    private calculateGroupBalancesWithData(input: BalanceCalculationInput): BalanceCalculationResult {
         // Validate input data for type safety
-        const validatedInput = BalanceCalculationInputSchema.parse(input) as BalanceCalculationInput;
+        const validatedInput = BalanceCalculationInputSchema.parse(input) as BalanceCalculationInput;// why do we need to do this?
 
         const startTime = Date.now();
 
         // 1. Extract member IDs for initialization
-        const memberIds = validatedInput.memberDocs.map((member) => member.uid);
+        const memberIds = validatedInput.memberIds;
 
         // 2. Process expenses to calculate initial balances by currency
         const expenseProcessingStart = Date.now();
@@ -91,12 +93,16 @@ export class BalanceCalculationService {
         return BalanceCalculationResultSchema.parse(result);
     }
 
+    // todo: this should be private
     async fetchBalanceCalculationData(groupId: string): Promise<BalanceCalculationInput> {
         // Fetch all required data in parallel for better performance
-        const [expenses, settlements, { groupDoc, memberDocs }] = await Promise.all([this.fetchExpenses(groupId), this.fetchSettlements(groupId), this.fetchGroupData(groupId)]);
+        const [expenses, settlements, { groupDoc, memberIds }] = await Promise.all([
+            this.fetchExpenses(groupId),
+            this.fetchSettlements(groupId),
+            this.fetchGroupData(groupId)
+        ]);
 
         // Fetch member profiles after we have group data
-        const memberIds = memberDocs.map((member) => member.uid);
         const memberProfilesMap = await this.userService.getUsers(memberIds);
 
         // Convert Map to Record for schema validation
@@ -107,8 +113,8 @@ export class BalanceCalculationService {
             expenses,
             settlements,
             groupDoc,
-            memberDocs,
             memberProfiles,
+            memberIds,
         };
     }
 
@@ -166,7 +172,7 @@ export class BalanceCalculationService {
         return allSettlements;
     }
 
-    private async fetchGroupData(groupId: string): Promise<{ groupDoc: GroupDTO; memberDocs: GroupMembershipDTO[] }> {
+    private async fetchGroupData(groupId: string): Promise<{ groupDoc: GroupDTO, memberIds: string[] }> {
         // Use FirestoreReader for validated data - returns DTOs with ISO strings
         const groupDoc = await this.firestoreReader.getGroup(groupId);
 
@@ -180,9 +186,14 @@ export class BalanceCalculationService {
             throw new Error(`Group ${groupId} has no members for balance calculation`);
         }
 
+        const memberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
+        if (memberIds.length === 0) {
+            throw new Error(`Group ${groupId} has no members for balance calculation`);
+        }
+
         return {
             groupDoc,
-            memberDocs,
+            memberIds
         };
     }
 }

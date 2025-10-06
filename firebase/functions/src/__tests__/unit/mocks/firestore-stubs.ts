@@ -6,6 +6,7 @@ import type { IFirestoreWriter, WriteResult } from '../../../services/firestore/
 import type { IAuthService } from '../../../services/auth';
 import { CommentTargetType } from '@splitifyd/shared';
 import type { UserNotificationDocument } from '../../../schemas/user-notifications';
+import type { GroupBalanceDTO } from '../../../schemas';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import type { GroupMembershipDTO } from '@splitifyd/shared';
@@ -198,6 +199,45 @@ export class StubFirestoreReader implements IFirestoreReader {
         return result;
     }
 
+    private timestampToISO(value: any): string {
+        if (!value) return value; // null/undefined pass through
+        if (value instanceof Timestamp) {
+            return value.toDate().toISOString();
+        }
+        if (value instanceof Date) {
+            return value.toISOString();
+        }
+        if (typeof value === 'string') {
+            // Already ISO string
+            return value;
+        }
+        // Lenient: if it has a toDate() method (Timestamp-like), use it
+        if (typeof value === 'object' && typeof value.toDate === 'function') {
+            return value.toDate().toISOString();
+        }
+        // Lenient: if it has seconds/nanoseconds (Timestamp-like object), convert
+        if (typeof value === 'object' && typeof value.seconds === 'number') {
+            return new Date(value.seconds * 1000).toISOString();
+        }
+        return value;
+    }
+
+    private convertTimestampsToISO<T extends Record<string, any>>(obj: T): T {
+        const result: any = { ...obj };
+
+        for (const [key, value] of Object.entries(result)) {
+            if (value instanceof Timestamp) {
+                result[key] = this.timestampToISO(value);
+            } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+                result[key] = this.convertTimestampsToISO(value);
+            } else if (Array.isArray(value)) {
+                result[key] = value.map((item) => (item && typeof item === 'object' ? this.convertTimestampsToISO(item) : item));
+            }
+        }
+
+        return result;
+    }
+
     setRawDocument(id: string, data: any) {
         if (data === null) {
             this.rawDocuments.delete(id);
@@ -239,6 +279,21 @@ export class StubFirestoreReader implements IFirestoreReader {
         }
 
         return this.documents.get(key) || null;
+    }
+
+    async getGroupBalance(groupId: string): Promise<GroupBalanceDTO> {
+        const error = this.methodErrors.get('getGroupBalance');
+        if (error) throw error;
+
+        const key = `groups/${groupId}/metadata/balance`;
+        const balance = this.documents.get(key);
+
+        if (!balance) {
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'BALANCE_NOT_FOUND', `Balance not found for group ${groupId}`);
+        }
+
+        // Convert Timestamps to ISO strings before returning (mirrors production FirestoreReader)
+        return this.convertTimestampsToISO(balance);
     }
 
     async getExpense(expenseId: string): Promise<ExpenseDTO | null> {
@@ -364,8 +419,12 @@ export class StubFirestoreReader implements IFirestoreReader {
         return members;
     }
 
-    async getAllGroupMemberIds(): Promise<string[]> {
-        return [];
+    async getAllGroupMemberIds(groupId: string): Promise<string[]> {
+        const error = this.methodErrors.get('getAllGroupMemberIds');
+        if (error) throw error;
+
+        const members = this.filterCollection<GroupMembershipDTO>('group-members', (doc) => doc.groupId === groupId);
+        return members.map((m) => m.uid);
     }
 
     async getExpensesForGroup(groupId: string, options: QueryOptions): Promise<ExpenseDTO[]> {
@@ -596,6 +655,45 @@ export class StubFirestoreWriter implements IFirestoreWriter {
             } else if (Array.isArray(value)) {
                 // Recursively process arrays of objects
                 result[key] = value.map((item) => (item && typeof item === 'object' && !(item instanceof Timestamp) ? this.convertISOToTimestamps(item) : item));
+            }
+        }
+
+        return result;
+    }
+
+    private timestampToISO(value: any): string {
+        if (!value) return value; // null/undefined pass through
+        if (value instanceof Timestamp) {
+            return value.toDate().toISOString();
+        }
+        if (value instanceof Date) {
+            return value.toISOString();
+        }
+        if (typeof value === 'string') {
+            // Already ISO string
+            return value;
+        }
+        // Lenient: if it has a toDate() method (Timestamp-like), use it
+        if (typeof value === 'object' && typeof value.toDate === 'function') {
+            return value.toDate().toISOString();
+        }
+        // Lenient: if it has seconds/nanoseconds (Timestamp-like object), convert
+        if (typeof value === 'object' && typeof value.seconds === 'number') {
+            return new Date(value.seconds * 1000).toISOString();
+        }
+        return value;
+    }
+
+    private convertTimestampsToISO<T extends Record<string, any>>(obj: T): T {
+        const result: any = { ...obj };
+
+        for (const [key, value] of Object.entries(result)) {
+            if (value instanceof Timestamp) {
+                result[key] = this.timestampToISO(value);
+            } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+                result[key] = this.convertTimestampsToISO(value);
+            } else if (Array.isArray(value)) {
+                result[key] = value.map((item) => (item && typeof item === 'object' ? this.convertTimestampsToISO(item) : item));
             }
         }
 
@@ -870,6 +968,58 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         const existingGroup = this.documents.get(groupPath) || {};
         const updatedGroup = { ...existingGroup, updatedAt: Timestamp.now() };
         this.documents.set(groupPath, updatedGroup);
+    }
+
+    async setGroupBalance(groupId: string, balance: GroupBalanceDTO): Promise<void> {
+        const balancePath = `groups/${groupId}/metadata/balance`;
+        const convertedData = this.convertISOToTimestamps(balance);
+        const docData = {
+            ...convertedData,
+            lastUpdatedAt: Timestamp.now(),
+        };
+        this.documents.set(balancePath, docData);
+    }
+
+    setGroupBalanceInTransaction(transaction: any, groupId: string, balance: GroupBalanceDTO): void {
+        const balancePath = `groups/${groupId}/metadata/balance`;
+        const convertedData = this.convertISOToTimestamps(balance);
+        const docData = {
+            ...convertedData,
+            lastUpdatedAt: Timestamp.now(),
+        };
+        this.documents.set(balancePath, docData);
+    }
+
+    async getGroupBalanceInTransaction(transaction: any, groupId: string): Promise<GroupBalanceDTO> {
+        const balancePath = `groups/${groupId}/metadata/balance`;
+        const doc = this.documents.get(balancePath);
+
+        if (!doc) {
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'BALANCE_NOT_FOUND', `Balance not found for group ${groupId}`);
+        }
+
+        // Convert Timestamps to ISO strings (mirrors production FirestoreWriter)
+        return this.convertTimestampsToISO(doc) as GroupBalanceDTO;
+    }
+
+    updateGroupBalanceInTransaction(
+        transaction: any,
+        groupId: string,
+        currentBalance: GroupBalanceDTO,
+        updater: (current: GroupBalanceDTO) => GroupBalanceDTO
+    ): void {
+        // Apply updater function to the provided current balance
+        const newBalance = updater(currentBalance);
+
+        // Convert and store
+        const balancePath = `groups/${groupId}/metadata/balance`;
+        const convertedData = this.convertISOToTimestamps(newBalance);
+        const docData = {
+            ...convertedData,
+            lastUpdatedAt: Timestamp.now(),
+        };
+
+        this.documents.set(balancePath, docData);
     }
 }
 

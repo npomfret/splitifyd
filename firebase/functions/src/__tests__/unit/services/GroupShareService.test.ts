@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { GroupShareService } from '../../../services/GroupShareService';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
@@ -15,17 +15,28 @@ describe('GroupShareService', () => {
     let stubAuth: StubAuthService;
     let applicationBuilder: ApplicationBuilder;
 
+    // Helper to initialize balance document for a group
+    const initializeGroupBalance = async (groupId: string) => {
+        const initialBalance = {
+            groupId,
+            balancesByCurrency: {},
+            simplifiedDebts: [],
+            lastUpdatedAt: new Date().toISOString(),
+            version: 0,
+        };
+        await stubWriter.setGroupBalance(groupId, initialBalance);
+    };
+
     beforeEach(() => {
-        // Create stubs
+        // Create stubs with shared documents map
         stubReader = new StubFirestoreReader();
-        stubWriter = new StubFirestoreWriter();
+        stubWriter = new StubFirestoreWriter(stubReader.getDocuments());
         stubAuth = new StubAuthService();
 
         // Create ApplicationBuilder and build GroupShareService
         applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
         groupShareService = applicationBuilder.buildGroupShareService();
 
-        vi.clearAllMocks();
     });
 
     describe('previewGroupByLink', () => {
@@ -69,6 +80,7 @@ describe('GroupShareService', () => {
             const testGroup = new GroupDTOBuilder().withId(groupId).withCreatedBy(userId).build();
 
             stubReader.setDocument('groups', groupId, testGroup);
+            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
 
             // Set up group membership so user has access (as owner)
             const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(groupId).asAdmin().build();
@@ -96,10 +108,11 @@ describe('GroupShareService', () => {
         const newUserId = 'new-user-id';
         const newUserEmail = 'newuser@test.com';
 
-        beforeEach(() => {
+        beforeEach(async () => {
             // Set up test group
             const testGroup = new GroupDTOBuilder().withId(groupId).withCreatedBy('owner-id').build();
             stubReader.setDocument('groups', groupId, testGroup);
+            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
 
             // Set up share link
             const shareLink = {
@@ -120,7 +133,7 @@ describe('GroupShareService', () => {
             stubReader.setGroupMembers(groupId, existingMembers);
 
             // Should succeed - we're at 49 members, adding 1 more = 50 (at cap, but still allowed)
-            await expect(groupShareService.joinGroupByLink(newUserId, newUserEmail, linkId)).resolves.toBeDefined();
+            await expect(groupShareService.joinGroupByLink(newUserId, linkId)).resolves.toBeDefined();
         });
 
         it(`should fail when group already has ${MAX_GROUP_MEMBERS} members`, async () => {
@@ -132,7 +145,7 @@ describe('GroupShareService', () => {
             // Should fail with GROUP_AT_CAPACITY
             let caughtError: ApiError | undefined;
             try {
-                await groupShareService.joinGroupByLink(newUserId, newUserEmail, linkId);
+                await groupShareService.joinGroupByLink(newUserId, linkId);
             } catch (error) {
                 caughtError = error as ApiError;
             }

@@ -158,45 +158,25 @@ export class GroupShareService {
         const isAlreadyMember = await this.groupMemberService.isGroupMemberAsync(group.id, userId);
 
         // Get member count from subcollection
-        const memberDocs = await this.firestoreReader.getAllGroupMembers(group.id);
+        const memberIds = await this.firestoreReader.getAllGroupMemberIds(group.id);
 
         return {
             groupId: group.id,
             groupName: group.name,
             groupDescription: group.description || '',
-            memberCount: memberDocs.length,
+            memberCount: memberIds.length,
             isAlreadyMember,
         };
     }
 
-    async joinGroupByLink(
-        userId: string,
-        userEmail: string,
-        linkId: string,
-    ): Promise<{
-        groupId: string;
-        groupName: string;
-        message: string;
-        success: boolean;
-    }> {
-        return measure.measureDb('GroupShareService.joinGroupByLink', async () => this._joinGroupByLink(userId, userEmail, linkId));
+    async joinGroupByLink(userId: string, linkId: string,): Promise<{ groupId: string; groupName: string; message: string; success: boolean }> {
+        return measure.measureDb('GroupShareService.joinGroupByLink', async () => this._joinGroupByLink(userId, linkId));
     }
 
-    private async _joinGroupByLink(
-        userId: string,
-        userEmail: string,
-        linkId: string,
-    ): Promise<{
-        groupId: string;
-        groupName: string;
-        message: string;
-        success: boolean;
-    }> {
+    private async _joinGroupByLink(userId: string, linkId: string,): Promise<{ groupId: string; groupName: string; message: string; success: boolean }> {
         if (!linkId) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_LINK_ID', 'Link ID is required');
         }
-
-        const userName = userEmail.split('@')[0];
 
         // Performance optimization: Find shareLink outside transaction
         const { groupId, shareLink } = await this.findShareLinkByToken(linkId);
@@ -218,14 +198,14 @@ export class GroupShareService {
 
         // Pre-compute member data outside transaction for speed
         const joinedAt = new Date().toISOString();
-        const existingMembers = await this.firestoreReader.getAllGroupMembers(groupId);
+        const existingMembersIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
 
         // Enforce hard cap on group size
-        if (existingMembers.length >= MAX_GROUP_MEMBERS) {
+        if (existingMembersIds.length >= MAX_GROUP_MEMBERS) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'GROUP_AT_CAPACITY', `Cannot add member. Group has reached maximum size of ${MAX_GROUP_MEMBERS} members`);
         }
 
-        const memberIndex = existingMembers.length;
+        const memberIndex = existingMembersIds.length;
 
         const themeColor = this.getThemeColorForMember(memberIndex);
         const memberDoc: GroupMembershipDTO = {
@@ -285,7 +265,6 @@ export class GroupShareService {
         logger.info('User joined group via share link', {
             groupId,
             userId,
-            userName,
             linkId: linkId.substring(0, 4) + '...',
             invitedBy: result.invitedBy,
         });

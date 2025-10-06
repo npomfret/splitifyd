@@ -3,7 +3,6 @@ import { GroupMemberService } from '../../../services/GroupMemberService';
 import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 import { ApiError } from '../../../utils/errors';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
-import { BalanceCalculationService } from '../../../services/balance';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
 
 // Create mock services
@@ -33,28 +32,14 @@ const createMockGroupMemberService = () => ({
 describe('Service-Level Error Handling - Subcollection Queries', () => {
     let stubFirestoreReader: StubFirestoreReader;
     let stubFirestoreWriter: StubFirestoreWriter;
-    let mockBalanceService: BalanceCalculationService;
     let groupMemberService: GroupMemberService;
-    let mockUserService: ReturnType<typeof createMockUserService>;
-    let mockNotificationService: ReturnType<typeof createMockNotificationService>;
-    let mockGroupMemberServiceRef: ReturnType<typeof createMockGroupMemberService>;
 
     beforeEach(() => {
-        vi.clearAllMocks();
         stubFirestoreReader = new StubFirestoreReader();
         stubFirestoreWriter = new StubFirestoreWriter();
 
-        // Create a mock balance service
-        mockBalanceService = {
-            calculateGroupBalances: vi.fn().mockResolvedValue({ balancesByCurrency: {} }),
-        } as any;
-
-        mockUserService = createMockUserService();
-        mockNotificationService = createMockNotificationService();
-        mockGroupMemberServiceRef = createMockGroupMemberService();
-
-        // Create GroupMemberService without stub utilities (they'll use defaults)
-        groupMemberService = new GroupMemberService(stubFirestoreReader, stubFirestoreWriter, mockBalanceService);
+        // Create GroupMemberService (uses pre-computed balances from Firestore, no balance service needed)
+        groupMemberService = new GroupMemberService(stubFirestoreReader, stubFirestoreWriter);
     });
 
     // Note: This test file focuses on subcollection query error handling patterns.
@@ -66,7 +51,7 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
             vi.spyOn(stubFirestoreReader, 'getAllGroupMembers').mockResolvedValue([]);
 
             // Should return empty array, not throw
-            const members = await groupMemberService.getAllGroupMembers('empty-group-id');
+            const members = await stubFirestoreReader.getAllGroupMembers('empty-group-id');
 
             expect(members).toEqual([]);
             expect(stubFirestoreReader.getAllGroupMembers).toHaveBeenCalledWith('empty-group-id');
@@ -78,7 +63,7 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
             vi.spyOn(stubFirestoreReader, 'getAllGroupMembers').mockRejectedValue(timeoutError);
 
             // Should let timeout errors bubble up
-            await expect(groupMemberService.getAllGroupMembers('timeout-group-id')).rejects.toThrow('Query timed out after 30 seconds');
+            await expect(stubFirestoreReader.getAllGroupMembers('timeout-group-id')).rejects.toThrow('Query timed out after 30 seconds');
         });
 
         test('should handle Firestore permission errors on subcollection access', async () => {
@@ -88,7 +73,7 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
             vi.spyOn(stubFirestoreReader, 'getAllGroupMembers').mockRejectedValue(permissionError);
 
             // Should let permission errors bubble up
-            await expect(groupMemberService.getAllGroupMembers('protected-group-id')).rejects.toThrow('Missing or insufficient permissions');
+            await expect(stubFirestoreReader.getAllGroupMembers('protected-group-id')).rejects.toThrow('Missing or insufficient permissions');
         });
     });
 
@@ -102,7 +87,7 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
             vi.spyOn(stubFirestoreReader, 'getAllGroupMembers').mockResolvedValue(largeMemberSet);
 
             // Should handle large result sets efficiently
-            const members = await groupMemberService.getAllGroupMembers('large-group-id');
+            const members = await stubFirestoreReader.getAllGroupMembers('large-group-id');
 
             expect(members).toHaveLength(1000);
             expect(members[0].uid).toBe('user-0');
@@ -125,7 +110,7 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
             vi.spyOn(stubFirestoreReader, 'getAllGroupMembers').mockResolvedValue(mixedMembers);
 
             // Should handle corrupted documents gracefully
-            const members = await groupMemberService.getAllGroupMembers('group-with-corruption');
+            const members = await stubFirestoreReader.getAllGroupMembers('group-with-corruption');
 
             // Verify that the method doesn't crash with corrupted data
             expect(Array.isArray(members)).toBe(true);

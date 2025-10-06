@@ -16,6 +16,18 @@ describe('GroupService - Unit Tests', () => {
     let stubAuth: StubAuthService;
     let applicationBuilder: ApplicationBuilder;
 
+    // Helper to initialize balance document for a group
+    const initializeGroupBalance = async (groupId: string) => {
+        const initialBalance = {
+            groupId,
+            balancesByCurrency: {},
+            simplifiedDebts: [],
+            lastUpdatedAt: new Date().toISOString(),
+            version: 0,
+        };
+        await stubWriter.setGroupBalance(groupId, initialBalance);
+    };
+
     beforeEach(() => {
         // Create stubs
         stubReader = new StubFirestoreReader();
@@ -82,6 +94,7 @@ describe('GroupService - Unit Tests', () => {
             const existingGroup = new GroupDTOBuilder().withId(groupId).withName('Original Name').withDescription('Original Description').withCreatedBy(userId).build();
 
             stubReader.setDocument('groups', groupId, existingGroup);
+            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
 
             // Set up group membership so user has access (as owner)
             const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(groupId).asAdmin().asActive().build();
@@ -106,6 +119,7 @@ describe('GroupService - Unit Tests', () => {
 
             stubReader.setDocument('groups', groupId, existingGroup);
             stubWriter.setDocument('groups', groupId, existingGroup);
+            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
 
             // Set up group membership so user has access (as owner)
             const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(groupId).asAdmin().asActive().build();
