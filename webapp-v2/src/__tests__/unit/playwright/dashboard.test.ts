@@ -2,45 +2,20 @@ import { test, expect } from '../../utils/console-logging-fixture';
 import {createMockFirebase, mockGroupsApi, mockApiFailure, mockFullyAcceptedPoliciesApi, setupSuccessfulApiMocks, mockGenerateShareLinkApi, MockFirebase} from '../../utils/mock-firebase-service';
 import { ClientUserBuilder, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder, DashboardPage, CreateGroupModalPage } from '@splitifyd/test-support';
 
-// Configure all tests to run in serial mode for browser reuse
-test.describe.configure({ mode: 'serial' });
-
-// Test for browser reuse - using beforeAll/afterAll approach
-test.describe.serial('Browser Reuse Test', () => {
-    let page: any;
-    let mockFirebase: any = null;
-
-    test.beforeAll(async ({ browser }) => {
-        // Create a single page that will be reused across all tests
-        page = await browser.newPage();
-    });
-
-    test.afterAll(async () => {
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-        }
-        if (page) {
-            await page.close();
-        }
-    });
-
-    test('test 1 - redirect check', async () => {
-        mockFirebase = await createMockFirebase(page, null);
-        await page.goto('/dashboard');
+// Test for browser reuse - using fixture-based approach with proper infrastructure
+test.describe('Browser Reuse Test', () => {
+    test('test 1 - redirect check', async ({ pageWithLogging: page, mockFirebase }) => {
+        // mockFirebase fixture starts logged out automatically
+        await page.goto('/dashboard', { timeout: 5000, waitUntil: 'domcontentloaded' });
         await expect(page).toHaveURL(/\/login/);
     });
 
-    test('test 2 - empty state check', async () => {
-        // Clean up previous mock
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-        }
-
+    test('test 2 - empty state check', async ({ pageWithLogging: page, authenticatedMockFirebase }) => {
         const testUser = ClientUserBuilder.validUser().build();
-        mockFirebase = await createMockFirebase(page, testUser);
+        await authenticatedMockFirebase(testUser);
         await mockFullyAcceptedPoliciesApi(page);
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([], 0).build());
-        await page.goto('/dashboard');
+        await page.goto('/dashboard', { timeout: 5000, waitUntil: 'domcontentloaded' });
         await expect(page).toHaveURL(/\/dashboard/);
     });
 });
