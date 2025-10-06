@@ -43,14 +43,10 @@ export class LoginPage extends BasePage {
 
     /**
      * Error message container within the login form
-     * Looks for alert role or error text pattern
+     * ErrorMessage component renders with role="alert"
      */
     getErrorContainer(): Locator {
-        // Use role="alert" which is semantically correct for errors
-        // Search broadly since role="alert" should be unique on the page
-        return this.page.getByRole('alert')
-            .or(this.page.locator('[role="alert"]'))
-            .or(this.page.locator('[data-testid="error-message"]'));
+        return this.page.getByRole('alert');
     }
 
     // ============================================================================

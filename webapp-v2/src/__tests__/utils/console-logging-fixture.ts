@@ -118,7 +118,7 @@ export const test = base.extend<ConsoleLoggingFixtures>({
         const consoleMessages: string[] = [];
 
         // Set up console message listener
-        page.on('console', (msg) => {
+        const consoleListener = (msg: any) => {
             const timestamp = new Date().toISOString();
             const logEntry = `[${timestamp}] ${msg.type().toUpperCase()}: ${msg.text()}\n`;
 
@@ -132,25 +132,28 @@ export const test = base.extend<ConsoleLoggingFixtures>({
             if (msg.type() === 'error') {
                 consoleMessages.push(`🔴 BROWSER ERROR: ${msg.text()}`);
             }
-        });
+        };
+        page.on('console', consoleListener);
 
         // Set up page error listener for uncaught exceptions
-        page.on('pageerror', (error) => {
+        const pageErrorListener = (error: Error) => {
             const timestamp = new Date().toISOString();
             const logEntry = `[${timestamp}] PAGE_ERROR: ${error.message}\n${error.stack}\n\n`;
 
             logStream.write(logEntry);
             consoleMessages.push(`🔴 PAGE ERROR: ${error.message}`);
-        });
+        };
+        page.on('pageerror', pageErrorListener);
 
         // Set up request failure listener
-        page.on('requestfailed', (request) => {
+        const requestFailedListener = (request: any) => {
             const timestamp = new Date().toISOString();
             const logEntry = `[${timestamp}] REQUEST_FAILED: ${request.method()} ${request.url()} - ${request.failure()?.errorText}\n`;
 
             logStream.write(logEntry);
             consoleMessages.push(`🔴 REQUEST FAILED: ${request.method()} ${request.url()}`);
-        });
+        };
+        page.on('requestfailed', requestFailedListener);
 
         // Clean browser state before each test for isolation
         await page.context().clearCookies();
@@ -181,6 +184,11 @@ export const test = base.extend<ConsoleLoggingFixtures>({
             });
             artifactPaths['Custom Screenshot'] = screenshotPath;
         } finally {
+            // Remove event listeners BEFORE closing stream to prevent "write after end" errors
+            page.off('console', consoleListener);
+            page.off('pageerror', pageErrorListener);
+            page.off('requestfailed', requestFailedListener);
+
             // Write test completion info (status will be updated by afterEach)
             const timestamp = new Date().toISOString();
             logStream.write(`\n${'='.repeat(80)}\n`);
