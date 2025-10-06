@@ -10,7 +10,6 @@ import { PolicyService } from './PolicyService';
 import { UserPolicyService } from './UserPolicyService';
 import { GroupMemberService } from './GroupMemberService';
 import { GroupShareService } from './GroupShareService';
-import { ExpenseMetadataService } from './expenseMetadataService';
 import { NotificationService } from './notification-service';
 import { IAuthService } from './auth';
 import { FirebaseAuthService } from './auth';
@@ -29,7 +28,6 @@ export class ApplicationBuilder {
     private userPolicyService?: UserPolicyService;
     private groupMemberService?: GroupMemberService;
     private groupShareService?: GroupShareService;
-    private expenseMetadataService?: ExpenseMetadataService;
     private notificationService?: NotificationService;
 
     constructor(
@@ -71,7 +69,6 @@ export class ApplicationBuilder {
                 this.buildSettlementService(),
                 this.buildGroupMemberService(),
                 this.buildNotificationService(),
-                this.buildExpenseMetadataService(),
                 this.buildGroupShareService(),
             );
         }
@@ -126,13 +123,6 @@ export class ApplicationBuilder {
             this.groupShareService = new GroupShareService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService());
         }
         return this.groupShareService;
-    }
-
-    buildExpenseMetadataService(): ExpenseMetadataService {
-        if (!this.expenseMetadataService) {
-            this.expenseMetadataService = new ExpenseMetadataService(this.buildFirestoreReader());
-        }
-        return this.expenseMetadataService;
     }
 
     buildNotificationService(): NotificationService {

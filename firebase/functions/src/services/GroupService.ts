@@ -11,7 +11,6 @@ import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import type { BalanceCalculationResult } from './balance';
 import type { RegisteredUser } from '@splitifyd/shared';
-import { ExpenseMetadataService } from './expenseMetadataService';
 import { UserService } from './UserService2';
 import { ExpenseService } from './ExpenseService';
 import { SettlementService } from './SettlementService';
@@ -45,7 +44,6 @@ export class GroupService {
         private readonly settlementService: SettlementService,
         private readonly groupMemberService: GroupMemberService,
         private readonly notificationService: NotificationService,
-        private readonly expenseMetadataService: ExpenseMetadataService,
         private readonly groupShareService: GroupShareService,
     ) {
         this.balanceService = new BalanceCalculationService(firestoreReader, userService);
@@ -61,8 +59,9 @@ export class GroupService {
         // Validate the balance calculation result for type safety
         const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
 
-        // Get the last expense time for activity display
-        const lastExpenseTime = await this.expenseMetadataService.getLastExpenseTime(group.id);
+        // Use group.updatedAt for last activity (updated by touchGroup() on any group activity)
+        const lastActivityDate = new Date(group.updatedAt);
+        const lastActivity = this.formatRelativeTime(group.updatedAt);
 
         // Calculate currency-specific balances with proper typing
         const balancesByCurrency: Record<
@@ -100,7 +99,7 @@ export class GroupService {
         return {
             ...group,
             balance: validatedBalanceDisplay,
-            lastActivity: lastExpenseTime ? `Last expense ${lastExpenseTime.toLocaleDateString()}` : 'No recent activity',
+            lastActivity,
         };
     }
 
