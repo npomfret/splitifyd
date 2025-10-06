@@ -96,17 +96,26 @@ export class BalanceCalculationService {
     // todo: this should be private
     async fetchBalanceCalculationData(groupId: string): Promise<BalanceCalculationInput> {
         // Fetch all required data in parallel for better performance
-        const [expenses, settlements, { groupDoc, memberIds }] = await Promise.all([
+        const [expenses, settlements, groupDoc, memberIds ] = await Promise.all([
             this.fetchExpenses(groupId),
             this.fetchSettlements(groupId),
-            this.fetchGroupData(groupId)
+            this.firestoreReader.getGroup(groupId),
+            this.firestoreReader.getAllGroupMemberIds(groupId)
         ]);
 
+        if (!groupDoc) {
+            throw new Error('Group not found');
+        }
+
+        if (!memberIds) {
+            throw new Error('Group members not found');
+        }
+
         // Fetch member profiles after we have group data
-        const memberProfilesMap = await this.userService.getUsers(memberIds);
+        const usersById = await this.userService.getUsers(memberIds);
 
         // Convert Map to Record for schema validation
-        const memberProfiles = Object.fromEntries(memberProfilesMap);
+        const memberProfiles = Object.fromEntries(usersById);
 
         return {
             groupId,
@@ -172,28 +181,4 @@ export class BalanceCalculationService {
         return allSettlements;
     }
 
-    private async fetchGroupData(groupId: string): Promise<{ groupDoc: GroupDTO, memberIds: string[] }> {
-        // Use FirestoreReader for validated data - returns DTOs with ISO strings
-        const groupDoc = await this.firestoreReader.getGroup(groupId);
-
-        if (!groupDoc) {
-            throw new Error('Group not found');
-        }
-
-        // Fetch members from group membership collection
-        const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
-        if (memberDocs.length === 0) {
-            throw new Error(`Group ${groupId} has no members for balance calculation`);
-        }
-
-        const memberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
-        if (memberIds.length === 0) {
-            throw new Error(`Group ${groupId} has no members for balance calculation`);
-        }
-
-        return {
-            groupDoc,
-            memberIds
-        };
-    }
 }
