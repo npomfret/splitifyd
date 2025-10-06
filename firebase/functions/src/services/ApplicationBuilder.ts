@@ -9,7 +9,6 @@ import { CommentService } from './CommentService';
 import { PolicyService } from './PolicyService';
 import { UserPolicyService } from './UserPolicyService';
 import { GroupMemberService } from './GroupMemberService';
-import { GroupPermissionService } from './GroupPermissionService';
 import { GroupShareService } from './GroupShareService';
 import { ExpenseMetadataService } from './expenseMetadataService';
 import { NotificationService } from './notification-service';
@@ -29,7 +28,6 @@ export class ApplicationBuilder {
     private policyService?: PolicyService;
     private userPolicyService?: UserPolicyService;
     private groupMemberService?: GroupMemberService;
-    private groupPermissionService?: GroupPermissionService;
     private groupShareService?: GroupShareService;
     private expenseMetadataService?: ExpenseMetadataService;
     private notificationService?: NotificationService;
@@ -121,13 +119,6 @@ export class ApplicationBuilder {
             this.groupMemberService = new GroupMemberService(this.buildFirestoreReader(), this.buildFirestoreWriter(), balanceCalculationService);
         }
         return this.groupMemberService;
-    }
-
-    buildGroupPermissionService(): GroupPermissionService {
-        if (!this.groupPermissionService) {
-            this.groupPermissionService = new GroupPermissionService(this.buildFirestoreReader(), this.buildFirestoreWriter());
-        }
-        return this.groupPermissionService;
     }
 
     buildGroupShareService(): GroupShareService {

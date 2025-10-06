@@ -90,19 +90,3 @@ export const settlementIdSchema = Joi.string().required().messages({
     'any.required': 'Settlement ID is required',
     'string.empty': 'Settlement ID cannot be empty',
 });
-
-export const listSettlementsQuerySchema = Joi.object({
-    groupId: Joi.string().required(),
-    limit: Joi.number().integer().min(1).max(100).default(20),
-    cursor: Joi.string().optional(),
-    uid: Joi.string().optional(),
-    startDate: Joi.date().iso().optional(),
-    endDate: Joi.date().iso().optional(),
-}).custom((value, helpers) => {
-    if (value.startDate && value.endDate && value.startDate > value.endDate) {
-        return helpers.error('any.invalid', {
-            message: 'Start date must be before or equal to end date',
-        });
-    }
-    return value;
-});

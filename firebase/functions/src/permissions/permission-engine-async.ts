@@ -6,7 +6,6 @@ interface PermissionCheckOptions {
     targetUserId?: string;
 }
 
-// todo: this do not belong in here - move them to GroupPermissionService.ts
 export class PermissionEngineAsync {
     /**
      * Check if a user has permission to perform an action in a group (async version)

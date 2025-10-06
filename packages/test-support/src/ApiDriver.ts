@@ -12,7 +12,6 @@ import {
     LeaveGroupResponse,
     ListCommentsResponse,
     ListGroupsResponse,
-    ListSettlementsResponse,
     MessageResponse,
     PooledTestUser,
     RegisterResponse,
@@ -171,29 +170,6 @@ export class ApiDriver {
         return await this.apiRequest(`/settlements/${settlementId}`, 'DELETE', null, token);
     }
 
-    async listSettlements(
-        token: string,
-        params?: {
-            groupId: string;
-            limit?: number;
-            cursor?: string;
-            userId?: string;
-            startDate?: string;
-            endDate?: string;
-        },
-    ): Promise<ListSettlementsResponse> {
-        const queryParams = new URLSearchParams();
-        if (params?.groupId) queryParams.append('groupId', params.groupId);
-        if (params?.limit) queryParams.append('limit', params.limit.toString());
-        if (params?.cursor) queryParams.append('cursor', params.cursor);
-        if (params?.userId) queryParams.append('userId', params.userId);
-        if (params?.startDate) queryParams.append('startDate', params.startDate);
-        if (params?.endDate) queryParams.append('endDate', params.endDate);
-        const queryString = queryParams.toString();
-        const response = await this.apiRequest(`/settlements${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
-        return response.data;
-    }
-
     async pollGroupBalancesUntil(groupId: string, token: string, matcher: Matcher<GroupBalances>, options?: PollOptions): Promise<GroupBalances> {
         return pollUntil(() => this.getGroupBalances(groupId, token), matcher, { errorMsg: `Group ${groupId} balance condition not met`, ...options });
     }
@@ -286,10 +262,6 @@ export class ApiDriver {
 
     async deleteGroup(groupId: string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}`, 'DELETE', null, token);
-    }
-
-    async updateGroupPermissions(groupId: string, token: string, permissions: any): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/permissions`, 'PUT', { permissions }, token);
     }
 
     async listGroups(token: string, params?: { limit?: number; cursor?: string; order?: 'asc' | 'desc'; includeMetadata?: boolean }): Promise<ListGroupsResponse> {

@@ -511,17 +511,6 @@ export class ExpenseService {
     }
 
     /**
-     * Get expense history/audit log
-     */
-    async getExpenseHistory(expenseId: string): Promise<{ history: any[]; count: number }> {
-        // Verify user has access to this expense first
-        await this.fetchExpense(expenseId);
-
-        // Use the centralized FirestoreReader method
-        return await this.firestoreReader.getExpenseHistory(expenseId, 20);
-    }
-
-    /**
      * Get consolidated expense details (expense + group + members)
      * Eliminates race conditions by providing all needed data in one request
      */

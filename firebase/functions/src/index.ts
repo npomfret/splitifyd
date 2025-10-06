@@ -11,13 +11,12 @@ import { APP_VERSION } from './utils/version';
 import { HTTP_STATUS, SYSTEM } from './constants';
 import { disableETags } from './middleware/cache-control';
 import { timestampToISO } from './utils/dateHelpers';
-import { createExpense, updateExpense, deleteExpense, getExpenseHistory, getExpenseFullDetails } from './expenses/handlers';
+import { createExpense, updateExpense, deleteExpense, getExpenseFullDetails } from './expenses/handlers';
 import { generateShareableLink, previewGroupByLink, joinGroupByLink } from './groups/shareHandlers';
 import { leaveGroup, removeGroupMember } from './groups/memberHandlers';
 import { getCurrentPolicy } from './policies/public-handlers';
 import { createGroup, updateGroup, deleteGroup, listGroups, getGroupFullDetails } from './groups/handlers';
-import { updateGroupPermissions } from './groups/permissionHandlers';
-import { createSettlement, updateSettlement, deleteSettlement, listSettlements } from './settlements/handlers';
+import { createSettlement, updateSettlement, deleteSettlement } from './settlements/handlers';
 import { createComment, listGroupComments, listExpenseComments } from './comments/handlers';
 import { getFirestore, getAuth } from './firebase';
 import { listPolicies, getPolicy, getPolicyVersion, updatePolicy, publishPolicy, createPolicy, deletePolicyVersion } from './policies/handlers';
@@ -334,7 +333,6 @@ function setupRoutes(app: express.Application): void {
     app.post(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(createExpense));
     app.put(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(updateExpense));
     app.delete(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(deleteExpense));
-    app.get(`/${FirestoreCollections.EXPENSES}/history`, authenticate, asyncHandler(getExpenseHistory));
     app.get(`/${FirestoreCollections.EXPENSES}/:id/full-details`, authenticate, asyncHandler(getExpenseFullDetails));
 
     // NEW Group endpoints (requires auth) - RESTful API
@@ -353,12 +351,8 @@ function setupRoutes(app: express.Application): void {
     app.post(`/${FirestoreCollections.GROUPS}/:id/leave`, authenticate, asyncHandler(leaveGroup));
     app.delete(`/${FirestoreCollections.GROUPS}/:id/members/:memberId`, authenticate, asyncHandler(removeGroupMember));
 
-    // Permission management routes
-    app.put(`/${FirestoreCollections.GROUPS}/:id/permissions`, authenticate, asyncHandler(updateGroupPermissions));
-
     // Settlement endpoints (requires auth)
     app.post(`/${FirestoreCollections.SETTLEMENTS}`, authenticate, asyncHandler(createSettlement));
-    app.get(`/${FirestoreCollections.SETTLEMENTS}`, authenticate, asyncHandler(listSettlements));
     app.put(`/${FirestoreCollections.SETTLEMENTS}/:settlementId`, authenticate, asyncHandler(updateSettlement));
     app.delete(`/${FirestoreCollections.SETTLEMENTS}/:settlementId`, authenticate, asyncHandler(deleteSettlement));
 

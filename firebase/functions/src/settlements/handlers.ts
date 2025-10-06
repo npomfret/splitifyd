@@ -4,8 +4,8 @@ import { validateUserAuth } from '../auth/utils';
 import { ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
-import { createSettlementSchema, updateSettlementSchema, settlementIdSchema, listSettlementsQuerySchema } from './validation';
-import { CreateSettlementRequest, UpdateSettlementRequest, CreateSettlementResponse, UpdateSettlementResponse, DeleteSettlementResponse, ListSettlementsApiResponse } from '@splitifyd/shared';
+import { createSettlementSchema, updateSettlementSchema, settlementIdSchema } from './validation';
+import { CreateSettlementRequest, UpdateSettlementRequest, CreateSettlementResponse, UpdateSettlementResponse, DeleteSettlementResponse } from '@splitifyd/shared';
 import { getAuth, getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
@@ -78,31 +78,6 @@ export const deleteSettlement = async (req: AuthenticatedRequest, res: Response)
     const response: DeleteSettlementResponse = {
         success: true,
         message: 'Settlement deleted successfully',
-    };
-    res.status(HTTP_STATUS.OK).json(response);
-};
-
-export const listSettlements = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = validateUserAuth(req);
-
-    const { error, value } = listSettlementsQuerySchema.validate(req.query);
-    if (error) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'VALIDATION_ERROR', error.details[0].message);
-    }
-
-    const { groupId, limit, cursor, userId: filterUserId, startDate, endDate } = value;
-
-    const result = await settlementService.listSettlements(groupId, userId, {
-        limit,
-        cursor,
-        uid: filterUserId,
-        startDate,
-        endDate,
-    });
-
-    const response: ListSettlementsApiResponse = {
-        success: true,
-        data: result,
     };
     res.status(HTTP_STATUS.OK).json(response);
 };

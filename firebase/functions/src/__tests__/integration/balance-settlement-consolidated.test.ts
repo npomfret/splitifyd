@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from 'vitest';
-import { ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, TestGroupManager, generateShortId } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, TestGroupManager } from '@splitifyd/test-support';
 import { PooledTestUser, UserToken } from '@splitifyd/shared';
 
 describe('Balance & Settlement - Consolidated Tests', () => {
@@ -196,94 +196,6 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             });
         });
 
-        describe('Settlement Listing', () => {
-            test('should list settlements for a group', async () => {
-                const uniqueId = generateShortId();
-                await Promise.all([
-                    apiDriver.createSettlement(
-                        new CreateSettlementRequestBuilder()
-                            .withGroupId(testGroup.id)
-                            .withPayerId(settlementUsers[0].uid)
-                            .withPayeeId(settlementUsers[1].uid)
-                            .withAmount(50)
-                            .withNote(`First settlement ${uniqueId}`)
-                            .build(),
-                        settlementUsers[0].token,
-                    ),
-                    apiDriver.createSettlement(
-                        new CreateSettlementRequestBuilder()
-                            .withGroupId(testGroup.id)
-                            .withPayerId(settlementUsers[1].uid)
-                            .withPayeeId(settlementUsers[0].uid)
-                            .withAmount(25)
-                            .withNote(`Second settlement ${uniqueId}`)
-                            .build(),
-                        settlementUsers[1].token,
-                    ),
-                ]);
-
-                const response = await apiDriver.listSettlements(settlementUsers[0].token, { groupId: testGroup.id });
-
-                expect(response.settlements).toBeDefined();
-                expect(Array.isArray(response.settlements)).toBe(true);
-
-                // Filter to only our settlements from this test
-                const ourSettlements = response.settlements.filter((s: any) => s.note?.includes(uniqueId));
-                expect(ourSettlements).toHaveLength(2);
-
-                const notes = ourSettlements.map((s: any) => s.note);
-                expect(notes).toContain(`First settlement ${uniqueId}`);
-                expect(notes).toContain(`Second settlement ${uniqueId}`);
-            });
-
-            test('should support pagination', async () => {
-                const uniqueId = generateShortId();
-                const settlements = [];
-                for (let i = 0; i < 5; i++) {
-                    settlements.push(
-                        apiDriver.createSettlement(
-                            new CreateSettlementRequestBuilder()
-                                .withGroupId(testGroup.id)
-                                .withPayerId(settlementUsers[0].uid)
-                                .withPayeeId(settlementUsers[1].uid)
-                                .withAmount(10 * (i + 1))
-                                .withNote(`Pagination Settlement ${i + 1} ${uniqueId}`)
-                                .build(),
-                            settlementUsers[0].token,
-                        ),
-                    );
-                }
-                await Promise.all(settlements);
-
-                // Get initial count to understand existing data
-                const allSettlements = await apiDriver.listSettlements(settlementUsers[0].token, {
-                    groupId: testGroup.id,
-                    limit: 100, // Get all
-                });
-
-                const ourSettlements = allSettlements.settlements.filter((s: any) => s.note?.includes(uniqueId));
-                expect(ourSettlements).toHaveLength(5); // Verify our 5 settlements were created
-
-                // Test pagination functionality - with shared groups, we need to use a larger limit to ensure we get our data
-                const firstPage = await apiDriver.listSettlements(settlementUsers[0].token, {
-                    groupId: testGroup.id,
-                    limit: 3,
-                });
-
-                expect(firstPage.settlements.length).toBeGreaterThanOrEqual(3);
-                expect(firstPage.hasMore).toBe(true);
-                expect(firstPage.nextCursor).toBeDefined();
-
-                const secondPage = await apiDriver.listSettlements(settlementUsers[0].token, {
-                    groupId: testGroup.id,
-                    limit: 3,
-                    cursor: firstPage.nextCursor,
-                });
-
-                expect(secondPage.settlements.length).toBeGreaterThanOrEqual(2);
-                // Note: hasMore may be true if there are other settlements from previous tests
-            });
-        });
     });
 
     describe('Advanced Settlement Scenarios', () => {

@@ -58,15 +58,6 @@ export const deleteExpense = async (req: AuthenticatedRequest, res: Response): P
     res.json(response);
 };
 
-export const getExpenseHistory = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    validateUserAuth(req);
-    const expenseId = validateExpenseId(req.query.id);
-
-    const result = await expenseService.getExpenseHistory(expenseId);
-
-    res.json(result);
-};
-
 /**
  * Get consolidated expense details (expense + group + members)
  * Eliminates race conditions by providing all needed data in one request

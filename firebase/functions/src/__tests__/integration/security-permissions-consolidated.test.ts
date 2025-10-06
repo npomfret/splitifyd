@@ -3,8 +3,8 @@
 
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, UserRegistrationBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, PermissionSetBuilder } from '@splitifyd/test-support';
-import { SecurityPresets, GroupDTO, PooledTestUser, UserToken } from '@splitifyd/shared';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, UserRegistrationBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
+import { GroupDTO, PooledTestUser, UserToken } from '@splitifyd/shared';
 import { getFirestore } from '../../firebase';
 
 describe('Security and Permissions - Consolidated Tests', () => {
@@ -137,19 +137,8 @@ describe('Security and Permissions - Consolidated Tests', () => {
             // Non-member cannot access group expenses
             await expect(apiDriver.getGroupExpenses(edgeTestGroup.id, users[3].token)).rejects.toThrow(/failed with status (403|404)/);
 
-            // Non-member cannot change group settings
-            await expect(
-                apiDriver.updateGroupPermissions(edgeTestGroup.id, users[3].token, {
-                    canAddMembers: true,
-                    canRemoveMembers: true,
-                    canEditGroup: true,
-                    canDeleteGroup: true,
-                    canCreateExpenses: true,
-                    canEditExpenses: true,
-                    canDeleteExpenses: true,
-                    canSettle: true,
-                }),
-            ).rejects.toThrow(/failed with status (401|403)/);
+            // Non-member cannot update group settings
+            await expect(apiDriver.updateGroup(edgeTestGroup.id, { name: 'Hacked Name' }, users[3].token)).rejects.toThrow(/failed with status (403|404)/);
         });
     });
 
@@ -163,18 +152,15 @@ describe('Security and Permissions - Consolidated Tests', () => {
             roleTestGroup = await apiDriver.createGroupWithMembers('Role Test Group', [adminUser, memberUser], adminUser.token);
         });
 
-        test('should enforce permission updates and authorization', async () => {
-            // Admin can apply managed security permissions
-            const managedPermissions = new PermissionSetBuilder().asManagedPermissions().build();
-            await apiDriver.updateGroupPermissions(roleTestGroup.id, adminUser.token, managedPermissions);
+        test('should enforce authorization for group updates', async () => {
+            // Admin can update group
+            await apiDriver.updateGroup(roleTestGroup.id, { name: 'Updated by Admin' }, adminUser.token);
 
             const { group: updatedGroup } = await apiDriver.getGroupFullDetails(roleTestGroup.id, adminUser.token);
-            expect(updatedGroup.securityPreset).toBe(SecurityPresets.CUSTOM);
-            expect(updatedGroup.permissions.expenseEditing).toBe('owner-and-admin');
+            expect(updatedGroup.name).toBe('Updated by Admin');
 
-            // Member cannot update group permissions
-            const openPermissions = new PermissionSetBuilder().asOpenPermissions().build();
-            await expect(apiDriver.updateGroupPermissions(roleTestGroup.id, memberUser.token, openPermissions)).rejects.toThrow('failed with status 403');
+            // Member cannot update group settings (depends on group permissions)
+            await expect(apiDriver.updateGroup(roleTestGroup.id, { name: 'Hacked by Member' }, memberUser.token)).rejects.toThrow(/failed with status (403|404)/);
         });
     });
 
@@ -234,7 +220,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
             expect(listResponse.groups).toBeDefined();
         });
 
-        test('should successfully handle groups with permission updates', async () => {
+        test('should successfully handle multiple groups', async () => {
             const testUser = await apiDriver.createUser(new UserRegistrationBuilder().withEmail(`test-valid-${Date.now()}@test.com`).withDisplayName('Test User Valid').build());
 
             // Create multiple valid groups
@@ -250,25 +236,17 @@ describe('Security and Permissions - Consolidated Tests', () => {
                 validGroups.push(group);
             }
 
-            // Apply different permission configurations
-            const openPermissions = new PermissionSetBuilder().asOpenPermissions().build();
-            const managedPermissions = new PermissionSetBuilder().asManagedPermissions().build();
-
-            await apiDriver.updateGroupPermissions(validGroups[0].id, testUser.token, openPermissions);
-            await apiDriver.updateGroupPermissions(validGroups[1].id, testUser.token, managedPermissions);
-
             // Fetch groups list should work without issues
             const listResponse = await apiDriver.listGroups(testUser.token);
             expect(listResponse.groups.length).toBeGreaterThanOrEqual(3);
 
-            // Verify permissions are applied correctly
-            const openGroup = listResponse.groups.find((g) => g.id === validGroups[0].id);
-            const managedGroup = listResponse.groups.find((g) => g.id === validGroups[1].id);
+            // Verify all groups were created
+            const createdGroupIds = validGroups.map(g => g.id);
+            const listedGroupIds = listResponse.groups.map(g => g.id);
 
-            expect(openGroup?.securityPreset).toBe(SecurityPresets.CUSTOM);
-            expect(managedGroup?.securityPreset).toBe(SecurityPresets.CUSTOM);
-            expect(openGroup?.permissions.expenseEditing).toBe('anyone');
-            expect(managedGroup?.permissions.expenseEditing).toBe('owner-and-admin');
+            for (const groupId of createdGroupIds) {
+                expect(listedGroupIds).toContain(groupId);
+            }
         });
     });
 

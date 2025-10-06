@@ -76,14 +76,6 @@ describe('Mixed Currency Settlements - API Integration', () => {
         expect(eurDebtAfterSettlement).toBeDefined();
         expect(eurDebtAfterSettlement?.amount).toBe(75); // Should be €75
         expect(eurDebtAfterSettlement?.currency).toBe('EUR');
-
-        // Verify settlement was recorded correctly
-        const settlements = await apiDriver.listSettlements(user1.token, { groupId: testGroup.id });
-        const recordedSettlement = settlements.settlements.find((s) => s.id === settlement.id);
-        expect(recordedSettlement).toBeDefined();
-        expect(recordedSettlement?.amount).toBe(75);
-        expect(recordedSettlement?.currency).toBe('EUR');
-        expect(recordedSettlement?.note).toBe('EUR Settlement for USD Debt');
     });
 
     test('should track currency conversion if application is doing it incorrectly', async () => {
@@ -192,13 +184,5 @@ describe('Mixed Currency Settlements - API Integration', () => {
         expect(eurDebtAfterSettlement).toBeDefined();
         expect(eurDebtAfterSettlement?.amount).toBe(75); // Should be €75
         expect(eurDebtAfterSettlement?.currency).toBe('EUR');
-
-        // Verify settlement was recorded correctly
-        const settlements = await apiDriver.listSettlements(user1.token, { groupId: freshTestGroup.id });
-        const recordedSettlement = settlements.settlements.find((s) => s.id === settlement.id);
-        expect(recordedSettlement).toBeDefined();
-        expect(recordedSettlement?.amount).toBe(75);
-        expect(recordedSettlement?.currency).toBe('EUR');
-        expect(recordedSettlement?.note).toBe('EUR Settlement for USD Debt');
     });
 });
