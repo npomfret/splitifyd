@@ -1,8 +1,9 @@
 import { test as base, Page } from '@playwright/test';
 import * as fs from 'fs';
 import { createTestDirectory, createConsoleLogPath, createScreenshotPath, logTestArtifactPaths } from './test-utils';
-import { createMockFirebase, MockFirebase } from './mock-firebase-service';
+import { createMockFirebase, MockFirebase, mockFullyAcceptedPoliciesApi } from './mock-firebase-service';
 import { ClientUser } from '@splitifyd/shared';
+import { ClientUserBuilder } from '@splitifyd/test-support';
 
 /**
  * Extended test fixture that provides automatic console logging and enhanced failure handling
@@ -12,6 +13,7 @@ type ConsoleLoggingFixtures = {
     pageWithLogging: Page;
     mockFirebase: MockFirebase;
     authenticatedMockFirebase: (user: ClientUser) => Promise<MockFirebase>;
+    authenticatedPage: { page: Page; user: ClientUser; mockFirebase: MockFirebase };
 };
 
 // Add an afterEach hook to handle final reporting
@@ -105,6 +107,30 @@ export const test = base.extend<ConsoleLoggingFixtures>({
         for (const mock of mocks) {
             await mock.dispose();
         }
+    },
+
+    /**
+     * Authenticated page fixture - provides a pre-authenticated test user with policies accepted
+     * Eliminates the need for manual beforeEach/afterEach mock management
+     *
+     * Usage:
+     *   test('my test', async ({ authenticatedPage }) => {
+     *       const { page, user, mockFirebase } = authenticatedPage;
+     *       // page is authenticated, policies accepted, ready to test
+     *   });
+     */
+    authenticatedPage: async ({ pageWithLogging }, use) => {
+        const testUser = ClientUserBuilder.validUser().build();
+        const mockFirebase = await createMockFirebase(pageWithLogging, testUser);
+        await mockFullyAcceptedPoliciesApi(pageWithLogging);
+
+        await use({
+            page: pageWithLogging,
+            user: testUser,
+            mockFirebase,
+        });
+
+        await mockFirebase.dispose();
     },
 
     pageWithLogging: async ({ page }, use, testInfo) => {

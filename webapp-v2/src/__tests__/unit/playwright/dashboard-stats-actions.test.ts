@@ -1,24 +1,10 @@
 import { expect, test } from '../../utils/console-logging-fixture';
-import { createMockFirebase, MockFirebase, mockFullyAcceptedPoliciesApi, mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
-import {ClientUserBuilder, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder} from '@splitifyd/test-support';
+import { mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
+import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder} from '@splitifyd/test-support';
 
 test.describe('Dashboard Stats Display', () => {
-    const testUser = ClientUserBuilder.validUser().build();
-    let mockFirebase: MockFirebase | null = null;
-
-    test.beforeEach(async ({ pageWithLogging: page }) => {
-        mockFirebase = await createMockFirebase(page, testUser);
-        await mockFullyAcceptedPoliciesApi(page);
-    });
-
-    test.afterEach(async () => {
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-            mockFirebase = null;
-        }
-    });
-
-    test('should display loading skeleton while groups are loading', async ({ pageWithLogging: page }) => {
+    test('should display loading skeleton while groups are loading', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         // Mock delayed API response to see loading state
@@ -40,7 +26,8 @@ test.describe('Dashboard Stats Display', () => {
         await dashboardPage.waitForGroupsToLoad();
     });
 
-    test('should display correct group counts with zero groups', async ({ pageWithLogging: page }) => {
+    test('should display correct group counts with zero groups', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([]).build());
@@ -52,7 +39,8 @@ test.describe('Dashboard Stats Display', () => {
         await dashboardPage.verifyStatsDisplayed(0, 0);
     });
 
-    test('should display correct group counts with multiple groups', async ({ pageWithLogging: page }) => {
+    test('should display correct group counts with multiple groups', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         const groups = [
@@ -70,7 +58,8 @@ test.describe('Dashboard Stats Display', () => {
         await dashboardPage.verifyStatsDisplayed(3, 3);
     });
 
-    test('should update stats when group is added', async ({ pageWithLogging: page }) => {
+    test('should update stats when group is added', async ({ authenticatedPage }) => {
+        const { page, user: testUser, mockFirebase } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         // Start with 2 groups
@@ -88,7 +77,7 @@ test.describe('Dashboard Stats Display', () => {
         await dashboardPage.verifyStatsDisplayed(2, 2);
 
         // Establish baseline notification state for both existing groups
-        await mockFirebase!.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).build());
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).build());
 
         // Simulate adding a new group via notification
         const newGroup = GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 3').withId('group-3').build();
@@ -98,7 +87,7 @@ test.describe('Dashboard Stats Display', () => {
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(updatedGroups, 2).build());
 
         // Trigger notification for new group
-        await mockFirebase!.triggerNotificationUpdate(
+        await mockFirebase.triggerNotificationUpdate(
             testUser.uid,
             new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).withGroupDetails('group-3', 1).build(),
         );
@@ -107,7 +96,8 @@ test.describe('Dashboard Stats Display', () => {
         await dashboardPage.verifyStatsDisplayed(3, 3);
     });
 
-    test('should update stats when group is removed', async ({ pageWithLogging: page }) => {
+    test('should update stats when group is removed', async ({ authenticatedPage }) => {
+        const { page, user: testUser, mockFirebase } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         // Start with 3 groups
@@ -126,7 +116,7 @@ test.describe('Dashboard Stats Display', () => {
         await dashboardPage.verifyStatsDisplayed(3, 3);
 
         // Establish baseline notification state for all groups
-        await mockFirebase!.triggerNotificationUpdate(
+        await mockFirebase.triggerNotificationUpdate(
             testUser.uid,
             new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).withGroupDetails('group-3', 1).build(),
         );
@@ -139,7 +129,7 @@ test.describe('Dashboard Stats Display', () => {
 
         // Trigger notification to refresh the dashboard
         // When a group is deleted, we trigger a notification with updated change version
-        await mockFirebase!.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).build());
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).build());
 
         // Verify updated count - assertions automatically retry until condition is met
         await dashboardPage.verifyStatsDisplayed(2, 2);
@@ -147,33 +137,22 @@ test.describe('Dashboard Stats Display', () => {
 });
 
 test.describe('Dashboard Quick Actions', () => {
-    const testUser = ClientUserBuilder.validUser().build();
-    let mockFirebase: MockFirebase | null = null;
-
-    test.beforeEach(async ({ pageWithLogging: page }) => {
-        mockFirebase = await createMockFirebase(page, testUser);
-        await mockFullyAcceptedPoliciesApi(page);
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([]).build());
-    });
-
-    test.afterEach(async () => {
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-            mockFirebase = null;
-        }
-    });
-
-    test('should display quick actions card', async ({ pageWithLogging: page }) => {
+    test('should display quick actions card', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([]).build());
         await dashboardPage.navigate();
 
         // Verify quick actions displayed
         await dashboardPage.verifyQuickActionsDisplayed();
     });
 
-    test('should open create group modal from quick actions', async ({ pageWithLogging: page }) => {
+    test('should open create group modal from quick actions', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([]).build());
 
         await dashboardPage.navigate();
 
@@ -186,22 +165,8 @@ test.describe('Dashboard Quick Actions', () => {
 });
 
 test.describe('Dashboard Group Card Actions', () => {
-    const testUser = ClientUserBuilder.validUser().build();
-    let mockFirebase: MockFirebase | null = null;
-
-    test.beforeEach(async ({ pageWithLogging: page }) => {
-        mockFirebase = await createMockFirebase(page, testUser);
-        await mockFullyAcceptedPoliciesApi(page);
-    });
-
-    test.afterEach(async () => {
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-            mockFirebase = null;
-        }
-    });
-
-    test('should show action buttons on group card hover', async ({ pageWithLogging: page }) => {
+    test('should show action buttons on group card hover', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
@@ -215,7 +180,8 @@ test.describe('Dashboard Group Card Actions', () => {
         await dashboardPage.verifyGroupCardActionsVisible('Test Group');
     });
 
-    test('should open share modal when clicking invite button', async ({ pageWithLogging: page }) => {
+    test('should open share modal when clicking invite button', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
@@ -233,7 +199,8 @@ test.describe('Dashboard Group Card Actions', () => {
         await dashboardPage.verifyShareModalOpen();
     });
 
-    test('should navigate to add expense form when clicking add expense button', async ({ pageWithLogging: page }) => {
+    test('should navigate to add expense form when clicking add expense button', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
@@ -250,7 +217,8 @@ test.describe('Dashboard Group Card Actions', () => {
         await expect(page).toHaveURL(/\/groups\/group-123\/add-expense/);
     });
 
-    test('should not navigate when clicking action buttons', async ({ pageWithLogging: page }) => {
+    test('should not navigate when clicking action buttons', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
@@ -271,7 +239,8 @@ test.describe('Dashboard Group Card Actions', () => {
         await dashboardPage.closeShareModal();
     });
 
-    test('should display "settled up" when no debts exist', async ({ pageWithLogging: page }) => {
+    test('should display "settled up" when no debts exist', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Settled Group').withId('group-123').build();
@@ -285,7 +254,8 @@ test.describe('Dashboard Group Card Actions', () => {
         await dashboardPage.verifyGroupCardBalance('Settled Group', 'Settled up');
     });
 
-    test('should display correct balance for owed money', async ({ pageWithLogging: page }) => {
+    test('should display correct balance for owed money', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         const group = GroupDTOBuilder.groupForUser(testUser.uid)
@@ -312,7 +282,8 @@ test.describe('Dashboard Group Card Actions', () => {
         await expect(balanceBadge).toContainText("You're owed");
     });
 
-    test('should display correct balance for owing money', async ({ pageWithLogging: page }) => {
+    test('should display correct balance for owing money', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         const group = GroupDTOBuilder.groupForUser(testUser.uid)

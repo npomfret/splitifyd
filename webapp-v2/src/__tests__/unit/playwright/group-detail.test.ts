@@ -1,25 +1,12 @@
 import { test, expect } from '../../utils/console-logging-fixture';
-import { createMockFirebase, mockGroupDetailApi, mockGroupCommentsApi, mockApiFailure, mockFullyAcceptedPoliciesApi, MockFirebase } from '../../utils/mock-firebase-service';
+import { mockGroupDetailApi, mockGroupCommentsApi, mockApiFailure } from '../../utils/mock-firebase-service';
 import { ClientUserBuilder, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ExpenseDTOBuilder, GroupDetailPage, ThemeBuilder } from '@splitifyd/test-support';
 
-// Configure all tests to run in serial mode for browser reuse
-test.describe.configure({ mode: 'serial' });
-
 test.describe('Group Detail - Authentication and Navigation', () => {
-    let mockFirebase: MockFirebase | null = null;
 
-    test.afterEach(async () => {
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-            mockFirebase = null;
-        }
-    });
+    test('should redirect unauthenticated user to login', async ({ pageWithLogging: page, mockFirebase }) => {
 
-    test('should redirect unauthenticated user to login', async ({ pageWithLogging: page }) => {
-        // Set up mock Firebase (logged out)
-        mockFirebase = await createMockFirebase(page, null);
-
-        // Try to navigate to group detail without authentication
+        // mockFirebase fixture starts with logged-out state
         await page.goto('/groups/test-group-id');
 
         // Should be redirected to login page
@@ -27,14 +14,10 @@ test.describe('Group Detail - Authentication and Navigation', () => {
         await expect(page.getByRole('heading', { name: /sign.*in/i })).toBeVisible();
     });
 
-    test('should show loading state while group data loads', async ({ pageWithLogging: page }) => {
-        const testUser = ClientUserBuilder.validUser().build();
+    test('should show loading state while group data loads', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'test-group-123';
-
-        // Set up authenticated user
-        mockFirebase = await createMockFirebase(page, testUser);
-        await mockFullyAcceptedPoliciesApi(page);
 
         // Navigate to group (don't mock APIs yet to see loading state)
         await page.goto(`/groups/${groupId}`);
@@ -44,8 +27,8 @@ test.describe('Group Detail - Authentication and Navigation', () => {
         await groupDetailPage.verifyLoadingState();
     });
 
-    test('should display group details for authenticated user', async ({ pageWithLogging: page }) => {
-        const testUser = ClientUserBuilder.validUser().build();
+    test('should display group details for authenticated user', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
 
         const group = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-abc').withName('Test Group').withDescription('A test group description').build();
@@ -55,8 +38,6 @@ test.describe('Group Detail - Authentication and Navigation', () => {
         const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
 
         // Set up mocks
-        mockFirebase = await createMockFirebase(page, testUser);
-        await mockFullyAcceptedPoliciesApi(page);
         await mockGroupDetailApi(page, 'group-abc', fullDetails);
         await mockGroupCommentsApi(page, 'group-abc');
 
@@ -69,22 +50,8 @@ test.describe('Group Detail - Authentication and Navigation', () => {
 });
 
 test.describe('Group Detail - Members Display', () => {
-    const testUser = ClientUserBuilder.validUser().build();
-    let mockFirebase: MockFirebase | null = null;
-
-    test.beforeEach(async ({ pageWithLogging: page }) => {
-        mockFirebase = await createMockFirebase(page, testUser);
-        await mockFullyAcceptedPoliciesApi(page);
-    });
-
-    test.afterEach(async () => {
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-            mockFirebase = null;
-        }
-    });
-
-    test('should display all group members', async ({ pageWithLogging: page }) => {
+    test('should display all group members', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'group-members-test';
 
@@ -111,7 +78,8 @@ test.describe('Group Detail - Members Display', () => {
         await groupDetailPage.verifyMemberDisplayed('Bob Jones');
     });
 
-    test('should show member count in header', async ({ pageWithLogging: page }) => {
+    test('should show member count in header', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'group-count-test';
 
@@ -136,22 +104,8 @@ test.describe('Group Detail - Members Display', () => {
 });
 
 test.describe('Group Detail - Expenses Display', () => {
-    const testUser = ClientUserBuilder.validUser().build();
-    let mockFirebase: MockFirebase | null = null;
-
-    test.beforeEach(async ({ pageWithLogging: page }) => {
-        mockFirebase = await createMockFirebase(page, testUser);
-        await mockFullyAcceptedPoliciesApi(page);
-    });
-
-    test.afterEach(async () => {
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-            mockFirebase = null;
-        }
-    });
-
-    test('should display all expenses', async ({ pageWithLogging: page }) => {
+    test('should display all expenses', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'group-expenses-test';
 
@@ -178,7 +132,8 @@ test.describe('Group Detail - Expenses Display', () => {
         await groupDetailPage.verifyExpenseDisplayed('Dinner');
     });
 
-    test('should show empty state when no expenses exist', async ({ pageWithLogging: page }) => {
+    test('should show empty state when no expenses exist', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'group-empty-expenses';
 
@@ -198,7 +153,8 @@ test.describe('Group Detail - Expenses Display', () => {
         await groupDetailPage.verifyEmptyExpensesState();
     });
 
-    test('should show expense count in header', async ({ pageWithLogging: page }) => {
+    test('should show expense count in header', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'group-expense-count';
 
@@ -222,22 +178,8 @@ test.describe('Group Detail - Expenses Display', () => {
 });
 
 test.describe('Group Detail - Balance Display', () => {
-    const testUser = ClientUserBuilder.validUser().build();
-    let mockFirebase: MockFirebase | null = null;
-
-    test.beforeEach(async ({ pageWithLogging: page }) => {
-        mockFirebase = await createMockFirebase(page, testUser);
-        await mockFullyAcceptedPoliciesApi(page);
-    });
-
-    test.afterEach(async () => {
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-            mockFirebase = null;
-        }
-    });
-
-    test('should show "All settled up" when no debts exist', async ({ pageWithLogging: page }) => {
+    test('should show "All settled up" when no debts exist', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'group-settled-up';
 
@@ -257,7 +199,8 @@ test.describe('Group Detail - Balance Display', () => {
         await groupDetailPage.verifySettledUp();
     });
 
-    test('should display debts when balances exist', async ({ pageWithLogging: page }) => {
+    test('should display debts when balances exist', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'group-with-debts';
 
@@ -326,22 +269,8 @@ test.describe('Group Detail - Balance Display', () => {
 });
 
 test.describe('Group Detail - Permission Checks', () => {
-    const testUser = ClientUserBuilder.validUser().build();
-    let mockFirebase: MockFirebase | null = null;
-
-    test.beforeEach(async ({ pageWithLogging: page }) => {
-        mockFirebase = await createMockFirebase(page, testUser);
-        await mockFullyAcceptedPoliciesApi(page);
-    });
-
-    test.afterEach(async () => {
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-            mockFirebase = null;
-        }
-    });
-
-    test('should show owner actions for group owner', async ({ pageWithLogging: page }) => {
+    test('should show owner actions for group owner', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'owner-group';
 
@@ -364,7 +293,8 @@ test.describe('Group Detail - Permission Checks', () => {
         await groupDetailPage.verifyOwnerActions();
     });
 
-    test('should show member actions for non-owner', async ({ pageWithLogging: page }) => {
+    test('should show member actions for non-owner', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'member-group';
 
@@ -387,7 +317,8 @@ test.describe('Group Detail - Permission Checks', () => {
         await groupDetailPage.verifyMemberActions();
     });
 
-    test('should not show leave button for last member', async ({ pageWithLogging: page }) => {
+    test('should not show leave button for last member', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'last-member-group';
 
@@ -409,22 +340,8 @@ test.describe('Group Detail - Permission Checks', () => {
 });
 
 test.describe('Group Detail - Error Handling', () => {
-    const testUser = ClientUserBuilder.validUser().build();
-    let mockFirebase: MockFirebase | null = null;
-
-    test.beforeEach(async ({ pageWithLogging: page }) => {
-        mockFirebase = await createMockFirebase(page, testUser);
-        await mockFullyAcceptedPoliciesApi(page);
-    });
-
-    test.afterEach(async () => {
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-            mockFirebase = null;
-        }
-    });
-
-    test('should handle group not found error', async ({ pageWithLogging: page }) => {
+    test('should handle group not found error', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'non-existent-group';
 
@@ -437,7 +354,8 @@ test.describe('Group Detail - Error Handling', () => {
         await groupDetailPage.verifyErrorState('Page not found');
     });
 
-    test('should handle permission denied error', async ({ pageWithLogging: page }) => {
+    test('should handle permission denied error', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'forbidden-group';
 
@@ -450,7 +368,8 @@ test.describe('Group Detail - Error Handling', () => {
         await groupDetailPage.verifyErrorState('Permission denied');
     });
 
-    test('should handle API server error', async ({ pageWithLogging: page }) => {
+    test('should handle API server error', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'error-group';
 
@@ -463,7 +382,8 @@ test.describe('Group Detail - Error Handling', () => {
         await groupDetailPage.verifyErrorState();
     });
 
-    test('should handle network timeout error', async ({ pageWithLogging: page }) => {
+    test('should handle network timeout error', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'timeout-group';
 
@@ -478,22 +398,8 @@ test.describe('Group Detail - Error Handling', () => {
 });
 
 test.describe('Group Detail - Modal Interactions', () => {
-    const testUser = ClientUserBuilder.validUser().build();
-    let mockFirebase: MockFirebase | null = null;
-
-    test.beforeEach(async ({ pageWithLogging: page }) => {
-        mockFirebase = await createMockFirebase(page, testUser);
-        await mockFullyAcceptedPoliciesApi(page);
-    });
-
-    test.afterEach(async () => {
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-            mockFirebase = null;
-        }
-    });
-
-    test('should open edit group modal when clicking edit button', async ({ pageWithLogging: page }) => {
+    test('should open edit group modal when clicking edit button', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'edit-modal-group';
 
