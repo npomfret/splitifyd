@@ -740,7 +740,6 @@ describe('Groups Management - Consolidated Tests', () => {
             expect(firstGroup).toHaveProperty('id');
             expect(firstGroup).toHaveProperty('name');
             expect(firstGroup).toHaveProperty('balance');
-            expect(firstGroup.balance).toHaveProperty('userBalance');
             expect(firstGroup.balance).toHaveProperty('balancesByCurrency');
             expect(firstGroup).toHaveProperty('lastActivity');
         });
@@ -848,10 +847,8 @@ describe('Groups Management - Consolidated Tests', () => {
             if (groupInList) {
                 expect(groupInList.balance).toBeDefined();
                 const balance = groupInList.balance as any;
-                expect(balance.userBalance).toBeDefined();
-                expect(typeof balance.userBalance.netBalance).toBe('number');
-                expect(typeof balance.userBalance.totalOwed).toBe('number');
-                expect(typeof balance.userBalance.totalOwing).toBe('number');
+                expect(balance.balancesByCurrency).toBeDefined();
+                expect(typeof balance.balancesByCurrency).toBe('object');
                 expect(groupInList.lastActivity).toBeDefined();
             }
         });
