@@ -188,7 +188,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
-                await expect(apiDriver.deleteSettlement(created.id, settlementUsers[1].token)).rejects.toThrow(/status 403.*NOT_SETTLEMENT_CREATOR/);
+                await expect(apiDriver.deleteSettlement(created.id, settlementUsers[1].token)).rejects.toThrow(/status 403.*INSUFFICIENT_PERMISSIONS/);
             });
 
             test('should handle deletion of non-existent settlement', async () => {

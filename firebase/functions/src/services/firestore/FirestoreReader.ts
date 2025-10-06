@@ -215,31 +215,6 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getSettlement(settlementId: string): Promise<SettlementDTO | null> {
-        try {
-            const settlementDoc = await this.db.collection(FirestoreCollections.SETTLEMENTS).doc(settlementId).get();
-
-            if (!settlementDoc.exists) {
-                return null;
-            }
-
-            // Validate with Document schema (expects Timestamps)
-            const rawData = {
-                id: settlementDoc.id,
-                ...settlementDoc.data(),
-            };
-            const settlementData = SettlementDocumentSchema.parse(rawData);
-
-            // Convert Timestamps to ISO strings for DTO
-            const convertedData = this.convertTimestampsToISO(settlementData);
-
-            return convertedData as unknown as SettlementDTO;
-        } catch (error) {
-            logger.error('Failed to get settlement', error);
-            throw error;
-        }
-    }
-
     async getPolicy(policyId: string): Promise<PolicyDTO | null> {
         try {
             const policyDoc = await this.db.collection(FirestoreCollections.POLICIES).doc(policyId).get();
@@ -296,10 +271,6 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    // ========================================================================
-    // Helper Methods for Data Sanitization
-    // ========================================================================
-
     /**
      * Sanitizes group data before validation to handle invalid values
      * that may have been inserted into the database
@@ -337,10 +308,6 @@ export class FirestoreReader implements IFirestoreReader {
 
         return sanitized;
     }
-
-    // ========================================================================
-    // Pagination Utility Methods
-    // ========================================================================
 
     /**
      * Encode cursor data for pagination
@@ -430,20 +397,6 @@ export class FirestoreReader implements IFirestoreReader {
             return direction === 'asc' ? (aValue > bValue ? 1 : -1) : aValue < bValue ? 1 : -1;
         });
     }
-
-    // ========================================================================
-    // Collection Read Operations - Minimal Implementation
-    // ========================================================================
-
-    /**
-     * ✅ FIXED: Efficient paginated group retrieval with hybrid strategy
-     *
-     * This method implements the performance fix from the critical pagination report:
-     * - Uses query-level pagination instead of fetch-all-then-paginate
-     * - Applies limits at the database query level, not in memory
-     * - Provides proper cursor-based pagination with hasMore detection
-     * - Reduces resource usage by 90%+ for users with many groups
-     */
 
     /**
      * ✅ NEW: Enhanced group retrieval using top-level group-memberships collection
@@ -668,59 +621,150 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    // todo: this should be paginated
-    async getSettlementsForGroup(groupId: string, options: QueryOptions): Promise<SettlementDTO[]> {
-        try {
-            let query = this.db.collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId);
+    /**
+     * ✅ FIXED: Efficient paginated group retrieval with hybrid strategy
+     *
+     * This method implements the performance fix from the critical pagination report:
+     * - Uses query-level pagination instead of fetch-all-then-paginate
+     * - Applies limits at the database query level, not in memory
+     * - Provides proper cursor-based pagination with hasMore detection
+     * - Reduces resource usage by 90%+ for users with many groups
+     */
 
-            // Apply ordering
+    async getSettlement(settlementId: string): Promise<SettlementDTO | null> {
+        try {
+            const settlementDoc = await this.db.collection(FirestoreCollections.SETTLEMENTS).doc(settlementId).get();
+
+            if (!settlementDoc.exists) {
+                return null;
+            }
+
+            // Validate with Document schema (expects Timestamps)
+            const rawData = {
+                id: settlementDoc.id,
+                ...settlementDoc.data(),
+            };
+            const settlementData = SettlementDocumentSchema.parse(rawData);
+
+            // Convert Timestamps to ISO strings for DTO
+            const convertedData = this.convertTimestampsToISO(settlementData);
+            const settlement = convertedData as unknown as SettlementDTO;
+
+            // Return null if settlement is soft-deleted
+            if (settlement.deletedAt) {
+                return null;
+            }
+
+            return settlement;
+        } catch (error) {
+            logger.error('Failed to get settlement', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Builds base query for settlements filtering out soft-deleted items
+     * @private
+     */
+    private buildBaseSettlementQuery(groupId: string): FirebaseFirestore.Query {
+        return this.db
+            .collection(FirestoreCollections.SETTLEMENTS)
+            .where('groupId', '==', groupId)
+            .where('deletedAt', '==', null);
+    }
+
+    /**
+     * Executes settlement query and converts documents to DTOs
+     * @private
+     */
+    private async executeSettlementQuery(query: FirebaseFirestore.Query): Promise<SettlementDTO[]> {
+        const snapshot = await query.get();
+        const settlements: SettlementDTO[] = [];
+
+        for (const doc of snapshot.docs) {
+            try {
+                const rawData = { id: doc.id, ...doc.data() };
+                const settlementData = SettlementDocumentSchema.parse(rawData);
+                const convertedData = this.convertTimestampsToISO(settlementData);
+                settlements.push(convertedData as unknown as SettlementDTO);
+            } catch (error) {
+                logger.error('Invalid settlement document', error);
+            }
+        }
+
+        return settlements;
+    }
+
+    async getSettlementsForGroup(groupId: string, options: QueryOptions): Promise<{
+        settlements: SettlementDTO[];
+        hasMore: boolean;
+        nextCursor?: string;
+    }> {
+        try {
+            let query = this.buildBaseSettlementQuery(groupId);
+
+            // Apply ordering (default to createdAt desc if not specified)
             if (options.orderBy) {
                 query = query.orderBy(options.orderBy.field, options.orderBy.direction);
             } else {
                 query = query.orderBy('createdAt', 'desc');
             }
 
-            // Apply limit (required parameter now)
-            query = query.limit(options.limit);
+            // Apply user filter (for settlements involving specific user)
+            if (options.filterUserId) {
+                query = query.where(
+                    Filter.or(
+                        Filter.where('payerId', '==', options.filterUserId),
+                        Filter.where('payeeId', '==', options.filterUserId)
+                    )
+                );
+            }
 
-            // Apply offset for pagination (if provided)
-            if (options.offset) {
+            // Apply date range filter
+            if (options.dateRange?.start) {
+                query = query.where('date', '>=', safeParseISOToTimestamp(options.dateRange.start));
+            }
+            if (options.dateRange?.end) {
+                query = query.where('date', '<=', safeParseISOToTimestamp(options.dateRange.end));
+            }
+
+            // For cursor-based pagination, fetch limit + 1 to detect hasMore
+            const effectiveLimit = options.cursor ? options.limit + 1 : options.limit;
+            query = query.limit(effectiveLimit);
+
+            // Apply offset-based pagination (for batch fetching)
+            if (options.offset !== undefined && options.offset > 0) {
                 query = query.offset(options.offset);
             }
 
-            // Apply cursor for pagination (if provided)
+            // Apply cursor-based pagination (for API endpoints)
             if (options.cursor) {
-                try {
-                    const cursorData = JSON.parse(Buffer.from(options.cursor, 'base64').toString());
-                    query = query.startAfter(cursorData.createdAt, cursorData.id);
-                } catch (err) {
-                    logger.warn('Invalid cursor provided, ignoring');
+                const cursorDoc = await this.db.collection(FirestoreCollections.SETTLEMENTS).doc(options.cursor).get();
+                if (cursorDoc.exists) {
+                    query = query.startAfter(cursorDoc);
                 }
             }
 
-            const snapshot = await query.get();
-            const settlements: SettlementDTO[] = [];
+            const settlements = await this.executeSettlementQuery(query);
 
-            for (const doc of snapshot.docs) {
-                try {
-                    // Validate with Document schema (expects Timestamps)
-                    const rawData = {
-                        id: doc.id,
-                        ...doc.data(),
-                    };
-                    const settlementData = SettlementDocumentSchema.parse(rawData);
+            // Determine hasMore and nextCursor for cursor-based pagination
+            let hasMore = false;
+            let nextCursor: string | undefined;
+            let settlementsToReturn = settlements;
 
-                    // Convert Timestamps to ISO strings for DTO
-                    const convertedData = this.convertTimestampsToISO(settlementData);
-
-                    settlements.push(convertedData as unknown as SettlementDTO);
-                } catch (error) {
-                    logger.error('Invalid settlement document in getSettlementsForGroup', error);
-                    // Skip invalid documents rather than failing the entire query
-                }
+            if (options.cursor) {
+                hasMore = settlements.length > options.limit;
+                settlementsToReturn = hasMore ? settlements.slice(0, options.limit) : settlements;
+                nextCursor = hasMore && settlementsToReturn.length > 0
+                    ? settlementsToReturn[settlementsToReturn.length - 1].id
+                    : undefined;
             }
 
-            return settlements;
+            return {
+                settlements: settlementsToReturn,
+                hasMore,
+                nextCursor,
+            };
         } catch (error) {
             logger.error('Failed to get settlements for group', error);
             throw error;
@@ -1090,77 +1134,6 @@ export class FirestoreReader implements IFirestoreReader {
     // New Methods Implementation
     // ========================================================================
 
-    async getSettlementsForGroupPaginated(
-        groupId: string,
-        options?: {
-            limit?: number;
-            cursor?: string;
-            filterUserId?: string;
-            startDate?: string;
-            endDate?: string;
-        },
-    ): Promise<{
-        settlements: SettlementDTO[];
-        hasMore: boolean;
-        nextCursor?: string;
-    }> {
-        return measureDb('FirestoreReader.getSettlementsForGroupPaginated', async () => {
-            try {
-                const limit = Math.min(options?.limit || 20, 100);
-                const { cursor, filterUserId, startDate, endDate } = options || {};
-
-                let query: FirebaseFirestore.Query = this.db
-                    .collection(FirestoreCollections.SETTLEMENTS)
-                    .where('groupId', '==', groupId)
-                    .orderBy('date', 'desc')
-                    .limit(limit + 1); // +1 to check if there are more
-
-                if (filterUserId) {
-                    query = query.where(Filter.or(Filter.where('payerId', '==', filterUserId), Filter.where('payeeId', '==', filterUserId)));
-                }
-
-                if (startDate) {
-                    query = query.where('date', '>=', safeParseISOToTimestamp(startDate));
-                }
-
-                if (endDate) {
-                    query = query.where('date', '<=', safeParseISOToTimestamp(endDate));
-                }
-
-                if (cursor) {
-                    const cursorDoc = await this.db.collection(FirestoreCollections.SETTLEMENTS).doc(cursor).get();
-                    if (cursorDoc.exists) {
-                        query = query.startAfter(cursorDoc);
-                    }
-                }
-
-                const snapshot = await query.get();
-                // Validate with Document schema then convert to DTO
-                const settlements = snapshot.docs.map((doc) => {
-                    const rawData = { id: doc.id, ...doc.data() };
-                    const settlementData = SettlementDocumentSchema.parse(rawData);
-                    const convertedData = this.convertTimestampsToISO(settlementData);
-                    return convertedData as unknown as SettlementDTO;
-                });
-
-                const hasMore = settlements.length > limit;
-                const settlementsToReturn = hasMore ? settlements.slice(0, limit) : settlements;
-                const nextCursor = hasMore && settlementsToReturn.length > 0 ? settlementsToReturn[settlementsToReturn.length - 1].id : undefined;
-
-                return {
-                    settlements: settlementsToReturn,
-                    hasMore,
-                    nextCursor,
-                };
-            } catch (error) {
-                logger.error('Failed to get settlements for group paginated', error);
-                throw error;
-            }
-        });
-    }
-
-
-
     async verifyGroupMembership(groupId: string, userId: string): Promise<boolean> {
         try {
             // Check if user is a member using top-level collection lookup
@@ -1281,8 +1254,14 @@ export class FirestoreReader implements IFirestoreReader {
 
             // Convert Timestamps to ISO strings for DTO
             const convertedData = this.convertTimestampsToISO(settlementData);
+            const settlement = convertedData as unknown as SettlementDTO;
 
-            return convertedData as unknown as SettlementDTO;
+            // Return null if settlement is soft-deleted
+            if (settlement.deletedAt) {
+                return null;
+            }
+
+            return settlement;
         } catch (error) {
             logger.error('Failed to get settlement in transaction', error, { settlementId });
             throw error;

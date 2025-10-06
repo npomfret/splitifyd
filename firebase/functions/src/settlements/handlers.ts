@@ -70,10 +70,11 @@ export const deleteSettlement = async (req: AuthenticatedRequest, res: Response)
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SETTLEMENT_ID', error.details[0].message);
     }
 
-    await settlementService.deleteSettlement(settlementId, userId);
+    // Use soft delete instead of hard delete
+    await settlementService.softDeleteSettlement(settlementId, userId);
 
     LoggerContext.setBusinessContext({ settlementId });
-    logger.info('settlement-deleted', { id: settlementId });
+    logger.info('settlement-soft-deleted', { id: settlementId });
 
     const response: DeleteSettlementResponse = {
         success: true,

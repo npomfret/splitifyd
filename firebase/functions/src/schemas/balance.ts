@@ -40,6 +40,8 @@ const SettlementDTOSchema = z.object({
     date: z.string(), // ISO string
     note: z.string().optional(),
     createdBy: z.string(),
+    deletedAt: z.string().nullable(),
+    deletedBy: z.string().nullable(),
     createdAt: z.string(), // ISO string
     updatedAt: z.string(), // ISO string
 });

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { FirestoreTimestampSchema, AuditFieldsSchema, UserIdSchema, GroupIdSchema, CurrencyCodeSchema, createDocumentSchemas } from './common';
+import { FirestoreTimestampSchema, AuditFieldsSchema, SoftDeletionFieldsSchema, UserIdSchema, GroupIdSchema, CurrencyCodeSchema, createDocumentSchemas } from './common';
 
 /**
  * Base Settlement schema without document ID
@@ -15,7 +15,8 @@ const BaseSettlementSchema = z
         createdBy: UserIdSchema,
         note: z.string().optional(),
     })
-    .merge(AuditFieldsSchema);
+    .merge(AuditFieldsSchema)
+    .merge(SoftDeletionFieldsSchema);
 
 /**
  * Create Document and Data schemas using common pattern

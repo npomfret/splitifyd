@@ -185,9 +185,9 @@ export class GroupService {
                 let offset = 0;
                 const limit = 500;
                 while (true) {
-                    const settlements = await this.firestoreReader.getSettlementsForGroup(groupId, { limit, offset });
-                    allSettlements.push(...settlements.map((settlement) => ({ ...settlement, groupId })));
-                    if (settlements.length < limit) break;
+                    const result = await this.firestoreReader.getSettlementsForGroup(groupId, { limit, offset });
+                    allSettlements.push(...result.settlements.map((settlement) => ({ ...settlement, groupId })));
+                    if (result.settlements.length < limit) break;
                     offset += limit;
                 }
             }
@@ -736,7 +736,6 @@ export class GroupService {
      */
     private async deleteBatch(collectionType: string, groupId: string, documentPaths: string[]): Promise<void> {
         if (documentPaths.length === 0) {
-            logger.info('No documents to delete for collection type', { collectionType, groupId });
             return;
         }
 

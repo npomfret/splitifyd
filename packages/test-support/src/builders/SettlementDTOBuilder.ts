@@ -47,6 +47,9 @@ export class SettlementDTOBuilder extends CreateSettlementRequestBuilder {
             // Ensure required fields for Settlement type - convert audit timestamps to ISO strings
             createdAt: timestampToISOString(this.auditFields.createdAt),
             updatedAt: timestampToISOString(this.auditFields.updatedAt),
+            // Soft delete fields - default to null (not deleted)
+            deletedAt: null,
+            deletedBy: null,
         };
         // Remove currency if withoutCurrency was called
         if (this.excludeCurrency) {

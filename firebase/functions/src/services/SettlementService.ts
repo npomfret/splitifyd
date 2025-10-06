@@ -177,6 +177,9 @@ export class SettlementService {
             createdBy: userId,
             createdAt: now, // ISO string
             updatedAt: now,
+            // Soft delete fields - initialize to null (not deleted)
+            deletedAt: null,
+            deletedBy: null,
         };
 
         // Only add note if it's provided
@@ -335,7 +338,103 @@ export class SettlementService {
     }
 
     /**
-     * Delete a settlement
+     * Soft delete a settlement by marking it as deleted without removing it from the database
+     *
+     * This method performs a soft deletion by setting deletedAt and deletedBy fields,
+     * preserving the settlement data for audit purposes and future recovery.
+     *
+     * Permission requirements:
+     * - User must be the settlement creator OR a group admin
+     *
+     * Side effects:
+     * - Updates deletedAt to current timestamp
+     * - Updates deletedBy to the user performing the deletion
+     * - Updates group's lastActivity timestamp
+     * - Excluded from balance calculations (via FirestoreReader filter)
+     *
+     * @param settlementId - The ID of the settlement to soft delete
+     * @param userId - The ID of the user performing the deletion
+     * @throws {ApiError} NOT_FOUND if settlement doesn't exist
+     * @throws {ApiError} ALREADY_DELETED if settlement is already soft-deleted
+     * @throws {ApiError} INSUFFICIENT_PERMISSIONS if user lacks permission to delete
+     * @throws {ApiError} CONFLICT if concurrent update detected
+     */
+    async softDeleteSettlement(settlementId: string, userId: string): Promise<void> {
+        return measure.measureDb('SettlementService.softDeleteSettlement', async () => this._softDeleteSettlement(settlementId, userId));
+    }
+
+    private async _softDeleteSettlement(settlementId: string, userId: string): Promise<void> {
+        LoggerContext.setBusinessContext({ settlementId });
+        LoggerContext.update({ userId, operation: 'soft-delete-settlement' });
+
+        const settlementData = await this.firestoreReader.getSettlement(settlementId);
+
+        if (!settlementData) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
+        }
+
+        const settlement = settlementData;
+
+        // Check if already soft-deleted
+        if (settlement.deletedAt) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'ALREADY_DELETED', 'Settlement is already deleted');
+        }
+
+        await this.firestoreReader.verifyGroupMembership(settlement.groupId, userId);
+
+        // Permission check: User must be settlement creator or group admin
+        const memberData = await this.firestoreReader.getGroupMember(settlement.groupId, userId);
+        if (!memberData) {
+            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'User is not a member of this group');
+        }
+
+        const isCreator = settlement.createdBy === userId;
+        const isAdmin = memberData.memberRole === 'admin';
+
+        if (!isCreator && !isAdmin) {
+            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS', 'Only the creator or group admin can delete this settlement');
+        }
+
+        // Soft delete with optimistic locking
+        await this.firestoreWriter.runTransaction(
+            async (transaction) => {
+                const currentSettlement = await this.firestoreReader.getSettlementInTransaction(transaction, settlementId);
+                if (!currentSettlement) {
+                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
+                }
+
+                // Check for concurrent updates
+                if (settlement.updatedAt !== currentSettlement.updatedAt) {
+                    throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified concurrently');
+                }
+
+                const now = new Date().toISOString();
+                const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
+
+                this.firestoreWriter.updateInTransaction(transaction, documentPath, {
+                    deletedAt: now,
+                    deletedBy: userId,
+                    updatedAt: now,
+                });
+
+                // Update group timestamp to track activity
+                await this.firestoreWriter.touchGroup(settlement.groupId, transaction);
+            },
+            {
+                maxAttempts: 3,
+                context: {
+                    operation: 'softDeleteSettlement',
+                    userId,
+                    groupId: settlement.groupId,
+                    settlementId,
+                },
+            },
+        );
+    }
+
+    /**
+     * Delete a settlement (DEPRECATED: Use softDeleteSettlement instead)
+     * @deprecated This method performs hard deletion. Use softDeleteSettlement for soft deletion.
      */
     async deleteSettlement(settlementId: string, userId: string): Promise<void> {
         return measure.measureDb('SettlementService.deleteSettlement', async () => this._deleteSettlement(settlementId, userId));
@@ -421,12 +520,11 @@ export class SettlementService {
         const startDate = options.startDate;
         const endDate = options.endDate;
 
-        const result = await this.firestoreReader.getSettlementsForGroupPaginated(groupId, {
+        const result = await this.firestoreReader.getSettlementsForGroup(groupId, {
             limit,
             cursor,
             filterUserId,
-            startDate,
-            endDate,
+            dateRange: startDate || endDate ? { start: startDate, end: endDate } : undefined,
         });
 
         const settlements: SettlementWithMembers[] = await Promise.all(

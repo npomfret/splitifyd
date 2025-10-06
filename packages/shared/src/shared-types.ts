@@ -46,6 +46,35 @@ export const PolicyIds = {
 
 export const DELETED_AT_FIELD = 'deletedAt';
 
+export const SOFT_DELETE_FIELDS = {
+    DELETED_AT: 'deletedAt',
+    DELETED_BY: 'deletedBy',
+} as const;
+
+// ========================================================================
+// Soft Delete Interface
+// ========================================================================
+
+/**
+ * Common soft delete metadata fields.
+ * All soft-deletable financial entities must include these fields.
+ * Applies to: Expenses, Settlements
+ * Does NOT apply to: Comments (hard delete), Groups (hard delete)
+ */
+export interface SoftDeletable {
+    /**
+     * ISO 8601 timestamp when the entity was soft-deleted.
+     * null indicates the entity is active (not deleted).
+     */
+    deletedAt: ISOString | null;
+
+    /**
+     * UID of the user who deleted the entity.
+     * null indicates the entity is active (not deleted).
+     */
+    deletedBy: string | null;
+}
+
 // ========================================================================
 // System User Roles (App-level)
 // ========================================================================
@@ -329,7 +358,7 @@ export interface PolicyVersion {
     createdAt: ISOString;
 }
 
-export interface Policy {
+interface Policy {
     policyName: string;
     currentVersionHash: string;
     versions: Record<string, PolicyVersion>; // Map of versionHash -> PolicyVersion
@@ -420,7 +449,7 @@ export interface GroupMember {
 /**
  * ShareLink business fields (without metadata)
  */
-export interface ShareLink {
+interface ShareLink {
     token: string; // The actual share token used in URLs
     createdBy: string; // UID of the user who created this share link
     expiresAt?: ISOString;
@@ -446,7 +475,7 @@ export interface ShareLinkDTO extends ShareLink, BaseDTO {}
  * This type includes computed fields (balance, lastActivity) that are added by the API layer
  * and do not exist in the storage format.
  */
-export interface Group {
+interface Group {
     // Core fields
     name: string;
     description?: string;
@@ -529,7 +558,7 @@ export interface ExpenseSplit {
 /**
  * Expense business fields (without metadata)
  */
-export interface Expense {
+interface Expense extends SoftDeletable {
     groupId: string;
     createdBy: string;
     paidBy: string;
@@ -542,8 +571,6 @@ export interface Expense {
     participants: string[];
     splits: ExpenseSplit[];
     receiptUrl?: string;
-    deletedAt: ISOString | null;
-    deletedBy: string | null;
 }
 
 /**
@@ -578,7 +605,7 @@ export type UpdateExpenseRequest = Partial<Omit<CreateExpenseRequest, 'groupId'>
 /**
  * Settlement business fields (without metadata)
  */
-export interface Settlement {
+interface Settlement extends SoftDeletable {
     groupId: string;
     payerId: string;
     payeeId: string;
@@ -819,7 +846,7 @@ export type CommentTargetType = (typeof CommentTargetTypes)[keyof typeof Comment
 /**
  * Comment business fields (without metadata)
  */
-export interface Comment {
+interface Comment {
     authorId: string;
     authorName: string;
     authorAvatar?: string;

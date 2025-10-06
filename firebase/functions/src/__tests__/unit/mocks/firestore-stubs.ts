@@ -398,16 +398,26 @@ export class StubFirestoreReader implements IFirestoreReader {
         return { expenses: results, hasMore, nextCursor };
     }
 
-    async getSettlementsForGroup(groupId: string, options: QueryOptions): Promise<SettlementDTO[]> {
+    async getSettlementsForGroup(groupId: string, options: QueryOptions): Promise<{
+        settlements: SettlementDTO[];
+        hasMore: boolean;
+        nextCursor?: string;
+    }> {
         const error = this.methodErrors.get('getSettlementsForGroup');
         if (error) throw error;
 
-        return this.filterCollection<SettlementDTO>(
+        const settlements = this.filterCollection<SettlementDTO>(
             'settlements',
-            doc => doc.groupId === groupId, // Settlements don't have soft delete
+            doc => doc.groupId === groupId,
             options.orderBy,
             options.limit
         );
+
+        return {
+            settlements,
+            hasMore: false,
+            nextCursor: undefined,
+        };
     }
 
     async getUserNotification(userId: string): Promise<UserNotificationDocument | null> {
@@ -449,10 +459,6 @@ export class StubFirestoreReader implements IFirestoreReader {
             groupComments: {size: 0, docs: []},
             expenseComments: [],
         };
-    }
-
-    async getSettlementsForGroupPaginated(): Promise<any> {
-        return {settlements: [], hasMore: false};
     }
 
     // Missing methods from interface

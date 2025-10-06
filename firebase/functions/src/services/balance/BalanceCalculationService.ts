@@ -152,15 +152,15 @@ export class BalanceCalculationService {
         const limit = 500; // Batch size for pagination
 
         while (true) {
-            const batch = await this.firestoreReader.getSettlementsForGroup(groupId, {
+            const result = await this.firestoreReader.getSettlementsForGroup(groupId, {
                 limit,
                 offset,
             });
 
-            allSettlements.push(...batch);
+            allSettlements.push(...result.settlements);
 
             // If we got fewer results than the limit, we've reached the end
-            if (batch.length < limit) {
+            if (result.settlements.length < limit) {
                 break;
             }
 

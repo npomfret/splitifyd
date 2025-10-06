@@ -35,6 +35,7 @@ interface FilterOptions {
         start?: ISOString;
         end?: ISOString;
     };
+    filterUserId?: string; // For filtering by user involvement (e.g., payer OR payee in settlements)
 }
 
 export interface QueryOptions extends PaginationOptions, FilterOptions {
@@ -211,12 +212,41 @@ export interface IFirestoreReader {
     // ========================================================================
 
     /**
-     * Get all settlements for a specific group
+     * Get settlements for a specific group with flexible filtering and pagination
+     *
+     * Supports both offset-based (for batch fetching) and cursor-based (for API pagination) strategies.
+     * Filters out soft-deleted settlements automatically.
+     *
      * @param groupId - The group ID
-     * @param options - Query options for pagination and filtering (required - must specify limit)
-     * @returns Array of settlement DTOs
+     * @param options - Query options for pagination, filtering, and ordering:
+     *   - limit: Required - max results to return
+     *   - offset: Optional - for batch fetching all settlements
+     *   - cursor: Optional - for cursor-based API pagination
+     *   - orderBy: Optional - custom ordering (defaults to createdAt desc)
+     *   - filterUserId: Optional - filter to settlements involving this user (payer OR payee)
+     *   - dateRange: Optional - filter by settlement date range
+     *
+     * @returns Object with settlements array, hasMore flag, and optional nextCursor
+     *
+     * @example
+     * // Batch fetching for balance calculations
+     * const result = await reader.getSettlementsForGroup(groupId, { limit: 500, offset: 0 });
+     * allSettlements.push(...result.settlements);
+     *
+     * @example
+     * // API pagination with filtering
+     * const result = await reader.getSettlementsForGroup(groupId, {
+     *   limit: 20,
+     *   cursor: 'abc123',
+     *   filterUserId: userId,
+     *   dateRange: { start: '2025-01-01', end: '2025-12-31' }
+     * });
      */
-    getSettlementsForGroup(groupId: string, options: QueryOptions): Promise<SettlementDTO[]>;
+    getSettlementsForGroup(groupId: string, options: QueryOptions): Promise<{
+        settlements: SettlementDTO[];
+        hasMore: boolean;
+        nextCursor?: string;
+    }>;
 
     /**
      * Get a user notification document by user ID
@@ -285,26 +315,6 @@ export interface IFirestoreReader {
     // Settlement Query Operations
     // ========================================================================
 
-    /**
-     * Get paginated settlements for a group with filtering and ordering
-     * @param groupId - The group ID
-     * @param options - Query options including pagination, filters, and ordering
-     * @returns Object with settlements array, hasMore flag, and nextCursor
-     */
-    getSettlementsForGroupPaginated(
-        groupId: string,
-        options?: {
-            limit?: number;
-            cursor?: string;
-            filterUserId?: string;
-            startDate?: string;
-            endDate?: string;
-        },
-    ): Promise<{
-        settlements: SettlementDTO[];
-        hasMore: boolean;
-        nextCursor?: string;
-    }>;
 
     // ========================================================================
     // System Document Operations
