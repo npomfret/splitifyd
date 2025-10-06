@@ -894,8 +894,7 @@ export class GroupService {
         await this.fetchGroupWithAccess(groupId, userId, true);
 
         // Get member list BEFORE deletion for change tracking
-        const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);// todo: this should use getAllGroupMemberIds()
-        const memberIds = memberDocs ? memberDocs.map((doc) => doc.uid) : [];
+        const memberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
 
         logger.info('Initiating atomic group deletion', {
             groupId,
@@ -915,7 +914,7 @@ export class GroupService {
 
             // Calculate total documents for logging
             const totalDocuments =
-                expenses.size + settlements.size + shareLinks.size + groupComments.size + (memberDocs?.length || 0) + expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0);
+                expenses.size + settlements.size + shareLinks.size + groupComments.size + (memberIds?.length || 0) + expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0);
 
             logger.info('Data discovery complete', {
                 groupId,
@@ -925,7 +924,7 @@ export class GroupService {
                     settlements: settlements.size,
                     shareLinks: shareLinks.size,
                     groupComments: groupComments.size,
-                    members: memberDocs?.length || 0,
+                    members: memberIds?.length || 0,
                     expenseComments: expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0),
                 },
             });
@@ -958,9 +957,9 @@ export class GroupService {
 
             // Delete memberships from top-level collection
             const membershipPaths: string[] = [];
-            if (memberDocs) {
-                memberDocs.forEach((memberDoc) => {
-                    const topLevelDocId = getTopLevelMembershipDocId(memberDoc.uid, groupId);
+            if (memberIds) {
+                memberIds.forEach((uid) => {
+                    const topLevelDocId = getTopLevelMembershipDocId(uid, groupId);
                     const topLevelPath = `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`;
                     membershipPaths.push(topLevelPath);
                 });

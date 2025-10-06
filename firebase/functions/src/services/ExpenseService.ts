@@ -148,14 +148,14 @@ export class ExpenseService {
         }
 
         // Get current members to validate participants
-        const members = await this.firestoreReader.getAllGroupMembers(validatedExpenseData.groupId);// todo: this should use getAllGroupMemberIds()
+        const memberIds = await this.firestoreReader.getAllGroupMemberIds(validatedExpenseData.groupId);
 
-        if (!getMemberDocFromArray(members, validatedExpenseData.paidBy)) {
+        if (!memberIds.includes(validatedExpenseData.paidBy)) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
         }
 
         for (const participantId of validatedExpenseData.participants) {
-            if (!getMemberDocFromArray(members, participantId)) {
+            if (!memberIds.includes(participantId)) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Participant ${participantId} is not a member of the group`);
             }
         }
@@ -230,7 +230,6 @@ export class ExpenseService {
             await this.firestoreWriter.touchGroup(expenseData.groupId, transaction);
 
             // Apply incremental balance update
-            const memberIds = members.map((m) => m.uid);
             this.incrementalBalanceService.applyExpenseCreated(transaction, expenseData.groupId, currentBalance, expense, memberIds);
         });
 
@@ -276,15 +275,15 @@ export class ExpenseService {
         }
 
         // If updating paidBy or participants, validate they are group members
-        const members = await this.firestoreReader.getAllGroupMembers(expense.groupId);// todo: this should use getAllGroupMemberIds()
+        const memberIds = await this.firestoreReader.getAllGroupMemberIds(expense.groupId);
 
-        if (updateData.paidBy && !getMemberDocFromArray(members, updateData.paidBy)) {
+        if (updateData.paidBy && !memberIds.includes(updateData.paidBy)) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
         }
 
         if (updateData.participants) {
             for (const participantId of updateData.participants) {
-                if (!getMemberDocFromArray(members, participantId)) {
+                if (!memberIds.includes(participantId)) {
                     throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Participant ${participantId} is not a member of the group`);
                 }
             }
@@ -364,7 +363,6 @@ export class ExpenseService {
                 await this.firestoreWriter.touchGroup(expense.groupId, transaction);
 
                 // Apply incremental balance update with old and new expense
-                const memberIds = members.map((m) => m.uid);
                 const newExpense: ExpenseDTO = { ...expense, ...updates };
                 this.incrementalBalanceService.applyExpenseUpdated(transaction, expense.groupId, currentBalance, expense, newExpense, memberIds);
             },
