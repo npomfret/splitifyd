@@ -1,37 +1,22 @@
-import { Errors } from '../utils/errors';
-import {
-    GroupDTO,
-    UpdateGroupRequest,
-    CreateGroupRequest,
-    DELETED_AT_FIELD,
-    ListGroupsResponse,
-    MemberRoles,
-    MemberStatuses,
-    MessageResponse,
-    SecurityPresets,
-    ExpenseDTO,
-    SettlementDTO,
-    GroupFullDetailsDTO,
-} from '@splitifyd/shared';
-import { BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupBalanceDTO } from '../schemas';
-import { DOCUMENT_CONFIG, FIRESTORE } from '../constants';
-import { logger, LoggerContext } from '../logger';
+import {Errors} from '../utils/errors';
+import type {RegisteredUser} from '@splitifyd/shared';
+import {CreateGroupRequest, DELETED_AT_FIELD, ExpenseDTO, GroupDTO, GroupFullDetailsDTO, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets, SettlementDTO, UpdateGroupRequest,} from '@splitifyd/shared';
+import {BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupBalanceDTO} from '../schemas';
+import {DOCUMENT_CONFIG, FIRESTORE, FirestoreCollections} from '../constants';
+import {logger, LoggerContext} from '../logger';
 import * as dateHelpers from '../utils/dateHelpers';
-import { PermissionEngine } from '../permissions';
+import {PermissionEngine} from '../permissions';
 import * as measure from '../monitoring/measure';
-import type { IFirestoreReader } from './firestore';
-import type { IFirestoreWriter } from './firestore';
-import type { BalanceCalculationResult } from './balance';
-import type { RegisteredUser } from '@splitifyd/shared';
-import { UserService } from './UserService2';
-import { ExpenseService } from './ExpenseService';
-import { SettlementService } from './SettlementService';
-import { GroupMemberService } from './GroupMemberService';
-import { NotificationService } from './notification-service';
-import { GroupShareService } from './GroupShareService';
-import { getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
-import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import { FirestoreCollections } from '../constants';
+import type {IFirestoreReader, IFirestoreWriter} from './firestore';
+import type {BalanceCalculationResult} from './balance';
+import {UserService} from './UserService2';
+import {ExpenseService} from './ExpenseService';
+import {SettlementService} from './SettlementService';
+import {GroupMemberService} from './GroupMemberService';
+import {NotificationService} from './notification-service';
+import {GroupShareService} from './GroupShareService';
+import {getTopLevelMembershipDocId} from '../utils/groupMembershipHelpers';
+import {CreateGroupRequestBuilder} from '@splitifyd/test-support';
 
 /**
  * Enhanced types for group data fetching with groupId
@@ -273,27 +258,11 @@ export class GroupService {
      * List all groups for a user with pagination and balance information
      * PERFORMANCE OPTIMIZED: Batches database operations to prevent N+1 queries
      */
-    async listGroups(
-        userId: string,
-        options: {
-            limit?: number;
-            cursor?: string;
-            order?: 'asc' | 'desc';
-            includeMetadata?: boolean;
-        } = {},
-    ): Promise<ListGroupsResponse> {
+    async listGroups(userId: string, options: { limit?: number; cursor?: string; order?: 'asc' | 'desc'; includeMetadata?: boolean; } = {},): Promise<ListGroupsResponse> {
         return measure.measureDb('listGroups', async () => this._listGroups(userId, options));
     }
 
-    private async _listGroups(
-        userId: string,
-        options: {
-            limit?: number;
-            cursor?: string;
-            order?: 'asc' | 'desc';
-            includeMetadata?: boolean;
-        } = {},
-    ): Promise<ListGroupsResponse> {
+    private async _listGroups(userId: string, options: { limit?: number; cursor?: string; order?: 'asc' | 'desc'; includeMetadata?: boolean; } = {},): Promise<ListGroupsResponse> {
         return measure.measureDb('list-groups', async () => {
             return this._executeListGroups(userId, options);
         });
@@ -306,36 +275,22 @@ export class GroupService {
         const order = options.order ?? 'desc';
 
         // Step 1: Query groups and metadata using FirestoreReader
-        const { paginatedGroups } = await (async () => {
-            // Get groups for user using V2 implementation (top-level collection)
-            // This provides proper database-level ordering and fixes pagination issues
-            const paginatedGroups = await this.firestoreReader.getGroupsForUserV2(userId, {
-                limit: limit, // Use actual limit, FirestoreReader handles the +1 for hasMore detection
-                cursor: cursor,
-                orderBy: {
-                    field: 'updatedAt',
-                    direction: order,
-                },
-            });
-
-            // Note: recentGroupChanges removed as GROUP_CHANGES collection was unused
-            return {
-                paginatedGroups,
-            };
-        })();
+        const paginatedGroups = await this.firestoreReader.getGroupsForUserV2(userId, {
+            limit: limit, // Use actual limit, FirestoreReader handles the +1 for hasMore detection
+            cursor: cursor,
+            orderBy: {
+                field: 'updatedAt',
+                direction: order,
+            },
+        });
 
         // Step 2: Process group documents
-        const { groups, groupIds } = await (async () => {
-            // Extract groups data from paginated result
-            const groupsData = paginatedGroups.data;
+        // Extract groups data from paginated result
+        const groupsData = paginatedGroups.data;
 
-            // FirestoreReader already handled pagination, use all returned groups
-            // groupsData is already GroupDTO[] with ISO strings - no conversion needed
-            const groups = groupsData;
-            const groupIds = groups.map((group) => group.id);
-
-            return { groups, groupIds };
-        })();
+        // FirestoreReader already handled pagination, use all returned groups
+        // groupsData is already GroupDTO[] with ISO strings - no conversion needed
+        const groupIds = groupsData.map((group) => group.id);
 
         // Step 3: Batch fetch group data
         const { expenseMetadataByGroup } = await (async () => {
@@ -344,27 +299,23 @@ export class GroupService {
         })();
 
         // Step 4: Batch fetch user profiles and create member mapping
-        const { allMemberProfiles, membersByGroup } = await (async () => {
-            // Batch fetch user profiles for all members across all groups
-            const allMemberIds = new Set<string>();
-            const membersByGroup = new Map<string, string[]>();
+        // Batch fetch user profiles for all members across all groups
+        const allMemberIds = new Set<string>();
+        const membersByGroup = new Map<string, string[]>();
 
-            // Fetch members for each group
-            await Promise.all(groups.map(async (group: GroupDTO, index: number) => {
-                const memberIds = await this.firestoreReader.getAllGroupMemberIds(group.id);
-                membersByGroup.set(group.id, memberIds);
-                memberIds.forEach((memberId: string) => allMemberIds.add(memberId));
-            }));
+        // Fetch members for each group
+        await Promise.all(groupsData.map(async (group: GroupDTO, index: number) => {
+            const memberIds = await this.firestoreReader.getAllGroupMemberIds(group.id);
+            membersByGroup.set(group.id, memberIds);
+            memberIds.forEach((memberId: string) => allMemberIds.add(memberId));
+        }));
 
-            const allMemberProfiles = await this.userService.getUsers(Array.from(allMemberIds));
-
-            return { allMemberProfiles, membersByGroup };
-        })();
+        const allMemberProfiles = await this.userService.getUsers(Array.from(allMemberIds));
 
         // Step 5: Read pre-computed balances for all groups (O(N) reads vs O(N×M) calculations)
         const balanceMap = await (async () => {
             // Fetch pre-computed balances for all groups in parallel
-            const balancePromises = groups.map((group: GroupDTO) =>
+            const balancePromises = groupsData.map((group: GroupDTO) =>
                 this.firestoreReader.getGroupBalance(group.id).catch((error: Error) => {
                     logger.error('Error reading group balance', error, { groupId: group.id });
                     // Return empty balance on error (matches GroupBalanceDTO structure)
@@ -382,7 +333,7 @@ export class GroupService {
             const balanceMap = new Map<string, BalanceCalculationResult>();
 
             // Convert GroupBalanceDTO to BalanceCalculationResult format
-            groups.forEach((group: GroupDTO, index: number) => {
+            groupsData.forEach((group: GroupDTO, index: number) => {
                 const groupBalance = balanceResults[index];
                 const balanceResult: BalanceCalculationResult = {
                     groupId: groupBalance.groupId,
@@ -398,7 +349,7 @@ export class GroupService {
 
         // Step 6: Process each group using batched data - no more database calls!
         const groupsWithBalances: GroupDTO[] = await (async () => {
-            return groups.map((group: GroupDTO) => {
+            return groupsData.map((group: GroupDTO) => {
                 // Get pre-fetched data for this group (no database calls)
                 const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
 
