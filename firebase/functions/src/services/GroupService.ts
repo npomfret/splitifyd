@@ -60,7 +60,6 @@ export class GroupService {
         const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
 
         // Use group.updatedAt for last activity (updated by touchGroup() on any group activity)
-        const lastActivityDate = new Date(group.updatedAt);
         const lastActivity = this.formatRelativeTime(group.updatedAt);
 
         // Calculate currency-specific balances with proper typing

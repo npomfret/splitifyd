@@ -687,13 +687,6 @@ export interface ExpenseFullDetailsDTO {
     members: { members: GroupMember[] };
 }
 
-export interface ListSettlementsResponse {
-    settlements: SettlementWithMembers[];
-    count: number;
-    hasMore: boolean;
-    nextCursor?: string;
-}
-
 // ========================================================================
 // API Response Types
 // ========================================================================
@@ -802,11 +795,6 @@ export interface UpdateSettlementResponse {
 export interface DeleteSettlementResponse {
     success: boolean;
     message: string;
-}
-
-export interface ListSettlementsApiResponse {
-    success: boolean;
-    data: ListSettlementsResponse;
 }
 
 // ========================================================================

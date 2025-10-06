@@ -54,7 +54,6 @@ export const parseISOToTimestamp = (isoString: string): Timestamp | null => {
 
 /**
  * Converts Firestore Timestamp or Date to ISO string
- * @deprecated Use assertTimestampAndConvert or assertDateAndConvert for clear data contracts
  * @param value - Firestore Timestamp or Date
  * @returns ISO 8601 string
  */

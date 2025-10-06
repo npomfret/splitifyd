@@ -1126,10 +1126,6 @@ export class FirestoreWriter implements IFirestoreWriter {
             updatedAt: FieldValue.serverTimestamp(),
         };
 
-        // Apply selective validation for transaction data
-        const validationResult = this.validateTransactionData(collection, finalData, docRef.id);
-        const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(partial validation)';
-
         transaction.set(docRef, finalData);
 
         return docRef;
