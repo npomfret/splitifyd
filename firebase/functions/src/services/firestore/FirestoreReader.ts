@@ -610,24 +610,27 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
-    async getExpensesForGroup(groupId: string, options?: QueryOptions): Promise<ExpenseDTO[]> {
+    async getExpensesForGroup(groupId: string, options: QueryOptions): Promise<ExpenseDTO[]> {
         try {
             let query = this.db.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).where('deletedAt', '==', null);
 
             // Apply ordering
-            if (options?.orderBy) {
+            if (options.orderBy) {
                 query = query.orderBy(options.orderBy.field, options.orderBy.direction);
             } else {
                 query = query.orderBy('createdAt', 'desc');
             }
 
-            // Apply limit
-            if (options?.limit) {
-                query = query.limit(options.limit);
+            // Apply limit (required parameter now)
+            query = query.limit(options.limit);
+
+            // Apply offset for pagination (if provided)
+            if (options.offset) {
+                query = query.offset(options.offset);
             }
 
-            // Apply cursor for pagination
-            if (options?.cursor) {
+            // Apply cursor for pagination (if provided)
+            if (options.cursor) {
                 try {
                     const cursorData = JSON.parse(Buffer.from(options.cursor, 'base64').toString());
                     query = query.startAfter(cursorData.createdAt, cursorData.id);
@@ -666,24 +669,27 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     // todo: this should be paginated
-    async getSettlementsForGroup(groupId: string, options?: QueryOptions): Promise<SettlementDTO[]> {
+    async getSettlementsForGroup(groupId: string, options: QueryOptions): Promise<SettlementDTO[]> {
         try {
             let query = this.db.collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId);
 
             // Apply ordering
-            if (options?.orderBy) {
+            if (options.orderBy) {
                 query = query.orderBy(options.orderBy.field, options.orderBy.direction);
             } else {
                 query = query.orderBy('createdAt', 'desc');
             }
 
-            // Apply limit
-            if (options?.limit) {
-                query = query.limit(options.limit);
+            // Apply limit (required parameter now)
+            query = query.limit(options.limit);
+
+            // Apply offset for pagination (if provided)
+            if (options.offset) {
+                query = query.offset(options.offset);
             }
 
-            // Apply cursor for pagination
-            if (options?.cursor) {
+            // Apply cursor for pagination (if provided)
+            if (options.cursor) {
                 try {
                     const cursorData = JSON.parse(Buffer.from(options.cursor, 'base64').toString());
                     query = query.startAfter(cursorData.createdAt, cursorData.id);

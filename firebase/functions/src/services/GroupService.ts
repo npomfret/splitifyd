@@ -61,9 +61,8 @@ export class GroupService {
         // Validate the balance calculation result for type safety
         const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
 
-        // Calculate expense metadata on-demand
-        // TODO: Update ExpenseMetadata interface to include lastExpenseTime
-        const expenseMetadata = await this.expenseMetadataService.calculateExpenseMetadata(group.id);
+        // Get the last expense time for activity display
+        const lastExpenseTime = await this.expenseMetadataService.getLastExpenseTime(group.id);
 
         // Calculate currency-specific balances with proper typing
         const balancesByCurrency: Record<
@@ -101,7 +100,7 @@ export class GroupService {
         return {
             ...group,
             balance: validatedBalanceDisplay,
-            lastActivity: expenseMetadata.lastExpenseTime ? `Last expense ${expenseMetadata.lastExpenseTime.toLocaleDateString()}` : 'No recent activity',
+            lastActivity: lastExpenseTime ? `Last expense ${lastExpenseTime.toLocaleDateString()}` : 'No recent activity',
         };
     }
 
@@ -167,8 +166,15 @@ export class GroupService {
         const expenseQueries = chunks.map(async (chunk) => {
             const allExpenses = [];
             for (const groupId of chunk) {
-                const expenses = await this.firestoreReader.getExpensesForGroup(groupId);
-                allExpenses.push(...expenses.map((expense) => ({ ...expense, groupId })));
+                // Fetch all pages of expenses for this group
+                let offset = 0;
+                const limit = 500;
+                while (true) {
+                    const expenses = await this.firestoreReader.getExpensesForGroup(groupId, { limit, offset });
+                    allExpenses.push(...expenses.map((expense) => ({ ...expense, groupId })));
+                    if (expenses.length < limit) break;
+                    offset += limit;
+                }
             }
             return allExpenses;
         });
@@ -176,8 +182,15 @@ export class GroupService {
         const settlementQueries = chunks.map(async (chunk) => {
             const allSettlements = [];
             for (const groupId of chunk) {
-                const settlements = await this.firestoreReader.getSettlementsForGroup(groupId);
-                allSettlements.push(...settlements.map((settlement) => ({ ...settlement, groupId })));
+                // Fetch all pages of settlements for this group
+                let offset = 0;
+                const limit = 500;
+                while (true) {
+                    const settlements = await this.firestoreReader.getSettlementsForGroup(groupId, { limit, offset });
+                    allSettlements.push(...settlements.map((settlement) => ({ ...settlement, groupId })));
+                    if (settlements.length < limit) break;
+                    offset += limit;
+                }
             }
             return allSettlements;
         });

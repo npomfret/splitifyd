@@ -38,6 +38,7 @@ interface FilterOptions {
 }
 
 export interface QueryOptions extends PaginationOptions, FilterOptions {
+    limit: number; // Required - forces explicit pagination consideration
     orderBy?: {
         field: string;
         direction: 'asc' | 'desc';
@@ -167,11 +168,10 @@ export interface IFirestoreReader {
     /**
      * Get all expenses for a specific group
      * @param groupId - The group ID
-     * @param options - Query options for pagination and filtering
+     * @param options - Query options for pagination and filtering (required - must specify limit)
      * @returns Array of expense DTOs
      */
-    getExpensesForGroup(groupId: string, options?: QueryOptions): Promise<ExpenseDTO[]>;
-
+    getExpensesForGroup(groupId: string, options: QueryOptions): Promise<ExpenseDTO[]>;
 
     /**
      * Get expense history for a specific expense
@@ -213,10 +213,10 @@ export interface IFirestoreReader {
     /**
      * Get all settlements for a specific group
      * @param groupId - The group ID
-     * @param options - Query options for pagination and filtering
+     * @param options - Query options for pagination and filtering (required - must specify limit)
      * @returns Array of settlement DTOs
      */
-    getSettlementsForGroup(groupId: string, options?: QueryOptions): Promise<SettlementDTO[]>;
+    getSettlementsForGroup(groupId: string, options: QueryOptions): Promise<SettlementDTO[]>;
 
     /**
      * Get a user notification document by user ID

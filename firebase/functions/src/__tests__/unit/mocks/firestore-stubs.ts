@@ -1,7 +1,7 @@
 import {vi} from 'vitest';
 import {Timestamp} from 'firebase-admin/firestore';
 import type {UserRecord, UpdateRequest, CreateRequest, GetUsersResult, DecodedIdToken, ListUsersResult, DeleteUsersResult} from 'firebase-admin/auth';
-import type {IFirestoreReader} from '../../../services/firestore';
+import type {IFirestoreReader, QueryOptions} from '../../../services/firestore';
 import type {IFirestoreWriter, WriteResult} from '../../../services/firestore/IFirestoreWriter';
 import type {IAuthService} from '../../../services/auth';
 import {CommentTargetType} from '@splitifyd/shared';
@@ -352,15 +352,15 @@ export class StubFirestoreReader implements IFirestoreReader {
         return [];
     }
 
-    async getExpensesForGroup(groupId: string, options?: any): Promise<ExpenseDTO[]> {
+    async getExpensesForGroup(groupId: string, options: QueryOptions): Promise<ExpenseDTO[]> {
         const error = this.methodErrors.get('getExpensesForGroup');
         if (error) throw error;
 
         return this.filterCollection<ExpenseDTO>(
             'expenses',
-            doc => doc.groupId === groupId && (doc.deletedAt == null || !!options?.includeDeleted),
-            options?.orderBy,
-            options?.limit
+            doc => doc.groupId === groupId && (doc.deletedAt == null || !!options.includeDeleted),
+            options.orderBy,
+            options.limit
         );
     }
 
@@ -398,15 +398,15 @@ export class StubFirestoreReader implements IFirestoreReader {
         return { expenses: results, hasMore, nextCursor };
     }
 
-    async getSettlementsForGroup(groupId: string, options?: any): Promise<SettlementDTO[]> {
+    async getSettlementsForGroup(groupId: string, options: QueryOptions): Promise<SettlementDTO[]> {
         const error = this.methodErrors.get('getSettlementsForGroup');
         if (error) throw error;
 
         return this.filterCollection<SettlementDTO>(
             'settlements',
             doc => doc.groupId === groupId, // Settlements don't have soft delete
-            options?.orderBy,
-            options?.limit
+            options.orderBy,
+            options.limit
         );
     }
 

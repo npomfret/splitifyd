@@ -117,13 +117,57 @@ export class BalanceCalculationService {
     }
 
     private async fetchExpenses(groupId: string): Promise<ExpenseDTO[]> {
-        // Use FirestoreReader for validated data - returns DTOs with ISO strings
-        return await this.firestoreReader.getExpensesForGroup(groupId);
+        // Fetch ALL expenses using pagination to avoid incomplete data bugs
+        // NOTE: This can be slow for groups with many expenses - consider moving to
+        // incremental balance updates (see tasks/performance-slow-balance-calculation-for-active-groups.md)
+        const allExpenses: ExpenseDTO[] = [];
+        let offset = 0;
+        const limit = 500; // Batch size for pagination
+
+        while (true) {
+            const batch = await this.firestoreReader.getExpensesForGroup(groupId, {
+                limit,
+                offset,
+            });
+
+            allExpenses.push(...batch);
+
+            // If we got fewer results than the limit, we've reached the end
+            if (batch.length < limit) {
+                break;
+            }
+
+            offset += limit;
+        }
+
+        return allExpenses;
     }
 
     private async fetchSettlements(groupId: string): Promise<SettlementDTO[]> {
-        // Use FirestoreReader for validated data - returns DTOs with ISO strings
-        return await this.firestoreReader.getSettlementsForGroup(groupId);
+        // Fetch ALL settlements using pagination to avoid incomplete data bugs
+        // NOTE: This can be slow for groups with many settlements - consider moving to
+        // incremental balance updates (see tasks/performance-slow-balance-calculation-for-active-groups.md)
+        const allSettlements: SettlementDTO[] = [];
+        let offset = 0;
+        const limit = 500; // Batch size for pagination
+
+        while (true) {
+            const batch = await this.firestoreReader.getSettlementsForGroup(groupId, {
+                limit,
+                offset,
+            });
+
+            allSettlements.push(...batch);
+
+            // If we got fewer results than the limit, we've reached the end
+            if (batch.length < limit) {
+                break;
+            }
+
+            offset += limit;
+        }
+
+        return allSettlements;
     }
 
     private async fetchGroupData(groupId: string): Promise<{ groupDoc: GroupDTO; memberDocs: GroupMembershipDTO[] }> {

@@ -78,3 +78,28 @@ The solution is to move away from calculating balances on-the-fly and instead ad
 -   The time taken to list groups via `_executeListGroups` is significantly reduced and is independent of the number of transactions in those groups.
 -   Creating, updating, or deleting an expense/settlement correctly updates the pre-computed balance document.
 -   Balances displayed to the user are consistent and accurate.
+
+---
+
+## 6. Related Work (October 2025)
+
+### Pagination Bug Fix Completed
+
+The pagination bug described in `tasks/bug-incomplete-pagination-in-balance-calculation.md` has been **resolved** (October 6, 2025).
+
+**What changed:**
+- Balance calculations now fetch ALL expenses/settlements via exhaustive pagination
+- TypeScript enforces required pagination parameters
+- All callers updated to provide explicit pagination
+
+**Impact on performance:**
+This fix makes the performance problem **more acute**:
+- **Before**: Fast but potentially incorrect (missing data due to no pagination)
+- **After**: Correct but slow (fetches all pages sequentially)
+
+**Why this task is now MORE important:**
+- Groups with 1000+ transactions now trigger multiple 500-doc batch queries
+- Balance calculations for large groups can take several seconds
+- The incremental balance architecture described in this task is the correct long-term solution
+
+**Next priority**: Implement the pre-computed balance architecture to achieve both correctness AND performance.

@@ -12,8 +12,8 @@ describe('ExpenseMetadataService', () => {
         expenseMetadataService = new ExpenseMetadataService(stubFirestoreReader);
     });
 
-    describe('calculateExpenseMetadata', () => {
-        it('should calculate metadata for group with expenses', async () => {
+    describe('getLastExpenseTime', () => {
+        it('should return the most recent expense timestamp', async () => {
             const groupId = 'test-group-id';
 
             // Set up test expenses using builders - StubFirestoreReader expects DTOs with ISO strings
@@ -38,30 +38,22 @@ describe('ExpenseMetadataService', () => {
             stubFirestoreReader.setDocument('expenses', 'expense-1', latestExpense);
             stubFirestoreReader.setDocument('expenses', 'expense-2', olderExpense);
 
-            const result = await expenseMetadataService.calculateExpenseMetadata(groupId);
+            const result = await expenseMetadataService.getLastExpenseTime(groupId);
 
-            expect(result.expenseCount).toBe(2);
-            expect(result.lastExpenseTime).toEqual(new Date('2024-01-15T10:00:00Z'));
-            expect(result.lastExpense).toEqual({
-                description: 'Latest Expense',
-                amount: 150,
-                date: new Date('2024-01-15T00:00:00Z'),
-            });
+            expect(result).toEqual(new Date('2024-01-15T10:00:00Z'));
         });
 
-        it('should return zero metadata for group with no expenses', async () => {
+        it('should return undefined for group with no expenses', async () => {
             const groupId = 'empty-group-id';
             // No expenses set for this group in stub, so getExpensesForGroup will return empty array
 
-            const result = await expenseMetadataService.calculateExpenseMetadata(groupId);
+            const result = await expenseMetadataService.getLastExpenseTime(groupId);
 
-            expect(result.expenseCount).toBe(0);
-            expect(result.lastExpenseTime).toBeUndefined();
-            expect(result.lastExpense).toBeUndefined();
+            expect(result).toBeUndefined();
         });
 
         it('should throw error for empty groupId', async () => {
-            await expect(expenseMetadataService.calculateExpenseMetadata('')).rejects.toThrow('Group ID is required');
+            await expect(expenseMetadataService.getLastExpenseTime('')).rejects.toThrow('Group ID is required');
         });
     });
 });

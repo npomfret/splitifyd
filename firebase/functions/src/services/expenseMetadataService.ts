@@ -1,59 +1,35 @@
 import type { IFirestoreReader } from './firestore';
 
-interface ExpenseMetadata {
-    expenseCount: number;
-    lastExpenseTime?: Date;
-    lastExpense?: {
-        description: string;
-        amount: number;
-        date: Date;
-    };
-}
-
 /**
- * Service for calculating expense metadata for groups
+ * Service for fetching the most recent expense timestamp for groups
+ * Used to display "last activity" information
  */
 export class ExpenseMetadataService {
     constructor(private firestoreReader: IFirestoreReader) {}
 
     /**
-     * Calculate expense metadata for a group on-demand
+     * Get the timestamp of the most recent expense for a group
+     * @param groupId - The group ID
+     * @returns The creation timestamp of the most recent expense, or undefined if no expenses exist
      */
-    async calculateExpenseMetadata(groupId: string): Promise<ExpenseMetadata> {
+    async getLastExpenseTime(groupId: string): Promise<Date | undefined> {
         if (!groupId) {
             throw new Error('Group ID is required');
         }
 
-        // Get all expenses for the group, sorted by creation date descending
-        const expenses = await this.firestoreReader.getExpensesForGroup(groupId, {
+        // Fetch ONLY the most recent expense - single document query
+        const recentExpenses = await this.firestoreReader.getExpensesForGroup(groupId, {
+            limit: 1,
             orderBy: {
                 field: 'createdAt',
                 direction: 'desc',
             },
         });
 
-        const expenseCount = expenses.length;
-
-        if (expenseCount === 0) {
-            return {
-                expenseCount: 0,
-                lastExpenseTime: undefined,
-                lastExpense: undefined,
-            };
+        if (recentExpenses.length === 0) {
+            return undefined;
         }
 
-        // Get the most recent expense (first in the sorted array)
-        const latestExpense = expenses[0];
-
-        // ExpenseDTO has ISO strings from FirestoreReader
-        return {
-            expenseCount,
-            lastExpenseTime: new Date(latestExpense.createdAt),
-            lastExpense: {
-                description: latestExpense.description,
-                amount: latestExpense.amount,
-                date: new Date(latestExpense.date),
-            },
-        };
+        return new Date(recentExpenses[0].createdAt);
     }
 }
