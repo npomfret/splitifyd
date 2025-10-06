@@ -45,8 +45,11 @@ export const simpleTest = baseTest.extend<SimpleTestFixtures>({
         const browserInstances: BrowserInstance[] = [];
 
         const createEmptyBrowser = async () => {
-            // Create new browser context and page
-            const context = await browser.newContext();
+            // Create new browser context with isolated storage
+            // This ensures no auth state leaks from previous tests
+            const context = await browser.newContext({
+                storageState: undefined, // Start with clean storage (no cookies, localStorage, IndexedDB)
+            });
             const page = await context.newPage();
 
             // Set up API interceptor
@@ -119,8 +122,11 @@ export const simpleTest = baseTest.extend<SimpleTestFixtures>({
 
             // Then create browsers and login in parallel
             const browserPromises = users.map(async (user, index) => {
-                // Create new browser context and page
-                const context = await browser.newContext();
+                // Create new browser context with isolated storage
+                // This ensures no auth state leaks from previous tests
+                const context = await browser.newContext({
+                    storageState: undefined, // Start with clean storage (no cookies, localStorage, IndexedDB)
+                });
                 const page = await context.newPage();
 
                 // Set up API interceptor

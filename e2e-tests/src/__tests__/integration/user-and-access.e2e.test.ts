@@ -330,7 +330,9 @@ simpleTest.describe('Policy Acceptance', () => {
             }
 
             // Now login the user manually
-            const context = await browser.newContext();
+            const context = await browser.newContext({
+                storageState: undefined, // Start with clean storage (no cookies, localStorage, IndexedDB)
+            });
             const page = await context.newPage();
 
             // Use the LoginPage to handle the login process
@@ -381,7 +383,9 @@ simpleTest.describe('Policy Acceptance', () => {
             await apiDriver.acceptCurrentPublishedPolicies(user.token);
 
             // Manually log in the user (not using fixture that auto-accepts policies)
-            const context = await browser.newContext();
+            const context = await browser.newContext({
+                storageState: undefined, // Start with clean storage (no cookies, localStorage, IndexedDB)
+            });
             const page = await context.newPage();
 
             const loginPage = new LoginPage(page);
