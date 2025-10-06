@@ -1,8 +1,10 @@
 # Firebase Security Hardening - Phase 2
 
-**Status**: Phase 1 Complete  | Phase 2 Planning
+**Status**: Phase 1 Complete | Phase 2A In Progress
 **Date**: January 2025
 **Priority**: Phase 1 achieved 100% validation coverage. Phase 2 focuses on application-layer security gaps.
+
+**Phase 2A Progress**: 1/3 complete (Test Endpoints Guard ✅)
 
 ---
 
@@ -29,7 +31,6 @@ Phase 2 addresses **application-layer security gaps** identified in January 2025
 
 **Risk Assessment**: Current application-layer risk is **MEDIUM** due to:
 - No rate limiting (DoS/brute force vulnerability)
-- Test endpoints exposed in production
 - Information disclosure in health endpoint
 - Email enumeration vectors
 - Sensitive data potentially logged
@@ -130,70 +131,6 @@ app.use('/expenses', authenticate, authenticatedRateLimiter, ...);
 
 **Effort**: Medium (4-6 hours)
 **Impact**: High (prevents DoS and brute force attacks)
-
----
-
-### 2. Test Endpoints Exposed in Production � CRITICAL
-
-**Issue**: Test endpoints accessible in production without environment guards
-
-**Vulnerable Endpoints**:
-- `POST /test-pool/borrow` (line 314)
-- `POST /test-pool/return` (line 315)
-- `POST /test/user/clear-policy-acceptances` (line 319)
-- `POST /test/user/promote-to-admin` (line 320)
-
-**Risk**:
-- Privilege escalation via `/test/user/promote-to-admin`
-- Test user pool manipulation
-- Policy acceptance bypass
-
-**Current State**:
-```typescript
-// firebase/functions/src/index.ts:314-320
-app.post('/test-pool/borrow', asyncHandler(borrowTestUser));
-app.post('/test-pool/return', asyncHandler(returnTestUser));
-app.post('/test/user/clear-policy-acceptances', asyncHandler(testClearPolicyAcceptances));
-app.post('/test/user/promote-to-admin', asyncHandler(testPromoteToAdmin));
-```
-
-**Recommendation**: Add environment guards
-
-**Implementation**:
-
-```typescript
-// firebase/functions/src/index.ts
-import { getConfig } from './client-config';
-
-// Only register test endpoints in non-production environments
-if (!getConfig().isProduction) {
-    // Test pool endpoints (emulator only, no auth required)
-    app.post('/test-pool/borrow', asyncHandler(borrowTestUser));
-    app.post('/test-pool/return', asyncHandler(returnTestUser));
-
-    // Test user endpoints (dev only, requires auth)
-    app.post('/test/user/clear-policy-acceptances', asyncHandler(testClearPolicyAcceptances));
-    app.post('/test/user/promote-to-admin', asyncHandler(testPromoteToAdmin));
-} else {
-    // Return 404 for test endpoints in production
-    app.all('/test-pool/*', (req, res) => {
-        logger.warn('Test endpoint accessed in production', { path: req.path, ip: req.ip });
-        res.status(404).json({ error: 'Not found' });
-    });
-    app.all('/test/user/*', (req, res) => {
-        logger.warn('Test endpoint accessed in production', { path: req.path, ip: req.ip });
-        res.status(404).json({ error: 'Not found' });
-    });
-}
-```
-
-**Testing**:
-- Verify endpoints work in dev/emulator
-- Verify endpoints return 404 in production
-- Add integration tests for both environments
-
-**Effort**: Low (1-2 hours)
-**Impact**: High (prevents privilege escalation)
 
 ---
 
@@ -880,7 +817,7 @@ export function applySecurityHeaders(req: Request, res: Response, next: NextFunc
 
 ### Phase 2A (Critical - Do First)
 1.  Rate Limiting (Issue #1) - Prevents DoS attacks
-2.  Test Endpoints Guard (Issue #2) - Prevents privilege escalation
+2. ✅ Test Endpoints Guard (Issue #2) - Prevents privilege escalation - COMPLETE
 3.  Email Duplication Fix (Issue #3) - Fixes data consistency
 
 **Estimated Effort**: 10-14 hours
@@ -1068,5 +1005,5 @@ Security Rules (database-level enforcement)
 
 **Document Version**: 2.0
 **Last Updated**: January 2025
-**Status**: Phase 1 Complete  | Phase 2 Planning
+**Status**: Phase 1 Complete | Phase 2A In Progress (1/3 complete)
 **Next Review**: After Phase 2A completion

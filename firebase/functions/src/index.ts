@@ -6,6 +6,7 @@ import { register } from './auth/handlers';
 import { applyStandardMiddleware } from './utils/middleware';
 import { logger } from './logger';
 import { getEnhancedConfigResponse } from './utils/config-response';
+import { getConfig } from './client-config';
 import { sendHealthCheckResponse, ApiError } from './utils/errors';
 import { APP_VERSION } from './utils/version';
 import { HTTP_STATUS, SYSTEM } from './constants';
@@ -309,15 +310,28 @@ function setupRoutes(app: express.Application): void {
 
     app.get('/policies/:id/current', asyncHandler(getCurrentPolicy));
 
-    // Test pool endpoints (emulator only, no auth required)
-    // @deprecated - Endpoints not used by ApiClient, will be removed
-    app.post('/test-pool/borrow', asyncHandler(borrowTestUser));
-    app.post('/test-pool/return', asyncHandler(returnTestUser));
+    // Test endpoints - only available in non-production environments
+    if (getConfig().isProduction) {
+        // Return 404 for test endpoints in production to prevent privilege escalation
+        app.all('/test-pool/*', (req, res) => {
+            logger.warn('Test endpoint accessed in production', { path: req.path, ip: req.ip });
+            res.status(404).json({ error: 'Not found' });
+        });
+        app.all('/test/user/*', (req, res) => {
+            logger.warn('Test endpoint accessed in production', { path: req.path, ip: req.ip });
+            res.status(404).json({ error: 'Not found' });
+        });
+    } else {
+        // Test pool endpoints (emulator only, no auth required)
+        // @deprecated - Endpoints not used by ApiClient, will be removed
+        app.post('/test-pool/borrow', asyncHandler(borrowTestUser));
+        app.post('/test-pool/return', asyncHandler(returnTestUser));
 
-    // Test user endpoints (dev only, requires auth)
-    // @deprecated - Endpoint not used by ApiClient, will be removed
-    app.post('/test/user/clear-policy-acceptances', asyncHandler(testClearPolicyAcceptances));
-    app.post('/test/user/promote-to-admin', asyncHandler(testPromoteToAdmin));
+        // Test user endpoints (dev only, requires auth)
+        // @deprecated - Endpoint not used by ApiClient, will be removed
+        app.post('/test/user/clear-policy-acceptances', asyncHandler(testClearPolicyAcceptances));
+        app.post('/test/user/promote-to-admin', asyncHandler(testPromoteToAdmin));
+    }
 
     // User policy endpoints (requires auth)
     app.post('/user/policies/accept-multiple', authenticate, asyncHandler(acceptMultiplePolicies));
