@@ -225,7 +225,7 @@ export class CreateGroupModalPage extends BasePage {
      * Close modal by pressing Escape key
      */
     async pressEscapeToClose(): Promise<void> {
-        await super.pressEscapeToClose(this.getModalContainer(), 'Create Group Modal');
+        await super.pressEscapeToClose(this.getModalContainer());
     }
 
     // ============================================================================

@@ -351,13 +351,6 @@ export class DashboardPage extends BasePage {
         await expect(this.getYourGroupsHeading()).toBeVisible();
     }
 
-    /**
-     * Check if dashboard is in loading state
-     */
-    async isDashboardLoading(): Promise<boolean> {
-        return await this.getGroupsLoadingSpinner().isVisible();
-    }
-
     // ============================================================================
     // ACTION METHODS
     // ============================================================================
@@ -444,22 +437,19 @@ export class DashboardPage extends BasePage {
 
     /**
      * Wait for groups to finish loading
+     * Expects either groups to be displayed OR empty state to be visible
+     * Tests calling this method should KNOW which state to expect
      */
     async waitForGroupsToLoad(timeout = 5000): Promise<void> {
-        // Wait for loading spinner to disappear if it exists
-        const spinner = this.getGroupsLoadingSpinner();
-        if (await spinner.isVisible()) {
-            await expect(spinner).not.toBeVisible({ timeout });
-        }
+        // Wait for loading spinner to disappear
+        // Playwright's expect().not.toBeVisible() will pass immediately if spinner doesn't exist
+        await expect(this.getGroupsLoadingSpinner()).not.toBeVisible({ timeout });
 
-        // Ensure we're either showing groups or empty state
-        // First try to find groups, if none exist, look for empty state
-        try {
-            await expect(this.getGroupCards().first()).toBeVisible({ timeout: 1000 });
-        } catch {
-            // No groups found, check for empty state
-            await expect(this.getEmptyGroupsState()).toBeVisible({ timeout });
-        }
+        // After loading completes, either groups or empty state must be visible
+        // Use .or() on the locator to wait for whichever appears first
+        await expect(
+            this.getGroupCards().first().or(this.getEmptyGroupsState())
+        ).toBeVisible({ timeout });
     }
 
     /**

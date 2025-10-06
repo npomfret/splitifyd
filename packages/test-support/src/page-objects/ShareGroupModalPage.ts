@@ -169,7 +169,7 @@ export class ShareGroupModalPage extends BasePage {
      * Close modal by pressing Escape
      */
     async pressEscapeToClose(): Promise<void> {
-        await super.pressEscapeToClose(this.getModalContainer(), 'Share Group Modal');
+        await super.pressEscapeToClose(this.getModalContainer());
     }
 
     /**

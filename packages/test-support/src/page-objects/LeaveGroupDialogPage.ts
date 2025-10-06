@@ -157,7 +157,7 @@ export class LeaveGroupDialogPage extends BasePage {
      * Close dialog by pressing Escape
      */
     async pressEscapeToClose(): Promise<void> {
-        await super.pressEscapeToClose(this.getDialogContainer(), 'Leave Group Dialog');
+        await super.pressEscapeToClose(this.getDialogContainer());
     }
 
     // ============================================================================

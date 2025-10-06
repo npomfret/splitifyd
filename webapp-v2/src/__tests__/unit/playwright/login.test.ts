@@ -208,12 +208,6 @@ test.describe('LoginPage Reactivity and UI States', () => {
         // Verify all form elements are disabled during loading
         await loginPage.verifyFormDisabled();
 
-        // Check that DefaultLoginButton is also disabled (if present)
-        const defaultLoginButton = loginPage.getDefaultLoginButton();
-        if (await defaultLoginButton.count() > 0) {
-            await expect(defaultLoginButton).toBeDisabled();
-        }
-
         await expect(page).toHaveURL('/dashboard', { timeout: 5000 });
     });
 

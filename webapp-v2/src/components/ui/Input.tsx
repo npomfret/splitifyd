@@ -89,7 +89,7 @@ export function Input({
                     id={inputId}
                     name={name}
                     value={value}
-                    onChange={handleChange}
+                    onInput={handleChange}
                     onBlur={onBlur}
                     placeholder={placeholder}
                     disabled={disabled}

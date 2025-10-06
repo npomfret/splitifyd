@@ -206,7 +206,7 @@ describe('Input Component', () => {
             render(<Input label="Test Field" onChange={handleChange} />);
 
             const input = screen.getByRole('textbox');
-            fireEvent.change(input, { target: { value: 'new value' } });
+            fireEvent.input(input, { target: { value: 'new value' } });
 
             expect(handleChange).toHaveBeenCalledWith('new value');
         });
@@ -222,7 +222,7 @@ describe('Input Component', () => {
         });
 
         it('should still call onChange when disabled (fireEvent bypasses disabled state)', () => {
-            // Note: fireEvent.change bypasses the disabled attribute in JSDOM
+            // Note: fireEvent.input bypasses the disabled attribute in JSDOM
             // This is different from real browser behavior but is how testing-library works
             const handleChange = vi.fn();
             render(<Input label="Disabled Field" onChange={handleChange} disabled />);
@@ -231,7 +231,7 @@ describe('Input Component', () => {
             expect(input).toBeDisabled();
 
             // In real browsers, disabled inputs don't fire events, but in tests they do
-            fireEvent.change(input, { target: { value: 'new value' } });
+            fireEvent.input(input, { target: { value: 'new value' } });
 
             // The component will still call onChange even when disabled in test environment
             expect(handleChange).toHaveBeenCalledWith('new value');

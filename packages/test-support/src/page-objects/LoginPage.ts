@@ -129,18 +129,6 @@ export class LoginPage extends BasePage {
     }
 
     /**
-     * Check if the form is in a loading state (all inputs disabled)
-     */
-    async isFormLoading(): Promise<boolean> {
-        const emailDisabled = await this.getEmailInput().isDisabled();
-        const passwordDisabled = await this.getPasswordInput().isDisabled();
-        const submitDisabled = await this.getSubmitButton().isDisabled();
-
-        return emailDisabled && passwordDisabled && submitDisabled;
-    }
-
-
-    /**
      * Get the current error message text
      */
     async getErrorMessage(): Promise<string> {
@@ -260,8 +248,8 @@ export class LoginPage extends BasePage {
         // Verify we stay on login page
         await expect(this.page).toHaveURL(/\/login/);
 
-        // Wait for error to appear (gives error time to render)
-        await this.page.waitForTimeout(150);
+        // Wait for error to appear
+        await expect(this.getErrorContainer()).toBeVisible({ timeout: 3000 });
     }
 
     /**
@@ -313,18 +301,6 @@ export class LoginPage extends BasePage {
         await expect(this.page).toHaveURL(/\/register/);
     }
 
-    /**
-     * Click the default/demo login button (if available)
-     */
-    async clickDefaultLogin(): Promise<void> {
-        const button = this.getDefaultLoginButton();
-        if (await button.count() > 0) {
-            await this.clickButton(button, { buttonName: 'Default Login' });
-        } else {
-            throw new Error('Default login button not found');
-        }
-    }
-
     // ============================================================================
     // FORM STATE VERIFICATION
     // ============================================================================
@@ -354,10 +330,9 @@ export class LoginPage extends BasePage {
      */
     async verifyErrorMessage(expectedMessage: string): Promise<void> {
         const errorContainer = this.getErrorContainer();
-        // Wait for error to be visible and stable before checking content
+        // Wait for error to be visible with expected message
+        // Playwright's toContainText will auto-wait for the element to be visible and contain the text
         await expect(errorContainer).toBeVisible({ timeout: 3000 });
-        // Wait a tick to ensure error is stable (not being cleared immediately)
-        await this.page.waitForTimeout(100);
         await expect(errorContainer).toContainText(expectedMessage);
     }
 

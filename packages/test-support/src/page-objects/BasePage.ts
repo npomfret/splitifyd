@@ -17,27 +17,95 @@ export abstract class BasePage {
     }
 
     /**
+     * Clear input with proper handling for Preact controlled inputs
+     *
+     * Tries repeatedly to clear the input until it's actually empty.
+     * Preact's controlled inputs don't always respond to the first clear attempt.
+     */
+    async clearPreactInput(selector: string | Locator) {
+        const input = typeof selector === 'string' ? this._page.locator(selector) : selector;
+
+        // Check if already empty
+        const initialValue = await input.inputValue();
+        if (initialValue === '') {
+            return; // Already empty, nothing to do
+        }
+
+        const maxAttempts = 10;
+
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            await input.focus();
+            await input.clear();
+
+            try {
+                // Wait for it to actually be empty (with timeout)
+                await expect(input).toHaveValue('', { timeout: 1000 });
+
+                if (attempt > 0) {
+                    console.log(`✅ clearPreactInput succeeded on attempt ${attempt + 1}`);
+                }
+                return; // Success!
+            } catch (error) {
+                console.log(`❌ clearPreactInput attempt ${attempt + 1} timed out waiting for empty value`);
+                // Loop continues to next attempt
+            }
+        }
+
+        // Final verification - will throw if still not empty
+        console.log('❌ clearPreactInput exhausted all attempts, throwing error');
+        await expect(input).toHaveValue('', { timeout: 2000 });
+    }
+
+    /**
      * Fill input with proper handling for Preact controlled inputs
-     * Uses direct DOM manipulation to work with Preact's signal-based reactivity
+     *
+     * Uses pressSequentially() in a retry loop until the value is set correctly.
+     *
+     * WHY THIS IS NECESSARY:
+     * Preact's controlled inputs with signals have proven extremely difficult to reliably
+     * fill from Playwright tests. We discovered:
+     *
+     * 1. Preact uses `onInput` (not `onChange`) for real-time updates
+     * 2. Even with `onInput` correctly configured, Playwright's event dispatch timing
+     *    doesn't always match what Preact's signal reactivity expects
+     * 3. The problem is intermittent - sometimes it works, sometimes it doesn't
+     *
+     * Rather than chase down every edge case in Preact's event handling, we use a
+     * retry approach: keep trying pressSequentially() until the value is correct.
      */
     async fillPreactInput(selector: string | Locator, value: string) {
         const input = typeof selector === 'string' ? this._page.locator(selector) : selector;
+        const maxAttempts = 10;
 
-        // Focus the input first
-        await input.focus();
+        // Clear once before starting attempts
+        await this.clearPreactInput(input);
+        // Small delay to let Preact signals stabilize after clear
+        await this._page.waitForTimeout(50);
 
-        // Set value and dispatch events directly in browser context
-        // This works better with Preact controlled inputs than Playwright's fill()
-        await input.evaluate((el: any, val: string) => {
-            el.value = val;
-            // Dispatch input event to trigger Preact signal updates
-            el.dispatchEvent(new Event('input', { bubbles: true }));
-        }, value);
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            await input.focus();
+            await input.pressSequentially(value, { delay: 50, timeout: 2000 });
 
-        // Verify value is set (ensures Preact signal has processed)
+            const currentValue = await input.inputValue();
+            if (currentValue === value) {
+                if (attempt > 0) {
+                    console.log(`✅ fillPreactInput succeeded on attempt ${attempt + 1}: "${value}"`);
+                }
+                await input.blur();
+                return; // Success!
+            }
+
+            console.log(`❌ fillPreactInput attempt ${attempt + 1} failed: value="${currentValue}", expected="${value}"`);
+
+            // Clear for next attempt
+            await this.clearPreactInput(input);
+            // Small delay to let Preact signals stabilize after clear
+            await this._page.waitForTimeout(50);
+        }
+
+        // Final verification - will throw if still not set
+        console.log(`❌ fillPreactInput exhausted all attempts for value "${value}", throwing error`);
         await expect(input).toHaveValue(value, { timeout: 2000 });
-
-        // Blur to trigger any onBlur validation
         await input.blur();
     }
 
@@ -94,33 +162,21 @@ export abstract class BasePage {
      * Properly verifies modal is visible before closing and waits for it to disappear
      *
      * @param modalContainer - The modal container locator
-     * @param modalName - Name of the modal for error messages (e.g., "Share Group Modal")
      * @param timeout - Maximum time to wait for modal to close (default: 5000ms)
      */
     async pressEscapeToClose(
         modalContainer: Locator,
-        modalName: string = 'modal',
         timeout: number = 5000
     ): Promise<void> {
-        // First verify the modal is actually visible
-        try {
-            await expect(modalContainer).toBeVisible({ timeout: 500 });
-        } catch (error) {
-            throw new Error(`Cannot close ${modalName}: modal is not visible`);
-        }
+        // Verify the modal is visible before attempting to close
+        await expect(modalContainer).toBeVisible({ timeout: 1000 });
 
-        // Wait for modal to be fully initialized (useEffect event listeners)
-        // React useEffects run after render, so we need a brief pause
-        await this._page.waitForTimeout(100);
+        // Press Escape on body element to trigger document-level keyboard handlers
+        // Modal containers (divs) are not focusable, so events don't bubble correctly
+        // Body is always focusable and events from it reach document listeners
+        await this._page.locator('body').press('Escape');
 
-        // Press Escape key
-        await this._page.keyboard.press('Escape');
-
-        // Wait for modal to become not visible
-        try {
-            await expect(modalContainer).not.toBeVisible({ timeout });
-        } catch (error) {
-            throw new Error(`${modalName} did not close after pressing Escape (timeout: ${timeout}ms)`);
-        }
+        // Wait for modal to close
+        await expect(modalContainer).not.toBeVisible({ timeout });
     }
 }

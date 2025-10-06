@@ -1,6 +1,6 @@
-import { test, expect } from '../../utils/console-logging-fixture';
-import {createMockFirebase, mockGroupsApi, mockApiFailure, mockFullyAcceptedPoliciesApi, setupSuccessfulApiMocks, mockGenerateShareLinkApi, MockFirebase} from '../../utils/mock-firebase-service';
-import { ClientUserBuilder, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder, DashboardPage, CreateGroupModalPage } from '@splitifyd/test-support';
+import {expect, test} from '../../utils/console-logging-fixture';
+import {createMockFirebase, mockApiFailure, MockFirebase, mockFullyAcceptedPoliciesApi, mockGenerateShareLinkApi, mockGroupsApi, setupSuccessfulApiMocks} from '../../utils/mock-firebase-service';
+import {ClientUserBuilder, CreateGroupModalPage, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, randomString, UserNotificationDocumentBuilder} from '@splitifyd/test-support';
 
 // Test for browser reuse - using fixture-based approach with proper infrastructure
 test.describe('Browser Reuse Test', () => {
@@ -80,20 +80,24 @@ test.describe('Dashboard Groups Display and Loading States', () => {
     test('should show loading state while groups are loading', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        // Don't mock groups API immediately to see loading state
-        await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
+        // Set up delayed route BEFORE navigation to ensure loading state is visible
+        const groupsResponse = ListGroupsResponseBuilder.responseWithMetadata([], 0).build();
+        await page.route('/api/groups?includeMetadata=true', async (route) => {
+            // Delay response to show loading state
+            await page.waitForTimeout(1000);
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(groupsResponse),
+            });
+        });
 
-        // Wait for page to load but groups might still be loading
+        // Navigate and verify loading state appears
+        await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
         await expect(page).toHaveURL('/dashboard');
 
-        // Mock groups API with delay to show loading state
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([], 0).build());
-
-        // Verify loading state appears first
-        const isLoading = await dashboardPage.isDashboardLoading();
-        if (isLoading) {
-            await dashboardPage.verifyGroupsLoading();
-        }
+        // Verify loading state appears while API is delayed
+        await dashboardPage.verifyGroupsLoading();
 
         // Wait for groups to finish loading
         await dashboardPage.waitForGroupsToLoad();
@@ -297,9 +301,6 @@ test.describe('Dashboard Real-time Updates', () => {
                 .build()
         );
 
-        // Small wait to ensure first notification is processed
-        await page.waitForTimeout(100);
-
         // Create new group for notification
         const newGroup = GroupDTOBuilder.groupForUser(testUser.uid)
             .withId('new-group-123')
@@ -374,12 +375,12 @@ test.describe('Dashboard Create Group Functionality', () => {
         // Initially submit button should be disabled
         await createGroupModal.verifySubmitButtonState(false);
 
-        // Fill with just one character - still disabled
-        await createGroupModal.fillGroupName('A');
+        // Fill with just one character - still disabled - using random string to debug auto-fill
+        await createGroupModal.fillGroupName(randomString(1));
         await createGroupModal.verifySubmitButtonState(false);
 
         // Fill with valid name (2+ characters) - should enable
-        await createGroupModal.fillGroupName('AB');
+        await createGroupModal.fillGroupName(randomString(5));
         await createGroupModal.verifySubmitButtonState(true);
 
         // Clear name - should disable again
@@ -527,15 +528,17 @@ test.describe('Dashboard Create Group Functionality', () => {
 
         const createGroupModal = await dashboardPage.clickCreateGroup();
 
-        // Fill with single character (too short)
-        await createGroupModal.fillGroupName('A');
+        // Fill with single character (too short) - using random string to debug auto-fill issues
+        const singleChar = randomString(1);
+        await createGroupModal.fillGroupName(singleChar);
 
         // Try to submit - will trigger validation
         const submitButton = createGroupModal.getSubmitButton();
         await expect(submitButton).toBeDisabled();
 
         // When user types more, error should clear and submit should enable
-        await createGroupModal.fillGroupName('AB');
+        const validName = randomString(5);
+        await createGroupModal.fillGroupName(validName);
         await createGroupModal.verifyNoValidationError();
         await createGroupModal.verifySubmitButtonState(true);
     });
@@ -622,8 +625,7 @@ test.describe('Dashboard Create Group Functionality', () => {
         await expect(createGroupModal.getGroupDescriptionInput()).toHaveValue('Beach vacation expenses');
         await createGroupModal.verifySubmitButtonState(true);
 
-        // State should still be there after waiting
-        await page.waitForTimeout(100);
+        // State should persist
         await expect(createGroupModal.getGroupNameInput()).toHaveValue('Summer Trip');
         await expect(createGroupModal.getGroupDescriptionInput()).toHaveValue('Beach vacation expenses');
     });
@@ -838,8 +840,6 @@ test.describe('Dashboard Group Removal and Deletion', () => {
                 .build()
         );
 
-        await page.waitForTimeout(100);
-
         // Setup new response without the removed group
         await page.unroute('/api/groups?includeMetadata=true');
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group2], 1).build());
@@ -893,7 +893,6 @@ test.describe('Dashboard Group Removal and Deletion', () => {
                 .build()
             );
 
-        await page.waitForTimeout(100);
 
         // Setup new response without the deleted group
         await page.unroute('/api/groups?includeMetadata=true');
@@ -941,7 +940,6 @@ test.describe('Dashboard Group Removal and Deletion', () => {
                 .build()
             );
 
-        await page.waitForTimeout(100);
 
         // Setup empty groups response
         await page.unroute('/api/groups?includeMetadata=true');
@@ -999,7 +997,6 @@ test.describe('Dashboard Group Removal and Deletion', () => {
                 .build()
             );
 
-        await page.waitForTimeout(100);
 
         // Setup response with only one group remaining
         await page.unroute('/api/groups?includeMetadata=true');
@@ -1067,7 +1064,6 @@ test.describe('Dashboard Balance Change Notifications', () => {
                 .build()
             );
 
-        await page.waitForTimeout(100);
 
         // Setup updated response for balance change
         await page.unroute('/api/groups?includeMetadata=true');
@@ -1083,7 +1079,6 @@ test.describe('Dashboard Balance Change Notifications', () => {
             );
 
         // Verify dashboard refreshes (group still visible with updated data)
-        await page.waitForTimeout(500);
         await dashboardPage.verifyGroupDisplayed('Balance Test Group');
     });
 
@@ -1117,7 +1112,6 @@ test.describe('Dashboard Balance Change Notifications', () => {
                 .build()
             );
 
-        await page.waitForTimeout(100);
 
         // Setup updated response
         await page.unroute('/api/groups?includeMetadata=true');
@@ -1134,7 +1128,6 @@ test.describe('Dashboard Balance Change Notifications', () => {
             );
 
         // Verify both groups still displayed
-        await page.waitForTimeout(500);
         await dashboardPage.verifyGroupsDisplayed(2);
         await dashboardPage.verifyGroupDisplayed('Group One');
         await dashboardPage.verifyGroupDisplayed('Group Two');
@@ -1186,7 +1179,6 @@ test.describe('Dashboard Transaction Change Notifications', () => {
                 .build()
             );
 
-        await page.waitForTimeout(100);
 
         // Setup updated response for transaction change
         await page.unroute('/api/groups?includeMetadata=true');
@@ -1202,7 +1194,6 @@ test.describe('Dashboard Transaction Change Notifications', () => {
             );
 
         // Verify dashboard refreshes
-        await page.waitForTimeout(500);
         await dashboardPage.verifyGroupDisplayed('Transaction Test Group');
     });
 
@@ -1229,7 +1220,6 @@ test.describe('Dashboard Transaction Change Notifications', () => {
                 .build()
             );
 
-        await page.waitForTimeout(100);
 
         // Setup updated response
         await page.unroute('/api/groups?includeMetadata=true');
@@ -1245,7 +1235,6 @@ test.describe('Dashboard Transaction Change Notifications', () => {
             );
 
         // Verify dashboard handles combined update
-        await page.waitForTimeout(500);
         await dashboardPage.verifyGroupDisplayed('Combo Test Group');
     });
 });
@@ -1289,7 +1278,6 @@ test.describe('Dashboard Rapid Notification Updates', () => {
                 .build()
             );
 
-        await page.waitForTimeout(100);
 
         // Setup updated responses
         await page.unroute('/api/groups?includeMetadata=true');
@@ -1310,13 +1298,9 @@ test.describe('Dashboard Rapid Notification Updates', () => {
                     })
                     .build()
             );
-
-            // Small delay between notifications
-            await page.waitForTimeout(50);
         }
 
-        // Verify dashboard remains stable
-        await page.waitForTimeout(500);
+        // Verify dashboard remains stable after rapid updates
         await dashboardPage.verifyGroupDisplayed('Rapid Test Group');
     });
 
@@ -1343,7 +1327,6 @@ test.describe('Dashboard Rapid Notification Updates', () => {
                 .build()
             );
 
-        await page.waitForTimeout(100);
 
         // Setup updated response
         await page.unroute('/api/groups?includeMetadata=true');
@@ -1369,7 +1352,6 @@ test.describe('Dashboard Rapid Notification Updates', () => {
             );
 
         // Verify dashboard handles overlapping updates
-        await page.waitForTimeout(1000);
         await dashboardPage.verifyGroupDisplayed('Concurrent Test Group');
     });
 });
@@ -1414,7 +1396,6 @@ test.describe('Dashboard Notification Error Handling', () => {
                 .build()
             );
 
-        await page.waitForTimeout(100);
 
         // Send malformed notification (missing required fields)
         await mockFirebase.triggerNotificationUpdate(testUser.uid, {
@@ -1428,7 +1409,6 @@ test.describe('Dashboard Notification Error Handling', () => {
         });
 
         // Verify dashboard remains stable despite malformed notification
-        await page.waitForTimeout(500);
         await dashboardPage.verifyGroupDisplayed('Error Test Group');
     });
 
@@ -1456,7 +1436,6 @@ test.describe('Dashboard Notification Error Handling', () => {
                 .build()
             );
 
-        await page.waitForTimeout(100);
 
         // Send notification for non-existent group
         await mockFirebase.triggerNotificationUpdate(
@@ -1473,7 +1452,6 @@ test.describe('Dashboard Notification Error Handling', () => {
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 2).build());
 
         // Verify dashboard handles invalid group ID gracefully
-        await page.waitForTimeout(500);
         await dashboardPage.verifyGroupDisplayed('Valid Group');
     });
 });
@@ -1674,8 +1652,11 @@ test.describe('Dashboard Share Group Modal', () => {
         // Generate new link
         await dashboardPage.generateNewShareLink();
 
-        // Wait for new link to appear
-        await page.waitForTimeout(500);
+        // Wait for new link to appear with auto-retry
+        await expect(async () => {
+            const secondLink = await dashboardPage.getShareLinkValue();
+            expect(secondLink).toContain('second-token');
+        }).toPass();
 
         const secondLink = await dashboardPage.getShareLinkValue();
         expect(secondLink).toContain('second-token');
