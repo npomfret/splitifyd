@@ -23,8 +23,6 @@ Use agents freely, appropiately and liberally!
 
 ## PROJECT-SPECIFIC INSTRUCTIONS
 
-**! IMPORTANT !**: read all the files in `docs/guides` immediately.
-
 # Tech Stack
 
 - Runtime: Node.js (latest)

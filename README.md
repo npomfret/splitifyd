@@ -2,67 +2,6 @@
 
 A bill splitting app.
 
-View the [docs](docs) for details on features, todo, dev stuff etc.
-
-## Browser Testing with MCP
-
-This project uses automated browser testing via [Microsoft's Playwright MCP server](https://github.com/microsoft/playwright-mcp). Install it:
-
-```shell
-claude mcp add playwright npx @playwright/mcp@latest
-```
-
-This enables Claude Code to automatically navigate pages, take screenshots, and check for console errors during development.
-
-### Prerequisites
-
-**Claude Desktop Required**: MCP browser automation only works with Claude Desktop + Claude Code CLI, not the web version.
-
-Open jdk: https://formulae.brew.sh/formula/openjdk
-
-### Setup
-
-1. **Install Claude Desktop** if you haven't already
-
-2. **Configure MCP in Claude Desktop**:
-
-    ```bash
-    # Edit your Claude Desktop config
-    open ~/Library/Application\ Support/Claude/claude_desktop_config.json
-    ```
-
-    Add this configuration:
-
-    ```json
-    {
-        "mcpServers": {
-            "playwright": {
-                "command": "npx",
-                "args": ["@playwright/mcp@latest"]
-            }
-        }
-    }
-    ```
-
-3. **Restart Claude Desktop** completely (quit and reopen)
-
-4. **Start a new Claude Code CLI session** to get MCP tools
-
-### Testing the Webapp
-
-Once MCP is configured, Claude can automatically:
-
-- Navigate to webapp routes (served at Firebase emulator root)
-- Take screenshots at different viewport sizes
-- Check for console errors
-- Verify page elements and functionality
-
-Run the integrated development server first:
-
-```bash
-npm run dev  # Starts Firebase emulator + webapp
-```
-
 ## Getting started
 
 Create a firebase project and from it create `firbase/functions/.env` and add:
