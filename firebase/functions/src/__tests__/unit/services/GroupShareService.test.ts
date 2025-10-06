@@ -10,6 +10,7 @@ import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { GroupDTOBuilder } from '@splitifyd/test-support';
 import { GroupMemberDocumentBuilder } from "../../support/GroupMemberDocumentBuilder";
+import { MAX_GROUP_MEMBERS } from '@splitifyd/shared';
 
 describe('GroupShareService', () => {
     let groupShareService: GroupShareService;
@@ -92,6 +93,101 @@ describe('GroupShareService', () => {
             expect(groupShareService).toBeDefined();
             expect(typeof groupShareService.generateShareableLink).toBe('function');
             expect(typeof groupShareService.previewGroupByLink).toBe('function');
+        });
+    });
+
+    describe('group member cap enforcement', () => {
+        const groupId = 'test-group';
+        const linkId = 'test-link-123';
+        const newUserId = 'new-user-id';
+        const newUserEmail = 'newuser@test.com';
+
+        beforeEach(() => {
+            // Set up test group
+            const testGroup = new GroupDTOBuilder()
+                .withId(groupId)
+                .withCreatedBy('owner-id')
+                .build();
+            stubReader.setDocument('groups', groupId, testGroup);
+
+            // Set up share link
+            const shareLink = {
+                id: linkId,
+                token: linkId,
+                createdBy: 'owner-id',
+                isActive: true,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            stubReader.setShareLink(groupId, linkId, shareLink);
+        });
+
+        it(`should succeed when group has ${MAX_GROUP_MEMBERS - 1} members`, async () => {
+            // Create MAX_GROUP_MEMBERS - 1 existing members
+            const existingMembers = Array.from({ length: MAX_GROUP_MEMBERS - 1 }, (_, i) =>
+                new GroupMemberDocumentBuilder()
+                    .withUserId(`user-${i}`)
+                    .withGroupId(groupId)
+                    .build()
+            );
+
+            stubReader.setGroupMembers(groupId, existingMembers);
+
+            // Should succeed - we're at 49 members, adding 1 more = 50 (at cap, but still allowed)
+            await expect(
+                groupShareService.joinGroupByLink(newUserId, newUserEmail, linkId)
+            ).resolves.toBeDefined();
+        });
+
+        it(`should fail when group already has ${MAX_GROUP_MEMBERS} members`, async () => {
+            // Create exactly MAX_GROUP_MEMBERS existing members
+            const existingMembers = Array.from({ length: MAX_GROUP_MEMBERS }, (_, i) =>
+                new GroupMemberDocumentBuilder()
+                    .withUserId(`user-${i}`)
+                    .withGroupId(groupId)
+                    .build()
+            );
+
+            stubReader.setGroupMembers(groupId, existingMembers);
+
+            // Should fail with GROUP_AT_CAPACITY
+            let caughtError: ApiError | undefined;
+            try {
+                await groupShareService.joinGroupByLink(newUserId, newUserEmail, linkId);
+            } catch (error) {
+                caughtError = error as ApiError;
+            }
+
+            expect(caughtError).toBeInstanceOf(ApiError);
+            expect(caughtError?.statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
+            expect(caughtError?.code).toBe('GROUP_AT_CAPACITY');
+            expect(caughtError?.message).toContain(`${MAX_GROUP_MEMBERS} members`);
+        });
+
+        it(`should detect overflow in getAllGroupMembers when group has > ${MAX_GROUP_MEMBERS}`, async () => {
+            // Create MAX_GROUP_MEMBERS + 1 members (edge case - should never happen in practice)
+            // This tests the overflow detection in FirestoreReader.getAllGroupMembers directly
+            const tooManyMembers = Array.from({ length: MAX_GROUP_MEMBERS + 1 }, (_, i) =>
+                new GroupMemberDocumentBuilder()
+                    .withUserId(`user-${i}`)
+                    .withGroupId(groupId)
+                    .build()
+            );
+
+            stubReader.setGroupMembers(groupId, tooManyMembers);
+
+            // Calling getAllGroupMembers directly should detect overflow
+            let caughtError: ApiError | undefined;
+            try {
+                await stubReader.getAllGroupMembers(groupId);
+            } catch (error) {
+                caughtError = error as ApiError;
+            }
+
+            expect(caughtError).toBeInstanceOf(ApiError);
+            expect(caughtError?.statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
+            expect(caughtError?.code).toBe('GROUP_TOO_LARGE');
+            expect(caughtError?.message).toContain('exceeds maximum size');
         });
     });
 });

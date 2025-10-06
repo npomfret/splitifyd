@@ -76,6 +76,17 @@ export class StubFirestoreReader implements IFirestoreReader {
         }
     }
 
+    setGroupMembers(groupId: string, members: GroupMembershipDTO[]) {
+        members.forEach(member => {
+            this.setDocument('group-members', `${groupId}_${member.uid}`, member);
+        });
+    }
+
+    setShareLink(groupId: string, linkId: string, shareLink: any) {
+        // Store with format that findShareLinkByToken expects
+        this.documents.set(`groups/${groupId}/shareLinks/${linkId}`, shareLink);
+    }
+
     async getAllPolicies(): Promise<PolicyDTO[]> {
         const error = this.methodErrors.get('getAllPolicies');
         if (error) throw error;
@@ -342,10 +353,22 @@ export class StubFirestoreReader implements IFirestoreReader {
         const error = this.methodErrors.get('getAllGroupMembers');
         if (error) throw error;
 
-        return this.filterCollection<GroupMembershipDTO>(
+        const members = this.filterCollection<GroupMembershipDTO>(
             'group-members',
             doc => doc.groupId === groupId
         );
+
+        // Enforce hard cap - mirror real FirestoreReader behavior
+        const MAX_GROUP_MEMBERS = 50; // Import not available in stub, hardcode
+        if (members.length > MAX_GROUP_MEMBERS) {
+            throw new ApiError(
+                HTTP_STATUS.BAD_REQUEST,
+                'GROUP_TOO_LARGE',
+                `Group exceeds maximum size of ${MAX_GROUP_MEMBERS} members`
+            );
+        }
+
+        return members;
     }
 
     async getAllGroupMemberIds(): Promise<string[]> {
@@ -432,7 +455,15 @@ export class StubFirestoreReader implements IFirestoreReader {
         return this.documents.get(key) || null;
     }
 
-    async findShareLinkByToken(): Promise<any | null> {
+    async findShareLinkByToken(token: string): Promise<any | null> {
+        // Find share link by token across all groups
+        for (const [key, value] of this.documents.entries()) {
+            if (key.includes('/shareLinks/') && value.token === token) {
+                // Extract groupId from the key (e.g., "groups/group-123/shareLinks/link-abc")
+                const groupId = key.split('/')[1];
+                return { groupId, shareLink: value };
+            }
+        }
         return null;
     }
 

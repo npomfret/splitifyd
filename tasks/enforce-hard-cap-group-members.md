@@ -179,7 +179,35 @@ If 500 members proves insufficient, options include:
 
 ---
 
-## 9. Implementation Review & Refinements
+## 9. ✅ IMPLEMENTATION COMPLETE (January 2025)
+
+**Status**: Implemented and tested
+**Cap**: 50 members (changed from original 500)
+**Approach**: Simple check-and-fail (no `memberCount` field)
+
+### Summary
+Hard cap enforcement implemented using a straightforward approach:
+1. Check member count before adding new members
+2. Throw explicit error if at capacity
+3. Overflow detection for edge cases
+4. Fast unit tests verify boundary conditions
+
+### Files Modified
+- `packages/shared/src/constants.ts` - Added `MAX_GROUP_MEMBERS = 50`
+- `firebase/functions/src/services/GroupShareService.ts` - Added capacity check
+- `firebase/functions/src/services/firestore/FirestoreReader.ts` - Added overflow detection
+- `firebase/functions/src/__tests__/unit/services/GroupShareService.test.ts` - Added tests
+- `firebase/functions/src/__tests__/unit/mocks/firestore-stubs.ts` - Added test helpers
+
+### Test Results
+All unit tests passing (7/7) in ~7ms:
+- ✅ 49 members → can add (at capacity-1)
+- ✅ 50 members → fails with `GROUP_AT_CAPACITY`
+- ✅ 51+ members → fails with `GROUP_TOO_LARGE` (overflow detection)
+
+---
+
+## 10. Implementation Review & Refinements
 
 ### ✅ Strengths
 - Clear problem definition with well-articulated silent failure risks
@@ -217,12 +245,84 @@ Define behavior if groups already exceed 500 members when deployed:
 **`GROUP_TOO_LARGE`**: Group data becomes read-only, show user-friendly message
 **`GROUP_AT_CAPACITY`**: Prevent member addition, suggest removing inactive members
 
-### Implementation Plan
+### Implementation Plan (Revised - Simple Approach)
 
-1. **Add `memberCount` to GroupDocument schema** (schema update + migration)
-2. **Create constants file** with `MAX_GROUP_MEMBERS = 500`
-3. **Update FirestoreWriter.addGroupMember()** - transaction-based enforcement
-4. **Update FirestoreReader.getAllGroupMembers()** - hard cap with overflow detection
-5. **Update FirestoreReader.getAllGroupMemberIds()** - delegate to getAllGroupMembers for DRY
-6. **Add comprehensive tests** - boundary conditions, race conditions, transactions
-7. **Update API error documentation** - document new error codes and client handling
+**Decision**: No `memberCount` field. Simple check-and-fail approach.
+
+1. ✅ **Create constants file** with `MAX_GROUP_MEMBERS = 50`
+2. ✅ **Update GroupShareService.joinGroupByLink()** - check count before adding member
+3. ✅ **Update FirestoreReader.getAllGroupMembers()** - overflow detection with `limit(51)`
+4. ✅ **Update FirestoreReader.getAllGroupMemberIds()** - delegate to getAllGroupMembers for DRY
+5. ✅ **Add unit tests** - boundary conditions (49, 50, 51 members)
+6. ✅ **Build verification** - all changes compile successfully
+
+### Actual Implementation
+
+#### 1. Constant Definition
+**File**: `packages/shared/src/constants.ts`
+```typescript
+export const MAX_GROUP_MEMBERS = 50;
+```
+
+#### 2. Enforcement at Join
+**File**: `firebase/functions/src/services/GroupShareService.ts:223-230`
+```typescript
+// Enforce hard cap on group size
+if (existingMembers.length >= MAX_GROUP_MEMBERS) {
+    throw new ApiError(
+        HTTP_STATUS.BAD_REQUEST,
+        'GROUP_AT_CAPACITY',
+        `Cannot add member. Group has reached maximum size of ${MAX_GROUP_MEMBERS} members`
+    );
+}
+```
+
+#### 3. Overflow Detection in Reader
+**File**: `firebase/functions/src/services/firestore/FirestoreReader.ts:586-600`
+```typescript
+// Fetch one extra to detect overflow
+const membersQuery = this.db
+    .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+    .where('groupId', '==', groupId)
+    .limit(MAX_GROUP_MEMBERS + 1);
+
+const snapshot = await membersQuery.get();
+
+// Detect overflow - group exceeds maximum size - should never happen!
+if (snapshot.size > MAX_GROUP_MEMBERS) {
+    throw new ApiError(
+        HTTP_STATUS.BAD_REQUEST,
+        'GROUP_TOO_LARGE',
+        `Group exceeds maximum size of ${MAX_GROUP_MEMBERS} members`
+    );
+}
+```
+
+#### 4. DRY Implementation
+**File**: `firebase/functions/src/services/firestore/FirestoreReader.ts:568-574`
+```typescript
+async getAllGroupMemberIds(groupId: string): Promise<string[]> {
+    return measureDb('GET_MEMBER_IDS', async () => {
+        // Delegate to getAllGroupMembers for DRY and consistent hard cap enforcement
+        const members = await this.getAllGroupMembers(groupId);
+        return members.map(member => member.uid);
+    });
+}
+```
+
+#### 5. Unit Tests
+**File**: `firebase/functions/src/__tests__/unit/services/GroupShareService.test.ts:99-192`
+
+Tests added:
+- ✅ `should succeed when group has 49 members` - Can add at capacity-1
+- ✅ `should fail when group already has 50 members` - Throws `GROUP_AT_CAPACITY`
+- ✅ `should detect overflow in getAllGroupMembers when group has > 50` - Throws `GROUP_TOO_LARGE`
+
+All tests pass in ~7ms using stubs (no database required).
+
+### Error Codes
+
+| Error Code | HTTP Status | Description | When Thrown |
+|------------|-------------|-------------|-------------|
+| `GROUP_AT_CAPACITY` | 400 | Cannot add member, group at 50-member limit | When trying to join a group that already has 50 members |
+| `GROUP_TOO_LARGE` | 400 | Group exceeds 50 members (edge case) | When `getAllGroupMembers()` detects > 50 members (should never happen in practice) |

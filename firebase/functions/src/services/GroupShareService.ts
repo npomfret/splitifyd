@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
-import { COLOR_PATTERNS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
+import { COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
 import * as measure from '../monitoring/measure';
 import { ShareLinkDataSchema } from '../schemas';
 import type { IFirestoreReader } from './firestore';
@@ -219,6 +219,16 @@ export class GroupShareService {
         // Pre-compute member data outside transaction for speed
         const joinedAt = new Date().toISOString();
         const existingMembers = await this.firestoreReader.getAllGroupMembers(groupId);
+
+        // Enforce hard cap on group size
+        if (existingMembers.length >= MAX_GROUP_MEMBERS) {
+            throw new ApiError(
+                HTTP_STATUS.BAD_REQUEST,
+                'GROUP_AT_CAPACITY',
+                `Cannot add member. Group has reached maximum size of ${MAX_GROUP_MEMBERS} members`
+            );
+        }
+
         const memberIndex = existingMembers.length;
 
         const themeColor = this.getThemeColorForMember(memberIndex);

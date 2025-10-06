@@ -15,6 +15,7 @@ import { logger } from '../../logger';
 import {
     SecurityPresets,
     CommentTargetTypes,
+    MAX_GROUP_MEMBERS,
     type CommentTargetType,
     type ExpenseDTO,
     type GroupDTO,
@@ -24,6 +25,8 @@ import {
     type GroupMembershipDTO,
     type CommentDTO
 } from '@splitifyd/shared';
+import { ApiError } from '../../utils/errors';
+import { HTTP_STATUS } from '../../constants';
 import { FieldPath, Timestamp, Filter } from 'firebase-admin/firestore';
 import { measureDb } from '../../monitoring/measure';
 import { safeParseISOToTimestamp, assertTimestamp } from '../../utils/dateHelpers';
@@ -517,24 +520,32 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getAllGroupMemberIds(groupId: string): Promise<string[]> {
         return measureDb('GET_MEMBER_IDS', async () => {
-            // Single optimized query - fetch both uid and userId for backward compatibility
-            const membersQuery = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('groupId', '==', groupId).select('uid', 'userId');
-
-            const snapshot = await membersQuery.get();
-            return snapshot.docs.map((doc) => {
-                const data = doc.data();
-                // Handle backward compatibility: support both uid and legacy userId fields
-                return data.uid || data.userId;
-            }).filter(Boolean); // Remove any undefined values
+            // Delegate to getAllGroupMembers for DRY and consistent hard cap enforcement
+            const members = await this.getAllGroupMembers(groupId);
+            return members.map(member => member.uid);
         });
     }
 
     async getAllGroupMembers(groupId: string): Promise<GroupMembershipDTO[]> {
         return measureDb('GET_MEMBERS', async () => {
             // Use top-level collection instead of subcollection
-            const membersQuery = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('groupId', '==', groupId);
+            // Fetch one extra to detect overflow
+            const membersQuery = this.db
+                .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                .where('groupId', '==', groupId)
+                .limit(MAX_GROUP_MEMBERS + 1);
 
             const snapshot = await membersQuery.get();
+
+            // Detect overflow - group exceeds maximum size - should never happen!
+            if (snapshot.size > MAX_GROUP_MEMBERS) {
+                throw new ApiError(
+                    HTTP_STATUS.BAD_REQUEST,
+                    'GROUP_TOO_LARGE',
+                    `Group exceeds maximum size of ${MAX_GROUP_MEMBERS} members`
+                );
+            }
+
             const parsedMembers: GroupMembershipDTO[] = [];
 
             for (const doc of snapshot.docs) {
