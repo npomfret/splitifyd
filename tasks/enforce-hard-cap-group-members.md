@@ -176,3 +176,53 @@ If 500 members proves insufficient, options include:
 - **Prerequisite:** None
 - **Blocks:** `bug-incomplete-pagination-in-balance-calculation.md` (this ensures member counts are always accurate)
 - **Related:** `improve-data-modeling.md` (group size limits affect data model design)
+
+---
+
+## 9. Implementation Review & Refinements
+
+### ✅ Strengths
+- Clear problem definition with well-articulated silent failure risks
+- Pragmatic 500-member limit covers edge cases beyond typical usage
+- Elegant overflow detection using `limit(MAX_GROUP_MEMBERS + 1)`
+- Dual enforcement at read and write operations
+- Aligns with codebase "fail loudly" philosophy
+
+### 🔧 Refinements to Implement
+
+#### 1. Race Condition Prevention
+**Issue**: Check-then-add pattern in `addMember` has race condition:
+```typescript
+const currentMembers = await getAllGroupMembers(groupId);
+if (currentMembers.length >= MAX_GROUP_MEMBERS) { throw ... }
+// Another request could add member here ← RACE CONDITION
+await addMember(...);
+```
+
+**Solution**: Use Firestore transaction with `memberCount` field for atomic enforcement.
+
+#### 2. Performance Optimization: `memberCount` Field
+Instead of counting members on each check, maintain atomic counter in group document:
+- Increment via transaction when adding members
+- Decrement when removing members
+- Enables O(1) capacity check vs O(n) member fetch
+
+#### 3. Edge Case: Existing Large Groups
+Define behavior if groups already exceed 500 members when deployed:
+- Read operations throw `GROUP_TOO_LARGE` error
+- No new members can be added
+- Document this as expected behavior (not a migration concern for greenfield project)
+
+#### 4. Client Error Handling Guidance
+**`GROUP_TOO_LARGE`**: Group data becomes read-only, show user-friendly message
+**`GROUP_AT_CAPACITY`**: Prevent member addition, suggest removing inactive members
+
+### Implementation Plan
+
+1. **Add `memberCount` to GroupDocument schema** (schema update + migration)
+2. **Create constants file** with `MAX_GROUP_MEMBERS = 500`
+3. **Update FirestoreWriter.addGroupMember()** - transaction-based enforcement
+4. **Update FirestoreReader.getAllGroupMembers()** - hard cap with overflow detection
+5. **Update FirestoreReader.getAllGroupMemberIds()** - delegate to getAllGroupMembers for DRY
+6. **Add comprehensive tests** - boundary conditions, race conditions, transactions
+7. **Update API error documentation** - document new error codes and client handling
