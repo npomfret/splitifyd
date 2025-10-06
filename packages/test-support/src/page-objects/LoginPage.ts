@@ -35,10 +35,7 @@ export class LoginPage extends BasePage {
      * Login page heading container - helps identify we're on the right page
      */
     getPageHeading(): Locator {
-        // Find the heading within the main login area
-        return this.getLoginFormContainer().locator('..').getByRole('heading', { name: /log.?in|sign.?in/i }).or(
-            this.page.getByRole('heading', { name: /log.?in|sign.?in/i })
-        );
+        return this.getLoginFormContainer().locator('..').getByRole('heading', { name: /sign.*in/i });
     }
 
     /**
@@ -82,10 +79,7 @@ export class LoginPage extends BasePage {
      * Primary submit button (Log In)
      */
     getSubmitButton(): Locator {
-        // Look for submit button within form container first (scoped), then fall back to page-level
-        return this.getLoginFormContainer().getByRole('button', { name: translation.loginPage.submitButton }).or(
-            this.getLoginFormContainer().locator('button[type="submit"]')
-        );
+        return this.getLoginFormContainer().getByRole('button', { name: translation.loginPage.submitButton });
     }
 
     /**
@@ -99,22 +93,14 @@ export class LoginPage extends BasePage {
      * Sign up button/link to navigate to register page
      */
     getSignUpButton(): Locator {
-        // Look for visible "Sign Up" or "Create Account" text first, then fall back to testid
-        return this.getLoginFormContainer().getByRole('link', { name: /sign.?up|create.*account|register/i }).or(
-            this.getLoginFormContainer().getByRole('button', { name: /sign.?up|create.*account|register/i })
-        ).or(
-            this.getLoginFormContainer().getByTestId('loginpage-signup-button')
-        );
+        return this.getLoginFormContainer().getByTestId('loginpage-signup-button');
     }
 
     /**
      * Sign in heading
      */
     getSignInHeading(): Locator {
-        // Look for heading within the login form area first
-        return this.getLoginFormContainer().locator('..').getByRole('heading', { name: translation.loginPage.title }).or(
-            this.page.getByRole('heading', { name: translation.loginPage.title })
-        );
+        return this.getLoginFormContainer().locator('..').getByRole('heading', { name: translation.loginPage.title });
     }
 
     /**
@@ -122,7 +108,7 @@ export class LoginPage extends BasePage {
      */
     getDefaultLoginButton(): Locator {
         return this.getLoginFormContainer().locator('button').filter({
-            hasText: /demo|default/i
+            hasText: /demo/i
         });
     }
 
@@ -153,19 +139,6 @@ export class LoginPage extends BasePage {
         return emailDisabled && passwordDisabled && submitDisabled;
     }
 
-    /**
-     * Check if the submit button is enabled (form is valid)
-     */
-    async isSubmitEnabled(): Promise<boolean> {
-        return await this.getSubmitButton().isEnabled();
-    }
-
-    /**
-     * Check if an error message is currently displayed
-     */
-    async hasErrorMessage(): Promise<boolean> {
-        return await this.getErrorContainer().isVisible();
-    }
 
     /**
      * Get the current error message text
@@ -406,51 +379,4 @@ export class LoginPage extends BasePage {
         }
     }
 
-    // ============================================================================
-    // SESSION STORAGE VERIFICATION
-    // ============================================================================
-
-    /**
-     * Get email value from sessionStorage
-     */
-    async getStoredEmail(): Promise<string | null> {
-        return await this.page.evaluate(() => sessionStorage.getItem('login-email'));
-    }
-
-    /**
-     * Get password value from sessionStorage
-     */
-    async getStoredPassword(): Promise<string | null> {
-        return await this.page.evaluate(() => sessionStorage.getItem('login-password'));
-    }
-
-    /**
-     * Clear login-related sessionStorage items
-     */
-    async clearStoredCredentials(): Promise<void> {
-        await this.page.evaluate(() => {
-            sessionStorage.removeItem('login-email');
-            sessionStorage.removeItem('login-password');
-        });
-    }
-
-    /**
-     * Verify email field value matches what's stored in sessionStorage
-     */
-    async verifyEmailRestored(): Promise<void> {
-        const storedEmail = await this.getStoredEmail();
-        if (storedEmail) {
-            await expect(this.getEmailInput()).toHaveValue(storedEmail);
-        }
-    }
-
-    /**
-     * Verify password field value matches what's stored in sessionStorage
-     */
-    async verifyPasswordRestored(): Promise<void> {
-        const storedPassword = await this.getStoredPassword();
-        if (storedPassword) {
-            await expect(this.getPasswordInput()).toHaveValue(storedPassword);
-        }
-    }
 }

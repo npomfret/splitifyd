@@ -119,7 +119,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         // Other errors show inline
         return (
             <BaseLayout>
-                <div className="container mx-auto px-4 py-8">
+                <div className="container mx-auto px-4 py-8" data-testid="error-container">
                     <Card className="p-6 text-center">
                         <h2 className="text-xl font-semibold mb-2">{t('pages.groupDetailPage.errorLoadingGroup')}</h2>
                         <p className="text-gray-600 mb-4">{error.value}</p>

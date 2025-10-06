@@ -23,17 +23,34 @@ base.afterEach(async ({}, testInfo) => {
         // Find the console log file for this test
         const testDir = createTestDirectory(testInfo);
         const consoleLogPath = createConsoleLogPath(testDir);
-        const screenshotPath = createScreenshotPath(testDir);
 
         const artifactPaths: { [key: string]: string } = {
             'Console Log': consoleLogPath,
-            'Screenshot (on failure)': screenshotPath,
             'Test Directory': testDir
         };
 
-        // Check if custom screenshot exists
-        if (fs.existsSync(screenshotPath)) {
-            artifactPaths['Custom Screenshot'] = screenshotPath;
+        // Find Playwright's screenshot from attachments
+        const screenshotAttachment = testInfo.attachments.find(
+            a => a.name === 'screenshot' && a.contentType === 'image/png'
+        );
+
+        if (screenshotAttachment && screenshotAttachment.path) {
+            // Report the actual Playwright screenshot path
+            artifactPaths['Screenshot (Playwright)'] = screenshotAttachment.path;
+
+            // Also create a symlink in our test directory for convenience
+            const symlinkPath = createScreenshotPath(testDir);
+            try {
+                // Remove old symlink if it exists
+                if (fs.existsSync(symlinkPath)) {
+                    fs.unlinkSync(symlinkPath);
+                }
+                // Create symlink to Playwright's screenshot
+                fs.symlinkSync(screenshotAttachment.path, symlinkPath);
+                artifactPaths['Screenshot (symlink)'] = symlinkPath;
+            } catch (err) {
+                // Symlink creation failed, just use the Playwright path
+            }
         }
 
         // Show comprehensive debugging information
@@ -98,14 +115,6 @@ export const test = base.extend<ConsoleLoggingFixtures>({
         // Create test-specific directory
         const testDir = createTestDirectory(testInfo);
         const consoleLogPath = createConsoleLogPath(testDir);
-        const screenshotPath = createScreenshotPath(testDir);
-
-        // Store file paths for potential failure reporting
-        const artifactPaths: { [key: string]: string } = {
-            'Console Log': consoleLogPath,
-            'Screenshot (on failure)': screenshotPath,
-            'Test Directory': testDir
-        };
 
         // Create console log file and write header
         const logStream = fs.createWriteStream(consoleLogPath, { flags: 'w' });
@@ -172,17 +181,13 @@ export const test = base.extend<ConsoleLoggingFixtures>({
             testPassed = false;
             testError = error;
 
-            // Log test failure
+            // Log fixture failure (this catch only runs for fixture errors, not test errors)
             const timestamp = new Date().toISOString();
             logStream.write(`\n${'='.repeat(80)}\n`);
-            logStream.write(`[${timestamp}] TEST_FAILED: ${error}\n`);
+            logStream.write(`[${timestamp}] FIXTURE_ERROR: ${error}\n`);
 
-            // Take screenshot on failure (in addition to Playwright's built-in screenshot)
-            await page.screenshot({
-                path: screenshotPath,
-                fullPage: true
-            });
-            artifactPaths['Custom Screenshot'] = screenshotPath;
+            // Note: Test failures are handled by Playwright directly and reported in afterEach
+            // This catch block only captures fixture setup/teardown errors
         } finally {
             // Remove event listeners BEFORE closing stream to prevent "write after end" errors
             page.off('console', consoleListener);

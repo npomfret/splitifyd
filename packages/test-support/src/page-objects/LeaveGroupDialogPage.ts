@@ -87,50 +87,11 @@ export class LeaveGroupDialogPage extends BasePage {
     // ============================================================================
 
     /**
-     * Check if dialog is open
-     */
-    async isOpen(): Promise<boolean> {
-        return await this.getDialogContainer().isVisible();
-    }
-
-    /**
-     * Check if dialog is closed
-     */
-    async isClosed(): Promise<boolean> {
-        return !(await this.isOpen());
-    }
-
-    /**
      * Check if showing outstanding balance warning
      */
     async hasOutstandingBalanceWarning(): Promise<boolean> {
-        try {
-            const message = await this.getDialogMessage().textContent();
-            return message?.includes('outstanding balance') || message?.includes('settle') || false;
-        } catch {
-            return false;
-        }
-    }
-
-    /**
-     * Check if confirm button is enabled
-     */
-    async isConfirmEnabled(): Promise<boolean> {
-        return await this.getConfirmButton().isEnabled();
-    }
-
-    /**
-     * Check if confirm button is disabled
-     */
-    async isConfirmDisabled(): Promise<boolean> {
-        return await this.getConfirmButton().isDisabled();
-    }
-
-    /**
-     * Check if dialog is in processing state
-     */
-    async isProcessing(): Promise<boolean> {
-        return await this.getConfirmButton().isDisabled();
+        const message = await this.getDialogMessage().textContent();
+        return message?.includes('outstanding balance') || message?.includes('settle') || false;
     }
 
     /**
@@ -194,16 +155,9 @@ export class LeaveGroupDialogPage extends BasePage {
 
     /**
      * Close dialog by pressing Escape
-     * Uses Playwright's built-in retry mechanism to handle React useEffect timing
      */
     async pressEscapeToClose(): Promise<void> {
-        const dialog = this.getDialogContainer();
-
-        // Use Playwright's auto-retry mechanism
-        await expect(async () => {
-            await this.page.keyboard.press('Escape');
-            await expect(dialog).not.toBeVisible();
-        }).toPass({ timeout: 5000 });
+        await super.pressEscapeToClose(this.getDialogContainer(), 'Leave Group Dialog');
     }
 
     // ============================================================================

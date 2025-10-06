@@ -101,67 +101,10 @@ export class ShareGroupModalPage extends BasePage {
     // ============================================================================
 
     /**
-     * Check if modal is open
-     */
-    async isOpen(): Promise<boolean> {
-        return await this.getModalContainer().isVisible();
-    }
-
-    /**
-     * Check if modal is closed
-     */
-    async isClosed(): Promise<boolean> {
-        return !(await this.isOpen());
-    }
-
-    /**
-     * Check if loading
-     */
-    async isLoading(): Promise<boolean> {
-        return await this.getLoadingSpinner().isVisible();
-    }
-
-    /**
-     * Check if share link is displayed
-     */
-    async hasShareLink(): Promise<boolean> {
-        return await this.getShareLinkInput().isVisible();
-    }
-
-    /**
-     * Check if error is displayed
-     */
-    async hasError(): Promise<boolean> {
-        return await this.getErrorMessage().isVisible();
-    }
-
-    /**
-     * Check if QR code is displayed
-     */
-    async hasQRCode(): Promise<boolean> {
-        return await this.getQRCode().isVisible();
-    }
-
-    /**
-     * Check if toast notification is visible
-     */
-    async hasToastNotification(): Promise<boolean> {
-        return await this.getToastNotification().isVisible();
-    }
-
-    /**
      * Get the share link value
      */
     async getShareLink(): Promise<string> {
         return await this.getShareLinkInput().inputValue();
-    }
-
-    /**
-     * Get error message text
-     */
-    async getErrorText(): Promise<string> {
-        await expect(this.getErrorMessage()).toBeVisible();
-        return await this.getErrorMessage().textContent() || '';
     }
 
     // ============================================================================
@@ -224,22 +167,9 @@ export class ShareGroupModalPage extends BasePage {
 
     /**
      * Close modal by pressing Escape
-     * Waits for modal to be ready and event listener to be attached before pressing Escape
      */
     async pressEscapeToClose(): Promise<void> {
-        const modal = this.getModalContainer();
-
-        // Ensure modal is visible and event listener is attached
-        await expect(modal).toBeVisible();
-
-        // Small delay to ensure React useEffect has run and event listener is attached
-        await this.page.waitForTimeout(50);
-
-        // Press Escape once
-        await this.page.keyboard.press('Escape');
-
-        // Wait for modal to close (reasonable timeout for local unit test)
-        await expect(modal).not.toBeVisible({ timeout: 1000 });
+        await super.pressEscapeToClose(this.getModalContainer(), 'Share Group Modal');
     }
 
     /**
@@ -329,10 +259,7 @@ export class ShareGroupModalPage extends BasePage {
      * Verify no error is displayed
      */
     async verifyNoError(): Promise<void> {
-        const error = this.getErrorMessage();
-        if (await error.count() > 0) {
-            await expect(error).not.toBeVisible();
-        }
+        await expect(this.getErrorMessage()).not.toBeVisible();
     }
 
     /**
@@ -348,29 +275,5 @@ export class ShareGroupModalPage extends BasePage {
      */
     async verifyToastDisappears(timeout = 4000): Promise<void> {
         await expect(this.getToastNotification()).not.toBeVisible({ timeout });
-    }
-
-    /**
-     * Verify share link is a valid URL
-     */
-    async verifyShareLinkIsValidURL(): Promise<void> {
-        const link = await this.getShareLink();
-        expect(link).toMatch(/^https?:\/\/.+/);
-    }
-
-    /**
-     * Verify QR code is rendered
-     */
-    async verifyQRCodeRendered(): Promise<void> {
-        await expect(this.getQRCode()).toBeVisible();
-        // Verify canvas has content (not empty)
-        const canvas = await this.getQRCode().elementHandle();
-        const hasContent = await canvas?.evaluate((el: any) => {
-            const ctx = el.getContext('2d');
-            if (!ctx) return false;
-            const imageData = ctx.getImageData(0, 0, el.width, el.height);
-            return imageData.data.some((pixel: number) => pixel !== 0);
-        });
-        expect(hasContent).toBe(true);
     }
 }

@@ -129,77 +129,6 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     // ============================================================================
-    // STATE VERIFICATION METHODS
-    // ============================================================================
-
-    /**
-     * Check if modal is currently open and visible
-     */
-    async isOpen(): Promise<boolean> {
-        return await this.getModalContainer().isVisible();
-    }
-
-    /**
-     * Check if modal is closed (not visible)
-     */
-    async isClosed(): Promise<boolean> {
-        return !(await this.isOpen());
-    }
-
-    /**
-     * Check if submit button is enabled (form is valid)
-     */
-    async isSubmitEnabled(): Promise<boolean> {
-        return await this.getSubmitButton().isEnabled();
-    }
-
-    /**
-     * Check if submit button is disabled (form is invalid or submitting)
-     */
-    async isSubmitDisabled(): Promise<boolean> {
-        return await this.getSubmitButton().isDisabled();
-    }
-
-    /**
-     * Check if modal is in submitting state
-     */
-    async isSubmitting(): Promise<boolean> {
-        // Button shows loading state when submitting
-        const button = this.getSubmitButton();
-        return await button.isDisabled();
-    }
-
-    /**
-     * Check if error message is currently displayed
-     */
-    async hasErrorMessage(): Promise<boolean> {
-        return await this.getErrorContainer().isVisible();
-    }
-
-    /**
-     * Check if validation error is displayed
-     */
-    async hasValidationError(): Promise<boolean> {
-        return await this.getValidationError().isVisible();
-    }
-
-    /**
-     * Get the current error message text
-     */
-    async getErrorMessage(): Promise<string> {
-        await expect(this.getErrorContainer()).toBeVisible();
-        return await this.getErrorContainer().textContent() || '';
-    }
-
-    /**
-     * Get the current validation error text
-     */
-    async getValidationErrorMessage(): Promise<string> {
-        await expect(this.getValidationError()).toBeVisible();
-        return await this.getValidationError().textContent() || '';
-    }
-
-    // ============================================================================
     // ACTION METHODS
     // ============================================================================
 
@@ -294,17 +223,9 @@ export class CreateGroupModalPage extends BasePage {
 
     /**
      * Close modal by pressing Escape key
-     * Uses Playwright's built-in retry mechanism to handle React useEffect timing
      */
     async pressEscapeToClose(): Promise<void> {
-        const modal = this.getModalContainer();
-
-        // Use Playwright's auto-retry mechanism
-        // Keep pressing Escape until the modal is no longer visible
-        await expect(async () => {
-            await this.page.keyboard.press('Escape');
-            await expect(modal).not.toBeVisible();
-        }).toPass({ timeout: 5000 });
+        await super.pressEscapeToClose(this.getModalContainer(), 'Create Group Modal');
     }
 
     // ============================================================================
@@ -387,11 +308,7 @@ export class CreateGroupModalPage extends BasePage {
      * Verify no validation error is displayed
      */
     async verifyNoValidationError(): Promise<void> {
-        // Check that no validation errors are visible
-        const validationError = this.getValidationError();
-        if (await validationError.count() > 0) {
-            await expect(validationError).not.toBeVisible();
-        }
+        await expect(this.getValidationError()).not.toBeVisible();
     }
 
     /**

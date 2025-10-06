@@ -17,7 +17,7 @@ export function NotFoundPage({ path }: NotFoundPageProps) {
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <div className="text-center">
+            <div className="text-center" data-testid="error-container">
                 <h1 className="text-6xl font-bold text-gray-900 mb-4" data-testid="not-found-title">
                     {t('notFoundPage.title')}
                 </h1>

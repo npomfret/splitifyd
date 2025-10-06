@@ -134,9 +134,7 @@ export class DashboardPage extends BasePage {
      * Uses role="status" for semantic loading indicators
      */
     getGroupsLoadingSpinner(): Locator {
-        return this.getGroupsContainer().getByRole('status')
-            .or(this.getGroupsContainer().locator('[aria-live="polite"]'))
-            .or(this.getGroupsContainer().locator('.animate-spin'));
+        return this.getGroupsContainer().getByRole('status');
     }
 
     // ============================================================================
@@ -166,13 +164,10 @@ export class DashboardPage extends BasePage {
 
     /**
      * User menu button (profile/settings access)
-     * Finds button with user display name or profile icon in navigation
+     * Button displays user's display name
      */
     getUserMenuButton(): Locator {
-        // Look for button in navigation area (typically top-right) with aria-label or user name
-        return this.page.getByRole('button', { name: /user menu|profile|settings|account/i })
-            .or(this.page.locator('nav, header').getByRole('button').filter({ hasText: /.+@.+/ }))
-            .or(this.page.locator('nav, header').getByRole('button').last());
+        return this.page.getByTestId('user-menu-button');
     }
 
     /**
@@ -282,7 +277,7 @@ export class DashboardPage extends BasePage {
      */
     getShareGroupModal(): Locator {
         return this.page.getByRole('dialog').filter({
-            has: this.page.getByRole('heading', { name: /share|invite/i })
+            has: this.page.getByRole('heading', { name: translation.shareGroupModal.title })
         });
     }
 
@@ -340,7 +335,7 @@ export class DashboardPage extends BasePage {
      */
     getShareLinkCopiedToast(): Locator {
         return this.page.locator('.fixed.bottom-4.right-4').filter({
-            hasText: /copied|success/i
+            hasText: /copied/i
         });
     }
 
@@ -354,7 +349,6 @@ export class DashboardPage extends BasePage {
     async verifyDashboardPageLoaded(): Promise<void> {
         await expect(this.page).toHaveURL(/\/dashboard/);
         await expect(this.getYourGroupsHeading()).toBeVisible();
-        await expect(this.getGroupsContainer()).toBeVisible();
     }
 
     /**
@@ -362,42 +356,6 @@ export class DashboardPage extends BasePage {
      */
     async isDashboardLoading(): Promise<boolean> {
         return await this.getGroupsLoadingSpinner().isVisible();
-    }
-
-    /**
-     * Check if dashboard shows error state
-     */
-    async hasErrorState(): Promise<boolean> {
-        return await this.getErrorContainer().isVisible();
-    }
-
-    /**
-     * Check if dashboard shows empty state (no groups)
-     */
-    async hasEmptyGroupsState(): Promise<boolean> {
-        return await this.getEmptyGroupsState().isVisible();
-    }
-
-    /**
-     * Check if user is properly authenticated and displayed
-     */
-    async isUserAuthenticated(): Promise<boolean> {
-        return await this.getUserMenuButton().isVisible();
-    }
-
-    /**
-     * Get current error message text
-     */
-    async getErrorMessage(): Promise<string> {
-        await expect(this.getErrorContainer()).toBeVisible();
-        return await this.getErrorContainer().textContent() || '';
-    }
-
-    /**
-     * Count visible group cards
-     */
-    async getGroupCount(): Promise<number> {
-        return await this.getGroupCards().count();
     }
 
     // ============================================================================

@@ -110,7 +110,7 @@ export class EditGroupModalPage extends BasePage {
      * Confirm delete button in dialog
      */
     getConfirmDeleteButton(): Locator {
-        return this.getDeleteDialog().getByRole('button', { name: /delete|confirm/i }).last();
+        return this.getDeleteDialog().getByRole('button', { name: /delete/i }).last();
     }
 
     /**
@@ -138,67 +138,6 @@ export class EditGroupModalPage extends BasePage {
         return this.getDeleteDialog().locator('[role="alert"]');
     }
 
-    // ============================================================================
-    // STATE VERIFICATION METHODS
-    // ============================================================================
-
-    /**
-     * Check if edit modal is open
-     */
-    async isOpen(): Promise<boolean> {
-        return await this.getModalContainer().isVisible();
-    }
-
-    /**
-     * Check if edit modal is closed
-     */
-    async isClosed(): Promise<boolean> {
-        return !(await this.isOpen());
-    }
-
-    /**
-     * Check if delete confirmation dialog is open
-     */
-    async isDeleteDialogOpen(): Promise<boolean> {
-        return await this.getDeleteDialog().isVisible();
-    }
-
-    /**
-     * Check if save button is enabled
-     */
-    async isSaveEnabled(): Promise<boolean> {
-        return await this.getSaveButton().isEnabled();
-    }
-
-    /**
-     * Check if save button is disabled
-     */
-    async isSaveDisabled(): Promise<boolean> {
-        return await this.getSaveButton().isDisabled();
-    }
-
-    /**
-     * Check if form is in submitting state
-     */
-    async isSubmitting(): Promise<boolean> {
-        const button = this.getSaveButton();
-        return await button.isDisabled();
-    }
-
-    /**
-     * Check if validation error is displayed
-     */
-    async hasValidationError(): Promise<boolean> {
-        return await this.getValidationError().isVisible();
-    }
-
-    /**
-     * Get validation error text
-     */
-    async getValidationErrorText(): Promise<string> {
-        await expect(this.getValidationError()).toBeVisible();
-        return await this.getValidationError().textContent() || '';
-    }
 
     // ============================================================================
     // ACTION METHODS - Modal
@@ -282,16 +221,9 @@ export class EditGroupModalPage extends BasePage {
 
     /**
      * Close modal by pressing Escape
-     * Uses Playwright's built-in retry mechanism to handle React useEffect timing
      */
     async pressEscapeToClose(): Promise<void> {
-        const modal = this.getModalContainer();
-
-        // Use Playwright's auto-retry mechanism
-        await expect(async () => {
-            await this.page.keyboard.press('Escape');
-            await expect(modal).not.toBeVisible();
-        }).toPass({ timeout: 5000 });
+        await super.pressEscapeToClose(this.getModalContainer(), 'Edit Group Modal');
     }
 
     // ============================================================================
@@ -398,10 +330,7 @@ export class EditGroupModalPage extends BasePage {
      * Verify no validation error
      */
     async verifyNoValidationError(): Promise<void> {
-        const error = this.getValidationError();
-        if (await error.count() > 0) {
-            await expect(error).not.toBeVisible();
-        }
+        await expect(this.getValidationError()).not.toBeVisible();
     }
 
     /**

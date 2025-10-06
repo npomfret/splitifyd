@@ -88,4 +88,39 @@ export abstract class BasePage {
     async expectUrl(pattern: string | RegExp): Promise<void> {
         await expect(this._page).toHaveURL(pattern);
     }
+
+    /**
+     * Close a modal/dialog by pressing Escape key
+     * Properly verifies modal is visible before closing and waits for it to disappear
+     *
+     * @param modalContainer - The modal container locator
+     * @param modalName - Name of the modal for error messages (e.g., "Share Group Modal")
+     * @param timeout - Maximum time to wait for modal to close (default: 5000ms)
+     */
+    async pressEscapeToClose(
+        modalContainer: Locator,
+        modalName: string = 'modal',
+        timeout: number = 5000
+    ): Promise<void> {
+        // First verify the modal is actually visible
+        try {
+            await expect(modalContainer).toBeVisible({ timeout: 500 });
+        } catch (error) {
+            throw new Error(`Cannot close ${modalName}: modal is not visible`);
+        }
+
+        // Wait for modal to be fully initialized (useEffect event listeners)
+        // React useEffects run after render, so we need a brief pause
+        await this._page.waitForTimeout(100);
+
+        // Press Escape key
+        await this._page.keyboard.press('Escape');
+
+        // Wait for modal to become not visible
+        try {
+            await expect(modalContainer).not.toBeVisible({ timeout });
+        } catch (error) {
+            throw new Error(`${modalName} did not close after pressing Escape (timeout: ${timeout}ms)`);
+        }
+    }
 }

@@ -77,16 +77,10 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Error container - handles inline errors, 404 page, and error loading page
+     * Error container - primary error display area
      */
     getErrorContainer(): Locator {
-        // Try data-testid first, then 404 heading, then error loading heading
-        const dataTestIdLocator = this.page.locator('[data-testid="error-container"]');
-        const notFoundHeading = this.page.getByRole('heading', { name: '404' });
-        const errorLoadingHeading = this.page.getByRole('heading', { name: /Error Loading/i });
-
-        // Return whichever exists
-        return dataTestIdLocator.or(notFoundHeading).or(errorLoadingHeading);
+        return this.page.locator('[data-testid="error-container"]');
     }
 
     // ============================================================================
