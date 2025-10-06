@@ -8,12 +8,17 @@ This document defines the rules, standards, and best practices.
 
 Only do EXACTLY what you were asked to do. No more, no less...
 
-- Do no write documentation unless you have been instructed to do so
-- If you have ideas, suggest them BUT DO NOT IMPLEMENT THEM
-- Do not comment code unless it explains something non-obvious
+Unless you have been instructed to do so...
+
+- Do no write documentation
+- Do not comment code unless it explains something broken, weird or non-obvious
+- Never write migration stripts or any "backward compatible" code unless explicitely told to do so - this is a NEW project, there is no existing data or users
+
+IF IN DOUBT: ASK!!!
 
 Also...
 
+- If you have ideas, suggest them BUT DO NOT IMPLEMENT THEM
 - Strive for elegance, not simplicity.
 - Always run `pwd` before running any shell commands to confirm your working directory
 - NEVER ever take over the system default browser. Always use chromium.
