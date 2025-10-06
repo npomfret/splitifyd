@@ -1,105 +1,941 @@
-# Performance: Slow Balance Calculation for Active Groups
+# Implementation Plan: Incremental Balance Architecture
 
-## 1. Overview
+## Executive Summary
 
-There is a significant performance concern regarding the on-the-fly calculation of group balances, especially for groups with a high volume of activity (many expenses and settlements). This issue is particularly severe in API endpoints like `_executeListGroups`, which can become very slow and resource-intensive.
+Replace on-the-fly balance calculations (O(N) where N = transaction count) with pre-computed, incrementally-updated balances stored in Firestore (O(1) reads).
 
-## 2. The Problem: Unscalable On-the-Fly Calculations
-
-- **High Latency:** Calculating balances requires fetching all expenses and settlements for a group and processing them in memory. For a group with thousands of transactions, this is a slow and expensive operation that leads to high API response times.
-- **Poor User Experience:** Slow responses result in a sluggish UI. For example, the main dashboard, which calls `_executeListGroups`, could take a long time to load for users who are members of many active groups.
-- **Cost & Timeouts:** Heavy computational load increases the cost of Cloud Functions and raises the risk of function timeouts, leading to failed requests.
-- **Complexity in `_executeListGroups`:** The `_executeListGroups` function is already complex. Embedding a heavy balance calculation within it makes it harder to maintain and more prone to performance bottlenecks.
-
-## 3. The Solution: Pre-computation and Caching of Balances
-
-The solution is to move away from calculating balances on-the-fly and instead adopt a model where balances are pre-computed and stored, making balance retrieval a simple and fast read operation.
-
-### 3.1. Proposed Architecture: Incremental Balance Updates
-
-1.  **Store Balances in Firestore:**
-    - Create a new sub-collection or a dedicated document to store the calculated balances for each group. For example, a `group-balances` document within each group.
-    - **Schema for `groups/{groupId}/balance` document:**
-        ```typescript
-        interface GroupBalance {
-            // The overall balance of each member in the group
-            // A positive value means the member is owed money.
-            // A negative value means the member owes money.
-            memberBalances: {
-                [userId: string]: number; // Amount in cents
-            };
-            // Matrix of debts between members
-            // debtMatrix[payerId][payeeId] = amount payer owes payee
-            debtMatrix: {
-                [payerId: string]: {
-                    [payeeId: string]: number; // Amount in cents
-                };
-            };
-            lastUpdatedAt: Timestamp;
-        }
-        ```
-
-2.  **Implement Incremental Updates (No Recalculation):**
-    - The key to this architecture is to **never perform a full recalculation** after the initial backfill. All subsequent changes must be small, atomic adjustments.
-
-    - **On Create:** When a new expense or settlement is created, calculate its impact and **add** it to the stored balances in the `GroupBalance` document.
-
-    - **On Delete:** When an expense or settlement is deleted, calculate its original impact and **subtract** (or revert) that impact from the stored balances.
-
-    - **On Update:** When an expense or settlement is updated, perform a two-step atomic operation:
-        1.  First, **revert** the impact of the expense *before* the edit (subtract its original values from the stored balances).
-        2.  Then, **apply** the impact of the expense *after* the edit (add its new values to the stored balances).
-
-    - This logic should be implemented directly in the core services (`ExpenseService`, `SettlementService`) and performed within the same Firestore transaction that writes to the expense or settlement document. This guarantees data consistency and avoids the complexities and potential race conditions of using separate Firestore triggers.
-
-3.  **Decouple from `_executeListGroups`:**
-    - Modify `_executeListGroups` to fetch the pre-computed balances from the `GroupBalance` document instead of calculating them. This will make the function significantly faster and simpler.
-    - The frontend can then fetch group data and balances in a single, fast query.
-
-### 3.2. Migration Plan
-
-1.  **Create a Backfill Script:**
-    - Write a script that iterates through all existing groups, calculates their current balances using the old (but correct) full-fetch method, and creates the initial `GroupBalance` document for each group.
-2.  **Deploy New Logic:**
-    - Deploy the new services that perform incremental balance updates.
-3.  **Switch Over:**
-    - Update the API endpoints (`_executeListGroups` and others) to read from the new `GroupBalance` documents.
-
-## 4. Benefits
-
--   **Performance:** Drastically reduces the latency of reading group balances from O(N) (where N is number of transactions) to O(1).
--   **Scalability:** The system will scale effectively with the number of transactions in a group.
--   **Improved UX:** Faster API responses lead to a more responsive and enjoyable user experience.
--   **Reduced Cost:** Less computational work in Cloud Functions leads to lower operational costs.
--   **Simplicity:** Simplifies complex functions like `_executeListGroups`.
-
-## 5. Acceptance Criteria
-
--   The time taken to list groups via `_executeListGroups` is significantly reduced and is independent of the number of transactions in those groups.
--   Creating, updating, or deleting an expense/settlement correctly updates the pre-computed balance document.
--   Balances displayed to the user are consistent and accurate.
+**Current Problem**: Groups with 2000+ transactions trigger 4+ database queries and take 800ms+ to load
+**Target Solution**: All groups load in <200ms regardless of transaction count
 
 ---
 
-## 6. Related Work (October 2025)
+## Architecture Overview
 
-### Pagination Bug Fix Completed
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Current Architecture (SLOW but CORRECT)                     │
+│ ✅ Pagination fix ensures correctness                       │
+│ ❌ Every balance read = full recalculation                  │
+└─────────────────────────────────────────────────────────────┘
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│ New Architecture (FAST and CORRECT)                         │
+│ ✅ Pre-computed balances in Firestore                       │
+│ ✅ Incremental atomic updates on every transaction          │
+│ ✅ O(1) balance reads                                       │
+└─────────────────────────────────────────────────────────────┘
+```
 
-The pagination bug described in `tasks/bug-incomplete-pagination-in-balance-calculation.md` has been **resolved** (October 6, 2025).
+---
 
-**What changed:**
-- Balance calculations now fetch ALL expenses/settlements via exhaustive pagination
-- TypeScript enforces required pagination parameters
-- All callers updated to provide explicit pagination
+## Phase 1: Schema & Type System
 
-**Impact on performance:**
-This fix makes the performance problem **more acute**:
-- **Before**: Fast but potentially incorrect (missing data due to no pagination)
-- **After**: Correct but slow (fetches all pages sequentially)
+### 1.1. Create GroupBalance Firestore Schema
 
-**Why this task is now MORE important:**
-- Groups with 1000+ transactions now trigger multiple 500-doc batch queries
-- Balance calculations for large groups can take several seconds
-- The incremental balance architecture described in this task is the correct long-term solution
+**File**: `firebase/functions/src/schemas/group-balance.ts`
 
-**Next priority**: Implement the pre-computed balance architecture to achieve both correctness AND performance.
+```typescript
+import { z } from 'zod';
+
+/**
+ * Schema for the UserBalance map within GroupBalance
+ * Tracks per-user balance state across all currencies
+ */
+export const UserBalanceSchema = z.object({
+    uid: z.string(),
+    owes: z.record(z.string(), z.number()), // userId -> amount
+    owedBy: z.record(z.string(), z.number()), // userId -> amount
+    netBalance: z.number(),
+});
+
+/**
+ * Schema for CurrencyBalances - record of userId to UserBalance
+ */
+export const CurrencyBalancesSchema = z.record(
+    z.string(), // userId
+    UserBalanceSchema
+);
+
+/**
+ * Firestore Document Schema for GroupBalance
+ * Stored at: groups/{groupId}/metadata/balance
+ */
+export const GroupBalanceDocumentSchema = z.object({
+    groupId: z.string(),
+
+    // Balance state by currency
+    // balancesByCurrency[currency][userId] = UserBalance
+    balancesByCurrency: z.record(z.string(), CurrencyBalancesSchema),
+
+    // Simplified debts for display (computed from balancesByCurrency)
+    simplifiedDebts: z.array(z.object({
+        from: z.object({ uid: z.string() }),
+        to: z.object({ uid: z.string() }),
+        amount: z.number(),
+        currency: z.string(),
+    })),
+
+    // Metadata
+    lastUpdatedAt: z.instanceof(Timestamp), // Firestore Timestamp
+    version: z.number(), // For migration/schema versioning
+});
+
+/**
+ * DTO Schema for GroupBalance (ISO strings for application layer)
+ */
+export const GroupBalanceDTOSchema = GroupBalanceDocumentSchema.extend({
+    lastUpdatedAt: z.string().datetime(), // ISO string
+});
+
+export type GroupBalanceDocument = z.infer<typeof GroupBalanceDocumentSchema>;
+export type GroupBalanceDTO = z.infer<typeof GroupBalanceDTOSchema>;
+```
+
+**Key Design Decisions**:
+- Store at `groups/{groupId}/metadata/balance` for logical grouping
+- Use same `balancesByCurrency` structure as current `BalanceCalculationResult` for compatibility
+- Include `version` field for future schema migrations
+- Include `simplifiedDebts` for efficient API responses
+
+---
+
+## Phase 2: Firestore I/O Layer
+
+### 2.1. Add FirestoreReader Methods
+
+**File**: `firebase/functions/src/services/firestore/IFirestoreReader.ts`
+
+```typescript
+/**
+ * Get pre-computed balance for a group
+ * @param groupId - The group ID
+ * @returns GroupBalanceDTO or null if not yet computed
+ */
+getGroupBalance(groupId: string): Promise<GroupBalanceDTO | null>;
+```
+
+**File**: `firebase/functions/src/services/firestore/FirestoreReader.ts`
+
+```typescript
+async getGroupBalance(groupId: string): Promise<GroupBalanceDTO | null> {
+    try {
+        const doc = await this.db
+            .collection(FirestoreCollections.GROUPS)
+            .doc(groupId)
+            .collection('metadata')
+            .doc('balance')
+            .get();
+
+        if (!doc.exists) {
+            return null;
+        }
+
+        const data = doc.data();
+        if (!data) {
+            return null;
+        }
+
+        // Validate with Firestore schema
+        const validated = GroupBalanceDocumentSchema.parse(data);
+
+        // Convert to DTO (Timestamps → ISO strings)
+        return {
+            ...validated,
+            lastUpdatedAt: validated.lastUpdatedAt.toDate().toISOString(),
+        };
+    } catch (error) {
+        logger.error('Failed to get group balance', error, { groupId });
+        throw new ApiError(
+            HTTP_STATUS.INTERNAL_ERROR,
+            'BALANCE_READ_ERROR',
+            'Failed to read group balance'
+        );
+    }
+}
+```
+
+### 2.2. Add FirestoreWriter Methods
+
+**File**: `firebase/functions/src/services/firestore/IFirestoreWriter.ts`
+
+```typescript
+/**
+ * Create or replace group balance document
+ * Used for initial backfill and full recalculations
+ */
+setGroupBalance(groupId: string, balance: GroupBalanceDTO): Promise<void>;
+
+/**
+ * Atomically update group balance within a transaction
+ * Used for incremental updates when expenses/settlements change
+ */
+updateGroupBalanceInTransaction(
+    transaction: Transaction,
+    groupId: string,
+    updater: (current: GroupBalanceDTO | null) => GroupBalanceDTO
+): Promise<void>;
+```
+
+**File**: `firebase/functions/src/services/firestore/FirestoreWriter.ts`
+
+```typescript
+async setGroupBalance(groupId: string, balance: GroupBalanceDTO): Promise<void> {
+    const balanceRef = this.db
+        .collection(FirestoreCollections.GROUPS)
+        .doc(groupId)
+        .collection('metadata')
+        .doc('balance');
+
+    // Convert DTO to Firestore document (ISO strings → Timestamps)
+    const docData: GroupBalanceDocument = {
+        ...balance,
+        lastUpdatedAt: Timestamp.now(),
+    };
+
+    await balanceRef.set(docData);
+}
+
+async updateGroupBalanceInTransaction(
+    transaction: Transaction,
+    groupId: string,
+    updater: (current: GroupBalanceDTO | null) => GroupBalanceDTO
+): Promise<void> {
+    const balanceRef = this.db
+        .collection(FirestoreCollections.GROUPS)
+        .doc(groupId)
+        .collection('metadata')
+        .doc('balance');
+
+    const doc = await transaction.get(balanceRef);
+
+    let currentBalance: GroupBalanceDTO | null = null;
+    if (doc.exists) {
+        const data = doc.data();
+        if (data) {
+            const validated = GroupBalanceDocumentSchema.parse(data);
+            currentBalance = {
+                ...validated,
+                lastUpdatedAt: validated.lastUpdatedAt.toDate().toISOString(),
+            };
+        }
+    }
+
+    // Apply update function
+    const newBalance = updater(currentBalance);
+
+    // Convert to Firestore document
+    const docData: GroupBalanceDocument = {
+        ...newBalance,
+        lastUpdatedAt: Timestamp.now(),
+    };
+
+    transaction.set(balanceRef, docData);
+}
+```
+
+---
+
+## Phase 3: Incremental Balance Service
+
+### 3.1. Create IncrementalBalanceService
+
+**File**: `firebase/functions/src/services/balance/IncrementalBalanceService.ts`
+
+```typescript
+import { GroupBalanceDTO } from '../../schemas/group-balance';
+import { ExpenseDTO, SettlementDTO } from '@splitifyd/shared';
+import { ExpenseProcessor } from './ExpenseProcessor';
+import { SettlementProcessor } from './SettlementProcessor';
+import { DebtSimplificationService } from './DebtSimplificationService';
+
+/**
+ * Service for incrementally updating group balances
+ * All methods work on balance deltas, never full recalculations
+ */
+export class IncrementalBalanceService {
+    private expenseProcessor = new ExpenseProcessor();
+    private settlementProcessor = new SettlementProcessor();
+    private debtSimplifier = new DebtSimplificationService();
+
+    /**
+     * Apply the impact of a newly created expense to existing balance
+     */
+    applyExpenseCreated(
+        currentBalance: GroupBalanceDTO,
+        expense: ExpenseDTO,
+        memberIds: string[]
+    ): GroupBalanceDTO {
+        // Create delta balance from this single expense
+        const deltaBalance = this.expenseProcessor.processExpenses(
+            [expense],
+            memberIds
+        );
+
+        // Merge delta into current balance
+        return this.mergeBalances(currentBalance, deltaBalance);
+    }
+
+    /**
+     * Revert the impact of a deleted expense from existing balance
+     */
+    applyExpenseDeleted(
+        currentBalance: GroupBalanceDTO,
+        expense: ExpenseDTO,
+        memberIds: string[]
+    ): GroupBalanceDTO {
+        // Create delta balance from this expense
+        const deltaBalance = this.expenseProcessor.processExpenses(
+            [expense],
+            memberIds
+        );
+
+        // Subtract delta from current balance (revert it)
+        return this.mergeBalances(currentBalance, deltaBalance, 'subtract');
+    }
+
+    /**
+     * Update balance when an expense is edited
+     * Two-step atomic operation: revert old, apply new
+     */
+    applyExpenseUpdated(
+        currentBalance: GroupBalanceDTO,
+        oldExpense: ExpenseDTO,
+        newExpense: ExpenseDTO,
+        memberIds: string[]
+    ): GroupBalanceDTO {
+        // Step 1: Revert old expense impact
+        let updatedBalance = this.applyExpenseDeleted(
+            currentBalance,
+            oldExpense,
+            memberIds
+        );
+
+        // Step 2: Apply new expense impact
+        updatedBalance = this.applyExpenseCreated(
+            updatedBalance,
+            newExpense,
+            memberIds
+        );
+
+        return updatedBalance;
+    }
+
+    /**
+     * Apply settlement created
+     */
+    applySettlementCreated(
+        currentBalance: GroupBalanceDTO,
+        settlement: SettlementDTO
+    ): GroupBalanceDTO {
+        const { currency } = settlement;
+
+        // Get or create currency balance
+        const currencyBalance = currentBalance.balancesByCurrency[currency] || {};
+
+        // Apply settlement to currency balance
+        this.settlementProcessor.processSettlements(
+            [settlement],
+            { [currency]: currencyBalance }
+        );
+
+        // Recalculate simplified debts for this currency
+        const simplifiedDebts = this.debtSimplifier.simplifyDebtsForAllCurrencies(
+            currentBalance.balancesByCurrency
+        );
+
+        return {
+            ...currentBalance,
+            balancesByCurrency: {
+                ...currentBalance.balancesByCurrency,
+                [currency]: currencyBalance,
+            },
+            simplifiedDebts,
+            lastUpdatedAt: new Date().toISOString(),
+        };
+    }
+
+    /**
+     * Revert settlement deleted
+     */
+    applySettlementDeleted(
+        currentBalance: GroupBalanceDTO,
+        settlement: SettlementDTO
+    ): GroupBalanceDTO {
+        // Create inverse settlement (swap payer/payee)
+        const inverseSettlement: SettlementDTO = {
+            ...settlement,
+            payerId: settlement.payeeId,
+            payeeId: settlement.payerId,
+        };
+
+        return this.applySettlementCreated(currentBalance, inverseSettlement);
+    }
+
+    /**
+     * Update balance when settlement is edited
+     */
+    applySettlementUpdated(
+        currentBalance: GroupBalanceDTO,
+        oldSettlement: SettlementDTO,
+        newSettlement: SettlementDTO
+    ): GroupBalanceDTO {
+        let updated = this.applySettlementDeleted(currentBalance, oldSettlement);
+        updated = this.applySettlementCreated(updated, newSettlement);
+        return updated;
+    }
+
+    /**
+     * Merge two balance states (add or subtract)
+     */
+    private mergeBalances(
+        base: GroupBalanceDTO,
+        delta: Record<string, Record<string, UserBalance>>,
+        operation: 'add' | 'subtract' = 'add'
+    ): GroupBalanceDTO {
+        const merged = { ...base.balancesByCurrency };
+        const multiplier = operation === 'add' ? 1 : -1;
+
+        for (const [currency, deltaUsers] of Object.entries(delta)) {
+            if (!merged[currency]) {
+                merged[currency] = {};
+            }
+
+            for (const [userId, deltaBalance] of Object.entries(deltaUsers)) {
+                const current = merged[currency][userId] || {
+                    uid: userId,
+                    owes: {},
+                    owedBy: {},
+                    netBalance: 0,
+                };
+
+                // Merge owes
+                for (const [ownedUserId, amount] of Object.entries(deltaBalance.owes)) {
+                    const currentAmount = current.owes[ownedUserId] || 0;
+                    current.owes[ownedUserId] = currentAmount + (amount * multiplier);
+
+                    // Clean up zero balances
+                    if (Math.abs(current.owes[ownedUserId]) < 0.01) {
+                        delete current.owes[ownedUserId];
+                    }
+                }
+
+                // Merge owedBy
+                for (const [owingUserId, amount] of Object.entries(deltaBalance.owedBy)) {
+                    const currentAmount = current.owedBy[owingUserId] || 0;
+                    current.owedBy[owingUserId] = currentAmount + (amount * multiplier);
+
+                    if (Math.abs(current.owedBy[owingUserId]) < 0.01) {
+                        delete current.owedBy[owingUserId];
+                    }
+                }
+
+                // Update net balance
+                current.netBalance = current.netBalance + (deltaBalance.netBalance * multiplier);
+
+                merged[currency][userId] = current;
+            }
+        }
+
+        // Recalculate simplified debts
+        const simplifiedDebts = this.debtSimplifier.simplifyDebtsForAllCurrencies(merged);
+
+        return {
+            groupId: base.groupId,
+            balancesByCurrency: merged,
+            simplifiedDebts,
+            lastUpdatedAt: new Date().toISOString(),
+            version: base.version,
+        };
+    }
+}
+```
+
+---
+
+## Phase 4: Service Integration
+
+### 4.1. Update ExpenseService
+
+**Changes to**: `firebase/functions/src/services/ExpenseService.ts`
+
+```typescript
+import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
+
+export class ExpenseService {
+    private incrementalBalanceService = new IncrementalBalanceService();
+
+    async createExpense(
+        groupId: string,
+        requestData: CreateExpenseRequest,
+        userId: string
+    ): Promise<ExpenseDTO> {
+        // ... existing validation logic ...
+
+        // Perform in transaction for atomicity
+        const expense = await this.firestoreWriter.runTransaction(async (transaction) => {
+            // 1. Create expense document
+            const expenseId = // ... generate ID
+            const expenseData = // ... build expense data
+            transaction.set(expenseRef, expenseData);
+
+            // 2. Update group balance atomically
+            await this.firestoreWriter.updateGroupBalanceInTransaction(
+                transaction,
+                groupId,
+                (currentBalance) => {
+                    if (!currentBalance) {
+                        // Balance not initialized yet - skip update
+                        // This can happen during migration period
+                        logger.warn('Group balance not initialized', { groupId });
+                        return null;
+                    }
+
+                    const memberIds = // ... get from group
+                    return this.incrementalBalanceService.applyExpenseCreated(
+                        currentBalance,
+                        expenseData,
+                        memberIds
+                    );
+                }
+            );
+
+            return expenseData;
+        });
+
+        return expense;
+    }
+
+    async updateExpense(
+        expenseId: string,
+        updates: UpdateExpenseRequest,
+        userId: string
+    ): Promise<ExpenseDTO> {
+        const oldExpense = await this.fetchExpense(expenseId);
+
+        // ... validation ...
+
+        const updated = await this.firestoreWriter.runTransaction(async (transaction) => {
+            // 1. Update expense document
+            transaction.update(expenseRef, updateData);
+
+            // 2. Update group balance atomically
+            await this.firestoreWriter.updateGroupBalanceInTransaction(
+                transaction,
+                oldExpense.groupId,
+                (currentBalance) => {
+                    if (!currentBalance) return null;
+
+                    const memberIds = // ... get from group
+                    const newExpense = { ...oldExpense, ...updateData };
+
+                    return this.incrementalBalanceService.applyExpenseUpdated(
+                        currentBalance,
+                        oldExpense,
+                        newExpense,
+                        memberIds
+                    );
+                }
+            );
+
+            return newExpense;
+        });
+
+        return updated;
+    }
+
+    async deleteExpense(expenseId: string, userId: string): Promise<void> {
+        const expense = await this.fetchExpense(expenseId);
+
+        await this.firestoreWriter.runTransaction(async (transaction) => {
+            // 1. Soft-delete expense
+            transaction.update(expenseRef, {
+                deletedAt: Timestamp.now(),
+                deletedBy: userId,
+            });
+
+            // 2. Update group balance atomically
+            await this.firestoreWriter.updateGroupBalanceInTransaction(
+                transaction,
+                expense.groupId,
+                (currentBalance) => {
+                    if (!currentBalance) return null;
+
+                    const memberIds = // ... get from group
+                    return this.incrementalBalanceService.applyExpenseDeleted(
+                        currentBalance,
+                        expense,
+                        memberIds
+                    );
+                }
+            );
+        });
+    }
+}
+```
+
+### 4.2. Update SettlementService
+
+**Changes to**: `firebase/functions/src/services/SettlementService.ts`
+
+Similar pattern to ExpenseService - wrap create/update/delete in transactions with balance updates.
+
+---
+
+## Phase 5: Backfill Script
+
+### 5.1. Create Backfill Script
+
+**File**: `firebase/functions/scripts/backfill-group-balances.ts`
+
+```typescript
+import { initializeApp } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { FirestoreReader } from '../src/services/firestore/FirestoreReader';
+import { FirestoreWriter } from '../src/services/firestore/FirestoreWriter';
+import { BalanceCalculationService } from '../src/services/balance/BalanceCalculationService';
+import { UserService } from '../src/services/UserService2';
+import { logger } from '../src/logger';
+
+/**
+ * Backfill script to populate GroupBalance documents for all existing groups
+ *
+ * Usage:
+ *   npx tsx scripts/backfill-group-balances.ts [--dry-run]
+ */
+async function backfillGroupBalances(dryRun: boolean = false) {
+    const app = initializeApp();
+    const db = getFirestore(app);
+
+    const reader = new FirestoreReader(db);
+    const writer = new FirestoreWriter(db);
+    const userService = new UserService(reader, writer);
+    const balanceService = new BalanceCalculationService(reader, userService);
+
+    logger.info('Starting group balance backfill', { dryRun });
+
+    // Get all groups
+    const groupsSnapshot = await db.collection('groups').get();
+    const totalGroups = groupsSnapshot.size;
+
+    logger.info(`Found ${totalGroups} groups to process`);
+
+    let processed = 0;
+    let skipped = 0;
+    let errors = 0;
+
+    for (const groupDoc of groupsSnapshot.docs) {
+        const groupId = groupDoc.id;
+        processed++;
+
+        try {
+            // Check if balance already exists
+            const existingBalance = await reader.getGroupBalance(groupId);
+            if (existingBalance) {
+                logger.info(`[${processed}/${totalGroups}] Skipping ${groupId} - balance already exists`);
+                skipped++;
+                continue;
+            }
+
+            // Calculate full balance using current (correct) logic
+            logger.info(`[${processed}/${totalGroups}] Calculating balance for ${groupId}`);
+            const balance = await balanceService.calculateGroupBalances(groupId);
+
+            if (!dryRun) {
+                // Store balance document
+                await writer.setGroupBalance(groupId, {
+                    ...balance,
+                    version: 1,
+                });
+                logger.info(`[${processed}/${totalGroups}] ✅ Created balance for ${groupId}`);
+            } else {
+                logger.info(`[${processed}/${totalGroups}] [DRY RUN] Would create balance for ${groupId}`);
+            }
+
+        } catch (error) {
+            logger.error(`[${processed}/${totalGroups}] ❌ Failed to process ${groupId}`, error);
+            errors++;
+        }
+    }
+
+    logger.info('Backfill complete', {
+        total: totalGroups,
+        processed,
+        skipped,
+        errors,
+        dryRun,
+    });
+}
+
+// Parse command line args
+const dryRun = process.argv.includes('--dry-run');
+
+backfillGroupBalances(dryRun)
+    .then(() => process.exit(0))
+    .catch((error) => {
+        logger.error('Backfill script failed', error);
+        process.exit(1);
+    });
+```
+
+**Add to package.json**:
+```json
+{
+  "scripts": {
+    "backfill:balances": "npx tsx scripts/backfill-group-balances.ts",
+    "backfill:balances:dry-run": "npx tsx scripts/backfill-group-balances.ts --dry-run"
+  }
+}
+```
+
+---
+
+## Phase 6: Update API Layer
+
+### 6.1. Update GroupService.addComputedFields
+
+**File**: `firebase/functions/src/services/GroupService.ts`
+
+```typescript
+private async addComputedFields(group: GroupDTO, userId: string): Promise<GroupDTO> {
+    // TRY to read pre-computed balance first
+    let groupBalances = await this.firestoreReader.getGroupBalance(group.id);
+
+    if (!groupBalances) {
+        // FALLBACK: Calculate on-the-fly during migration period
+        logger.warn('Group balance not pre-computed - falling back to calculation', {
+            groupId: group.id,
+        });
+        groupBalances = await this.balanceService.calculateGroupBalances(group.id);
+
+        // Asynchronously create balance document for next time (fire-and-forget)
+        this.firestoreWriter.setGroupBalance(group.id, {
+            ...groupBalances,
+            version: 1,
+        }).catch((error) => {
+            logger.error('Failed to cache calculated balance', error, {
+                groupId: group.id,
+            });
+        });
+    }
+
+    // ... rest of existing logic using groupBalances ...
+    // (calculate balancesByCurrency for user, format lastActivity, etc.)
+}
+```
+
+**Migration Strategy**:
+1. Initially, fall back to calculation if balance missing
+2. After backfill completes, all groups will have pre-computed balances
+3. In a future release, remove fallback and make it an error
+
+---
+
+## Phase 7: Testing Strategy
+
+### 7.1. Unit Tests
+
+**File**: `firebase/functions/src/__tests__/unit/services/IncrementalBalanceService.test.ts`
+
+```typescript
+describe('IncrementalBalanceService', () => {
+    describe('applyExpenseCreated', () => {
+        it('should add expense impact to empty balance', () => {
+            // Test delta application
+        });
+
+        it('should merge expense impact into existing balance', () => {
+            // Test incremental update
+        });
+
+        it('should handle multi-currency balances', () => {
+            // Test currency isolation
+        });
+    });
+
+    describe('applyExpenseUpdated', () => {
+        it('should revert old expense and apply new expense atomically', () => {
+            // Test two-step update
+        });
+
+        it('should handle amount changes correctly', () => {
+            // Test edge case
+        });
+
+        it('should handle split changes correctly', () => {
+            // Test complex scenario
+        });
+    });
+
+    describe('applySettlementCreated', () => {
+        // Similar tests for settlements
+    });
+});
+```
+
+### 7.2. Integration Tests
+
+**File**: `firebase/functions/src/__tests__/integration/incremental-balance.test.ts`
+
+```typescript
+describe('Incremental Balance Integration', () => {
+    it('should maintain balance consistency through expense lifecycle', async () => {
+        // 1. Create group
+        const groupId = await createTestGroup();
+
+        // 2. Backfill initial balance
+        const initialBalance = await balanceService.calculateGroupBalances(groupId);
+        await firestoreWriter.setGroupBalance(groupId, initialBalance);
+
+        // 3. Create expense - balance should update atomically
+        const expense = await expenseService.createExpense(groupId, expenseData, userId);
+
+        // 4. Verify incremental balance matches full calculation
+        const incrementalBalance = await firestoreReader.getGroupBalance(groupId);
+        const fullBalance = await balanceService.calculateGroupBalances(groupId);
+
+        expect(incrementalBalance).toMatchObject(fullBalance);
+    });
+
+    it('should handle concurrent expense creates correctly', async () => {
+        // Test race condition handling with transactions
+    });
+
+    it('should maintain consistency through complex operations', async () => {
+        // Create, update, delete expenses
+        // Create, update, delete settlements
+        // Verify incremental always matches full calculation
+    });
+});
+```
+
+### 7.3. E2E Test Verification
+
+Run existing e2e tests with new architecture:
+```bash
+cd e2e-tests
+PLAYWRIGHT_HTML_OPEN=never ./run-until-fail.sh 3
+```
+
+All tests should pass without modification (API contract unchanged).
+
+---
+
+## Phase 8: Deployment Strategy
+
+### 8.1. Migration Phases
+
+**Phase A: Deploy Code (Backwards Compatible)**
+- Deploy all new code with fallback logic
+- GroupService falls back to calculation if balance missing
+- ExpenseService/SettlementService update balances if they exist
+
+**Phase B: Run Backfill**
+```bash
+# Dry run first
+npm run backfill:balances:dry-run
+
+# Actual backfill
+npm run backfill:balances
+```
+
+**Phase C: Monitor Performance**
+- Check API latency metrics for `_executeListGroups`
+- Verify balance calculations are now rare (only on fallback)
+- Monitor error rates for balance updates
+
+**Phase D: Remove Fallback (Future Release)**
+- After confirming all groups have balances
+- Make missing balance an error instead of fallback
+- Delete old on-the-fly calculation code paths
+
+---
+
+## Phase 9: Monitoring & Observability
+
+### 9.1. Metrics to Track
+
+```typescript
+// Add to monitoring/measure.ts
+export const balanceMetrics = {
+    precomputedReads: 0,     // Reads from pre-computed balance
+    fallbackCalculations: 0, // Fallback to on-the-fly calculation
+    incrementalUpdates: 0,   // Successful incremental updates
+    updateFailures: 0,       // Failed incremental updates
+};
+```
+
+### 9.2. Alerts
+
+- **Alert**: If `fallbackCalculations` > 10/minute after backfill
+- **Alert**: If `updateFailures` > 0 (critical - balance consistency issue)
+- **Alert**: If `_executeListGroups` latency > 500ms (p95)
+
+---
+
+## Phase 10: Rollback Plan
+
+If issues arise:
+
+1. **Immediate**: Disable incremental updates in ExpenseService/SettlementService
+2. **Quick**: Remove balance read logic, fall back to full calculation
+3. **Complete**: Revert entire commit, deploy previous version
+
+All operations are non-destructive:
+- New balance documents are separate from existing data
+- Original calculation logic remains intact during migration
+- Firestore transactions ensure atomicity
+
+---
+
+## Success Criteria
+
+- [ ] All groups have `GroupBalance` documents after backfill
+- [ ] API latency for `_executeListGroups` < 200ms (p95)
+- [ ] Creating/updating/deleting expenses updates balance atomically
+- [ ] Creating/updating/deleting settlements updates balance atomically
+- [ ] All 487 unit tests pass
+- [ ] All e2e tests pass
+- [ ] Balance consistency verified: incremental === full calculation
+- [ ] Zero `updateFailures` in production monitoring
+- [ ] `fallbackCalculations` metric near zero after migration
+
+---
+
+## Risk Mitigation
+
+| Risk | Mitigation |
+|------|-----------|
+| **Race conditions in concurrent updates** | Use Firestore transactions for atomicity |
+| **Incremental logic bugs** | Extensive unit tests + consistency checks |
+| **Migration incomplete** | Fallback to calculation if balance missing |
+| **Performance regression** | Monitor latency, rollback if needed |
+| **Data corruption** | Firestore transactions prevent partial updates |
+| **Backfill failures** | Dry-run first, process in batches |
+
+---
+
+## Estimated Timeline
+
+| Phase | Effort | Duration |
+|-------|--------|----------|
+| Schema & Types | Small | 1-2 hours |
+| Firestore I/O | Small | 2-3 hours |
+| IncrementalBalanceService | Medium | 4-6 hours |
+| Service Integration | Medium | 3-4 hours |
+| Backfill Script | Small | 2-3 hours |
+| API Layer Updates | Small | 1-2 hours |
+| Unit Tests | Medium | 4-5 hours |
+| Integration Tests | Medium | 3-4 hours |
+| E2E Verification | Small | 1 hour |
+| **Total** | **~22-30 hours** | **3-4 days** |
+
+---
+
+## Next Steps
+
+1. Review this plan for accuracy and completeness
+2. Confirm architectural approach
+3. Begin Phase 1: Schema & Type System
+4. Implement incrementally, testing at each phase
+5. Deploy with fallback, run backfill, monitor
+6. Remove fallback in future release after validation
