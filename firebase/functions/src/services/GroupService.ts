@@ -299,15 +299,7 @@ export class GroupService {
         });
     }
 
-    private async _executeListGroups(
-        userId: string,
-        options: {
-            limit?: number;
-            cursor?: string;
-            order?: 'asc' | 'desc';
-            includeMetadata?: boolean;
-        } = {},
-    ): Promise<ListGroupsResponse> {
+    private async _executeListGroups(userId: string, options: { limit?: number; cursor?: string; order?: 'asc' | 'desc'; includeMetadata?: boolean; } = {},): Promise<ListGroupsResponse> {
         // Parse options with defaults
         const limit = Math.min(options.limit || DOCUMENT_CONFIG.LIST_LIMIT, DOCUMENT_CONFIG.LIST_LIMIT);
         const cursor = options.cursor;
