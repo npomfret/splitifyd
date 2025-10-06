@@ -1,6 +1,6 @@
 import { test, expect } from '../../utils/console-logging-fixture';
 import { mockGroupDetailApi, mockGroupCommentsApi, mockApiFailure } from '../../utils/mock-firebase-service';
-import { ClientUserBuilder, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ExpenseDTOBuilder, GroupDetailPage, ThemeBuilder } from '@splitifyd/test-support';
+import { GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ExpenseDTOBuilder, GroupDetailPage, ThemeBuilder } from '@splitifyd/test-support';
 
 test.describe('Group Detail - Authentication and Navigation', () => {
 

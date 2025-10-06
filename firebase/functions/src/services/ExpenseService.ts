@@ -6,7 +6,6 @@ import * as dateHelpers from '../utils/dateHelpers';
 import { logger, LoggerContext } from '../logger';
 import { ExpenseDTO, CreateExpenseRequest, DELETED_AT_FIELD, SplitTypes, UpdateExpenseRequest, ExpenseFullDetailsDTO, GroupDTO } from '@splitifyd/shared';
 import * as expenseValidation from '../expenses/validation';
-import { getMemberDocFromArray } from '../utils/memberHelpers';
 import { PermissionEngineAsync } from '../permissions/permission-engine-async';
 import * as measure from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore';

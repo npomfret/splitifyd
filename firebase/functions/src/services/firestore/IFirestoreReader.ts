@@ -17,17 +17,23 @@ import type { Transaction } from 'firebase-admin/firestore';
 import type { ISOString } from '@splitifyd/shared';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 
+/**
+ * Standard Firestore document ordering fields
+ */
+export type FirestoreOrderField = keyof Pick<FirestoreAuditMetadata, 'createdAt' | 'updatedAt'>;
+
+export interface OrderBy {
+    field: string;
+    direction: 'asc' | 'desc';
+}
+
 // FirestoreReader query and pagination types
 interface PaginationOptions {
     limit?: number;
     offset?: number;
     cursor?: string;
+    orderBy?: OrderBy;
 }
-
-/**
- * Standard Firestore document ordering fields
- */
-export type FirestoreOrderField = keyof Pick<FirestoreAuditMetadata, 'createdAt' | 'updatedAt'>;
 
 interface FilterOptions {
     includeDeleted?: boolean;
@@ -59,15 +65,9 @@ export interface GroupsPaginationCursor {
     membershipCursor?: string;
 }
 
-export interface OrderBy {
-    field: string;
-    direction: 'asc' | 'desc';
-}
+export interface BatchGroupFetchOptions extends Required<Pick<PaginationOptions, 'limit' | 'orderBy'>> {}
 
-export interface BatchGroupFetchOptions {
-    orderBy: OrderBy;
-    limit: number;
-}
+export interface GetGroupsForUserOptions extends Pick<PaginationOptions, 'limit' | 'cursor' | 'orderBy'> {}
 
 // Import parsed types from schemas
 import { CommentTargetType } from '@splitifyd/shared';
@@ -132,17 +132,7 @@ export interface IFirestoreReader {
      * @param options - Query options for pagination and filtering
      * @returns Paginated result containing group DTOs, hasMore flag, and nextCursor
      */
-    getGroupsForUserV2(
-        userId: string,
-        options?: {
-            limit?: number;
-            cursor?: string;
-            orderBy?: {
-                field: string;
-                direction: 'asc' | 'desc';
-            };
-        },
-    ): Promise<PaginatedResult<GroupDTO[]>>;
+    getGroupsForUserV2(userId: string, options?: GetGroupsForUserOptions): Promise<PaginatedResult<GroupDTO[]>>;
 
     /**
      * Get a single member from a group

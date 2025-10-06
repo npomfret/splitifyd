@@ -82,14 +82,15 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
     // Parse pagination parameters
     const limit = Math.min(parseInt(req.query.limit as string) || DOCUMENT_CONFIG.LIST_LIMIT, DOCUMENT_CONFIG.LIST_LIMIT);
     const cursor = req.query.cursor as string;
-    const order = (req.query.order as 'asc' | 'desc') ?? 'desc';
-    const includeMetadata = req.query.includeMetadata === 'true';
+    const direction = (req.query.order as 'asc' | 'desc') ?? 'desc';
 
     const response = await groupService.listGroups(userId, {
         limit,
         cursor,
-        order,
-        includeMetadata,
+        orderBy: {
+            field: 'updatedAt',
+            direction,
+        },
     });
 
     res.json(response);

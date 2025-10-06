@@ -6,7 +6,7 @@ import {logger, LoggerContext} from '../logger';
 import * as dateHelpers from '../utils/dateHelpers';
 import {PermissionEngine} from '../permissions';
 import * as measure from '../monitoring/measure';
-import type {IFirestoreReader, IFirestoreWriter} from './firestore';
+import type {IFirestoreReader, IFirestoreWriter, GetGroupsForUserOptions} from './firestore';
 import {UserService} from './UserService2';
 import {ExpenseService} from './ExpenseService';
 import {SettlementService} from './SettlementService';
@@ -23,19 +23,6 @@ import {CreateGroupRequestBuilder} from '@splitifyd/test-support';
  */
 type ExpenseWithGroupId = ExpenseDTO & { groupId: string };
 type SettlementWithGroupId = SettlementDTO & { groupId: string };
-
-/**
- * Options for listing groups with pagination and sorting
- */
-interface PaginationOptions {
-    limit?: number;
-    cursor?: string;
-    order?: 'asc' | 'desc';
-}
-
-interface ListGroupsOptions extends PaginationOptions {
-    includeMetadata?: boolean;
-}
 
 /**
  * Service for managing group operations
@@ -327,26 +314,22 @@ export class GroupService {
      * List all groups for a user with pagination and balance information
      * PERFORMANCE OPTIMIZED: Batches database operations to prevent N+1 queries
      */
-    async listGroups(userId: string, options: ListGroupsOptions = {}): Promise<ListGroupsResponse> {
+    async listGroups(userId: string, options: GetGroupsForUserOptions = {}): Promise<ListGroupsResponse> {
         return measure.measureDb('list-groups', async () => {
             return this._executeListGroups(userId, options);
         });
     }
 
-    private async _executeListGroups(userId: string, options: ListGroupsOptions = {}): Promise<ListGroupsResponse> {
+    private async _executeListGroups(userId: string, options: GetGroupsForUserOptions = {}): Promise<ListGroupsResponse> {
         // Parse options with defaults
         const limit = Math.min(options.limit || DOCUMENT_CONFIG.LIST_LIMIT, DOCUMENT_CONFIG.LIST_LIMIT);
-        const cursor = options.cursor;
-        const order = options.order ?? 'desc';
+        const orderBy = options.orderBy ?? { field: 'updatedAt', direction: 'desc' as const };
 
         // Step 1: Query groups and metadata using FirestoreReader
         const paginatedGroups = await this.firestoreReader.getGroupsForUserV2(userId, {
-            limit: limit, // Use actual limit, FirestoreReader handles the +1 for hasMore detection
-            cursor: cursor,
-            orderBy: {
-                field: 'updatedAt',
-                direction: order,
-            },
+            limit,
+            cursor: options.cursor,
+            orderBy,
         });
 
         // Step 2: Fetch balances and enrich groups in parallel
@@ -375,7 +358,7 @@ export class GroupService {
             ...(paginatedGroups.nextCursor && {nextCursor: paginatedGroups.nextCursor}),
             pagination: {
                 limit,
-                order,
+                order: orderBy.direction,
             },
         };
     }

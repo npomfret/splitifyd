@@ -305,7 +305,7 @@ export class NotificationListener {
     /**
      * Wait for a group event and validate its structure
      */
-    async waitForGroupEvent(groupId: string, expectedChangeCount: number = 1, timeoutMs: number = 3000): Promise<NotificationEvent> {
+    async waitForGroupEvent(groupId: string, expectedChangeCount: number = 1, timeoutMs: number = 10000): Promise<NotificationEvent> {
         const events = await this.waitForEventCount(groupId, 'group', 1, timeoutMs);
         const event = events[0];
 

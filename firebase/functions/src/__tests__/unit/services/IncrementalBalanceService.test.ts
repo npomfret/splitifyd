@@ -3,7 +3,7 @@ import { IncrementalBalanceService } from '../../../services/balance/Incremental
 import { StubFirestoreWriter } from '../mocks/firestore-stubs';
 import { ExpenseDTOBuilder } from '@splitifyd/test-support';
 import type { SettlementDTO } from '@splitifyd/shared';
-import type { GroupBalanceDTO } from '../../../schemas/group-balance';
+import type { GroupBalanceDTO } from '../../../schemas';
 
 describe('IncrementalBalanceService - Unit Tests', () => {
     let service: IncrementalBalanceService;
