@@ -45,13 +45,13 @@ export const ARIA_ROLES = {
 } as const;
 
 export const BUTTON_TEXTS = {
-    SETTLE_UP: new RegExp(translation.common.settleUp, 'i'),
-    JOIN_GROUP: new RegExp(translation.common.joinGroup, 'i'),
+    SETTLE_UP: new RegExp(translation.groupActions.settleUp, 'i'),
+    JOIN_GROUP: new RegExp(translation.joinGroup.button.join, 'i'),
     RECORD_PAYMENT: new RegExp(translation.settlementForm.recordPayment, 'i'),
     UPDATE_PAYMENT: new RegExp(translation.settlementForm.updatePayment, 'i'),
     SELECT_ALL: translation.expenseForm.selectAll,
-    SHOW_HISTORY: translation.common.showHistory,
-    ADD_EXPENSE: new RegExp(translation.common.addExpense, 'i'),
+    SHOW_HISTORY: translation.pages.groupDetailPage.showHistory,
+    ADD_EXPENSE: new RegExp(translation.groupActions.addExpense, 'i'),
     SAVE_EXPENSE: new RegExp(translation.expenseForm.saveExpense, 'i'),
     UPDATE_EXPENSE: new RegExp(translation.expenseForm.updateExpense, 'i'),
     SHARE: new RegExp(translation.common.share, 'i'),
