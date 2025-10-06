@@ -1,13 +1,15 @@
-# Feature: Implement Soft Deletes for Comments and Settlements
+# Feature: Implement Soft Deletes for Settlements
 
 ## 1. Overview
 
-Currently, only `ExpenseDTO` supports soft deletion with `deletedAt` and `deletedBy` fields. Comments and Settlements use hard deletion, which permanently removes data from Firestore and makes it impossible to recover accidentally deleted items or audit deletion history.
+Currently, only `ExpenseDTO` supports soft deletion with `deletedAt` and `deletedBy` fields. Settlements use hard deletion, which permanently removes data from Firestore and makes it impossible to recover accidentally deleted items or audit deletion history.
+
+**Note:** Comments will continue to use hard deletion as they are considered ephemeral, low-risk entities that don't impact financial calculations.
 
 This feature will:
-1. Extend soft delete support to `CommentDTO` and `SettlementDTO`
-2. Standardize soft delete metadata fields across all entities (Expenses, Comments, Settlements)
-3. Establish a common `SoftDeletable` interface to ensure consistency
+1. Extend soft delete support to `SettlementDTO` (matching Expenses)
+2. Standardize soft delete metadata fields across all financial entities (Expenses, Settlements)
+3. Leverage the existing `SoftDeletable` interface to ensure consistency
 4. Update all related services, schemas, and API endpoints to respect soft delete state
 
 ## 2. The Problem: Inconsistent Deletion Behavior
@@ -15,37 +17,40 @@ This feature will:
 ### 2.1. Current State
 
 - **Expenses**: Support soft deletion (`deletedAt: ISOString | null`, `deletedBy: string | null`)
-- **Comments**: Hard deletion only (data permanently removed from Firestore)
-- **Settlements**: Hard deletion only (data permanently removed from Firestore)
+- **Settlements**: Hard deletion only (data permanently removed from Firestore) - **NEEDS SOFT DELETE**
+- **Comments**: Hard deletion only (will remain hard delete - considered ephemeral)
 - **Groups**: Hard deletion only (no soft delete support planned)
 
 ### 2.2. Issues with Current Approach
 
-1. **Data Loss**: Accidental comment or settlement deletions cannot be recovered
-2. **No Audit Trail**: Cannot track who deleted a comment or settlement, or when
-3. **Inconsistent API Behavior**: Deletion endpoints behave differently across entity types
-4. **Missing Metadata**: Expenses have `deletedBy` but it's not standardized across entities
-5. **Query Complexity**: No standard way to filter out soft-deleted items across different entity types
+1. **Data Loss**: Accidental settlement deletions cannot be recovered (affects balance calculations)
+2. **No Audit Trail**: Cannot track who deleted a settlement, or when
+3. **Inconsistent API Behavior**: Settlement deletions behave differently from Expense deletions
+4. **Balance Impact**: Deleted settlements affect group balances but leave no audit trail
+5. **Query Complexity**: No standard way to filter out soft-deleted settlements like expenses
 
 ### 2.3. Real-World Scenarios
 
-- **Accidental Deletion**: User accidentally deletes an important comment explaining an expense split
+- **Accidental Deletion**: User accidentally deletes a settlement payment, affecting group balances
 - **Audit Requirements**: Group admin needs to see who deleted a settlement and when
-- **Undelete Functionality**: User wants to restore a recently deleted comment (future feature)
-- **Data Retention**: Compliance requirements mandate keeping deleted records for a specified period
+- **Undelete Functionality**: User wants to restore a recently deleted settlement (future feature)
+- **Data Retention**: Compliance requirements mandate keeping financial records for a specified period
+- **Balance Disputes**: Need to verify that deleted settlements are properly excluded from calculations
 
 ## 3. The Solution: Standardized Soft Delete Pattern
 
 ### 3.1. Common Soft Delete Interface
 
-Create a shared interface that all soft-deletable entities implement:
+Leverage the existing `SoftDeletable` interface that financial entities implement:
 
 ```typescript
-// In packages/shared/src/shared-types.ts
+// In packages/shared/src/shared-types.ts (ALREADY EXISTS)
 
 /**
  * Common soft delete metadata fields.
- * All soft-deletable entities must include these fields.
+ * All soft-deletable financial entities must include these fields.
+ * Applies to: Expenses, Settlements
+ * Does NOT apply to: Comments (hard delete), Groups (hard delete)
  */
 export interface SoftDeletable {
     /**
@@ -61,13 +66,11 @@ export interface SoftDeletable {
     deletedBy: string | null;
 }
 
-// Update constant for consistency
+// Existing constant for consistency
 export const SOFT_DELETE_FIELDS = {
     DELETED_AT: 'deletedAt',
     DELETED_BY: 'deletedBy',
 } as const;
-
-// Remove the old DELETED_AT_FIELD constant in favor of SOFT_DELETE_FIELDS
 ```
 
 ### 3.2. Updated Type Definitions
@@ -95,26 +98,16 @@ export interface Expense extends SoftDeletable {
 }
 ```
 
-#### Comment (NEW: Add Soft Delete Support)
+#### Comment (NO CHANGES - Remains Hard Delete)
 
 ```typescript
-// Before
+// Comment interface remains unchanged - uses hard deletion
 export interface Comment {
     authorId: string;
     authorName: string;
     authorAvatar?: string;
     text: string;
-}
-
-// After
-export interface Comment extends SoftDeletable {
-    authorId: string;
-    authorName: string;
-    authorAvatar?: string;
-    text: string;
-    // Inherited from SoftDeletable:
-    // deletedAt: ISOString | null;
-    // deletedBy: string | null;
+    // NO soft delete fields - comments are ephemeral
 }
 ```
 
@@ -151,27 +144,7 @@ export interface Settlement extends SoftDeletable {
 
 ### 3.3. Schema Updates
 
-Update Firestore Document schemas to validate the new soft delete fields:
-
-#### Comment Schema
-```typescript
-// firebase/functions/src/schemas/comment.ts
-
-export const CommentDocumentSchema = z.object({
-    authorId: z.string().min(1),
-    authorName: z.string().min(1),
-    authorAvatar: z.string().url().optional(),
-    text: z.string().min(1).max(5000),
-
-    // NEW: Soft delete fields
-    deletedAt: TimestampSchema.nullable(),
-    deletedBy: z.string().min(1).nullable(),
-
-    // Metadata
-    createdAt: TimestampSchema,
-    updatedAt: TimestampSchema,
-});
-```
+Update Firestore Settlement schema to validate the new soft delete fields:
 
 #### Settlement Schema
 ```typescript
@@ -202,46 +175,24 @@ export const SettlementDocumentSchema = z.object({
 ### Phase 1: Foundation - Schema and Type Updates
 
 #### Task 1.1: Update Shared Types
-- [ ] Create `SoftDeletable` interface in `packages/shared/src/shared-types.ts`
-- [ ] Create `SOFT_DELETE_FIELDS` constant (replace `DELETED_AT_FIELD`)
-- [ ] Update `Comment` interface to extend `SoftDeletable`
+- [ ] Verify `SoftDeletable` interface exists in `packages/shared/src/shared-types.ts` (should already exist)
+- [ ] Verify `SOFT_DELETE_FIELDS` constant exists (should already exist)
 - [ ] Update `Settlement` interface to extend `SoftDeletable`
-- [ ] Update `Expense` interface to explicitly extend `SoftDeletable` (clarifies intent)
+- [ ] Verify `Expense` interface already extends `SoftDeletable`
+- [ ] **DO NOT** update `Comment` interface - comments remain hard delete
 - [ ] Run type checks across all packages: `npm run build`
 
 #### Task 1.2: Update Firestore Schemas
-- [ ] Update `CommentDocumentSchema` in `firebase/functions/src/schemas/comment.ts`
-  - Add `deletedAt: TimestampSchema.nullable()`
-  - Add `deletedBy: z.string().min(1).nullable()`
 - [ ] Update `SettlementDocumentSchema` in `firebase/functions/src/schemas/settlement.ts`
   - Add `deletedAt: TimestampSchema.nullable()`
   - Add `deletedBy: z.string().min(1).nullable()`
 - [ ] Verify `ExpenseDocumentSchema` has proper schema validation for soft delete fields
+- [ ] **DO NOT** update `CommentDocumentSchema` - comments remain hard delete
 - [ ] Run schema validation tests: `npm run test:unit`
 
 ### Phase 2: Service Layer Updates
 
-#### Task 2.1: Update CommentService
-- [ ] **Modify `createComment`**: Ensure new comments have `deletedAt: null` and `deletedBy: null`
-- [ ] **Create `softDeleteComment`**: New method to mark comment as deleted
-  ```typescript
-  async softDeleteComment(
-      commentId: string,
-      userId: string,
-      targetType: CommentTargetType,
-      targetId: string
-  ): Promise<void> {
-      // Permission check: User must be comment author or group admin
-      // Update: { deletedAt: new Date().toISOString(), deletedBy: userId }
-  }
-  ```
-- [ ] **Update `listComments`**: Filter out soft-deleted comments by default
-  - Add optional `includeDeleted` parameter for admin views
-  - Firestore query: `.where('deletedAt', '==', null)`
-- [ ] **Update `getComment`**: Return null if comment is soft-deleted (unless admin)
-- [ ] Add unit tests for all soft delete scenarios
-
-#### Task 2.2: Update SettlementService
+#### Task 2.1: Update SettlementService
 - [ ] **Modify `createSettlement`**: Ensure new settlements have `deletedAt: null` and `deletedBy: null`
 - [ ] **Create `softDeleteSettlement`**: New method to mark settlement as deleted
   ```typescript
@@ -261,31 +212,14 @@ export const SettlementDocumentSchema = z.object({
 - [ ] **Update balance calculations**: Ensure soft-deleted settlements are excluded
 - [ ] Add unit tests for all soft delete scenarios
 
-#### Task 2.3: Update ExpenseService (Consistency)
+#### Task 2.2: Update ExpenseService (Consistency)
 - [ ] **Verify `softDeleteExpense`**: Ensure it follows same pattern as new services
 - [ ] **Standardize naming**: Rename to match new pattern if needed
 - [ ] **Add integration tests**: Test soft delete across all three entity types
 
 ### Phase 3: API Endpoint Updates
 
-#### Task 3.1: Comment Deletion Endpoints
-- [ ] **Update `DELETE /api/comments/:id`**: Change from hard delete to soft delete
-  - Call `commentService.softDeleteComment()` instead of hard delete
-  - Return success response with deletion metadata
-  - Update OpenAPI/Swagger documentation
-- [ ] **Add permission checks**: Only comment author or group admin can delete
-- [ ] **Update response type**:
-  ```typescript
-  export interface DeleteCommentResponse {
-      success: boolean;
-      message: string;
-      deletedAt: ISOString;
-      deletedBy: string;
-  }
-  ```
-- [ ] Add integration tests for deletion endpoint
-
-#### Task 3.2: Settlement Deletion Endpoints
+#### Task 3.1: Settlement Deletion Endpoints
 - [ ] **Update `DELETE /api/settlements/:id`**: Change from hard delete to soft delete
   - Call `settlementService.softDeleteSettlement()` instead of hard delete
   - Trigger balance recalculation
@@ -303,11 +237,11 @@ export const SettlementDocumentSchema = z.object({
   ```
 - [ ] Add integration tests for deletion endpoint and balance recalculation
 
-#### Task 3.3: Update List Endpoints
-- [ ] **Update `GET /api/groups/:groupId/comments`**: Exclude soft-deleted by default
+#### Task 3.2: Update List Endpoints
 - [ ] **Update `GET /api/groups/:groupId/settlements`**: Exclude soft-deleted by default
 - [ ] **Update `GET /api/expenses`**: Verify soft-deleted expenses are excluded
 - [ ] Add query parameter `?includeDeleted=true` for admin views (future feature)
+- [ ] **DO NOT** modify comment endpoints - comments remain hard delete
 
 ### Phase 4: FirestoreReader/Writer Updates
 
@@ -318,9 +252,9 @@ export const SettlementDocumentSchema = z.object({
       return query.where(SOFT_DELETE_FIELDS.DELETED_AT, '==', null);
   }
   ```
-- [ ] **Update `getComments`**: Apply soft delete filter
 - [ ] **Update `getSettlements`**: Apply soft delete filter
 - [ ] **Verify `getExpenses`**: Ensure soft delete filter is applied
+- [ ] **DO NOT** modify `getComments` - comments remain hard delete
 - [ ] Add unit tests with mocked Firestore data including soft-deleted items
 
 #### Task 4.2: Update FirestoreWriter
@@ -333,19 +267,19 @@ export const SettlementDocumentSchema = z.object({
       };
   }
   ```
-- [ ] **Update `deleteComment`**: Use soft delete instead of hard delete
 - [ ] **Update `deleteSettlement`**: Use soft delete instead of hard delete
 - [ ] **Verify `deleteExpense`**: Ensure it uses soft delete pattern
+- [ ] **DO NOT** modify `deleteComment` - comments remain hard delete
 - [ ] Add unit tests for soft delete writes
 
 ### Phase 5: Data Migration
 
 #### Task 5.1: Existing Data Migration
-- [ ] **Create migration script**: `firebase/scripts/migrate-soft-delete-fields.ts`
+- [ ] **Create migration script**: `firebase/scripts/migrate-settlement-soft-delete-fields.ts`
   ```typescript
-  // Add deletedAt: null and deletedBy: null to all existing comments
   // Add deletedAt: null and deletedBy: null to all existing settlements
   // Verify all existing expenses have these fields (backfill if needed)
+  // DO NOT modify comments - they remain hard delete
   ```
 - [ ] **Test migration** on local emulator with production-like data
 - [ ] **Create rollback script** in case of issues
@@ -356,11 +290,6 @@ export const SettlementDocumentSchema = z.object({
 ### Phase 6: Testing
 
 #### Task 6.1: Unit Tests
-- [ ] CommentService soft delete tests
-  - Test creating comment initializes soft delete fields to null
-  - Test soft delete marks comment with correct metadata
-  - Test list excludes soft-deleted comments
-  - Test permissions for deletion
 - [ ] SettlementService soft delete tests
   - Test creating settlement initializes soft delete fields to null
   - Test soft delete marks settlement with correct metadata
@@ -368,20 +297,19 @@ export const SettlementDocumentSchema = z.object({
   - Test balance calculation excludes soft-deleted settlements
   - Test permissions for deletion
 - [ ] ExpenseService consistency tests
-  - Verify expense soft delete follows same pattern
+  - Verify expense soft delete follows same pattern as settlements
 
 #### Task 6.2: Integration Tests
-- [ ] Test soft delete across all entity types in real Firebase emulator
+- [ ] Test soft delete for settlements and expenses in real Firebase emulator
 - [ ] Test balance calculations with soft-deleted settlements
-- [ ] Test comment threads with soft-deleted comments
-- [ ] Test permission checks for deletion endpoints
-- [ ] Test that soft-deleted items don't appear in list queries
+- [ ] Test permission checks for settlement deletion endpoints
+- [ ] Test that soft-deleted settlements don't appear in list queries
 - [ ] Test FirestoreReader/Writer conversions handle soft delete fields correctly
 
 #### Task 6.3: E2E Tests (Future)
-- [ ] Create E2E test for deleting and restoring a comment (when undelete is implemented)
 - [ ] Create E2E test for deleting a settlement and verifying balance update
-- [ ] Create E2E test for admin viewing deleted items
+- [ ] Create E2E test for admin viewing deleted settlements
+- [ ] Create E2E test for restoring a settlement (when undelete is implemented)
 
 ### Phase 7: Documentation
 
@@ -434,37 +362,37 @@ export const SettlementDocumentSchema = z.object({
 - **API Clients**: No breaking changes - deletion endpoints still return success
 
 ### 6.2. Database Schema Evolution
-- **Before Migration**: Comments and Settlements lack soft delete fields
-- **After Migration**: All entities have `deletedAt` and `deletedBy` fields
-- **Query Performance**: Add Firestore indexes on `deletedAt` field for list queries
-- **Storage Impact**: Minimal (~16 bytes per document for two new fields)
+- **Before Migration**: Settlements lack soft delete fields
+- **After Migration**: All financial entities (Expenses, Settlements) have `deletedAt` and `deletedBy` fields
+- **Comments**: Continue to use hard delete (no soft delete fields)
+- **Query Performance**: Add Firestore indexes on `deletedAt` field for settlement list queries
+- **Storage Impact**: Minimal (~16 bytes per settlement document for two new fields)
 
 ### 6.3. Firestore Index Updates
 ```typescript
 // Required composite indexes for efficient queries:
-// Collection: comments
-// Fields: deletedAt (Ascending), createdAt (Descending)
-
 // Collection: settlements
 // Fields: deletedAt (Ascending), date (Descending)
 
-// Collection: expenses
+// Collection: expenses (verify existing)
 // Fields: deletedAt (Ascending), date (Descending)
+
+// NO indexes needed for comments - hard delete only
 ```
 
 ## 7. Security Considerations
 
 ### 7.1. Permission Checks
-- **Comment Deletion**: Only comment author or group admin
 - **Settlement Deletion**: Only settlement creator or group admin (must recalculate balances)
 - **Expense Deletion**: Follow existing permission rules (already implemented)
+- **Comment Deletion**: Remains hard delete - only comment author or group admin
 
 ### 7.2. Firestore Security Rules
-Update security rules to validate soft delete fields:
+Update security rules to validate soft delete fields for settlements:
 
 ```javascript
-// For comments subcollection
-match /groups/{groupId}/comments/{commentId} {
+// For settlements collection
+match /settlements/{settlementId} {
     allow delete: if false; // Never allow hard delete from client
 
     allow update: if request.auth != null
@@ -473,32 +401,34 @@ match /groups/{groupId}/comments/{commentId} {
             request.resource.data.diff(resource.data).affectedKeys()
                 .hasOnly(['deletedAt', 'deletedBy', 'updatedAt'])
             && (
-                // Must be comment author or group admin
-                resource.data.authorId == request.auth.uid
-                || isGroupAdmin(groupId, request.auth.uid)
+                // Must be settlement creator or group admin
+                resource.data.createdBy == request.auth.uid
+                || isGroupAdmin(resource.data.groupId, request.auth.uid)
             )
             && request.resource.data.deletedBy == request.auth.uid
             && request.resource.data.deletedAt != null
         );
 }
+
+// Comments remain hard delete - no soft delete rules needed
 ```
 
 ## 8. Future Enhancements
 
 ### 8.1. Undelete Functionality
-- Add `POST /api/comments/:id/restore` endpoint
 - Add `POST /api/settlements/:id/restore` endpoint
+- Add `POST /api/expenses/:id/restore` endpoint (if not already exists)
 - UI: "Undo delete" notification for 30 seconds after deletion
 
 ### 8.2. Admin Dashboard
-- View all deleted items across groups
+- View all deleted financial items (settlements, expenses) across groups
 - Bulk restore/permanently delete operations
 - Export deleted items for compliance audits
 
 ### 8.3. Automated Cleanup
-- Background job to permanently delete items older than X days
+- Background job to permanently delete settlements/expenses older than X days
 - Configurable retention policies per group or globally
-- Notification before permanent deletion
+- Notification before permanent deletion of financial records
 
 ### 8.4. Deletion Reasons
 - Add optional `deletionReason: string` field
@@ -508,16 +438,17 @@ match /groups/{groupId}/comments/{commentId} {
 ## 9. Success Metrics
 
 ### 9.1. Technical Metrics
-- [ ] 100% of comments have soft delete fields after migration
 - [ ] 100% of settlements have soft delete fields after migration
-- [ ] Zero hard deletes in production logs after rollout
-- [ ] All list queries exclude soft-deleted items by default
-- [ ] Test coverage > 90% for soft delete functionality
+- [ ] Zero hard deletes for settlements/expenses in production logs after rollout
+- [ ] All settlement list queries exclude soft-deleted items by default
+- [ ] Test coverage > 90% for settlement soft delete functionality
+- [ ] Comments continue to use hard delete (expected behavior)
 
 ### 9.2. User Impact Metrics
-- [ ] Reduction in "accidental deletion" support tickets
-- [ ] Time to restore accidentally deleted items (future: < 1 minute)
-- [ ] User satisfaction with deletion/restoration flow
+- [ ] Reduction in "accidental settlement deletion" support tickets
+- [ ] Time to restore accidentally deleted settlements (future: < 1 minute)
+- [ ] User satisfaction with settlement deletion/restoration flow
+- [ ] No complaints about comment deletion (hard delete is acceptable for ephemeral content)
 
 ## 10. Rollout Plan
 
@@ -559,9 +490,10 @@ match /groups/{groupId}/comments/{commentId} {
 - **Rollback**: Can remove filter temporarily if needed
 
 ### 11.3. Risk: Balance Calculation Errors
-- **Impact**: Incorrect balances if soft-deleted settlements included
-- **Mitigation**: Comprehensive testing, verify balance calculations exclude soft-deleted items
+- **Impact**: Incorrect balances if soft-deleted settlements included in calculations
+- **Mitigation**: Comprehensive testing, verify balance calculations exclude soft-deleted settlements
 - **Monitoring**: Alert on balance calculation errors
+- **Critical**: This is the main reason settlements need soft delete (balance impact)
 
 ### 11.4. Risk: Breaking API Changes
 - **Impact**: Client apps break if deletion endpoint behavior changes unexpectedly
@@ -572,11 +504,12 @@ match /groups/{groupId}/comments/{commentId} {
 
 - [ ] All code merged to main branch
 - [ ] All tests passing (unit, integration, E2E)
-- [ ] Data migration completed successfully in production
+- [ ] Data migration completed successfully for settlements in production
 - [ ] Documentation updated (API docs, architecture guides, code comments)
-- [ ] Firestore indexes created for optimal query performance
-- [ ] Security rules updated and tested
-- [ ] Monitoring dashboards updated with soft delete metrics
-- [ ] Team trained on new soft delete pattern
+- [ ] Firestore indexes created for settlement queries
+- [ ] Security rules updated and tested for settlements
+- [ ] Monitoring dashboards updated with settlement soft delete metrics
+- [ ] Team trained on settlement soft delete pattern
 - [ ] No critical bugs in production for 1 week post-rollout
-- [ ] Support tickets related to accidental deletions reduced by >50%
+- [ ] Support tickets related to accidental settlement deletions reduced by >50%
+- [ ] Comments confirmed to use hard delete (no changes required)
