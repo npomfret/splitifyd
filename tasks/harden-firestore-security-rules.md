@@ -4,7 +4,7 @@
 **Date**: January 2025
 **Priority**: Phase 1 achieved 100% validation coverage. Phase 2 focuses on application-layer security gaps.
 
-**Phase 2A Progress**: 1/3 complete (Test Endpoints Guard âœ…)
+**Phase 2A Progress**: 1/2 complete (Test Endpoints Guard âœ…)
 
 ---
 
@@ -30,7 +30,6 @@ Phase 1 hardened the **data layer** (Firestore validation and security rules).
 Phase 2 addresses **application-layer security gaps** identified in January 2025 security audit.
 
 **Risk Assessment**: Current application-layer risk is **MEDIUM** due to:
-- No rate limiting (DoS/brute force vulnerability)
 - Information disclosure in health endpoint
 - Email enumeration vectors
 - Sensitive data potentially logged
@@ -39,100 +38,6 @@ Phase 2 addresses **application-layer security gaps** identified in January 2025
 ---
 
 ## High Priority Issues
-
-### 1. Rate Limiting   CRITICAL
-
-**Issue**: No rate limiting implemented - vulnerable to brute force, credential stuffing, and DoS attacks.
-
-**Attack Vectors**:
-- Brute force attacks on `/register` endpoint
-- Credential stuffing attacks
-- API resource exhaustion
-- Authentication endpoint abuse
-
-**Current State**:
-- Zero rate limiting middleware
-- All endpoints accept unlimited requests
-- No IP-based throttling
-- No user-based request limits
-
-**Recommendation**: Implement rate limiting using `express-rate-limit`
-
-**Files to Modify**:
-1. Create `firebase/functions/src/middleware/rate-limiter.ts`
-2. Update `firebase/functions/src/index.ts` to apply rate limiters
-
-**Implementation**:
-
-```typescript
-// NEW FILE: firebase/functions/src/middleware/rate-limiter.ts
-import rateLimit from 'express-rate-limit';
-
-/**
- * Strict rate limiter for authentication endpoints
- * Prevents brute force and credential stuffing attacks
- */
-export const authRateLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // 5 attempts per IP per window
-    message: 'Too many authentication attempts, please try again later',
-    standardHeaders: true, // Return rate limit info in RateLimit-* headers
-    legacyHeaders: false,
-    skipSuccessfulRequests: false, // Count all requests
-});
-
-/**
- * Standard rate limiter for general API endpoints
- * Prevents resource exhaustion and DoS attacks
- */
-export const apiRateLimiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // 1 minute
-    max: 100, // 100 requests per IP per minute
-    message: 'Too many requests, please slow down',
-    standardHeaders: true,
-    legacyHeaders: false,
-});
-
-/**
- * Relaxed rate limiter for authenticated endpoints
- * More permissive for logged-in users
- */
-export const authenticatedRateLimiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // 1 minute
-    max: 200, // 200 requests per minute for authenticated users
-    message: 'Too many requests, please slow down',
-    standardHeaders: true,
-    legacyHeaders: false,
-});
-```
-
-**Apply in index.ts**:
-
-```typescript
-import { authRateLimiter, apiRateLimiter, authenticatedRateLimiter } from './middleware/rate-limiter';
-
-// Auth endpoints - strict rate limiting
-app.post('/register', authRateLimiter, asyncHandler(register));
-
-// General API endpoints - moderate rate limiting
-app.use('/api', apiRateLimiter);
-
-// Authenticated endpoints - relaxed rate limiting
-app.use('/groups', authenticate, authenticatedRateLimiter, ...);
-app.use('/expenses', authenticate, authenticatedRateLimiter, ...);
-```
-
-**Dependencies**: Add `express-rate-limit` to package.json
-
-**Testing**:
-- Unit tests for rate limiter configuration
-- Integration tests for enforcement
-- Load tests to verify limits don't impact normal usage
-
-**Effort**: Medium (4-6 hours)
-**Impact**: High (prevents DoS and brute force attacks)
-
----
 
 ### 3. User Email Duplication - Data Consistency Issue   HIGH
 
@@ -816,30 +721,29 @@ export function applySecurityHeaders(req: Request, res: Response, next: NextFunc
 ## Implementation Priority
 
 ### Phase 2A (Critical - Do First)
-1.  Rate Limiting (Issue #1) - Prevents DoS attacks
-2. âœ… Test Endpoints Guard (Issue #2) - Prevents privilege escalation - COMPLETE
-3.  Email Duplication Fix (Issue #3) - Fixes data consistency
+1. âœ… Test Endpoints Guard (Issue #2) - Prevents privilege escalation - COMPLETE
+2.  Email Duplication Fix (Issue #3) - Fixes data consistency
 
-**Estimated Effort**: 10-14 hours
+**Estimated Effort**: 4-6 hours
 **Risk Reduction**: HIGH ’ MEDIUM
 
 ### Phase 2B (Important - Do Second)
-4.  Health Endpoint Security (Issue #4) - Reduces information disclosure
-5.  Email Enumeration (Issue #5) - Protects user privacy
-6.  Log Sanitization (Issue #6) - Prevents credential leakage
+1.  Health Endpoint Security (Issue #4) - Reduces information disclosure
+2.  Email Enumeration (Issue #5) - Protects user privacy
+3.  Log Sanitization (Issue #6) - Prevents credential leakage
 
 **Estimated Effort**: 7-10 hours
 **Risk Reduction**: MEDIUM ’ LOW-MEDIUM
 
 ### Phase 2C (Compliance - Do Third)
-7.  Audit Logging (Issue #7) - Compliance and forensics
+1.  Audit Logging (Issue #7) - Compliance and forensics
 
 **Estimated Effort**: 6-8 hours
 **Risk Reduction**: Compliance improvement
 
 ### Phase 2D (Hardening - Optional)
-8.  Enhanced Headers (Issue #8) - Defense in depth
-9.  Input Sanitization Audit (Issue #9) - Verification
+1.  Enhanced Headers (Issue #8) - Defense in depth
+2.  Input Sanitization Audit (Issue #9) - Verification
 
 **Estimated Effort**: 3-4 hours
 **Risk Reduction**: LOW (already well-protected)
@@ -849,38 +753,29 @@ export function applySecurityHeaders(req: Request, res: Response, next: NextFunc
 ## Testing Strategy
 
 ### Unit Tests
-- Rate limiter configuration
 - Log sanitization logic
 - Email enumeration timing-safe responses
 - Environment guard logic
 
 ### Integration Tests
-- Rate limiting enforcement
 - Test endpoint blocking in production
 - User creation without email duplication
 - Health endpoint authorization
 - Audit log creation
 
 ### Security Tests
-- Brute force attack simulation (rate limiting)
 - Email enumeration attempts
 - Log inspection for sensitive data
 - Test endpoint access attempts in production
 
 ### Load Tests
-- Rate limiting doesn't impact normal usage
 - Health endpoint performance
 
 ---
 
 ## Dependencies
 
-**New npm packages required**:
-- `express-rate-limit` - For rate limiting middleware
-
-**Version constraints**:
-- Compatible with Express 4.x
-- Node.js 18+ (current runtime)
+No new npm packages required for Phase 2 implementation.
 
 ---
 
@@ -888,25 +783,22 @@ export function applySecurityHeaders(req: Request, res: Response, next: NextFunc
 
 Each issue can be rolled back independently:
 
-1. **Rate Limiting**: Remove middleware imports, revert route changes
-2. **Test Endpoints**: Remove environment guards
-3. **Email Duplication**: Revert schema changes, restore email writes
-4. **Health Endpoint**: Revert to single endpoint
-5. **Other changes**: File-by-file rollback via git
+1. **Test Endpoints**: Remove environment guards
+2. **Email Duplication**: Revert schema changes, restore email writes
+3. **Health Endpoint**: Revert to single endpoint
+4. **Other changes**: File-by-file rollback via git
 
 ---
 
 ## Success Metrics
 
 ### Security Metrics
-- Zero successful brute force attempts (rate limiting)
 - Zero test endpoint access in production
 - Zero email enumeration successes
 - Zero credentials logged
 - 100% admin actions audited
 
 ### Performance Metrics
-- Rate limiting doesn't increase p99 latency by >10ms
 - Health endpoint responds <100ms (public) and <500ms (detailed)
 
 ### Quality Metrics
