@@ -1,5 +1,14 @@
 # COMMAND-FIRST WORKFLOW
 
+@docs/guides/building-and-testing.md
+@docs/guides/code.md
+@docs/guides/end-to-end_testing.md
+@docs/guides/firebase.md
+@docs/guides/general.md
+@docs/guides/testnig.md
+@docs/guides/types.md
+@docs/guides/webapp-and-style-guide.md
+
 ## 🚀 Start EVERY Request with `/p`
 
 The `/p` meta-prompt command automatically selects the best tools for your task:
