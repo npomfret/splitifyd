@@ -57,14 +57,19 @@ const GroupSchema = z.object({
     id: z.string().min(1),
     name: z.string().min(1),
     description: z.string().optional(),
-    balance: z.object({
-        balancesByCurrency: z.record(z.string(), z.object({
-            currency: z.string(),
-            netBalance: z.number(),
-            owes: z.record(z.string(), z.number()).optional(),
-            owedBy: z.record(z.string(), z.number()).optional(),
-        })),
-    }).optional(),
+    balance: z
+        .object({
+            balancesByCurrency: z.record(
+                z.string(),
+                z.object({
+                    currency: z.string(),
+                    netBalance: z.number(),
+                    owes: z.record(z.string(), z.number()).optional(),
+                    owedBy: z.record(z.string(), z.number()).optional(),
+                }),
+            ),
+        })
+        .optional(),
     lastActivity: z.string().min(1),
     lastExpense: z
         .object({

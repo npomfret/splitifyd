@@ -140,7 +140,7 @@ export class MockFirebase {
         if ((this.state.loginBehavior === 'success' || this.state.loginBehavior === 'delayed') && this.state.successUser) {
             // Add delay if configured
             if (this.state.loginBehavior === 'delayed' && this.state.delayMs) {
-                await new Promise(resolve => setTimeout(resolve, this.state.delayMs));
+                await new Promise((resolve) => setTimeout(resolve, this.state.delayMs));
             }
 
             this.state.currentUser = this.state.successUser;
@@ -189,18 +189,21 @@ export class MockFirebase {
     }
 
     public async triggerNotificationUpdate(userId: string, data: any): Promise<void> {
-        await this.page.evaluate(({ userId, data }) => {
-            const path = `user-notifications/${userId}`;
-            const listener = window.__TEST_ENV__!.firebase.firestoreListeners.get(path);
-            if (listener) {
-                // Create a mock snapshot with the notification data
-                const mockSnapshot = {
-                    exists: () => data !== null,
-                    data: () => data,
-                };
-                listener(mockSnapshot);
-            }
-        }, { userId, data });
+        await this.page.evaluate(
+            ({ userId, data }) => {
+                const path = `user-notifications/${userId}`;
+                const listener = window.__TEST_ENV__!.firebase.firestoreListeners.get(path);
+                if (listener) {
+                    // Create a mock snapshot with the notification data
+                    const mockSnapshot = {
+                        exists: () => data !== null,
+                        data: () => data,
+                    };
+                    listener(mockSnapshot);
+                }
+            },
+            { userId, data },
+        );
     }
 
     public async dispose(): Promise<void> {
@@ -229,7 +232,6 @@ export async function mockApiRoute(page: Page, url: string, response: any, statu
         });
     });
 }
-
 
 /**
  * Mock policies API endpoint
@@ -268,7 +270,6 @@ export async function mockGroupsApi(page: Page, response: ListGroupsResponse): P
     await mockApiRoute(page, '/api/groups?includeMetadata=true', response);
 }
 
-
 /**
  * Mock API failure with specific status code and error message
  */
@@ -292,8 +293,8 @@ export async function mockGroupCommentsApi(page: Page, groupId: string, comments
         data: {
             comments,
             count: comments.length,
-            hasMore: false
-        }
+            hasMore: false,
+        },
     });
 }
 
@@ -314,8 +315,8 @@ export async function mockGenerateShareLinkApi(page: Page, groupId: string, shar
                 contentType: 'application/json',
                 body: JSON.stringify({
                     linkId: shareToken,
-                    shareablePath: `/join/${shareToken}`
-                })
+                    shareablePath: `/join/${shareToken}`,
+                }),
             });
         } else {
             await route.continue();

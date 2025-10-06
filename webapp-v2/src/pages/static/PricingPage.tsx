@@ -31,12 +31,7 @@ export function PricingPage() {
     };
 
     return (
-        <StaticPageLayout
-            title={t('pricing.title')}
-            description={t('pricing.description')}
-            canonical={canonical}
-            structuredData={structuredData}
-        >
+        <StaticPageLayout title={t('pricing.title')} description={t('pricing.description')} canonical={canonical} structuredData={structuredData}>
             <div class="space-y-8">
                 {/* Pricing Hero */}
                 <div class="text-center">
@@ -142,9 +137,7 @@ export function PricingPage() {
 
                 {/* Transparency Notice */}
                 <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                    <p class="text-gray-700">
-                        {t('pricing.disclaimer')}
-                    </p>
+                    <p class="text-gray-700">{t('pricing.disclaimer')}</p>
                 </div>
             </div>
         </StaticPageLayout>

@@ -82,7 +82,11 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
 
                         {/* Theme color indicator dot */}
                         {!isDeleted && paidByTheme && (
-                            <div className="w-2 h-2 rounded-full mt-1 ml-auto" style={{ backgroundColor: themeColor }} title={`${paidByUser?.displayName || t('common.unknown')} (${paidByTheme.name})`} />
+                            <div
+                                className="w-2 h-2 rounded-full mt-1 ml-auto"
+                                style={{ backgroundColor: themeColor }}
+                                title={`${paidByUser?.displayName || t('common.unknown')} (${paidByTheme.name})`}
+                            />
                         )}
                     </div>
 

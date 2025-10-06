@@ -1,17 +1,17 @@
-import {ReadonlySignal, signal} from '@preact/signals';
-import type {User as FirebaseUser} from 'firebase/auth';
-import {firebaseService} from '../firebase';
-import {apiClient} from '../apiClient';
-import {USER_ID_KEY} from '@/constants.ts';
-import {logError} from '@/utils/browser-logger.ts';
-import type {ClientUser} from "@splitifyd/shared";
-import {AuthErrors} from '@splitifyd/shared';
-import {enhancedGroupsStore as groupsStore} from './groups-store-enhanced';
-import {enhancedGroupDetailStore} from './group-detail-store-enhanced';
-import {themeStore} from './theme-store';
-import {createUserScopedStorage} from '@/utils/userScopedStorage.ts';
-import {CurrencyService} from '../services/currencyService';
-import {expenseFormStore} from './expense-form-store';
+import { ReadonlySignal, signal } from '@preact/signals';
+import type { User as FirebaseUser } from 'firebase/auth';
+import { firebaseService } from '../firebase';
+import { apiClient } from '../apiClient';
+import { USER_ID_KEY } from '@/constants.ts';
+import { logError } from '@/utils/browser-logger.ts';
+import type { ClientUser } from '@splitifyd/shared';
+import { AuthErrors } from '@splitifyd/shared';
+import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
+import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
+import { themeStore } from './theme-store';
+import { createUserScopedStorage } from '@/utils/userScopedStorage.ts';
+import { CurrencyService } from '../services/currencyService';
+import { expenseFormStore } from './expense-form-store';
 
 // Auth types - moved from types/auth.ts
 interface AuthState {

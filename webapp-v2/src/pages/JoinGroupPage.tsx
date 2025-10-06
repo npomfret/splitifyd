@@ -68,7 +68,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             <div className="text-red-500 text-4xl mb-4" role="alert" data-testid="invalid-link-warning">
                                 ⚠️
                             </div>
-                            <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('common.invalidLink')}</h2>
+                            <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('errors.invalidLink')}</h2>
                             <p className="text-gray-600 mb-6">{t('joinGroupPage.errors.invalidLink')}</p>
                             <Button variant="secondary" onClick={() => navigationService.goToDashboard()} className="w-full">
                                 {t('notFoundPage.goToDashboard')}

@@ -59,15 +59,12 @@ test.describe('Authentication Flow', () => {
         // 4. Verify network error handling
         await loginPage.verifyErrorMessage('Network error. Please check your connection.');
     });
-
 });
 
 test.describe('Authentication Flow - Already Authenticated', () => {
     test('should redirect already authenticated user from login page', async ({ pageWithLogging: page, authenticatedMockFirebase }) => {
         // Create authenticated user for this test
-        const testUser = ClientUserBuilder.validUser()
-            .withDisplayName('Test User')
-            .build();
+        const testUser = ClientUserBuilder.validUser().withDisplayName('Test User').build();
 
         await setupSuccessfulApiMocks(page);
 

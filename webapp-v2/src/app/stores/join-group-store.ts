@@ -77,7 +77,7 @@ class JoinGroupStore {
                 balance: {
                     balancesByCurrency: {},
                 },
-                lastActivity: 'Never'
+                lastActivity: 'Never',
             };
 
             this.#groupSignal.value = group;

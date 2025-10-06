@@ -103,7 +103,12 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900">{t('policyComponents.policyAcceptanceModal.title')}</h2>
                         <p className="text-sm text-gray-600 mt-1">
-                            {t('policyComponents.policyAcceptanceModal.policyLabel')}{currentPolicyIndex + 1}{t('policyComponents.policyAcceptanceModal.of')}{policies.length}{t('policyComponents.policyAcceptanceModal.colon')}{currentPolicy.policyName}
+                            {t('policyComponents.policyAcceptanceModal.policyLabel')}
+                            {currentPolicyIndex + 1}
+                            {t('policyComponents.policyAcceptanceModal.of')}
+                            {policies.length}
+                            {t('policyComponents.policyAcceptanceModal.colon')}
+                            {currentPolicy.policyName}
                         </p>
                     </div>
                     {onClose && (
@@ -120,7 +125,10 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                     <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
                         <span>{t('policyComponents.policyAcceptanceModal.progress')}</span>
                         <span>
-                            {acceptedPolicies.size}{t('policyComponents.policyAcceptanceModal.of')}{policies.length}{t('policyComponents.policyAcceptanceModal.accepted')}
+                            {acceptedPolicies.size}
+                            {t('policyComponents.policyAcceptanceModal.of')}
+                            {policies.length}
+                            {t('policyComponents.policyAcceptanceModal.accepted')}
                         </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -138,7 +146,11 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                 <Stack spacing="md">
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-lg font-semibold text-gray-900">{currentPolicy.policyName}</h3>
-                                        {canAcceptCurrent && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{t('policyComponents.policyAcceptanceModal.acceptedIcon')}</span>}
+                                        {canAcceptCurrent && (
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                {t('policyComponents.policyAcceptanceModal.acceptedIcon')}
+                                            </span>
+                                        )}
                                     </div>
 
                                     {loadingPolicy === currentPolicy.policyId ? (
@@ -188,7 +200,8 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                                             }}
                                                         />
                                                         <label htmlFor={`accept-${currentPolicy.policyId}`} className="ml-2 text-sm text-blue-800">
-                                                            {t('policyComponents.policyAcceptanceModal.acceptCheckbox')}{currentPolicy.policyName.toLowerCase()}
+                                                            {t('policyComponents.policyAcceptanceModal.acceptCheckbox')}
+                                                            {currentPolicy.policyName.toLowerCase()}
                                                         </label>
                                                     </div>
                                                 </div>
@@ -215,7 +228,10 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                     <div className="flex items-center gap-2">
                         {policies.length > 1 && (
                             <span className="text-sm text-gray-500">
-                                {acceptedPolicies.size}{t('policyComponents.policyAcceptanceModal.of')}{policies.length}{t('policyComponents.policyAcceptanceModal.policiesAccepted')}
+                                {acceptedPolicies.size}
+                                {t('policyComponents.policyAcceptanceModal.of')}
+                                {policies.length}
+                                {t('policyComponents.policyAcceptanceModal.policiesAccepted')}
                             </span>
                         )}
                         <Button onClick={handleAcceptAll} disabled={!allPoliciesAccepted || loading}>

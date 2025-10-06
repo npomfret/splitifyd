@@ -6,11 +6,11 @@ vi.mock('@splitifyd/shared', () => ({
     getCurrency: vi.fn((code: string) => {
         const upperCode = code.toUpperCase();
         const currencies = {
-            'USD': { symbol: '$', decimal_digits: 2, code: 'USD' },
-            'EUR': { symbol: '€', decimal_digits: 2, code: 'EUR' },
-            'JPY': { symbol: '¥', decimal_digits: 0, code: 'JPY' },
-            'GBP': { symbol: '£', decimal_digits: 2, code: 'GBP' },
-            'BHD': { symbol: 'BD', decimal_digits: 3, code: 'BHD' }, // Bahraini Dinar has 3 decimal places
+            USD: { symbol: '$', decimal_digits: 2, code: 'USD' },
+            EUR: { symbol: '€', decimal_digits: 2, code: 'EUR' },
+            JPY: { symbol: '¥', decimal_digits: 0, code: 'JPY' },
+            GBP: { symbol: '£', decimal_digits: 2, code: 'GBP' },
+            BHD: { symbol: 'BD', decimal_digits: 3, code: 'BHD' }, // Bahraini Dinar has 3 decimal places
         };
 
         const currency = currencies[upperCode as keyof typeof currencies];
@@ -24,7 +24,7 @@ vi.mock('@splitifyd/shared', () => ({
 describe('formatCurrency', () => {
     describe('basic formatting', () => {
         it('should format USD currency with default options', () => {
-            const result = formatCurrency(25.50, 'USD');
+            const result = formatCurrency(25.5, 'USD');
             // Should use Intl.NumberFormat for proper locale formatting
             expect(result).toMatch(/\$25\.50/);
         });
@@ -53,27 +53,27 @@ describe('formatCurrency', () => {
 
     describe('edge cases', () => {
         it('should handle empty currency code by returning unformatted amount', () => {
-            const result = formatCurrency(25.50, '');
+            const result = formatCurrency(25.5, '');
             expect(result).toBe('25.50');
         });
 
         it('should handle whitespace-only currency code', () => {
-            const result = formatCurrency(25.50, '   ');
+            const result = formatCurrency(25.5, '   ');
             expect(result).toBe('25.50');
         });
 
         it('should handle null currency code by returning unformatted amount', () => {
-            const result = formatCurrency(25.50, null as any);
+            const result = formatCurrency(25.5, null as any);
             expect(result).toBe('25.50');
         });
 
         it('should handle undefined currency code', () => {
-            const result = formatCurrency(25.50, undefined as any);
+            const result = formatCurrency(25.5, undefined as any);
             expect(result).toBe('25.50');
         });
 
         it('should throw error for invalid currency codes', () => {
-            expect(() => formatCurrency(25.50, 'INVALID')).toThrow('Invalid currency code: INVALID');
+            expect(() => formatCurrency(25.5, 'INVALID')).toThrow('Invalid currency code: INVALID');
         });
 
         it('should handle zero amount', () => {
@@ -88,7 +88,7 @@ describe('formatCurrency', () => {
         });
 
         it('should handle very large amounts', () => {
-            const result = formatCurrency(1000000.50, 'USD');
+            const result = formatCurrency(1000000.5, 'USD');
             expect(result).toContain('1,000,000.50');
         });
 
@@ -110,7 +110,7 @@ describe('formatCurrency', () => {
             } as any;
 
             const options: FormatOptions = { showSymbol: false };
-            const result = formatCurrency(25.50, 'USD', options);
+            const result = formatCurrency(25.5, 'USD', options);
             expect(result).not.toContain('$');
             expect(result).toBe('25.50');
 
@@ -127,7 +127,7 @@ describe('formatCurrency', () => {
             } as any;
 
             const options: FormatOptions = { showCode: true, showSymbol: false };
-            const result = formatCurrency(25.50, 'USD', options);
+            const result = formatCurrency(25.5, 'USD', options);
             expect(result).toContain('USD');
             expect(result).toBe('25.50 USD');
 
@@ -144,7 +144,7 @@ describe('formatCurrency', () => {
             } as any;
 
             const options: FormatOptions = { showSymbol: true, showCode: true };
-            const result = formatCurrency(25.50, 'USD', options);
+            const result = formatCurrency(25.5, 'USD', options);
             expect(result).toContain('$');
             expect(result).toContain('USD');
             expect(result).toBe('$25.50 USD');
@@ -171,7 +171,7 @@ describe('formatCurrency', () => {
                 }),
             } as any;
 
-            const result = formatCurrency(25.50, 'USD');
+            const result = formatCurrency(25.5, 'USD');
             expect(result).toBe('$25.50');
 
             // Restore original Intl
@@ -187,7 +187,7 @@ describe('formatCurrency', () => {
                 }),
             } as any;
 
-            const result = formatCurrency(25.50, 'USD', { showCode: true, showSymbol: false });
+            const result = formatCurrency(25.5, 'USD', { showCode: true, showSymbol: false });
             expect(result).toBe('25.50 USD');
 
             global.Intl = originalIntl;
@@ -202,7 +202,7 @@ describe('formatCurrency', () => {
                 }),
             } as any;
 
-            const result = formatCurrency(25.50, 'USD', { showSymbol: true, showCode: true });
+            const result = formatCurrency(25.5, 'USD', { showSymbol: true, showCode: true });
             expect(result).toBe('$25.50 USD');
 
             global.Intl = originalIntl;
@@ -217,7 +217,7 @@ describe('formatCurrency', () => {
                 }),
             } as any;
 
-            const result = formatCurrency(25.50, 'USD', { showSymbol: false, showCode: false });
+            const result = formatCurrency(25.5, 'USD', { showSymbol: false, showCode: false });
             expect(result).toBe('25.50');
 
             global.Intl = originalIntl;
@@ -248,12 +248,12 @@ describe('formatCurrency', () => {
 
     describe('case sensitivity', () => {
         it('should handle lowercase currency codes', () => {
-            const result = formatCurrency(25.50, 'usd');
+            const result = formatCurrency(25.5, 'usd');
             expect(result).toMatch(/\$25\.50/);
         });
 
         it('should handle mixed case currency codes', () => {
-            const result = formatCurrency(25.50, 'Usd');
+            const result = formatCurrency(25.5, 'Usd');
             expect(result).toMatch(/\$25\.50/);
         });
 
@@ -266,7 +266,7 @@ describe('formatCurrency', () => {
                 }),
             } as any;
 
-            const result = formatCurrency(25.50, 'usd', { showCode: true, showSymbol: false });
+            const result = formatCurrency(25.5, 'usd', { showCode: true, showSymbol: false });
             expect(result).toBe('25.50 USD');
 
             global.Intl = originalIntl;

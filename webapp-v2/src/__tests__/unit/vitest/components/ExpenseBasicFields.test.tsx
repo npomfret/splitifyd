@@ -21,17 +21,8 @@ vi.mock('@/components/ui', () => ({
     ),
     CurrencyAmountInput: ({ amount, currency, onAmountChange, onCurrencyChange, recentCurrencies, ...props }: any) => (
         <div data-testid="currency-amount-input">
-            <input
-                data-testid="amount-input"
-                value={amount}
-                onChange={(e) => onAmountChange((e.target as HTMLInputElement).value)}
-                {...props}
-            />
-            <select
-                data-testid="currency-select"
-                value={currency}
-                onChange={(e) => onCurrencyChange((e.target as HTMLSelectElement).value)}
-            >
+            <input data-testid="amount-input" value={amount} onChange={(e) => onAmountChange((e.target as HTMLInputElement).value)} {...props} />
+            <select data-testid="currency-select" value={currency} onChange={(e) => onCurrencyChange((e.target as HTMLSelectElement).value)}>
                 <option value="">Select Currency</option>
                 {recentCurrencies?.map((curr: string) => (
                     <option key={curr} value={curr}>
@@ -43,12 +34,7 @@ vi.mock('@/components/ui', () => ({
     ),
     CategorySuggestionInput: ({ value, onChange, suggestions, ...props }: any) => (
         <div data-testid="category-suggestion-input">
-            <input
-                data-testid="category-input"
-                value={value}
-                onChange={(e) => onChange((e.target as HTMLInputElement).value)}
-                {...props}
-            />
+            <input data-testid="category-input" value={value} onChange={(e) => onChange((e.target as HTMLInputElement).value)} {...props} />
             <div data-testid="suggestions" style={{ display: 'none' }}>
                 {suggestions?.map((suggestion: any) => (
                     <div key={suggestion.name} data-testid={`suggestion-${suggestion.name}`}>
@@ -58,15 +44,7 @@ vi.mock('@/components/ui', () => ({
             </div>
         </div>
     ),
-    TimeInput: ({ value, onChange, ...props }: any) => (
-        <input
-            data-testid="time-input"
-            type="time"
-            value={value}
-            onChange={(e) => onChange((e.target as HTMLInputElement).value)}
-            {...props}
-        />
-    ),
+    TimeInput: ({ value, onChange, ...props }: any) => <input data-testid="time-input" type="time" value={value} onChange={(e) => onChange((e.target as HTMLInputElement).value)} {...props} />,
 }));
 
 // Mock the Stack component
@@ -109,7 +87,7 @@ describe('ExpenseBasicFields - Recent Amounts & Category Suggestions', () => {
 
     const defaultProps = {
         description: 'Test expense',
-        amount: 25.50,
+        amount: 25.5,
         currency: 'EUR',
         date: '2022-01-15',
         time: '12:00',
@@ -132,7 +110,7 @@ describe('ExpenseBasicFields - Recent Amounts & Category Suggestions', () => {
     describe('Recent Amounts Feature', () => {
         it('should display recent amounts when available', () => {
             // Arrange
-            mockGetRecentAmounts.mockReturnValue([12.50, 25.00, 45.75]);
+            mockGetRecentAmounts.mockReturnValue([12.5, 25.0, 45.75]);
 
             // Act
             render(<ExpenseBasicFields {...defaultProps} />);
@@ -160,7 +138,7 @@ describe('ExpenseBasicFields - Recent Amounts & Category Suggestions', () => {
 
         it('should call updateField with correct amount when recent amount button is clicked', () => {
             // Arrange
-            mockGetRecentAmounts.mockReturnValue([12.50, 25.00]);
+            mockGetRecentAmounts.mockReturnValue([12.5, 25.0]);
 
             // Act
             render(<ExpenseBasicFields {...defaultProps} />);
@@ -169,19 +147,19 @@ describe('ExpenseBasicFields - Recent Amounts & Category Suggestions', () => {
             fireEvent.click(button12_50);
 
             // Assert
-            expect(mockUpdateField).toHaveBeenCalledWith('amount', 12.50);
+            expect(mockUpdateField).toHaveBeenCalledWith('amount', 12.5);
         });
 
         it('should handle multiple recent amounts correctly', () => {
             // Arrange - test with maximum expected amounts
-            const recentAmounts = [10.00, 15.50, 22.75, 35.25, 50.00];
+            const recentAmounts = [10.0, 15.5, 22.75, 35.25, 50.0];
             mockGetRecentAmounts.mockReturnValue(recentAmounts);
 
             // Act
             render(<ExpenseBasicFields {...defaultProps} />);
 
             // Assert
-            recentAmounts.forEach(amount => {
+            recentAmounts.forEach((amount) => {
                 const formattedAmount = `EUR${amount.toFixed(2)}`;
                 expect(screen.getByRole('button', { name: formattedAmount })).toBeInTheDocument();
             });
@@ -193,7 +171,7 @@ describe('ExpenseBasicFields - Recent Amounts & Category Suggestions', () => {
 
         it('should format recent amounts correctly with different currencies', () => {
             // Arrange
-            mockGetRecentAmounts.mockReturnValue([100, 250.50]);
+            mockGetRecentAmounts.mockReturnValue([100, 250.5]);
             const props = { ...defaultProps, currency: 'JPY' };
 
             // Act
@@ -216,15 +194,13 @@ describe('ExpenseBasicFields - Recent Amounts & Category Suggestions', () => {
             expect(screen.getByRole('button', { name: 'EUR42.75' })).toBeInTheDocument();
 
             // Ensure only one button exists
-            const amountButtons = screen.getAllByRole('button').filter(btn =>
-                btn.textContent?.startsWith('EUR')
-            );
+            const amountButtons = screen.getAllByRole('button').filter((btn) => btn.textContent?.startsWith('EUR'));
             expect(amountButtons).toHaveLength(1);
         });
 
         it('should handle zero amount in recent amounts', () => {
             // Arrange
-            mockGetRecentAmounts.mockReturnValue([0, 15.50]);
+            mockGetRecentAmounts.mockReturnValue([0, 15.5]);
 
             // Act
             render(<ExpenseBasicFields {...defaultProps} />);
@@ -313,7 +289,7 @@ describe('ExpenseBasicFields - Recent Amounts & Category Suggestions', () => {
     describe('Integration Tests - Recent Amounts + Category Suggestions', () => {
         it('should render both features simultaneously when data is available', () => {
             // Arrange
-            mockGetRecentAmounts.mockReturnValue([15.00, 30.00]);
+            mockGetRecentAmounts.mockReturnValue([15.0, 30.0]);
 
             // Act
             render(<ExpenseBasicFields {...defaultProps} />);
@@ -330,7 +306,7 @@ describe('ExpenseBasicFields - Recent Amounts & Category Suggestions', () => {
 
         it('should handle interaction with both features in sequence', () => {
             // Arrange
-            mockGetRecentAmounts.mockReturnValue([20.00]);
+            mockGetRecentAmounts.mockReturnValue([20.0]);
 
             // Act
             render(<ExpenseBasicFields {...defaultProps} />);
@@ -343,7 +319,7 @@ describe('ExpenseBasicFields - Recent Amounts & Category Suggestions', () => {
             fireEvent.change(categoryInput, { target: { value: 'transport' } });
 
             // Assert
-            expect(mockUpdateField).toHaveBeenCalledWith('amount', 20.00);
+            expect(mockUpdateField).toHaveBeenCalledWith('amount', 20.0);
             expect(mockUpdateField).toHaveBeenCalledWith('category', 'transport');
             expect(mockUpdateField).toHaveBeenCalledTimes(2);
         });
@@ -398,7 +374,7 @@ describe('ExpenseBasicFields - Recent Amounts & Category Suggestions', () => {
 
         it('should handle very large recent amounts', () => {
             // Arrange
-            mockGetRecentAmounts.mockReturnValue([999999.99, 1000000.00]);
+            mockGetRecentAmounts.mockReturnValue([999999.99, 1000000.0]);
 
             // Act
             render(<ExpenseBasicFields {...defaultProps} />);

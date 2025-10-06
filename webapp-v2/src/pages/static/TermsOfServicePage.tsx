@@ -29,7 +29,9 @@ export function TermsOfServicePage() {
     return (
         <StaticPageLayout title={t('staticPages.termsOfService.title')} description={t('staticPages.termsOfService.description')} canonical={canonical} structuredData={structuredData}>
             <div class="space-y-6">
-                <div class="text-sm text-gray-500 mb-8">{t('staticPages.common.lastUpdated')} {lastUpdated}</div>
+                <div class="text-sm text-gray-500 mb-8">
+                    {t('staticPages.common.lastUpdated')} {lastUpdated}
+                </div>
 
                 {loading && (
                     <div class="flex justify-center py-12">

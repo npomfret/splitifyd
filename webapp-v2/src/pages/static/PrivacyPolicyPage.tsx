@@ -27,14 +27,11 @@ export function PrivacyPolicyPage() {
     };
 
     return (
-        <StaticPageLayout
-            title={t('staticPages.privacyPolicy.title')}
-            description={t('staticPages.privacyPolicy.description')}
-            canonical={canonical}
-            structuredData={structuredData}
-        >
+        <StaticPageLayout title={t('staticPages.privacyPolicy.title')} description={t('staticPages.privacyPolicy.description')} canonical={canonical} structuredData={structuredData}>
             <div class="space-y-6">
-                <div class="text-sm text-gray-500 mb-8">{t('staticPages.common.lastUpdated')} {lastUpdated}</div>
+                <div class="text-sm text-gray-500 mb-8">
+                    {t('staticPages.common.lastUpdated')} {lastUpdated}
+                </div>
 
                 {loading && (
                     <div class="flex justify-center py-12">

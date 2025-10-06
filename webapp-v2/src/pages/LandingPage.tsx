@@ -9,10 +9,7 @@ export function LandingPage() {
     const { t } = useTranslation();
 
     return (
-        <BaseLayout
-            title={t('pages.landingPage.title')}
-            description={t('pages.landingPage.description')}
-        >
+        <BaseLayout title={t('pages.landingPage.title')} description={t('pages.landingPage.description')}>
             <div class="bg-white">
                 <main class="pt-16">
                     <HeroSection />

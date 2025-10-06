@@ -206,7 +206,6 @@ export function logApiResponse(
     }
 }
 
-
 /**
  * Logs an error with full context information
  * @param message - A descriptive message about what was happening

@@ -1,9 +1,9 @@
-import {signal, batch} from '@preact/signals';
-import {userNotificationDetector, UserNotificationDetector} from '@/utils/user-notification-detector';
-import {logError, logInfo} from '@/utils/browser-logger';
-import {ExpenseDTO, GroupDTO, GroupBalances, GroupMember, SettlementWithMembers} from '@splitifyd/shared';
-import {apiClient} from '../apiClient';
-import {permissionsStore} from '@/stores/permissions-store.ts';
+import { signal, batch } from '@preact/signals';
+import { userNotificationDetector, UserNotificationDetector } from '@/utils/user-notification-detector';
+import { logError, logInfo } from '@/utils/browser-logger';
+import { ExpenseDTO, GroupDTO, GroupBalances, GroupMember, SettlementWithMembers } from '@splitifyd/shared';
+import { apiClient } from '../apiClient';
+import { permissionsStore } from '@/stores/permissions-store.ts';
 
 interface EnhancedGroupDetailStore {
     // State
@@ -67,10 +67,9 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     // Current group tracking for core functionality
     private currentGroupId: string | null = null;
 
-    constructor(private notificationDetector: UserNotificationDetector) {
-    }
+    constructor(private notificationDetector: UserNotificationDetector) {}
 
-// State getters
+    // State getters
     get group() {
         return this.#groupSignal.value;
     }
@@ -160,7 +159,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             const isAccessDenied = error?.status === 403 || error?.code === 'FORBIDDEN';
 
             if (isGroupDeleted) {
-                logInfo('GroupDTO deleted, clearing state', {groupId: this.currentGroupId});
+                logInfo('GroupDTO deleted, clearing state', { groupId: this.currentGroupId });
 
                 this.#errorSignal.value = 'GROUP_DELETED';
                 batch(() => {
@@ -178,7 +177,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
             if (isAccessDenied) {
                 // User has been removed from the group - handle gracefully without error
-                logInfo('User removed from group, clearing state', {groupId: this.currentGroupId});
+                logInfo('User removed from group, clearing state', { groupId: this.currentGroupId });
 
                 this.#errorSignal.value = 'GROUP_DELETED';
                 batch(() => {
@@ -194,7 +193,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 return;
             }
 
-            logError('RefreshAll: Failed to refresh all data', {error, groupId: this.currentGroupId});
+            logError('RefreshAll: Failed to refresh all data', { error, groupId: this.currentGroupId });
             throw error;
         }
     }
@@ -239,25 +238,25 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         this.notificationUnsubscribe = this.notificationDetector.subscribe({
             onTransactionChange: (changeGroupId) => {
                 if (changeGroupId === this.currentGroupId) {
-                    logInfo('Transaction change detected', {groupId: changeGroupId});
+                    logInfo('Transaction change detected', { groupId: changeGroupId });
                     this.refreshAll().catch((error) => logError('Failed to refresh after transaction change', error));
                 }
             },
             onGroupChange: (changeGroupId) => {
                 if (changeGroupId === this.currentGroupId) {
-                    logInfo('GroupDTO change detected', {groupId: changeGroupId});
+                    logInfo('GroupDTO change detected', { groupId: changeGroupId });
                     this.refreshAll().catch((error) => logError('Failed to refresh after group change', error));
                 }
             },
             onBalanceChange: (changeGroupId) => {
                 if (changeGroupId === this.currentGroupId) {
-                    logInfo('Balance change detected', {groupId: changeGroupId});
+                    logInfo('Balance change detected', { groupId: changeGroupId });
                     this.refreshAll().catch((error) => logError('Failed to refresh after balance change', error));
                 }
             },
             onGroupRemoved: (changeGroupId) => {
                 if (changeGroupId === this.currentGroupId) {
-                    logInfo('GroupDTO removed - clearing state and setting removal flag', {groupId: changeGroupId});
+                    logInfo('GroupDTO removed - clearing state and setting removal flag', { groupId: changeGroupId });
                     this.#clearGroupData();
                     // Set specific error after clearing data to trigger better UX
                     this.#errorSignal.value = 'USER_REMOVED_FROM_GROUP';

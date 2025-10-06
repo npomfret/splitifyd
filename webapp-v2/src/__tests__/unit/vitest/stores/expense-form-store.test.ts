@@ -77,7 +77,7 @@ describe('ExpenseFormStore - Draft Functionality', () => {
         it('should save complete draft data to storage', () => {
             // Arrange - fill form with data
             expenseFormStore.updateField('description', 'Test lunch expense');
-            expenseFormStore.updateField('amount', 25.50);
+            expenseFormStore.updateField('amount', 25.5);
             expenseFormStore.updateField('currency', 'EUR');
             expenseFormStore.updateField('date', '2022-01-15');
             expenseFormStore.updateField('time', '14:30');
@@ -90,15 +90,12 @@ describe('ExpenseFormStore - Draft Functionality', () => {
             expenseFormStore.saveDraft(testGroupId);
 
             // Assert
-            expect(mockStorage.setItem).toHaveBeenCalledWith(
-                `expense-draft-${testGroupId}`,
-                expect.stringContaining('"description":"Test lunch expense"')
-            );
+            expect(mockStorage.setItem).toHaveBeenCalledWith(`expense-draft-${testGroupId}`, expect.stringContaining('"description":"Test lunch expense"'));
 
             const savedData = JSON.parse((mockStorage.setItem as any).mock.calls[0][1]);
             expect(savedData).toEqual({
                 description: 'Test lunch expense',
-                amount: 25.50,
+                amount: 25.5,
                 currency: 'EUR',
                 date: '2022-01-15',
                 time: '14:30',
@@ -116,10 +113,7 @@ describe('ExpenseFormStore - Draft Functionality', () => {
             expenseFormStore.saveDraft(testGroupId);
 
             // Assert
-            expect(mockStorage.setItem).toHaveBeenCalledWith(
-                `expense-draft-${testGroupId}`,
-                expect.stringContaining('"description":""')
-            );
+            expect(mockStorage.setItem).toHaveBeenCalledWith(`expense-draft-${testGroupId}`, expect.stringContaining('"description":""'));
 
             const savedData = JSON.parse((mockStorage.setItem as any).mock.calls[0][1]);
             expect(savedData.description).toBe('');
@@ -161,11 +155,11 @@ describe('ExpenseFormStore - Draft Functionality', () => {
             .withSplitType(SplitTypes.EXACT)
             .withParticipants(['user-1', 'user-2', 'user-3'])
             .withSplits([
-                { userId: 'user-1', amount: 15.00 },
+                { userId: 'user-1', amount: 15.0 },
                 { userId: 'user-2', amount: 12.75 },
-                { userId: 'user-3', amount: 15.00 },
+                { userId: 'user-3', amount: 15.0 },
             ])
-            .withTimestamp(mockNow - (30 * 60 * 1000))
+            .withTimestamp(mockNow - 30 * 60 * 1000)
             .build();
 
         it('should load valid draft data into form', () => {
@@ -216,7 +210,7 @@ describe('ExpenseFormStore - Draft Functionality', () => {
             // Arrange - create draft that's 25 hours old
             const expiredDraft = {
                 ...testDraftData,
-                timestamp: mockNow - (25 * 60 * 60 * 1000), // 25 hours ago
+                timestamp: mockNow - 25 * 60 * 60 * 1000, // 25 hours ago
             };
             (mockStorage.getItem as any).mockReturnValue(JSON.stringify(expiredDraft));
 
@@ -232,7 +226,7 @@ describe('ExpenseFormStore - Draft Functionality', () => {
             // Arrange - create draft that's 23 hours old
             const validDraft = {
                 ...testDraftData,
-                timestamp: mockNow - (23 * 60 * 60 * 1000), // 23 hours ago
+                timestamp: mockNow - 23 * 60 * 60 * 1000, // 23 hours ago
             };
             (mockStorage.getItem as any).mockReturnValue(JSON.stringify(validDraft));
 
@@ -246,11 +240,7 @@ describe('ExpenseFormStore - Draft Functionality', () => {
 
         it('should use default values for missing draft fields', () => {
             // Arrange - draft with some missing fields
-            const partialDraft = new ExpenseDraftBuilder()
-                .withDescription('Partial draft')
-                .withAmount(10.00)
-                .withTimestamp(mockNow)
-                .build();
+            const partialDraft = new ExpenseDraftBuilder().withDescription('Partial draft').withAmount(10.0).withTimestamp(mockNow).build();
 
             // Remove fields to simulate partial data
             const { currency, paidBy, category, splitType, ...partialDraftData } = partialDraft;
@@ -262,7 +252,7 @@ describe('ExpenseFormStore - Draft Functionality', () => {
             // Assert
             expect(loaded).toBe(true);
             expect(expenseFormStore.description).toBe('Partial draft');
-            expect(expenseFormStore.amount).toBe(10.00);
+            expect(expenseFormStore.amount).toBe(10.0);
             expect(expenseFormStore.currency).toBe(''); // Default
             expect(expenseFormStore.category).toBe('food'); // Default
             expect(expenseFormStore.splitType).toBe(SplitTypes.EQUAL); // Default
@@ -318,7 +308,7 @@ describe('ExpenseFormStore - Draft Functionality', () => {
 
             // Arrange
             expenseFormStore.updateField('description', 'Test expense');
-            expenseFormStore.updateField('amount', 30.00);
+            expenseFormStore.updateField('amount', 30.0);
             expenseFormStore.updateField('currency', 'USD');
             expenseFormStore.updateField('paidBy', 'user-1');
             expenseFormStore.setParticipants(['user-1']);
@@ -337,7 +327,7 @@ describe('ExpenseFormStore - Draft Functionality', () => {
 
             // Arrange
             expenseFormStore.updateField('description', 'Updated expense');
-            expenseFormStore.updateField('amount', 35.00);
+            expenseFormStore.updateField('amount', 35.0);
             expenseFormStore.updateField('currency', 'USD');
             expenseFormStore.updateField('paidBy', 'user-1');
             expenseFormStore.setParticipants(['user-1']);
@@ -356,7 +346,7 @@ describe('ExpenseFormStore - Draft Functionality', () => {
 
             // Arrange
             expenseFormStore.updateField('description', 'Test expense');
-            expenseFormStore.updateField('amount', 30.00);
+            expenseFormStore.updateField('amount', 30.0);
             expenseFormStore.updateField('currency', 'USD');
             expenseFormStore.updateField('paidBy', 'user-1');
             expenseFormStore.setParticipants(['user-1']);
@@ -374,8 +364,8 @@ describe('ExpenseFormStore - Draft Functionality', () => {
             // Arrange - draft exactly 24 hours old
             const exactlyOldDraft = new ExpenseDraftBuilder()
                 .withDescription('Edge case draft')
-                .withAmount(10.00)
-                .withTimestamp(mockNow - (24 * 60 * 60 * 1000))
+                .withAmount(10.0)
+                .withTimestamp(mockNow - 24 * 60 * 60 * 1000)
                 .build();
             (mockStorage.getItem as any).mockReturnValue(JSON.stringify(exactlyOldDraft));
 
@@ -391,7 +381,7 @@ describe('ExpenseFormStore - Draft Functionality', () => {
             // Arrange - draft 24 hours and 1 millisecond old
             const justOverOldDraft = new ExpenseDraftBuilder()
                 .withDescription('Just over limit draft')
-                .withAmount(10.00)
+                .withAmount(10.0)
                 .withTimestamp(mockNow - (24 * 60 * 60 * 1000 + 1))
                 .build();
             (mockStorage.getItem as any).mockReturnValue(JSON.stringify(justOverOldDraft));
@@ -406,10 +396,7 @@ describe('ExpenseFormStore - Draft Functionality', () => {
 
         it('should handle missing timestamp in draft', () => {
             // Arrange - draft without timestamp
-            const noTimestampData = new ExpenseDraftBuilder()
-                .withDescription('Draft without timestamp')
-                .withAmount(10.00)
-                .build();
+            const noTimestampData = new ExpenseDraftBuilder().withDescription('Draft without timestamp').withAmount(10.0).build();
 
             // Remove timestamp to simulate missing field
             const { timestamp, ...noTimestampDraft } = noTimestampData;

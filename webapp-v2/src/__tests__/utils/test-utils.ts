@@ -21,8 +21,11 @@ export function createTestDirectory(testInfo: any): string {
     const testDir = path.join(
         'playwright-report',
         'test-artifacts',
-        testInfo.titlePath[0].replace(/[^a-zA-Z0-9\s-_]/g, '').replace(/\s+/g, '-').toLowerCase(),
-        cleanTitle
+        testInfo.titlePath[0]
+            .replace(/[^a-zA-Z0-9\s-_]/g, '')
+            .replace(/\s+/g, '-')
+            .toLowerCase(),
+        cleanTitle,
     );
 
     // Ensure directory exists

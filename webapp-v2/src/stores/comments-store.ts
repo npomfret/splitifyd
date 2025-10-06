@@ -2,7 +2,7 @@ import { signal, ReadonlySignal } from '@preact/signals';
 import type { CommentDTO, CommentTargetType, ListCommentsResponse } from '@splitifyd/shared';
 import { apiClient } from '../app/apiClient';
 import { logError, logInfo } from '../utils/browser-logger';
-import {userNotificationDetector, UserNotificationDetector} from '../utils/user-notification-detector';
+import { userNotificationDetector, UserNotificationDetector } from '../utils/user-notification-detector';
 
 interface CommentsStore {
     // State getters - readonly values for external consumers
@@ -142,7 +142,7 @@ class CommentsStoreImpl implements CommentsStore {
                     // Skip group comment notifications when we're listening for expense comments
                     return;
                 }
-            }
+            },
         });
     }
 
@@ -213,9 +213,8 @@ class CommentsStoreImpl implements CommentsStore {
                 targetId,
                 count: response.comments.length,
                 hasMore: response.hasMore,
-                isRefresh
+                isRefresh,
             });
-
         } catch (error) {
             logError('Failed to fetch comments via API', error);
             this.#errorSignal.value = 'Failed to load comments';
@@ -302,9 +301,8 @@ class CommentsStoreImpl implements CommentsStore {
                 targetType,
                 targetId,
                 count: response.comments.length,
-                hasMore: response.hasMore
+                hasMore: response.hasMore,
             });
-
         } catch (error) {
             logError('Failed to load more comments via API', error);
             this.#errorSignal.value = 'Failed to load more comments';

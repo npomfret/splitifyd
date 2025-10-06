@@ -70,8 +70,7 @@ export function HeroSection() {
                 </h1>
 
                 <p ref={pRef} class="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto mb-12">
-                    {t('landing.hero.subtitle')}{' '}
-                    <strong class="text-gray-900">{t('landing.hero.highlight')}</strong> {t('landing.hero.focusMessage')}
+                    {t('landing.hero.subtitle')} <strong class="text-gray-900">{t('landing.hero.highlight')}</strong> {t('landing.hero.focusMessage')}
                 </p>
 
                 <img

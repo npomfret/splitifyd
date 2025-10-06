@@ -45,7 +45,9 @@
     "group": "Group",
     "groups": "Groups",
     "recent": "Recent",
-    "all": "All",
+    "settings": "Settings",
+    "understood": "Understood",
+    "titleSuffix": " - Splitifyd",
     "placeholder": {
       "amount": "0.00",
       "search": "Search...",
@@ -103,7 +105,9 @@
 
   "app": {
     "loading": "Loading...",
-    "loadingPage": "Loading page..."
+    "loadingPage": "Loading page...",
+    "loadingExpenseForm": "Loading expense form...",
+    "checkingAuth": "Checking authentication..."
   },
 
   "main": {
@@ -389,6 +393,26 @@
     "list": {
       "loading": "Loading comments...",
       "error": "Failed to load comments"
+    },
+    "commentInput": {
+      "placeholder": "Add a comment...",
+      "tooLong": "Comment is too long",
+      "addFailed": "Failed to add comment",
+      "helpText": "Press Enter to send, Shift+Enter for new line"
+    },
+    "commentItem": {
+      "recently": "recently"
+    },
+    "commentsList": {
+      "loading": "Loading comments...",
+      "empty": "No comments yet",
+      "emptySubtext": "Be the first to comment!",
+      "loadingMore": "Loading...",
+      "loadMore": "Load more comments"
+    },
+    "commentsSection": {
+      "placeholderGroup": "Add a comment to this group...",
+      "placeholderExpense": "Add a comment to this expense..."
     }
   },
 
@@ -538,13 +562,7 @@
     "plans": {
       "starter": {
         "title": "The \"Just Getting Started\" Plan",
-        "features": [
-          "Unlimited expense tracking",
-          "Unlimited groups",
-          "Unlimited friends (if you have that many)",
-          "Basic debt simplification",
-          "Access to our highly sarcastic FAQ section"
-        ],
+        "features": ["Unlimited expense tracking", "Unlimited groups", "Unlimited friends (if you have that many)", "Basic debt simplification", "Access to our highly sarcastic FAQ section"],
         "button": "Sign Up (It's Still Free)"
       },
       "pro": {
@@ -577,6 +595,7 @@
   "errors": {
     "generic": "An error occurred",
     "network": "Network error occurred",
+    "invalidLink": "Invalid Link",
     "notFound": {
       "page": "Page not found",
       "group": "Group not found",
@@ -586,6 +605,14 @@
       "cookiePolicy": "Error loading cookie policy",
       "privacyPolicy": "Error loading privacy policy",
       "terms": "Error loading terms"
+    },
+    "validation": {
+      "displayNameEmpty": "Display name cannot be empty",
+      "displayNameTooLong": "Display name must be 100 characters or less",
+      "passwordTooShort": "New password must be at least 6 characters long",
+      "passwordsNoMatch": "Passwords do not match",
+      "passwordSameAsCurrent": "New password must be different from current password",
+      "passwordAndNewRequired": "Current password and new password are required"
     }
   },
 
@@ -666,34 +693,6 @@
     "loadingBalances": "Loading balances...",
     "allSettledUp": "All settled up!",
     "debtArrow": " → "
-  },
-  "common": {
-    "loading": "Loading...",
-    "loadingExpenseForm": "Loading expense form...",
-    "loadingBalances": "Loading balances...",
-    "allSettledUp": "All settled up!",
-    "members": "Members",
-    "checkingAuth": "Checking authentication...",
-    "invalidLink": "Invalid Link",
-    "settleUp": "Settle Up",
-    "addExpense": "Add Expense",
-    "share": "Share",
-    "edit": "Edit",
-    "settings": "Settings",
-    "showHistory": "Show History",
-    "joinGroup": "Join Group",
-    "understood": "Understood",
-    "you": "You",
-    "titleSuffix": " - Splitifyd",
-    "dismiss": "Dismiss"
-  },
-  "errors": {
-    "displayNameEmpty": "Display name cannot be empty",
-    "displayNameTooLong": "Display name must be 100 characters or less",
-    "passwordTooShort": "New password must be at least 6 characters long",
-    "passwordsNoMatch": "Passwords do not match",
-    "passwordSameAsCurrent": "New password must be different from current password",
-    "passwordAndNewRequired": "Current password and new password are required"
   },
   "emptyGroupsState": {
     "title": "No groups yet",
@@ -947,55 +946,6 @@
       "alreadyMember": "You are already a member of this group",
       "joinFailed": "Failed to join group",
       "loadFailed": "Failed to load group information"
-    }
-  },
-  "auth": {
-    "emailInput": {
-      "label": "Email",
-      "placeholder": "Enter your email",
-      "requiredIndicator": "*",
-      "validation": {
-        "required": "Email is required",
-        "invalid": "Please enter a valid email address"
-      }
-    },
-    "passwordInput": {
-      "label": "Password",
-      "placeholder": "Enter your password",
-      "requiredIndicator": "*",
-      "showPassword": "Show password",
-      "hidePassword": "Hide password",
-      "strength": "Password strength",
-      "strengthWeak": "Weak",
-      "strengthMedium": "Medium",
-      "strengthStrong": "Strong",
-      "validation": {
-        "required": "Password is required",
-        "tooShort": "Password must be at least 6 characters"
-      }
-    },
-    "defaultLoginButton": "Continue with Email"
-  },
-  "comments": {
-    "commentInput": {
-      "placeholder": "Add a comment...",
-      "tooLong": "Comment is too long",
-      "addFailed": "Failed to add comment",
-      "helpText": "Press Enter to send, Shift+Enter for new line"
-    },
-    "commentItem": {
-      "recently": "recently"
-    },
-    "commentsList": {
-      "loading": "Loading comments...",
-      "empty": "No comments yet",
-      "emptySubtext": "Be the first to comment!",
-      "loadingMore": "Loading...",
-      "loadMore": "Load more comments"
-    },
-    "commentsSection": {
-      "placeholderGroup": "Add a comment to this group...",
-      "placeholderExpense": "Add a comment to this expense..."
     }
   },
   "dashboardComponents": {
@@ -1302,10 +1252,6 @@
       "sendResetInstructions": "Send Reset Instructions"
     }
   },
-  "app": {
-    "loading": "Loading...",
-    "loadingPage": "Loading page..."
-  },
   "main": {
     "unknownButton": "Unknown Button",
     "linkClick": "Link Click: ",
@@ -1347,36 +1293,6 @@
       "title": "Terms of Service",
       "description": "Terms of Service for Splitifyd - Read about our policies and user agreements.",
       "loadError": "Error loading terms"
-    }
-  },
-  "policyComponents": {
-    "policyAcceptanceModal": {
-      "title": "Accept Updated Policies",
-      "policyLabel": "Policy ",
-      "of": " of ",
-      "colon": ": ",
-      "progress": "Progress",
-      "accepted": " accepted",
-      "acceptedIcon": "✓ Accepted",
-      "loadingContent": "Loading policy content...",
-      "acceptanceRequired": "Policy Acceptance Required",
-      "acceptanceInstructions": "Please read the policy above and click \"Accept\" to continue using Splitify.",
-      "acceptCheckbox": "I have read and accept this ",
-      "previous": "Previous",
-      "next": "Next",
-      "policiesAccepted": " policies accepted",
-      "accepting": "Accepting...",
-      "acceptAll": "Accept All & Continue",
-      "closeAriaLabel": "Close"
-    }
-  },
-  "joinGroupComponents": {
-    "groupPreview": {
-      "invitationMessage": "You've been invited to join this group"
-    },
-    "joinButton": {
-      "joinGroup": "Join Group",
-      "joining": "Joining..."
     }
   }
 }

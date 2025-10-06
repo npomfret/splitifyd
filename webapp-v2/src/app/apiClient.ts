@@ -721,7 +721,7 @@ class ApiClient {
                 settingsManagement: 'admin-only',
             },
             balance: {},
-            lastActivity: 'just now'
+            lastActivity: 'just now',
         } as GroupDTO;
     }
 

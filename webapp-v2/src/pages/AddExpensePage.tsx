@@ -58,7 +58,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     if (!formState.isDataReady && !formState.initError) {
         return (
             <BaseLayout title={t('pages.addExpensePage.loadingTitle')}>
-                <LoadingState fullPage message={t('common.loadingExpenseForm')} />
+                <LoadingState fullPage message={t('app.loadingExpenseForm')} />
             </BaseLayout>
         );
     }

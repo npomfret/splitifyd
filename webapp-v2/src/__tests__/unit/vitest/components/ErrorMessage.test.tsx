@@ -69,7 +69,8 @@ describe('ErrorMessage Component', () => {
         });
 
         it('should handle very long error messages', () => {
-            const longError = 'This is a very long error message that might occur when the server returns detailed validation information or when multiple validation errors are combined into a single message for display purposes.';
+            const longError =
+                'This is a very long error message that might occur when the server returns detailed validation information or when multiple validation errors are combined into a single message for display purposes.';
 
             render(<ErrorMessage error={longError} />);
 

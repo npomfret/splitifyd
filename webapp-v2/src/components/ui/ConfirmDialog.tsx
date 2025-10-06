@@ -15,18 +15,7 @@ interface ConfirmDialogProps {
     'data-testid'?: string;
 }
 
-export function ConfirmDialog({
-    isOpen,
-    title,
-    message,
-    confirmText,
-    cancelText,
-    onConfirm,
-    onCancel,
-    variant = 'info',
-    loading = false,
-    'data-testid': dataTestId,
-}: ConfirmDialogProps) {
+export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText, onConfirm, onCancel, variant = 'info', loading = false, 'data-testid': dataTestId }: ConfirmDialogProps) {
     const { t } = useTranslation();
     const modalRef = useRef<HTMLDivElement>(null);
 

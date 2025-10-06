@@ -1,6 +1,6 @@
-import {expect, test} from '../../utils/console-logging-fixture';
-import {createMockFirebase, mockApiFailure, MockFirebase, mockFullyAcceptedPoliciesApi, mockGenerateShareLinkApi, mockGroupsApi, setupSuccessfulApiMocks} from '../../utils/mock-firebase-service';
-import {ClientUserBuilder, CreateGroupModalPage, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, randomString, UserNotificationDocumentBuilder} from '@splitifyd/test-support';
+import { expect, test } from '../../utils/console-logging-fixture';
+import { createMockFirebase, mockApiFailure, MockFirebase, mockFullyAcceptedPoliciesApi, mockGenerateShareLinkApi, mockGroupsApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
+import { ClientUserBuilder, CreateGroupModalPage, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, randomString, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
 
 // Test for browser reuse - using fixture-based approach with proper infrastructure
 test.describe('Browser Reuse Test', () => {
@@ -109,7 +109,7 @@ test.describe('Dashboard Groups Display and Loading States', () => {
         const groups = [
             GroupDTOBuilder.groupForUser(testUser.uid).withId('group-1').withName('House Expenses').build(),
             GroupDTOBuilder.groupForUser(testUser.uid).withId('group-2').withName('Trip to Italy').build(),
-            GroupDTOBuilder.groupForUser(testUser.uid).withId('group-3').withName('Weekly Dinners').build()
+            GroupDTOBuilder.groupForUser(testUser.uid).withId('group-3').withName('Weekly Dinners').build(),
         ];
 
         // Mock groups API
@@ -140,10 +140,7 @@ test.describe('Dashboard Groups Display and Loading States', () => {
 
     test('should navigate to group details when clicking group card', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-abc')
-            .withName('Test Group')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-abc').withName('Test Group').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
         await page.goto('/dashboard');
@@ -242,15 +239,9 @@ test.describe('Dashboard Real-time Updates', () => {
     test('should update group name after real-time notification', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const initialGroup = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-abc')
-            .withName('Old Group Name')
-            .build();
+        const initialGroup = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-abc').withName('Old Group Name').build();
 
-        const updatedGroup = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-abc')
-            .withName('New Group Name')
-            .build();
+        const updatedGroup = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-abc').withName('New Group Name').build();
 
         // Mock initial groups response
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([initialGroup], 1).build());
@@ -262,21 +253,13 @@ test.describe('Dashboard Real-time Updates', () => {
         await dashboardPage.verifyGroupDisplayed('Old Group Name');
 
         // Establish baseline notification state
-        await mockFirebase.triggerNotificationUpdate(testUser.uid,
-            UserNotificationDocumentBuilder.withBaseline('group-abc', 1)
-                .withLastModified(new Date())
-                .build()
-        );
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, UserNotificationDocumentBuilder.withBaseline('group-abc', 1).withLastModified(new Date()).build());
 
         // Setup updated response for the notification-triggered API call
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([updatedGroup], 2).build());
 
         // Trigger group name change notification
-        await mockFirebase.triggerNotificationUpdate(testUser.uid,
-            UserNotificationDocumentBuilder.withGroupDetailsChange('group-abc', 2)
-                .withLastModified(new Date())
-                .build()
-        );
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, UserNotificationDocumentBuilder.withGroupDetailsChange('group-abc', 2).withLastModified(new Date()).build());
 
         // Verify the updated group name appears
         await dashboardPage.waitForGroupToAppear('New Group Name');
@@ -294,31 +277,17 @@ test.describe('Dashboard Real-time Updates', () => {
         await dashboardPage.verifyEmptyGroupsState();
 
         // STEP 1: Send baseline notification (changeVersion=1, no groups) to mark first document as processed
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .build()
-        );
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(1).build());
 
         // Create new group for notification
-        const newGroup = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('new-group-123')
-            .withName('Brand New Group')
-            .build();
+        const newGroup = GroupDTOBuilder.groupForUser(testUser.uid).withId('new-group-123').withName('Brand New Group').build();
 
         // STEP 2: Unroute previous mock and setup new response with the group
         await page.unroute('/api/groups?includeMetadata=true');
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([newGroup], 1).build());
 
         // STEP 3: Send notification with new group (changeVersion=2) - should trigger refresh
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .withGroupDetails('new-group-123', 1)
-                .build()
-        );
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('new-group-123', 1).build());
 
         // Verify new group appears
         await dashboardPage.waitForGroupToAppear('Brand New Group', 2000);
@@ -721,7 +690,7 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
             GroupDTOBuilder.groupForUser(testUser.uid)
                 .withId(`group-${i + 1}`)
                 .withName(`Test Group ${i + 1}`)
-                .build()
+                .build(),
         );
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(groups, groups.length).build());
@@ -746,9 +715,7 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
     test('should show group creation loading state in grid', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const existingGroup = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withName('Existing Group')
-            .build();
+        const existingGroup = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([existingGroup], 1).build());
 
@@ -766,10 +733,7 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
     test('should handle group card hover and click interactions', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('interactive-group')
-            .withName('Interactive Group')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withId('interactive-group').withName('Interactive Group').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
@@ -809,15 +773,9 @@ test.describe('Dashboard Group Removal and Deletion', () => {
     test('should remove group from dashboard when user is removed from group', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group1 = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-to-remove')
-            .withName('Will Be Removed')
-            .build();
+        const group1 = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-to-remove').withName('Will Be Removed').build();
 
-        const group2 = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-to-keep')
-            .withName('Will Stay')
-            .build();
+        const group2 = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-to-keep').withName('Will Stay').build();
 
         // Start with two groups
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group1, group2], 2).build());
@@ -833,11 +791,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         // Send baseline notification
         await mockFirebase.triggerNotificationUpdate(
             testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('group-to-remove', 1)
-                .withGroupDetails('group-to-keep', 1)
-                .build()
+            new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-to-remove', 1).withGroupDetails('group-to-keep', 1).build(),
         );
 
         // Setup new response without the removed group
@@ -845,13 +799,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group2], 1).build());
 
         // Simulate user being removed from group - group disappears from notification
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .withGroupDetails('group-to-keep', 1)
-                .build()
-        );
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-to-keep', 1).build());
 
         // Verify removed group disappears
         await dashboardPage.waitForGroupToDisappear('Will Be Removed');
@@ -862,15 +810,9 @@ test.describe('Dashboard Group Removal and Deletion', () => {
     test('should remove group from dashboard when group is deleted', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group1 = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-to-delete')
-            .withName('Will Be Deleted')
-            .build();
+        const group1 = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-to-delete').withName('Will Be Deleted').build();
 
-        const group2 = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-to-survive')
-            .withName('Will Survive')
-            .build();
+        const group2 = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-to-survive').withName('Will Survive').build();
 
         // Start with two groups
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group1, group2], 2).build());
@@ -886,26 +828,15 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         // Send baseline notification
         await mockFirebase.triggerNotificationUpdate(
             testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('group-to-delete', 1)
-                .withGroupDetails('group-to-survive', 1)
-                .build()
-            );
-
+            new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-to-delete', 1).withGroupDetails('group-to-survive', 1).build(),
+        );
 
         // Setup new response without the deleted group
         await page.unroute('/api/groups?includeMetadata=true');
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group2], 1).build());
 
         // Simulate group deletion - group disappears from notification
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .withGroupDetails('group-to-survive', 1)
-                .build()
-            );
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-to-survive', 1).build());
 
         // Verify deleted group disappears
         await dashboardPage.waitForGroupToDisappear('Will Be Deleted');
@@ -916,10 +847,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
     test('should show empty state after last group is removed', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('only-group')
-            .withName('Only Group')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withId('only-group').withName('Only Group').build();
 
         // Start with one group
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
@@ -932,26 +860,14 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await dashboardPage.verifyGroupDisplayed('Only Group');
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('only-group', 1)
-                .build()
-            );
-
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('only-group', 1).build());
 
         // Setup empty groups response
         await page.unroute('/api/groups?includeMetadata=true');
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([], 0).build());
 
         // Simulate removal from last group
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .build()
-        );
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).build());
 
         // Verify empty state appears
         await dashboardPage.waitForGroupToDisappear('Only Group');
@@ -962,20 +878,11 @@ test.describe('Dashboard Group Removal and Deletion', () => {
     test('should handle multiple groups being removed simultaneously', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group1 = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-1')
-            .withName('Group One')
-            .build();
+        const group1 = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-1').withName('Group One').build();
 
-        const group2 = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-2')
-            .withName('Group Two')
-            .build();
+        const group2 = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-2').withName('Group Two').build();
 
-        const group3 = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-3')
-            .withName('Group Three')
-            .build();
+        const group3 = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-3').withName('Group Three').build();
 
         // Start with three groups
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group1, group2, group3], 3).build());
@@ -989,27 +896,15 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         // Send baseline notification
         await mockFirebase.triggerNotificationUpdate(
             testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('group-1', 1)
-                .withGroupDetails('group-2', 1)
-                .withGroupDetails('group-3', 1)
-                .build()
-            );
-
+            new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).withGroupDetails('group-3', 1).build(),
+        );
 
         // Setup response with only one group remaining
         await page.unroute('/api/groups?includeMetadata=true');
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group3], 1).build());
 
         // Simulate two groups being removed simultaneously
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .withGroupDetails('group-3', 1)
-                .build()
-            );
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-3', 1).build());
 
         // Verify removed groups disappear
         await dashboardPage.waitForGroupToDisappear('Group One');
@@ -1038,15 +933,9 @@ test.describe('Dashboard Balance Change Notifications', () => {
     test('should refresh dashboard when balance change notification received', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const initialGroup = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-balance-test')
-            .withName('Balance Test Group')
-            .build();
+        const initialGroup = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-balance-test').withName('Balance Test Group').build();
 
-        const updatedGroup = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-balance-test')
-            .withName('Balance Test Group')
-            .build();
+        const updatedGroup = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-balance-test').withName('Balance Test Group').build();
 
         // Start with initial group
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([initialGroup], 1).build());
@@ -1056,27 +945,14 @@ test.describe('Dashboard Balance Change Notifications', () => {
         await dashboardPage.verifyGroupDisplayed('Balance Test Group');
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('group-balance-test', 1)
-                .build()
-            );
-
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-balance-test', 1).build());
 
         // Setup updated response for balance change
         await page.unroute('/api/groups?includeMetadata=true');
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([updatedGroup], 2).build());
 
         // Trigger balance change notification
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .withGroupDetails('group-balance-test', 1)
-                .build()
-            );
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-balance-test', 1).build());
 
         // Verify dashboard refreshes (group still visible with updated data)
         await dashboardPage.verifyGroupDisplayed('Balance Test Group');
@@ -1085,15 +961,9 @@ test.describe('Dashboard Balance Change Notifications', () => {
     test('should handle balance changes for multiple groups', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group1 = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-1')
-            .withName('Group One')
-            .build();
+        const group1 = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-1').withName('Group One').build();
 
-        const group2 = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-2')
-            .withName('Group Two')
-            .build();
+        const group2 = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-2').withName('Group Two').build();
 
         // Start with two groups
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group1, group2], 2).build());
@@ -1103,29 +973,14 @@ test.describe('Dashboard Balance Change Notifications', () => {
         await dashboardPage.verifyGroupsDisplayed(2);
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('group-1', 1)
-                .withGroupDetails('group-2', 1)
-                .build()
-            );
-
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).build());
 
         // Setup updated response
         await page.unroute('/api/groups?includeMetadata=true');
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group1, group2], 3).build());
 
         // Trigger balance changes for both groups
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .withGroupDetails('group-1', 1)
-                .withGroupDetails('group-2', 1)
-                .build()
-            );
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).build());
 
         // Verify both groups still displayed
         await dashboardPage.verifyGroupsDisplayed(2);
@@ -1153,15 +1008,9 @@ test.describe('Dashboard Transaction Change Notifications', () => {
     test('should refresh dashboard when transaction change notification received', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const initialGroup = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-transaction-test')
-            .withName('Transaction Test Group')
-            .build();
+        const initialGroup = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-transaction-test').withName('Transaction Test Group').build();
 
-        const updatedGroup = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-transaction-test')
-            .withName('Transaction Test Group')
-            .build();
+        const updatedGroup = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-transaction-test').withName('Transaction Test Group').build();
 
         // Start with initial group
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([initialGroup], 1).build());
@@ -1171,27 +1020,14 @@ test.describe('Dashboard Transaction Change Notifications', () => {
         await dashboardPage.verifyGroupDisplayed('Transaction Test Group');
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('group-transaction-test', 1)
-                .build()
-            );
-
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-transaction-test', 1).build());
 
         // Setup updated response for transaction change
         await page.unroute('/api/groups?includeMetadata=true');
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([updatedGroup], 2).build());
 
         // Trigger transaction change notification (new expense added)
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .withGroupDetails('group-transaction-test', 1)
-                .build()
-            );
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-transaction-test', 1).build());
 
         // Verify dashboard refreshes
         await dashboardPage.verifyGroupDisplayed('Transaction Test Group');
@@ -1200,10 +1036,7 @@ test.describe('Dashboard Transaction Change Notifications', () => {
     test('should handle transaction and balance changes together', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-combo-test')
-            .withName('Combo Test Group')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-combo-test').withName('Combo Test Group').build();
 
         // Start with initial group
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
@@ -1212,27 +1045,14 @@ test.describe('Dashboard Transaction Change Notifications', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('group-combo-test', 1)
-                .build()
-            );
-
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-combo-test', 1).build());
 
         // Setup updated response
         await page.unroute('/api/groups?includeMetadata=true');
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 2).build());
 
         // Trigger combined transaction and balance change
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .withGroupDetails('group-combo-test', 1)
-                .build()
-            );
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-combo-test', 1).build());
 
         // Verify dashboard handles combined update
         await dashboardPage.verifyGroupDisplayed('Combo Test Group');
@@ -1258,10 +1078,7 @@ test.describe('Dashboard Rapid Notification Updates', () => {
     test('should handle rapid successive notifications without missing updates', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-rapid-test')
-            .withName('Rapid Test Group')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-rapid-test').withName('Rapid Test Group').build();
 
         // Start with initial group
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
@@ -1270,14 +1087,7 @@ test.describe('Dashboard Rapid Notification Updates', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('group-rapid-test', 1)
-                .build()
-            );
-
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-rapid-test', 1).build());
 
         // Setup updated responses
         await page.unroute('/api/groups?includeMetadata=true');
@@ -1294,9 +1104,9 @@ test.describe('Dashboard Rapid Notification Updates', () => {
                         groupDetailsChangeCount: 1,
                         transactionChangeCount: i - 1,
                         balanceChangeCount: i - 1,
-                        commentChangeCount: 0
+                        commentChangeCount: 0,
                     })
-                    .build()
+                    .build(),
             );
         }
 
@@ -1307,10 +1117,7 @@ test.describe('Dashboard Rapid Notification Updates', () => {
     test('should handle notifications arriving during active refresh', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-concurrent-test')
-            .withName('Concurrent Test Group')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-concurrent-test').withName('Concurrent Test Group').build();
 
         // Start with initial group
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
@@ -1319,37 +1126,18 @@ test.describe('Dashboard Rapid Notification Updates', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('group-concurrent-test', 1)
-                .build()
-            );
-
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-concurrent-test', 1).build());
 
         // Setup updated response
         await page.unroute('/api/groups?includeMetadata=true');
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 2).build());
 
         // Send two notifications in quick succession
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .withGroupDetails('group-concurrent-test', 1)
-                .build()
-            );
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-concurrent-test', 1).build());
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 3).build());
 
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(3)
-                .withGroupDetails('group-concurrent-test', 1)
-                .build()
-            );
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(3).withGroupDetails('group-concurrent-test', 1).build());
 
         // Verify dashboard handles overlapping updates
         await dashboardPage.verifyGroupDisplayed('Concurrent Test Group');
@@ -1375,10 +1163,7 @@ test.describe('Dashboard Notification Error Handling', () => {
     test('should handle malformed notification gracefully', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('group-error-test')
-            .withName('Error Test Group')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-error-test').withName('Error Test Group').build();
 
         // Start with initial group
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
@@ -1388,14 +1173,7 @@ test.describe('Dashboard Notification Error Handling', () => {
         await dashboardPage.verifyGroupDisplayed('Error Test Group');
 
         // Send valid baseline notification
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('group-error-test', 1)
-                .build()
-            );
-
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-error-test', 1).build());
 
         // Send malformed notification (missing required fields)
         await mockFirebase.triggerNotificationUpdate(testUser.uid, {
@@ -1403,9 +1181,9 @@ test.describe('Dashboard Notification Error Handling', () => {
             groups: {
                 'group-error-test': {
                     // Missing groupDetailsChangeCount and other required fields
-                    lastGroupDetailsChange: new Date()
-                }
-            }
+                    lastGroupDetailsChange: new Date(),
+                },
+            },
         });
 
         // Verify dashboard remains stable despite malformed notification
@@ -1415,10 +1193,7 @@ test.describe('Dashboard Notification Error Handling', () => {
     test('should recover from notification with invalid group ID', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withId('valid-group')
-            .withName('Valid Group')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withId('valid-group').withName('Valid Group').build();
 
         // Start with valid group
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
@@ -1428,24 +1203,13 @@ test.describe('Dashboard Notification Error Handling', () => {
         await dashboardPage.verifyGroupDisplayed('Valid Group');
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('valid-group', 1)
-                .build()
-            );
-
+        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('valid-group', 1).build());
 
         // Send notification for non-existent group
         await mockFirebase.triggerNotificationUpdate(
             testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .withGroupDetails('non-existent-group-id', 1)
-                .withGroupDetails('valid-group', 1)
-                .build()
-            );
+            new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('non-existent-group-id', 1).withGroupDetails('valid-group', 1).build(),
+        );
 
         // Setup response that only includes valid group
         await page.unroute('/api/groups?includeMetadata=true');
@@ -1479,10 +1243,7 @@ test.describe('Dashboard Share Group Modal', () => {
     test('should open share modal when clicking group card invite button', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withName('Test Group')
-            .withId('group-123')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
         await mockGenerateShareLinkApi(page, 'group-123');
@@ -1500,10 +1261,7 @@ test.describe('Dashboard Share Group Modal', () => {
     test('should display share link and QR code after generation', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withName('Test Group')
-            .withId('group-123')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
         await mockGenerateShareLinkApi(page, 'group-123', 'test-token-abc');
@@ -1527,10 +1285,7 @@ test.describe('Dashboard Share Group Modal', () => {
     test('should close share modal via close button', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withName('Test Group')
-            .withId('group-123')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
         await mockGenerateShareLinkApi(page, 'group-123');
@@ -1551,10 +1306,7 @@ test.describe('Dashboard Share Group Modal', () => {
     test('should close share modal via Escape key', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withName('Test Group')
-            .withId('group-123')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
         await mockGenerateShareLinkApi(page, 'group-123');
@@ -1574,10 +1326,7 @@ test.describe('Dashboard Share Group Modal', () => {
     test('should close share modal via backdrop click', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withName('Test Group')
-            .withId('group-123')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
         await mockGenerateShareLinkApi(page, 'group-123');
@@ -1598,10 +1347,7 @@ test.describe('Dashboard Share Group Modal', () => {
     test('should copy share link to clipboard and show toast', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withName('Test Group')
-            .withId('group-123')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
         await mockGenerateShareLinkApi(page, 'group-123');
@@ -1629,10 +1375,7 @@ test.describe('Dashboard Share Group Modal', () => {
     test('should generate new share link when requested', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withName('Test Group')
-            .withId('group-123')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
         await mockGenerateShareLinkApi(page, 'group-123', 'first-token');
@@ -1666,10 +1409,7 @@ test.describe('Dashboard Share Group Modal', () => {
     test('should handle share link generation error', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withName('Test Group')
-            .withId('group-123')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
 
@@ -1688,10 +1428,7 @@ test.describe('Dashboard Share Group Modal', () => {
     test('should show loading state while generating share link', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withName('Test Group')
-            .withId('group-123')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
 
@@ -1708,8 +1445,8 @@ test.describe('Dashboard Share Group Modal', () => {
                     contentType: 'application/json',
                     body: JSON.stringify({
                         linkId: 'delayed-token',
-                        shareablePath: '/join/delayed-token'
-                    })
+                        shareablePath: '/join/delayed-token',
+                    }),
                 });
             } else {
                 await route.continue();
@@ -1759,7 +1496,7 @@ test.describe('Dashboard Stats Display', () => {
             await route.fulfill({
                 status: 200,
                 contentType: 'application/json',
-                body: JSON.stringify(ListGroupsResponseBuilder.responseWithMetadata([]).build())
+                body: JSON.stringify(ListGroupsResponseBuilder.responseWithMetadata([]).build()),
             });
         });
 
@@ -1820,14 +1557,7 @@ test.describe('Dashboard Stats Display', () => {
         await dashboardPage.verifyStatsDisplayed(2, 2);
 
         // Establish baseline notification state for both existing groups
-        await mockFirebase!.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('group-1', 1)
-                .withGroupDetails('group-2', 1)
-                .build()
-        );
+        await mockFirebase!.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).build());
 
         // Simulate adding a new group via notification
         const newGroup = GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 3').withId('group-3').build();
@@ -1839,12 +1569,7 @@ test.describe('Dashboard Stats Display', () => {
         // Trigger notification for new group
         await mockFirebase!.triggerNotificationUpdate(
             testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .withGroupDetails('group-1', 1)
-                .withGroupDetails('group-2', 1)
-                .withGroupDetails('group-3', 1)
-                .build()
+            new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).withGroupDetails('group-3', 1).build(),
         );
 
         // Verify updated count - assertions automatically retry until condition is met
@@ -1872,12 +1597,7 @@ test.describe('Dashboard Stats Display', () => {
         // Establish baseline notification state for all groups
         await mockFirebase!.triggerNotificationUpdate(
             testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('group-1', 1)
-                .withGroupDetails('group-2', 1)
-                .withGroupDetails('group-3', 1)
-                .build()
+            new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).withGroupDetails('group-3', 1).build(),
         );
 
         // Simulate removing a group
@@ -1888,14 +1608,7 @@ test.describe('Dashboard Stats Display', () => {
 
         // Trigger notification to refresh the dashboard
         // When a group is deleted, we trigger a notification with updated change version
-        await mockFirebase!.triggerNotificationUpdate(
-            testUser.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .withGroupDetails('group-1', 1)
-                .withGroupDetails('group-2', 1)
-                .build()
-        );
+        await mockFirebase!.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).build());
 
         // Verify updated count - assertions automatically retry until condition is met
         await dashboardPage.verifyStatsDisplayed(2, 2);
@@ -1977,10 +1690,7 @@ test.describe('Dashboard Group Card Actions', () => {
     test('should show action buttons on group card hover', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withName('Test Group')
-            .withId('group-123')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
 
@@ -1994,10 +1704,7 @@ test.describe('Dashboard Group Card Actions', () => {
     test('should open share modal when clicking invite button', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withName('Test Group')
-            .withId('group-123')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
         await mockGenerateShareLinkApi(page, 'group-123');
@@ -2015,10 +1722,7 @@ test.describe('Dashboard Group Card Actions', () => {
     test('should navigate to add expense form when clicking add expense button', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withName('Test Group')
-            .withId('group-123')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
 
@@ -2035,10 +1739,7 @@ test.describe('Dashboard Group Card Actions', () => {
     test('should not navigate when clicking action buttons', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withName('Test Group')
-            .withId('group-123')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
         await mockGenerateShareLinkApi(page, 'group-123');
@@ -2059,10 +1760,7 @@ test.describe('Dashboard Group Card Actions', () => {
     test('should display "settled up" when no debts exist', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withName('Settled Group')
-            .withId('group-123')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Settled Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
 
@@ -2082,10 +1780,10 @@ test.describe('Dashboard Group Card Actions', () => {
             .withBalance({
                 USD: {
                     currency: 'USD',
-                    netBalance: 50.00,
+                    netBalance: 50.0,
                     owes: {},
-                    owedBy: {}
-                }
+                    owedBy: {},
+                },
             })
             .build();
 
@@ -2109,10 +1807,10 @@ test.describe('Dashboard Group Card Actions', () => {
             .withBalance({
                 USD: {
                     currency: 'USD',
-                    netBalance: -50.00,
+                    netBalance: -50.0,
                     owes: {},
-                    owedBy: {}
-                }
+                    owedBy: {},
+                },
             })
             .build();
 
@@ -2151,10 +1849,7 @@ test.describe('Dashboard Navigation Flows', () => {
     test('should navigate to group detail when clicking group card', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withName('Test Group')
-            .withId('group-123')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
 
@@ -2171,10 +1866,7 @@ test.describe('Dashboard Navigation Flows', () => {
     test('should return to dashboard from group detail', async ({ pageWithLogging: page }) => {
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
-            .withName('Test Group')
-            .withId('group-123')
-            .build();
+        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
 

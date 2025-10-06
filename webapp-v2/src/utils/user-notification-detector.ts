@@ -1,6 +1,6 @@
-import {Timestamp} from 'firebase/firestore';
-import {firebaseService, FirebaseService} from '../app/firebase';
-import {logError, logInfo} from './browser-logger';
+import { Timestamp } from 'firebase/firestore';
+import { firebaseService, FirebaseService } from '../app/firebase';
+import { logError, logInfo } from './browser-logger';
 
 /**
  * User notification detector callbacks
@@ -97,7 +97,7 @@ export class UserNotificationDetector {
 
         // Store subscription
         const subscription: Subscription = {
-            id: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,// some unique id
+            id: `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // some unique id
             callbacks,
             config: config || {},
         };
@@ -490,4 +490,4 @@ export class UserNotificationDetector {
     }
 }
 
-export const userNotificationDetector = new UserNotificationDetector(firebaseService)
+export const userNotificationDetector = new UserNotificationDetector(firebaseService);

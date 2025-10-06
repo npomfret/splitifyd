@@ -26,13 +26,11 @@ base.afterEach(async ({}, testInfo) => {
 
         const artifactPaths: { [key: string]: string } = {
             'Console Log': consoleLogPath,
-            'Test Directory': testDir
+            'Test Directory': testDir,
         };
 
         // Find Playwright's screenshot from attachments
-        const screenshotAttachment = testInfo.attachments.find(
-            a => a.name === 'screenshot' && a.contentType === 'image/png'
-        );
+        const screenshotAttachment = testInfo.attachments.find((a) => a.name === 'screenshot' && a.contentType === 'image/png');
 
         if (screenshotAttachment && screenshotAttachment.path) {
             // Report the actual Playwright screenshot path
@@ -61,13 +59,11 @@ base.afterEach(async ({}, testInfo) => {
         // Show browser errors from console log if any exist
         if (fs.existsSync(consoleLogPath)) {
             const logContent = fs.readFileSync(consoleLogPath, 'utf8');
-            const browserErrors = logContent.split('\n').filter(line =>
-                line.includes('ERROR:') || line.includes('PAGE_ERROR:') || line.includes('REQUEST_FAILED:')
-            );
+            const browserErrors = logContent.split('\n').filter((line) => line.includes('ERROR:') || line.includes('PAGE_ERROR:') || line.includes('REQUEST_FAILED:'));
 
             if (browserErrors.length > 0) {
                 console.log(`🔴 Browser issues detected:`);
-                browserErrors.slice(0, 5).forEach(error => {
+                browserErrors.slice(0, 5).forEach((error) => {
                     const cleanError = error.replace(/^\[[^\]]+\]\s*/, '').trim();
                     if (cleanError) console.log(`   ${cleanError}`);
                 });
