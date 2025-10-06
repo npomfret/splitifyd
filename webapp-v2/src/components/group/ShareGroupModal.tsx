@@ -29,20 +29,19 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
         }
     }, [isOpen]); // Only watch isOpen to prevent regenerating link on groupId updates
 
+    // Handle escape key to close modal
+    // Pattern matches CreateGroupModal for consistency and reliability
     useEffect(() => {
+        if (!isOpen) return;
+
         const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && isOpen) {
+            if (e.key === 'Escape') {
                 onClose();
             }
         };
 
-        if (isOpen) {
-            document.addEventListener('keydown', handleEscape);
-        }
-
-        return () => {
-            document.removeEventListener('keydown', handleEscape);
-        };
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
     }, [isOpen, onClose]);
 
     // Cleanup timers on unmount

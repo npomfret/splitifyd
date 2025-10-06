@@ -171,6 +171,11 @@ export abstract class BasePage {
         // Verify the modal is visible before attempting to close
         await expect(modalContainer).toBeVisible({ timeout: 1000 });
 
+        // Brief stabilization delay to ensure useEffect Escape handlers are registered
+        // Preact useEffects run AFTER render, so modal can be visible before listener is ready
+        // This prevents race condition where Escape is pressed before handler is registered
+        await this._page.waitForTimeout(150);
+
         // Press Escape on body element to trigger document-level keyboard handlers
         // Modal containers (divs) are not focusable, so events don't bubble correctly
         // Body is always focusable and events from it reach document listeners
