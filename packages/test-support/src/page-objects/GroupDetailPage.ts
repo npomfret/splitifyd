@@ -4,6 +4,7 @@ import { EditGroupModalPage } from './EditGroupModalPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
 import { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
 import { loadTranslation } from './translation-loader';
+import { TEST_TIMEOUTS } from '../test-constants';
 
 const translation = loadTranslation();
 
@@ -479,14 +480,14 @@ export class GroupDetailPage extends BasePage {
     /**
      * Wait for expense to appear
      */
-    async waitForExpenseToAppear(description: string, timeout = 3000): Promise<void> {
+    async waitForExpenseToAppear(description: string, timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
         await expect(this.getExpenseByDescription(description)).toBeVisible({ timeout });
     }
 
     /**
      * Wait for member to appear
      */
-    async waitForMemberToAppear(memberName: string, timeout = 3000): Promise<void> {
+    async waitForMemberToAppear(memberName: string, timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
         await expect(this.getMemberCard(memberName)).toBeVisible({ timeout });
     }
 

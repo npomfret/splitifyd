@@ -1,6 +1,7 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { loadTranslation } from './translation-loader';
+import { TEST_TIMEOUTS } from '../test-constants';
 
 const translation = loadTranslation();
 
@@ -150,7 +151,7 @@ export class EditGroupModalPage extends BasePage {
     /**
      * Wait for edit modal to open
      */
-    async waitForModalToOpen(timeout = 2000): Promise<void> {
+    async waitForModalToOpen(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
         await expect(this.getModalContainer()).toBeVisible({ timeout });
         await expect(this.getGroupNameInput()).toBeVisible();
         await expect(this.getSaveButton()).toBeVisible();
@@ -159,7 +160,7 @@ export class EditGroupModalPage extends BasePage {
     /**
      * Wait for edit modal to close
      */
-    async waitForModalToClose(timeout = 2000): Promise<void> {
+    async waitForModalToClose(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
         await expect(this.getModalContainer()).not.toBeVisible({ timeout });
     }
 

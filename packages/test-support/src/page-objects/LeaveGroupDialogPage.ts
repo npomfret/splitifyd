@@ -1,5 +1,6 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
+import { TEST_TIMEOUTS } from '../test-constants';
 
 /**
  * Leave Group Dialog Page Object Model for Playwright tests
@@ -115,7 +116,7 @@ export class LeaveGroupDialogPage extends BasePage {
     /**
      * Wait for dialog to open
      */
-    async waitForDialogToOpen(timeout = 2000): Promise<void> {
+    async waitForDialogToOpen(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
         await expect(this.getDialogContainer()).toBeVisible({ timeout });
         await expect(this.getConfirmationDialog()).toBeVisible();
         await expect(this.getConfirmButton()).toBeVisible();
@@ -125,7 +126,7 @@ export class LeaveGroupDialogPage extends BasePage {
     /**
      * Wait for dialog to close
      */
-    async waitForDialogToClose(timeout = 2000): Promise<void> {
+    async waitForDialogToClose(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
         await expect(this.getDialogContainer()).not.toBeVisible({ timeout });
     }
 

@@ -101,7 +101,7 @@ export abstract class BasePage {
     /**
      * Wait for DOM content to be loaded
      */
-    async waitForDomContentLoaded(timeout = 5000) {
+    async waitForDomContentLoaded(timeout: number = TEST_TIMEOUTS.NAVIGATION) {
         await this._page.waitForLoadState('domcontentloaded', { timeout });
     }
 

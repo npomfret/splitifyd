@@ -1,6 +1,7 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { loadTranslation } from './translation-loader';
+import { TEST_TIMEOUTS } from '../test-constants';
 
 const translation = loadTranslation();
 
@@ -114,21 +115,21 @@ export class ShareGroupModalPage extends BasePage {
     /**
      * Wait for modal to open
      */
-    async waitForModalToOpen(timeout = 2000): Promise<void> {
+    async waitForModalToOpen(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
         await expect(this.getModalContainer()).toBeVisible({ timeout });
     }
 
     /**
      * Wait for modal to close
      */
-    async waitForModalToClose(timeout = 2000): Promise<void> {
+    async waitForModalToClose(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
         await expect(this.getModalContainer()).not.toBeVisible({ timeout });
     }
 
     /**
      * Wait for share link to be generated and displayed
      */
-    async waitForShareLink(timeout = 5000): Promise<void> {
+    async waitForShareLink(timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
         await expect(this.getShareLinkInput()).toBeVisible({ timeout });
         await expect(this.getShareLinkInput()).not.toHaveValue('');
     }
@@ -189,7 +190,7 @@ export class ShareGroupModalPage extends BasePage {
         await this.clickCopyLink();
 
         // Wait for toast to appear confirming copy
-        await expect(this.getToastNotification()).toBeVisible({ timeout: 2000 });
+        await expect(this.getToastNotification()).toBeVisible({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
 
         return linkBefore;
     }
@@ -204,7 +205,7 @@ export class ShareGroupModalPage extends BasePage {
 
         // Wait for link to change - poll the input value
         const input = this.getShareLinkInput();
-        await expect(input).not.toHaveValue(oldLink, { timeout: 5000 });
+        await expect(input).not.toHaveValue(oldLink, { timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
 
         return await this.getShareLink();
     }
@@ -272,8 +273,9 @@ export class ShareGroupModalPage extends BasePage {
 
     /**
      * Verify toast notification disappears after timeout
+     * Toast is programmed to show for 3 seconds, so we wait slightly longer
      */
-    async verifyToastDisappears(timeout = 4000): Promise<void> {
+    async verifyToastDisappears(timeout: number = TEST_TIMEOUTS.ERROR_DISPLAY + 1000): Promise<void> {
         await expect(this.getToastNotification()).not.toBeVisible({ timeout });
     }
 }
