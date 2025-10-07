@@ -52,24 +52,20 @@ describe('formatCurrency', () => {
     });
 
     describe('edge cases', () => {
-        it('should handle empty currency code by returning unformatted amount', () => {
-            const result = formatCurrency(25.5, '');
-            expect(result).toBe('25.50');
+        it('should throw error for empty currency code', () => {
+            expect(() => formatCurrency(25.5, '')).toThrow('you must supply a currencyCode AND amount');
         });
 
-        it('should handle whitespace-only currency code', () => {
-            const result = formatCurrency(25.5, '   ');
-            expect(result).toBe('25.50');
+        it('should throw error for whitespace-only currency code', () => {
+            expect(() => formatCurrency(25.5, '   ')).toThrow('you must supply a currencyCode AND amount');
         });
 
-        it('should handle null currency code by returning unformatted amount', () => {
-            const result = formatCurrency(25.5, null as any);
-            expect(result).toBe('25.50');
+        it('should throw error for null currency code', () => {
+            expect(() => formatCurrency(25.5, null as any)).toThrow('you must supply a currencyCode AND amount');
         });
 
-        it('should handle undefined currency code', () => {
-            const result = formatCurrency(25.5, undefined as any);
-            expect(result).toBe('25.50');
+        it('should throw error for undefined currency code', () => {
+            expect(() => formatCurrency(25.5, undefined as any)).toThrow('you must supply a currencyCode AND amount');
         });
 
         it('should throw error for invalid currency codes', () => {
@@ -99,150 +95,11 @@ describe('formatCurrency', () => {
     });
 
     describe('format options', () => {
-        it('should respect showSymbol option when false in fallback mode', () => {
-            // Mock Intl.NumberFormat to force fallback mode
-            const originalIntl = global.Intl;
-            global.Intl = {
-                ...originalIntl,
-                NumberFormat: vi.fn().mockImplementation(() => {
-                    throw new Error('Intl.NumberFormat failed');
-                }),
-            } as any;
-
-            const options: FormatOptions = { showSymbol: false };
-            const result = formatCurrency(25.5, 'USD', options);
-            expect(result).not.toContain('$');
-            expect(result).toBe('25.50');
-
-            global.Intl = originalIntl;
-        });
-
-        it('should show currency code when showCode is true in fallback mode', () => {
-            const originalIntl = global.Intl;
-            global.Intl = {
-                ...originalIntl,
-                NumberFormat: vi.fn().mockImplementation(() => {
-                    throw new Error('Intl.NumberFormat failed');
-                }),
-            } as any;
-
-            const options: FormatOptions = { showCode: true, showSymbol: false };
-            const result = formatCurrency(25.5, 'USD', options);
-            expect(result).toContain('USD');
-            expect(result).toBe('25.50 USD');
-
-            global.Intl = originalIntl;
-        });
-
-        it('should show both symbol and code when both options are true in fallback mode', () => {
-            const originalIntl = global.Intl;
-            global.Intl = {
-                ...originalIntl,
-                NumberFormat: vi.fn().mockImplementation(() => {
-                    throw new Error('Intl.NumberFormat failed');
-                }),
-            } as any;
-
-            const options: FormatOptions = { showSymbol: true, showCode: true };
-            const result = formatCurrency(25.5, 'USD', options);
-            expect(result).toContain('$');
-            expect(result).toContain('USD');
-            expect(result).toBe('$25.50 USD');
-
-            global.Intl = originalIntl;
-        });
-
         it('should use different locale when specified', () => {
             const options: FormatOptions = { locale: 'de-DE' };
             const result = formatCurrency(1234.56, 'EUR', options);
             // German locale typically uses comma for decimal separator
             expect(result).toContain('€');
-        });
-    });
-
-    describe('Intl.NumberFormat fallback behavior', () => {
-        it('should fallback to manual formatting when Intl.NumberFormat fails', () => {
-            // Mock Intl.NumberFormat to throw an error
-            const originalIntl = global.Intl;
-            global.Intl = {
-                ...originalIntl,
-                NumberFormat: vi.fn().mockImplementation(() => {
-                    throw new Error('Intl.NumberFormat failed');
-                }),
-            } as any;
-
-            const result = formatCurrency(25.5, 'USD');
-            expect(result).toBe('$25.50');
-
-            // Restore original Intl
-            global.Intl = originalIntl;
-        });
-
-        it('should fallback with showCode option when Intl fails', () => {
-            const originalIntl = global.Intl;
-            global.Intl = {
-                ...originalIntl,
-                NumberFormat: vi.fn().mockImplementation(() => {
-                    throw new Error('Intl.NumberFormat failed');
-                }),
-            } as any;
-
-            const result = formatCurrency(25.5, 'USD', { showCode: true, showSymbol: false });
-            expect(result).toBe('25.50 USD');
-
-            global.Intl = originalIntl;
-        });
-
-        it('should fallback with both symbol and code when Intl fails', () => {
-            const originalIntl = global.Intl;
-            global.Intl = {
-                ...originalIntl,
-                NumberFormat: vi.fn().mockImplementation(() => {
-                    throw new Error('Intl.NumberFormat failed');
-                }),
-            } as any;
-
-            const result = formatCurrency(25.5, 'USD', { showSymbol: true, showCode: true });
-            expect(result).toBe('$25.50 USD');
-
-            global.Intl = originalIntl;
-        });
-
-        it('should fallback to plain amount when both symbol and code are false', () => {
-            const originalIntl = global.Intl;
-            global.Intl = {
-                ...originalIntl,
-                NumberFormat: vi.fn().mockImplementation(() => {
-                    throw new Error('Intl.NumberFormat failed');
-                }),
-            } as any;
-
-            const result = formatCurrency(25.5, 'USD', { showSymbol: false, showCode: false });
-            expect(result).toBe('25.50');
-
-            global.Intl = originalIntl;
-        });
-    });
-
-    describe('currency-specific decimal places', () => {
-        it('should respect currency-specific decimal places in fallback', () => {
-            const originalIntl = global.Intl;
-            global.Intl = {
-                ...originalIntl,
-                NumberFormat: vi.fn().mockImplementation(() => {
-                    throw new Error('Intl.NumberFormat failed');
-                }),
-            } as any;
-
-            // JPY has 0 decimal places
-            const jpyResult = formatCurrency(1000.123, 'JPY');
-            expect(jpyResult).toBe('¥1000');
-
-            // BHD has 3 decimal places
-            const bhdResult = formatCurrency(10.123456, 'BHD');
-            expect(bhdResult).toBe('BD10.123');
-
-            global.Intl = originalIntl;
         });
     });
 
@@ -255,21 +112,6 @@ describe('formatCurrency', () => {
         it('should handle mixed case currency codes', () => {
             const result = formatCurrency(25.5, 'Usd');
             expect(result).toMatch(/\$25\.50/);
-        });
-
-        it('should show uppercase code in fallback mode', () => {
-            const originalIntl = global.Intl;
-            global.Intl = {
-                ...originalIntl,
-                NumberFormat: vi.fn().mockImplementation(() => {
-                    throw new Error('Intl.NumberFormat failed');
-                }),
-            } as any;
-
-            const result = formatCurrency(25.5, 'usd', { showCode: true, showSymbol: false });
-            expect(result).toBe('25.50 USD');
-
-            global.Intl = originalIntl;
         });
     });
 });
