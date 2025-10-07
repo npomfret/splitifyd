@@ -23,7 +23,6 @@ export class ExpenseService {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
-        private readonly groupMemberService: GroupMemberService,
         private readonly userService: UserService,
         private readonly incrementalBalanceService: IncrementalBalanceService,
     ) {}
