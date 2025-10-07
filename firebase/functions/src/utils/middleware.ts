@@ -4,7 +4,7 @@ import { randomUUID } from 'crypto';
 import { validateRequestStructure, validateContentType } from '../middleware/validation';
 import { applySecurityHeaders } from '../middleware/security-headers';
 import { applyCacheControl } from '../middleware/cache-control';
-import { LoggerContext } from '../logger';
+import { logger, LoggerContext } from '../logger';
 import { detectLanguageFromHeader, getTranslationFunction, initializeI18n, LocalizedRequest } from './i18n';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { getAuth, getFirestore } from '../firebase';
@@ -54,6 +54,26 @@ export const applyStandardMiddleware = (app: express.Application) => {
 
     // Validate request structure and prevent malicious payloads
     app.use(validateRequestStructure);
+
+    // Log slow requests (>1s) to help identify performance bottlenecks
+    app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+        const startTime = Date.now();
+
+        res.on('finish', () => {
+            const duration = Date.now() - startTime;
+            if (duration > 1000) {
+                logger.warn('slow-request', {
+                    method: req.method,
+                    path: req.path,
+                    statusCode: res.statusCode,
+                    duration,
+                    correlationId: req.headers['x-correlation-id'],
+                });
+            }
+        });
+
+        next();
+    });
 
     // Request logging is minimal - only log when something changes
     // Errors are logged by error handlers

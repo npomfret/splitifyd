@@ -42,6 +42,15 @@ interface MetricsReportData {
     };
 }
 
+interface SlowRequest {
+    method: string;
+    path: string;
+    statusCode: number;
+    duration: number;
+    timestamp: Date;
+    correlationId?: string;
+}
+
 interface FunctionStats {
     functionName: string;
     executions: FunctionExecution[];
@@ -85,6 +94,7 @@ class FunctionPerformanceAnalyzer {
     private executions: FunctionExecution[] = [];
     private functionMap: Map<string, FunctionExecution[]> = new Map();
     private metricsReports: MetricsReportData[] = [];
+    private slowRequests: SlowRequest[] = [];
 
     async parseLogFile(filePath: string): Promise<void> {
         const fileStream = fs.createReadStream(filePath);
@@ -139,11 +149,54 @@ class FunctionPerformanceAnalyzer {
                     console.warn(`Warning: Could not parse metrics-report at line ${lineNumber}`);
                 }
             }
+
+            // Match slow-request entries
+            // Example: [info] >  {"correlationId":"...","method":"POST","path":"/expenses","statusCode":201,"duration":2103,"severity":"WARNING","message":"slow-request"}
+            if (line.includes('slow-request')) {
+                // Extract JSON starting from first {
+                const jsonStartIndex = line.indexOf('{');
+                if (jsonStartIndex !== -1) {
+                    // Find the matching closing brace by counting depth
+                    let depth = 0;
+                    let jsonEndIndex = -1;
+                    for (let i = jsonStartIndex; i < line.length; i++) {
+                        if (line[i] === '{') depth++;
+                        if (line[i] === '}') {
+                            depth--;
+                            if (depth === 0) {
+                                jsonEndIndex = i + 1;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (jsonEndIndex !== -1) {
+                        try {
+                            const jsonString = line.substring(jsonStartIndex, jsonEndIndex);
+                            const slowRequestData = JSON.parse(jsonString);
+                            if (slowRequestData.message === 'slow-request') {
+                                this.slowRequests.push({
+                                    method: slowRequestData.method,
+                                    path: slowRequestData.path,
+                                    statusCode: slowRequestData.statusCode,
+                                    duration: slowRequestData.duration,
+                                    timestamp: new Date(currentTimestamp),
+                                    correlationId: slowRequestData.correlationId,
+                                });
+                            }
+                        } catch (error) {
+                            // Skip malformed slow-request entries
+                            console.warn(`Warning: Could not parse slow-request at line ${lineNumber}`);
+                        }
+                    }
+                }
+            }
         }
 
         console.log(`📊 Parsed ${this.executions.length} function executions from ${lineNumber} lines`);
         console.log(`🔍 Found ${this.functionMap.size} unique functions`);
         console.log(`📈 Found ${this.metricsReports.length} metrics reports`);
+        console.log(`🐌 Found ${this.slowRequests.length} slow requests (>1s)`);
     }
 
     analyzePerformance(): Map<string, FunctionStats> {
@@ -578,6 +631,30 @@ class FunctionPerformanceAnalyzer {
             console.log('❌ NO DATA FOUND');
             console.log('Expected log format: [timestamp] functions: Finished "function-name" in XXX.XXXms');
             console.log("Make sure you're analyzing Firebase Functions debug logs!");
+        }
+
+        // Display slow API requests (>1s)
+        if (this.slowRequests.length > 0) {
+            console.log('\n' + '⏱️ '.repeat(50));
+            console.log('🐢 SLOW API REQUESTS (>1 second)'.padStart(75));
+            console.log('⏱️ '.repeat(50));
+
+            // Sort by duration descending
+            const sortedSlowRequests = this.slowRequests.sort((a, b) => b.duration - a.duration);
+
+            console.log(`\nTotal slow requests: ${this.slowRequests.length}\n`);
+
+            // Show top 20 slowest requests
+            const displayCount = Math.min(20, sortedSlowRequests.length);
+            for (let i = 0; i < displayCount; i++) {
+                const req = sortedSlowRequests[i];
+                const timestamp = req.timestamp.toISOString().split('T')[1].substring(0, 12);
+                console.log(`${(i + 1).toString().padStart(4)} ${req.method.padEnd(6)} ${req.path.padEnd(40)} → ${req.duration}ms (${req.statusCode}) [${timestamp}]`);
+            }
+
+            if (sortedSlowRequests.length > displayCount) {
+                console.log(`\n... and ${sortedSlowRequests.length - displayCount} more slow requests`);
+            }
         }
 
         console.log('\n' + '🎯'.repeat(50));
