@@ -77,24 +77,36 @@ export abstract class BasePage {
         await this.clearPreactInput(input);
 
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            await input.focus();
-            await input.pressSequentially(value, { delay: 50, timeout: TEST_TIMEOUTS.INPUT_UPDATE * 2 });
+            try {
+                await input.focus();
+                await input.pressSequentially(value, { delay: 50, timeout: TEST_TIMEOUTS.INPUT_UPDATE * 2 });
 
-            const currentValue = await input.inputValue();
-            if (currentValue === value) {
-                await input.blur();
-                return;
+                const currentValue = await input.inputValue();
+                if (currentValue === value) {
+                    await input.blur();
+                    return;
+                }
+
+                if (attempt === maxAttempts - 1) {
+                    throw new Error(
+                        `Failed to fill input ${inputIdentifier} after ${maxAttempts} attempts. ` +
+                            `Expected value: "${value}", Current value: "${currentValue}". ` +
+                            `This suggests Preact signal reactivity issues.`,
+                    );
+                }
+
+                await this.clearPreactInput(input);
+            } catch (error) {
+                // If we're on the last attempt, re-throw the error
+                if (attempt === maxAttempts - 1) {
+                    throw new Error(
+                        `Failed to fill input ${inputIdentifier} after ${maxAttempts} attempts. ` +
+                            `Last error: ${error instanceof Error ? error.message : String(error)}`,
+                    );
+                }
+                // Otherwise, retry after clearing the input
+                await this.clearPreactInput(input);
             }
-
-            if (attempt === maxAttempts - 1) {
-                throw new Error(
-                    `Failed to fill input ${inputIdentifier} after ${maxAttempts} attempts. ` +
-                        `Expected value: "${value}", Current value: "${currentValue}". ` +
-                        `This suggests Preact signal reactivity issues.`,
-                );
-            }
-
-            await this.clearPreactInput(input);
         }
     }
 
