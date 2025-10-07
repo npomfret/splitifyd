@@ -1,6 +1,6 @@
 import { expect, test } from '../../utils/console-logging-fixture';
-import { mockGroupsApi } from '../../utils/mock-firebase-service';
-import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
+import { mockGroupsApi, mockGroupDetailApi, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
+import { DashboardPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ListGroupsResponseBuilder, ThemeBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
 
 test.describe('Dashboard User Interface and Responsiveness', () => {
     test('should display user menu and allow interaction', async ({ authenticatedPage }) => {
@@ -62,7 +62,21 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
 
         const group = GroupDTOBuilder.groupForUser(user.uid).withId('interactive-group').withName('Interactive Group').build();
 
+        // Mock dashboard groups list API
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+
+        // Mock group detail API for when we navigate to the group page
+        const members = [
+            new GroupMemberBuilder()
+                .withUid(user.uid)
+                .withDisplayName(user.displayName)
+                .withEmail(user.email)
+                .withTheme(ThemeBuilder.blue().build())
+                .build(),
+        ];
+        const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+        await mockGroupDetailApi(page, 'interactive-group', fullDetails);
+        await mockGroupCommentsApi(page, 'interactive-group');
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
