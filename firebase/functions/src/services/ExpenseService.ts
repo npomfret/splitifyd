@@ -128,11 +128,13 @@ export class ExpenseService {
         const validatedExpenseData = expenseValidation.validateCreateExpense(expenseData);
 
         // Parallelize all pre-transaction reads for maximum performance
+        const queryStart = performance.now();
         const [groupData, memberIds, member] = await Promise.all([
             this.firestoreReader.getGroup(validatedExpenseData.groupId),
             this.firestoreReader.getAllGroupMemberIds(validatedExpenseData.groupId),
             this.firestoreReader.getGroupMember(validatedExpenseData.groupId, userId)
         ]);
+        const queryDuration = performance.now() - queryStart;
 
         if (!groupData) {
             throw Errors.NOT_FOUND('Group');
@@ -193,6 +195,7 @@ export class ExpenseService {
 
         // Use transaction to create expense atomically and update balance
         let createdExpenseRef: DocumentReference | undefined;
+        const transactionStart = performance.now();
         await this.firestoreWriter.runTransaction(async (transaction) => {
             // Re-verify group exists within transaction - using DTO method
             const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, expenseData.groupId);
@@ -218,6 +221,7 @@ export class ExpenseService {
             // Apply incremental balance update
             this.incrementalBalanceService.applyExpenseCreated(transaction, expenseData.groupId, currentBalance, expense, memberIds);
         });
+        const transactionDuration = performance.now() - transactionStart;
 
         // Ensure the expense was created successfully
         if (!createdExpenseRef) {
@@ -226,7 +230,15 @@ export class ExpenseService {
 
         // Set business context for logging
         LoggerContext.setBusinessContext({ groupId: expenseData.groupId, expenseId: createdExpenseRef.id });
-        logger.info('expense-created', { id: createdExpenseRef.id, groupId: expenseData.groupId });
+        logger.info('expense-created', {
+            id: createdExpenseRef.id,
+            groupId: expenseData.groupId,
+            timings: {
+                queryMs: Math.round(queryDuration),
+                transactionMs: Math.round(transactionDuration),
+                totalMs: Math.round(queryDuration + transactionDuration)
+            }
+        });
 
         // Return the expense in response format
         return this.transformExpenseToResponse(expense);

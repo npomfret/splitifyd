@@ -649,7 +649,8 @@ class FunctionPerformanceAnalyzer {
             for (let i = 0; i < displayCount; i++) {
                 const req = sortedSlowRequests[i];
                 const timestamp = req.timestamp.toISOString().split('T')[1].substring(0, 12);
-                console.log(`${(i + 1).toString().padStart(4)} ${req.method.padEnd(6)} ${req.path.padEnd(40)} → ${req.duration}ms (${req.statusCode}) [${timestamp}]`);
+                const correlationId = req.correlationId ? ` [${req.correlationId}]` : '';
+                console.log(`${(i + 1).toString().padStart(4)} ${req.method.padEnd(6)} ${req.path.padEnd(40)} → ${req.duration}ms (${req.statusCode}) [${timestamp}]${correlationId}`);
             }
 
             if (sortedSlowRequests.length > displayCount) {
