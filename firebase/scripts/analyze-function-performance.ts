@@ -10,26 +10,30 @@ interface FunctionExecution {
     lineNumber: number;
 }
 
+interface MetricTypeData {
+    count: number;
+    successRate: number;
+    avgDuration: number;
+    p50: number;
+    p95: number;
+    p99: number;
+    operations: Record<
+        string,
+        {
+            count: number;
+            successRate: number;
+            avgDuration: number;
+            p95: number;
+        }
+    >;
+}
+
 interface MetricsReportData {
     timestamp: string;
     samplingRate: number;
-    api: {
-        count: number;
-        successRate: number;
-        avgDuration: number;
-        p50: number;
-        p95: number;
-        p99: number;
-        operations: Record<
-            string,
-            {
-                count: number;
-                successRate: number;
-                avgDuration: number;
-                p95: number;
-            }
-        >;
-    };
+    api: MetricTypeData;
+    db: MetricTypeData;
+    trigger: MetricTypeData;
     memoryStats: {
         totalMetrics: number;
         apiCount: number;
@@ -53,8 +57,22 @@ interface FunctionStats {
     firstExecution: Date;
     lastExecution: Date;
     outliers: number[]; // durations that are statistical outliers
-    // New metrics data
-    metricsData?: {
+    // Metrics data from lightweight metrics system (5% sampling)
+    apiMetrics?: {
+        sampledCount: number;
+        sampledSuccessRate: number;
+        sampledAvgDuration: number;
+        sampledP95: number;
+        lastSeen: Date;
+    };
+    dbMetrics?: {
+        sampledCount: number;
+        sampledSuccessRate: number;
+        sampledAvgDuration: number;
+        sampledP95: number;
+        lastSeen: Date;
+    };
+    triggerMetrics?: {
         sampledCount: number;
         sampledSuccessRate: number;
         sampledAvgDuration: number;
@@ -180,7 +198,29 @@ class FunctionPerformanceAnalyzer {
     }
 
     private enrichWithMetricsData(functionName: string, functionStats: FunctionStats): void {
-        // Find metrics data for this function across all reports
+        // Enrich with API metrics
+        const apiData = this.aggregateMetricsForType(functionName, 'api');
+        if (apiData) {
+            functionStats.apiMetrics = apiData;
+        }
+
+        // Enrich with DB metrics
+        const dbData = this.aggregateMetricsForType(functionName, 'db');
+        if (dbData) {
+            functionStats.dbMetrics = dbData;
+        }
+
+        // Enrich with Trigger metrics
+        const triggerData = this.aggregateMetricsForType(functionName, 'trigger');
+        if (triggerData) {
+            functionStats.triggerMetrics = triggerData;
+        }
+    }
+
+    private aggregateMetricsForType(
+        operationName: string,
+        metricType: 'api' | 'db' | 'trigger',
+    ): { sampledCount: number; sampledSuccessRate: number; sampledAvgDuration: number; sampledP95: number; lastSeen: Date } | null {
         let totalSampledCount = 0;
         let totalSampledDuration = 0;
         let totalSuccessful = 0;
@@ -188,7 +228,10 @@ class FunctionPerformanceAnalyzer {
         let latestSeen = new Date(0);
 
         for (const report of this.metricsReports) {
-            const operationData = report.api.operations[functionName];
+            const metricTypeData = report[metricType];
+            if (!metricTypeData || !metricTypeData.operations) continue;
+
+            const operationData = metricTypeData.operations[operationName];
             if (operationData) {
                 totalSampledCount += operationData.count;
                 totalSampledDuration += operationData.avgDuration * operationData.count;
@@ -203,7 +246,7 @@ class FunctionPerformanceAnalyzer {
         }
 
         if (totalSampledCount > 0) {
-            functionStats.metricsData = {
+            return {
                 sampledCount: totalSampledCount,
                 sampledSuccessRate: totalSuccessful / totalSampledCount,
                 sampledAvgDuration: totalSampledDuration / totalSampledCount,
@@ -211,6 +254,8 @@ class FunctionPerformanceAnalyzer {
                 lastSeen: latestSeen,
             };
         }
+
+        return null;
     }
 
     private calculateMedian(sortedArray: number[]): number {
@@ -319,21 +364,47 @@ class FunctionPerformanceAnalyzer {
         }
 
         console.log('📊 LIGHTWEIGHT METRICS SUMMARY');
-        console.log('▔'.repeat(50));
+        console.log('▔'.repeat(60));
 
         const latestReport = this.metricsReports[this.metricsReports.length - 1];
-        const totalSampleCount = this.metricsReports.reduce((sum, r) => sum + r.api.count, 0);
+        const totalApiSamples = this.metricsReports.reduce((sum, r) => sum + r.api.count, 0);
+        const totalDbSamples = this.metricsReports.reduce((sum, r) => sum + r.db.count, 0);
+        const totalTriggerSamples = this.metricsReports.reduce((sum, r) => sum + r.trigger.count, 0);
 
         console.log(`🔍 Sampling Rate: ${latestReport.samplingRate * 100}%`);
-        console.log(`📈 Total Samples: ${totalSampleCount.toLocaleString()}`);
         console.log(`⏰ Reports Found: ${this.metricsReports.length}`);
-        console.log(`🎯 Overall Success Rate: ${(latestReport.api.successRate * 100).toFixed(1)}%`);
-
-        if (latestReport.api.count > 0) {
-            console.log(`⚡ Avg Response Time: ${latestReport.api.avgDuration.toFixed(1)}ms`);
-            console.log(`📊 P95 Response Time: ${latestReport.api.p95}ms`);
-        }
         console.log('');
+
+        console.log('📈 TOTAL SAMPLES BY TYPE:');
+        console.log(`   🌐 API Operations:     ${totalApiSamples.toLocaleString().padStart(8)} samples`);
+        console.log(`   💾 DB Operations:      ${totalDbSamples.toLocaleString().padStart(8)} samples`);
+        console.log(`   ⚡ Trigger Operations: ${totalTriggerSamples.toLocaleString().padStart(8)} samples`);
+        console.log('');
+
+        // Show latest metrics for each type
+        if (latestReport.api.count > 0) {
+            console.log('🌐 API METRICS (Latest):');
+            console.log(`   Success Rate: ${(latestReport.api.successRate * 100).toFixed(1)}%`);
+            console.log(`   Avg Duration: ${latestReport.api.avgDuration.toFixed(1)}ms`);
+            console.log(`   P95 Duration: ${latestReport.api.p95}ms`);
+            console.log('');
+        }
+
+        if (latestReport.db.count > 0) {
+            console.log('💾 DB METRICS (Latest):');
+            console.log(`   Success Rate: ${(latestReport.db.successRate * 100).toFixed(1)}%`);
+            console.log(`   Avg Duration: ${latestReport.db.avgDuration.toFixed(1)}ms`);
+            console.log(`   P95 Duration: ${latestReport.db.p95}ms`);
+            console.log('');
+        }
+
+        if (latestReport.trigger.count > 0) {
+            console.log('⚡ TRIGGER METRICS (Latest):');
+            console.log(`   Success Rate: ${(latestReport.trigger.successRate * 100).toFixed(1)}%`);
+            console.log(`   Avg Duration: ${latestReport.trigger.avgDuration.toFixed(1)}ms`);
+            console.log(`   P95 Duration: ${latestReport.trigger.p95}ms`);
+            console.log('');
+        }
     }
 
     printReport(stats: Map<string, FunctionStats>): void {
@@ -358,11 +429,24 @@ class FunctionPerformanceAnalyzer {
                 console.log(`├─ ⏱️  AVG TIME: ${stat.averageDuration.toFixed(1)}ms`);
                 console.log(`├─ 📊 EXECUTIONS: ${stat.totalExecutions.toLocaleString()}`);
 
-                if (stat.metricsData) {
-                    const accuracy = ((stat.metricsData.sampledCount / stat.totalExecutions) * 100).toFixed(1);
-                    console.log(`├─ ✅ SUCCESS RATE: ${(stat.metricsData.sampledSuccessRate * 100).toFixed(1)}%`);
-                    console.log(`├─ 🎯 METRICS: ${stat.metricsData.sampledCount} samples (${accuracy}% coverage)`);
-                    console.log(`├─ 🚀 P95: ${stat.metricsData.sampledP95}ms`);
+                // Show metrics from all available sources
+                if (stat.apiMetrics) {
+                    const accuracy = ((stat.apiMetrics.sampledCount / stat.totalExecutions) * 100).toFixed(1);
+                    console.log(`├─ 🌐 API METRICS: ${stat.apiMetrics.sampledCount} samples (${accuracy}% coverage)`);
+                    console.log(`│  ├─ Success Rate: ${(stat.apiMetrics.sampledSuccessRate * 100).toFixed(1)}%`);
+                    console.log(`│  └─ P95: ${stat.apiMetrics.sampledP95}ms`);
+                }
+                if (stat.dbMetrics) {
+                    const accuracy = ((stat.dbMetrics.sampledCount / stat.totalExecutions) * 100).toFixed(1);
+                    console.log(`├─ 💾 DB METRICS: ${stat.dbMetrics.sampledCount} samples (${accuracy}% coverage)`);
+                    console.log(`│  ├─ Success Rate: ${(stat.dbMetrics.sampledSuccessRate * 100).toFixed(1)}%`);
+                    console.log(`│  └─ P95: ${stat.dbMetrics.sampledP95}ms`);
+                }
+                if (stat.triggerMetrics) {
+                    const accuracy = ((stat.triggerMetrics.sampledCount / stat.totalExecutions) * 100).toFixed(1);
+                    console.log(`├─ ⚡ TRIGGER METRICS: ${stat.triggerMetrics.sampledCount} samples (${accuracy}% coverage)`);
+                    console.log(`│  ├─ Success Rate: ${(stat.triggerMetrics.sampledSuccessRate * 100).toFixed(1)}%`);
+                    console.log(`│  └─ P95: ${stat.triggerMetrics.sampledP95}ms`);
                 }
 
                 console.log(`├─ 📏 RANGE: ${stat.minDuration.toFixed(0)}ms - ${stat.maxDuration.toFixed(0)}ms`);
@@ -386,9 +470,23 @@ class FunctionPerformanceAnalyzer {
                 console.log(`├─ 📈 TREND: ${Math.abs(stat.trendPercentage).toFixed(1)}% FASTER over time`);
                 console.log(`├─ ⏱️  AVG TIME: ${stat.averageDuration.toFixed(1)}ms`);
 
-                if (stat.metricsData) {
-                    console.log(`├─ ✅ SUCCESS RATE: ${(stat.metricsData.sampledSuccessRate * 100).toFixed(1)}%`);
-                    console.log(`└─ 🎯 P95: ${stat.metricsData.sampledP95}ms`);
+                // Show metrics from all available sources
+                let hasMetrics = false;
+                if (stat.apiMetrics) {
+                    console.log(`├─ 🌐 API: Success ${(stat.apiMetrics.sampledSuccessRate * 100).toFixed(1)}%, P95 ${stat.apiMetrics.sampledP95}ms`);
+                    hasMetrics = true;
+                }
+                if (stat.dbMetrics) {
+                    console.log(`├─ 💾 DB: Success ${(stat.dbMetrics.sampledSuccessRate * 100).toFixed(1)}%, P95 ${stat.dbMetrics.sampledP95}ms`);
+                    hasMetrics = true;
+                }
+                if (stat.triggerMetrics) {
+                    console.log(`├─ ⚡ TRIGGER: Success ${(stat.triggerMetrics.sampledSuccessRate * 100).toFixed(1)}%, P95 ${stat.triggerMetrics.sampledP95}ms`);
+                    hasMetrics = true;
+                }
+
+                if (!hasMetrics) {
+                    console.log(`└─ 📊 ${stat.totalExecutions.toLocaleString()} executions`);
                 } else {
                     console.log(`└─ 📊 ${stat.totalExecutions.toLocaleString()} executions`);
                 }

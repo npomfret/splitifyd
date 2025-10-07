@@ -86,7 +86,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
 
             // Wait for group creation notification (increased timeout for Firebase emulator trigger latency)
-            await user1Listener.waitForGroupEvent(group.id, 1, 2000);
+            await user1Listener.waitForGroupEvent(group.id, 1);
 
             // Assert event count after group creation
             user1Listener.assertEventCount(group.id, 1, 'group');
@@ -190,7 +190,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
             // Wait for update notifications - allow more time for triggers to process
             // With parallel updates, database triggers may take longer to process all changes
-            await user1Listener.waitForEventCount(group.id, 'group', 3, 10000);
+            await user1Listener.waitForEventCount(group.id, 'group', 3);
 
             // Verify we received all 3 update events
             user1Listener.assertEventCount(group.id, 3, 'group');
@@ -371,7 +371,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.removeGroupMember(dynamicGroup.id, user2.uid, user1.token);
 
             await user1Listener.waitForEventCount(dynamicGroup.id, 'group', 1);
-            await user2Listener.waitForEventCount(dynamicGroup.id, 'group', 0, 100); // removed user should see nothing
+            await user2Listener.waitForEventCount(dynamicGroup.id, 'group', 0); // removed user should see nothing
+
             notificationDriver.clearEvents();
 
             user2Listener.assertEventCount(dynamicGroup.id, 0, 'transaction');
@@ -893,8 +894,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             await Promise.all(concurrentPromises);
 
             // WAIT: Wait for all notifications to be processed despite potential conflicts
-            await user1Listener.waitForEventCount(conflictGroup.id, 'transaction', 5, 5000);
-            await user2Listener.waitForEventCount(conflictGroup.id, 'transaction', 5, 5000);
+            await user1Listener.waitForEventCount(conflictGroup.id, 'transaction', 5);
+            await user2Listener.waitForEventCount(conflictGroup.id, 'transaction', 5);
 
             // ASSERT: Both users should receive all concurrent notifications despite conflicts
             user1Listener.assertEventCount(conflictGroup.id, 5, 'transaction');
@@ -943,7 +944,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             await Promise.all(concurrentPromises);
 
             // WAIT: Verify all notifications were received despite potential locking
-            await user1Listener.waitForEventCount(lockingGroup.id, 'transaction', 7, 5000);
+            await user1Listener.waitForEventCount(lockingGroup.id, 'transaction', 7);
 
             // ASSERT: All concurrent operations should have been processed
             user1Listener.assertEventCount(lockingGroup.id, 7, 'transaction');
@@ -1302,9 +1303,9 @@ describe('Notifications Management - Consolidated Tests', () => {
 
             // WAIT: Verify all users receive all concurrent notifications
             // Note: All group members receive notifications for any expense in the group, regardless of participation
-            await user1Listener.waitForEventCount(scaleGroup.id, 'transaction', 2, 5000); // user1 gets notified of both concurrent expenses (all group members get notified)
-            await user2Listener.waitForEventCount(scaleGroup.id, 'transaction', 2, 5000); // user2 gets notified of both concurrent expenses
-            await user3Listener.waitForEventCount(scaleGroup.id, 'transaction', 2, 5000); // user3 gets notified of both concurrent expenses
+            await user1Listener.waitForEventCount(scaleGroup.id, 'transaction', 2); // user1 gets notified of both concurrent expenses (all group members get notified)
+            await user2Listener.waitForEventCount(scaleGroup.id, 'transaction', 2); // user2 gets notified of both concurrent expenses
+            await user3Listener.waitForEventCount(scaleGroup.id, 'transaction', 2); // user3 gets notified of both concurrent expenses
 
             // ASSERT: Verify scale notifications were handled correctly
             user1Listener.assertEventCount(scaleGroup.id, 2, 'transaction');

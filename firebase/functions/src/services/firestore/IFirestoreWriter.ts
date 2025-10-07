@@ -291,6 +291,14 @@ export interface IFirestoreWriter {
      */
     setUserNotifications(userId: string, data: any, merge?: boolean): Promise<WriteResult>;
 
+    /**
+     * Batch set user notifications using Firestore batch writes for optimal performance
+     * Automatically handles batching for groups exceeding 500 users (Firestore batch limit)
+     * @param updates - Array of user notification updates
+     * @returns Batch write result with success/failure counts
+     */
+    batchSetUserNotifications(updates: Array<{ userId: string; data: any; merge?: boolean }>): Promise<BatchWriteResult>;
+
     // ========================================================================
     // Test Pool Operations (for TestUserPoolService)
     // ========================================================================

@@ -43,13 +43,10 @@ export class NotificationService {
     /**
      * Batch update multiple users' notification documents with multiple change types atomically
      * Processes multiple change types for each user in a single atomic operation
+     * Uses Firestore batch writes for optimal performance (single network round-trip per batch)
      */
     async batchUpdateNotificationsMultipleTypes(userIds: string[], groupId: string, changeTypes: ChangeType[]): Promise<BatchWriteResult> {
         return measureDb('NotificationService.batchUpdateNotificationsMultipleTypes', async () => {
-            let successCount = 0;
-            let failureCount = 0;
-            const results = [];
-
             // Map changeType to proper field names
             const fieldMap = {
                 transaction: { count: 'transactionChangeCount', last: 'lastTransactionChange' },
@@ -58,64 +55,45 @@ export class NotificationService {
                 comment: { count: 'commentChangeCount', last: 'lastCommentChange' },
             };
 
-            for (const userId of userIds) {
-                try {
-                    // Build updates for all change types in single atomic operation
-                    const updates: Record<string, any> = {
-                        changeVersion: FieldValue.increment(changeTypes.length),
-                        // Initialize groups object to ensure proper nested structure
-                        groups: {
-                            [groupId]: {},
-                        },
-                    };
+            // Build update data for each user
+            const updates = userIds.map((userId) => {
+                const updateData: Record<string, any> = {
+                    changeVersion: FieldValue.increment(changeTypes.length),
+                    // Initialize groups object to ensure proper nested structure
+                    groups: {
+                        [groupId]: {},
+                    },
+                };
 
-                    // Add updates for each change type using nested object structure
-                    const now = new Date().toISOString();
-                    for (const changeType of changeTypes) {
-                        const { count: countFieldName, last: lastChangeFieldName } = fieldMap[changeType];
-                        updates.groups[groupId][lastChangeFieldName] = now;
-                        updates.groups[groupId][countFieldName] = FieldValue.increment(1);
-                    }
-
-                    // Use set with merge:true to create proper nested structure
-                    // This handles non-existent documents gracefully and is 50% faster than defensive reads
-                    const result = await this.firestoreWriter.setUserNotifications(userId, updates, true);
-
-                    if (result.success) {
-                        successCount++;
-                    } else {
-                        failureCount++;
-                    }
-
-                    results.push(result);
-                } catch (error) {
-                    // DEBUGGING: Log failed update with details
-                    logger.error('NotificationService.batchUpdateNotificationsMultipleTypes failed', error as Error, {
-                        userId,
-                        groupId,
-                        changeTypes,
-                        errorMessage: error instanceof Error ? error.message : 'Unknown error',
-                    });
-                    failureCount++;
-                    results.push({ id: userId, success: false });
+                // Add updates for each change type using nested object structure
+                const now = new Date().toISOString();
+                for (const changeType of changeTypes) {
+                    const { count: countFieldName, last: lastChangeFieldName } = fieldMap[changeType];
+                    updateData.groups[groupId][lastChangeFieldName] = now;
+                    updateData.groups[groupId][countFieldName] = FieldValue.increment(1);
                 }
-            }
+
+                return {
+                    userId,
+                    data: updateData,
+                    merge: true,
+                };
+            });
+
+            // Use FirestoreWriter's batch method for single network round-trip
+            const result = await this.firestoreWriter.batchSetUserNotifications(updates);
 
             // DEBUGGING: Log the final batch result
             logger.info('NotificationService.batchUpdateNotificationsMultipleTypes completed', {
                 totalUsers: userIds.length,
-                successCount,
-                failureCount,
+                successCount: result.successCount,
+                failureCount: result.failureCount,
                 groupId,
                 changeTypes,
                 operation: 'batch-update-multiple-types-complete',
             });
 
-            return {
-                successCount,
-                failureCount,
-                results,
-            };
+            return result;
         });
     }
 

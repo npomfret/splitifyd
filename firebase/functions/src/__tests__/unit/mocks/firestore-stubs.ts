@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { UserRecord, UpdateRequest, CreateRequest, GetUsersResult, DecodedIdToken, ListUsersResult, DeleteUsersResult } from 'firebase-admin/auth';
 import type { IFirestoreReader, QueryOptions } from '../../../services/firestore';
-import type { IFirestoreWriter, WriteResult } from '../../../services/firestore/IFirestoreWriter';
+import type { IFirestoreWriter, WriteResult, BatchWriteResult } from '../../../services/firestore/IFirestoreWriter';
 import type { IAuthService } from '../../../services/auth';
 import { CommentTargetType } from '@splitifyd/shared';
 import type { UserNotificationDocument } from '../../../schemas/user-notifications';
@@ -856,6 +856,23 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     async setUserNotifications(userId: string, updates: any, merge?: boolean): Promise<WriteResult> {
         this.setUserNotificationsCalls.push({ userId, updates, merge });
         return { id: userId, success: true, timestamp: Timestamp.now() };
+    }
+
+    public batchSetUserNotificationsCalls: Array<{ updates: Array<{ userId: string; data: any; merge?: boolean }> }> = [];
+
+    async batchSetUserNotifications(updates: Array<{ userId: string; data: any; merge?: boolean }>): Promise<BatchWriteResult> {
+        this.batchSetUserNotificationsCalls.push({ updates });
+
+        // Simulate individual setUserNotifications calls for backward compatibility
+        for (const update of updates) {
+            this.setUserNotificationsCalls.push({ userId: update.userId, updates: update.data, merge: update.merge });
+        }
+
+        return {
+            successCount: updates.length,
+            failureCount: 0,
+            results: updates.map((u) => ({ id: u.userId, success: true, timestamp: Timestamp.now() })),
+        };
     }
 
     async runTransaction(transactionFn: (transaction: any) => Promise<any>): Promise<any> {

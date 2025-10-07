@@ -14,7 +14,7 @@ import type { Firestore, Transaction, DocumentReference } from 'firebase-admin/f
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { logger } from '../../logger';
 import { ApiError } from '../../utils/errors';
-import { HTTP_STATUS } from '../../constants';
+import { HTTP_STATUS, FIRESTORE } from '../../constants';
 import { CommentTargetTypes, type CommentTargetType } from '@splitifyd/shared';
 import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 import { measureDb } from '../../monitoring/measure';
@@ -1480,6 +1480,76 @@ export class FirestoreWriter implements IFirestoreWriter {
                     error: error instanceof Error ? error.message : 'Unknown error',
                 };
             }
+        });
+    }
+
+    async batchSetUserNotifications(updates: Array<{ userId: string; data: any; merge?: boolean }>): Promise<BatchWriteResult> {
+        return measureDb('FirestoreWriter.batchSetUserNotifications', async () => {
+            const allResults: WriteResult[] = [];
+            let totalSuccess = 0;
+            let totalFailure = 0;
+
+            const BATCH_SIZE = FIRESTORE.TRANSACTION_MAX_WRITES;
+            const chunks: typeof updates[] = [];
+            for (let i = 0; i < updates.length; i += BATCH_SIZE) {
+                chunks.push(updates.slice(i, i + BATCH_SIZE));
+            }
+
+            for (const chunk of chunks) {
+                try {
+                    const batch = this.db.batch();
+
+                    for (const update of chunk) {
+                        const finalData = {
+                            ...update.data,
+                            lastModified: FieldValue.serverTimestamp(),
+                        };
+
+                        const userNotificationRef = this.db.doc(`user-notifications/${update.userId}`);
+                        batch.set(userNotificationRef, finalData, { merge: update.merge || false });
+                    }
+
+                    await batch.commit();
+
+                    for (const update of chunk) {
+                        allResults.push({ id: update.userId, success: true, timestamp: new Date() });
+                        totalSuccess++;
+                    }
+
+                    logger.info('Batch set user notifications succeeded', {
+                        chunkSize: chunk.length,
+                        totalProcessed: totalSuccess + totalFailure,
+                        totalUpdates: updates.length,
+                    });
+                } catch (error) {
+                    logger.error('Batch set user notifications failed for chunk', error, {
+                        chunkSize: chunk.length,
+                        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+                    });
+
+                    for (const update of chunk) {
+                        allResults.push({
+                            id: update.userId,
+                            success: false,
+                            error: error instanceof Error ? error.message : 'Unknown error',
+                        });
+                        totalFailure++;
+                    }
+                }
+            }
+
+            logger.info('Batch set user notifications completed', {
+                totalUpdates: updates.length,
+                successCount: totalSuccess,
+                failureCount: totalFailure,
+                chunksProcessed: chunks.length,
+            });
+
+            return {
+                successCount: totalSuccess,
+                failureCount: totalFailure,
+                results: allResults,
+            };
         });
     }
 
