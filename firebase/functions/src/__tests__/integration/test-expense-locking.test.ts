@@ -1,16 +1,24 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
+import { borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, ExpenseUpdateBuilder, NotificationDriver } from '@splitifyd/test-support';
 import { ApiDriver } from '@splitifyd/test-support';
 import { UserToken } from '@splitifyd/shared';
+import { getFirestore } from '../../firebase';
 
 describe('Expense Locking Debug Test', () => {
     const apiDriver = new ApiDriver();
+    const notificationDriver = new NotificationDriver(getFirestore());
 
     let user1: UserToken;
 
     beforeEach(async () => {
         [user1] = await borrowTestUsers(3);
+    });
+
+    afterEach(async () => {
+        // Wait for system to settle before stopping listeners
+        await notificationDriver.waitForQuiet();
+        await notificationDriver.stopAllListeners();
     });
 
     test('should handle concurrent expense updates', async () => {

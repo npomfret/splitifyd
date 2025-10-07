@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, beforeAll } from 'vitest';
-import { borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
+import { borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, NotificationDriver } from '@splitifyd/test-support';
 import { GroupDTO } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
@@ -12,6 +12,7 @@ describe('Concurrent Operations Integration Tests', () => {
     const groupService = applicationBuilder.buildGroupService();
     const groupMemberService = applicationBuilder.buildGroupMemberService();
     const expenseService = applicationBuilder.buildExpenseService();
+    const notificationDriver = new NotificationDriver(getFirestore());
 
     let users: PooledTestUser[];
     let testUser1: PooledTestUser;
@@ -35,6 +36,12 @@ describe('Concurrent Operations Integration Tests', () => {
             testUser1.uid,
             new CreateGroupRequestBuilder().withName('Concurrent Operations Test Group').withDescription('Testing concurrent operations').build(),
         );
+    });
+
+    afterEach(async () => {
+        // Wait for system to settle before stopping listeners
+        await notificationDriver.waitForQuiet();
+        await notificationDriver.stopAllListeners();
     });
 
     describe('Concurrent Member Operations', () => {

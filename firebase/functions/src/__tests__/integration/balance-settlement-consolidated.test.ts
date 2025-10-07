@@ -1,13 +1,21 @@
 import { beforeEach, describe, expect, test } from 'vitest';
-import { ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, TestGroupManager } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, TestGroupManager, NotificationDriver } from '@splitifyd/test-support';
 import { PooledTestUser, UserToken } from '@splitifyd/shared';
+import { getFirestore } from '../../firebase';
 
 describe('Balance & Settlement - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();
+    const notificationDriver = new NotificationDriver(getFirestore());
     let users: PooledTestUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(6); // Get enough users for all tests
+    });
+
+    afterEach(async () => {
+        // Wait for system to settle before stopping listeners
+        await notificationDriver.waitForQuiet();
+        await notificationDriver.stopAllListeners();
     });
 
     describe('Basic Balance Calculation', () => {

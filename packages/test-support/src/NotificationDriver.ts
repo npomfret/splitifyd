@@ -52,10 +52,9 @@ export class NotificationDriver {
     /**
      * Stop all active listeners
      */
-    stopAllListeners(): void {
-        for (const [_, listener] of this.activeListeners) {
-            listener.stop();
-        }
+    async stopAllListeners(): Promise<void> {
+        // Stop all listeners and wait for Firestore cleanup
+        await Promise.all(Array.from(this.activeListeners.values()).map((listener) => listener.stop()));
         this.activeListeners.clear();
     }
 
@@ -69,10 +68,50 @@ export class NotificationDriver {
     }
 
     /**
+     * Wait for the ENTIRE notification system to be quiet by checking Firestore directly
+     * This detects activity from ANY user, including zombie listeners from previous tests
+     *
+     * @param quietDurationMs - How long the system must be quiet (default: 200ms)
+     * @param timeoutMs - Maximum time to wait (default: 5000ms)
+     * @returns Promise that resolves when system is quiet or timeout occurs
+     */
+    async waitForQuiet(quietDurationMs: number = 200, timeoutMs: number = 5000): Promise<void> {
+        const startTime = Date.now();
+        const checkIntervalMs = 50; // Poll every 50ms
+
+        while (Date.now() - startTime < timeoutMs) {
+            // Query Firestore directly for recent notification updates
+            const cutoffTime = new Date(Date.now() - quietDurationMs);
+            const recentUpdates = await this.firestore
+                .collection('user-notifications')
+                .where('lastModified', '>', cutoffTime)
+                .get();
+
+            if (recentUpdates.empty) {
+                // System is quiet - no notifications updated in the last quietDurationMs
+                return;
+            }
+
+            // System still busy - wait before checking again
+            await new Promise((resolve) => setTimeout(resolve, checkIntervalMs));
+        }
+
+        // Timeout - query again to see which users are still active
+        const cutoffTime = new Date(Date.now() - quietDurationMs);
+        const recentUpdates = await this.firestore
+            .collection('user-notifications')
+            .where('lastModified', '>', cutoffTime)
+            .get();
+
+        const activeUsers = recentUpdates.docs.map((doc) => doc.id);
+        console.warn(`⚠️  waitForQuiet timed out after ${timeoutMs}ms. Recent activity from ${activeUsers.length} users: ${activeUsers.join(', ')}`);
+    }
+
+    /**
      * Set up listeners for multiple users BEFORE any test actions
      * This captures ALL events from the beginning
      */
-    async setupListenersFirst(userIds: string[]): Promise<NotificationListener[]> {
+    async setupListeners(userIds: string[]): Promise<NotificationListener[]> {
         const listeners = [];
 
         for (const userId of userIds) {
@@ -160,9 +199,9 @@ export class NotificationListener {
         this.receivedEvents.push({ ...data });
     }
 
-    stop(): void {
+    async stop(): Promise<void> {
         if (this.listener) {
-            this.listener();
+            this.listener(); // Synchronous unsubscribe call
             this.listener = null;
         }
         this.isStarted = false;

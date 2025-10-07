@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, test } from 'vitest';
-import { borrowTestUsers } from '@splitifyd/test-support';
+import { borrowTestUsers, NotificationDriver } from '@splitifyd/test-support';
 import { ApiDriver, TestExpenseManager } from '@splitifyd/test-support';
 import { PooledTestUser } from '@splitifyd/shared';
+import { getFirestore } from '../../firebase';
 
 /**
  * Comment API Integration Tests
@@ -9,6 +10,7 @@ import { PooledTestUser } from '@splitifyd/shared';
  */
 describe('Comment API - Integration Tests', () => {
     const apiDriver = new ApiDriver();
+    const notificationDriver = new NotificationDriver(getFirestore());
     let testGroup: any;
     let testExpense: any;
     let users: PooledTestUser[];
@@ -19,6 +21,12 @@ describe('Comment API - Integration Tests', () => {
         const setup = await TestExpenseManager.getGroupWithExpenseForComments(members);
         testGroup = setup.group;
         testExpense = setup.expense;
+    });
+
+    afterEach(async () => {
+        // Wait for system to settle before stopping listeners
+        await notificationDriver.waitForQuiet();
+        await notificationDriver.stopAllListeners();
     });
 
     describe('GET /groups/:groupId/comments', () => {

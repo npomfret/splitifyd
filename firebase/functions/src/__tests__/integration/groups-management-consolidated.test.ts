@@ -30,6 +30,12 @@ describe('Groups Management - Consolidated Tests', () => {
         users = await borrowTestUsers(4);
     });
 
+    afterEach(async () => {
+        // Wait for system to settle before stopping listeners
+        await notificationDriver.waitForQuiet();
+        await notificationDriver.stopAllListeners();
+    });
+
     describe('Group Creation and Basic Operations', () => {
         // NOTE: Group creation business logic (validation, default settings, permissions)
         // is now comprehensively tested in unit tests: GroupService.test.ts
@@ -881,7 +887,7 @@ describe('Groups Management - Consolidated Tests', () => {
 
         test('should handle single user group deletion', async () => {
             // Set up notification listener before any operations
-            const [user1Listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
+            const [user1Listener] = await notificationDriver.setupListeners([users[0].uid]);
 
             // Create a group with just the owner
             const groupData = new CreateGroupRequestBuilder().withName(`Single User Test ${uuidv4()}`).withDescription('Testing single user group deletion').build();

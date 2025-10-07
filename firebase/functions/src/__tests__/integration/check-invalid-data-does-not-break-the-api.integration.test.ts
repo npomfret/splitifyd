@@ -12,10 +12,10 @@
  * Add new invalid data scenarios here as they're discovered in production.
  */
 
-import { describe, test, expect, beforeAll, beforeEach } from 'vitest';
+import { describe, test, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import { getFirestore } from '../../firebase';
 import { Timestamp } from 'firebase-admin/firestore';
-import { ApiDriver, CreateGroupRequestBuilder, GroupDTOBuilder } from '@splitifyd/test-support';
+import { ApiDriver, CreateGroupRequestBuilder, GroupDTOBuilder, NotificationDriver } from '@splitifyd/test-support';
 import { FirestoreReader } from '../../services/firestore';
 import { getTopLevelMembershipDocId, createTopLevelMembershipDocument } from '../../utils/groupMembershipHelpers';
 import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
@@ -24,6 +24,7 @@ import { FirestoreCollections } from '../../constants';
 describe('Invalid Data Resilience - API should not break with bad data', () => {
     const firestore = getFirestore();
     const apiDriver = new ApiDriver();
+    const notificationDriver = new NotificationDriver(firestore);
     let testUser: any;
     let validGroupId: string;
 
@@ -36,6 +37,12 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
 
         const createResponse = await apiDriver.createGroup(groupRequest, testUser.token);
         validGroupId = createResponse.id;
+    });
+
+    afterEach(async () => {
+        // Wait for system to settle before stopping listeners
+        await notificationDriver.waitForQuiet();
+        await notificationDriver.stopAllListeners();
     });
 
     describe('Invalid securityPreset values', () => {
@@ -84,7 +91,6 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             }
         });
 
-        afterEach(async () => {});
 
         test('GET /groups should return successfully despite invalid securityPreset values', async () => {
             // Call the API endpoint that would normally fail with invalid data

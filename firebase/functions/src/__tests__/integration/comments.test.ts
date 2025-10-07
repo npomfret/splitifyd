@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import { borrowTestUsers } from '@splitifyd/test-support';
+import { borrowTestUsers, NotificationDriver } from '@splitifyd/test-support';
 import { ApiDriver, TestExpenseManager } from '@splitifyd/test-support';
 import { getFirestore } from '../../firebase';
 import { PooledTestUser } from '@splitifyd/shared';
@@ -12,6 +12,7 @@ import { PooledTestUser } from '@splitifyd/shared';
 describe('Comments Integration Tests (Essential Firebase Behavior)', () => {
     const apiDriver = new ApiDriver();
     const firestore = getFirestore();
+    const notificationDriver = new NotificationDriver(firestore);
     let testGroup: any;
     let users: PooledTestUser[];
 
@@ -20,6 +21,12 @@ describe('Comments Integration Tests (Essential Firebase Behavior)', () => {
         const members = users.slice(0, 2);
         const setup = await TestExpenseManager.getGroupWithExpenseForComments(members);
         testGroup = setup.group;
+    });
+
+    afterEach(async () => {
+        // Wait for system to settle before stopping listeners
+        await notificationDriver.waitForQuiet();
+        await notificationDriver.stopAllListeners();
     });
 
     describe('Firebase Security Rules and Authentication', () => {

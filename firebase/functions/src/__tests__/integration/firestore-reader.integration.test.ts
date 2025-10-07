@@ -7,14 +7,21 @@
  * These tests use the Firebase emulator to verify actual Firestore operations.
  */
 
-import { describe, test, expect } from 'vitest';
-import { ApiDriver, CreateGroupRequestBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
+import { describe, test, expect, afterEach } from 'vitest';
+import { ApiDriver, CreateGroupRequestBuilder, UserRegistrationBuilder, NotificationDriver } from '@splitifyd/test-support';
 import { FirestoreReader } from '../../services/firestore';
 import { getFirestore } from '../../firebase';
 
 describe('FirestoreReader Integration Tests', () => {
     const apiDriver = new ApiDriver();
     const firestoreReader = new FirestoreReader(getFirestore());
+    const notificationDriver = new NotificationDriver(getFirestore());
+
+    afterEach(async () => {
+        // Wait for system to settle before stopping listeners
+        await notificationDriver.waitForQuiet();
+        await notificationDriver.stopAllListeners();
+    });
 
     describe('getGroupsForUser', () => {
         test('should return groups for user using V2 top-level collection architecture', async () => {

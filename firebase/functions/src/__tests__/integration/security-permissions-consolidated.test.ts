@@ -3,17 +3,24 @@
 
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, UserRegistrationBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, UserRegistrationBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, NotificationDriver } from '@splitifyd/test-support';
 import { GroupDTO, PooledTestUser, UserToken } from '@splitifyd/shared';
 import { getFirestore } from '../../firebase';
 
 describe('Security and Permissions - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();
     const firestore = getFirestore();
+    const notificationDriver = new NotificationDriver(firestore);
     let users: PooledTestUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(4);
+    });
+
+    afterEach(async () => {
+        // Wait for system to settle before stopping listeners
+        await notificationDriver.waitForQuiet();
+        await notificationDriver.stopAllListeners();
     });
 
     describe('API Security Headers and Infrastructure', () => {

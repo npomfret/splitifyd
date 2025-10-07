@@ -2,11 +2,19 @@
 // Tests mixed currency settlement behavior directly via API
 // This test reproduces the same scenario as the failing e2e test to isolate the issue
 
-import { describe, expect, test } from 'vitest';
-import { ApiDriver, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, borrowTestUsers, TestGroupManager } from '@splitifyd/test-support';
+import { describe, expect, test, afterEach } from 'vitest';
+import { ApiDriver, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, borrowTestUsers, TestGroupManager, NotificationDriver } from '@splitifyd/test-support';
+import { getFirestore } from '../../firebase';
 
 describe('Mixed Currency Settlements - API Integration', () => {
     const apiDriver = new ApiDriver();
+    const notificationDriver = new NotificationDriver(getFirestore());
+
+    afterEach(async () => {
+        // Wait for system to settle before stopping listeners
+        await notificationDriver.waitForQuiet();
+        await notificationDriver.stopAllListeners();
+    });
 
     test('should handle mixed currency settlements without currency conversion', async () => {
         // Create fresh users and group for this test

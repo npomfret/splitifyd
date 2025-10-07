@@ -71,8 +71,12 @@ describe('Notifications Management - Consolidated Tests', () => {
         [user1, user2, user3] = await borrowTestUsers(3);
     });
 
-    afterEach(() => {
-        notificationDriver.stopAllListeners();
+    afterEach(async () => {
+        // Wait for system to settle before stopping listeners
+        // This prevents race conditions where listeners from previous test
+        // are still processing events when next test starts - which slows things down a lot
+        await notificationDriver.waitForQuiet();
+        await notificationDriver.stopAllListeners(); // Now async - waits for Firestore cleanup
     });
 
     describe('Core Notification Document Operations', () => {
@@ -80,7 +84,7 @@ describe('Notifications Management - Consolidated Tests', () => {
         // This integration test focuses on real-time Firebase behavior and trigger integration
         test('should create and update notification documents for basic operations', async () => {
             // Set up listeners for all users before any operations
-            const [user1Listener, user2Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
+            const [user1Listener, user2Listener] = await notificationDriver.setupListeners([user1.uid, user2.uid]);
 
             // Create a group and verify notification document creation
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
@@ -138,7 +142,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
         test('should handle notification version increments correctly', async () => {
             // Set up listener for user1 before any operations
-            const [user1Listener] = await notificationDriver.setupListenersFirst([user1.uid]);
+            const [user1Listener] = await notificationDriver.setupListeners([user1.uid]);
 
             // Create group and wait for initial notification
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
@@ -166,7 +170,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
         test('should handle rapid multiple updates without losing notifications', async () => {
             // Set up listener for user1 before any operations
-            const [user1Listener] = await notificationDriver.setupListenersFirst([user1.uid]);
+            const [user1Listener] = await notificationDriver.setupListeners([user1.uid]);
 
             // Create group and wait for initial notification
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
@@ -202,7 +206,7 @@ describe('Notifications Management - Consolidated Tests', () => {
         // This integration test focuses on real-time distribution behavior via Firebase
         test('should notify all group members when operations occur', async () => {
             // Set up listeners for all users before any operations
-            const [user1Listener, user2Listener, user3Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid, user3.uid]);
+            const [user1Listener, user2Listener, user3Listener] = await notificationDriver.setupListeners([user1.uid, user2.uid, user3.uid]);
 
             // Step 1: Create group with just the creator
             const multiUserGroup = await apiDriver.createGroup(
@@ -276,7 +280,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
         test('should handle member addition and removal notification patterns', async () => {
             // Set up listeners for user1 and user2 before any operations
-            const [user1Listener, user2Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
+            const [user1Listener, user2Listener] = await notificationDriver.setupListeners([user1.uid, user2.uid]);
 
             // Clear any historical events from previous tests that may be in the initial snapshot
             notificationDriver.clearEvents();
@@ -404,7 +408,7 @@ describe('Notifications Management - Consolidated Tests', () => {
     describe('Permission-Based Notification Access Control', () => {
         test('should only notify users for groups they have access to', async () => {
             // Set up listeners for all users before any operations
-            const [user1Listener, user2Listener, user3Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid, user3.uid]);
+            const [user1Listener, user2Listener, user3Listener] = await notificationDriver.setupListeners([user1.uid, user2.uid, user3.uid]);
 
             // ACTION: Create private group for user1
             const privateGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`Private Group ${uuidv4()}`).build(), user1.token);
@@ -487,7 +491,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
         test('should handle permission changes and notification access', async () => {
             // Set up listeners for both users before any operations
-            const [user1Listener, user2Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
+            const [user1Listener, user2Listener] = await notificationDriver.setupListeners([user1.uid, user2.uid]);
 
             // ACTION: Create group with initial member
             const permissionGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
@@ -612,7 +616,7 @@ describe('Notifications Management - Consolidated Tests', () => {
     describe('Different Event Types and Triggers', () => {
         test('should generate notifications for various operation types', async () => {
             // Set up listeners for both users before any operations
-            const [user1Listener, user2Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
+            const [user1Listener, user2Listener] = await notificationDriver.setupListeners([user1.uid, user2.uid]);
 
             // ACTION: Create group
             const eventGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
@@ -695,7 +699,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
         test('should handle balance change notifications', async () => {
             // Set up listeners for both users before any operations
-            const [user1Listener, user2Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
+            const [user1Listener, user2Listener] = await notificationDriver.setupListeners([user1.uid, user2.uid]);
 
             // ACTION: Create group with user1 as creator
             const balanceGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`Balance Test ${uuidv4()}`).build(), user1.token);
@@ -762,7 +766,7 @@ describe('Notifications Management - Consolidated Tests', () => {
     describe('Listener Management and Connection Handling', () => {
         test('should handle listener subscription churn without missing events', async () => {
             // Set up listener before any operations
-            const [user1Listener] = await notificationDriver.setupListenersFirst([user1.uid]);
+            const [user1Listener] = await notificationDriver.setupListeners([user1.uid]);
 
             // ACTION: Create group
             const churnGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
@@ -803,7 +807,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
         test('should handle network interruption and recovery', async () => {
             // Set up listener before any operations
-            const [user1Listener] = await notificationDriver.setupListenersFirst([user1.uid]);
+            const [user1Listener] = await notificationDriver.setupListeners([user1.uid]);
 
             // ACTION: Create group
             const recoveryGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
@@ -845,7 +849,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
         test('should handle document version conflicts gracefully', async () => {
             // Set up listeners for both users before any operations
-            const [user1Listener, user2Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
+            const [user1Listener, user2Listener] = await notificationDriver.setupListeners([user1.uid, user2.uid]);
 
             // ACTION: Create group with user1 as creator
             const conflictGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`Conflict Test ${uuidv4()}`).build(), user1.token);
@@ -911,7 +915,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
         test('should handle document locking scenarios under load', async () => {
             // Set up listener before any operations
-            const [user1Listener] = await notificationDriver.setupListenersFirst([user1.uid]);
+            const [user1Listener] = await notificationDriver.setupListeners([user1.uid]);
 
             // ACTION: Create group
             const lockingGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
@@ -970,7 +974,7 @@ describe('Notifications Management - Consolidated Tests', () => {
     describe('Service Integration and Cross-Feature Testing', () => {
         test('should integrate with balance calculation changes', async () => {
             // Set up listeners for both users before any operations
-            const [user1Listener, user2Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
+            const [user1Listener, user2Listener] = await notificationDriver.setupListeners([user1.uid, user2.uid]);
 
             // ACTION: Create group with user1 as creator
             const balanceGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`Balance Integration Test ${uuidv4()}`).build(), user1.token);
@@ -1049,7 +1053,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
         test('should integrate with group policy and settings changes', async () => {
             // Set up listeners for both users before any operations
-            const [user1Listener, user2Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
+            const [user1Listener, user2Listener] = await notificationDriver.setupListeners([user1.uid, user2.uid]);
 
             // ACTION: Create group with user1 as creator
             const policyGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`Policy Test ${uuidv4()}`).build(), user1.token);
@@ -1124,7 +1128,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
         test('should handle group sharing and invitation workflows', async () => {
             // Set up listeners for all users before any operations
-            const [user1Listener, user2Listener, user3Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid, user3.uid]);
+            const [user1Listener, user2Listener, user3Listener] = await notificationDriver.setupListeners([user1.uid, user2.uid, user3.uid]);
 
             // ACTION: Create group
             const sharingGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
@@ -1190,7 +1194,7 @@ describe('Notifications Management - Consolidated Tests', () => {
     describe('Notification System Performance and Edge Cases', () => {
         test('should handle notification system under high load', async () => {
             // Set up listener before operations
-            const [user1Listener] = await notificationDriver.setupListenersFirst([user1.uid]);
+            const [user1Listener] = await notificationDriver.setupListeners([user1.uid]);
 
             // ACTION: Create group
             const loadTestGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
@@ -1231,7 +1235,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
         test('should handle multi-user notifications efficiently at scale', async () => {
             // Set up listeners for all users before any operations
-            const [user1Listener, user2Listener, user3Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid, user3.uid]);
+            const [user1Listener, user2Listener, user3Listener] = await notificationDriver.setupListeners([user1.uid, user2.uid, user3.uid]);
 
             // ACTION: Create group with user1 as creator
             const scaleGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`Scale Test ${uuidv4()}`).build(), user1.token);
@@ -1325,7 +1329,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
     describe('Comment Notifications', () => {
         test('creating a group comment should trigger a notification for all group members', async () => {
-            const [user1Listener, user2Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
+            const [user1Listener, user2Listener] = await notificationDriver.setupListeners([user1.uid, user2.uid]);
 
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
             await user1Listener.waitForGroupEvent(group.id, 1);
@@ -1347,7 +1351,7 @@ describe('Notifications Management - Consolidated Tests', () => {
         });
 
         test('creating an expense comment should trigger a notification for all group members', async () => {
-            const [user1Listener, user2Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
+            const [user1Listener, user2Listener] = await notificationDriver.setupListeners([user1.uid, user2.uid]);
 
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
             await user1Listener.waitForGroupEvent(group.id, 1);

@@ -1,8 +1,16 @@
-import { describe, expect, test } from 'vitest';
-import { ApiDriver, RegisterRequestBuilder } from '@splitifyd/test-support';
+import { describe, expect, test, afterEach } from 'vitest';
+import { ApiDriver, RegisterRequestBuilder, NotificationDriver } from '@splitifyd/test-support';
+import { getFirestore } from '../../firebase';
 
 describe('Public Endpoints Tests', () => {
     const apiDriver = new ApiDriver();
+    const notificationDriver = new NotificationDriver(getFirestore());
+
+    afterEach(async () => {
+        // Wait for system to settle before stopping listeners
+        await notificationDriver.waitForQuiet();
+        await notificationDriver.stopAllListeners();
+    });
 
     describe('Health Check Endpoint', () => {
         const healthUrl = `${apiDriver.getBaseUrl()}/health`;

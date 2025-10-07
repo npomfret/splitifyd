@@ -2,16 +2,25 @@
 // Combines tests from expenses-api.test.ts, ExpenseService.integration.test.ts, and expenses-full-details.test.ts
 
 import { beforeEach, describe, expect, test } from 'vitest';
-import { ApiDriver, CreateExpenseRequestBuilder, ExpenseUpdateBuilder, borrowTestUsers, TestGroupManager, generateShortId } from '@splitifyd/test-support';
+import { ApiDriver, CreateExpenseRequestBuilder, ExpenseUpdateBuilder, borrowTestUsers, TestGroupManager, generateShortId, NotificationDriver } from '@splitifyd/test-support';
 import { PooledTestUser } from '@splitifyd/shared';
+import { getFirestore } from '../../firebase';
+
 describe('Expenses Management - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();
+    const notificationDriver = new NotificationDriver(getFirestore());
     let testGroup: any;
     let users: PooledTestUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(4);
         testGroup = await TestGroupManager.getOrCreateGroup(users, { memberCount: 3 });
+    });
+
+    afterEach(async () => {
+        // Wait for system to settle before stopping listeners
+        await notificationDriver.waitForQuiet();
+        await notificationDriver.stopAllListeners();
     });
 
     describe('Expense Creation and Basic Operations', () => {
