@@ -559,7 +559,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
 
         // Test 1: Normal settlement creation and display
         const settlementForm1 = await groupDetailPage.clickSettleUpButton(2);
-        const settlementData1 = new SettlementFormDataBuilder().withPayerName(payerName).withPayeeName(payeeName).withAmount('100.50').withCurrency('JPY').withNote('Test payment for history').build();
+        const settlementData1 = new SettlementFormDataBuilder().withPayerName(payerName).withPayeeName(payeeName).withAmount('101').withCurrency('JPY').withNote('Test payment for history').build();
 
         await settlementForm1.submitSettlement(settlementData1, 2);
         await groupDetailPage.openHistoryIfClosed();
@@ -571,7 +571,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         const settlementData2 = new SettlementFormDataBuilder()
             .withPayerName(payeeName) // Other user pays
             .withPayeeName(payerName) // Creator receives
-            .withAmount('75.00')
+            .withAmount('75')
             .withCurrency('JPY')
             .withNote('Creator receives payment')
             .build();
@@ -596,7 +596,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
 
         // Create settlement for editing
         let settlementForm = await groupDetailPage.clickSettleUpButton(2);
-        const initialData = new SettlementFormDataBuilder().withPayerName(payerName).withPayeeName(payeeName).withAmount('100.50').withCurrency('JPY').withNote('Initial test payment').build();
+        const initialData = new SettlementFormDataBuilder().withPayerName(payerName).withPayeeName(payeeName).withAmount('101').withCurrency('JPY').withNote('Initial test payment').build();
 
         await settlementForm.submitSettlement(initialData, 2);
         await groupDetailPage.verifySettlementDetails({ note: initialData.note });
@@ -612,7 +612,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         });
 
         const updatedData = {
-            amount: '150.75',
+            amount: '151',
             note: 'Updated test payment',
         };
 
@@ -656,13 +656,13 @@ simpleTest.describe('Settlement CRUD Operations', () => {
 
         // Create settlements for testing deletion flows
         const settlementForm1 = await groupDetailPage.clickSettleUpButton(2);
-        const settlementData1 = new SettlementFormDataBuilder().withPayerName(payerName).withPayeeName(payeeName).withAmount('100.00').withCurrency('JPY').withNote('Payment to be deleted').build();
+        const settlementData1 = new SettlementFormDataBuilder().withPayerName(payerName).withPayeeName(payeeName).withAmount('100').withCurrency('JPY').withNote('Payment to be deleted').build();
 
         await settlementForm1.submitSettlement(settlementData1, 2);
         await groupDetailPage.verifySettlementDetails({ note: settlementData1.note });
 
         const settlementForm2 = await groupDetailPage.clickSettleUpButton(2);
-        const settlementData2 = new SettlementFormDataBuilder().withPayerName(payerName).withPayeeName(payeeName).withAmount('75.00').withCurrency('JPY').withNote('Payment to keep').build();
+        const settlementData2 = new SettlementFormDataBuilder().withPayerName(payerName).withPayeeName(payeeName).withAmount('75').withCurrency('JPY').withNote('Payment to keep').build();
 
         await settlementForm2.submitSettlement(settlementData2, 2);
         await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
