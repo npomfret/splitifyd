@@ -283,7 +283,17 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                                 <Button variant="secondary" size="sm" className="w-full" onClick={() => modals.toggleSettlementHistory()}>
                                     {modals.showSettlementHistory.value ? t('pages.groupDetailPage.hideHistory') : t('pages.groupDetailPage.showHistory')}
                                 </Button>
-                                {modals.showSettlementHistory.value && <SettlementHistory groupId={groupId!} onEditSettlement={handleEditSettlement} />}
+                                {modals.showSettlementHistory.value && (
+                                    <SettlementHistory
+                                        groupId={groupId!}
+                                        onEditSettlement={handleEditSettlement}
+                                        showDeletedSettlements={enhancedGroupDetailStore.showDeletedSettlements}
+                                        onShowDeletedChange={(show) => {
+                                            enhancedGroupDetailStore.setShowDeletedSettlements(show);
+                                            enhancedGroupDetailStore.refreshAll();
+                                        }}
+                                    />
+                                )}
                             </div>
                         </SidebarCard>
                     </>

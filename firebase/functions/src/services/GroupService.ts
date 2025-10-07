@@ -848,6 +848,7 @@ export class GroupService {
             expenseCursor?: string;
             settlementLimit?: number;
             settlementCursor?: string;
+            includeDeletedSettlements?: boolean;
         } = {},
     ): Promise<GroupFullDetailsDTO> {
         if (!userId) {
@@ -879,6 +880,7 @@ export class GroupService {
             this.settlementService.listSettlements(groupId, userId, {
                 limit: settlementLimit,
                 cursor: options.settlementCursor,
+                includeDeleted: options.includeDeletedSettlements ?? false,
             }),
         ]);
 

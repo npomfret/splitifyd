@@ -6,14 +6,17 @@ import { apiClient } from '@/app/apiClient.ts';
 import type { SettlementWithMembers } from '@splitifyd/shared';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
+import { formatDistanceToNow } from '@/utils/dateUtils.ts';
 
 interface SettlementHistoryProps {
     groupId: string;
     userId?: string;
     onEditSettlement?: (settlement: SettlementWithMembers) => void;
+    showDeletedSettlements?: boolean;
+    onShowDeletedChange?: (show: boolean) => void;
 }
 
-export function SettlementHistory({ groupId, userId, onEditSettlement }: SettlementHistoryProps) {
+export function SettlementHistory({ groupId, userId, onEditSettlement, showDeletedSettlements = false, onShowDeletedChange }: SettlementHistoryProps) {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
     const currentUser = authStore.user;
@@ -24,6 +27,11 @@ export function SettlementHistory({ groupId, userId, onEditSettlement }: Settlem
     const settlements = enhancedGroupDetailStore.settlements;
     const isLoading = enhancedGroupDetailStore.loadingSettlements;
     const hasMore = enhancedGroupDetailStore.hasMoreSettlements;
+    const group = enhancedGroupDetailStore.group;
+    const members = enhancedGroupDetailStore.members;
+
+    // Check if current user is group owner
+    const isGroupOwner = currentUser && group && group.createdBy === currentUser.uid;
 
     useEffect(() => {
         // Always load settlements when component mounts or parameters change
@@ -110,9 +118,26 @@ export function SettlementHistory({ groupId, userId, onEditSettlement }: Settlem
 
     return (
         <div class="space-y-3">
+            {/* Admin toggle for deleted settlements */}
+            {isGroupOwner && onShowDeletedChange && (
+                <div class="pb-2 border-b border-gray-200">
+                    <label class="flex items-center space-x-2 text-sm cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={showDeletedSettlements}
+                            onChange={(e) => onShowDeletedChange(e.currentTarget.checked)}
+                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span class="text-gray-700">{t('settlementHistory.showDeletedSettlements')}</span>
+                    </label>
+                </div>
+            )}
+
             {settlements.map((settlement) => {
                 const isCurrentUserPayer = settlement.payer.uid === currentUser?.uid;
                 const isCurrentUserPayee = settlement.payee.uid === currentUser?.uid;
+                const isDeleted = settlement.deletedAt !== null && settlement.deletedAt !== undefined;
+                const deletedByUser = settlement.deletedBy ? members.find((m) => m.uid === settlement.deletedBy) : null;
 
                 return (
                     <div key={settlement.id} class="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow" data-testid="settlement-item">
@@ -126,7 +151,15 @@ export function SettlementHistory({ groupId, userId, onEditSettlement }: Settlem
 
                                 {settlement.note && <p class="mt-1 text-sm text-gray-500">{settlement.note}</p>}
 
-                                <p class="mt-1 text-xs text-gray-400">{formatDate(settlement.date)}</p>
+                                <p class="mt-1 text-xs text-gray-400">
+                                    {formatDate(settlement.date)}
+                                    {isDeleted && settlement.deletedAt && (
+                                        <span class="ml-2 text-red-600" data-financial-amount="deleted">
+                                            • {t('settlementHistory.deletedBy')} {deletedByUser?.displayName || t('common.unknown')}{' '}
+                                            {formatDistanceToNow(new Date(settlement.deletedAt))}
+                                        </span>
+                                    )}
+                                </p>
                             </div>
 
                             <div class="flex items-start gap-2 ml-4">

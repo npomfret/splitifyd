@@ -19,6 +19,7 @@ interface EnhancedGroupDetailStore {
     error: string | null;
     hasMoreExpenses: boolean;
     hasMoreSettlements: boolean;
+    showDeletedSettlements: boolean;
 
     // Methods
     loadGroup(id: string): Promise<void>;
@@ -40,6 +41,8 @@ interface EnhancedGroupDetailStore {
     fetchSettlements(cursor?: string, userId?: string): Promise<void>;
 
     setDeletingGroup(value: boolean): void;
+
+    setShowDeletedSettlements(value: boolean): void;
 }
 
 class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
@@ -57,6 +60,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     readonly #hasMoreExpensesSignal = signal<boolean>(true);
     readonly #hasMoreSettlementsSignal = signal<boolean>(false);
     readonly #isDeletingGroupSignal = signal<boolean>(false);
+    readonly #showDeletedSettlementsSignal = signal<boolean>(false);
 
     // Reference counting infrastructure for multi-group support
     readonly #subscriberCounts = new Map<string, number>();
@@ -118,9 +122,17 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         return this.#hasMoreSettlementsSignal.value;
     }
 
+    get showDeletedSettlements() {
+        return this.#showDeletedSettlementsSignal.value;
+    }
+
     setDeletingGroup(value: boolean): void {
         this.#isDeletingGroupSignal.value = value;
         // GroupDTO deletion flag changed (routine)
+    }
+
+    setShowDeletedSettlements(value: boolean): void {
+        this.#showDeletedSettlementsSignal.value = value;
     }
 
     async loadGroup(groupId: string): Promise<void> {
@@ -129,7 +141,9 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         this.currentGroupId = groupId;
 
         try {
-            const fullDetails = await apiClient.getGroupFullDetails(groupId);
+            const fullDetails = await apiClient.getGroupFullDetails(groupId, {
+                includeDeletedSettlements: this.#showDeletedSettlementsSignal.value,
+            });
 
             batch(() => {
                 this.#groupSignal.value = fullDetails.group;

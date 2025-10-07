@@ -724,8 +724,14 @@ export class FirestoreReader implements IFirestoreReader {
      * Builds base query for settlements filtering out soft-deleted items
      * @private
      */
-    private buildBaseSettlementQuery(groupId: string): FirebaseFirestore.Query {
-        return this.db.collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId).where('deletedAt', '==', null);
+    private buildBaseSettlementQuery(groupId: string, includeDeleted: boolean = false): FirebaseFirestore.Query {
+        let query = this.db.collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId);
+
+        if (!includeDeleted) {
+            query = query.where('deletedAt', '==', null);
+        }
+
+        return query;
     }
 
     /**
@@ -759,7 +765,7 @@ export class FirestoreReader implements IFirestoreReader {
         nextCursor?: string;
     }> {
         try {
-            let query = this.buildBaseSettlementQuery(groupId);
+            let query = this.buildBaseSettlementQuery(groupId, options.includeDeleted ?? false);
 
             // Apply ordering (default to createdAt desc if not specified)
             if (options.orderBy) {

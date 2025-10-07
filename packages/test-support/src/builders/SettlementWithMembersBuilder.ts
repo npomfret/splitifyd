@@ -26,6 +26,8 @@ export class SettlementWithMembersBuilder {
             currency: randomCurrency(),
             date: new Date().toISOString(),
             createdAt: new Date().toISOString(),
+            deletedAt: null,
+            deletedBy: null,
         };
     }
 

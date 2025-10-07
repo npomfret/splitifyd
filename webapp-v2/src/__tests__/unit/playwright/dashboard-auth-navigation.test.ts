@@ -1,5 +1,5 @@
 import { expect, test } from '../../utils/console-logging-fixture';
-import { createMockFirebase, mockApiFailure, mockFullyAcceptedPoliciesApi, mockGroupsApi } from '../../utils/mock-firebase-service';
+import { createMockFirebase, mockApiFailure, MockFirebase, mockFullyAcceptedPoliciesApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 import { ClientUserBuilder, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
 
 

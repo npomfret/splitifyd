@@ -265,23 +265,77 @@ export async function mockFullyAcceptedPoliciesApi(page: Page) {
 
 /**
  * Mock groups API endpoint with metadata
+ * Handles requests with any query parameters as long as includeMetadata=true is present
  */
 export async function mockGroupsApi(page: Page, response: ListGroupsResponse): Promise<void> {
-    await mockApiRoute(page, '/api/groups?includeMetadata=true', response);
+    await page.route(
+        (routeUrl) => {
+            if (routeUrl.pathname !== '/api/groups') {
+                return false;
+            }
+            // Match if includeMetadata=true is present in query params
+            const searchParams = new URL(routeUrl.href).searchParams;
+            return searchParams.get('includeMetadata') === 'true';
+        },
+        (route: any) => {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(response),
+            });
+        },
+    );
 }
 
 /**
  * Mock API failure with specific status code and error message
+ * Handles requests with or without query parameters
+ * @param url - Can be a path like '/api/groups' or a full URL with query params like '/api/groups?includeMetadata=true'
  */
 export async function mockApiFailure(page: Page, url: string, status: number, error: { error: string }): Promise<void> {
-    await mockApiRoute(page, url, error, status);
+    // Parse the URL to separate path and query params
+    const urlObj = new URL(url, 'http://dummy'); // Use dummy base for parsing
+    const targetPath = urlObj.pathname;
+    const targetSearchParams = urlObj.searchParams;
+
+    await page.route(
+        (routeUrl) => {
+            // Check if pathname matches
+            if (routeUrl.pathname !== targetPath) {
+                return false;
+            }
+
+            // If the mock URL has query params, they must match exactly
+            if (targetSearchParams.toString()) {
+                const routeSearchParams = new URL(routeUrl.href).searchParams;
+                return targetSearchParams.toString() === routeSearchParams.toString();
+            }
+
+            // If mock URL has no query params, match any request to that path
+            return true;
+        },
+        (route: any) => {
+            route.fulfill({
+                status,
+                contentType: 'application/json',
+                body: JSON.stringify(error),
+            });
+        },
+    );
 }
 
 /**
  * Mock group detail API endpoint (full-details)
+ * Handles requests with or without query parameters (e.g., ?includeDeletedSettlements=false)
  */
 export async function mockGroupDetailApi(page: Page, groupId: string, group: any): Promise<void> {
-    await mockApiRoute(page, `/api/groups/${groupId}/full-details`, group);
+    await page.route(new RegExp(`/api/groups/${groupId}/full-details(\\?.*)?$`), (route: any) => {
+        route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(group),
+        });
+    });
 }
 
 /**

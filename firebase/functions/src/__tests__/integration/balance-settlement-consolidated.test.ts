@@ -427,4 +427,115 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             expect(finalEurDebt?.amount).toBe(25); // EUR debt reduced from €75 to €25
         });
     });
+
+    describe('Settlement Soft Delete Operations', () => {
+        let testGroup: any;
+        let settlementUsers: UserToken[];
+
+        beforeEach(async () => {
+            settlementUsers = users.slice(0, 3);
+            testGroup = await TestGroupManager.getOrCreateGroup(settlementUsers, { memberCount: 3, fresh: true });
+        });
+
+        test('should soft delete settlement and preserve metadata', async () => {
+            // Create a settlement
+            const settlementData = new CreateSettlementRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withPayerId(settlementUsers[0].uid)
+                .withPayeeId(settlementUsers[1].uid)
+                .withAmount(100.0)
+                .withNote('Test soft delete')
+                .build();
+
+            const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
+
+            // Verify deletedAt and deletedBy are null before deletion
+            expect(created.deletedAt).toBeNull();
+            expect(created.deletedBy).toBeNull();
+
+            // Soft delete the settlement
+            await apiDriver.deleteSettlement(created.id, settlementUsers[0].token);
+
+            // Verify it no longer appears in normal queries
+            await expect(apiDriver.getSettlement(testGroup.id, created.id, settlementUsers[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
+        });
+
+        test('should allow group admin to soft delete any settlement', async () => {
+            const groupAdmin = settlementUsers[0]; // Creator is admin
+            const settlementCreator = settlementUsers[1];
+
+            // Create settlement by non-admin member
+            const settlementData = new CreateSettlementRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withPayerId(settlementCreator.uid)
+                .withPayeeId(settlementUsers[2].uid)
+                .withAmount(75.0)
+                .build();
+
+            const created = await apiDriver.createSettlement(settlementData, settlementCreator.token);
+
+            // Admin should be able to delete
+            await expect(apiDriver.deleteSettlement(created.id, groupAdmin.token)).resolves.not.toThrow();
+
+            // Verify it's deleted
+            await expect(apiDriver.getSettlement(testGroup.id, created.id, groupAdmin.token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
+        });
+
+        test('should prevent non-creator non-admin from soft deleting settlement', async () => {
+            const settlementCreator = settlementUsers[0];
+            const otherMember = settlementUsers[2];
+
+            const settlementData = new CreateSettlementRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withPayerId(settlementCreator.uid)
+                .withPayeeId(settlementUsers[1].uid)
+                .withAmount(50.0)
+                .build();
+
+            const created = await apiDriver.createSettlement(settlementData, settlementCreator.token);
+
+            // Other member (not creator, not admin) should not be able to delete
+            await expect(apiDriver.deleteSettlement(created.id, otherMember.token)).rejects.toThrow(/status 403.*INSUFFICIENT_PERMISSIONS/);
+        });
+
+        test('should prevent double deletion of already deleted settlement', async () => {
+            const settlementData = new CreateSettlementRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withPayerId(settlementUsers[0].uid)
+                .withPayeeId(settlementUsers[1].uid)
+                .withAmount(100.0)
+                .build();
+
+            const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
+
+            // First deletion should succeed
+            await apiDriver.deleteSettlement(created.id, settlementUsers[0].token);
+
+            // Second deletion should fail (settlement already deleted)
+            await expect(apiDriver.deleteSettlement(created.id, settlementUsers[0].token)).rejects.toThrow(/status 400.*ALREADY_DELETED|status 404.*SETTLEMENT_NOT_FOUND/);
+        });
+
+        test('should not allow updating a soft deleted settlement', async () => {
+            const settlementData = new CreateSettlementRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withPayerId(settlementUsers[0].uid)
+                .withPayeeId(settlementUsers[1].uid)
+                .withAmount(100.0)
+                .build();
+
+            const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
+
+            // Soft delete
+            await apiDriver.deleteSettlement(created.id, settlementUsers[0].token);
+
+            // Attempt to update should fail
+            await expect(
+                apiDriver.updateSettlement(
+                    created.id,
+                    new SettlementUpdateBuilder().withAmount(200.0).build(),
+                    settlementUsers[0].token,
+                ),
+            ).rejects.toThrow(/status 400.*ALREADY_DELETED|status 404.*SETTLEMENT_NOT_FOUND/);
+        });
+    });
 });

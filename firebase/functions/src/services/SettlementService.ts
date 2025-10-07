@@ -107,6 +107,7 @@ export class SettlementService {
             uid?: string;
             startDate?: string;
             endDate?: string;
+            includeDeleted?: boolean;
         } = {},
     ): Promise<{
         settlements: SettlementWithMembers[];
@@ -126,6 +127,7 @@ export class SettlementService {
             uid?: string;
             startDate?: string;
             endDate?: string;
+            includeDeleted?: boolean;
         } = {},
     ): Promise<{
         settlements: SettlementWithMembers[];
@@ -348,6 +350,8 @@ export class SettlementService {
             date: dateHelpers.timestampToISO(updatedSettlement!.date),
             note: updatedSettlement!.note,
             createdAt: dateHelpers.timestampToISO(updatedSettlement!.createdAt),
+            deletedAt: updatedSettlement!.deletedAt,
+            deletedBy: updatedSettlement!.deletedBy,
         };
     }
 
@@ -536,6 +540,7 @@ export class SettlementService {
             uid?: string;
             startDate?: string;
             endDate?: string;
+            includeDeleted?: boolean;
         } = {},
     ): Promise<{
         settlements: SettlementWithMembers[];
@@ -551,12 +556,14 @@ export class SettlementService {
         const filterUserId = options.uid;
         const startDate = options.startDate;
         const endDate = options.endDate;
+        const includeDeleted = options.includeDeleted ?? false;
 
         const result = await this.firestoreReader.getSettlementsForGroup(groupId, {
             limit,
             cursor,
             filterUserId,
             dateRange: startDate || endDate ? { start: startDate, end: endDate } : undefined,
+            includeDeleted,
         });
 
         const settlements: SettlementWithMembers[] = await Promise.all(

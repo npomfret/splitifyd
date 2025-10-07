@@ -657,7 +657,7 @@ export type UpdateSettlementRequest = Partial<Omit<CreateSettlementRequest, 'gro
  * - SettlementDTO: Settlement + BaseDTO metadata (wire format for individual settlements)
  * - SettlementWithMembers: Settlement + resolved members (wire format for settlement lists)
  */
-export interface SettlementWithMembers {
+export interface SettlementWithMembers extends SoftDeletable {
     id: string;
     groupId: string;
     payer: GroupMember;

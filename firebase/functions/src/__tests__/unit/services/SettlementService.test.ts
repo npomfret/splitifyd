@@ -441,4 +441,291 @@ describe('SettlementService - Unit Tests', () => {
             await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
         });
     });
+
+    describe('Soft Delete Functionality', () => {
+        it('should initialize new settlements with deletedAt and deletedBy as null', async () => {
+            // Arrange
+            const userId = 'creator-user';
+            const groupId = 'test-group';
+            const settlementData = new CreateSettlementRequestBuilder()
+                .withGroupId(groupId)
+                .withPayerId('payer-user')
+                .withPayeeId('payee-user')
+                .withAmount(100)
+                .build();
+
+            // Mock required data
+            setGroupData(groupId, { id: groupId, name: 'Test Group' });
+            await initializeGroupBalance(groupId);
+            setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+
+            // Set up group memberships
+            const payerMembershipDoc = new GroupMemberDocumentBuilder().withUserId('payer-user').withGroupId(groupId).withRole('member').withStatus('active').build();
+            const payeeMembershipDoc = new GroupMemberDocumentBuilder().withUserId('payee-user').withGroupId(groupId).withRole('member').withStatus('active').build();
+            stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
+            stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
+
+            stubWriter.generateDocumentId = () => 'new-settlement-id';
+
+            // Act
+            const result = await settlementService.createSettlement(settlementData, userId);
+
+            // Assert - Verify soft delete fields are initialized
+            expect(result.deletedAt).toBeNull();
+            expect(result.deletedBy).toBeNull();
+        });
+
+        it('should soft delete settlement with correct metadata', async () => {
+            // Arrange
+            const settlementId = 'test-settlement-id';
+            const creatorId = 'creator-user';
+            const groupId = 'test-group';
+
+            // Create settlement in stub
+            const settlementData = {
+                id: settlementId,
+                groupId,
+                payerId: 'payer-user',
+                payeeId: 'payee-user',
+                amount: 100,
+                currency: 'USD',
+                date: new Date().toISOString(),
+                note: 'Test settlement',
+                createdBy: creatorId,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                deletedAt: null,
+                deletedBy: null,
+            };
+            stubReader.setDocument('settlements', settlementId, settlementData);
+
+            // Set up group and membership
+            setGroupData(groupId, { id: groupId, name: 'Test Group' });
+            await initializeGroupBalance(groupId);
+            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId(creatorId)
+                .withGroupId(groupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
+            stubReader.setDocument('group-members', `${groupId}_${creatorId}`, creatorMembershipDoc);
+
+            // Act & Assert - Should succeed without throwing
+            // This verifies that:
+            // 1. Settlement exists
+            // 2. User has permission (creator or admin)
+            // 3. Settlement is not already deleted
+            // 4. Balance update succeeds
+            await expect(settlementService.softDeleteSettlement(settlementId, creatorId)).resolves.toBeUndefined();
+        });
+
+        it('should prevent soft deleting already deleted settlement', async () => {
+            // Arrange
+            const settlementId = 'deleted-settlement-id';
+            const creatorId = 'creator-user';
+            const groupId = 'test-group';
+
+            // Create already-deleted settlement
+            const deletedSettlementData = {
+                id: settlementId,
+                groupId,
+                payerId: 'payer-user',
+                payeeId: 'payee-user',
+                amount: 100,
+                currency: 'USD',
+                date: new Date().toISOString(),
+                createdBy: creatorId,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                deletedAt: new Date().toISOString(), // Already deleted
+                deletedBy: creatorId,
+            };
+            stubReader.setDocument('settlements', settlementId, deletedSettlementData);
+
+            // Set up group and membership
+            setGroupData(groupId, { id: groupId, name: 'Test Group' });
+            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId(creatorId)
+                .withGroupId(groupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
+            stubReader.setDocument('group-members', `${groupId}_${creatorId}`, creatorMembershipDoc);
+
+            // Act & Assert
+            await expect(settlementService.softDeleteSettlement(settlementId, creatorId)).rejects.toThrow(
+                expect.objectContaining({
+                    statusCode: HTTP_STATUS.BAD_REQUEST,
+                    code: 'ALREADY_DELETED',
+                    message: 'Settlement is already deleted',
+                }),
+            );
+        });
+
+        it('should allow settlement creator to soft delete', async () => {
+            // Arrange
+            const settlementId = 'test-settlement-id';
+            const creatorId = 'creator-user';
+            const groupId = 'test-group';
+
+            const settlementData = {
+                id: settlementId,
+                groupId,
+                payerId: 'payer-user',
+                payeeId: 'payee-user',
+                amount: 100,
+                currency: 'USD',
+                date: new Date().toISOString(),
+                createdBy: creatorId,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                deletedAt: null,
+                deletedBy: null,
+            };
+            stubReader.setDocument('settlements', settlementId, settlementData);
+
+            setGroupData(groupId, { id: groupId, name: 'Test Group' });
+            await initializeGroupBalance(groupId);
+            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId(creatorId)
+                .withGroupId(groupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
+            stubReader.setDocument('group-members', `${groupId}_${creatorId}`, creatorMembershipDoc);
+
+            // Act & Assert - Should succeed
+            await expect(settlementService.softDeleteSettlement(settlementId, creatorId)).resolves.not.toThrow();
+        });
+
+        it('should allow group admin to soft delete settlement', async () => {
+            // Arrange
+            const settlementId = 'test-settlement-id';
+            const creatorId = 'creator-user';
+            const adminId = 'admin-user';
+            const groupId = 'test-group';
+
+            const settlementData = {
+                id: settlementId,
+                groupId,
+                payerId: 'payer-user',
+                payeeId: 'payee-user',
+                amount: 100,
+                currency: 'USD',
+                date: new Date().toISOString(),
+                createdBy: creatorId, // Different from admin
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                deletedAt: null,
+                deletedBy: null,
+            };
+            stubReader.setDocument('settlements', settlementId, settlementData);
+
+            setGroupData(groupId, { id: groupId, name: 'Test Group' });
+            await initializeGroupBalance(groupId);
+            const adminMembershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId(adminId)
+                .withGroupId(groupId)
+                .withRole('admin') // Admin role
+                .withStatus('active')
+                .build();
+            stubReader.setDocument('group-members', `${groupId}_${adminId}`, adminMembershipDoc);
+
+            // Act & Assert - Should succeed for admin
+            await expect(settlementService.softDeleteSettlement(settlementId, adminId)).resolves.not.toThrow();
+        });
+
+        it('should prevent non-creator non-admin from soft deleting settlement', async () => {
+            // Arrange
+            const settlementId = 'test-settlement-id';
+            const creatorId = 'creator-user';
+            const otherId = 'other-user';
+            const groupId = 'test-group';
+
+            const settlementData = {
+                id: settlementId,
+                groupId,
+                payerId: 'payer-user',
+                payeeId: 'payee-user',
+                amount: 100,
+                currency: 'USD',
+                date: new Date().toISOString(),
+                createdBy: creatorId,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                deletedAt: null,
+                deletedBy: null,
+            };
+            stubReader.setDocument('settlements', settlementId, settlementData);
+
+            setGroupData(groupId, { id: groupId, name: 'Test Group' });
+            await initializeGroupBalance(groupId);
+            const otherMembershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId(otherId)
+                .withGroupId(groupId)
+                .withRole('member') // Regular member, not creator or admin
+                .withStatus('active')
+                .build();
+            stubReader.setDocument('group-members', `${groupId}_${otherId}`, otherMembershipDoc);
+
+            // Act & Assert
+            await expect(settlementService.softDeleteSettlement(settlementId, otherId)).rejects.toThrow(
+                expect.objectContaining({
+                    statusCode: HTTP_STATUS.FORBIDDEN,
+                }),
+            );
+        });
+
+        it('should prevent soft deleting non-existent settlement', async () => {
+            // Arrange
+            const settlementId = 'non-existent-settlement-id';
+            const userId = 'user-id';
+
+            // Don't set settlement data (simulating non-existent settlement)
+
+            // Act & Assert
+            await expect(settlementService.softDeleteSettlement(settlementId, userId)).rejects.toThrow(
+                expect.objectContaining({
+                    statusCode: HTTP_STATUS.NOT_FOUND,
+                    code: 'SETTLEMENT_NOT_FOUND',
+                }),
+            );
+        });
+
+        it('should prevent soft deleting settlement when user not in group', async () => {
+            // Arrange
+            const settlementId = 'test-settlement-id';
+            const creatorId = 'creator-user';
+            const nonMemberId = 'non-member-user';
+            const groupId = 'test-group';
+
+            const settlementData = {
+                id: settlementId,
+                groupId,
+                payerId: 'payer-user',
+                payeeId: 'payee-user',
+                amount: 100,
+                currency: 'USD',
+                date: new Date().toISOString(),
+                createdBy: creatorId,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                deletedAt: null,
+                deletedBy: null,
+            };
+            stubReader.setDocument('settlements', settlementId, settlementData);
+
+            setGroupData(groupId, { id: groupId, name: 'Test Group' });
+
+            // Don't add nonMemberId to group memberships
+
+            // Act & Assert
+            await expect(settlementService.softDeleteSettlement(settlementId, nonMemberId)).rejects.toThrow(
+                expect.objectContaining({
+                    statusCode: HTTP_STATUS.FORBIDDEN,
+                }),
+            );
+        });
+    });
 });

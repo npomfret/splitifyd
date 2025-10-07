@@ -113,12 +113,14 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
     const expenseCursor = req.query.expenseCursor as string;
     const settlementLimit = parseInt(req.query.settlementLimit as string) || 20;
     const settlementCursor = req.query.settlementCursor as string;
+    const includeDeletedSettlements = req.query.includeDeletedSettlements === 'true';
 
     const result = await groupService.getGroupFullDetails(groupId, userId, {
         expenseLimit,
         expenseCursor,
         settlementLimit,
         settlementCursor,
+        includeDeletedSettlements,
     });
 
     res.json(result);

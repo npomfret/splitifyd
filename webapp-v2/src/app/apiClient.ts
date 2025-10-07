@@ -559,6 +559,7 @@ class ApiClient {
             expenseCursor?: string;
             settlementLimit?: number;
             settlementCursor?: string;
+            includeDeletedSettlements?: boolean;
         },
     ): Promise<GroupFullDetailsDTO> {
         const queryParams: Record<string, string> = {};
@@ -574,6 +575,9 @@ class ApiClient {
         }
         if (options?.settlementCursor) {
             queryParams.settlementCursor = options.settlementCursor;
+        }
+        if (options?.includeDeletedSettlements !== undefined) {
+            queryParams.includeDeletedSettlements = options.includeDeletedSettlements.toString();
         }
 
         return this.request({
