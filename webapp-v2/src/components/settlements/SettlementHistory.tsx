@@ -7,6 +7,7 @@ import type { SettlementWithMembers } from '@splitifyd/shared';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 import { formatDistanceToNow } from '@/utils/dateUtils.ts';
+import { formatCurrency } from '@/utils/currency';
 
 interface SettlementHistoryProps {
     groupId: string;
@@ -58,13 +59,6 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                 year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
             });
         }
-    };
-
-    const formatAmount = (amount: number): string => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-        }).format(amount);
     };
 
     const handleDeleteClick = (settlement: SettlementWithMembers) => {
@@ -164,9 +158,9 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
 
                             <div class="flex items-start gap-2 ml-4">
                                 <div class="text-right">
-                                    <p class={`text-lg font-bold ${isCurrentUserPayee ? 'text-green-600' : isCurrentUserPayer ? 'text-gray-700' : 'text-gray-600'}`}>
+                                    <p class={`text-lg font-bold ${isCurrentUserPayee ? 'text-green-600' : isCurrentUserPayer ? 'text-gray-700' : 'text-gray-600'}`} data-financial-amount="settlement">
                                         {isCurrentUserPayee && '+'}
-                                        {formatAmount(settlement.amount)}
+                                        {formatCurrency(settlement.amount, settlement.currency)}
                                     </p>
                                 </div>
 
@@ -213,7 +207,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                     isOpen={!!settlementToDelete}
                     title={t('settlementHistory.deletePaymentTitle')}
                     message={t('settlementHistory.deletePaymentMessage', {
-                        amount: formatAmount(settlementToDelete.amount),
+                        amount: formatCurrency(settlementToDelete.amount, settlementToDelete.currency),
                         payer: settlementToDelete.payer.displayName,
                         payee: settlementToDelete.payee.displayName,
                     })}
