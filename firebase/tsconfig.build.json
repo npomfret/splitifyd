@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2022",
     "module": "es2022",
-    "lib": ["es2022"],
+    "lib": ["es2022", "dom"],
     "noEmit": true,
     "strict": true,
     "esModuleInterop": true,
