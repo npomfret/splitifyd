@@ -378,7 +378,8 @@ export class GroupDetailPage extends BasePage {
      * Click Add Expense button
      */
     async clickAddExpense(): Promise<void> {
-        await this.getAddExpenseButton().click();
+        const button = this.getAddExpenseButton();
+        await this.clickButton(button, { buttonName: 'Add Expense' });
         await this.waitForNetworkIdle();
     }
 
@@ -387,7 +388,8 @@ export class GroupDetailPage extends BasePage {
      * Non-fluent version - does not return modal page object
      */
     async clickEditGroup(): Promise<void> {
-        await this.getEditGroupButton().click();
+        const button = this.getEditGroupButton();
+        await this.clickButton(button, { buttonName: 'Edit Group' });
         await expect(this.getEditGroupModal()).toBeVisible();
     }
 
@@ -410,7 +412,8 @@ export class GroupDetailPage extends BasePage {
      * Non-fluent version - does not return modal page object
      */
     async clickShareGroup(): Promise<void> {
-        await this.getShareGroupButton().click();
+        const button = this.getShareGroupButton();
+        await this.clickButton(button, { buttonName: 'Share Group' });
         await expect(this.getShareGroupModal()).toBeVisible();
     }
 
@@ -433,7 +436,8 @@ export class GroupDetailPage extends BasePage {
      * Non-fluent version - does not return dialog page object
      */
     async clickLeaveGroup(): Promise<void> {
-        await this.getLeaveGroupButton().click();
+        const button = this.getLeaveGroupButton();
+        await this.clickButton(button, { buttonName: 'Leave Group' });
         await expect(this.getLeaveGroupDialog()).toBeVisible();
     }
 

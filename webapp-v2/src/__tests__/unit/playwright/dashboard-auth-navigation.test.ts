@@ -196,7 +196,7 @@ test.describe('Dashboard Error Handling', () => {
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
         // Verify error state
-        await dashboardPage.verifyErrorState();
+        await dashboardPage.verifyErrorState('Server temporarily unavailable');
 
         // Mock successful API response for retry
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([], 0).build());

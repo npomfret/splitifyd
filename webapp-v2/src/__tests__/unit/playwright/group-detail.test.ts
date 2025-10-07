@@ -379,7 +379,7 @@ test.describe('Group Detail - Error Handling', () => {
         await page.goto(`/groups/${groupId}`);
 
         // Verify error state is displayed
-        await groupDetailPage.verifyErrorState();
+        await groupDetailPage.verifyErrorState('Internal Server Error');
     });
 
     test('should handle network timeout error', async ({ authenticatedPage }) => {
