@@ -1,6 +1,6 @@
 import { test, expect } from '../../utils/console-logging-fixture';
 import { mockGroupDetailApi, mockGroupCommentsApi, mockApiFailure } from '../../utils/mock-firebase-service';
-import { GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ExpenseDTOBuilder, GroupDetailPage, ThemeBuilder } from '@splitifyd/test-support';
+import { GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ExpenseDTOBuilder, GroupDetailPage, ThemeBuilder, GroupBalancesBuilder } from '@splitifyd/test-support';
 
 test.describe('Group Detail - Authentication and Navigation', () => {
 
@@ -211,49 +211,10 @@ test.describe('Group Detail - Balance Display', () => {
             new GroupMemberBuilder().withUid('user-2').withDisplayName('Alice').withEmail('alice@example.com').withTheme(ThemeBuilder.red().build()).build(),
         ];
 
-        const userBalance1: Record<string, number> = {};
-        userBalance1['user-2'] = 25.0;
-
-        const userBalance2: Record<string, number> = {};
-        userBalance2[testUser.uid] = 25.0;
-
-        const balances = {
-            groupId: groupId,
-            lastUpdated: new Date().toISOString(),
-            userBalances: {
-                [testUser.uid]: {
-                    uid: testUser.uid,
-                    displayName: testUser.displayName,
-                    netBalance: -25.0,
-                    balances: {},
-                    owes: userBalance1,
-                    owedBy: {},
-                },
-                'user-2': {
-                    uid: 'user-2',
-                    displayName: 'Alice',
-                    netBalance: 25.0,
-                    balances: {},
-                    owes: {},
-                    owedBy: userBalance2,
-                },
-            },
-            simplifiedDebts: [
-                {
-                    from: {
-                        uid: testUser.uid,
-                        displayName: testUser.displayName,
-                    },
-                    to: {
-                        uid: 'user-2',
-                        displayName: 'Alice',
-                    },
-                    amount: 25.0,
-                    currency: 'USD',
-                },
-            ],
-            balancesByCurrency: {},
-        };
+        const balances = new GroupBalancesBuilder()
+            .withGroupId(groupId)
+            .withSimpleTwoPersonDebt(testUser.uid, testUser.displayName, 'user-2', 'Alice', 25.0)
+            .build();
 
         const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).withBalances(balances).build();
 

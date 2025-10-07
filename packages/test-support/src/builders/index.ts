@@ -40,3 +40,5 @@ export { TransactionChangeDocumentBuilder } from './TransactionChangeDocumentBui
 export { PolicyDocumentBuilder } from './PolicyDocumentBuilder';
 export { GroupBalanceDocumentBuilder } from './GroupBalanceDocumentBuilder';
 export { UserNotificationDocumentBuilder } from './UserNotificationDocumentBuilder';
+export { SimplifiedDebtBuilder } from './SimplifiedDebtBuilder';
+export { GroupBalancesBuilder } from './GroupBalancesBuilder';
