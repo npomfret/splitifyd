@@ -26,6 +26,10 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
     const currencyService = CurrencyService.getInstance();
     const recentCurrencies = currencyService.getRecentCurrencies();
 
+    if(!currency) {
+        throw Error("currency not provided");
+    }
+
     return (
         <Card>
             <Stack spacing="md">
