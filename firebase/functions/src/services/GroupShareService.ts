@@ -5,6 +5,7 @@ import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
 import * as measure from '../monitoring/measure';
+import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { ShareLinkDataSchema } from '../schemas';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
@@ -80,10 +81,13 @@ export class GroupShareService {
         shareablePath: string;
         linkId: string;
     }> {
+        const timer = new PerformanceTimer();
+
         if (!groupId) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required');
         }
 
+        timer.startPhase('query');
         const group = await this.firestoreReader.getGroup(groupId);
         if (!group) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
@@ -94,7 +98,9 @@ export class GroupShareService {
         }
 
         const shareToken = this.generateShareToken();
+        timer.endPhase();
 
+        timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
             const freshGroupDoc = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
             if (!freshGroupDoc) {
@@ -123,11 +129,17 @@ export class GroupShareService {
                 throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_SHARELINK_DATA', 'Failed to create share link due to invalid data structure');
             }
         });
+        timer.endPhase();
 
         const shareablePath = `/join?linkId=${shareToken}`;
 
         LoggerContext.setBusinessContext({ groupId });
-        logger.info('share-link-created', { id: shareToken, groupId, createdBy: userId });
+        logger.info('share-link-created', {
+            id: shareToken,
+            groupId,
+            createdBy: userId,
+            timings: timer.getTimings()
+        });
 
         return {
             shareablePath,
@@ -174,11 +186,14 @@ export class GroupShareService {
     }
 
     private async _joinGroupByLink(userId: string, linkId: string,): Promise<{ groupId: string; groupName: string; message: string; success: boolean }> {
+        const timer = new PerformanceTimer();
+
         if (!linkId) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_LINK_ID', 'Link ID is required');
         }
 
         // Performance optimization: Find shareLink outside transaction
+        timer.startPhase('query');
         const { groupId, shareLink } = await this.findShareLinkByToken(linkId);
 
         // Pre-validate group exists outside transaction to fail fast
@@ -219,8 +234,10 @@ export class GroupShareService {
         };
 
         const now = new Date().toISOString();
+        timer.endPhase();
 
         // Atomic transaction: check group exists and create member subcollection
+        timer.startPhase('transaction');
         const result = await this.firestoreWriter.runTransaction(
             async (transaction) => {
                 const groupSnapshot = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
@@ -261,12 +278,14 @@ export class GroupShareService {
                 },
             },
         );
+        timer.endPhase();
 
         logger.info('User joined group via share link', {
             groupId,
             userId,
             linkId: linkId.substring(0, 4) + '...',
             invitedBy: result.invitedBy,
+            timings: timer.getTimings()
         });
 
         return {

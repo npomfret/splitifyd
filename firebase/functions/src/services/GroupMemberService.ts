@@ -1,6 +1,7 @@
 import { Errors, ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
+import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import { MemberRoles } from '@splitifyd/shared';
@@ -27,6 +28,8 @@ export class GroupMemberService {
      * @param isLeaving - true for self-leave, false for admin removal
      */
     private async _removeMemberFromGroup(requestingUserId: string, groupId: string, targetUserId: string, isLeaving: boolean): Promise<{ success: true; message: string }> {
+        const timer = new PerformanceTimer();
+
         LoggerContext.setBusinessContext({ groupId });
         LoggerContext.update({
             userId: requestingUserId,
@@ -42,6 +45,7 @@ export class GroupMemberService {
             throw Errors.MISSING_FIELD('memberId');
         }
 
+        timer.startPhase('query');
         const group = await this.firestoreReader.getGroup(groupId);
         if (!group) {
             throw Errors.NOT_FOUND('Group');
@@ -110,13 +114,20 @@ export class GroupMemberService {
             });
             throw Errors.INTERNAL_ERROR();
         }
+        timer.endPhase();
 
         // Atomically update group, delete membership, and clean up notifications
+        timer.startPhase('transaction');
         await this.firestoreWriter.leaveGroupAtomic(groupId, targetUserId);
+        timer.endPhase();
 
         LoggerContext.setBusinessContext({ groupId });
         const logEvent = isLeaving ? 'member-left' : 'member-removed';
-        logger.info(logEvent, { id: targetUserId, groupId });
+        logger.info(logEvent, {
+            id: targetUserId,
+            groupId,
+            timings: timer.getTimings()
+        });
 
         return {
             success: true,

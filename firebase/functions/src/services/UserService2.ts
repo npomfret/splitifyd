@@ -8,6 +8,7 @@ import { assignThemeColor } from '../user-management/assign-theme-color';
 import { validateRegisterRequest } from '../auth/validation';
 import { validateChangePassword, validateUpdateUserProfile } from '../user/validation';
 import { measureDb } from '../monitoring/measure';
+import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { NotificationService } from './notification-service';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import type { IAuthService } from './auth';

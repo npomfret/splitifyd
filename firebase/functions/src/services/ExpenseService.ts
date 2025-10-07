@@ -8,6 +8,7 @@ import { ExpenseDTO, CreateExpenseRequest, DELETED_AT_FIELD, SplitTypes, UpdateE
 import * as expenseValidation from '../expenses/validation';
 import { PermissionEngineAsync } from '../permissions/permission-engine-async';
 import * as measure from '../monitoring/measure';
+import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
@@ -105,13 +106,22 @@ export class ExpenseService {
     }
 
     private async _getExpense(expenseId: string, userId: string): Promise<any> {
+        const timer = new PerformanceTimer();
+
+        timer.startPhase('query');
         const expense = await this.fetchExpense(expenseId);
+        timer.endPhase();
 
         // Verify user has access to view this expense
         // Check if user is a participant in this expense
         if (!expense.participants || !expense.participants.includes(userId)) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_PARTICIPANT', 'You are not a participant in this expense');
         }
+
+        logger.info('expense-retrieved', {
+            id: expenseId,
+            timings: timer.getTimings()
+        });
 
         return this.transformExpenseToResponse(expense);
     }
@@ -124,17 +134,19 @@ export class ExpenseService {
     }
 
     private async _createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<any> {
+        const timer = new PerformanceTimer();
+
         // Validate the input data early
         const validatedExpenseData = expenseValidation.validateCreateExpense(expenseData);
 
         // Parallelize all pre-transaction reads for maximum performance
-        const queryStart = performance.now();
+        timer.startPhase('query');
         const [groupData, memberIds, member] = await Promise.all([
             this.firestoreReader.getGroup(validatedExpenseData.groupId),
             this.firestoreReader.getAllGroupMemberIds(validatedExpenseData.groupId),
             this.firestoreReader.getGroupMember(validatedExpenseData.groupId, userId)
         ]);
-        const queryDuration = performance.now() - queryStart;
+        timer.endPhase();
 
         if (!groupData) {
             throw Errors.NOT_FOUND('Group');
@@ -195,7 +207,7 @@ export class ExpenseService {
 
         // Use transaction to create expense atomically and update balance
         let createdExpenseRef: DocumentReference | undefined;
-        const transactionStart = performance.now();
+        timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
             // Re-verify group exists within transaction - using DTO method
             const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, expenseData.groupId);
@@ -221,7 +233,7 @@ export class ExpenseService {
             // Apply incremental balance update
             this.incrementalBalanceService.applyExpenseCreated(transaction, expenseData.groupId, currentBalance, expense, memberIds);
         });
-        const transactionDuration = performance.now() - transactionStart;
+        timer.endPhase();
 
         // Ensure the expense was created successfully
         if (!createdExpenseRef) {
@@ -233,11 +245,7 @@ export class ExpenseService {
         logger.info('expense-created', {
             id: createdExpenseRef.id,
             groupId: expenseData.groupId,
-            timings: {
-                queryMs: Math.round(queryDuration),
-                transactionMs: Math.round(transactionDuration),
-                totalMs: Math.round(queryDuration + transactionDuration)
-            }
+            timings: timer.getTimings()
         });
 
         // Return the expense in response format
@@ -252,7 +260,10 @@ export class ExpenseService {
     }
 
     private async _updateExpense(expenseId: string, userId: string, updateData: UpdateExpenseRequest): Promise<any> {
+        const timer = new PerformanceTimer();
+
         // Fetch the existing expense
+        timer.startPhase('query');
         const expense = await this.fetchExpense(expenseId);
 
         // Get group data and verify permissions
@@ -261,6 +272,7 @@ export class ExpenseService {
             this.firestoreReader.getAllGroupMemberIds(expense.groupId),
             this.firestoreReader.getGroupMember(expense.groupId, userId)
         ]);
+        timer.endPhase();
 
         if (!groupData) {
             throw Errors.NOT_FOUND('Group');
@@ -326,6 +338,7 @@ export class ExpenseService {
         }
 
         // Use transaction to update expense atomically with optimistic locking and balance update
+        timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(
             async (transaction) => {
                 // Re-fetch expense within transaction to check for concurrent updates
@@ -379,16 +392,24 @@ export class ExpenseService {
                 },
             },
         );
-
-        // Set business context for logging
-        LoggerContext.setBusinessContext({ groupId: expense.groupId, expenseId });
-        logger.info('expense-updated', { id: expenseId, changes: Object.keys(updateData) });
+        timer.endPhase();
 
         // Fetch and return the updated expense
+        timer.startPhase('refetch');
         const updatedExpense = await this.firestoreReader.getExpense(expenseId);
+        timer.endPhase();
+
         if (!updatedExpense) {
             throw Errors.NOT_FOUND('Expense');
         }
+
+        // Set business context for logging
+        LoggerContext.setBusinessContext({ groupId: expense.groupId, expenseId });
+        logger.info('expense-updated', {
+            id: expenseId,
+            changes: Object.keys(updateData),
+            timings: timer.getTimings()
+        });
 
         // The expense from IFirestoreReader is already validated and includes the ID
         return this.transformExpenseToResponse(this.normalizeValidatedExpense(updatedExpense));
@@ -428,7 +449,10 @@ export class ExpenseService {
         hasMore: boolean;
         nextCursor?: string;
     }> {
+        const timer = new PerformanceTimer();
+
         // Verify user is a member of the group
+        timer.startPhase('query');
         const isMember = await this.firestoreReader.verifyGroupMembership(groupId, userId);
         if (!isMember) {
             throw Errors.FORBIDDEN();
@@ -436,12 +460,19 @@ export class ExpenseService {
 
         // Use the centralized FirestoreReader method
         const result = await this.firestoreReader.getExpensesForGroupPaginated(groupId, options);
+        timer.endPhase();
 
         // Transform the validated expense documents to response format
         const expenses = result.expenses.map((validatedExpense) => ({
             id: validatedExpense.id,
             ...this.transformExpenseToResponse(this.normalizeValidatedExpense(validatedExpense)),
         }));
+
+        logger.info('expenses-listed', {
+            groupId,
+            count: expenses.length,
+            timings: timer.getTimings()
+        });
 
         return {
             expenses,
@@ -459,7 +490,10 @@ export class ExpenseService {
     }
 
     private async _deleteExpense(expenseId: string, userId: string): Promise<void> {
+        const timer = new PerformanceTimer();
+
         // Fetch the existing expense
+        timer.startPhase('query');
         const expense = await this.fetchExpense(expenseId);
 
         // Get group data and verify permissions
@@ -468,6 +502,7 @@ export class ExpenseService {
             this.firestoreReader.getAllGroupMemberIds(expense.groupId),
             this.firestoreReader.getGroupMember(expense.groupId, userId)
         ]);
+        timer.endPhase();
 
         if (!groupData) {
             throw Errors.NOT_FOUND('Group');
@@ -489,6 +524,7 @@ export class ExpenseService {
 
         try {
             // Use transaction to soft delete expense atomically and update balance
+            timer.startPhase('transaction');
             await this.firestoreWriter.runTransaction(
                 async (transaction) => {
                     // IMPORTANT: All reads must happen before any writes in Firestore transactions
@@ -537,9 +573,13 @@ export class ExpenseService {
                     },
                 },
             );
+            timer.endPhase();
 
             LoggerContext.setBusinessContext({ expenseId });
-            logger.info('expense-deleted', { id: expenseId });
+            logger.info('expense-deleted', {
+                id: expenseId,
+                timings: timer.getTimings()
+            });
         } catch (error) {
             logger.error('Failed to delete expense', error as Error, {
                 expenseId,
@@ -554,7 +594,10 @@ export class ExpenseService {
      * Eliminates race conditions by providing all needed data in one request
      */
     async getExpenseFullDetails(expenseId: string, userId: string): Promise<ExpenseFullDetailsDTO> {
+        const timer = new PerformanceTimer();
+
         // Fetch the expense
+        timer.startPhase('query');
         const expense = await this.fetchExpense(expenseId);
 
         // Get group document for permission check and data
@@ -588,9 +631,16 @@ export class ExpenseService {
 
         // Get members data from subcollection (formatted with profiles)
         const members = await this.userService.getGroupMembersResponseFromSubcollection(expense.groupId);
+        timer.endPhase();
 
         // Format expense response
         const expenseResponse = this.transformExpenseToResponse(expense);
+
+        logger.info('expense-full-details-retrieved', {
+            expenseId,
+            groupId: expense.groupId,
+            timings: timer.getTimings()
+        });
 
         return {
             expense: expenseResponse,

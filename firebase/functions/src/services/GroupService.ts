@@ -6,6 +6,7 @@ import {logger, LoggerContext} from '../logger';
 import * as dateHelpers from '../utils/dateHelpers';
 import {PermissionEngine} from '../permissions';
 import * as measure from '../monitoring/measure';
+import {PerformanceTimer} from '../monitoring/PerformanceTimer';
 import type {IFirestoreReader, IFirestoreWriter, GetGroupsForUserOptions} from './firestore';
 import {UserService} from './UserService2';
 import {ExpenseService} from './ExpenseService';
@@ -321,18 +322,23 @@ export class GroupService {
     }
 
     private async _executeListGroups(userId: string, options: GetGroupsForUserOptions = {}): Promise<ListGroupsResponse> {
+        const timer = new PerformanceTimer();
+
         // Parse options with defaults
         const limit = Math.min(options.limit || DOCUMENT_CONFIG.LIST_LIMIT, DOCUMENT_CONFIG.LIST_LIMIT);
         const orderBy = options.orderBy ?? { field: 'updatedAt', direction: 'desc' as const };
 
         // Step 1: Query groups and metadata using FirestoreReader
+        timer.startPhase('query');
         const paginatedGroups = await this.firestoreReader.getGroupsForUserV2(userId, {
             limit,
             cursor: options.cursor,
             orderBy,
         });
+        timer.endPhase();
 
         // Step 2: Fetch balances and enrich groups in parallel
+        timer.startPhase('balances');
         const groupsWithBalances = await Promise.all(paginatedGroups.data.map(async (group: GroupDTO) => {
             try {
                 const groupBalance = await this.firestoreReader.getGroupBalance(group.id);
@@ -349,6 +355,13 @@ export class GroupService {
                 return this.enrichGroupWithBalance(group, emptyBalance, userId);
             }
         }));
+        timer.endPhase();
+
+        logger.info('groups-listed', {
+            userId,
+            count: groupsWithBalances.length,
+            timings: timer.getTimings()
+        });
 
         // Step 3: Build response
         return {
@@ -372,6 +385,8 @@ export class GroupService {
     }
 
     private async _createGroup(userId: string, createGroupRequest: CreateGroupRequest): Promise<GroupDTO> {
+        const timer = new PerformanceTimer();
+
         // Initialize group structure with ISO strings (DTOs)
         const groupId = this.firestoreWriter.generateDocumentId(FirestoreCollections.GROUPS);
         const nowISO = new Date().toISOString();
@@ -411,6 +426,7 @@ export class GroupService {
         };
 
         // Atomic transaction: create group, member, and balance documents
+        timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
             this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUPS, groupId, documentToWrite);
 
@@ -431,11 +447,13 @@ export class GroupService {
             // Note: Group notifications are handled by the trackGroupChanges trigger
             // which fires when the group document is created
         });
+        timer.endPhase();
 
         // Add group context to logger
         LoggerContext.setBusinessContext({groupId: groupId});
 
         // Fetch the created document to get server-side timestamps
+        timer.startPhase('refetch');
         const groupData = await this.firestoreReader.getGroup(groupId);
         if (!groupData) {
             throw new Error('Failed to fetch created group');
@@ -443,7 +461,15 @@ export class GroupService {
 
         // groupData is already a GroupDTO with ISO strings - no conversion needed
         // Add computed fields before returning
-        return await this.addComputedFields(groupData, userId);
+        const result = await this.addComputedFields(groupData, userId);
+        timer.endPhase();
+
+        logger.info('group-created', {
+            groupId,
+            timings: timer.getTimings()
+        });
+
+        return result;
     }
 
     /**
@@ -451,10 +477,15 @@ export class GroupService {
      * Only the owner can update a group
      */
     async updateGroup(groupId: string, userId: string, updates: UpdateGroupRequest): Promise<MessageResponse> {
+        const timer = new PerformanceTimer();
+
         // Fetch group with write access check
+        timer.startPhase('query');
         const {group} = await this.fetchGroupWithAccess(groupId, userId, true);
+        timer.endPhase();
 
         // Update with optimistic locking and transaction retry logic
+        timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
             // IMPORTANT: All reads must happen before any writes in Firestore transactions
 
@@ -496,12 +527,16 @@ export class GroupService {
                 });
             });
         });
+        timer.endPhase();
 
         // Set group context
         LoggerContext.setBusinessContext({groupId});
 
         // Log without explicitly passing userId - it will be automatically included
-        logger.info('group-updated', {id: groupId});
+        logger.info('group-updated', {
+            id: groupId,
+            timings: timer.getTimings()
+        });
 
         return {message: 'Group updated successfully'};
     }

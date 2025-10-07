@@ -5,6 +5,7 @@ import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import { PolicyDTO, PolicyVersion } from '@splitifyd/shared';
 import { measureDb } from '../monitoring/measure';
+import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { PolicyDocumentSchema } from '../schemas';
 import { z } from 'zod';
 import { IFirestoreReader } from './firestore';

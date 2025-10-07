@@ -6,6 +6,7 @@ import * as dateHelpers from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import * as measure from '../monitoring/measure';
+import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { CreateSettlementRequest, GroupMember, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest } from '@splitifyd/shared';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
@@ -135,12 +136,23 @@ export class SettlementService {
         hasMore: boolean;
         nextCursor?: string;
     }> {
+        const timer = new PerformanceTimer();
+
         LoggerContext.setBusinessContext({ groupId });
         LoggerContext.update({ userId, operation: 'list-settlements' });
 
+        timer.startPhase('query');
         await this.firestoreReader.verifyGroupMembership(groupId, userId);
+        const result = await this._getGroupSettlementsData(groupId, options);
+        timer.endPhase();
 
-        return this._getGroupSettlementsData(groupId, options);
+        logger.info('settlements-listed', {
+            groupId,
+            count: result.count,
+            timings: timer.getTimings()
+        });
+
+        return result;
     }
 
     /**
@@ -151,6 +163,8 @@ export class SettlementService {
     }
 
     private async _createSettlement(settlementData: CreateSettlementRequest, userId: string): Promise<SettlementDTO> {
+        const timer = new PerformanceTimer();
+
         LoggerContext.setBusinessContext({ groupId: settlementData.groupId });
         LoggerContext.update({ userId, operation: 'create-settlement', amount: settlementData.amount });
 
@@ -162,6 +176,7 @@ export class SettlementService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT', 'Amount cannot exceed 999999.99');
         }
 
+        timer.startPhase('query');
         await this.firestoreReader.verifyGroupMembership(settlementData.groupId, userId);
         await this.verifyUsersInGroup(settlementData.groupId, [settlementData.payerId, settlementData.payeeId]);
 
@@ -193,8 +208,10 @@ export class SettlementService {
 
         // Get members for balance update
         const memberIds = await this.firestoreReader.getAllGroupMemberIds(settlementData.groupId);
+        timer.endPhase();
 
         // Create settlement and update group balance atomically
+        timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(
             async (transaction) => {
                 // Verify group still exists
@@ -225,9 +242,16 @@ export class SettlementService {
                 },
             },
         );
+        timer.endPhase();
 
         // Update context with the created settlement ID
         LoggerContext.setBusinessContext({ settlementId });
+
+        logger.info('settlement-created', {
+            settlementId,
+            groupId: settlementData.groupId,
+            timings: timer.getTimings()
+        });
 
         // Build the complete settlement object for the response
         const settlement = {
@@ -251,9 +275,12 @@ export class SettlementService {
     }
 
     private async _updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementWithMembers> {
+        const timer = new PerformanceTimer();
+
         LoggerContext.setBusinessContext({ settlementId });
         LoggerContext.update({ userId, operation: 'update-settlement' });
 
+        timer.startPhase('query');
         const settlementData = await this.firestoreReader.getSettlement(settlementId);
 
         if (!settlementData) {
@@ -296,8 +323,10 @@ export class SettlementService {
 
         // Get members for balance update
         const memberIds = await this.firestoreReader.getAllGroupMemberIds(settlement.groupId);
+        timer.endPhase();
 
         // Update with optimistic locking and balance update
+        timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(
             async (transaction) => {
                 const currentSettlement = await this.firestoreReader.getSettlementInTransaction(transaction, settlementId);
@@ -331,7 +360,9 @@ export class SettlementService {
                 },
             },
         );
+        timer.endPhase();
 
+        timer.startPhase('refetch');
         const updatedSettlement = await this.firestoreReader.getSettlement(settlementId);
 
         // Fetch group member data for payer and payee to return complete response
@@ -339,6 +370,13 @@ export class SettlementService {
             this.fetchGroupMemberData(updatedSettlement!.groupId, updatedSettlement!.payerId),
             this.fetchGroupMemberData(updatedSettlement!.groupId, updatedSettlement!.payeeId),
         ]);
+        timer.endPhase();
+
+        logger.info('settlement-updated', {
+            settlementId,
+            groupId: settlement.groupId,
+            timings: timer.getTimings()
+        });
 
         return {
             id: settlementId,
@@ -382,9 +420,12 @@ export class SettlementService {
     }
 
     private async _softDeleteSettlement(settlementId: string, userId: string): Promise<void> {
+        const timer = new PerformanceTimer();
+
         LoggerContext.setBusinessContext({ settlementId });
         LoggerContext.update({ userId, operation: 'soft-delete-settlement' });
 
+        timer.startPhase('query');
         const settlementData = await this.firestoreReader.getSettlement(settlementId);
 
         if (!settlementData) {
@@ -415,8 +456,10 @@ export class SettlementService {
 
         // Get members for balance update
         const memberIds = await this.firestoreReader.getAllGroupMemberIds(settlement.groupId);
+        timer.endPhase();
 
         // Soft delete with optimistic locking and balance update
+        timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(
             async (transaction) => {
                 const currentSettlement = await this.firestoreReader.getSettlementInTransaction(transaction, settlementId);
@@ -457,6 +500,13 @@ export class SettlementService {
                 },
             },
         );
+        timer.endPhase();
+
+        logger.info('settlement-soft-deleted', {
+            settlementId,
+            groupId: settlement.groupId,
+            timings: timer.getTimings()
+        });
     }
 
     /**
@@ -468,9 +518,12 @@ export class SettlementService {
     }
 
     private async _deleteSettlement(settlementId: string, userId: string): Promise<void> {
+        const timer = new PerformanceTimer();
+
         LoggerContext.setBusinessContext({ settlementId });
         LoggerContext.update({ userId, operation: 'delete-settlement' });
 
+        timer.startPhase('query');
         const settlementData = await this.firestoreReader.getSettlement(settlementId);
 
         if (!settlementData) {
@@ -488,8 +541,10 @@ export class SettlementService {
 
         // Get members for balance update
         const memberIds = await this.firestoreReader.getAllGroupMemberIds(settlement.groupId);
+        timer.endPhase();
 
         // Delete with optimistic locking and balance update
+        timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(
             async (transaction) => {
                 // Step 1: Do ALL reads first - using DTO method
@@ -526,6 +581,13 @@ export class SettlementService {
                 },
             },
         );
+        timer.endPhase();
+
+        logger.info('settlement-deleted', {
+            settlementId,
+            groupId: settlement.groupId,
+            timings: timer.getTimings()
+        });
     }
 
     /**

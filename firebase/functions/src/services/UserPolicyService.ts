@@ -3,6 +3,7 @@ import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import { measureDb } from '../monitoring/measure';
+import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { IFirestoreReader } from './firestore';
 import { IFirestoreWriter } from './firestore';
 import { PolicyAcceptanceStatusDTO, UserPolicyStatusResponse } from '@splitifyd/shared';
