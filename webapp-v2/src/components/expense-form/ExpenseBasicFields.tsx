@@ -26,10 +26,6 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
     const currencyService = CurrencyService.getInstance();
     const recentCurrencies = currencyService.getRecentCurrencies();
 
-    if(!currency) {
-        throw Error("currency not provided");
-    }
-
     return (
         <Card>
             <Stack spacing="md">
@@ -83,7 +79,8 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                         />
 
                         {/* Recent amounts buttons */}
-                        {recentAmounts.length > 0 && (
+                        {/* when the form first renders the currency and amount are empty */}
+                        {recentAmounts.length > 0 && amount && currency && (
                             <div className="mt-2">
                                 <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('expenseBasicFields.recentAmounts')}</p>
                                 <div className="flex flex-wrap gap-1">

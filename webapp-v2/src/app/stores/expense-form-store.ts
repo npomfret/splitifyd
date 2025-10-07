@@ -1,5 +1,5 @@
 import { signal, ReadonlySignal } from '@preact/signals';
-import { CreateExpenseRequest, ExpenseDTO, ExpenseSplit, SplitTypes, CURRENCIES } from '@splitifyd/shared';
+import { CreateExpenseRequest, ExpenseDTO, ExpenseSplit, SplitTypes } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
@@ -200,7 +200,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     // Private signals - encapsulated within the class
     readonly #descriptionSignal = signal<string>('');
     readonly #amountSignal = signal<number>(0);
-    readonly #currencySignal = signal<string>(CURRENCIES[0].acronym); // Always select first currency in list
+    readonly #currencySignal = signal<string>(''); // Force user to select currency - detected from group data or left empty
     readonly #dateSignal = signal<string>(getTodayDate());
     readonly #timeSignal = signal<string>('12:00'); // Default to noon (12:00 PM)
     readonly #paidBySignal = signal<string>('');
@@ -408,12 +408,20 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         }
 
         // Perform real-time validation for the field
-        const errors = { ...this.#validationErrorsSignal.value };
-        const fieldError = this.validateField(field, value);
+        // Skip validation for currency if it's empty (user hasn't selected one yet)
+        const shouldValidate = field !== 'currency' || (value as string) !== '';
 
-        if (fieldError) {
-            errors[field] = fieldError;
+        const errors = { ...this.#validationErrorsSignal.value };
+        if (shouldValidate) {
+            const fieldError = this.validateField(field, value);
+
+            if (fieldError) {
+                errors[field] = fieldError;
+            } else {
+                delete errors[field];
+            }
         } else {
+            // Clear any existing error for this field
             delete errors[field];
         }
 
@@ -807,7 +815,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     reset(): void {
         this.#descriptionSignal.value = '';
         this.#amountSignal.value = 0;
-        this.#currencySignal.value = CURRENCIES[0].acronym; // Always select first currency in list
+        this.#currencySignal.value = ''; // Force user to select currency
         this.#dateSignal.value = getTodayDate();
         this.#timeSignal.value = '12:00'; // Default to noon
         this.#paidBySignal.value = '';
@@ -879,7 +887,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             // Restore form data
             this.#descriptionSignal.value = draftData.description || '';
             this.#amountSignal.value = draftData.amount || 0;
-            this.#currencySignal.value = draftData.currency || CURRENCIES[0].acronym; // Use first currency if draft has none
+            this.#currencySignal.value = draftData.currency || ''; // Force user to select if draft has none
             this.#dateSignal.value = draftData.date || getTodayDate();
             this.#timeSignal.value = draftData.time || '12:00'; // Default to noon
             this.#paidBySignal.value = draftData.paidBy || '';

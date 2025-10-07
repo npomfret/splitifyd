@@ -102,12 +102,25 @@ export function useFormInitialization({ groupId, expenseId, isEditMode, isCopyMo
         });
     };
 
-    // Set default payer for create mode
-    const setDefaultPayer = () => {
+    // Set default payer and currency for create mode
+    const setDefaultsForCreateMode = () => {
+        // Set default payer
         const currentUser = enhancedGroupDetailStore.members.find((m) => m.uid === authStore?.user?.uid);
         if (currentUser) {
             expenseFormStore.updateField('paidBy', currentUser.uid);
         }
+
+        // Detect currency from existing group expenses (same logic as settlement form)
+        const expenses = enhancedGroupDetailStore.expenses;
+        let detectedCurrency = '';
+
+        // Try to get currency from most recent expense
+        if (expenses && expenses.length > 0) {
+            detectedCurrency = expenses[0].currency;
+        }
+
+        // Set detected currency (will be empty string if no expenses exist - forcing user to select)
+        expenseFormStore.updateField('currency', detectedCurrency);
     };
 
     // Initialize form on mount
@@ -146,7 +159,7 @@ export function useFormInitialization({ groupId, expenseId, isEditMode, isCopyMo
                 } else if (isCopyMode && sourceExpenseId) {
                     await loadExpenseForCopy(sourceExpenseId);
                 } else {
-                    setDefaultPayer();
+                    setDefaultsForCreateMode();
                 }
 
                 isInitialized.value = true;

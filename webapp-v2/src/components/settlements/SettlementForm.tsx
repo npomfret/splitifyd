@@ -85,6 +85,33 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
         }
     }, [isOpen, editMode, settlementToEdit, preselectedDebt, currentUser]); // Include all dependencies
 
+    // Helper functions - defined before useEffects that use them
+    const getMemberName = (userId: string): string => {
+        const member = members.find((m: GroupMember) => m.uid === userId);
+        return member?.displayName || t('common.unknownUser');
+    };
+
+    const getCurrentDebt = (): number => {
+        if (!payerId || !payeeId || !currency || !enhancedGroupDetailStore.balances) {
+            return 0;
+        }
+
+        const balancesByCurrency = enhancedGroupDetailStore.balances.balancesByCurrency;
+        if (!balancesByCurrency) return 0;
+
+        const currencyBalances = balancesByCurrency[currency];
+        if (!currencyBalances) return 0;
+
+        const payerBalance = currencyBalances[payerId];
+        if (!payerBalance) return 0;
+
+        // Find how much payer owes to payee
+        const debtToPayee = payerBalance.owes[payeeId] || 0;
+
+        // Return the amount (already positive if there's a debt)
+        return debtToPayee;
+    };
+
     useEffect(() => {
         if (!isOpen) return;
 
@@ -240,32 +267,6 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
         const amountNum = parseFloat(amount);
         return payerId && payeeId && payerId !== payeeId && amount && !isNaN(amountNum) && amountNum > 0 && amountNum <= 999999.99 && date && !isDateInFuture(date);
     })();
-
-    const getMemberName = (userId: string): string => {
-        const member = members.find((m: GroupMember) => m.uid === userId);
-        return member?.displayName || t('common.unknownUser');
-    };
-
-    const getCurrentDebt = (): number => {
-        if (!payerId || !payeeId || !currency || !enhancedGroupDetailStore.balances) {
-            return 0;
-        }
-
-        const balancesByCurrency = enhancedGroupDetailStore.balances.balancesByCurrency;
-        if (!balancesByCurrency) return 0;
-
-        const currencyBalances = balancesByCurrency[currency];
-        if (!currencyBalances) return 0;
-
-        const payerBalance = currencyBalances[payerId];
-        if (!payerBalance) return 0;
-
-        // Find how much payer owes to payee
-        const debtToPayee = payerBalance.owes[payeeId] || 0;
-
-        // Return the amount (already positive if there's a debt)
-        return debtToPayee;
-    };
 
     return (
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={handleBackdropClick}>

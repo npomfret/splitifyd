@@ -34,7 +34,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
         {} as Record<string, Member>,
     );
 
-    if (amount <= 0) {
+    if (amount <= 0 || !currency) {
         return null;
     }
 
