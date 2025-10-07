@@ -1,11 +1,8 @@
-import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { GroupDTO, PermissionLevels } from '@splitifyd/shared';
+import { describe, test, expect, beforeEach } from 'vitest';
+import { GroupDTO, PermissionLevels, GroupMembership } from '@splitifyd/shared';
 import { PermissionEngineAsync } from '../../permissions/permission-engine-async';
-import { StubFirestoreReader } from './mocks/firestore-stubs';
 import { GroupDTOBuilder, ExpenseDTOBuilder } from '@splitifyd/test-support';
 import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
-
-let stubFirestoreReader: StubFirestoreReader;
 
 describe('PermissionEngineAsync', () => {
     let testGroup: GroupDTO;
@@ -13,9 +10,6 @@ describe('PermissionEngineAsync', () => {
     const testGroupId = 'group456';
 
     beforeEach(() => {
-        stubFirestoreReader = new StubFirestoreReader();
-        vi.clearAllMocks();
-
         testGroup = new GroupDTOBuilder()
             .withId(testGroupId)
             .withName('Test Group')
@@ -37,16 +31,15 @@ describe('PermissionEngineAsync', () => {
     });
 
     describe('checkPermission', () => {
-        test('should return false if user is not a member', async () => {
-            // No group member set in stub, so getGroupMember will return null
-
-            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'expenseEditing');
+        test('should return false if user is not a member', () => {
+            // Pass null member to simulate non-member
+            const result = PermissionEngineAsync.checkPermission(null as any, testGroup, testUserId, 'expenseEditing');
 
             expect(result).toBe(false);
         });
 
-        test('should return false if user is inactive', async () => {
-            const memberDoc = new GroupMemberDocumentBuilder()
+        test('should return false if user is inactive', () => {
+            const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
                 .withRole('member')
@@ -54,15 +47,14 @@ describe('PermissionEngineAsync', () => {
                 .withJoinedAt('2023-01-01T00:00:00Z')
                 .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
-            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, memberDoc);
 
-            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'expenseEditing');
+            const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'expenseEditing');
 
             expect(result).toBe(false);
         });
 
-        test('should allow inactive users to view group', async () => {
-            const memberDoc = new GroupMemberDocumentBuilder()
+        test('should allow inactive users to view group', () => {
+            const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
                 .withRole('member')
@@ -70,15 +62,14 @@ describe('PermissionEngineAsync', () => {
                 .withJoinedAt('2023-01-01T00:00:00Z')
                 .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
-            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, memberDoc);
 
-            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'viewGroup');
+            const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'viewGroup');
 
             expect(result).toBe(false); // Still false because status is PENDING, not ACTIVE
         });
 
-        test('should allow active users to view group', async () => {
-            const memberDoc = new GroupMemberDocumentBuilder()
+        test('should allow active users to view group', () => {
+            const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
                 .withRole('member')
@@ -86,15 +77,14 @@ describe('PermissionEngineAsync', () => {
                 .withJoinedAt('2023-01-01T00:00:00Z')
                 .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
-            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, memberDoc);
 
-            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'viewGroup');
+            const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'viewGroup');
 
             expect(result).toBe(true);
         });
 
-        test('should deny viewers from expense editing', async () => {
-            const memberDoc = new GroupMemberDocumentBuilder()
+        test('should deny viewers from expense editing', () => {
+            const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
                 .withRole('viewer')
@@ -102,15 +92,14 @@ describe('PermissionEngineAsync', () => {
                 .withJoinedAt('2023-01-01T00:00:00Z')
                 .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
-            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, memberDoc);
 
-            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'expenseEditing');
+            const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'expenseEditing');
 
             expect(result).toBe(false);
         });
 
-        test('should allow member with ANYONE permission', async () => {
-            const memberDoc = new GroupMemberDocumentBuilder()
+        test('should allow member with ANYONE permission', () => {
+            const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
                 .withRole('member')
@@ -118,15 +107,14 @@ describe('PermissionEngineAsync', () => {
                 .withJoinedAt('2023-01-01T00:00:00Z')
                 .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
-            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, memberDoc);
 
-            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'expenseEditing');
+            const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'expenseEditing');
 
             expect(result).toBe(true);
         });
 
-        test('should allow admin with ADMIN_ONLY permission', async () => {
-            const memberDoc = new GroupMemberDocumentBuilder()
+        test('should allow admin with ADMIN_ONLY permission', () => {
+            const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
                 .withRole('admin')
@@ -134,15 +122,14 @@ describe('PermissionEngineAsync', () => {
                 .withJoinedAt('2023-01-01T00:00:00Z')
                 .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
-            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, memberDoc);
 
-            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'memberInvitation');
+            const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'memberInvitation');
 
             expect(result).toBe(true);
         });
 
-        test('should deny member with ADMIN_ONLY permission', async () => {
-            const memberDoc = new GroupMemberDocumentBuilder()
+        test('should deny member with ADMIN_ONLY permission', () => {
+            const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
                 .withRole('member')
@@ -150,15 +137,14 @@ describe('PermissionEngineAsync', () => {
                 .withJoinedAt('2023-01-01T00:00:00Z')
                 .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
-            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, memberDoc);
 
-            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'memberInvitation');
+            const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'memberInvitation');
 
             expect(result).toBe(false);
         });
 
-        test('should allow admin with OWNER_AND_ADMIN permission', async () => {
-            const memberDoc = new GroupMemberDocumentBuilder()
+        test('should allow admin with OWNER_AND_ADMIN permission', () => {
+            const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
                 .withRole('admin')
@@ -166,15 +152,14 @@ describe('PermissionEngineAsync', () => {
                 .withJoinedAt('2023-01-01T00:00:00Z')
                 .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
-            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, memberDoc);
 
-            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'expenseDeletion');
+            const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'expenseDeletion');
 
             expect(result).toBe(true);
         });
 
-        test('should allow expense owner with OWNER_AND_ADMIN permission', async () => {
-            const memberDoc = new GroupMemberDocumentBuilder()
+        test('should allow expense owner with OWNER_AND_ADMIN permission', () => {
+            const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
                 .withRole('member')
@@ -182,7 +167,6 @@ describe('PermissionEngineAsync', () => {
                 .withJoinedAt('2023-01-01T00:00:00Z')
                 .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
-            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, memberDoc);
 
             const mockExpense = new ExpenseDTOBuilder()
                 .withId('expense123')
@@ -199,14 +183,14 @@ describe('PermissionEngineAsync', () => {
                 .withSplits([{ uid: testUserId, amount: 100 }])
                 .build();
 
-            const result = await PermissionEngineAsync.checkPermission(stubFirestoreReader, testGroup, testUserId, 'expenseDeletion', { expense: mockExpense });
+            const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'expenseDeletion', { expense: mockExpense });
 
             expect(result).toBe(true);
         });
 
-        test('should throw error if group missing permissions', async () => {
+        test('should throw error if group missing permissions', () => {
             const groupWithoutPermissions = { ...testGroup, permissions: undefined as any };
-            const memberDoc = new GroupMemberDocumentBuilder()
+            const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
                 .withRole('member')
@@ -214,19 +198,18 @@ describe('PermissionEngineAsync', () => {
                 .withJoinedAt('2023-01-01T00:00:00Z')
                 .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
-            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, memberDoc);
 
-            await expect(PermissionEngineAsync.checkPermission(stubFirestoreReader, groupWithoutPermissions, testUserId, 'expenseEditing')).rejects.toThrow(
+            expect(() => PermissionEngineAsync.checkPermission(member, groupWithoutPermissions, testUserId, 'expenseEditing')).toThrow(
                 'Group group456 is missing permissions configuration',
             );
         });
 
-        test('should throw error if specific permission missing', async () => {
+        test('should throw error if specific permission missing', () => {
             const groupWithMissingPermission = {
                 ...testGroup,
                 permissions: { ...testGroup.permissions, expenseEditing: undefined as any },
             };
-            const memberDoc = new GroupMemberDocumentBuilder()
+            const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
                 .withRole('member')
@@ -234,9 +217,8 @@ describe('PermissionEngineAsync', () => {
                 .withJoinedAt('2023-01-01T00:00:00Z')
                 .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
-            stubFirestoreReader.setDocument('group-members', `${testGroupId}_${testUserId}`, memberDoc);
 
-            await expect(PermissionEngineAsync.checkPermission(stubFirestoreReader, groupWithMissingPermission, testUserId, 'expenseEditing')).rejects.toThrow(
+            expect(() => PermissionEngineAsync.checkPermission(member, groupWithMissingPermission, testUserId, 'expenseEditing')).toThrow(
                 'Group group456 is missing permission setting for action: expenseEditing',
             );
         });

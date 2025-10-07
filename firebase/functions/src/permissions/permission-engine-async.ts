@@ -1,5 +1,6 @@
 import { ExpenseDTO, GroupDTO, GroupPermissions, MemberRoles, MemberStatuses, PermissionLevels } from '@splitifyd/shared';
 import { IFirestoreReader } from '../services/firestore';
+import {GroupMembership} from "@splitifyd/shared/src";
 
 interface PermissionCheckOptions {
     expense?: ExpenseDTO;
@@ -10,18 +11,18 @@ export class PermissionEngineAsync {
     /**
      * Check if a user has permission to perform an action in a group (async version)
      */
-    static async checkPermission(
-        firestoreReader: IFirestoreReader,
+    static checkPermission(
+        member: GroupMembership | null,
         group: GroupDTO,
         userId: string,
         action: keyof GroupPermissions | 'viewGroup',
         options: PermissionCheckOptions = {},
-    ): Promise<boolean> {
+    ): boolean {
         if (!group.permissions) {
             throw new Error(`Group ${group.id} is missing permissions configuration`);
         }
 
-        const member = await firestoreReader.getGroupMember(group.id, userId);
+        // User is not a member
         if (!member) {
             return false;
         }

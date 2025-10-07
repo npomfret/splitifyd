@@ -1316,15 +1316,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         const collection = documentPath.split('/')[0];
 
         // Apply selective validation for transaction data
-        const validationResult = this.validateTransactionData(collection, finalUpdates, docRef.id);
-        const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(partial validation)';
-
-        logger.info(`Document updated in transaction ${logType}`, {
-            collection,
-            documentPath,
-            validatedFields: validationResult.validatedFields ? Object.keys(validationResult.validatedFields) : [],
-            skippedFields: validationResult.skippedFields || [],
-        });
+        this.validateTransactionData(collection, finalUpdates, docRef.id);
 
         transaction.update(docRef, finalUpdates);
     }

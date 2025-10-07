@@ -127,26 +127,26 @@ export class ExpenseService {
         // Validate the input data early
         const validatedExpenseData = expenseValidation.validateCreateExpense(expenseData);
 
-        // Verify user is a member of the group
-        await this.firestoreReader.verifyGroupMembership(validatedExpenseData.groupId, userId);
+        // Parallelize all pre-transaction reads for maximum performance
+        const [groupData, memberIds, member] = await Promise.all([
+            this.firestoreReader.getGroup(validatedExpenseData.groupId),
+            this.firestoreReader.getAllGroupMemberIds(validatedExpenseData.groupId),
+            this.firestoreReader.getGroupMember(validatedExpenseData.groupId, userId)
+        ]);
 
-        // Get group data and verify permissions using FirestoreReader
-        const groupData = await this.firestoreReader.getGroup(validatedExpenseData.groupId);
         if (!groupData) {
             throw Errors.NOT_FOUND('Group');
         }
 
-        // Group is already a GroupDTO from FirestoreReader
-        const group = groupData;
+        if (!member || !memberIds.includes(userId)) {
+            throw Errors.FORBIDDEN();
+        }
 
         // Check if user can create expenses in this group
-        const canCreateExpense = await PermissionEngineAsync.checkPermission(this.firestoreReader, group, userId, 'expenseEditing');
+        const canCreateExpense = PermissionEngineAsync.checkPermission(member!, groupData, userId, 'expenseEditing');
         if (!canCreateExpense) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to create expenses in this group');
         }
-
-        // Get current members to validate participants
-        const memberIds = await this.firestoreReader.getAllGroupMemberIds(validatedExpenseData.groupId);
 
         if (!memberIds.includes(validatedExpenseData.paidBy)) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
@@ -161,11 +161,11 @@ export class ExpenseService {
         // Create the expense document
         const now = new Date().toISOString();
 
-        // Generate a unique ID for the expense
-        const expenseId = this.firestoreWriter.generateDocumentId(FirestoreCollections.EXPENSES);
-
         // Calculate splits based on split type
         const splits = expenseValidation.calculateSplits(validatedExpenseData.amount, validatedExpenseData.splitType, validatedExpenseData.participants, validatedExpenseData.splits);
+
+        // Generate expense ID early (local operation, no DB call)
+        const expenseId = this.firestoreWriter.generateDocumentId(FirestoreCollections.EXPENSES);
 
         const expense: ExpenseDTO = {
             id: expenseId,
@@ -190,18 +190,6 @@ export class ExpenseService {
         if (validatedExpenseData.receiptUrl !== undefined) {
             expense.receiptUrl = validatedExpenseData.receiptUrl;
         }
-
-        // Note: FirestoreWriter handles validation and conversion (ISO → Timestamp)
-
-        // DEBUGGING: Log the participants before saving to Firestore
-        logger.info('ExpenseService creating expense with participants', {
-            expenseId: expenseId,
-            groupId: validatedExpenseData.groupId,
-            paidBy: validatedExpenseData.paidBy,
-            participants: validatedExpenseData.participants.map((p) => p),
-            participantCount: validatedExpenseData.participants.length,
-            description: validatedExpenseData.description,
-        });
 
         // Use transaction to create expense atomically and update balance
         let createdExpenseRef: DocumentReference | undefined;
@@ -256,9 +244,17 @@ export class ExpenseService {
         const expense = await this.fetchExpense(expenseId);
 
         // Get group data and verify permissions
-        const groupData = await this.firestoreReader.getGroup(expense.groupId);
+        const [groupData, memberIds, member] = await Promise.all([
+            this.firestoreReader.getGroup(expense.groupId),
+            this.firestoreReader.getAllGroupMemberIds(expense.groupId),
+            this.firestoreReader.getGroupMember(expense.groupId, userId)
+        ]);
+
         if (!groupData) {
             throw Errors.NOT_FOUND('Group');
+        }
+        if (!member) {
+            throw Errors.FORBIDDEN();
         }
 
         // Group is already a GroupDTO from FirestoreReader
@@ -267,13 +263,10 @@ export class ExpenseService {
         // Check if user can edit expenses in this group
         // Convert expense to ExpenseData format for permission check
         const expenseData = this.transformExpenseToResponse(expense);
-        const canEditExpense = await PermissionEngineAsync.checkPermission(this.firestoreReader, group, userId, 'expenseEditing', { expense: expenseData });
+        const canEditExpense = PermissionEngineAsync.checkPermission(member!, group, userId, 'expenseEditing', { expense: expenseData });
         if (!canEditExpense) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to edit this expense');
         }
-
-        // If updating paidBy or participants, validate they are group members
-        const memberIds = await this.firestoreReader.getAllGroupMemberIds(expense.groupId);
 
         if (updateData.paidBy && !memberIds.includes(updateData.paidBy)) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
@@ -458,9 +451,17 @@ export class ExpenseService {
         const expense = await this.fetchExpense(expenseId);
 
         // Get group data and verify permissions
-        const groupData = await this.firestoreReader.getGroup(expense.groupId);
+        const [groupData, memberIds, member] = await Promise.all([
+            this.firestoreReader.getGroup(expense.groupId),
+            this.firestoreReader.getAllGroupMemberIds(expense.groupId),
+            this.firestoreReader.getGroupMember(expense.groupId, userId)
+        ]);
+
         if (!groupData) {
             throw Errors.NOT_FOUND('Group');
+        }
+        if (!member) {
+            throw Errors.FORBIDDEN();
         }
 
         // Group is already a GroupDTO from FirestoreReader
@@ -469,15 +470,12 @@ export class ExpenseService {
         // Check if user can delete expenses in this group
         // Convert expense to ExpenseData format for permission check
         const expenseData = this.transformExpenseToResponse(expense);
-        const canDeleteExpense = await PermissionEngineAsync.checkPermission(this.firestoreReader, group, userId, 'expenseDeletion', { expense: expenseData });
+        const canDeleteExpense = PermissionEngineAsync.checkPermission(member!, group, userId, 'expenseDeletion', { expense: expenseData });
         if (!canDeleteExpense) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to delete this expense');
         }
 
         try {
-            // Get members for balance update
-            const memberIds = await this.firestoreReader.getAllGroupMemberIds(expense.groupId);
-
             // Use transaction to soft delete expense atomically and update balance
             await this.firestoreWriter.runTransaction(
                 async (transaction) => {
