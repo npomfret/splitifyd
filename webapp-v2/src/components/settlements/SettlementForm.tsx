@@ -252,8 +252,9 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
         }
 
         const balancesByCurrency = enhancedGroupDetailStore.balances.balancesByCurrency;
-        const currencyBalances = balancesByCurrency[currency];
+        if (!balancesByCurrency) return 0;
 
+        const currencyBalances = balancesByCurrency[currency];
         if (!currencyBalances) return 0;
 
         const payerBalance = currencyBalances[payerId];
