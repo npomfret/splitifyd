@@ -1,6 +1,6 @@
 import { expect, test } from '../../utils/console-logging-fixture';
-import { mockApiFailure, mockFullyAcceptedPoliciesApi, mockGroupsApi } from '../../utils/mock-firebase-service';
-import { ClientUserBuilder, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
+import { mockApiFailure, mockGroupsApi } from '../../utils/mock-firebase-service';
+import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
 
 
 // Test for browser reuse - using fixture-based approach with proper infrastructure
@@ -11,10 +11,8 @@ test.describe('Browser Reuse Test', () => {
         await expect(page).toHaveURL(/\/login/);
     });
 
-    test('test 2 - empty state check', async ({ pageWithLogging: page, authenticatedMockFirebase }) => {
-        const testUser = ClientUserBuilder.validUser().build();
-        await authenticatedMockFirebase(testUser);
-        await mockFullyAcceptedPoliciesApi(page);
+    test('test 2 - empty state check', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([], 0).build());
         await page.goto('/dashboard', { timeout: TEST_TIMEOUTS.NAVIGATION, waitUntil: 'domcontentloaded' });
         await expect(page).toHaveURL(/\/dashboard/);

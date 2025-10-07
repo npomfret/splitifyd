@@ -1,27 +1,13 @@
 import { expect, test } from '../../utils/console-logging-fixture';
-import { createMockFirebase, MockFirebase, mockFullyAcceptedPoliciesApi, mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
-import { ClientUserBuilder, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
+import { mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
+import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
 
 test.describe('Dashboard Navigation Flows', () => {
-    const testUser = ClientUserBuilder.validUser().build();
-    let mockFirebase: MockFirebase | null = null;
-
-    test.beforeEach(async ({ pageWithLogging: page }) => {
-        mockFirebase = await createMockFirebase(page, testUser);
-        await mockFullyAcceptedPoliciesApi(page);
-    });
-
-    test.afterEach(async () => {
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-            mockFirebase = null;
-        }
-    });
-
-    test('should navigate to group detail when clicking group card', async ({ pageWithLogging: page }) => {
+    test('should navigate to group detail when clicking group card', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
 
@@ -35,10 +21,11 @@ test.describe('Dashboard Navigation Flows', () => {
         await expect(page).toHaveURL(/\/groups\/group-123/);
     });
 
-    test('should return to dashboard from group detail', async ({ pageWithLogging: page }) => {
+    test('should return to dashboard from group detail', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
 
@@ -56,10 +43,11 @@ test.describe('Dashboard Navigation Flows', () => {
         await dashboardPage.verifyDashboardPageLoaded();
     });
 
-    test('should maintain dashboard state after modal interactions', async ({ pageWithLogging: page }) => {
+    test('should maintain dashboard state after modal interactions', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const groups = [GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 1').withId('group-1').build(), GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 2').withId('group-2').build()];
+        const groups = [GroupDTOBuilder.groupForUser(user.uid).withName('Group 1').withId('group-1').build(), GroupDTOBuilder.groupForUser(user.uid).withName('Group 2').withId('group-2').build()];
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(groups).build());
         await mockGenerateShareLinkApi(page, 'group-1');
@@ -78,7 +66,8 @@ test.describe('Dashboard Navigation Flows', () => {
         await dashboardPage.verifyGroupDisplayed('Group 2');
     });
 
-    test('should update URL correctly when navigating', async ({ pageWithLogging: page }) => {
+    test('should update URL correctly when navigating', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([]).build());
