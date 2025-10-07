@@ -485,7 +485,7 @@ export class DashboardPage extends BasePage {
     /**
      * Wait for a specific group to appear (useful for real-time updates)
      */
-    async waitForGroupToAppear(groupName: string, timeout = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
+    async waitForGroupToAppear(groupName: string, timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
         try {
             await expect(this.getGroupCard(groupName)).toBeVisible({ timeout });
         } catch (error) {
@@ -500,7 +500,7 @@ export class DashboardPage extends BasePage {
     /**
      * Wait for a specific group to disappear (useful for real-time updates)
      */
-    async waitForGroupToDisappear(groupName: string, timeout = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
+    async waitForGroupToDisappear(groupName: string, timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
         try {
             await expect(this.getGroupCard(groupName)).not.toBeVisible({ timeout });
         } catch (error) {

@@ -31,17 +31,23 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
 
     // Handle escape key to close modal
     // Pattern matches CreateGroupModal for consistency and reliability
+    // Uses capture phase for more reliable event handling (especially in Playwright tests)
     useEffect(() => {
         if (!isOpen) return;
 
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
+                // Prevent default and stop propagation to avoid conflicts with other handlers
+                e.preventDefault();
+                e.stopPropagation();
                 onClose();
             }
         };
 
-        document.addEventListener('keydown', handleEscape);
-        return () => document.removeEventListener('keydown', handleEscape);
+        // Use capture phase for maximum reliability across browsers and test frameworks
+        // This ensures the handler fires before other event listeners
+        window.addEventListener('keydown', handleEscape, { capture: true });
+        return () => window.removeEventListener('keydown', handleEscape, { capture: true });
     }, [isOpen, onClose]);
 
     // Cleanup timers on unmount

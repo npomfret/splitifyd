@@ -168,15 +168,35 @@ export abstract class BasePage {
     async pressEscapeToClose(modalContainer: Locator, timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
         await expect(modalContainer).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
 
-        await this._page.locator('body').press('Escape');
+        // CRITICAL FIX: Focus the modal container before pressing Escape
+        // This ensures the keydown event will be captured by the modal's event listener
+        // See: https://playwright.dev/docs/input#keys-and-shortcuts
+        await modalContainer.focus();
+
+        // Wait for focus to be applied and event listeners to be ready
+        // This prevents race conditions between Playwright's keyboard.press() and Preact's useEffect
+        await this._page.waitForTimeout(100);
+
+        await this._page.keyboard.press('Escape');
 
         try {
             await expect(modalContainer).not.toBeVisible({ timeout });
         } catch (error) {
             const isStillVisible = await modalContainer.isVisible();
             const currentUrl = this._page.url();
+            const focusedElement = await this._page.evaluate(() => {
+                // This code runs in browser context where document is available
+                const el = document.activeElement;
+                return {
+                    tag: el?.tagName || 'unknown',
+                    id: el?.id || 'none',
+                    class: el?.className || 'none',
+                };
+            });
             throw new Error(
-                `Modal failed to close after pressing Escape. Still visible: ${isStillVisible}, URL: ${currentUrl}`,
+                `Modal failed to close after pressing Escape. ` +
+                    `Still visible: ${isStillVisible}, URL: ${currentUrl}, ` +
+                    `Focused element: ${focusedElement.tag}#${focusedElement.id}.${focusedElement.class}`,
             );
         }
     }
