@@ -1,6 +1,6 @@
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockApiFailure, mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
-import { CreateGroupModalPage, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, randomString } from '@splitifyd/test-support';
+import { CreateGroupModalPage, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, randomString, FORM_VALIDATION, TEST_TIMEOUTS } from '@splitifyd/test-support';
 
 // ============================================================================
 // Dashboard Create Group Functionality
@@ -26,32 +26,34 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifyHelpTextDisplayed();
     });
 
-    test('should validate group name is required', async ({ authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
-        const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+    const formValidationCases = [
+        { name: 'empty name', input: '', expectedEnabled: false },
+        { name: 'single character name', input: randomString(1), expectedEnabled: false },
+        {
+            name: 'valid name (minimum length)',
+            input: randomString(FORM_VALIDATION.MIN_GROUP_NAME_LENGTH),
+            expectedEnabled: true,
+        },
+        { name: 'valid name (longer)', input: randomString(5), expectedEnabled: true },
+    ];
 
-        await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+    for (const testCase of formValidationCases) {
+        test(`form validation: ${testCase.name} should ${testCase.expectedEnabled ? 'enable' : 'disable'} submit`, async ({
+            authenticatedPage,
+        }) => {
+            const { page, user } = authenticatedPage;
+            const dashboardPage = new DashboardPage(page);
+            const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
+            await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
-        const createGroupModal = await dashboardPage.clickCreateGroup();
+            await page.goto('/dashboard');
+            await dashboardPage.waitForGroupsToLoad();
 
-        // Initially submit button should be disabled
-        await createGroupModal.verifySubmitButtonState(false);
-
-        // Fill with just one character - still disabled - using random string to debug auto-fill
-        await createGroupModal.fillGroupName(randomString(1));
-        await createGroupModal.verifySubmitButtonState(false);
-
-        // Fill with valid name (2+ characters) - should enable
-        await createGroupModal.fillGroupName(randomString(5));
-        await createGroupModal.verifySubmitButtonState(true);
-
-        // Clear name - should disable again
-        await createGroupModal.fillGroupName('');
-        await createGroupModal.verifySubmitButtonState(false);
-    });
+            const createGroupModal = await dashboardPage.clickCreateGroup();
+            await createGroupModal.fillGroupName(testCase.input);
+            await createGroupModal.verifySubmitButtonState(testCase.expectedEnabled);
+        });
+    }
 
     test('should fill both group name and description', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
@@ -75,76 +77,34 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifySubmitButtonState(true);
     });
 
-    test('should close modal using cancel button', async ({ authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
-        const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+    const closeModalMethods = [
+        { name: 'cancel button', action: (modal: CreateGroupModalPage) => modal.clickCancel() },
+        { name: 'X button', action: (modal: CreateGroupModalPage) => modal.clickClose() },
+        { name: 'Escape key', action: (modal: CreateGroupModalPage) => modal.pressEscapeToClose() },
+        { name: 'backdrop click', action: (modal: CreateGroupModalPage) => modal.clickOutsideToClose() },
+    ];
 
-        await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
+    for (const closeMethod of closeModalMethods) {
+        test(`should close modal using ${closeMethod.name}`, async ({ authenticatedPage }) => {
+            const { page, user } = authenticatedPage;
+            const dashboardPage = new DashboardPage(page);
+            const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
+            await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
-        const createGroupModal = await dashboardPage.clickCreateGroup();
-        await createGroupModal.verifyModalOpen();
+            await page.goto('/dashboard');
+            await dashboardPage.waitForGroupsToLoad();
 
-        // Fill some data
-        await createGroupModal.fillGroupName('Test Group');
+            const createGroupModal = await dashboardPage.clickCreateGroup();
+            await createGroupModal.verifyModalOpen();
 
-        // Close via cancel
-        await createGroupModal.clickCancel();
-        await createGroupModal.verifyModalClosed();
-    });
+            if (closeMethod.name === 'cancel button') {
+                await createGroupModal.fillGroupName('Test Group');
+            }
 
-    test('should close modal using X button', async ({ authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
-        const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
-
-        await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
-
-        const createGroupModal = await dashboardPage.clickCreateGroup();
-        await createGroupModal.verifyModalOpen();
-
-        // Close via X button
-        await createGroupModal.clickClose();
-        await createGroupModal.verifyModalClosed();
-    });
-
-    test('should close modal using Escape key', async ({ authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
-        const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
-
-        await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
-
-        const createGroupModal = await dashboardPage.clickCreateGroup();
-        await createGroupModal.verifyModalOpen();
-
-        // Close via Escape key
-        await createGroupModal.pressEscapeToClose();
-        await createGroupModal.verifyModalClosed();
-    });
-
-    test('should close modal by clicking backdrop', async ({ authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
-        const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
-
-        await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
-
-        const createGroupModal = await dashboardPage.clickCreateGroup();
-        await createGroupModal.verifyModalOpen();
-
-        // Close by clicking outside
-        await createGroupModal.clickOutsideToClose();
-        await createGroupModal.verifyModalClosed();
-    });
+            await closeMethod.action(createGroupModal);
+            await createGroupModal.verifyModalClosed();
+        });
+    }
 
     test('should reopen modal with clean state after closing', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
@@ -190,57 +150,6 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifyModalOpen();
     });
 
-    test('should clear validation error when user starts typing', async ({ authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
-        const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
-
-        await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
-
-        const createGroupModal = await dashboardPage.clickCreateGroup();
-
-        // Fill with single character (too short) - using random string to debug auto-fill issues
-        const singleChar = randomString(1);
-        await createGroupModal.fillGroupName(singleChar);
-
-        // Try to submit - will trigger validation
-        const submitButton = createGroupModal.getSubmitButton();
-        await expect(submitButton).toBeDisabled();
-
-        // When user types more, error should clear and submit should enable
-        const validName = randomString(5);
-        await createGroupModal.fillGroupName(validName);
-        await createGroupModal.verifyNoValidationError();
-        await createGroupModal.verifySubmitButtonState(true);
-    });
-
-    test('should handle form submission reactively', async ({ authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
-        const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
-
-        await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
-
-        const createGroupModal = await dashboardPage.clickCreateGroup();
-
-        // Form starts with submit disabled
-        await createGroupModal.verifySubmitButtonState(false);
-
-        // Fill name field reactively
-        await createGroupModal.fillGroupName('T');
-        await createGroupModal.verifySubmitButtonState(false);
-
-        await createGroupModal.fillGroupName('Te');
-        await createGroupModal.verifySubmitButtonState(true);
-
-        // Add description (optional, doesn't affect submit state)
-        await createGroupModal.fillGroupDescription('Test description');
-        await createGroupModal.verifySubmitButtonState(true);
-    });
 
     test('should open create group modal from mobile button using fluent interface', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;

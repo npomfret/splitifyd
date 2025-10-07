@@ -1,13 +1,13 @@
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockApiFailure, mockFullyAcceptedPoliciesApi, mockGroupsApi } from '../../utils/mock-firebase-service';
-import { ClientUserBuilder, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
+import { ClientUserBuilder, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
 
 
 // Test for browser reuse - using fixture-based approach with proper infrastructure
 test.describe('Browser Reuse Test', () => {
     test('test 1 - redirect check', async ({ pageWithLogging: page, mockFirebase }) => {
         // mockFirebase fixture starts logged out automatically
-        await page.goto('/dashboard', { timeout: 5000, waitUntil: 'domcontentloaded' });
+        await page.goto('/dashboard', { timeout: TEST_TIMEOUTS.NAVIGATION, waitUntil: 'domcontentloaded' });
         await expect(page).toHaveURL(/\/login/);
     });
 
@@ -16,7 +16,7 @@ test.describe('Browser Reuse Test', () => {
         await authenticatedMockFirebase(testUser);
         await mockFullyAcceptedPoliciesApi(page);
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([], 0).build());
-        await page.goto('/dashboard', { timeout: 5000, waitUntil: 'domcontentloaded' });
+        await page.goto('/dashboard', { timeout: TEST_TIMEOUTS.NAVIGATION, waitUntil: 'domcontentloaded' });
         await expect(page).toHaveURL(/\/dashboard/);
     });
 });

@@ -1,6 +1,6 @@
 import { test, expect } from '../../utils/console-logging-fixture';
 import { setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
-import { ClientUserBuilder, LoginPage, DashboardPage } from '@splitifyd/test-support';
+import { ClientUserBuilder, LoginPage, DashboardPage, TEST_TIMEOUTS } from '@splitifyd/test-support';
 
 test.describe('Authentication Flow', () => {
     test('should log in successfully and navigate to dashboard', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -103,7 +103,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await loginPage.verifyFormDisabled();
 
         // Wait for login to complete and verify redirect
-        await expect(page).toHaveURL('/dashboard', { timeout: 5000 });
+        await expect(page).toHaveURL('/dashboard', { timeout: TEST_TIMEOUTS.NAVIGATION });
     });
 
     test('should clear error state when component mounts', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -235,7 +235,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         // Verify all form elements are disabled during loading
         await loginPage.verifyFormDisabled();
 
-        await expect(page).toHaveURL('/dashboard', { timeout: 5000 });
+        await expect(page).toHaveURL('/dashboard', { timeout: TEST_TIMEOUTS.NAVIGATION });
     });
 
     test('should navigate to register page with returnUrl preservation', async ({ pageWithLogging: page, mockFirebase }) => {

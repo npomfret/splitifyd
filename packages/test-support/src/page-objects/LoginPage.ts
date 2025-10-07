@@ -2,6 +2,7 @@ import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { loadTranslation } from './translation-loader';
 import { DashboardPage } from './DashboardPage';
+import { TEST_TIMEOUTS, TEST_ROUTES } from '../test-constants';
 
 const translation = loadTranslation();
 
@@ -222,17 +223,23 @@ export class LoginPage extends BasePage {
      * Use this when you expect login to succeed
      */
     async loginAndNavigateToDashboard(email: string, password: string): Promise<DashboardPage> {
-        // Verify form is ready for submission
         await this.fillCredentials(email, password);
-        await expect(this.getSubmitButton()).toBeEnabled();
+        await expect(this.getSubmitButton()).toBeEnabled({ timeout: TEST_TIMEOUTS.BUTTON_STATE });
 
-        // Submit form
         await this.submitForm();
 
-        // Wait for navigation to dashboard
-        await expect(this.page).toHaveURL(/\/dashboard/, { timeout: 5000 });
+        try {
+            await expect(this.page).toHaveURL(TEST_ROUTES.DASHBOARD, { timeout: TEST_TIMEOUTS.NAVIGATION });
+        } catch (error) {
+            const currentUrl = this.page.url();
+            const errorVisible = await this.getErrorContainer().isVisible();
+            const errorText = errorVisible ? await this.getErrorMessage() : 'No error message';
+            throw new Error(
+                `Failed to navigate to dashboard after login. Current URL: ${currentUrl}. ` +
+                    `Error displayed: ${errorVisible}. Error message: "${errorText}"`,
+            );
+        }
 
-        // Return dashboard page object
         const dashboardPage = new DashboardPage(this.page);
         await dashboardPage.verifyDashboardPageLoaded();
         return dashboardPage;
@@ -247,11 +254,17 @@ export class LoginPage extends BasePage {
         await this.fillCredentials(email, password);
         await this.submitForm();
 
-        // Verify we stay on login page
-        await expect(this.page).toHaveURL(/\/login/);
-
-        // Wait for error to appear
-        await expect(this.getErrorContainer()).toBeVisible({ timeout: 3000 });
+        try {
+            await expect(this.page).toHaveURL(TEST_ROUTES.LOGIN, { timeout: TEST_TIMEOUTS.NAVIGATION });
+            await expect(this.getErrorContainer()).toBeVisible({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
+        } catch (error) {
+            const currentUrl = this.page.url();
+            const errorVisible = await this.getErrorContainer().isVisible();
+            throw new Error(
+                `Login failure behavior not as expected. Current URL: ${currentUrl}, ` +
+                    `Error visible: ${errorVisible}. Expected to stay on login page with error message.`,
+            );
+        }
     }
 
     /**
@@ -332,10 +345,18 @@ export class LoginPage extends BasePage {
      */
     async verifyErrorMessage(expectedMessage: string): Promise<void> {
         const errorContainer = this.getErrorContainer();
-        // Wait for error to be visible with expected message
-        // Playwright's toContainText will auto-wait for the element to be visible and contain the text
-        await expect(errorContainer).toBeVisible({ timeout: 3000 });
-        await expect(errorContainer).toContainText(expectedMessage);
+
+        try {
+            await expect(errorContainer).toBeVisible({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
+            await expect(errorContainer).toContainText(expectedMessage, { timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
+        } catch (error) {
+            const isVisible = await errorContainer.isVisible();
+            const actualText = isVisible ? await this.getErrorMessage() : 'No error message';
+            throw new Error(
+                `Error message verification failed. Expected: "${expectedMessage}", ` +
+                    `Actual: "${actualText}", Error visible: ${isVisible}`,
+            );
+        }
     }
 
     /**

@@ -4,6 +4,7 @@ import { loadTranslation } from './translation-loader';
 import { CreateGroupModalPage } from './CreateGroupModalPage';
 import { GroupDetailPage } from './GroupDetailPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
+import { TEST_TIMEOUTS, TEST_ROUTES } from '../test-constants';
 
 const translation = loadTranslation();
 
@@ -360,8 +361,15 @@ export class DashboardPage extends BasePage {
      * Verify we're on the dashboard page with proper content loaded
      */
     async verifyDashboardPageLoaded(): Promise<void> {
-        await expect(this.page).toHaveURL(/\/dashboard/);
-        await expect(this.getYourGroupsHeading()).toBeVisible();
+        try {
+            await expect(this.page).toHaveURL(TEST_ROUTES.DASHBOARD, { timeout: TEST_TIMEOUTS.NAVIGATION });
+            await expect(this.getYourGroupsHeading()).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+        } catch (error) {
+            const currentUrl = this.page.url();
+            throw new Error(
+                `Dashboard page failed to load. Expected URL: ${TEST_ROUTES.DASHBOARD}, Actual URL: ${currentUrl}`,
+            );
+        }
     }
 
     // ============================================================================
@@ -420,13 +428,19 @@ export class DashboardPage extends BasePage {
      */
     async clickGroupCardAndNavigateToDetail(groupName: string): Promise<GroupDetailPage> {
         const groupCard = this.getGroupCard(groupName);
-        await expect(groupCard).toBeVisible();
+        await expect(groupCard).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
         await groupCard.click();
 
-        // Wait for navigation to group detail page
-        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9\-_]+/, { timeout: 5000 });
+        try {
+            await expect(this.page).toHaveURL(TEST_ROUTES.GROUP_DETAIL_PATTERN, { timeout: TEST_TIMEOUTS.NAVIGATION });
+        } catch (error) {
+            const currentUrl = this.page.url();
+            throw new Error(
+                `Failed to navigate to group detail page after clicking "${groupName}". ` +
+                    `Current URL: ${currentUrl}. Expected pattern: /groups/[id]`,
+            );
+        }
 
-        // Return group detail page object
         const groupDetailPage = new GroupDetailPage(this.page);
         await groupDetailPage.verifyGroupDetailPageLoaded(groupName);
         return groupDetailPage;
@@ -453,28 +467,45 @@ export class DashboardPage extends BasePage {
      * Expects either groups to be displayed OR empty state to be visible
      * Tests calling this method should KNOW which state to expect
      */
-    async waitForGroupsToLoad(timeout = 5000): Promise<void> {
-        // Wait for loading spinner to disappear
-        // Playwright's expect().not.toBeVisible() will pass immediately if spinner doesn't exist
-        await expect(this.getGroupsLoadingSpinner()).not.toBeVisible({ timeout });
-
-        // After loading completes, either groups or empty state must be visible
-        // Use .or() on the locator to wait for whichever appears first
-        await expect(this.getGroupCards().first().or(this.getEmptyGroupsState())).toBeVisible({ timeout });
+    async waitForGroupsToLoad(timeout = TEST_TIMEOUTS.LOADING_COMPLETE): Promise<void> {
+        try {
+            await expect(this.getGroupsLoadingSpinner()).not.toBeVisible({ timeout });
+            await expect(this.getGroupCards().first().or(this.getEmptyGroupsState())).toBeVisible({ timeout });
+        } catch (error) {
+            const spinnerVisible = await this.getGroupsLoadingSpinner().isVisible();
+            const groupsVisible = await this.getGroupCards().first().isVisible();
+            const emptyStateVisible = await this.getEmptyGroupsState().isVisible();
+            throw new Error(
+                `Groups failed to load within ${timeout}ms. ` +
+                    `Spinner visible: ${spinnerVisible}, Groups visible: ${groupsVisible}, Empty state visible: ${emptyStateVisible}`,
+            );
+        }
     }
 
     /**
      * Wait for a specific group to appear (useful for real-time updates)
      */
-    async waitForGroupToAppear(groupName: string, timeout = 5000): Promise<void> {
-        await expect(this.getGroupCard(groupName)).toBeVisible({ timeout });
+    async waitForGroupToAppear(groupName: string, timeout = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
+        try {
+            await expect(this.getGroupCard(groupName)).toBeVisible({ timeout });
+        } catch (error) {
+            const allGroups = await this.getGroupCards().allTextContents();
+            throw new Error(
+                `Group "${groupName}" did not appear within ${timeout}ms. ` +
+                    `Currently visible groups: [${allGroups.join(', ')}]`,
+            );
+        }
     }
 
     /**
      * Wait for a specific group to disappear (useful for real-time updates)
      */
-    async waitForGroupToDisappear(groupName: string, timeout = 5000): Promise<void> {
-        await expect(this.getGroupCard(groupName)).not.toBeVisible({ timeout });
+    async waitForGroupToDisappear(groupName: string, timeout = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
+        try {
+            await expect(this.getGroupCard(groupName)).not.toBeVisible({ timeout });
+        } catch (error) {
+            throw new Error(`Group "${groupName}" did not disappear within ${timeout}ms. It is still visible.`);
+        }
     }
 
     /**
