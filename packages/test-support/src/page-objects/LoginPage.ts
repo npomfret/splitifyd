@@ -271,11 +271,14 @@ export class LoginPage extends BasePage {
     }
 
     /**
-     * Click the sign up button to navigate to register page
-     * Non-fluent version - does not return page object
+     * Click the sign up button
+     * Non-fluent version - clicks without verification, for flexibility
      */
     async clickSignUp(): Promise<void> {
-        await this.clickSignUpButton();
+        const button = this.getSignUpButton();
+        await this.clickButton(button, {
+            buttonName: 'Sign Up',
+        });
     }
 
     /**
@@ -284,30 +287,16 @@ export class LoginPage extends BasePage {
      * For now returns void until RegisterPage POM is created
      */
     async clickSignUpAndNavigateToRegister(): Promise<void> {
-        const button = this.getSignUpButton();
-        await this.clickButton(button, {
-            buttonName: 'Sign Up',
-        });
-        // Wait for navigation to register page
-        await expect(this.page).toHaveURL(/\/register/);
+        await this.clickSignUp();
+
+        // Verify navigation completed
+        await expect(this.page).toHaveURL(/\/register/, { timeout: TEST_TIMEOUTS.NAVIGATION });
 
         // TODO: Return RegisterPage when it's created
         // import { RegisterPage } from './RegisterPage';
         // const registerPage = new RegisterPage(this.page);
         // await registerPage.verifyRegisterPageLoaded();
         // return registerPage;
-    }
-
-    /**
-     * Internal method to click the sign up button with proper validation
-     */
-    protected async clickSignUpButton(): Promise<void> {
-        const button = this.getSignUpButton();
-        await this.clickButton(button, {
-            buttonName: 'Sign Up',
-        });
-        // Wait for navigation to register page
-        await expect(this.page).toHaveURL(/\/register/);
     }
 
     // ============================================================================

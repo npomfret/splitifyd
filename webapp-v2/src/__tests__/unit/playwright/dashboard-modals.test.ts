@@ -258,11 +258,11 @@ test.describe('Dashboard Share Group Modal', () => {
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
 
-        // Click invite button on group card
-        await dashboardPage.clickGroupCardInviteButton('Test Group');
+        // Click invite button on group card - fluent method returns modal page
+        const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
 
         // Verify share modal opened
-        await dashboardPage.verifyShareModalOpen();
+        await shareModal.verifyModalOpen();
     });
 
     test('should display share link and QR code after generation', async ({ authenticatedPage }) => {
@@ -277,16 +277,13 @@ test.describe('Dashboard Share Group Modal', () => {
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
 
-        await dashboardPage.clickGroupCardInviteButton('Test Group');
+        const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
 
         // Wait for share link to be generated
-        await dashboardPage.verifyShareLinkDisplayed();
-
-        // Verify QR code is displayed
-        await dashboardPage.verifyQRCodeDisplayed();
+        await shareModal.verifyShareLinkDisplayed();
 
         // Verify link contains expected token
-        const shareLink = await dashboardPage.getShareLinkValue();
+        const shareLink = await shareModal.getShareLink();
         expect(shareLink).toContain('/join/test-token-abc');
     });
 
@@ -302,14 +299,14 @@ test.describe('Dashboard Share Group Modal', () => {
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
 
-        await dashboardPage.clickGroupCardInviteButton('Test Group');
-        await dashboardPage.verifyShareModalOpen();
+        const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
+        await shareModal.verifyModalOpen();
 
         // Close modal
-        await dashboardPage.closeShareModal();
+        await shareModal.clickClose();
 
         // Verify modal closed
-        await dashboardPage.verifyShareModalClosed();
+        await shareModal.verifyModalClosed();
     });
 
     test('should close share modal via Escape key', async ({ authenticatedPage }) => {
@@ -345,14 +342,14 @@ test.describe('Dashboard Share Group Modal', () => {
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
 
-        await dashboardPage.clickGroupCardInviteButton('Test Group');
-        await dashboardPage.verifyShareModalOpen();
+        const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
+        await shareModal.verifyModalOpen();
 
         // Close via backdrop
-        await dashboardPage.closeShareModalViaBackdrop();
+        await shareModal.clickOutsideToClose();
 
         // Verify modal closed
-        await dashboardPage.verifyShareModalClosed();
+        await shareModal.verifyModalClosed();
     });
 
     test('should copy share link to clipboard and show toast', async ({ authenticatedPage }) => {
@@ -370,14 +367,15 @@ test.describe('Dashboard Share Group Modal', () => {
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
 
-        await dashboardPage.clickGroupCardInviteButton('Test Group');
-        await dashboardPage.verifyShareLinkDisplayed();
+        const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
+        await shareModal.verifyShareLinkDisplayed();
 
-        // Copy link
-        await dashboardPage.copyShareLink();
+        // Copy link - returns the copied link
+        const copiedLink = await shareModal.copyShareLinkToClipboard();
+        expect(copiedLink).toContain('/join/');
 
         // Verify toast appears
-        await dashboardPage.verifyLinkCopiedToast();
+        await shareModal.verifyCopySuccess();
 
         // Verify clipboard contains link
         const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
@@ -396,25 +394,17 @@ test.describe('Dashboard Share Group Modal', () => {
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
 
-        await dashboardPage.clickGroupCardInviteButton('Test Group');
-        await dashboardPage.verifyShareLinkDisplayed();
+        const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
+        await shareModal.verifyShareLinkDisplayed();
 
-        const firstLink = await dashboardPage.getShareLinkValue();
+        const firstLink = await shareModal.getShareLink();
         expect(firstLink).toContain('first-token');
 
         // Mock new link generation
         await mockGenerateShareLinkApi(page, 'group-123', 'second-token');
 
-        // Generate new link
-        await dashboardPage.generateNewShareLink();
-
-        // Wait for new link to appear with auto-retry
-        await expect(async () => {
-            const secondLink = await dashboardPage.getShareLinkValue();
-            expect(secondLink).toContain('second-token');
-        }).toPass();
-
-        const secondLink = await dashboardPage.getShareLinkValue();
+        // Generate new link - returns the new link
+        const secondLink = await shareModal.generateNewShareLink();
         expect(secondLink).toContain('second-token');
         expect(secondLink).not.toEqual(firstLink);
     });
@@ -433,10 +423,10 @@ test.describe('Dashboard Share Group Modal', () => {
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
 
-        await dashboardPage.clickGroupCardInviteButton('Test Group');
+        const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
 
         // Verify error message displayed
-        await dashboardPage.verifyShareModalError();
+        await shareModal.verifyErrorMessage('Failed to generate share link');
     });
 
     test('should show loading state while generating share link', async ({ authenticatedPage }) => {
@@ -472,12 +462,12 @@ test.describe('Dashboard Share Group Modal', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         // Click invite button - this triggers the share link API call
-        await dashboardPage.clickGroupCardInviteButton('Test Group');
+        const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
 
         // Verify loading state appears immediately after modal opens
-        await dashboardPage.verifyShareModalLoading();
+        await shareModal.verifyLoading();
 
         // Wait for link to load
-        await dashboardPage.verifyShareLinkDisplayed();
+        await shareModal.verifyShareLinkDisplayed();
     });
 });

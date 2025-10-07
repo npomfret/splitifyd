@@ -9,6 +9,10 @@ const translation = loadTranslation();
  * Share Group Modal Page Object Model for Playwright tests
  * Handles share link generation, copying, and QR code display
  * Reusable across unit tests and e2e tests
+ *
+ * Note: Modals don't navigate to other pages, so they don't follow the fluent
+ * navigation pattern. Methods that perform actions may return values (like
+ * copyShareLinkToClipboard() returns the copied link).
  */
 export class ShareGroupModalPage extends BasePage {
     constructor(page: Page) {

@@ -56,9 +56,9 @@ test.describe('Dashboard Navigation Flows', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         // Open and close share modal
-        await dashboardPage.clickGroupCardInviteButton('Group 1');
-        await dashboardPage.verifyShareModalOpen();
-        await dashboardPage.closeShareModal();
+        const shareModal = await dashboardPage.clickGroupCardInviteButton('Group 1');
+        await shareModal.verifyModalOpen();
+        await shareModal.clickClose();
 
         // Verify dashboard still shows all groups
         await dashboardPage.verifyGroupsDisplayed(2);

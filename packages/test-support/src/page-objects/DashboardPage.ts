@@ -283,75 +283,10 @@ export class DashboardPage extends BasePage {
     }
 
     // ============================================================================
-    // MODAL SELECTORS - For modals NOT owned by Dashboard
+    // Note: Modal/Dialog interactions are handled by their respective Page Objects
+    // Dashboard only provides methods to open modals and return their page objects
+    // Use the returned page object for all modal interactions
     // ============================================================================
-
-    /**
-     * Share Group Modal (not part of dashboard, just for detection)
-     */
-    getShareGroupModal(): Locator {
-        return this.page.getByRole('dialog').filter({
-            has: this.page.getByRole('heading', { name: translation.shareGroupModal.title }),
-        });
-    }
-
-    /**
-     * Share Group Modal - Close button
-     */
-    getShareModalCloseButton(): Locator {
-        return this.getShareGroupModal().getByTestId('close-share-modal-button');
-    }
-
-    /**
-     * Share Group Modal - Share link input field
-     */
-    getShareLinkInput(): Locator {
-        return this.getShareGroupModal().getByTestId('share-link-input');
-    }
-
-    /**
-     * Share Group Modal - Copy link button
-     */
-    getCopyLinkButton(): Locator {
-        return this.getShareGroupModal().getByTestId('copy-link-button');
-    }
-
-    /**
-     * Share Group Modal - Generate new link button
-     */
-    getGenerateNewLinkButton(): Locator {
-        return this.getShareGroupModal().getByTestId('generate-new-link-button');
-    }
-
-    /**
-     * Share Group Modal - QR Code canvas
-     */
-    getShareModalQRCode(): Locator {
-        return this.getShareGroupModal().locator('canvas');
-    }
-
-    /**
-     * Share Group Modal - Error message
-     */
-    getShareModalErrorMessage(): Locator {
-        return this.getShareGroupModal().getByTestId('share-group-error-message');
-    }
-
-    /**
-     * Share Group Modal - Loading spinner
-     */
-    getShareModalLoadingSpinner(): Locator {
-        return this.getShareGroupModal().locator('.animate-spin');
-    }
-
-    /**
-     * Share link copied toast notification
-     */
-    getShareLinkCopiedToast(): Locator {
-        return this.page.locator('.fixed.bottom-4.right-4').filter({
-            hasText: /copied/i,
-        });
-    }
 
     // ============================================================================
     // STATE VERIFICATION METHODS
@@ -507,6 +442,7 @@ export class DashboardPage extends BasePage {
 
     /**
      * Click group card invite button to open share modal
+     * Fluent version - opens modal, verifies it opened, returns ShareGroupModalPage
      */
     async clickGroupCardInviteButton(groupName: string): Promise<ShareGroupModalPage> {
         const groupCard = this.getGroupCard(groupName);
@@ -526,6 +462,8 @@ export class DashboardPage extends BasePage {
 
     /**
      * Click group card add expense button to navigate to expense form
+     * Non-fluent version - clicks without verification
+     * TODO: Add fluent version that returns ExpenseFormPage when it exists
      */
     async clickGroupCardAddExpenseButton(groupName: string): Promise<void> {
         const groupCard = this.getGroupCard(groupName);
@@ -541,6 +479,7 @@ export class DashboardPage extends BasePage {
 
     /**
      * Click Quick Actions create group button
+     * Fluent version - opens modal, verifies it opened, returns CreateGroupModalPage
      */
     async clickQuickActionsCreateGroup(): Promise<CreateGroupModalPage> {
         const button = this.getQuickActionsCreateButton();
@@ -549,50 +488,6 @@ export class DashboardPage extends BasePage {
         const modalPage = new CreateGroupModalPage(this.page);
         await modalPage.waitForModalToOpen();
         return modalPage;
-    }
-
-    /**
-     * Close share modal via close button
-     */
-    async closeShareModal(): Promise<void> {
-        const closeButton = this.getShareModalCloseButton();
-        await this.clickButton(closeButton, { buttonName: 'Close Share Modal' });
-        await expect(this.getShareGroupModal()).not.toBeVisible();
-    }
-
-    /**
-     * Close share modal via backdrop click
-     */
-    async closeShareModalViaBackdrop(): Promise<void> {
-        const modal = this.getShareGroupModal();
-        // Click backdrop (the dialog's parent)
-        await this.page.locator('.fixed.inset-0.bg-gray-600').click({ position: { x: 10, y: 10 } });
-        await expect(modal).not.toBeVisible();
-    }
-
-    /**
-     * Copy share link to clipboard
-     */
-    async copyShareLink(): Promise<void> {
-        const copyButton = this.getCopyLinkButton();
-        await this.clickButton(copyButton, { buttonName: 'Copy Share Link' });
-    }
-
-    /**
-     * Generate new share link
-     */
-    async generateNewShareLink(): Promise<void> {
-        const generateButton = this.getGenerateNewLinkButton();
-        await this.clickButton(generateButton, { buttonName: 'Generate New Link' });
-    }
-
-    /**
-     * Get current share link value
-     */
-    async getShareLinkValue(): Promise<string> {
-        const input = this.getShareLinkInput();
-        await expect(input).toBeVisible();
-        return await input.inputValue();
     }
 
     // ============================================================================
@@ -658,60 +553,6 @@ export class DashboardPage extends BasePage {
         }
     }
 
-    /**
-     * Verify share modal is open
-     */
-    async verifyShareModalOpen(): Promise<void> {
-        await expect(this.getShareGroupModal()).toBeVisible();
-        await expect(this.getShareModalCloseButton()).toBeVisible();
-    }
-
-    /**
-     * Verify share modal is closed
-     */
-    async verifyShareModalClosed(): Promise<void> {
-        await expect(this.getShareGroupModal()).not.toBeVisible();
-    }
-
-    /**
-     * Verify share link is displayed
-     */
-    async verifyShareLinkDisplayed(): Promise<void> {
-        await expect(this.getShareLinkInput()).toBeVisible();
-        const linkValue = await this.getShareLinkValue();
-        expect(linkValue).toContain('http');
-    }
-
-    /**
-     * Verify QR code is displayed
-     */
-    async verifyQRCodeDisplayed(): Promise<void> {
-        await expect(this.getShareModalQRCode()).toBeVisible();
-    }
-
-    /**
-     * Verify share link copied toast appears
-     */
-    async verifyLinkCopiedToast(): Promise<void> {
-        await expect(this.getShareLinkCopiedToast()).toBeVisible();
-    }
-
-    /**
-     * Verify share modal shows error
-     */
-    async verifyShareModalError(expectedError?: string): Promise<void> {
-        await expect(this.getShareModalErrorMessage()).toBeVisible();
-        if (expectedError) {
-            await expect(this.getShareModalErrorMessage()).toContainText(expectedError);
-        }
-    }
-
-    /**
-     * Verify share modal shows loading state
-     */
-    async verifyShareModalLoading(): Promise<void> {
-        await expect(this.getShareModalLoadingSpinner()).toBeVisible();
-    }
 
     /**
      * Verify dashboard stats display

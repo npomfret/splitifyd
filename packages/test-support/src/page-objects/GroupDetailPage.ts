@@ -377,6 +377,8 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Click Add Expense button
+     * Non-fluent version - clicks without verification
+     * TODO: Add fluent version that returns ExpenseFormPage when it exists
      */
     async clickAddExpense(): Promise<void> {
         const button = this.getAddExpenseButton();
@@ -384,14 +386,20 @@ export class GroupDetailPage extends BasePage {
         await this.waitForNetworkIdle();
     }
 
+    // ============================================================================
+    // Modal/Dialog Actions - Following Fluent Interface Pattern
+    // Each action has two versions:
+    // 1. Non-fluent: clickX() - performs action only, for flexibility
+    // 2. Fluent: clickXAndOpenModal/Dialog() - performs action + verifies + returns page object
+    // ============================================================================
+
     /**
      * Click Edit Group button
-     * Non-fluent version - does not return modal page object
+     * Non-fluent version - clicks without verification, for flexibility
      */
     async clickEditGroup(): Promise<void> {
         const button = this.getEditGroupButton();
         await this.clickButton(button, { buttonName: 'Edit Group' });
-        await expect(this.getEditGroupModal()).toBeVisible();
     }
 
     /**
@@ -410,12 +418,11 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Click Share Group button
-     * Non-fluent version - does not return modal page object
+     * Non-fluent version - clicks without verification, for flexibility
      */
     async clickShareGroup(): Promise<void> {
         const button = this.getShareGroupButton();
         await this.clickButton(button, { buttonName: 'Share Group' });
-        await expect(this.getShareGroupModal()).toBeVisible();
     }
 
     /**
@@ -423,9 +430,7 @@ export class GroupDetailPage extends BasePage {
      * Fluent version - verifies modal opens and returns ShareGroupModalPage
      */
     async clickShareGroupAndOpenModal(): Promise<ShareGroupModalPage> {
-        const button = this.getShareGroupButton();
-        await expect(button).toBeVisible();
-        await button.click();
+        await this.clickShareGroup();
 
         const modalPage = new ShareGroupModalPage(this.page);
         await modalPage.waitForModalToOpen();
@@ -434,12 +439,11 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Click Leave Group button
-     * Non-fluent version - does not return dialog page object
+     * Non-fluent version - clicks without verification, for flexibility
      */
     async clickLeaveGroup(): Promise<void> {
         const button = this.getLeaveGroupButton();
         await this.clickButton(button, { buttonName: 'Leave Group' });
-        await expect(this.getLeaveGroupDialog()).toBeVisible();
     }
 
     /**
@@ -447,9 +451,7 @@ export class GroupDetailPage extends BasePage {
      * Fluent version - verifies dialog opens and returns LeaveGroupDialogPage
      */
     async clickLeaveGroupAndOpenDialog(): Promise<LeaveGroupDialogPage> {
-        const button = this.getLeaveGroupButton();
-        await expect(button).toBeVisible();
-        await button.click();
+        await this.clickLeaveGroup();
 
         const dialogPage = new LeaveGroupDialogPage(this.page);
         await dialogPage.waitForDialogToOpen();

@@ -9,6 +9,9 @@ const translation = loadTranslation();
  * Create Group Modal Page Object Model for Playwright tests
  * Container-aware selectors using visible headings and semantic elements
  * Reusable across unit tests and e2e tests
+ *
+ * Note: Modals don't navigate to other pages, so they don't follow the fluent
+ * navigation pattern. They only open/close and interact with form elements.
  */
 export class CreateGroupModalPage extends BasePage {
     constructor(page: Page) {

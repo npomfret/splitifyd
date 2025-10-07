@@ -4,6 +4,63 @@ import { TEST_TIMEOUTS } from '../test-constants';
 /**
  * Base Page Object Model with shared utilities for Playwright tests
  * Extracted from e2e-tests/src/pages/base.page.ts for reuse in unit tests
+ *
+ * ## Fluent Interface Pattern
+ *
+ * All Page Objects follow a consistent fluent interface pattern for actions:
+ *
+ * ### 1. Non-Fluent Actions (Action Only)
+ * - **Purpose**: Perform an action without verification or navigation tracking
+ * - **Naming**: `clickX()`, `fillX()`, `submitForm()`
+ * - **Returns**: `Promise<void>`
+ * - **Use when**: You need flexibility or want to handle verification yourself
+ * - **Example**: `clickGroupCard('My Group')` - clicks the card but doesn't verify navigation
+ *
+ * ### 2. Fluent Actions (Action + Verification + Page Object)
+ * - **Purpose**: Perform action, verify expected outcome, return new page object
+ * - **Naming**: `clickXAndNavigateTo...()`, `clickXAndOpen...()`, `performXAndExpect...()`
+ * - **Returns**: `Promise<NewPageObject>`
+ * - **Use when**: Testing the common happy path and want clean, chainable code
+ * - **Example**: `clickGroupCardAndNavigateToDetail('My Group')` - clicks, verifies URL, returns GroupDetailPage
+ *
+ * ### 3. Fluent Verification Methods
+ * - **Purpose**: Perform action and verify failure/error state
+ * - **Naming**: `performXExpectingFailure()`, `submitXExpectingError()`
+ * - **Returns**: `Promise<void>` (stays on same page after error)
+ * - **Use when**: Testing error handling and validation
+ * - **Example**: `loginExpectingFailure('bad@email.com', 'wrongpass')` - tries login, verifies error appears
+ *
+ * ### 4. Modal/Dialog Opening
+ * - **Naming**: `clickXAndOpenModal()`, `clickXAndOpenDialog()`
+ * - **Returns**: `Promise<ModalPageObject>`
+ * - **Example**: `clickEditGroupAndOpenModal()` - clicks button, verifies modal opens, returns modal page object
+ *
+ * ### Guidelines
+ * - **Always provide both versions** for major navigation actions
+ * - **Prefer fluent methods** in tests for readability and maintainability
+ * - **Use non-fluent methods** when you need to control timing or handle edge cases
+ * - **Modal/dialog page objects** don't navigate, they only open/close
+ * - **Fluent methods** should verify the expected outcome before returning
+ *
+ * @example
+ * // Non-fluent (flexible, action only)
+ * await dashboardPage.clickGroupCard('My Group');
+ * await expect(page).toHaveURL(/\/groups\/abc123/);
+ * const groupDetailPage = new GroupDetailPage(page);
+ *
+ * // Fluent (concise, verified, returns page object)
+ * const groupDetailPage = await dashboardPage.clickGroupCardAndNavigateToDetail('My Group');
+ * // Navigation already verified, page object ready to use
+ *
+ * @example
+ * // Non-fluent modal opening
+ * await groupDetailPage.clickEditGroup();
+ * await expect(editModal.getModalContainer()).toBeVisible();
+ * const editModal = new EditGroupModalPage(page);
+ *
+ * // Fluent modal opening (preferred)
+ * const editModal = await groupDetailPage.clickEditGroupAndOpenModal();
+ * // Modal already verified open, ready to interact
  */
 export abstract class BasePage {
     constructor(protected _page: Page) {}

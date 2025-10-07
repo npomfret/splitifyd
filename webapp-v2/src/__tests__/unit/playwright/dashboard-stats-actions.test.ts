@@ -193,10 +193,10 @@ test.describe('Dashboard Group Card Actions', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         // Click invite button
-        await dashboardPage.clickGroupCardInviteButton('Test Group');
+        const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
 
         // Verify share modal opened
-        await dashboardPage.verifyShareModalOpen();
+        await shareModal.verifyModalOpen();
     });
 
     test('should navigate to add expense form when clicking add expense button', async ({ authenticatedPage }) => {
@@ -230,13 +230,13 @@ test.describe('Dashboard Group Card Actions', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         // Click invite button (should not navigate to group detail)
-        await dashboardPage.clickGroupCardInviteButton('Test Group');
+        const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
 
         // Verify still on dashboard
         await expect(page).toHaveURL(/\/dashboard/);
 
         // Close modal
-        await dashboardPage.closeShareModal();
+        await shareModal.clickClose();
     });
 
     test('should display "settled up" when no debts exist', async ({ authenticatedPage }) => {
