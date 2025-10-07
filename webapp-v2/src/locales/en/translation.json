@@ -674,6 +674,10 @@
       "dateRequired": "Please select a date",
       "dateInFuture": "Date cannot be in the future",
       "recordPaymentFailed": "Failed to record payment"
+    },
+    "warnings": {
+      "noDebt": "{{payer}} does not owe {{payee}} any money in {{currency}}. This settlement will create a debt in the opposite direction.",
+      "overpayment": "{{payer}} only owes {{payee}} {{debt}}, but you're settling {{amount}}. This will create a debt in the opposite direction."
     }
   },
   "settlementHistory": {

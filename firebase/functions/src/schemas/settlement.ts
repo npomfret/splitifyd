@@ -9,7 +9,7 @@ const BaseSettlementSchema = z
         groupId: GroupIdSchema,
         payerId: UserIdSchema,
         payeeId: UserIdSchema,
-        amount: z.number().min(0, 'Amount must be non-negative'),
+        amount: z.number().positive('Amount must be greater than zero'),
         currency: CurrencyCodeSchema,
         date: FirestoreTimestampSchema,
         createdBy: UserIdSchema,

@@ -24,6 +24,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     const authStore = useAuthRequired();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
+    const [warningMessage, setWarningMessage] = useState<string | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
 
     // Form state - converted from module-level signals to component state
@@ -96,6 +97,47 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
         document.addEventListener('keydown', handleEscape);
         return () => document.removeEventListener('keydown', handleEscape);
     }, [isOpen, onClose]);
+
+    useEffect(() => {
+        if (!payerId || !payeeId || !currency || !amount) {
+            setWarningMessage(null);
+            return;
+        }
+
+        const amountNum = parseFloat(amount);
+        if (isNaN(amountNum) || amountNum <= 0) {
+            setWarningMessage(null);
+            return;
+        }
+
+        const currentDebt = getCurrentDebt();
+
+        // Warning Case 1: Payer doesn't owe payee anything
+        if (currentDebt === 0) {
+            const payerName = getMemberName(payerId);
+            const payeeName = getMemberName(payeeId);
+            setWarningMessage(t('settlementForm.warnings.noDebt', { payer: payerName, payee: payeeName, currency }));
+            return;
+        }
+
+        // Warning Case 2: Overpayment (settlement > current debt)
+        if (amountNum > currentDebt) {
+            const payerName = getMemberName(payerId);
+            const payeeName = getMemberName(payeeId);
+            setWarningMessage(
+                t('settlementForm.warnings.overpayment', {
+                    payer: payerName,
+                    payee: payeeName,
+                    debt: formatCurrency(currentDebt, currency),
+                    amount: formatCurrency(amountNum, currency),
+                }),
+            );
+            return;
+        }
+
+        // No warning
+        setWarningMessage(null);
+    }, [payerId, payeeId, amount, currency, enhancedGroupDetailStore.balances]);
 
     const handleBackdropClick = (e: Event) => {
         if (e.target === e.currentTarget) {
@@ -202,6 +244,26 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     const getMemberName = (userId: string): string => {
         const member = members.find((m: GroupMember) => m.uid === userId);
         return member?.displayName || t('common.unknownUser');
+    };
+
+    const getCurrentDebt = (): number => {
+        if (!payerId || !payeeId || !currency || !enhancedGroupDetailStore.balances) {
+            return 0;
+        }
+
+        const balancesByCurrency = enhancedGroupDetailStore.balances.balancesByCurrency;
+        const currencyBalances = balancesByCurrency[currency];
+
+        if (!currencyBalances) return 0;
+
+        const payerBalance = currencyBalances[payerId];
+        if (!payerBalance) return 0;
+
+        // Find how much payer owes to payee
+        const debtToPayee = payerBalance.owes[payeeId] || 0;
+
+        // Return the amount (already positive if there's a debt)
+        return debtToPayee;
     };
 
     return (
@@ -342,6 +404,15 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                         payee: getMemberName(payeeId),
                                         amount: formatCurrency(parseFloat(amount), currency),
                                     })}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Warning Message */}
+                        {warningMessage && (
+                            <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                                <p class="text-sm text-yellow-800" role="status" data-testid="settlement-warning-message">
+                                    ⚠️ {warningMessage}
                                 </p>
                             </div>
                         )}

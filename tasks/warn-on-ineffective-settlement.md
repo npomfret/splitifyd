@@ -1,5 +1,7 @@
 # Warn on Ineffective Settlement
 
+**Status:** ✅ COMPLETED (2025-10-07)
+
 ## Problem
 
 Currently, the application allows a user to record a settlement payment that does not actually reduce or clear any existing debts between the payer and the recipient. This can happen if the payer has no outstanding debt to the recipient, or if the payment amount is zero.
@@ -181,3 +183,41 @@ Update validation message for clarity:
 - **Single currency:** Uses `balancesByCurrency[currency]` to only check balances in the settlement's currency
 - **Non-blocking:** Users can proceed with settlement despite warning (useful for corrections/reversals)
 - **Accessibility:** Warning uses `role="status"` for screen readers
+
+## Implementation Summary
+
+### Files Modified
+
+1. **firebase/functions/src/schemas/settlement.ts** (Line 12)
+   - Changed `z.number().min(0, 'Amount must be non-negative')` to `z.number().positive('Amount must be greater than zero')`
+   - Prevents zero-amount settlements at API validation layer
+
+2. **webapp-v2/src/components/settlements/SettlementForm.tsx**
+   - Added `warningMessage` state (Line 27)
+   - Added `getCurrentDebt()` helper function (Lines 249-267)
+     - Accesses `balancesByCurrency[currency][payerId].owes[payeeId]` to get current debt
+   - Added warning calculation `useEffect` (Lines 101-140)
+     - Triggers on `payerId`, `payeeId`, `amount`, `currency`, or balance changes
+     - Implements two warning cases: no debt and overpayment
+   - Added warning UI display (Lines 411-418)
+     - Yellow background with emoji for visual distinction
+     - Positioned between Summary and Error Message sections
+     - Uses `data-testid="settlement-warning-message"` for testing
+
+3. **webapp-v2/src/locales/en/translation.json** (Lines 678-681)
+   - Added `settlementForm.warnings.noDebt` translation
+   - Added `settlementForm.warnings.overpayment` translation
+
+### Key Implementation Details
+
+- **Balance Structure:** Correctly uses `UserBalance.owes` field from the shared types (not `perPersonBalances` which doesn't exist)
+- **Warning Priority:** No debt warning takes precedence over overpayment warning (checked first)
+- **Real-time Calculation:** Warning updates immediately as user types or changes selections
+- **Non-blocking Design:** Warning is informational only; submit button enabled state unaffected by warnings
+- **Type Safety:** All implementations use proper TypeScript types from `@splitifyd/shared`
+
+### Build Status
+
+✅ All TypeScript compilation checks passed
+✅ Vite build successful
+✅ No linting errors
