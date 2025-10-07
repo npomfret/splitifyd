@@ -276,9 +276,7 @@ export class LoginPage extends BasePage {
      */
     async clickSignUp(): Promise<void> {
         const button = this.getSignUpButton();
-        await this.clickButton(button, {
-            buttonName: 'Sign Up',
-        });
+        await this.clickButton(button, { buttonName: 'Sign Up' });
     }
 
     /**
@@ -288,8 +286,6 @@ export class LoginPage extends BasePage {
      */
     async clickSignUpAndNavigateToRegister(): Promise<void> {
         await this.clickSignUp();
-
-        // Verify navigation completed
         await expect(this.page).toHaveURL(/\/register/, { timeout: TEST_TIMEOUTS.NAVIGATION });
 
         // TODO: Return RegisterPage when it's created

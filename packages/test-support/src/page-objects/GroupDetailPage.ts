@@ -407,9 +407,7 @@ export class GroupDetailPage extends BasePage {
      * Fluent version - verifies modal opens and returns EditGroupModalPage
      */
     async clickEditGroupAndOpenModal(): Promise<EditGroupModalPage> {
-        const button = this.getEditGroupButton();
-        await expect(button).toBeVisible();
-        await button.click();
+        await this.clickEditGroup();
 
         const modalPage = new EditGroupModalPage(this.page);
         await modalPage.waitForModalToOpen();

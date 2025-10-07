@@ -371,10 +371,10 @@ test.describe('Group Detail - Modal Interactions', () => {
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupToLoad();
 
-        // Click edit button
-        await groupDetailPage.clickEditGroup();
+        // Click edit button and verify modal opens
+        const editModal = await groupDetailPage.clickEditGroupAndOpenModal();
 
         // Verify modal is open
-        await expect(groupDetailPage.getEditGroupModal()).toBeVisible();
+        await editModal.verifyModalOpen();
     });
 });

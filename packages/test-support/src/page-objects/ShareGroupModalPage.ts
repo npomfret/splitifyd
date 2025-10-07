@@ -10,9 +10,25 @@ const translation = loadTranslation();
  * Handles share link generation, copying, and QR code display
  * Reusable across unit tests and e2e tests
  *
- * Note: Modals don't navigate to other pages, so they don't follow the fluent
+ * ## Modal Interaction Pattern
+ *
+ * Modals don't navigate to other pages, so they don't follow the fluent
  * navigation pattern. Methods that perform actions may return values (like
  * copyShareLinkToClipboard() returns the copied link).
+ *
+ * - Modal methods perform actions and may return values
+ * - They do NOT return page objects (modals don't navigate)
+ * - Use the parent page's fluent method to open modals (e.g., `clickGroupCardInviteButton()`)
+ * - Once you have the modal page object, interact with it directly
+ *
+ * @example
+ * // Open modal using parent page's fluent method
+ * const shareModal = await dashboardPage.clickGroupCardInviteButton('My Group');
+ *
+ * // Interact with modal directly
+ * await shareModal.verifyShareLinkDisplayed();
+ * const link = await shareModal.copyShareLinkToClipboard();
+ * await shareModal.clickClose();
  */
 export class ShareGroupModalPage extends BasePage {
     constructor(page: Page) {

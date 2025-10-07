@@ -10,8 +10,24 @@ const translation = loadTranslation();
  * Container-aware selectors using visible headings and semantic elements
  * Reusable across unit tests and e2e tests
  *
- * Note: Modals don't navigate to other pages, so they don't follow the fluent
+ * ## Modal Interaction Pattern
+ *
+ * Modals don't navigate to other pages, so they don't follow the fluent
  * navigation pattern. They only open/close and interact with form elements.
+ *
+ * - Modal methods perform actions and may return values (e.g., form data)
+ * - They do NOT return page objects (except when closing might navigate)
+ * - Use the parent page's fluent method to open modals (e.g., `clickCreateGroupAndOpenModal()`)
+ * - Once you have the modal page object, interact with it directly
+ *
+ * @example
+ * // Open modal using parent page's fluent method
+ * const createModal = await dashboardPage.clickCreateGroup();
+ *
+ * // Interact with modal directly
+ * await createModal.fillGroupForm('My Group', 'Description');
+ * await createModal.submitForm();
+ * await createModal.waitForModalToClose();
  */
 export class CreateGroupModalPage extends BasePage {
     constructor(page: Page) {

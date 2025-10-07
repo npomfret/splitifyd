@@ -7,7 +7,14 @@ import { TEST_TIMEOUTS } from '../test-constants';
  *
  * ## Fluent Interface Pattern
  *
- * All Page Objects follow a consistent fluent interface pattern for actions:
+ * All Page Objects follow a consistent fluent interface pattern for actions.
+ * This pattern ensures predictable behavior and better test readability.
+ *
+ * ### Pattern Overview
+ *
+ * For each major action, provide TWO versions:
+ * 1. **Non-fluent version**: Action only, maximum flexibility
+ * 2. **Fluent version**: Action + verification + return page object
  *
  * ### 1. Non-Fluent Actions (Action Only)
  * - **Purpose**: Perform an action without verification or navigation tracking
@@ -23,7 +30,7 @@ import { TEST_TIMEOUTS } from '../test-constants';
  * - **Use when**: Testing the common happy path and want clean, chainable code
  * - **Example**: `clickGroupCardAndNavigateToDetail('My Group')` - clicks, verifies URL, returns GroupDetailPage
  *
- * ### 3. Fluent Verification Methods
+ * ### 3. Fluent Verification Methods (Error Testing)
  * - **Purpose**: Perform action and verify failure/error state
  * - **Naming**: `performXExpectingFailure()`, `submitXExpectingError()`
  * - **Returns**: `Promise<void>` (stays on same page after error)
@@ -34,13 +41,53 @@ import { TEST_TIMEOUTS } from '../test-constants';
  * - **Naming**: `clickXAndOpenModal()`, `clickXAndOpenDialog()`
  * - **Returns**: `Promise<ModalPageObject>`
  * - **Example**: `clickEditGroupAndOpenModal()` - clicks button, verifies modal opens, returns modal page object
+ * - **Note**: Modals don't navigate to other pages, so they don't follow the fluent navigation pattern
  *
- * ### Guidelines
- * - **Always provide both versions** for major navigation actions
- * - **Prefer fluent methods** in tests for readability and maintainability
- * - **Use non-fluent methods** when you need to control timing or handle edge cases
- * - **Modal/dialog page objects** don't navigate, they only open/close
- * - **Fluent methods** should verify the expected outcome before returning
+ * ### Implementation Guidelines
+ *
+ * 1. **Always provide both versions** for major navigation actions:
+ *    ```typescript
+ *    // Non-fluent: action only
+ *    async clickGroupCard(groupName: string): Promise<void> {
+ *        const card = this.getGroupCard(groupName);
+ *        await card.click();
+ *    }
+ *
+ *    // Fluent: action + verification + return page object
+ *    async clickGroupCardAndNavigateToDetail(groupName: string): Promise<GroupDetailPage> {
+ *        await this.clickGroupCard(groupName);  // Reuse non-fluent version
+ *        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+ *        const detailPage = new GroupDetailPage(this.page);
+ *        await detailPage.verifyGroupDetailPageLoaded(groupName);
+ *        return detailPage;
+ *    }
+ *    ```
+ *
+ * 2. **Prefer fluent methods in tests** for readability:
+ *    ```typescript
+ *    // Good (fluent)
+ *    const detailPage = await dashboardPage.clickGroupCardAndNavigateToDetail('My Group');
+ *    await detailPage.clickAddExpense();
+ *
+ *    // Acceptable (non-fluent, when you need control)
+ *    await dashboardPage.clickGroupCard('My Group');
+ *    await expect(page).toHaveURL(/\/groups\/abc123/);
+ *    ```
+ *
+ * 3. **No redundant helper methods**:
+ *    - Don't create private helper methods that just call the non-fluent version
+ *    - The non-fluent version IS the helper
+ *
+ * 4. **Modal/dialog page objects** don't navigate, they only open/close:
+ *    ```typescript
+ *    // Modal page objects return values, not page objects
+ *    async copyShareLinkToClipboard(): Promise<string> {
+ *        await this.clickCopyLink();
+ *        return await this.getShareLink();
+ *    }
+ *    ```
+ *
+ * ### Examples
  *
  * @example
  * // Non-fluent (flexible, action only)

@@ -25,7 +25,7 @@ export class LoginPage extends BaseLoginPage {
 
     // E2E-specific version of clickSignUp that returns e2e RegisterPage
     async navigateToRegisterPage() {
-        await this.clickSignUpButton();
+        await this.clickSignUp();
         return new RegisterPage(this.page);
     }
 }
