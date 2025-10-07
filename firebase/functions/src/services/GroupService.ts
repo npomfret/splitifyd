@@ -590,12 +590,8 @@ export class GroupService {
                     groupId,
                     attempt: updatedData.deletionAttempts,
                 });
-            },
-            {
-                maxAttempts: 3,
-                context: {operation: 'markGroupForDeletion', groupId},
-            },
-        );
+            });
+
     }
 
     /**
@@ -641,18 +637,7 @@ export class GroupService {
                         });
 
                         this.firestoreWriter.bulkDeleteInTransaction(transaction, chunk);
-                    },
-                    {
-                        maxAttempts: 3,
-                        context: {
-                            operation: 'deleteBatch',
-                            groupId,
-                            collectionType,
-                            batchNumber,
-                            batchSize: chunk.length,
-                        },
-                    },
-                );
+                    });
 
                 logger.info('Deletion batch completed successfully', {
                     collectionType,
@@ -694,12 +679,7 @@ export class GroupService {
                             updatedAt: new Date().toISOString(),
                         });
                     }
-                },
-                {
-                    maxAttempts: 3,
-                    context: {operation: 'markGroupDeletionFailed', groupId},
-                },
-            );
+                });
 
             logger.error('Group deletion marked as failed', {groupId, errorMessage});
         } catch (markError) {
@@ -738,12 +718,7 @@ export class GroupService {
                 transaction.delete(groupRef);
 
                 logger.info('Group document deleted successfully', {groupId});
-            },
-            {
-                maxAttempts: 3,
-                context: {operation: 'finalizeGroupDeletion', groupId},
-            },
-        );
+            });
     }
 
     async deleteGroup(groupId: string, userId: string): Promise<MessageResponse> {

@@ -63,15 +63,7 @@ export class TestUserPoolService {
 
                 // No available users - return null to create new one outside transaction
                 return null;
-            },
-            {
-                maxAttempts: 3,
-                context: {
-                    operation: 'borrowTestUser',
-                    poolCollection: POOL_COLLECTION,
-                },
-            },
-        );
+            });
 
         if (result) {
             return {

@@ -232,16 +232,7 @@ export class SettlementService {
                 // Apply incremental balance update
                 const settlementToApply: SettlementDTO = { id: settlementId, ...settlementDataToCreate };
                 this.incrementalBalanceService.applySettlementCreated(transaction, settlementData.groupId, currentBalance, settlementToApply, memberIds);
-            },
-            {
-                maxAttempts: 3,
-                context: {
-                    operation: 'createSettlement',
-                    userId,
-                    groupId: settlementData.groupId,
-                },
-            },
-        );
+            });
         timer.endPhase();
 
         // Update context with the created settlement ID
@@ -349,17 +340,7 @@ export class SettlementService {
                 // Apply incremental balance update with old and new settlement
                 const newSettlement: SettlementDTO = { ...settlement, ...updates };
                 this.incrementalBalanceService.applySettlementUpdated(transaction, settlement.groupId, currentBalance, settlement, newSettlement, memberIds);
-            },
-            {
-                maxAttempts: 3,
-                context: {
-                    operation: 'updateSettlement',
-                    userId,
-                    groupId: settlement.groupId,
-                    settlementId,
-                },
-            },
-        );
+            });
         timer.endPhase();
 
         timer.startPhase('refetch');
@@ -489,17 +470,7 @@ export class SettlementService {
 
                 // Apply incremental balance update to remove this settlement's contribution
                 this.incrementalBalanceService.applySettlementDeleted(transaction, settlement.groupId, currentBalance, settlement, memberIds);
-            },
-            {
-                maxAttempts: 3,
-                context: {
-                    operation: 'softDeleteSettlement',
-                    userId,
-                    groupId: settlement.groupId,
-                    settlementId,
-                },
-            },
-        );
+            });
         timer.endPhase();
 
         logger.info('settlement-soft-deleted', {
@@ -570,17 +541,7 @@ export class SettlementService {
 
                 // Apply incremental balance update to remove this settlement's contribution
                 this.incrementalBalanceService.applySettlementDeleted(transaction, settlement.groupId, currentBalance, settlement, memberIds);
-            },
-            {
-                maxAttempts: 3,
-                context: {
-                    operation: 'deleteSettlement',
-                    userId,
-                    groupId: settlement.groupId,
-                    settlementId,
-                },
-            },
-        );
+            });
         timer.endPhase();
 
         logger.info('settlement-deleted', {

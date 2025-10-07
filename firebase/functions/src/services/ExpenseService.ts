@@ -381,17 +381,8 @@ export class ExpenseService {
                 // Apply incremental balance update with old and new expense
                 const newExpense: ExpenseDTO = { ...expense, ...updates };
                 this.incrementalBalanceService.applyExpenseUpdated(transaction, expense.groupId, currentBalance, expense, newExpense, memberIds);
-            },
-            {
-                maxAttempts: 3,
-                context: {
-                    operation: 'updateExpense',
-                    userId,
-                    groupId: expense.groupId,
-                    expenseId: expenseId,
-                },
-            },
-        );
+            });
+
         timer.endPhase();
 
         // Fetch and return the updated expense
@@ -562,17 +553,7 @@ export class ExpenseService {
 
                     // Apply incremental balance update to remove this expense's contribution
                     this.incrementalBalanceService.applyExpenseDeleted(transaction, expense.groupId, currentBalance, expense, memberIds);
-                },
-                {
-                    maxAttempts: 3,
-                    context: {
-                        operation: 'deleteExpense',
-                        userId,
-                        groupId: expense.groupId,
-                        expenseId,
-                    },
-                },
-            );
+                });
             timer.endPhase();
 
             LoggerContext.setBusinessContext({ expenseId });

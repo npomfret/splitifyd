@@ -266,18 +266,8 @@ export class GroupShareService {
                     groupName: preCheckGroup.name,
                     invitedBy: shareLink.createdBy,
                 };
-            },
-            {
-                maxAttempts: 3,
-                baseDelayMs: 100,
-                context: {
-                    operation: 'joinGroupByLink',
-                    userId,
-                    groupId,
-                    linkId: linkId.substring(0, 4) + '...',
-                },
-            },
-        );
+            });
+
         timer.endPhase();
 
         logger.info('User joined group via share link', {
