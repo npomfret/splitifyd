@@ -1,32 +1,17 @@
 import { expect, test } from '../../utils/console-logging-fixture';
-import {createMockFirebase, mockApiFailure, MockFirebase, mockFullyAcceptedPoliciesApi, mockGenerateShareLinkApi, mockGroupsApi, setupSuccessfulApiMocks} from '../../utils/mock-firebase-service';
-import {ClientUserBuilder, CreateGroupModalPage, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, randomString, UserNotificationDocumentBuilder} from '@splitifyd/test-support';
+import { mockApiFailure, mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
+import { CreateGroupModalPage, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, randomString } from '@splitifyd/test-support';
 
 // ============================================================================
 // Dashboard Create Group Functionality
 // ============================================================================
 test.describe('Dashboard Create Group Functionality', () => {
-    const testUser = ClientUserBuilder.validUser().build();
-    let mockFirebase: any = null;
-
-    test.beforeEach(async ({ pageWithLogging: page }) => {
-        mockFirebase = await createMockFirebase(page, testUser);
-        await mockFullyAcceptedPoliciesApi(page);
-        await setupSuccessfulApiMocks(page);
-    });
-
-    test.afterEach(async () => {
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-            mockFirebase = null;
-        }
-    });
-
-    test('should open create group modal using fluent interface', async ({ pageWithLogging: page }) => {
+    test('should open create group modal using fluent interface', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         // Start with some groups to see the create button
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -41,9 +26,10 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifyHelpTextDisplayed();
     });
 
-    test('should validate group name is required', async ({ pageWithLogging: page }) => {
+    test('should validate group name is required', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -67,9 +53,10 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifySubmitButtonState(false);
     });
 
-    test('should fill both group name and description', async ({ pageWithLogging: page }) => {
+    test('should fill both group name and description', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -88,9 +75,10 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifySubmitButtonState(true);
     });
 
-    test('should close modal using cancel button', async ({ pageWithLogging: page }) => {
+    test('should close modal using cancel button', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -107,9 +95,10 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifyModalClosed();
     });
 
-    test('should close modal using X button', async ({ pageWithLogging: page }) => {
+    test('should close modal using X button', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -123,9 +112,10 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifyModalClosed();
     });
 
-    test('should close modal using Escape key', async ({ pageWithLogging: page }) => {
+    test('should close modal using Escape key', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -139,9 +129,10 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifyModalClosed();
     });
 
-    test('should close modal by clicking backdrop', async ({ pageWithLogging: page }) => {
+    test('should close modal by clicking backdrop', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -155,9 +146,10 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifyModalClosed();
     });
 
-    test('should reopen modal with clean state after closing', async ({ pageWithLogging: page }) => {
+    test('should reopen modal with clean state after closing', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await dashboardPage.navigate();
@@ -177,7 +169,8 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal2.verifyNoValidationError();
     });
 
-    test('should open create group modal from empty state', async ({ pageWithLogging: page }) => {
+    test('should open create group modal from empty state', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         // Start with empty groups
@@ -197,9 +190,10 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifyModalOpen();
     });
 
-    test('should clear validation error when user starts typing', async ({ pageWithLogging: page }) => {
+    test('should clear validation error when user starts typing', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -222,9 +216,10 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifySubmitButtonState(true);
     });
 
-    test('should handle form submission reactively', async ({ pageWithLogging: page }) => {
+    test('should handle form submission reactively', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -247,9 +242,10 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifySubmitButtonState(true);
     });
 
-    test('should open create group modal from mobile button using fluent interface', async ({ pageWithLogging: page }) => {
+    test('should open create group modal from mobile button using fluent interface', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -264,9 +260,10 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifyHelpTextDisplayed();
     });
 
-    test('should allow filling only group name without description', async ({ pageWithLogging: page }) => {
+    test('should allow filling only group name without description', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -285,9 +282,10 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifySubmitButtonState(true);
     });
 
-    test('should maintain form state while modal is open', async ({ pageWithLogging: page }) => {
+    test('should maintain form state while modal is open', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -309,9 +307,10 @@ test.describe('Dashboard Create Group Functionality', () => {
         await expect(createGroupModal.getGroupDescriptionInput()).toHaveValue('Beach vacation expenses');
     });
 
-    test('should handle multiple field updates correctly', async ({ pageWithLogging: page }) => {
+    test('should handle multiple field updates correctly', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Existing Group').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         await page.goto('/dashboard');
@@ -341,25 +340,11 @@ test.describe('Dashboard Create Group Functionality', () => {
 });
 
 test.describe('Dashboard Share Group Modal', () => {
-    const testUser = ClientUserBuilder.validUser().build();
-    let mockFirebase: MockFirebase | null = null;
-
-    test.beforeEach(async ({ pageWithLogging: page }) => {
-        mockFirebase = await createMockFirebase(page, testUser);
-        await mockFullyAcceptedPoliciesApi(page);
-    });
-
-    test.afterEach(async () => {
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-            mockFirebase = null;
-        }
-    });
-
-    test('should open share modal when clicking group card invite button', async ({ pageWithLogging: page }) => {
+    test('should open share modal when clicking group card invite button', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
         await mockGenerateShareLinkApi(page, 'group-123');
@@ -374,10 +359,11 @@ test.describe('Dashboard Share Group Modal', () => {
         await dashboardPage.verifyShareModalOpen();
     });
 
-    test('should display share link and QR code after generation', async ({ pageWithLogging: page }) => {
+    test('should display share link and QR code after generation', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
         await mockGenerateShareLinkApi(page, 'group-123', 'test-token-abc');
@@ -398,10 +384,11 @@ test.describe('Dashboard Share Group Modal', () => {
         expect(shareLink).toContain('/join/test-token-abc');
     });
 
-    test('should close share modal via close button', async ({ pageWithLogging: page }) => {
+    test('should close share modal via close button', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
         await mockGenerateShareLinkApi(page, 'group-123');
@@ -419,10 +406,11 @@ test.describe('Dashboard Share Group Modal', () => {
         await dashboardPage.verifyShareModalClosed();
     });
 
-    test('should close share modal via Escape key', async ({ pageWithLogging: page }) => {
+    test('should close share modal via Escape key', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
         await mockGenerateShareLinkApi(page, 'group-123');
@@ -439,10 +427,11 @@ test.describe('Dashboard Share Group Modal', () => {
         await shareModal.verifyModalClosed();
     });
 
-    test('should close share modal via backdrop click', async ({ pageWithLogging: page }) => {
+    test('should close share modal via backdrop click', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
         await mockGenerateShareLinkApi(page, 'group-123');
@@ -460,10 +449,11 @@ test.describe('Dashboard Share Group Modal', () => {
         await dashboardPage.verifyShareModalClosed();
     });
 
-    test('should copy share link to clipboard and show toast', async ({ pageWithLogging: page }) => {
+    test('should copy share link to clipboard and show toast', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
         await mockGenerateShareLinkApi(page, 'group-123');
@@ -488,10 +478,11 @@ test.describe('Dashboard Share Group Modal', () => {
         expect(clipboardText).toContain('/join/');
     });
 
-    test('should generate new share link when requested', async ({ pageWithLogging: page }) => {
+    test('should generate new share link when requested', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
         await mockGenerateShareLinkApi(page, 'group-123', 'first-token');
@@ -522,10 +513,11 @@ test.describe('Dashboard Share Group Modal', () => {
         expect(secondLink).not.toEqual(firstLink);
     });
 
-    test('should handle share link generation error', async ({ pageWithLogging: page }) => {
+    test('should handle share link generation error', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
 
@@ -541,10 +533,11 @@ test.describe('Dashboard Share Group Modal', () => {
         await dashboardPage.verifyShareModalError();
     });
 
-    test('should show loading state while generating share link', async ({ pageWithLogging: page }) => {
+    test('should show loading state while generating share link', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
 

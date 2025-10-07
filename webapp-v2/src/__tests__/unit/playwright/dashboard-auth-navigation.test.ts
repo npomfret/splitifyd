@@ -1,5 +1,5 @@
 import { expect, test } from '../../utils/console-logging-fixture';
-import { createMockFirebase, mockApiFailure, MockFirebase, mockFullyAcceptedPoliciesApi, mockGroupsApi } from '../../utils/mock-firebase-service';
+import { mockApiFailure, mockFullyAcceptedPoliciesApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 import { ClientUserBuilder, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
 
 
@@ -23,18 +23,8 @@ test.describe('Browser Reuse Test', () => {
 
 
 test.describe('Dashboard Authentication and Navigation', () => {
-    let mockFirebase: any = null;
-
-    test.afterEach(async () => {
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-            mockFirebase = null;
-        }
-    });
-
-    test('should redirect unauthenticated user to login', async ({ pageWithLogging: page }) => {
-        // Set up mock Firebase (logged out)
-        mockFirebase = await createMockFirebase(page, null);
+    test('should redirect unauthenticated user to login', async ({ pageWithLogging: page, mockFirebase }) => {
+        // mockFirebase fixture starts logged out automatically
 
         // Try to navigate to dashboard without authentication
         await page.goto('/dashboard');
@@ -44,13 +34,10 @@ test.describe('Dashboard Authentication and Navigation', () => {
         await expect(page.getByRole('heading', { name: /sign.*in/i })).toBeVisible();
     });
 
-    test('should show dashboard for authenticated user', async ({ pageWithLogging: page }) => {
-        const testUser = ClientUserBuilder.validUser().build();
+    test('should show dashboard for authenticated user', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        // Set up mock Firebase (logged in)
-        mockFirebase = await createMockFirebase(page, testUser);
-        await mockFullyAcceptedPoliciesApi(page);
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([], 0).build());
 
         // Navigate to dashboard
@@ -58,28 +45,13 @@ test.describe('Dashboard Authentication and Navigation', () => {
 
         // Verify dashboard is displayed with user info
         await dashboardPage.verifyDashboardPageLoaded();
-        await dashboardPage.verifyAuthenticatedUser(testUser.displayName);
+        await dashboardPage.verifyAuthenticatedUser(user.displayName);
     });
 });
 
 test.describe('Dashboard Groups Display and Loading States', () => {
-    const testUser = ClientUserBuilder.validUser().build();
-    let mockFirebase: any = null;
-
-    test.beforeEach(async ({ pageWithLogging: page }) => {
-        // Set up authenticated user
-        mockFirebase = await createMockFirebase(page, testUser);
-        await mockFullyAcceptedPoliciesApi(page);
-    });
-
-    test.afterEach(async () => {
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-            mockFirebase = null;
-        }
-    });
-
-    test('should show loading state while groups are loading', async ({ pageWithLogging: page }) => {
+    test('should show loading state while groups are loading', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         // Set up delayed route BEFORE navigation to ensure loading state is visible
@@ -105,13 +77,14 @@ test.describe('Dashboard Groups Display and Loading States', () => {
         await dashboardPage.waitForGroupsToLoad();
     });
 
-    test('should display multiple groups correctly', async ({ pageWithLogging: page }) => {
+    test('should display multiple groups correctly', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         const groups = [
-            GroupDTOBuilder.groupForUser(testUser.uid).withId('group-1').withName('House Expenses').build(),
-            GroupDTOBuilder.groupForUser(testUser.uid).withId('group-2').withName('Trip to Italy').build(),
-            GroupDTOBuilder.groupForUser(testUser.uid).withId('group-3').withName('Weekly Dinners').build(),
+            GroupDTOBuilder.groupForUser(user.uid).withId('group-1').withName('House Expenses').build(),
+            GroupDTOBuilder.groupForUser(user.uid).withId('group-2').withName('Trip to Italy').build(),
+            GroupDTOBuilder.groupForUser(user.uid).withId('group-3').withName('Weekly Dinners').build(),
         ];
 
         // Mock groups API
@@ -126,7 +99,8 @@ test.describe('Dashboard Groups Display and Loading States', () => {
         await dashboardPage.verifyGroupDisplayed('Weekly Dinners');
     });
 
-    test('should show empty state for new users with no groups', async ({ pageWithLogging: page }) => {
+    test('should show empty state for new users with no groups', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         // Mock empty groups response
@@ -140,9 +114,10 @@ test.describe('Dashboard Groups Display and Loading States', () => {
         await dashboardPage.waitForWelcomeMessage();
     });
 
-    test('should navigate to group details when clicking group card', async ({ pageWithLogging: page }) => {
+    test('should navigate to group details when clicking group card', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withId('group-abc').withName('Test Group').build();
+        const group = GroupDTOBuilder.groupForUser(user.uid).withId('group-abc').withName('Test Group').build();
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
         await page.goto('/dashboard');
@@ -160,22 +135,8 @@ test.describe('Dashboard Groups Display and Loading States', () => {
 });
 
 test.describe('Dashboard Error Handling', () => {
-    const testUser = ClientUserBuilder.validUser().build();
-    let mockFirebase: any = null;
-
-    test.beforeEach(async ({ pageWithLogging: page }) => {
-        mockFirebase = await createMockFirebase(page, testUser);
-        await mockFullyAcceptedPoliciesApi(page);
-    });
-
-    test.afterEach(async () => {
-        if (mockFirebase) {
-            await mockFirebase.dispose();
-            mockFirebase = null;
-        }
-    });
-
-    test('should handle API errors gracefully', async ({ pageWithLogging: page }) => {
+    test('should handle API errors gracefully', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         // Mock API failure
@@ -187,7 +148,8 @@ test.describe('Dashboard Error Handling', () => {
         await dashboardPage.verifyErrorState('Internal Server Error');
     });
 
-    test('should allow retry after error', async ({ pageWithLogging: page }) => {
+    test('should allow retry after error', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         // Mock initial API failure
@@ -209,7 +171,8 @@ test.describe('Dashboard Error Handling', () => {
         await expect(dashboardPage.getErrorContainer()).not.toBeVisible();
     });
 
-    test('should handle network timeouts gracefully', async ({ pageWithLogging: page }) => {
+    test('should handle network timeouts gracefully', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         // Mock network timeout

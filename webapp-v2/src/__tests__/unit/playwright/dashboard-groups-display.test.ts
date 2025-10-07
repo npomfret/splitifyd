@@ -73,11 +73,9 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
         // Test hover state
         await groupCard.hover();
 
-        // Test click interaction
-        await dashboardPage.clickGroupCard('Interactive Group');
-
-        // Verify navigation
-        await expect(page).toHaveURL(/\/groups\/interactive-group/);
+        // Test click interaction and verify navigation using fluent method
+        // The fluent method automatically verifies URL and page load
+        await dashboardPage.clickGroupCardAndNavigateToDetail('Interactive Group');
     });
 });
 

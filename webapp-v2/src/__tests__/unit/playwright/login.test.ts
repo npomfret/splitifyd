@@ -135,7 +135,29 @@ test.describe('LoginPage Reactivity and UI States', () => {
     // behavior is more realistic. Unit tests with mocks don't accurately reflect
     // real browser storage mechanisms and reload behavior.
 
-    test('should update submit button state reactively based on form validity', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should disable submit button when form is empty', async ({ pageWithLogging: page, mockFirebase }) => {
+        const loginPage = new LoginPage(page);
+        await loginPage.navigate();
+
+        const submitButton = loginPage.getSubmitButton();
+
+        // Initially disabled (empty form)
+        await expect(submitButton).toBeDisabled();
+    });
+
+    test('should disable submit button when only one field is filled', async ({ pageWithLogging: page, mockFirebase }) => {
+        const loginPage = new LoginPage(page);
+        await loginPage.navigate();
+
+        const submitButton = loginPage.getSubmitButton();
+        const emailInput = loginPage.getEmailInput();
+
+        // Fill only email - should still be disabled
+        await loginPage.fillPreactInput(emailInput, 'test@example.com');
+        await expect(submitButton).toBeDisabled();
+    });
+
+    test('should enable submit button when both email and password are filled', async ({ pageWithLogging: page, mockFirebase }) => {
         const loginPage = new LoginPage(page);
         await loginPage.navigate();
 
@@ -143,14 +165,22 @@ test.describe('LoginPage Reactivity and UI States', () => {
         const emailInput = loginPage.getEmailInput();
         const passwordInput = loginPage.getPasswordInput();
 
-        // Initially disabled (empty form)
-        await expect(submitButton).toBeDisabled();
-
-        // Fill only email - should still be disabled
+        // Fill both fields - should become enabled
         await loginPage.fillPreactInput(emailInput, 'test@example.com');
-        await expect(submitButton).toBeDisabled();
+        await loginPage.fillPreactInput(passwordInput, 'password123');
+        await expect(submitButton).toBeEnabled();
+    });
 
-        // Fill password - should become enabled
+    test('should reactively disable submit button when required field is cleared', async ({ pageWithLogging: page, mockFirebase }) => {
+        const loginPage = new LoginPage(page);
+        await loginPage.navigate();
+
+        const submitButton = loginPage.getSubmitButton();
+        const emailInput = loginPage.getEmailInput();
+        const passwordInput = loginPage.getPasswordInput();
+
+        // Fill both fields - button should be enabled
+        await loginPage.fillPreactInput(emailInput, 'test@example.com');
         await loginPage.fillPreactInput(passwordInput, 'password123');
         await expect(submitButton).toBeEnabled();
 
