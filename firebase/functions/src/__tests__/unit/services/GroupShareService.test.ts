@@ -112,7 +112,6 @@ describe('GroupShareService', () => {
         const groupId = 'test-group';
         const linkId = 'test-link-123';
         const newUserId = 'new-user-id';
-        const newUserEmail = 'newuser@test.com';
 
         beforeEach(async () => {
             // Set up test group

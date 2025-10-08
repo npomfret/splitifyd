@@ -85,7 +85,6 @@ export class GroupDetailPage extends BasePage {
         expect(memberNames.length).toBe(expectedMemberCount); // sanity check
 
         const addButton = this.getAddExpenseButton();
-        const groupId = this.inferGroupId();
 
         await this.clickButton(addButton, { buttonName: 'Add Expense' });
 

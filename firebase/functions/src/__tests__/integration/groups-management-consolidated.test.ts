@@ -248,7 +248,6 @@ describe('Groups Management - Consolidated Tests', () => {
             const testGroup = await apiDriver.createGroupWithMembers(`Full Details Test ${uuidv4()}`, [users[0], users[1], users[2]], users[0].token);
 
             // Add test data
-            const uniqueId = generateShortId();
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)

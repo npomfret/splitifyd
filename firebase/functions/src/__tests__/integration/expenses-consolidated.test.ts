@@ -367,7 +367,6 @@ describe('Expenses Management - Consolidated Tests', () => {
 
     describe('Full Details API and Complex Data Handling', () => {
         test('should return consolidated expense data with group and members', async () => {
-            const uniqueId = generateShortId();
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)

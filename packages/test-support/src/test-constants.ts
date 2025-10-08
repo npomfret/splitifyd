@@ -55,42 +55,6 @@ export const TEST_ROUTES = {
     NOT_FOUND_PATTERN: /\/404/,
 } as const;
 
-export const TEST_MESSAGES = {
-    /** Empty state messages */
-    EMPTY_GROUPS: 'No groups yet',
-    EMPTY_EXPENSES: 'No expenses yet',
-
-    /** Balance/settlement messages */
-    ALL_SETTLED_UP: 'All settled up!',
-
-    /** Loading messages (use translation keys instead when available) */
-    LOADING: 'Loading...',
-
-    /** Error messages (use translation keys instead when available) */
-    PAGE_NOT_FOUND: 'Page not found',
-    PERMISSION_DENIED: 'Permission denied',
-
-    /** Common button text (prefer translation keys) */
-    TRY_AGAIN: 'Try Again',
-} as const;
-
-/**
- * Common regex patterns for validation
- */
-export const TEST_PATTERNS = {
-    /** Numeric display (e.g., group count, expense count) */
-    NUMBER: /^\d+$/,
-
-    /** Currency amount with optional decimal places */
-    CURRENCY: /^\$?\d+\.?\d*$/,
-
-    /** Email address basic validation */
-    EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-
-    /** ISO date string */
-    ISO_DATE: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/,
-} as const;
-
 /**
  * Form validation constants
  */

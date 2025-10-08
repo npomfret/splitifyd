@@ -73,16 +73,3 @@ export function createJoiAmountSchema(currencyField?: string): Joi.NumberSchema 
 
     return schema;
 }
-
-/**
- * Validate amount precision and return formatted error message
- * Returns null if valid, error message if invalid
- */
-export function getAmountPrecisionError(amount: number, currencyCode: string): string | null {
-    try {
-        validateAmountPrecision(amount, currencyCode);
-        return null;
-    } catch (error) {
-        return (error as Error).message;
-    }
-}

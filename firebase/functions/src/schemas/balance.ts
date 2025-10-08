@@ -92,18 +92,6 @@ const UserThemeColorSchema = z.object({
     colorIndex: z.number(),
 });
 
-// Schema for GroupMembershipDTO (from @splitifyd/shared)
-// This validates the DTO format used by application layer (ISO strings, not Timestamps)
-const GroupMembershipDTOSchema = z.object({
-    uid: z.string().min(1),
-    groupId: z.string().min(1),
-    memberRole: z.enum(['admin', 'member', 'viewer']),
-    theme: UserThemeColorSchema,
-    joinedAt: z.string().datetime(), // ISO string for DTOs
-    memberStatus: z.enum(['active', 'pending']),
-    invitedBy: z.string().optional(),
-});
-
 // Schema for RegisteredUser (from @splitifyd/shared)
 // This validates the DTO format used by application layer (ISO strings, not Timestamps)
 const RegisteredUserSchema = z.object({

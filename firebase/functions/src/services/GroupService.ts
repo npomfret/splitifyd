@@ -1,6 +1,5 @@
 import {
     CreateGroupRequest,
-    DELETED_AT_FIELD,
     ExpenseDTO,
     GroupDTO,
     GroupFullDetailsDTO,
@@ -29,14 +28,6 @@ import { GroupShareService } from './GroupShareService';
 import { NotificationService } from './notification-service';
 import { SettlementService } from './SettlementService';
 import { UserService } from './UserService2';
-
-/**
- * Enhanced types for group data fetching with groupId
- * Note: ExpenseDTO and SettlementDTO already have groupId, so these types are redundant
- * but kept for backwards compatibility during refactoring
- */
-type ExpenseWithGroupId = ExpenseDTO & { groupId: string; };
-type SettlementWithGroupId = SettlementDTO & { groupId: string; };
 
 /**
  * Service for managing group operations
@@ -137,122 +128,6 @@ export class GroupService {
         // SECURITY: Return 404 instead of 403 to prevent information disclosure.
         // This prevents attackers from enumerating valid group IDs.
         throw Errors.NOT_FOUND('Group');
-    }
-
-    /**
-     * Batch fetch all expenses and settlements for multiple groups
-     * PERFORMANCE OPTIMIZED: Reduces N database queries to just 2-3
-     */
-    private async batchFetchGroupData(groupIds: string[]): Promise<{
-        expensesByGroup: Map<string, ExpenseWithGroupId[]>;
-        settlementsByGroup: Map<string, SettlementWithGroupId[]>;
-        expenseMetadataByGroup: Map<string, { count: number; lastExpenseTime?: Date; }>;
-    }> {
-        if (groupIds.length === 0) {
-            return {
-                expensesByGroup: new Map(),
-                settlementsByGroup: new Map(),
-                expenseMetadataByGroup: new Map(),
-            };
-        }
-
-        // Firestore 'in' query supports max 10 items - chunk if needed
-        const chunks: string[][] = [];
-        for (let i = 0; i < groupIds.length; i += 10) {
-            chunks.push(groupIds.slice(i, i + 10));
-        }
-
-        // Batch fetch all expenses and settlements for all groups using FirestoreReader
-        const expenseQueries = chunks.map(async (chunk) => {
-            const allExpenses = [];
-            for (const groupId of chunk) {
-                // Fetch all pages of expenses for this group
-                let offset = 0;
-                const limit = 500;
-                while (true) {
-                    const expenses = await this.firestoreReader.getExpensesForGroup(groupId, { limit, offset });
-                    allExpenses.push(...expenses.map((expense) => ({ ...expense, groupId })));
-                    if (expenses.length < limit) break;
-                    offset += limit;
-                }
-            }
-            return allExpenses;
-        });
-
-        const settlementQueries = chunks.map(async (chunk) => {
-            const allSettlements = [];
-            for (const groupId of chunk) {
-                // Fetch all pages of settlements for this group
-                let offset = 0;
-                const limit = 500;
-                while (true) {
-                    const result = await this.firestoreReader.getSettlementsForGroup(groupId, { limit, offset });
-                    allSettlements.push(...result.settlements.map((settlement) => ({ ...settlement, groupId })));
-                    if (result.settlements.length < limit) break;
-                    offset += limit;
-                }
-            }
-            return allSettlements;
-        });
-
-        // Execute all queries in parallel
-        const [expenseResults, settlementResults] = await Promise.all([Promise.all(expenseQueries), Promise.all(settlementQueries)]);
-
-        // Organize expenses by group ID
-        const expensesByGroup = new Map<string, ExpenseWithGroupId[]>();
-        const expenseMetadataByGroup = new Map<string, { count: number; lastExpenseTime?: Date; }>();
-
-        for (const expenseArray of expenseResults) {
-            for (const expense of expenseArray) {
-                const groupId = expense.groupId;
-
-                if (!expensesByGroup.has(groupId)) {
-                    expensesByGroup.set(groupId, []);
-                }
-                expensesByGroup.get(groupId)!.push(expense);
-            }
-        }
-
-        // Calculate metadata for each group
-        for (const [groupId, expenses] of expensesByGroup.entries()) {
-            const nonDeletedExpenses = expenses.filter((expense) => !expense[DELETED_AT_FIELD]);
-            const sortedExpenses = nonDeletedExpenses.sort((a, b) => {
-                // ISO strings are directly comparable (lexicographic ordering matches chronological for ISO 8601)
-                // Sort DESC (newest first)
-                return b.createdAt.localeCompare(a.createdAt);
-            });
-
-            expenseMetadataByGroup.set(groupId, {
-                count: nonDeletedExpenses.length,
-                lastExpenseTime: sortedExpenses.length > 0 ? new Date(sortedExpenses[0].createdAt) : undefined,
-            });
-        }
-
-        // Set empty metadata for groups with no expenses
-        for (const groupId of groupIds) {
-            if (!expenseMetadataByGroup.has(groupId)) {
-                expenseMetadataByGroup.set(groupId, { count: 0 });
-            }
-        }
-
-        // Organize settlements by group ID
-        const settlementsByGroup = new Map<string, SettlementWithGroupId[]>();
-        for (const settlementArray of settlementResults) {
-            for (const settlement of settlementArray) {
-                const groupId = settlement.groupId;
-
-                if (!settlementsByGroup.has(groupId)) {
-                    settlementsByGroup.set(groupId, []);
-                }
-                settlementsByGroup.get(groupId)!.push(settlement);
-            }
-        }
-
-        return {
-            expensesByGroup,
-            settlementsByGroup,
-            expenseMetadataByGroup,
-        };
     }
 
     /**

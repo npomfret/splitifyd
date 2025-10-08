@@ -5,30 +5,6 @@ import { ApiError } from '../../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
 import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 
-// Create mock services
-const createMockUserService = () => ({
-    getUsers: vi.fn().mockResolvedValue(new Map()),
-    getUser: vi.fn(),
-    updateProfile: vi.fn(),
-    changePassword: vi.fn(),
-    deleteAccount: vi.fn(),
-    registerUser: vi.fn(),
-    createUserDirect: vi.fn(),
-});
-
-const createMockNotificationService = () => ({
-    initializeUserNotifications: vi.fn(),
-    updateUserNotification: vi.fn(),
-    getUserNotifications: vi.fn(),
-});
-
-const createMockGroupMemberService = () => ({
-    isGroupMemberAsync: vi.fn(),
-    getGroupMember: vi.fn(),
-    getAllGroupMembers: vi.fn(),
-    getGroupMembersResponseFromSubcollection: vi.fn(),
-});
-
 describe('Service-Level Error Handling - Subcollection Queries', () => {
     let stubFirestoreReader: StubFirestoreReader;
     let stubFirestoreWriter: StubFirestoreWriter;

@@ -51,7 +51,6 @@ export async function previewGroupByLink(req: AuthenticatedRequest, res: Respons
 export async function joinGroupByLink(req: AuthenticatedRequest, res: Response): Promise<void> {
     const { linkId } = req.body;
     const userId = req.user!.uid;
-    const userEmail = req.user!.email;
 
     try {
         const result = await groupShareService.joinGroupByLink(userId, linkId);

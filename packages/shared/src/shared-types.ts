@@ -46,11 +46,6 @@ export const PolicyIds = {
 
 export const DELETED_AT_FIELD = 'deletedAt';
 
-export const SOFT_DELETE_FIELDS = {
-    DELETED_AT: 'deletedAt',
-    DELETED_BY: 'deletedBy',
-} as const;
-
 // ========================================================================
 // Soft Delete Interface
 // ========================================================================
