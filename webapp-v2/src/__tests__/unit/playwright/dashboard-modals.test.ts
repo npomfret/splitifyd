@@ -11,8 +11,16 @@ test.describe('Dashboard Create Group Functionality', () => {
         const dashboardPage = new DashboardPage(page);
 
         // Start with some groups to see the create button
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Existing Group')
+            .build();
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group], 1)
+                .build(),
+        );
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -41,8 +49,16 @@ test.describe('Dashboard Create Group Functionality', () => {
         test(`form validation: ${testCase.name} should ${testCase.expectedEnabled ? 'enable' : 'disable'} submit`, async ({ authenticatedPage }) => {
             const { page, user } = authenticatedPage;
             const dashboardPage = new DashboardPage(page);
-            const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
-            await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+            const group = GroupDTOBuilder
+                .groupForUser(user.uid)
+                .withName('Existing Group')
+                .build();
+            await mockGroupsApi(
+                page,
+                ListGroupsResponseBuilder
+                    .responseWithMetadata([group], 1)
+                    .build(),
+            );
 
             await page.goto('/dashboard');
             await dashboardPage.waitForGroupsToLoad();
@@ -56,8 +72,16 @@ test.describe('Dashboard Create Group Functionality', () => {
     test('should fill both group name and description', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Existing Group')
+            .build();
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group], 1)
+                .build(),
+        );
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -86,8 +110,16 @@ test.describe('Dashboard Create Group Functionality', () => {
         test(`should close modal using ${closeMethod.name}`, async ({ authenticatedPage }) => {
             const { page, user } = authenticatedPage;
             const dashboardPage = new DashboardPage(page);
-            const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
-            await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+            const group = GroupDTOBuilder
+                .groupForUser(user.uid)
+                .withName('Existing Group')
+                .build();
+            await mockGroupsApi(
+                page,
+                ListGroupsResponseBuilder
+                    .responseWithMetadata([group], 1)
+                    .build(),
+            );
 
             await page.goto('/dashboard');
             await dashboardPage.waitForGroupsToLoad();
@@ -107,8 +139,16 @@ test.describe('Dashboard Create Group Functionality', () => {
     test('should reopen modal with clean state after closing', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Existing Group')
+            .build();
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group], 1)
+                .build(),
+        );
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
@@ -132,7 +172,12 @@ test.describe('Dashboard Create Group Functionality', () => {
         const dashboardPage = new DashboardPage(page);
 
         // Start with empty groups
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([], 0).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([], 0)
+                .build(),
+        );
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -151,8 +196,16 @@ test.describe('Dashboard Create Group Functionality', () => {
     test('should open create group modal from mobile button using fluent interface', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Existing Group')
+            .build();
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group], 1)
+                .build(),
+        );
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -169,8 +222,16 @@ test.describe('Dashboard Create Group Functionality', () => {
     test('should allow filling only group name without description', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Existing Group')
+            .build();
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group], 1)
+                .build(),
+        );
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -191,8 +252,16 @@ test.describe('Dashboard Create Group Functionality', () => {
     test('should maintain form state while modal is open', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Existing Group')
+            .build();
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group], 1)
+                .build(),
+        );
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -216,8 +285,16 @@ test.describe('Dashboard Create Group Functionality', () => {
     test('should handle multiple field updates correctly', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Existing Group')
+            .build();
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group], 1)
+                .build(),
+        );
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -250,9 +327,18 @@ test.describe('Dashboard Share Group Modal', () => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
         await mockGenerateShareLinkApi(page, 'group-123');
 
         await dashboardPage.navigate();
@@ -269,9 +355,18 @@ test.describe('Dashboard Share Group Modal', () => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
         await mockGenerateShareLinkApi(page, 'group-123', 'test-token-abc');
 
         await dashboardPage.navigate();
@@ -291,9 +386,18 @@ test.describe('Dashboard Share Group Modal', () => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
         await mockGenerateShareLinkApi(page, 'group-123');
 
         await dashboardPage.navigate();
@@ -313,9 +417,18 @@ test.describe('Dashboard Share Group Modal', () => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
         await mockGenerateShareLinkApi(page, 'group-123');
 
         await dashboardPage.navigate();
@@ -334,9 +447,18 @@ test.describe('Dashboard Share Group Modal', () => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
         await mockGenerateShareLinkApi(page, 'group-123');
 
         await dashboardPage.navigate();
@@ -356,9 +478,18 @@ test.describe('Dashboard Share Group Modal', () => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
         await mockGenerateShareLinkApi(page, 'group-123');
 
         // Grant clipboard permissions
@@ -386,9 +517,18 @@ test.describe('Dashboard Share Group Modal', () => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
         await mockGenerateShareLinkApi(page, 'group-123', 'first-token');
 
         await dashboardPage.navigate();
@@ -413,9 +553,18 @@ test.describe('Dashboard Share Group Modal', () => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
 
         // Mock API failure for share link generation
         await mockApiFailure(page, `/api/groups/group-123/share-link`, 500, { error: 'Failed to generate share link' });
@@ -433,9 +582,18 @@ test.describe('Dashboard Share Group Modal', () => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
 
         // Mock delayed response for share link (longer delay to ensure we catch loading state)
         await page.route('/api/groups/share', async (route) => {

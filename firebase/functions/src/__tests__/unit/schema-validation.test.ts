@@ -79,7 +79,14 @@ describe('Cross-Service Schema Validation', () => {
 
     beforeAll(() => {
         // Create valid test data conforming to TypeScript interfaces
-        mockTheme = new ThemeBuilder().withLight('#3B82F6').withDark('#1E40AF').withName('Blue').withPattern('solid').withColorIndex(0).withAssignedAt('2024-01-01T00:00:00.000Z').build();
+        mockTheme = new ThemeBuilder()
+            .withLight('#3B82F6')
+            .withDark('#1E40AF')
+            .withName('Blue')
+            .withPattern('solid')
+            .withColorIndex(0)
+            .withAssignedAt('2024-01-01T00:00:00.000Z')
+            .build();
 
         mockGroup = new GroupDTOBuilder()
             .withId('group-123')

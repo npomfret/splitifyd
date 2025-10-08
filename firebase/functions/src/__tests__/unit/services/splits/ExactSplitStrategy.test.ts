@@ -126,7 +126,9 @@ describe('ExactSplitStrategy', () => {
 
         it('should handle single participant', () => {
             const singleParticipant = ['user1'];
-            const splits = ExpenseSplitBuilder.exactSplit([{ uid: 'user1', amount: 50 }]).build();
+            const splits = ExpenseSplitBuilder
+                .exactSplit([{ uid: 'user1', amount: 50 }])
+                .build();
             expect(() => strategy.validateSplits(50, singleParticipant, splits)).not.toThrow();
         });
 

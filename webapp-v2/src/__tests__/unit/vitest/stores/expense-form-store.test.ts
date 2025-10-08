@@ -240,7 +240,11 @@ describe('ExpenseFormStore - Draft Functionality', () => {
 
         it('should use default values for missing draft fields', () => {
             // Arrange - draft with some missing fields
-            const partialDraft = new ExpenseDraftBuilder().withDescription('Partial draft').withAmount(10.0).withTimestamp(mockNow).build();
+            const partialDraft = new ExpenseDraftBuilder()
+                .withDescription('Partial draft')
+                .withAmount(10.0)
+                .withTimestamp(mockNow)
+                .build();
 
             // Remove fields to simulate partial data
             const { currency, paidBy, category, splitType, ...partialDraftData } = partialDraft;
@@ -396,7 +400,10 @@ describe('ExpenseFormStore - Draft Functionality', () => {
 
         it('should handle missing timestamp in draft', () => {
             // Arrange - draft without timestamp
-            const noTimestampData = new ExpenseDraftBuilder().withDescription('Draft without timestamp').withAmount(10.0).build();
+            const noTimestampData = new ExpenseDraftBuilder()
+                .withDescription('Draft without timestamp')
+                .withAmount(10.0)
+                .build();
 
             // Remove timestamp to simulate missing field
             const { timestamp, ...noTimestampDraft } = noTimestampData;

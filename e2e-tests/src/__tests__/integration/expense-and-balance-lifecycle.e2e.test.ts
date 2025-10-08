@@ -29,7 +29,11 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         // Step 1: Create group and verify initial state (settled up)
-        const [groupDetailPage1, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().build(), user2DashboardPage);
+        const [groupDetailPage1, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup(
+            new CreateGroupFormDataBuilder()
+                .build(),
+            user2DashboardPage,
+        );
         const groupId = groupDetailPage1.inferGroupId();
 
         // Step 2: Create expense with EUR currency and verify balance calculation
@@ -107,7 +111,11 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().build(), user2DashboardPage);
+        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup(
+            new CreateGroupFormDataBuilder()
+                .build(),
+            user2DashboardPage,
+        );
         const uniqueId = generateShortId();
 
         // PHASE 1: Test JPY (0 decimals) with rounding
@@ -204,7 +212,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
 
         const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
-        const [groupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().build());
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder()
+            .build());
         const groupId = groupDetailPage.inferGroupId();
 
         // Create expense with custom date/time and currency
@@ -266,7 +275,11 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().build(), user2DashboardPage);
+        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup(
+            new CreateGroupFormDataBuilder()
+                .build(),
+            user2DashboardPage,
+        );
 
         // Scenario: Complex expense and settlement flow to test net calculations
 
@@ -352,7 +365,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const user3DisplayName = await user3DashboardPage.header.getCurrentUserDisplayName();
 
         const [groupDetailPage1, groupDetailPage2, groupDetailPage3] = await user1DashboardPage.createMultiUserGroup(
-            new CreateGroupFormDataBuilder().build(),
+            new CreateGroupFormDataBuilder()
+                .build(),
             user2DashboardPage,
             user3DashboardPage,
         );
@@ -386,7 +400,13 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const settlementNote1 = 'Partial payment from user2';
         const settlementFormPage2 = await groupDetailPage1.clickSettleUpButton(memberCount);
         await settlementFormPage2.submitSettlement(
-            new SettlementFormDataBuilder().withPayerName(user2DisplayName).withPayeeName(user1DisplayName).withAmount('30').withCurrency('JPY').withNote(settlementNote1).build(),
+            new SettlementFormDataBuilder()
+                .withPayerName(user2DisplayName)
+                .withPayeeName(user1DisplayName)
+                .withAmount('30')
+                .withCurrency('JPY')
+                .withNote(settlementNote1)
+                .build(),
             memberCount,
         );
 
@@ -402,7 +422,13 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const settlementNote2 = 'Final payment from user2 - all settled!';
         const settlementFormPage1 = await groupDetailPage1.clickSettleUpButton(memberCount);
         await settlementFormPage1.submitSettlement(
-            new SettlementFormDataBuilder().withPayerName(user2DisplayName).withPayeeName(user1DisplayName).withAmount('10').withCurrency('JPY').withNote(settlementNote2).build(),
+            new SettlementFormDataBuilder()
+                .withPayerName(user2DisplayName)
+                .withPayeeName(user1DisplayName)
+                .withAmount('10')
+                .withCurrency('JPY')
+                .withNote(settlementNote2)
+                .build(),
             memberCount,
         );
 
@@ -418,7 +444,13 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const settlementNote3 = 'User3 partial payment';
         const settlementFormPage = await groupDetailPage1.clickSettleUpButton(memberCount);
         await settlementFormPage.submitSettlement(
-            new SettlementFormDataBuilder().withPayerName(user3DisplayName).withPayeeName(user1DisplayName).withAmount('25').withCurrency('JPY').withNote(settlementNote3).build(),
+            new SettlementFormDataBuilder()
+                .withPayerName(user3DisplayName)
+                .withPayeeName(user1DisplayName)
+                .withAmount('25')
+                .withCurrency('JPY')
+                .withNote(settlementNote3)
+                .build(),
             memberCount,
         );
 
@@ -445,7 +477,8 @@ simpleTest.describe('Date and Time Selection', () => {
 
         const [{ dashboardPage }] = await createLoggedInBrowsers(memberCount);
 
-        const [groupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().build());
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder()
+            .build());
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
 
         // Test date convenience buttons
@@ -512,7 +545,11 @@ simpleTest.describe('Real-time Comments', () => {
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        const [user1GroupDetailPage, user2GroupDetailPage] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().build(), user2DashboardPage);
+        const [user1GroupDetailPage, user2GroupDetailPage] = await user1DashboardPage.createMultiUserGroup(
+            new CreateGroupFormDataBuilder()
+                .build(),
+            user2DashboardPage,
+        );
 
         // Create expense
         const expenseFormPage = await user1GroupDetailPage.clickAddExpenseButton();
@@ -565,7 +602,11 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         const payerName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const payeeName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().build(), user2DashboardPage);
+        const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup(
+            new CreateGroupFormDataBuilder()
+                .build(),
+            user2DashboardPage,
+        );
 
         // Test 1: Normal settlement creation and display
         const settlementForm1 = await groupDetailPage.clickSettleUpButton(2);
@@ -608,11 +649,21 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         const payerName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const payeeName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().build(), user2DashboardPage);
+        const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup(
+            new CreateGroupFormDataBuilder()
+                .build(),
+            user2DashboardPage,
+        );
 
         // Create settlement for editing
         let settlementForm = await groupDetailPage.clickSettleUpButton(2);
-        const initialData = new SettlementFormDataBuilder().withPayerName(payerName).withPayeeName(payeeName).withAmount('101').withCurrency('JPY').withNote('Initial test payment').build();
+        const initialData = new SettlementFormDataBuilder()
+            .withPayerName(payerName)
+            .withPayeeName(payeeName)
+            .withAmount('101')
+            .withCurrency('JPY')
+            .withNote('Initial test payment')
+            .build();
 
         await settlementForm.submitSettlement(initialData, 2);
         await groupDetailPage.verifySettlementDetails({ note: initialData.note });
@@ -668,17 +719,33 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         const payerName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const payeeName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().build(), user2DashboardPage);
+        const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup(
+            new CreateGroupFormDataBuilder()
+                .build(),
+            user2DashboardPage,
+        );
 
         // Create settlements for testing deletion flows
         const settlementForm1 = await groupDetailPage.clickSettleUpButton(2);
-        const settlementData1 = new SettlementFormDataBuilder().withPayerName(payerName).withPayeeName(payeeName).withAmount('100').withCurrency('JPY').withNote('Payment to be deleted').build();
+        const settlementData1 = new SettlementFormDataBuilder()
+            .withPayerName(payerName)
+            .withPayeeName(payeeName)
+            .withAmount('100')
+            .withCurrency('JPY')
+            .withNote('Payment to be deleted')
+            .build();
 
         await settlementForm1.submitSettlement(settlementData1, 2);
         await groupDetailPage.verifySettlementDetails({ note: settlementData1.note });
 
         const settlementForm2 = await groupDetailPage.clickSettleUpButton(2);
-        const settlementData2 = new SettlementFormDataBuilder().withPayerName(payerName).withPayeeName(payeeName).withAmount('75').withCurrency('JPY').withNote('Payment to keep').build();
+        const settlementData2 = new SettlementFormDataBuilder()
+            .withPayerName(payerName)
+            .withPayeeName(payeeName)
+            .withAmount('75')
+            .withCurrency('JPY')
+            .withNote('Payment to keep')
+            .build();
 
         await settlementForm2.submitSettlement(settlementData2, 2);
         await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
@@ -705,7 +772,11 @@ simpleTest.describe('Copy Expense Feature', () => {
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         // Step 1: Create group and original expense
-        const [groupDetailPage1, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().build(), user2DashboardPage);
+        const [groupDetailPage1, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup(
+            new CreateGroupFormDataBuilder()
+                .build(),
+            user2DashboardPage,
+        );
 
         // Create original expense with specific details
         const originalExpenseFormPage = await groupDetailPage1.clickAddExpenseButton();
@@ -773,7 +844,8 @@ simpleTest.describe('Copy Expense Feature', () => {
 
         // Create 3-user group
         const [groupDetailPage1, groupDetailPage2, groupDetailPage3] = await user1DashboardPage.createMultiUserGroup(
-            new CreateGroupFormDataBuilder().build(),
+            new CreateGroupFormDataBuilder()
+                .build(),
             user2DashboardPage,
             user3DashboardPage,
         );

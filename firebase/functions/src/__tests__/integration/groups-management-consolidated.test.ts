@@ -40,7 +40,10 @@ describe('Groups Management - Consolidated Tests', () => {
         // is now comprehensively tested in unit tests: GroupService.test.ts
         // This integration test focuses only on API endpoint and Firebase Auth integration
         test('should create groups via API with proper authentication', async () => {
-            const groupData = new CreateGroupRequestBuilder().withName(`Test Group ${uuidv4()}`).withDescription('A test group for API testing').build();
+            const groupData = new CreateGroupRequestBuilder()
+                .withName(`Test Group ${uuidv4()}`)
+                .withDescription('A test group for API testing')
+                .build();
 
             // Test API creation with authentication
             const apiResponse = await apiDriver.createGroup(groupData, users[0].token);
@@ -58,7 +61,14 @@ describe('Groups Management - Consolidated Tests', () => {
         // NOTE: Group validation logic is now comprehensively tested in unit tests:
         // GroupService.test.ts - This integration test focuses on Firebase Auth integration only
         test('should require authentication for group creation', async () => {
-            await expect(apiDriver.createGroup(new CreateGroupRequestBuilder().withName('Test').build(), '')).rejects.toThrow(/401|unauthorized/i);
+            await expect(apiDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Test')
+                    .build(),
+                '',
+            ))
+                .rejects
+                .toThrow(/401|unauthorized/i);
         });
     });
 
@@ -66,7 +76,9 @@ describe('Groups Management - Consolidated Tests', () => {
         let testGroup: any;
 
         beforeEach(async () => {
-            const groupData = new CreateGroupRequestBuilder().withName(`Get Test Group ${uuidv4()}`).build();
+            const groupData = new CreateGroupRequestBuilder()
+                .withName(`Get Test Group ${uuidv4()}`)
+                .build();
             testGroup = await apiDriver.createGroup(groupData, users[0].token);
         });
 
@@ -80,7 +92,12 @@ describe('Groups Management - Consolidated Tests', () => {
             expect(balances.balancesByCurrency).toBeDefined();
 
             // Test with expenses for balance verification
-            const expenseData = new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid])
+                .withSplitType('equal')
+                .build();
             await apiDriver.createExpense(expenseData, users[0].token);
 
             const { balances: updatedBalances } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
@@ -146,7 +163,12 @@ describe('Groups Management - Consolidated Tests', () => {
         });
 
         test('should support multiple users joining via same link', async () => {
-            const multiJoinGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`Multi Join Group ${uuidv4()}`).build(), users[0].token);
+            const multiJoinGroup = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName(`Multi Join Group ${uuidv4()}`)
+                    .build(),
+                users[0].token,
+            );
 
             const shareResponse = await apiDriver.generateShareLink(multiJoinGroup.id, users[0].token);
             const newUsers = users.slice(1, 4); // Users 1, 2, 3
@@ -178,7 +200,10 @@ describe('Groups Management - Consolidated Tests', () => {
         // NOTE: Group update business logic, validation, and authorization are now tested in unit tests: GroupService.test.ts
         // This integration test focuses on API endpoints and Firebase transaction behavior
         test('should handle group updates via API with transaction consistency', async () => {
-            const updateData = new GroupUpdateBuilder().withName('Updated Group Name API').withDescription('Updated via API').build();
+            const updateData = new GroupUpdateBuilder()
+                .withName('Updated Group Name API')
+                .withDescription('Updated via API')
+                .build();
 
             // Test API update endpoint with authentication
             const result = await apiDriver.updateGroup(testGroup.id, updateData, users[0].token);
@@ -193,7 +218,11 @@ describe('Groups Management - Consolidated Tests', () => {
         test('should handle group deletion with cascade', async () => {
             // Add expenses to test cascade deletion
             const expense = await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build(),
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(users[0].uid)
+                    .withParticipants([users[0].uid, users[1].uid])
+                    .build(),
                 users[0].token,
             );
 
@@ -221,11 +250,23 @@ describe('Groups Management - Consolidated Tests', () => {
             // Add test data
             const uniqueId = generateShortId();
             await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid, users[2].uid]).withSplitType('equal').build(),
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(users[0].uid)
+                    .withParticipants([users[0].uid, users[1].uid, users[2].uid])
+                    .withSplitType('equal')
+                    .build(),
                 users[0].token,
             );
 
-            await apiDriver.createSettlement(new CreateSettlementRequestBuilder().withGroupId(testGroup.id).withPayerId(users[1].uid).withPayeeId(users[0].uid).build(), users[1].token);
+            await apiDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPayerId(users[1].uid)
+                    .withPayeeId(users[0].uid)
+                    .build(),
+                users[1].token,
+            );
 
             // Test consolidated endpoint structure
             const fullDetails = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
@@ -284,7 +325,10 @@ describe('Groups Management - Consolidated Tests', () => {
     describe('Concurrent Operations and Optimistic Locking', () => {
         test('should handle concurrent group joins correctly', async () => {
             const testGroup = await apiDriver.createGroup(
-                new CreateGroupRequestBuilder().withName(`Concurrent Join Test ${uuidv4()}`).withDescription('Testing concurrent joins').build(),
+                new CreateGroupRequestBuilder()
+                    .withName(`Concurrent Join Test ${uuidv4()}`)
+                    .withDescription('Testing concurrent joins')
+                    .build(),
                 users[0].token,
             );
 
@@ -321,7 +365,10 @@ describe('Groups Management - Consolidated Tests', () => {
 
         test('should prevent concurrent group updates with proper conflict resolution', async () => {
             const testGroup = await apiDriver.createGroup(
-                new CreateGroupRequestBuilder().withName(`Concurrent Update Test ${uuidv4()}`).withDescription('Testing concurrent updates').build(),
+                new CreateGroupRequestBuilder()
+                    .withName(`Concurrent Update Test ${uuidv4()}`)
+                    .withDescription('Testing concurrent updates')
+                    .build(),
                 users[0].token,
             );
 
@@ -331,9 +378,27 @@ describe('Groups Management - Consolidated Tests', () => {
 
             // Same user tries multiple concurrent updates
             const updatePromises = [
-                apiDriver.updateGroup(testGroup.id, new GroupUpdateBuilder().withName('First Update').build(), users[0].token),
-                apiDriver.updateGroup(testGroup.id, new GroupUpdateBuilder().withName('Second Update').build(), users[0].token),
-                apiDriver.updateGroup(testGroup.id, new GroupUpdateBuilder().withDescription('Updated description').build(), users[0].token),
+                apiDriver.updateGroup(
+                    testGroup.id,
+                    new GroupUpdateBuilder()
+                        .withName('First Update')
+                        .build(),
+                    users[0].token,
+                ),
+                apiDriver.updateGroup(
+                    testGroup.id,
+                    new GroupUpdateBuilder()
+                        .withName('Second Update')
+                        .build(),
+                    users[0].token,
+                ),
+                apiDriver.updateGroup(
+                    testGroup.id,
+                    new GroupUpdateBuilder()
+                        .withDescription('Updated description')
+                        .build(),
+                    users[0].token,
+                ),
             ];
 
             const results = await Promise.allSettled(updatePromises);
@@ -476,7 +541,10 @@ describe('Groups Management - Consolidated Tests', () => {
 
         test('should handle cross-entity race conditions', async () => {
             const testGroup = await apiDriver.createGroup(
-                new CreateGroupRequestBuilder().withName(`Cross-Entity Race Test ${uuidv4()}`).withDescription('Testing cross-entity race conditions').build(),
+                new CreateGroupRequestBuilder()
+                    .withName(`Cross-Entity Race Test ${uuidv4()}`)
+                    .withDescription('Testing cross-entity race conditions')
+                    .build(),
                 users[0].token,
             );
 
@@ -519,7 +587,9 @@ describe('Groups Management - Consolidated Tests', () => {
     describe('Error Handling and Edge Cases', () => {
         test('should handle malformed input gracefully', async () => {
             // Test malformed input handling
-            const groupData = new CreateGroupRequestBuilder().withName('').build();
+            const groupData = new CreateGroupRequestBuilder()
+                .withName('')
+                .build();
 
             try {
                 await groupService.createGroup(users[0].uid, groupData);
@@ -539,7 +609,15 @@ describe('Groups Management - Consolidated Tests', () => {
             const memberResult = await groupService.getGroupFullDetails(testGroup.id, users[1].uid);
             expect(memberResult.group.id).toBe(testGroup.id);
 
-            await expect(groupService.updateGroup(testGroup.id, users[1].uid, new GroupUpdateBuilder().withName('Hacked Name').build())).rejects.toThrow();
+            await expect(groupService.updateGroup(
+                testGroup.id,
+                users[1].uid,
+                new GroupUpdateBuilder()
+                    .withName('Hacked Name')
+                    .build(),
+            ))
+                .rejects
+                .toThrow();
             await expect(groupService.deleteGroup(testGroup.id, users[1].uid)).rejects.toThrow();
         });
     });
@@ -547,7 +625,10 @@ describe('Groups Management - Consolidated Tests', () => {
     describe('Group Member Management and Operations', () => {
         // Helper function to create a group with multiple members
         const createGroupWithMembers = async (driver: ApiDriver, users: any[]): Promise<string> => {
-            const groupData = new CreateGroupRequestBuilder().withName(`Member Test Group ${uuidv4()}`).withDescription('Test group for member operations').build();
+            const groupData = new CreateGroupRequestBuilder()
+                .withName(`Member Test Group ${uuidv4()}`)
+                .withDescription('Test group for member operations')
+                .build();
 
             const group = await driver.createGroup(groupData, users[0].token);
 
@@ -718,7 +799,12 @@ describe('Groups Management - Consolidated Tests', () => {
         beforeEach(async () => {
             // Create multiple groups for listing tests sequentially to ensure distinct timestamps
             for (let i = 0; i < 5; i++) {
-                await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`List Test Group ${i} ${uuidv4()}`).build(), users[0].token);
+                await apiDriver.createGroup(
+                    new CreateGroupRequestBuilder()
+                        .withName(`List Test Group ${i} ${uuidv4()}`)
+                        .build(),
+                    users[0].token,
+                );
                 // Delay to ensure different server timestamps
                 await new Promise((resolve) => setTimeout(resolve, 50));
             }
@@ -771,7 +857,12 @@ describe('Groups Management - Consolidated Tests', () => {
             await new Promise((resolve) => setTimeout(resolve, 1000));
 
             // Create an additional group that will be the most recent
-            const latestGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`Latest Group ${uuidv4()}`).build(), users[0].token);
+            const latestGroup = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName(`Latest Group ${uuidv4()}`)
+                    .build(),
+                users[0].token,
+            );
 
             const responseDesc = await apiDriver.listGroups(users[0].token, { order: 'desc' });
             const responseAsc = await apiDriver.listGroups(users[0].token, { order: 'asc' });
@@ -789,7 +880,12 @@ describe('Groups Management - Consolidated Tests', () => {
 
         test('should only show groups where user is member', async () => {
             // Create a group with only user[1]
-            const otherGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`Other User Group ${uuidv4()}`).build(), users[1].token);
+            const otherGroup = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName(`Other User Group ${uuidv4()}`)
+                    .build(),
+                users[1].token,
+            );
 
             // user[0] should not see this group
             const response = await apiDriver.listGroups(users[0].token);
@@ -859,7 +955,10 @@ describe('Groups Management - Consolidated Tests', () => {
     describe('Group Deletion Notifications and Cleanup', () => {
         test('should delete group and prevent member access', async () => {
             // Create a group with 2 members
-            const groupData = new CreateGroupRequestBuilder().withName(`Delete Test ${uuidv4()}`).withDescription('Testing group deletion').build();
+            const groupData = new CreateGroupRequestBuilder()
+                .withName(`Delete Test ${uuidv4()}`)
+                .withDescription('Testing group deletion')
+                .build();
 
             const group = await apiDriver.createGroup(groupData, users[0].token);
 
@@ -886,7 +985,10 @@ describe('Groups Management - Consolidated Tests', () => {
             const [user1Listener] = await notificationDriver.setupListeners([users[0].uid]);
 
             // Create a group with just the owner
-            const groupData = new CreateGroupRequestBuilder().withName(`Single User Test ${uuidv4()}`).withDescription('Testing single user group deletion').build();
+            const groupData = new CreateGroupRequestBuilder()
+                .withName(`Single User Test ${uuidv4()}`)
+                .withDescription('Testing single user group deletion')
+                .build();
 
             const group = await apiDriver.createGroup(groupData, users[0].token);
 
@@ -919,7 +1021,9 @@ describe('Groups Management - Consolidated Tests', () => {
         test('should handle viewing group with no expenses', async () => {
             // Create a fresh group with no expenses using the builder
             // Note: Only the creator will be a member initially
-            const groupData = new CreateGroupRequestBuilder().withName(`Empty Group ${uuidv4()}`).build();
+            const groupData = new CreateGroupRequestBuilder()
+                .withName(`Empty Group ${uuidv4()}`)
+                .build();
             const emptyGroup = await apiDriver.createGroup(groupData, users[0].token);
 
             // Verify the group was created
@@ -946,7 +1050,9 @@ describe('Groups Management - Consolidated Tests', () => {
             // Use the 4th user for this isolated test (we borrowed 4 users total)
             const testUser = users[3];
 
-            const multiExpenseGroupData = new CreateGroupRequestBuilder().withName(`Multi Expense Group ${uuidv4()}`).build();
+            const multiExpenseGroupData = new CreateGroupRequestBuilder()
+                .withName(`Multi Expense Group ${uuidv4()}`)
+                .build();
             const multiExpenseGroup = await apiDriver.createGroup(multiExpenseGroupData, testUser.token);
 
             // Create multiple expenses where the user pays themselves (testing expense tracking)
@@ -1030,7 +1136,9 @@ describe('Groups Management - Consolidated Tests', () => {
 
         test('should handle complex split scenarios', async () => {
             // Create a fresh group for this test to ensure clean state
-            const complexGroupData = new CreateGroupRequestBuilder().withName(`Complex Split Group ${uuidv4()}`).build();
+            const complexGroupData = new CreateGroupRequestBuilder()
+                .withName(`Complex Split Group ${uuidv4()}`)
+                .build();
             const complexGroup = await apiDriver.createGroup(complexGroupData, users[0].token);
 
             // Scenario: Mixed split types in one group - just verify structure
@@ -1110,7 +1218,10 @@ describe('Groups Management - Consolidated Tests', () => {
             const [user1, user2] = groupUsers;
 
             // Create a group
-            const groupData = new CreateGroupRequestBuilder().withName(`Bug Reproduction Group ${uuidv4()}`).withDescription('Testing group deletion with soft-deleted expenses').build();
+            const groupData = new CreateGroupRequestBuilder()
+                .withName(`Bug Reproduction Group ${uuidv4()}`)
+                .withDescription('Testing group deletion with soft-deleted expenses')
+                .build();
 
             const testGroup = await apiDriver.createGroup(groupData, user1.token);
 
@@ -1155,7 +1266,10 @@ describe('Groups Management - Consolidated Tests', () => {
             const [user1, user2, user3] = groupUsers;
 
             // Create a group with multiple members
-            const groupData = new CreateGroupRequestBuilder().withName(`Multi Expense Group ${uuidv4()}`).withDescription('Testing group deletion with multiple soft-deleted expenses').build();
+            const groupData = new CreateGroupRequestBuilder()
+                .withName(`Multi Expense Group ${uuidv4()}`)
+                .withDescription('Testing group deletion with multiple soft-deleted expenses')
+                .build();
 
             const testGroup = await apiDriver.createGroup(groupData, user1.token);
 
@@ -1202,7 +1316,10 @@ describe('Groups Management - Consolidated Tests', () => {
             const [owner, ...members] = groupUsers;
 
             // Create a group with multiple members
-            const groupData = new CreateGroupRequestBuilder().withName(`Member Cleanup Group ${uuidv4()}`).withDescription('Testing member subcollection cleanup').build();
+            const groupData = new CreateGroupRequestBuilder()
+                .withName(`Member Cleanup Group ${uuidv4()}`)
+                .withDescription('Testing member subcollection cleanup')
+                .build();
 
             const testGroup = await apiDriver.createGroup(groupData, owner.token);
 
@@ -1236,7 +1353,10 @@ describe('Groups Management - Consolidated Tests', () => {
             const [user1, user2] = groupUsers;
 
             // Create a group
-            const groupData = new CreateGroupRequestBuilder().withName(`Active Expense Group ${uuidv4()}`).withDescription('Testing hard delete with active expenses').build();
+            const groupData = new CreateGroupRequestBuilder()
+                .withName(`Active Expense Group ${uuidv4()}`)
+                .withDescription('Testing hard delete with active expenses')
+                .build();
 
             const testGroup = await apiDriver.createGroup(groupData, user1.token);
 
@@ -1278,7 +1398,10 @@ describe('Groups Management - Consolidated Tests', () => {
             const [owner, member1, member2, member3] = groupUsers;
 
             // Create a comprehensive group with ALL possible related data
-            const groupData = new CreateGroupRequestBuilder().withName(`Comprehensive Deletion Test ${uuidv4()}`).withDescription('Testing complete deletion of all subcollections').build();
+            const groupData = new CreateGroupRequestBuilder()
+                .withName(`Comprehensive Deletion Test ${uuidv4()}`)
+                .withDescription('Testing complete deletion of all subcollections')
+                .build();
 
             const testGroup = await apiDriver.createGroup(groupData, owner.token);
             const groupId = testGroup.id;
@@ -1310,7 +1433,11 @@ describe('Groups Management - Consolidated Tests', () => {
             await apiDriver.deleteExpense(expenses[1].id, owner.token);
 
             // Create settlements to populate settlements collection
-            const settlementData = new CreateSettlementRequestBuilder().withGroupId(groupId).withPayerId(member1.uid).withPayeeId(owner.uid).build();
+            const settlementData = new CreateSettlementRequestBuilder()
+                .withGroupId(groupId)
+                .withPayerId(member1.uid)
+                .withPayeeId(owner.uid)
+                .build();
             await apiDriver.createSettlement(settlementData, member1.token);
 
             // Create multiple share links to populate shareLinks subcollection
@@ -1377,7 +1504,10 @@ describe('Groups Management - Consolidated Tests', () => {
             test('should create member via share link (production code path)', async () => {
                 const testGroup = await groupService.createGroup(
                     users[0].uid,
-                    new CreateGroupRequestBuilder().withName('Member Creation Test Group').withDescription('Testing member creation functionality').build(),
+                    new CreateGroupRequestBuilder()
+                        .withName('Member Creation Test Group')
+                        .withDescription('Testing member creation functionality')
+                        .build(),
                 );
 
                 // Create member via share link (production code path)
@@ -1397,7 +1527,10 @@ describe('Groups Management - Consolidated Tests', () => {
             test('should return null for non-existent member queries', async () => {
                 const testGroup = await groupService.createGroup(
                     users[0].uid,
-                    new CreateGroupRequestBuilder().withName('Non-existent Member Test').withDescription('Testing non-existent member queries').build(),
+                    new CreateGroupRequestBuilder()
+                        .withName('Non-existent Member Test')
+                        .withDescription('Testing non-existent member queries')
+                        .build(),
                 );
 
                 const result = await firestoreReader.getGroupMember(testGroup.id, 'non-existent-user');
@@ -1412,7 +1545,10 @@ describe('Groups Management - Consolidated Tests', () => {
             test('should return all members for a group', async () => {
                 const testGroup = await groupService.createGroup(
                     users[0].uid,
-                    new CreateGroupRequestBuilder().withName('All Members Test Group').withDescription('Testing member retrieval').build(),
+                    new CreateGroupRequestBuilder()
+                        .withName('All Members Test Group')
+                        .withDescription('Testing member retrieval')
+                        .build(),
                 );
 
                 // Add second member via share link (production code path)
@@ -1444,7 +1580,10 @@ describe('Groups Management - Consolidated Tests', () => {
             test('should remove member from group (production code path)', async () => {
                 const testGroup = await groupService.createGroup(
                     users[0].uid,
-                    new CreateGroupRequestBuilder().withName('Member Deletion Test Group').withDescription('Testing member deletion').build(),
+                    new CreateGroupRequestBuilder()
+                        .withName('Member Deletion Test Group')
+                        .withDescription('Testing member deletion')
+                        .build(),
                 );
 
                 // Add member via share link (production code path)

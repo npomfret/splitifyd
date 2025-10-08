@@ -42,7 +42,10 @@ describe('GroupService - Unit Tests', () => {
     describe('createGroup', () => {
         it.skip('should create group successfully', async () => {
             const userId = 'test-user-123';
-            const createGroupRequest = new CreateGroupRequestBuilder().withName('Test Group').withDescription('Test Description').build();
+            const createGroupRequest = new CreateGroupRequestBuilder()
+                .withName('Test Group')
+                .withDescription('Test Description')
+                .build();
 
             const result = await groupService.createGroup(userId, createGroupRequest);
 
@@ -59,13 +62,23 @@ describe('GroupService - Unit Tests', () => {
             const groupId = 'test-group-456';
 
             // Set up test group using Firebase builder with Firestore Timestamps
-            const testGroup = new GroupDTOBuilder().withId(groupId).withName('Test Group').withDescription('Test Description').withCreatedBy(userId).build();
+            const testGroup = new GroupDTOBuilder()
+                .withId(groupId)
+                .withName('Test Group')
+                .withDescription('Test Description')
+                .withCreatedBy(userId)
+                .build();
 
             stubReader.setDocument('groups', groupId, testGroup);
             stubWriter.setDocument('groups', groupId, testGroup);
 
             // Set up group membership so user has access
-            const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(groupId).asAdmin().asActive().build();
+            const membershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId(userId)
+                .withGroupId(groupId)
+                .asAdmin()
+                .asActive()
+                .build();
             stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
             stubWriter.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
 
@@ -91,16 +104,29 @@ describe('GroupService - Unit Tests', () => {
             const groupId = 'test-group-456';
 
             // Set up existing group with Firestore Timestamps
-            const existingGroup = new GroupDTOBuilder().withId(groupId).withName('Original Name').withDescription('Original Description').withCreatedBy(userId).build();
+            const existingGroup = new GroupDTOBuilder()
+                .withId(groupId)
+                .withName('Original Name')
+                .withDescription('Original Description')
+                .withCreatedBy(userId)
+                .build();
 
             stubReader.setDocument('groups', groupId, existingGroup);
             await initializeGroupBalance(groupId); // Initialize balance for incremental updates
 
             // Set up group membership so user has access (as owner)
-            const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(groupId).asAdmin().asActive().build();
+            const membershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId(userId)
+                .withGroupId(groupId)
+                .asAdmin()
+                .asActive()
+                .build();
             stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
 
-            const updateRequest = new GroupUpdateBuilder().withName('Updated Name').withDescription('Updated Description').build();
+            const updateRequest = new GroupUpdateBuilder()
+                .withName('Updated Name')
+                .withDescription('Updated Description')
+                .build();
 
             const result = await groupService.updateGroup(groupId, userId, updateRequest);
 
@@ -115,14 +141,23 @@ describe('GroupService - Unit Tests', () => {
             const groupId = 'test-group-456';
 
             // Set up existing group (not marked for deletion yet) with Firestore Timestamps
-            const existingGroup = new GroupDTOBuilder().withId(groupId).withName('Test Group').withCreatedBy(userId).build();
+            const existingGroup = new GroupDTOBuilder()
+                .withId(groupId)
+                .withName('Test Group')
+                .withCreatedBy(userId)
+                .build();
 
             stubReader.setDocument('groups', groupId, existingGroup);
             stubWriter.setDocument('groups', groupId, existingGroup);
             await initializeGroupBalance(groupId); // Initialize balance for incremental updates
 
             // Set up group membership so user has access (as owner)
-            const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(groupId).asAdmin().asActive().build();
+            const membershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId(userId)
+                .withGroupId(groupId)
+                .asAdmin()
+                .asActive()
+                .build();
             stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
 
             const result = await groupService.deleteGroup(groupId, userId);
@@ -137,7 +172,11 @@ describe('GroupService - Unit Tests', () => {
             const userId = 'test-user-123';
 
             // Set up test groups using Firebase builder with Firestore Timestamps
-            const group1 = new GroupDTOBuilder().withId('group-1').withName('Group 1').withCreatedBy(userId).build();
+            const group1 = new GroupDTOBuilder()
+                .withId('group-1')
+                .withName('Group 1')
+                .withCreatedBy(userId)
+                .build();
 
             stubReader.setDocument('groups', 'group-1', group1);
 
@@ -167,7 +206,10 @@ describe('GroupService - Unit Tests', () => {
      */
     describe('Group Validation - Unit Tests', () => {
         describe('validateCreateGroup', () => {
-            const validGroupData: CreateGroupRequest = new CreateGroupRequestBuilder().withName('Test Group').withDescription('A test group for validation').build();
+            const validGroupData: CreateGroupRequest = new CreateGroupRequestBuilder()
+                .withName('Test Group')
+                .withDescription('A test group for validation')
+                .build();
 
             describe('Group Name Validation', () => {
                 it('should accept valid group names', () => {
@@ -219,7 +261,9 @@ describe('GroupService - Unit Tests', () => {
                 });
 
                 it('should require group name', () => {
-                    const dataWithoutName = new CreateGroupRequestBuilder().withDescription(validGroupData.description || 'Test description').build();
+                    const dataWithoutName = new CreateGroupRequestBuilder()
+                        .withDescription(validGroupData.description || 'Test description')
+                        .build();
                     delete (dataWithoutName as any).name;
 
                     expect(() => validateCreateGroup(dataWithoutName)).toThrow(
@@ -259,14 +303,20 @@ describe('GroupService - Unit Tests', () => {
                     ];
 
                     for (const description of validDescriptions) {
-                        const data = new CreateGroupRequestBuilder().withName(validGroupData.name).withDescription(description).build();
+                        const data = new CreateGroupRequestBuilder()
+                            .withName(validGroupData.name)
+                            .withDescription(description)
+                            .build();
                         expect(() => validateCreateGroup(data)).not.toThrow();
                     }
                 });
 
                 it('should reject descriptions that are too long', () => {
                     const longDescription = 'A'.repeat(VALIDATION_LIMITS.MAX_GROUP_DESCRIPTION_LENGTH + 1);
-                    const data = new CreateGroupRequestBuilder().withName(validGroupData.name).withDescription(longDescription).build();
+                    const data = new CreateGroupRequestBuilder()
+                        .withName(validGroupData.name)
+                        .withDescription(longDescription)
+                        .build();
 
                     expect(() => validateCreateGroup(data)).toThrow(
                         expect.objectContaining({
@@ -276,13 +326,18 @@ describe('GroupService - Unit Tests', () => {
                 });
 
                 it('should trim whitespace from descriptions', () => {
-                    const data = new CreateGroupRequestBuilder().withName(validGroupData.name).withDescription('  Test Description  ').build();
+                    const data = new CreateGroupRequestBuilder()
+                        .withName(validGroupData.name)
+                        .withDescription('  Test Description  ')
+                        .build();
                     const result = validateCreateGroup(data);
                     expect(result.description).toBe('Test Description');
                 });
 
                 it('should allow missing description (optional field)', () => {
-                    const dataWithoutDescription = new CreateGroupRequestBuilder().withName(validGroupData.name).build();
+                    const dataWithoutDescription = new CreateGroupRequestBuilder()
+                        .withName(validGroupData.name)
+                        .build();
                     delete (dataWithoutDescription as any).description;
 
                     expect(() => validateCreateGroup(dataWithoutDescription)).not.toThrow();
@@ -384,7 +439,10 @@ describe('GroupService - Unit Tests', () => {
                 });
 
                 it('should accept updates with both name and description', () => {
-                    const update = new GroupUpdateBuilder().withName('New Name').withDescription('New description').build();
+                    const update = new GroupUpdateBuilder()
+                        .withName('New Name')
+                        .withDescription('New description')
+                        .build();
 
                     const result = validateUpdateGroup(update);
                     expect(result).toEqual({
@@ -468,7 +526,10 @@ describe('GroupService - Unit Tests', () => {
 
             it('should sanitize input through validation process', () => {
                 // The validation should handle potentially unsafe input
-                const inputWithExtraSpaces = new CreateGroupRequestBuilder().withName('   Group Name   ').withDescription('   Description   ').build();
+                const inputWithExtraSpaces = new CreateGroupRequestBuilder()
+                    .withName('   Group Name   ')
+                    .withDescription('   Description   ')
+                    .build();
 
                 const result = validateCreateGroup(inputWithExtraSpaces);
                 expect(result.name).toBe('Group Name');

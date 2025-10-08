@@ -7,7 +7,12 @@ test.describe('Dashboard User Interface and Responsiveness', () => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([], 0).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([], 0)
+                .build(),
+        );
 
         await page.goto('/dashboard');
 
@@ -37,7 +42,12 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
                 .withName(`Test Group ${i + 1}`)
                 .build());
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(groups, groups.length).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata(groups, groups.length)
+                .build(),
+        );
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -60,14 +70,37 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(user.uid).withId('interactive-group').withName('Interactive Group').build();
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId('interactive-group')
+            .withName('Interactive Group')
+            .build();
 
         // Mock dashboard groups list API
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group], 1)
+                .build(),
+        );
 
         // Mock group detail API for when we navigate to the group page
-        const members = [new GroupMemberBuilder().withUid(user.uid).withDisplayName(user.displayName).withEmail(user.email).withTheme(ThemeBuilder.blue().build()).build()];
-        const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+        const members = [
+            new GroupMemberBuilder()
+                .withUid(user.uid)
+                .withDisplayName(user.displayName)
+                .withEmail(user.email)
+                .withTheme(
+                    ThemeBuilder
+                        .blue()
+                        .build(),
+                )
+                .build(),
+        ];
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members)
+            .build();
         await mockGroupDetailApi(page, 'interactive-group', fullDetails);
         await mockGroupCommentsApi(page, 'interactive-group');
 
@@ -91,12 +124,25 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         const { page, user, mockFirebase } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group1 = GroupDTOBuilder.groupForUser(user.uid).withId('group-to-remove').withName('Will Be Removed').build();
+        const group1 = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId('group-to-remove')
+            .withName('Will Be Removed')
+            .build();
 
-        const group2 = GroupDTOBuilder.groupForUser(user.uid).withId('group-to-keep').withName('Will Stay').build();
+        const group2 = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId('group-to-keep')
+            .withName('Will Stay')
+            .build();
 
         // Start with two groups
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group1, group2], 2).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group1, group2], 2)
+                .build(),
+        );
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -109,15 +155,30 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         // Send baseline notification
         await mockFirebase.triggerNotificationUpdate(
             user.uid,
-            new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-to-remove', 1).withGroupDetails('group-to-keep', 1).build(),
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-to-remove', 1)
+                .withGroupDetails('group-to-keep', 1)
+                .build(),
         );
 
         // Setup new response without the removed group
         await page.unroute('/api/groups?includeMetadata=true');
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group2], 1).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group2], 1)
+                .build(),
+        );
 
         // Simulate user being removed from group - group disappears from notification
-        await mockFirebase.triggerNotificationUpdate(user.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-to-keep', 1).build());
+        await mockFirebase.triggerNotificationUpdate(
+            user.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .withGroupDetails('group-to-keep', 1)
+                .build(),
+        );
 
         // Verify removed group disappears
         await dashboardPage.waitForGroupToDisappear('Will Be Removed');
@@ -129,12 +190,25 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         const { page, user, mockFirebase } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group1 = GroupDTOBuilder.groupForUser(user.uid).withId('group-to-delete').withName('Will Be Deleted').build();
+        const group1 = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId('group-to-delete')
+            .withName('Will Be Deleted')
+            .build();
 
-        const group2 = GroupDTOBuilder.groupForUser(user.uid).withId('group-to-survive').withName('Will Survive').build();
+        const group2 = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId('group-to-survive')
+            .withName('Will Survive')
+            .build();
 
         // Start with two groups
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group1, group2], 2).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group1, group2], 2)
+                .build(),
+        );
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -147,15 +221,30 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         // Send baseline notification
         await mockFirebase.triggerNotificationUpdate(
             user.uid,
-            new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-to-delete', 1).withGroupDetails('group-to-survive', 1).build(),
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-to-delete', 1)
+                .withGroupDetails('group-to-survive', 1)
+                .build(),
         );
 
         // Setup new response without the deleted group
         await page.unroute('/api/groups?includeMetadata=true');
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group2], 1).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group2], 1)
+                .build(),
+        );
 
         // Simulate group deletion - group disappears from notification
-        await mockFirebase.triggerNotificationUpdate(user.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-to-survive', 1).build());
+        await mockFirebase.triggerNotificationUpdate(
+            user.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .withGroupDetails('group-to-survive', 1)
+                .build(),
+        );
 
         // Verify deleted group disappears
         await dashboardPage.waitForGroupToDisappear('Will Be Deleted');
@@ -167,10 +256,19 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         const { page, user, mockFirebase } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(user.uid).withId('only-group').withName('Only Group').build();
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId('only-group')
+            .withName('Only Group')
+            .build();
 
         // Start with one group
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group], 1)
+                .build(),
+        );
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -180,14 +278,30 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await dashboardPage.verifyGroupDisplayed('Only Group');
 
         // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(user.uid, new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('only-group', 1).build());
+        await mockFirebase.triggerNotificationUpdate(
+            user.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('only-group', 1)
+                .build(),
+        );
 
         // Setup empty groups response
         await page.unroute('/api/groups?includeMetadata=true');
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([], 0).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([], 0)
+                .build(),
+        );
 
         // Simulate removal from last group
-        await mockFirebase.triggerNotificationUpdate(user.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).build());
+        await mockFirebase.triggerNotificationUpdate(
+            user.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .build(),
+        );
 
         // Verify empty state appears
         await dashboardPage.waitForGroupToDisappear('Only Group');
@@ -199,14 +313,31 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         const { page, user, mockFirebase } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group1 = GroupDTOBuilder.groupForUser(user.uid).withId('group-1').withName('Group One').build();
+        const group1 = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId('group-1')
+            .withName('Group One')
+            .build();
 
-        const group2 = GroupDTOBuilder.groupForUser(user.uid).withId('group-2').withName('Group Two').build();
+        const group2 = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId('group-2')
+            .withName('Group Two')
+            .build();
 
-        const group3 = GroupDTOBuilder.groupForUser(user.uid).withId('group-3').withName('Group Three').build();
+        const group3 = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId('group-3')
+            .withName('Group Three')
+            .build();
 
         // Start with three groups
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group1, group2, group3], 3).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group1, group2, group3], 3)
+                .build(),
+        );
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -217,15 +348,31 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         // Send baseline notification
         await mockFirebase.triggerNotificationUpdate(
             user.uid,
-            new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).withGroupDetails('group-3', 1).build(),
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-1', 1)
+                .withGroupDetails('group-2', 1)
+                .withGroupDetails('group-3', 1)
+                .build(),
         );
 
         // Setup response with only one group remaining
         await page.unroute('/api/groups?includeMetadata=true');
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group3], 1).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group3], 1)
+                .build(),
+        );
 
         // Simulate two groups being removed simultaneously
-        await mockFirebase.triggerNotificationUpdate(user.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-3', 1).build());
+        await mockFirebase.triggerNotificationUpdate(
+            user.uid,
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .withGroupDetails('group-3', 1)
+                .build(),
+        );
 
         // Verify removed groups disappear
         await dashboardPage.waitForGroupToDisappear('Group One');

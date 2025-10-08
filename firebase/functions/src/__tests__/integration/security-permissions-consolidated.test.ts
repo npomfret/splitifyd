@@ -94,9 +94,17 @@ describe('Security and Permissions - Consolidated Tests', () => {
             await expect(apiDriver.getGroupBalances(privateGroup.id, users[1].token)).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied|not.*member/i);
 
             // Non-member should not be able to modify group
-            await expect(apiDriver.updateGroup(testGroup.id, new GroupUpdateBuilder().withName('Hacked Name').build(), users[2].token)).rejects.toThrow(
-                /404|not.*found|403|forbidden|access.*denied/i,
-            );
+            await expect(apiDriver.updateGroup(
+                testGroup.id,
+                new GroupUpdateBuilder()
+                    .withName('Hacked Name')
+                    .build(),
+                users[2].token,
+            ))
+                .rejects
+                .toThrow(
+                    /404|not.*found|403|forbidden|access.*denied/i,
+                );
 
             // Member (not owner) should not be able to delete group
             await expect(apiDriver.deleteGroup(testGroup.id, users[1].token)).rejects.toThrow(/403|forbidden|unauthorized|access.*denied/i);
@@ -178,7 +186,12 @@ describe('Security and Permissions - Consolidated Tests', () => {
     describe('Security Preset Validation and Data Integrity', () => {
         test('should handle groups with invalid security preset data gracefully', async () => {
             // Create test user
-            const testUser = await apiDriver.createUser(new UserRegistrationBuilder().withEmail(`test-invalid-${Date.now()}@test.com`).withDisplayName('Test User Invalid').build());
+            const testUser = await apiDriver.createUser(
+                new UserRegistrationBuilder()
+                    .withEmail(`test-invalid-${Date.now()}@test.com`)
+                    .withDisplayName('Test User Invalid')
+                    .build(),
+            );
 
             // Create valid group first
             await apiDriver.createGroup(
@@ -232,12 +245,23 @@ describe('Security and Permissions - Consolidated Tests', () => {
         });
 
         test('should successfully handle multiple groups', async () => {
-            const testUser = await apiDriver.createUser(new UserRegistrationBuilder().withEmail(`test-valid-${Date.now()}@test.com`).withDisplayName('Test User Valid').build());
+            const testUser = await apiDriver.createUser(
+                new UserRegistrationBuilder()
+                    .withEmail(`test-valid-${Date.now()}@test.com`)
+                    .withDisplayName('Test User Valid')
+                    .build(),
+            );
 
             // Create multiple valid groups
             const validGroups: GroupDTO[] = [];
             for (let i = 0; i < 3; i++) {
-                const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`Valid Group ${i} - ${Date.now()}`).withDescription(`Valid group ${i}`).build(), testUser.token);
+                const group = await apiDriver.createGroup(
+                    new CreateGroupRequestBuilder()
+                        .withName(`Valid Group ${i} - ${Date.now()}`)
+                        .withDescription(`Valid group ${i}`)
+                        .build(),
+                    testUser.token,
+                );
                 validGroups.push(group);
             }
 
@@ -265,7 +289,14 @@ describe('Security and Permissions - Consolidated Tests', () => {
                 () => apiDriver.getGroupFullDetails(testGroup.id, ''),
                 () => apiDriver.getGroupBalances(testGroup.id, ''),
                 () => apiDriver.getGroupExpenses(testGroup.id, ''),
-                () => apiDriver.updateGroup(testGroup.id, new GroupUpdateBuilder().withName('New Name').build(), ''),
+                () =>
+                    apiDriver.updateGroup(
+                        testGroup.id,
+                        new GroupUpdateBuilder()
+                            .withName('New Name')
+                            .build(),
+                        '',
+                    ),
             ];
 
             for (const endpoint of endpoints) {

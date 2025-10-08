@@ -68,14 +68,22 @@ export class ThemeBuilder {
      * Create a red theme with predefined colors
      */
     static red(): ThemeBuilder {
-        return new ThemeBuilder().withLight('#FF6B6B').withDark('#FF6B6B').withName('red').withColorIndex(0);
+        return new ThemeBuilder()
+            .withLight('#FF6B6B')
+            .withDark('#FF6B6B')
+            .withName('red')
+            .withColorIndex(0);
     }
 
     /**
      * Create a blue theme with predefined colors
      */
     static blue(): ThemeBuilder {
-        return new ThemeBuilder().withLight('#0000FF').withDark('#0000FF').withName('blue').withColorIndex(2);
+        return new ThemeBuilder()
+            .withLight('#0000FF')
+            .withDark('#0000FF')
+            .withName('blue')
+            .withColorIndex(2);
     }
 
     /**

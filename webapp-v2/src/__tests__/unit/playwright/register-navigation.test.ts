@@ -79,7 +79,9 @@ test.describe('Registration Success Navigation', () => {
     });
 
     test('should navigate to returnUrl after successful registration when specified', async ({ pageWithLogging: page, mockFirebase }) => {
-        const testUser = ClientUserBuilder.validUser().build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .build();
         const registerPage = new RegisterPage(page);
         const returnUrl = '/groups/target-group';
 
@@ -99,7 +101,9 @@ test.describe('Registration Success Navigation', () => {
     });
 
     test('should handle encoded returnUrl correctly', async ({ pageWithLogging: page, mockFirebase }) => {
-        const testUser = ClientUserBuilder.validUser().build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .build();
         const registerPage = new RegisterPage(page);
         const returnUrl = '/groups/test-group-id?tab=expenses';
 
@@ -119,7 +123,9 @@ test.describe('Registration Success Navigation', () => {
     });
 
     test('should default to dashboard when returnUrl is empty', async ({ pageWithLogging: page, mockFirebase }) => {
-        const testUser = ClientUserBuilder.validUser().build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .build();
         const registerPage = new RegisterPage(page);
 
         mockFirebase.mockRegisterSuccess(testUser);
@@ -165,7 +171,9 @@ test.describe('Registration Page State Persistence', () => {
     });
 
     test('should clear form state after successful registration', async ({ pageWithLogging: page, mockFirebase }) => {
-        const testUser = ClientUserBuilder.validUser().build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .build();
         const registerPage = new RegisterPage(page);
 
         mockFirebase.mockRegisterSuccess(testUser);
@@ -183,7 +191,9 @@ test.describe('Registration Page State Persistence', () => {
     });
 
     test('should handle browser back button after registration', async ({ pageWithLogging: page, mockFirebase }) => {
-        const testUser = ClientUserBuilder.validUser().build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .build();
         const registerPage = new RegisterPage(page);
 
         mockFirebase.mockRegisterSuccess(testUser);

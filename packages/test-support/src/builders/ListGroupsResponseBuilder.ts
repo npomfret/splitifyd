@@ -111,20 +111,32 @@ export class ListGroupsResponseBuilder {
     }
 
     static emptyResponse(): ListGroupsResponseBuilder {
-        return new ListGroupsResponseBuilder().withGroups([]).withCount(0).withHasMore(false);
+        return new ListGroupsResponseBuilder()
+            .withGroups([])
+            .withCount(0)
+            .withHasMore(false);
     }
 
     static singleGroupResponse(group: GroupDTO): ListGroupsResponseBuilder {
-        return new ListGroupsResponseBuilder().withGroups([group]).withCount(1).withHasMore(false);
+        return new ListGroupsResponseBuilder()
+            .withGroups([group])
+            .withCount(1)
+            .withHasMore(false);
     }
 
     static responseWithMetadata(groups: GroupDTO[], changeCount: number = 1): ListGroupsResponseBuilder {
         const now = Date.now();
-        return new ListGroupsResponseBuilder().withGroups(groups).withServerTime(now).withLastChangeTimestamp(now).withChangeCount(changeCount);
+        return new ListGroupsResponseBuilder()
+            .withGroups(groups)
+            .withServerTime(now)
+            .withLastChangeTimestamp(now)
+            .withChangeCount(changeCount);
     }
 
     static paginatedResponse(groups: GroupDTO[], hasMore: boolean, nextCursor?: string): ListGroupsResponseBuilder {
-        const builder = new ListGroupsResponseBuilder().withGroups(groups).withHasMore(hasMore);
+        const builder = new ListGroupsResponseBuilder()
+            .withGroups(groups)
+            .withHasMore(hasMore);
 
         if (nextCursor) {
             builder.withNextCursor(nextCursor);

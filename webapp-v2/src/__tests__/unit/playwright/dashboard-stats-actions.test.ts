@@ -13,7 +13,11 @@ test.describe('Dashboard Stats Display', () => {
             await route.fulfill({
                 status: 200,
                 contentType: 'application/json',
-                body: JSON.stringify(ListGroupsResponseBuilder.responseWithMetadata([]).build()),
+                body: JSON.stringify(
+                    ListGroupsResponseBuilder
+                        .responseWithMetadata([])
+                        .build(),
+                ),
             });
         });
 
@@ -30,7 +34,12 @@ test.describe('Dashboard Stats Display', () => {
         const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([])
+                .build(),
+        );
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
@@ -44,12 +53,29 @@ test.describe('Dashboard Stats Display', () => {
         const dashboardPage = new DashboardPage(page);
 
         const groups = [
-            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 1').withId('group-1').build(),
-            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 2').withId('group-2').build(),
-            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 3').withId('group-3').build(),
+            GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withName('Group 1')
+                .withId('group-1')
+                .build(),
+            GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withName('Group 2')
+                .withId('group-2')
+                .build(),
+            GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withName('Group 3')
+                .withId('group-3')
+                .build(),
         ];
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(groups).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata(groups)
+                .build(),
+        );
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
@@ -64,11 +90,24 @@ test.describe('Dashboard Stats Display', () => {
 
         // Start with 2 groups
         const initialGroups = [
-            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 1').withId('group-1').build(),
-            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 2').withId('group-2').build(),
+            GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withName('Group 1')
+                .withId('group-1')
+                .build(),
+            GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withName('Group 2')
+                .withId('group-2')
+                .build(),
         ];
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(initialGroups).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata(initialGroups)
+                .build(),
+        );
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
@@ -79,20 +118,38 @@ test.describe('Dashboard Stats Display', () => {
         // Establish baseline notification state for both existing groups
         await mockFirebase.triggerNotificationUpdate(
             testUser.uid,
-            new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).build(),
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-1', 1)
+                .withGroupDetails('group-2', 1)
+                .build(),
         );
 
         // Simulate adding a new group via notification
-        const newGroup = GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 3').withId('group-3').build();
+        const newGroup = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withName('Group 3')
+            .withId('group-3')
+            .build();
         const updatedGroups = [...initialGroups, newGroup];
 
         await page.unroute('/api/groups?includeMetadata=true');
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(updatedGroups, 2).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata(updatedGroups, 2)
+                .build(),
+        );
 
         // Trigger notification for new group
         await mockFirebase.triggerNotificationUpdate(
             testUser.uid,
-            new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).withGroupDetails('group-3', 1).build(),
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .withGroupDetails('group-1', 1)
+                .withGroupDetails('group-2', 1)
+                .withGroupDetails('group-3', 1)
+                .build(),
         );
 
         // Verify updated count - assertions automatically retry until condition is met
@@ -105,12 +162,29 @@ test.describe('Dashboard Stats Display', () => {
 
         // Start with 3 groups
         const initialGroups = [
-            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 1').withId('group-1').build(),
-            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 2').withId('group-2').build(),
-            GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 3').withId('group-3').build(),
+            GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withName('Group 1')
+                .withId('group-1')
+                .build(),
+            GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withName('Group 2')
+                .withId('group-2')
+                .build(),
+            GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withName('Group 3')
+                .withId('group-3')
+                .build(),
         ];
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(initialGroups).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata(initialGroups)
+                .build(),
+        );
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
@@ -121,20 +195,34 @@ test.describe('Dashboard Stats Display', () => {
         // Establish baseline notification state for all groups
         await mockFirebase.triggerNotificationUpdate(
             testUser.uid,
-            new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).withGroupDetails('group-3', 1).build(),
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(1)
+                .withGroupDetails('group-1', 1)
+                .withGroupDetails('group-2', 1)
+                .withGroupDetails('group-3', 1)
+                .build(),
         );
 
         // Simulate removing a group
         const remainingGroups = initialGroups.slice(0, 2);
 
         await page.unroute('/api/groups?includeMetadata=true');
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(remainingGroups, 2).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata(remainingGroups, 2)
+                .build(),
+        );
 
         // Trigger notification to refresh the dashboard
         // When a group is deleted, we trigger a notification with updated change version
         await mockFirebase.triggerNotificationUpdate(
             testUser.uid,
-            new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).build(),
+            new UserNotificationDocumentBuilder()
+                .withChangeVersion(2)
+                .withGroupDetails('group-1', 1)
+                .withGroupDetails('group-2', 1)
+                .build(),
         );
 
         // Verify updated count - assertions automatically retry until condition is met
@@ -147,7 +235,12 @@ test.describe('Dashboard Quick Actions', () => {
         const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([])
+                .build(),
+        );
         await dashboardPage.navigate();
 
         // Verify quick actions displayed
@@ -158,7 +251,12 @@ test.describe('Dashboard Quick Actions', () => {
         const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([])
+                .build(),
+        );
 
         await dashboardPage.navigate();
 
@@ -175,9 +273,18 @@ test.describe('Dashboard Group Card Actions', () => {
         const { page, user: testUser } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
@@ -190,9 +297,18 @@ test.describe('Dashboard Group Card Actions', () => {
         const { page, user: testUser } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
         await mockGenerateShareLinkApi(page, 'group-123');
 
         await dashboardPage.navigate();
@@ -209,9 +325,18 @@ test.describe('Dashboard Group Card Actions', () => {
         const { page, user: testUser } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
@@ -227,9 +352,18 @@ test.describe('Dashboard Group Card Actions', () => {
         const { page, user: testUser } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
         await mockGenerateShareLinkApi(page, 'group-123');
 
         await dashboardPage.navigate();
@@ -249,9 +383,18 @@ test.describe('Dashboard Group Card Actions', () => {
         const { page, user: testUser } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withName('Settled Group').withId('group-123').build();
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withName('Settled Group')
+            .withId('group-123')
+            .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
@@ -278,7 +421,12 @@ test.describe('Dashboard Group Card Actions', () => {
             })
             .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
@@ -307,7 +455,12 @@ test.describe('Dashboard Group Card Actions', () => {
             })
             .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();

@@ -43,7 +43,11 @@ describe('UserService - Consolidated Unit Tests', () => {
 
     describe('registerUser', () => {
         it('should register a new user with Firebase Auth and Firestore', async () => {
-            const registrationData = new UserRegistrationBuilder().withEmail('newuser@example.com').withPassword('SecurePass123!').withDisplayName('New User').build();
+            const registrationData = new UserRegistrationBuilder()
+                .withEmail('newuser@example.com')
+                .withPassword('SecurePass123!')
+                .withDisplayName('New User')
+                .build();
 
             const result = await userService.registerUser(registrationData);
 
@@ -71,7 +75,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: 'Existing User',
             });
 
-            const duplicateData = new UserRegistrationBuilder().withEmail(email).withPassword('DifferentPass123!').withDisplayName('Different Name').build();
+            const duplicateData = new UserRegistrationBuilder()
+                .withEmail(email)
+                .withPassword('DifferentPass123!')
+                .withDisplayName('Different Name')
+                .build();
 
             await expect(userService.registerUser(duplicateData)).rejects.toThrow(
                 expect.objectContaining({
@@ -105,7 +113,11 @@ describe('UserService - Consolidated Unit Tests', () => {
         });
 
         it('should assign theme color and role during registration', async () => {
-            const registrationData = new UserRegistrationBuilder().withEmail('themed@example.com').withPassword('SecurePass123!').withDisplayName('Themed User').build();
+            const registrationData = new UserRegistrationBuilder()
+                .withEmail('themed@example.com')
+                .withPassword('SecurePass123!')
+                .withDisplayName('Themed User')
+                .build();
 
             const result = await userService.registerUser(registrationData);
 
@@ -138,7 +150,12 @@ describe('UserService - Consolidated Unit Tests', () => {
             });
 
             // Set up Firestore user document
-            const userDoc = new UserDocumentBuilder(uid).withEmail(email).withDisplayName(displayName).withThemeColor(createTestThemeColor()).withPreferredLanguage('en').build();
+            const userDoc = new UserDocumentBuilder(uid)
+                .withEmail(email)
+                .withDisplayName(displayName)
+                .withThemeColor(createTestThemeColor())
+                .withPreferredLanguage('en')
+                .build();
             stubReader.setDocument('users', uid, userDoc);
 
             const profile = await userService.getUser(uid);
@@ -200,7 +217,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 stubAuth.setUser(user.uid, user);
 
                 // Set up corresponding Firestore documents using builder
-                const userDoc = new UserDocumentBuilder(user.uid).withEmail(user.email).withDisplayName(user.displayName).withThemeColor(createTestThemeColor()).build();
+                const userDoc = new UserDocumentBuilder(user.uid)
+                    .withEmail(user.email)
+                    .withDisplayName(user.displayName)
+                    .withThemeColor(createTestThemeColor())
+                    .build();
                 stubReader.setDocument('users', user.uid, userDoc);
             });
 
@@ -230,7 +251,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: 'Existing User',
             });
 
-            const userDoc = new UserDocumentBuilder('existing-user').withEmail('existing@example.com').withDisplayName('Existing User').withThemeColor(createTestThemeColor()).build();
+            const userDoc = new UserDocumentBuilder('existing-user')
+                .withEmail('existing@example.com')
+                .withDisplayName('Existing User')
+                .withThemeColor(createTestThemeColor())
+                .build();
             stubReader.setDocument('users', 'existing-user', userDoc);
 
             const profiles = await userService.getUsers(['existing-user', 'non-existent-user']);
@@ -254,7 +279,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: originalDisplayName,
             });
 
-            const userDoc = new UserDocumentBuilder(uid).withEmail('test@example.com').withDisplayName(originalDisplayName).withThemeColor(createTestThemeColor()).build();
+            const userDoc = new UserDocumentBuilder(uid)
+                .withEmail('test@example.com')
+                .withDisplayName(originalDisplayName)
+                .withThemeColor(createTestThemeColor())
+                .build();
             stubReader.setDocument('users', uid, userDoc);
 
             const updatedProfile = await userService.updateProfile(uid, {
@@ -279,7 +308,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: 'Test User',
             });
 
-            const userDoc = new UserDocumentBuilder(uid).withEmail('test@example.com').withDisplayName('Test User').withThemeColor(createTestThemeColor()).build();
+            const userDoc = new UserDocumentBuilder(uid)
+                .withEmail('test@example.com')
+                .withDisplayName('Test User')
+                .withThemeColor(createTestThemeColor())
+                .build();
             stubReader.setDocument('users', uid, userDoc);
 
             const updatedProfile = await userService.updateProfile(uid, {
@@ -306,7 +339,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 photoURL: 'https://example.com/old-photo.jpg',
             });
 
-            const userDoc = new UserDocumentBuilder(uid).withEmail('test@example.com').withDisplayName('Test User').withThemeColor(createTestThemeColor()).build();
+            const userDoc = new UserDocumentBuilder(uid)
+                .withEmail('test@example.com')
+                .withDisplayName('Test User')
+                .withThemeColor(createTestThemeColor())
+                .build();
             stubReader.setDocument('users', uid, userDoc);
 
             await userService.updateProfile(uid, {
@@ -348,7 +385,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: 'Test User',
             });
 
-            const userDoc = new UserDocumentBuilder(uid).withEmail('test@example.com').withDisplayName('Test User').withThemeColor(createTestThemeColor()).build();
+            const userDoc = new UserDocumentBuilder(uid)
+                .withEmail('test@example.com')
+                .withDisplayName('Test User')
+                .withThemeColor(createTestThemeColor())
+                .build();
             stubReader.setDocument('users', uid, userDoc);
 
             const result = await userService.changePassword(uid, {
@@ -391,7 +432,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 photoURL: 'https://example.com/photo.jpg',
             });
 
-            const userDoc = new UserDocumentBuilder(uid).withEmail(email).withDisplayName(displayName).withThemeColor(createTestThemeColor()).build();
+            const userDoc = new UserDocumentBuilder(uid)
+                .withEmail(email)
+                .withDisplayName(displayName)
+                .withThemeColor(createTestThemeColor())
+                .build();
             stubReader.setDocument('users', uid, userDoc);
 
             const profile = await userService.getUser(uid);
@@ -436,13 +481,17 @@ describe('UserService - Consolidated Unit Tests', () => {
             });
 
             it('should validate displayName is not empty', async () => {
-                const updateData = new UserUpdateBuilder().withDisplayName('').build();
+                const updateData = new UserUpdateBuilder()
+                    .withDisplayName('')
+                    .build();
 
                 await expect(validationUserService.updateProfile(testUserId, updateData)).rejects.toThrow(ApiError);
             });
 
             it('should validate displayName with only whitespace', async () => {
-                const updateData = new UserUpdateBuilder().withDisplayName('   ').build();
+                const updateData = new UserUpdateBuilder()
+                    .withDisplayName('   ')
+                    .build();
 
                 await expect(validationUserService.updateProfile(testUserId, updateData)).rejects.toThrow(ApiError);
             });
@@ -452,7 +501,9 @@ describe('UserService - Consolidated Unit Tests', () => {
             });
 
             it('should validate preferredLanguage enum', async () => {
-                const updateData = new UserUpdateBuilder().withPreferredLanguage('invalid-language').build();
+                const updateData = new UserUpdateBuilder()
+                    .withPreferredLanguage('invalid-language')
+                    .build();
 
                 await expect(validationUserService.updateProfile(testUserId, updateData)).rejects.toThrow(ApiError);
             });
@@ -462,7 +513,9 @@ describe('UserService - Consolidated Unit Tests', () => {
             });
 
             it('should validate photoURL format', async () => {
-                const updateData = new UserUpdateBuilder().withPhotoURL('not-a-valid-url').build();
+                const updateData = new UserUpdateBuilder()
+                    .withPhotoURL('not-a-valid-url')
+                    .build();
 
                 await expect(validationUserService.updateProfile(testUserId, updateData)).rejects.toThrow(ApiError);
             });

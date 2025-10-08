@@ -52,7 +52,14 @@ describe('FirestoreReader Pagination Performance', () => {
         });
 
         it('should indicate hasMore=true when there are additional pages', async () => {
-            const testGroups = [new GroupDTOBuilder().withId('group-1').build(), new GroupDTOBuilder().withId('group-2').build()];
+            const testGroups = [
+                new GroupDTOBuilder()
+                    .withId('group-1')
+                    .build(),
+                new GroupDTOBuilder()
+                    .withId('group-2')
+                    .build(),
+            ];
 
             stubReader.mockGroupsForUser('test-user', testGroups, true, 'cursor-123');
 
@@ -133,7 +140,11 @@ describe('FirestoreReader Pagination Performance', () => {
         });
 
         it('should handle single result efficiently', async () => {
-            const singleGroup = [new GroupDTOBuilder().withId('only-group').build()];
+            const singleGroup = [
+                new GroupDTOBuilder()
+                    .withId('only-group')
+                    .build(),
+            ];
 
             stubReader.mockGroupsForUser('test-user', singleGroup, false);
 
@@ -164,7 +175,9 @@ describe('FirestoreReader Pagination Performance', () => {
             // "fetch-all-then-paginate" anti-pattern that caused 100x performance issues
 
             const manyGroups = GroupDTOBuilder.buildMany(1000, (builder, i) => {
-                builder.withCreatedAt(`2024-01-01T${String(i % 24).padStart(2, '0')}:00:00Z`).withUpdatedAt(`2024-01-01T${String(i % 24).padStart(2, '0')}:00:00Z`);
+                builder
+                    .withCreatedAt(`2024-01-01T${String(i % 24).padStart(2, '0')}:00:00Z`)
+                    .withUpdatedAt(`2024-01-01T${String(i % 24).padStart(2, '0')}:00:00Z`);
             });
 
             stubReader.mockPaginatedGroups('heavy-user', manyGroups, 10);
@@ -264,7 +277,14 @@ describe('StubFirestoreReader Pagination Support', () => {
 
     describe('Stub Helper Methods', () => {
         it('should support mockGroupsForUser with pagination parameters', async () => {
-            const testGroups = [new GroupDTOBuilder().withId('group-1').build(), new GroupDTOBuilder().withId('group-2').build()];
+            const testGroups = [
+                new GroupDTOBuilder()
+                    .withId('group-1')
+                    .build(),
+                new GroupDTOBuilder()
+                    .withId('group-2')
+                    .build(),
+            ];
 
             // Test the enhanced mockGroupsForUser signature
             stubReader.mockGroupsForUser('test-user', testGroups, true, 'test-cursor');

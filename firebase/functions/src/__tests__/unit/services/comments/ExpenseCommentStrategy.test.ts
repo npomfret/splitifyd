@@ -25,8 +25,13 @@ describe('ExpenseCommentStrategy', () => {
 
     describe('verifyAccess', () => {
         it('should allow access when expense exists and user is group member', async () => {
-            const testExpense = new ExpenseDTOBuilder().withId('test-expense').withGroupId('test-group').build();
-            const testGroup = new GroupDTOBuilder().withId('test-group').build();
+            const testExpense = new ExpenseDTOBuilder()
+                .withId('test-expense')
+                .withGroupId('test-group')
+                .build();
+            const testGroup = new GroupDTOBuilder()
+                .withId('test-group')
+                .build();
 
             // Simple stub data setup
             stubFirestoreReader.setDocument('expenses', 'test-expense', testExpense);
@@ -49,7 +54,10 @@ describe('ExpenseCommentStrategy', () => {
 
         it('should throw NOT_FOUND when expense is soft deleted', async () => {
             const deletedExpense = {
-                ...new ExpenseDTOBuilder().withId('deleted-expense').withGroupId('test-group').build(),
+                ...new ExpenseDTOBuilder()
+                    .withId('deleted-expense')
+                    .withGroupId('test-group')
+                    .build(),
                 deletedAt: Timestamp.now(),
             };
 
@@ -64,7 +72,10 @@ describe('ExpenseCommentStrategy', () => {
         });
 
         it('should throw NOT_FOUND when expense group does not exist', async () => {
-            const testExpense = new ExpenseDTOBuilder().withId('test-expense').withGroupId('nonexistent-group').build();
+            const testExpense = new ExpenseDTOBuilder()
+                .withId('test-expense')
+                .withGroupId('nonexistent-group')
+                .build();
 
             stubFirestoreReader.setDocument('expenses', 'test-expense', testExpense);
             // stubFirestoreReader.getGroup.mockResolvedValue(null);
@@ -79,9 +90,14 @@ describe('ExpenseCommentStrategy', () => {
         });
 
         it('should throw FORBIDDEN when user is not a member of expense group', async () => {
-            const testExpense = new ExpenseDTOBuilder().withId('test-expense').withGroupId('test-group').build();
+            const testExpense = new ExpenseDTOBuilder()
+                .withId('test-expense')
+                .withGroupId('test-group')
+                .build();
 
-            const testGroup = new GroupDTOBuilder().withId('test-group').build();
+            const testGroup = new GroupDTOBuilder()
+                .withId('test-group')
+                .build();
 
             stubFirestoreReader.setDocument('expenses', 'test-expense', testExpense);
             stubFirestoreReader.setDocument('groups', 'test-group', testGroup);

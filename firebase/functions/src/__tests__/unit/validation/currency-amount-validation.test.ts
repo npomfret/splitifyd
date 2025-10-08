@@ -24,7 +24,13 @@ describe('Currency-Aware Amount Validation', () => {
         });
 
         it('should reject decimal amounts for JPY', () => {
-            const expenseData = new CreateExpenseRequestBuilder().withAmount(100.5).withCurrency('JPY').withSplitType('equal').withParticipants(['user1']).withPaidBy('user1').build();
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withAmount(100.5)
+                .withCurrency('JPY')
+                .withSplitType('equal')
+                .withParticipants(['user1'])
+                .withPaidBy('user1')
+                .build();
 
             expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             expect(() => validateCreateExpense(expenseData)).toThrow(/whole number for JPY/);
@@ -67,7 +73,13 @@ describe('Currency-Aware Amount Validation', () => {
         });
 
         it('should reject 3 decimal places for EUR', () => {
-            const expenseData = new CreateExpenseRequestBuilder().withAmount(100.123).withCurrency('EUR').withSplitType('equal').withParticipants(['user1']).withPaidBy('user1').build();
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withAmount(100.123)
+                .withCurrency('EUR')
+                .withSplitType('equal')
+                .withParticipants(['user1'])
+                .withPaidBy('user1')
+                .build();
 
             expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             expect(() => validateCreateExpense(expenseData)).toThrow(/at most 2 decimal.*EUR/);
@@ -93,7 +105,13 @@ describe('Currency-Aware Amount Validation', () => {
         });
 
         it('should reject 4 decimal places for KWD', () => {
-            const expenseData = new CreateExpenseRequestBuilder().withAmount(10.1234).withCurrency('KWD').withSplitType('equal').withParticipants(['user1']).withPaidBy('user1').build();
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withAmount(10.1234)
+                .withCurrency('KWD')
+                .withSplitType('equal')
+                .withParticipants(['user1'])
+                .withPaidBy('user1')
+                .build();
 
             expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             expect(() => validateCreateExpense(expenseData)).toThrow(/at most 3 decimal.*KWD/);
@@ -119,7 +137,13 @@ describe('Currency-Aware Amount Validation', () => {
         });
 
         it('should reject 2 decimal places for MRU', () => {
-            const expenseData = new CreateExpenseRequestBuilder().withAmount(100.55).withCurrency('MRU').withSplitType('equal').withParticipants(['user1']).withPaidBy('user1').build();
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withAmount(100.55)
+                .withCurrency('MRU')
+                .withSplitType('equal')
+                .withParticipants(['user1'])
+                .withPaidBy('user1')
+                .build();
 
             expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             expect(() => validateCreateExpense(expenseData)).toThrow(/at most 1 decimal.*MRU/);
@@ -128,14 +152,20 @@ describe('Currency-Aware Amount Validation', () => {
 
     describe('Settlement Currency Validation', () => {
         it('should accept correct decimal precision for USD settlement', () => {
-            const settlementData = new CreateSettlementRequestBuilder().withAmount(99.99).withCurrency('USD').build();
+            const settlementData = new CreateSettlementRequestBuilder()
+                .withAmount(99.99)
+                .withCurrency('USD')
+                .build();
 
             const { error } = createSettlementSchema.validate(settlementData);
             expect(error).toBeUndefined();
         });
 
         it('should reject incorrect decimal precision for JPY settlement', () => {
-            const settlementData = new CreateSettlementRequestBuilder().withAmount(100.5).withCurrency('JPY').build();
+            const settlementData = new CreateSettlementRequestBuilder()
+                .withAmount(100.5)
+                .withCurrency('JPY')
+                .build();
 
             const { error } = createSettlementSchema.validate(settlementData);
             expect(error).toBeDefined();
@@ -143,7 +173,10 @@ describe('Currency-Aware Amount Validation', () => {
         });
 
         it('should accept 3 decimals for BHD settlement', () => {
-            const settlementData = new CreateSettlementRequestBuilder().withAmount(10.123).withCurrency('BHD').build();
+            const settlementData = new CreateSettlementRequestBuilder()
+                .withAmount(10.123)
+                .withCurrency('BHD')
+                .build();
 
             const { error } = createSettlementSchema.validate(settlementData);
             expect(error).toBeUndefined();

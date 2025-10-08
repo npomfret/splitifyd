@@ -346,7 +346,9 @@ describe('Public Endpoints Tests', () => {
         });
 
         test('should reject registration with invalid email format', async () => {
-            const invalidData = new RegisterRequestBuilder().withEmail('invalid-email-format').build();
+            const invalidData = new RegisterRequestBuilder()
+                .withEmail('invalid-email-format')
+                .build();
 
             const response = await fetch(`${apiDriver.getBaseUrl()}/register`, {
                 method: 'POST',

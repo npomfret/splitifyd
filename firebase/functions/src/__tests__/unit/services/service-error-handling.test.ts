@@ -82,7 +82,13 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
             // Mock large result set (1000 members) through MockFirestoreReader
             const largeMemberSet = Array.from(
                 { length: 1000 },
-                (_, i) => new GroupMemberDocumentBuilder().withUserId(`user-${i}`).withGroupId('large-group').withRole(MemberRoles.MEMBER).withStatus(MemberStatuses.ACTIVE).build(),
+                (_, i) =>
+                    new GroupMemberDocumentBuilder()
+                        .withUserId(`user-${i}`)
+                        .withGroupId('large-group')
+                        .withRole(MemberRoles.MEMBER)
+                        .withStatus(MemberStatuses.ACTIVE)
+                        .build(),
             );
 
             vi.spyOn(stubFirestoreReader, 'getAllGroupMembers').mockResolvedValue(largeMemberSet);
@@ -99,7 +105,12 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
             // Mock mixed valid and corrupted documents through MockFirestoreReader
             // The MockFirestoreReader should handle validation, so we just return what it would process
             const mixedMembers = [
-                new GroupMemberDocumentBuilder().withUserId('user-1').withGroupId('group-123').withRole(MemberRoles.MEMBER).withStatus(MemberStatuses.ACTIVE).build(),
+                new GroupMemberDocumentBuilder()
+                    .withUserId('user-1')
+                    .withGroupId('group-123')
+                    .withRole(MemberRoles.MEMBER)
+                    .withStatus(MemberStatuses.ACTIVE)
+                    .build(),
                 // Simulate a partially corrupted document
                 {
                     uid: 'user-3',

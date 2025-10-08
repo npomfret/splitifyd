@@ -386,10 +386,15 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const userId = 'test-user-id';
 
             // Create expense without category by not calling withCategory()
-            const builder = new ExpenseDTOBuilder().withId(expenseId).withParticipants([userId]);
+            const builder = new ExpenseDTOBuilder()
+                .withId(expenseId)
+                .withParticipants([userId]);
 
             // Build and manually remove category to ensure it's undefined
-            const mockExpense = builder.withCreatedAt(Timestamp.now()).withUpdatedAt(Timestamp.now()).build();
+            const mockExpense = builder
+                .withCreatedAt(Timestamp.now())
+                .withUpdatedAt(Timestamp.now())
+                .build();
             delete (mockExpense as any).category;
 
             setExpenseData(expenseId, mockExpense);

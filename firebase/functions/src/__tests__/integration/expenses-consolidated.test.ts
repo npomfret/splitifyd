@@ -128,7 +128,12 @@ describe('Expenses Management - Consolidated Tests', () => {
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
 
             // Test API update
-            const apiUpdateData = new ExpenseUpdateBuilder().withDescription('Updated Test Expense').withAmount(150.5).withCurrency('USD').withCategory('food').build();
+            const apiUpdateData = new ExpenseUpdateBuilder()
+                .withDescription('Updated Test Expense')
+                .withAmount(150.5)
+                .withCurrency('USD')
+                .withCategory('food')
+                .build();
             await apiDriver.updateExpense(createdExpense.id, apiUpdateData, users[0].token);
 
             const apiUpdatedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
@@ -165,10 +170,23 @@ describe('Expenses Management - Consolidated Tests', () => {
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
 
             // Make multiple updates
-            await apiDriver.updateExpense(createdExpense.id, new ExpenseUpdateBuilder().withAmount(150).withCurrency('USD').withDescription('First Update').build(), users[0].token);
             await apiDriver.updateExpense(
                 createdExpense.id,
-                new ExpenseUpdateBuilder().withAmount(200).withCurrency('USD').withDescription('First Update').withCategory('transport').build(),
+                new ExpenseUpdateBuilder()
+                    .withAmount(150)
+                    .withCurrency('USD')
+                    .withDescription('First Update')
+                    .build(),
+                users[0].token,
+            );
+            await apiDriver.updateExpense(
+                createdExpense.id,
+                new ExpenseUpdateBuilder()
+                    .withAmount(200)
+                    .withCurrency('USD')
+                    .withDescription('First Update')
+                    .withCategory('transport')
+                    .build(),
                 users[0].token,
             );
 
@@ -197,12 +215,23 @@ describe('Expenses Management - Consolidated Tests', () => {
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
 
             // Creator should be able to update
-            await apiDriver.updateExpense(createdExpense.id, new ExpenseUpdateBuilder().withAmount(150).withCurrency('USD').build(), users[0].token);
+            await apiDriver.updateExpense(
+                createdExpense.id,
+                new ExpenseUpdateBuilder()
+                    .withAmount(150)
+                    .withCurrency('USD')
+                    .build(),
+                users[0].token,
+            );
 
             // Non-creator should be able to update (no restrictions without permission setup)
             const updatedExpense = await apiDriver.updateExpense(
                 createdExpense.id,
-                new ExpenseUpdateBuilder().withDescription('Updated by non-creator').withAmount(120).withCurrency('USD').build(),
+                new ExpenseUpdateBuilder()
+                    .withDescription('Updated by non-creator')
+                    .withAmount(120)
+                    .withCurrency('USD')
+                    .build(),
                 users[2].token,
             );
 
@@ -234,7 +263,11 @@ describe('Expenses Management - Consolidated Tests', () => {
             expect(initialBalances.balancesByCurrency.USD).toBeDefined();
             expect(initialBalances.balancesByCurrency.EUR).toBeUndefined();
 
-            const currencyUpdate = new ExpenseUpdateBuilder().withAmount(200).withCurrency('EUR').withDescription('Changed to EUR').build();
+            const currencyUpdate = new ExpenseUpdateBuilder()
+                .withAmount(200)
+                .withCurrency('EUR')
+                .withDescription('Changed to EUR')
+                .build();
 
             await apiDriver.updateExpense(createdExpense.id, currencyUpdate, users[0].token);
 
@@ -286,11 +319,23 @@ describe('Expenses Management - Consolidated Tests', () => {
         test('should handle deleted expenses in listings', async () => {
             // Create multiple expenses
             const expense1 = await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withAmount(100).withCurrency('USD').build(),
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(users[0].uid)
+                    .withParticipants([users[0].uid])
+                    .withAmount(100)
+                    .withCurrency('USD')
+                    .build(),
                 users[0].token,
             );
             const expense2 = await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withAmount(100).withCurrency('USD').build(),
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(users[0].uid)
+                    .withParticipants([users[0].uid])
+                    .withAmount(100)
+                    .withCurrency('USD')
+                    .build(),
                 users[0].token,
             );
 
@@ -324,7 +369,11 @@ describe('Expenses Management - Consolidated Tests', () => {
         test('should return consolidated expense data with group and members', async () => {
             const uniqueId = generateShortId();
             const expense = await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid, users[2].uid]).build(),
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(users[0].uid)
+                    .withParticipants([users[0].uid, users[1].uid, users[2].uid])
+                    .build(),
                 users[0].token,
             );
 
@@ -373,7 +422,11 @@ describe('Expenses Management - Consolidated Tests', () => {
 
         test('should enforce access control for full details endpoint', async () => {
             const expense = await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(users[0].uid)
+                    .withParticipants([users[0].uid])
+                    .build(),
                 users[0].token,
             );
 

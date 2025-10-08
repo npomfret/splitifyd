@@ -7,9 +7,18 @@ test.describe('Dashboard Navigation Flows', () => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
@@ -25,9 +34,18 @@ test.describe('Dashboard Navigation Flows', () => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(user.uid).withName('Test Group').withId('group-123').build();
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withName('Test Group')
+            .withId('group-123')
+            .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group])
+                .build(),
+        );
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
@@ -48,11 +66,24 @@ test.describe('Dashboard Navigation Flows', () => {
         const dashboardPage = new DashboardPage(page);
 
         const groups = [
-            GroupDTOBuilder.groupForUser(user.uid).withName('Group 1').withId('group-1').build(),
-            GroupDTOBuilder.groupForUser(user.uid).withName('Group 2').withId('group-2').build(),
+            GroupDTOBuilder
+                .groupForUser(user.uid)
+                .withName('Group 1')
+                .withId('group-1')
+                .build(),
+            GroupDTOBuilder
+                .groupForUser(user.uid)
+                .withName('Group 2')
+                .withId('group-2')
+                .build(),
         ];
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(groups).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata(groups)
+                .build(),
+        );
         await mockGenerateShareLinkApi(page, 'group-1');
 
         await dashboardPage.navigate();
@@ -73,7 +104,12 @@ test.describe('Dashboard Navigation Flows', () => {
         const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([]).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([])
+                .build(),
+        );
 
         // Navigate to dashboard
         await dashboardPage.navigate();

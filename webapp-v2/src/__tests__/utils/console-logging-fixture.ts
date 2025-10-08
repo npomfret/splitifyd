@@ -120,7 +120,9 @@ export const test = base.extend<ConsoleLoggingFixtures>({
      *   });
      */
     authenticatedPage: async ({ pageWithLogging }, use) => {
-        const testUser = ClientUserBuilder.validUser().build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .build();
         const mockFirebase = await createMockFirebase(pageWithLogging, testUser);
         await mockFullyAcceptedPoliciesApi(pageWithLogging);
 

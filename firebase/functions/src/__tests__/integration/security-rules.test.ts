@@ -75,7 +75,11 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
 
                 // Create a group with user1 and user2 as members
-                const group = new GroupDTOBuilder().withName('Test Group').withDescription('A test group').withCreatedBy('user1-id').build();
+                const group = new GroupDTOBuilder()
+                    .withName('Test Group')
+                    .withDescription('A test group')
+                    .withCreatedBy('user1-id')
+                    .build();
 
                 await setDoc(doc(db, 'groups', groupId), group);
 
@@ -265,7 +269,9 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
 
                 // Create group with comments
-                const commentGroup = new GroupDTOBuilder().withName('Group with Comments').build();
+                const commentGroup = new GroupDTOBuilder()
+                    .withName('Group with Comments')
+                    .build();
 
                 await setDoc(doc(db, 'groups', groupId), commentGroup);
 
@@ -317,7 +323,11 @@ describe('Firestore Security Rules (Production)', () => {
                 await setDoc(doc(db, 'group-memberships', 'user2-id_' + groupId), commentUser2Membership);
 
                 // Create expense with comments
-                const commentExpense = new ExpenseDTOBuilder().withDescription('Expense with Comments').withParticipants(['user1-id', 'user2-id']).withAmount(100).build();
+                const commentExpense = new ExpenseDTOBuilder()
+                    .withDescription('Expense with Comments')
+                    .withParticipants(['user1-id', 'user2-id'])
+                    .withAmount(100)
+                    .build();
 
                 await setDoc(doc(db, 'expenses', expenseId), commentExpense);
 
@@ -431,7 +441,11 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
 
                 // Create a policy document
-                const policy = new PolicyDocumentBuilder().withId(policyId).withPolicyName('privacy').withVersionText('v1.0.0', 'Privacy policy content...').build();
+                const policy = new PolicyDocumentBuilder()
+                    .withId(policyId)
+                    .withPolicyName('privacy')
+                    .withVersionText('v1.0.0', 'Privacy policy content...')
+                    .build();
 
                 await setDoc(doc(db, 'policies', policyId), policy);
             });
@@ -573,7 +587,10 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
 
                 // Create a group with empty memberIds
-                const emptyMembersGroup = new GroupDTOBuilder().withName('Empty Members Group').withMemberIds([]).build();
+                const emptyMembersGroup = new GroupDTOBuilder()
+                    .withName('Empty Members Group')
+                    .withMemberIds([])
+                    .build();
 
                 await setDoc(doc(db, 'groups', 'empty-members-group'), emptyMembersGroup);
             });
@@ -588,7 +605,10 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
 
                 // Create a group without memberIds field
-                const noMembersFieldGroup = new GroupDTOBuilder().withName('No Members Field Group').withoutMemberIds().build();
+                const noMembersFieldGroup = new GroupDTOBuilder()
+                    .withName('No Members Field Group')
+                    .withoutMemberIds()
+                    .build();
 
                 await setDoc(doc(db, 'groups', 'no-members-field'), noMembersFieldGroup);
             });

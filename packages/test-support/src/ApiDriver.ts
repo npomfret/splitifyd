@@ -51,7 +51,9 @@ export class ApiDriver {
         return this.baseUrl;
     }
 
-    async createUser(userRegistration: UserRegistration = new UserRegistrationBuilder().build()): Promise<AuthenticatedFirebaseUser> {
+    async createUser(userRegistration: UserRegistration = new UserRegistrationBuilder()
+        .build()): Promise<AuthenticatedFirebaseUser>
+    {
         try {
             // Register user via API
             await this.apiRequest('/register', 'POST', userRegistration);

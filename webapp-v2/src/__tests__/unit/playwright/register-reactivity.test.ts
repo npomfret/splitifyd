@@ -277,7 +277,9 @@ test.describe('Registration Form Error Display and Recovery', () => {
 
 test.describe('Registration Form Loading States', () => {
     test('should show loading indicator during registration', async ({ pageWithLogging: page, mockFirebase }) => {
-        const testUser = ClientUserBuilder.validUser().build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .build();
         const registerPage = new RegisterPage(page);
 
         // Mock registration with delay to see loading state
@@ -301,7 +303,9 @@ test.describe('Registration Form Loading States', () => {
     });
 
     test('should prevent double submission during loading', async ({ pageWithLogging: page, mockFirebase }) => {
-        const testUser = ClientUserBuilder.validUser().build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .build();
         const registerPage = new RegisterPage(page);
 
         mockFirebase.mockRegisterWithDelay(testUser, 1000);

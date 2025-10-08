@@ -19,7 +19,9 @@ describe('EqualSplitStrategy', () => {
 
         it('should not throw error when splits data is provided (but not required)', () => {
             const participants = ['user1', 'user2'];
-            const splits = ExpenseSplitBuilder.equalSplit(['user1', 'user2'], 100).build();
+            const splits = ExpenseSplitBuilder
+                .equalSplit(['user1', 'user2'], 100)
+                .build();
             expect(() => strategy.validateSplits(100, participants, splits)).not.toThrow();
         });
 

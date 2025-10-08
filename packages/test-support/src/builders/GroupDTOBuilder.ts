@@ -184,7 +184,9 @@ export class GroupDTOBuilder {
     }
 
     static groupForUser(userId: string): GroupDTOBuilder {
-        return new GroupDTOBuilder().withCreatedBy(userId).withName(`${userId}'s Group`);
+        return new GroupDTOBuilder()
+            .withCreatedBy(userId)
+            .withName(`${userId}'s Group`);
     }
 
     /**
@@ -195,7 +197,8 @@ export class GroupDTOBuilder {
      */
     static buildMany(count: number, customizer?: (builder: GroupDTOBuilder, index: number) => void): GroupDTO[] {
         return Array.from({ length: count }, (_, i) => {
-            const builder = new GroupDTOBuilder().withId(`group-${i + 1}`);
+            const builder = new GroupDTOBuilder()
+                .withId(`group-${i + 1}`);
 
             if (customizer) {
                 customizer(builder, i);

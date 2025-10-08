@@ -5,7 +5,9 @@ import { setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 test.describe('Authentication Flow', () => {
     test('should log in successfully and navigate to dashboard', async ({ pageWithLogging: page, mockFirebase }) => {
         // 1. Create test user and login page
-        const testUser = ClientUserBuilder.validUser().build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .build();
         const loginPage = new LoginPage(page);
 
         // 2. Configure mock Firebase for this test
@@ -64,7 +66,10 @@ test.describe('Authentication Flow', () => {
 test.describe('Authentication Flow - Already Authenticated', () => {
     test('should redirect already authenticated user from login page', async ({ pageWithLogging: page, authenticatedMockFirebase }) => {
         // Create authenticated user for this test
-        const testUser = ClientUserBuilder.validUser().withDisplayName('Test User').build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .withDisplayName('Test User')
+            .build();
 
         await setupSuccessfulApiMocks(page);
 
@@ -84,7 +89,9 @@ test.describe('Authentication Flow - Already Authenticated', () => {
 
 test.describe('LoginPage Reactivity and UI States', () => {
     test('should show loading state during login attempt', async ({ pageWithLogging: page, mockFirebase }) => {
-        const testUser = ClientUserBuilder.validUser().build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .build();
         const loginPage = new LoginPage(page);
 
         // Configure mock with delayed response to test loading state
@@ -210,7 +217,9 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await loginPage.verifyErrorMessage('Invalid email or password.');
 
         // Change mock to success for second attempt
-        const testUser = ClientUserBuilder.validUser().build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .build();
         mockFirebase.mockLoginSuccess(testUser);
 
         // Refill password and submit again
@@ -222,7 +231,9 @@ test.describe('LoginPage Reactivity and UI States', () => {
     });
 
     test('should disable all interactive elements during loading state', async ({ pageWithLogging: page, mockFirebase }) => {
-        const testUser = ClientUserBuilder.validUser().build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .build();
         const loginPage = new LoginPage(page);
         mockFirebase.mockLoginWithDelay(testUser, 1000);
 
@@ -264,7 +275,9 @@ test.describe('LoginPage Reactivity and UI States', () => {
     });
 
     test('should handle returnUrl navigation after successful login', async ({ pageWithLogging: page, mockFirebase }) => {
-        const testUser = ClientUserBuilder.validUser().build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .build();
         const loginPage = new LoginPage(page);
         mockFirebase.mockLoginSuccess(testUser);
 

@@ -21,7 +21,13 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     const memberUserId = 'member-user-123';
     const otherMemberUserId = 'other-member-123';
 
-    const defaultTheme = new ThemeBuilder().withLight('#FF6B6B').withDark('#FF6B6B').withName('Test Theme').withPattern('solid').withColorIndex(0).build();
+    const defaultTheme = new ThemeBuilder()
+        .withLight('#FF6B6B')
+        .withDark('#FF6B6B')
+        .withName('Test Theme')
+        .withPattern('solid')
+        .withColorIndex(0)
+        .build();
 
     // Helper to initialize balance document for a group
     const initializeGroupBalance = async (groupId: string) => {
@@ -45,7 +51,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         groupMemberService = new GroupMemberService(stubReader, stubWriter);
 
         // Setup test group using builder
-        const testGroup = new GroupDTOBuilder().withId(testGroupId).withName('Test Group').build();
+        const testGroup = new GroupDTOBuilder()
+            .withId(testGroupId)
+            .withName('Test Group')
+            .build();
         stubReader.setDocument('groups', testGroupId, testGroup);
         await initializeGroupBalance(testGroupId); // Initialize balance for incremental updates
     });
@@ -53,9 +62,22 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     describe('getAllGroupMembers', () => {
         it('should return all members for a group', async () => {
             const testMembers: GroupMembershipDTO[] = [
-                new GroupMemberDocumentBuilder().withUserId(testUserId1).withGroupId(testGroupId).withTheme(defaultTheme).buildDocument(),
-                new GroupMemberDocumentBuilder().withUserId(testUserId2).withGroupId(testGroupId).withTheme(defaultTheme).buildDocument(),
-                new GroupMemberDocumentBuilder().withUserId(testUserId3).withGroupId(testGroupId).withTheme(defaultTheme).asAdmin().buildDocument(),
+                new GroupMemberDocumentBuilder()
+                    .withUserId(testUserId1)
+                    .withGroupId(testGroupId)
+                    .withTheme(defaultTheme)
+                    .buildDocument(),
+                new GroupMemberDocumentBuilder()
+                    .withUserId(testUserId2)
+                    .withGroupId(testGroupId)
+                    .withTheme(defaultTheme)
+                    .buildDocument(),
+                new GroupMemberDocumentBuilder()
+                    .withUserId(testUserId3)
+                    .withGroupId(testGroupId)
+                    .withTheme(defaultTheme)
+                    .asAdmin()
+                    .buildDocument(),
             ];
 
             // Set up group members in stub
@@ -87,7 +109,11 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
     describe('isGroupMemberAsync', () => {
         it('should return true for existing group member', async () => {
-            const testMember = new GroupMemberDocumentBuilder().withUserId(testUserId1).withGroupId(testGroupId).withTheme(defaultTheme).build();
+            const testMember = new GroupMemberDocumentBuilder()
+                .withUserId(testUserId1)
+                .withGroupId(testGroupId)
+                .withTheme(defaultTheme)
+                .build();
 
             stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, testMember);
 
@@ -128,9 +154,16 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     describe('Leave Group Validation', () => {
         test('should prevent group creator from leaving', async () => {
             // Setup: Creator trying to leave their own group
-            const testGroup = new GroupDTOBuilder().withId(testGroupId).withCreatedBy(creatorUserId).build();
+            const testGroup = new GroupDTOBuilder()
+                .withId(testGroupId)
+                .withCreatedBy(creatorUserId)
+                .build();
 
-            const creatorMember = new GroupMemberDocumentBuilder().withUserId(creatorUserId).withGroupId(testGroupId).withRole(MemberRoles.ADMIN).build();
+            const creatorMember = new GroupMemberDocumentBuilder()
+                .withUserId(creatorUserId)
+                .withGroupId(testGroupId)
+                .withRole(MemberRoles.ADMIN)
+                .build();
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${creatorUserId}`, creatorMember);
@@ -141,9 +174,15 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should prevent leaving with outstanding balance', async () => {
             // Setup: Member with outstanding balance trying to leave
-            const testGroup = new GroupDTOBuilder().withId(testGroupId).withCreatedBy(creatorUserId).build();
+            const testGroup = new GroupDTOBuilder()
+                .withId(testGroupId)
+                .withCreatedBy(creatorUserId)
+                .build();
 
-            const memberDoc = new GroupMemberDocumentBuilder().withUserId(memberUserId).withGroupId(testGroupId).build();
+            const memberDoc = new GroupMemberDocumentBuilder()
+                .withUserId(memberUserId)
+                .withGroupId(testGroupId)
+                .build();
 
             // Set up balance document with outstanding balance
             await stubWriter.setGroupBalance(testGroupId, {
@@ -172,9 +211,15 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should allow member to leave when balance is settled', async () => {
             // Setup: Member with settled balance leaving
-            const testGroup = new GroupDTOBuilder().withId(testGroupId).withCreatedBy(creatorUserId).build();
+            const testGroup = new GroupDTOBuilder()
+                .withId(testGroupId)
+                .withCreatedBy(creatorUserId)
+                .build();
 
-            const memberDoc = new GroupMemberDocumentBuilder().withUserId(memberUserId).withGroupId(testGroupId).build();
+            const memberDoc = new GroupMemberDocumentBuilder()
+                .withUserId(memberUserId)
+                .withGroupId(testGroupId)
+                .build();
 
             // Set up balance document with zero balance
             await stubWriter.setGroupBalance(testGroupId, {
@@ -195,7 +240,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             });
 
             // Add another member so the group has multiple members (needed for leave validation)
-            const otherMemberDoc = new GroupMemberDocumentBuilder().withUserId(otherMemberUserId).withGroupId(testGroupId).build();
+            const otherMemberDoc = new GroupMemberDocumentBuilder()
+                .withUserId(otherMemberUserId)
+                .withGroupId(testGroupId)
+                .build();
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${memberUserId}`, memberDoc);
@@ -229,7 +277,9 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should reject leave request for non-member', async () => {
             // Setup: Group exists but user is not a member
-            const testGroup = new GroupDTOBuilder().withId(testGroupId).build();
+            const testGroup = new GroupDTOBuilder()
+                .withId(testGroupId)
+                .build();
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${memberUserId}`, null); // Member doesn't exist
@@ -242,9 +292,15 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     describe('Remove Member Validation', () => {
         test('should prevent non-creator from removing members', async () => {
             // Setup: Non-creator trying to remove another member
-            const testGroup = new GroupDTOBuilder().withId(testGroupId).withCreatedBy(creatorUserId).build();
+            const testGroup = new GroupDTOBuilder()
+                .withId(testGroupId)
+                .withCreatedBy(creatorUserId)
+                .build();
 
-            const targetMemberDoc = new GroupMemberDocumentBuilder().withUserId(otherMemberUserId).withGroupId(testGroupId).build();
+            const targetMemberDoc = new GroupMemberDocumentBuilder()
+                .withUserId(otherMemberUserId)
+                .withGroupId(testGroupId)
+                .build();
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${otherMemberUserId}`, targetMemberDoc);
@@ -255,9 +311,16 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should prevent removing the group creator', async () => {
             // Setup: Creator trying to remove themselves via removeGroupMember
-            const testGroup = new GroupDTOBuilder().withId(testGroupId).withCreatedBy(creatorUserId).build();
+            const testGroup = new GroupDTOBuilder()
+                .withId(testGroupId)
+                .withCreatedBy(creatorUserId)
+                .build();
 
-            const creatorMemberDoc = new GroupMemberDocumentBuilder().withUserId(creatorUserId).withGroupId(testGroupId).withRole(MemberRoles.ADMIN).build();
+            const creatorMemberDoc = new GroupMemberDocumentBuilder()
+                .withUserId(creatorUserId)
+                .withGroupId(testGroupId)
+                .withRole(MemberRoles.ADMIN)
+                .build();
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${creatorUserId}`, creatorMemberDoc);
@@ -268,9 +331,15 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should prevent removing member with outstanding balance', async () => {
             // Setup: Creator trying to remove member with debt
-            const testGroup = new GroupDTOBuilder().withId(testGroupId).withCreatedBy(creatorUserId).build();
+            const testGroup = new GroupDTOBuilder()
+                .withId(testGroupId)
+                .withCreatedBy(creatorUserId)
+                .build();
 
-            const memberDoc = new GroupMemberDocumentBuilder().withUserId(memberUserId).withGroupId(testGroupId).build();
+            const memberDoc = new GroupMemberDocumentBuilder()
+                .withUserId(memberUserId)
+                .withGroupId(testGroupId)
+                .build();
 
             // Set up balance document with outstanding balance
             await stubWriter.setGroupBalance(testGroupId, {
@@ -299,9 +368,15 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should allow creator to remove member with settled balance', async () => {
             // Setup: Creator removing member with zero balance
-            const testGroup = new GroupDTOBuilder().withId(testGroupId).withCreatedBy(creatorUserId).build();
+            const testGroup = new GroupDTOBuilder()
+                .withId(testGroupId)
+                .withCreatedBy(creatorUserId)
+                .build();
 
-            const memberDoc = new GroupMemberDocumentBuilder().withUserId(memberUserId).withGroupId(testGroupId).build();
+            const memberDoc = new GroupMemberDocumentBuilder()
+                .withUserId(memberUserId)
+                .withGroupId(testGroupId)
+                .build();
 
             // Set up balance document with zero balance
             await stubWriter.setGroupBalance(testGroupId, {
@@ -339,7 +414,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should reject removal of non-existent member', async () => {
             // Setup: Creator trying to remove non-existent member
-            const testGroup = new GroupDTOBuilder().withId(testGroupId).withCreatedBy(creatorUserId).build();
+            const testGroup = new GroupDTOBuilder()
+                .withId(testGroupId)
+                .withCreatedBy(creatorUserId)
+                .build();
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_nonexistent-user`, null); // Member doesn't exist

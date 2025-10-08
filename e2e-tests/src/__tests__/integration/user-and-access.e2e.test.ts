@@ -26,7 +26,8 @@ import { PolicyAcceptanceModalPage } from '../../pages/policy-acceptance-modal.p
 simpleTest.describe('User Profile Management', () => {
     simpleTest('comprehensive profile and password management with validation and real-time updates', async ({ createLoggedInBrowsers, newEmptyBrowser }) => {
         // Create a fresh user specifically for comprehensive testing
-        const { displayName, email, password } = new TestUserBuilder().build();
+        const { displayName, email, password } = new TestUserBuilder()
+            .build();
 
         // Test 1: Profile viewing, updating, and real-time updates
         const [{ page, dashboardPage, user }] = await createLoggedInBrowsers(1);
@@ -441,7 +442,11 @@ simpleTest.describe('Share Link Access Management', () => {
             const [{ dashboardPage: user1DashboardPage }, { page: page2 }] = await createLoggedInBrowsers(2);
 
             const groupName = generateTestGroupName(`ShareLink`);
-            const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().withName(groupName).withDescription('Testing already member scenario'));
+            const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup(
+                new CreateGroupFormDataBuilder()
+                    .withName(groupName)
+                    .withDescription('Testing already member scenario'),
+            );
             const groupId = groupDetailPage.inferGroupId();
             const shareLink = await groupDetailPage.getShareLink();
 
@@ -532,7 +537,8 @@ simpleTest.describe('Share Link Access Management', () => {
             const registerPage = await loginPage.navigateToRegisterPage();
 
             // Register new user
-            const { displayName: newUserName, email: newUserEmail, password: newUserPassword } = new TestUserBuilder().build();
+            const { displayName: newUserName, email: newUserEmail, password: newUserPassword } = new TestUserBuilder()
+                .build();
             await registerPage.fillRegistrationForm(newUserName, newUserEmail, newUserPassword);
             await registerPage.submitForm();
 

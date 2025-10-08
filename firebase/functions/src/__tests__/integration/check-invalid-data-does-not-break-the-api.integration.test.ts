@@ -33,7 +33,10 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
         testUser = await apiDriver.createUser();
 
         // Create a valid group for comparison
-        const groupRequest = new CreateGroupRequestBuilder().withName('Valid Test Group').withDescription('A properly created group for testing').build();
+        const groupRequest = new CreateGroupRequestBuilder()
+            .withName('Valid Test Group')
+            .withDescription('A properly created group for testing')
+            .build();
 
         const createResponse = await apiDriver.createGroup(groupRequest, testUser.token);
         validGroupId = createResponse.id;
@@ -61,7 +64,11 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
                 // Build valid group data, then corrupt the securityPreset field
                 // Note: GroupDTOBuilder produces DTOs with ISO strings, but we're writing to Firestore
                 // which requires Timestamps. We must convert ALL date fields.
-                const validGroup = new GroupDTOBuilder().withName(invalidGroupNames[i]).withDescription('Group with invalid securityPreset').withCreatedBy(testUser.uid).build();
+                const validGroup = new GroupDTOBuilder()
+                    .withName(invalidGroupNames[i])
+                    .withDescription('Group with invalid securityPreset')
+                    .withCreatedBy(testUser.uid)
+                    .build();
 
                 const now = Timestamp.now();
                 // Corrupt the securityPreset field - this is the invalid data we're testing
@@ -82,7 +89,12 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
                 testGroupIds.push(groupRef.id);
 
                 // Create valid member document for top-level collection
-                const memberDoc = new GroupMemberDocumentBuilder().withUserId(testUser.uid).withGroupId(groupRef.id).asAdmin().asActive().build();
+                const memberDoc = new GroupMemberDocumentBuilder()
+                    .withUserId(testUser.uid)
+                    .withGroupId(groupRef.id)
+                    .asAdmin()
+                    .asActive()
+                    .build();
 
                 const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, new Date().toISOString());
                 const topLevelDocId = getTopLevelMembershipDocId(testUser.uid, groupRef.id);
@@ -133,7 +145,10 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             const corruptedGroupRef = firestore.collection(FirestoreCollections.GROUPS).doc();
 
             // Build valid group, then corrupt critical fields
-            const validGroup = new GroupDTOBuilder().withName('Corrupted Test Group').withCreatedBy(testUser.uid).build();
+            const validGroup = new GroupDTOBuilder()
+                .withName('Corrupted Test Group')
+                .withCreatedBy(testUser.uid)
+                .build();
 
             const corruptedGroup = {
                 ...validGroup,

@@ -49,6 +49,7 @@ export class ClientUserBuilder {
     }
 
     static validUser(): ClientUserBuilder {
-        return new ClientUserBuilder().withEmailVerified(true);
+        return new ClientUserBuilder()
+            .withEmailVerified(true);
     }
 }

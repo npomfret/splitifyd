@@ -23,7 +23,13 @@ describe('Expense Locking Debug Test', () => {
 
     test('should handle concurrent expense updates', async () => {
         // Create group
-        const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName('Debug Test Group').withDescription('Testing expense concurrent updates').build(), user1.token);
+        const group = await apiDriver.createGroup(
+            new CreateGroupRequestBuilder()
+                .withName('Debug Test Group')
+                .withDescription('Testing expense concurrent updates')
+                .build(),
+            user1.token,
+        );
 
         // Create an expense
         const expense = await apiDriver.createExpense(
@@ -45,8 +51,20 @@ describe('Expense Locking Debug Test', () => {
 
         // Try to update the expense twice simultaneously
         const updatePromises = [
-            await apiDriver.updateExpense(expense.id, new ExpenseUpdateBuilder().withAmount(200).build(), user1.token),
-            await apiDriver.updateExpense(expense.id, new ExpenseUpdateBuilder().withAmount(300).build(), user1.token),
+            await apiDriver.updateExpense(
+                expense.id,
+                new ExpenseUpdateBuilder()
+                    .withAmount(200)
+                    .build(),
+                user1.token,
+            ),
+            await apiDriver.updateExpense(
+                expense.id,
+                new ExpenseUpdateBuilder()
+                    .withAmount(300)
+                    .build(),
+                user1.token,
+            ),
         ];
 
         // Starting concurrent updates

@@ -26,7 +26,12 @@ describe('Input Validation Unit Tests', () => {
             });
 
             it('should reject amounts with too many decimal places for currency', () => {
-                const expenseData = new CreateExpenseRequestBuilder().withAmount(33.333333).withCurrency('USD').withParticipants(['user1', 'user2', 'user3']).withPaidBy('user1').build();
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(33.333333)
+                    .withCurrency('USD')
+                    .withParticipants(['user1', 'user2', 'user3'])
+                    .withPaidBy('user1')
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
                 expect(() => validateCreateExpense(expenseData)).toThrow(/at most 2 decimal/);
@@ -53,31 +58,46 @@ describe('Input Validation Unit Tests', () => {
 
         describe('Invalid Amount Validation', () => {
             it('should reject zero amounts', () => {
-                const expenseData = new CreateExpenseRequestBuilder().withAmount(0).withCurrency('USD').build();
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(0)
+                    .withCurrency('USD')
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should reject negative amounts', () => {
-                const expenseData = new CreateExpenseRequestBuilder().withAmount(-50).withCurrency('USD').build();
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(-50)
+                    .withCurrency('USD')
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should reject very small negative numbers', () => {
-                const expenseData = new CreateExpenseRequestBuilder().withAmount(-0.01).withCurrency('USD').build();
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(-0.01)
+                    .withCurrency('USD')
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should reject negative infinity', () => {
-                const expenseData = new CreateExpenseRequestBuilder().withAmount(Number.NEGATIVE_INFINITY).withCurrency('USD').build();
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(Number.NEGATIVE_INFINITY)
+                    .withCurrency('USD')
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
             it('should handle NaN values gracefully', () => {
-                const expenseData = new CreateExpenseRequestBuilder().withAmount(NaN).withCurrency('USD').build();
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withAmount(NaN)
+                    .withCurrency('USD')
+                    .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
@@ -326,7 +346,12 @@ describe('Input Validation Unit Tests', () => {
         });
 
         it('should accept valid settlement amounts', () => {
-            const settlementData = new CreateSettlementRequestBuilder().withAmount(50.0).withCurrency('USD').withPayerId('user1').withPayeeId('user2').build();
+            const settlementData = new CreateSettlementRequestBuilder()
+                .withAmount(50.0)
+                .withCurrency('USD')
+                .withPayerId('user1')
+                .withPayeeId('user2')
+                .build();
 
             const { error, value } = createSettlementSchema.validate(settlementData);
             expect(error).toBeUndefined();
@@ -341,7 +366,11 @@ describe('Input Validation Unit Tests', () => {
             const futureDate = new Date();
             futureDate.setFullYear(futureDate.getFullYear() + 1);
 
-            const expenseData = new CreateExpenseRequestBuilder().withAmount(100).withCurrency('USD').withDate(futureDate.toISOString()).build();
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withAmount(100)
+                .withCurrency('USD')
+                .withDate(futureDate.toISOString())
+                .build();
 
             expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
         });
@@ -350,7 +379,11 @@ describe('Input Validation Unit Tests', () => {
             const validDate = new Date();
             validDate.setMonth(validDate.getMonth() - 1);
 
-            const expenseData = new CreateExpenseRequestBuilder().withAmount(100).withCurrency('USD').withDate(validDate.toISOString()).build();
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withAmount(100)
+                .withCurrency('USD')
+                .withDate(validDate.toISOString())
+                .build();
 
             const result = validateCreateExpense(expenseData);
             expect(result.groupId).toBeDefined();
@@ -360,7 +393,11 @@ describe('Input Validation Unit Tests', () => {
 
     describe('Category Validation', () => {
         it('should accept valid category', () => {
-            const expenseData = new CreateExpenseRequestBuilder().withAmount(100).withCurrency('USD').withCategory('food').build();
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withAmount(100)
+                .withCurrency('USD')
+                .withCategory('food')
+                .build();
 
             const result = validateCreateExpense(expenseData);
             expect(result.groupId).toBeDefined();

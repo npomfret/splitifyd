@@ -12,7 +12,12 @@ test.describe('Browser Reuse Test', () => {
 
     test('test 2 - empty state check', async ({ authenticatedPage }) => {
         const { page } = authenticatedPage;
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([], 0).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([], 0)
+                .build(),
+        );
         await page.goto('/dashboard', { timeout: TEST_TIMEOUTS.NAVIGATION, waitUntil: 'domcontentloaded' });
         await expect(page).toHaveURL(/\/dashboard/);
     });
@@ -34,7 +39,12 @@ test.describe('Dashboard Authentication and Navigation', () => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([], 0).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([], 0)
+                .build(),
+        );
 
         // Navigate to dashboard
         await page.goto('/dashboard');
@@ -51,7 +61,9 @@ test.describe('Dashboard Groups Display and Loading States', () => {
         const dashboardPage = new DashboardPage(page);
 
         // Set up delayed route BEFORE navigation to ensure loading state is visible
-        const groupsResponse = ListGroupsResponseBuilder.responseWithMetadata([], 0).build();
+        const groupsResponse = ListGroupsResponseBuilder
+            .responseWithMetadata([], 0)
+            .build();
         await page.route('/api/groups?includeMetadata=true', async (route) => {
             // Delay response to show loading state
             await page.waitForTimeout(1000);
@@ -78,13 +90,30 @@ test.describe('Dashboard Groups Display and Loading States', () => {
         const dashboardPage = new DashboardPage(page);
 
         const groups = [
-            GroupDTOBuilder.groupForUser(user.uid).withId('group-1').withName('House Expenses').build(),
-            GroupDTOBuilder.groupForUser(user.uid).withId('group-2').withName('Trip to Italy').build(),
-            GroupDTOBuilder.groupForUser(user.uid).withId('group-3').withName('Weekly Dinners').build(),
+            GroupDTOBuilder
+                .groupForUser(user.uid)
+                .withId('group-1')
+                .withName('House Expenses')
+                .build(),
+            GroupDTOBuilder
+                .groupForUser(user.uid)
+                .withId('group-2')
+                .withName('Trip to Italy')
+                .build(),
+            GroupDTOBuilder
+                .groupForUser(user.uid)
+                .withId('group-3')
+                .withName('Weekly Dinners')
+                .build(),
         ];
 
         // Mock groups API
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(groups, groups.length).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata(groups, groups.length)
+                .build(),
+        );
 
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
@@ -100,7 +129,12 @@ test.describe('Dashboard Groups Display and Loading States', () => {
         const dashboardPage = new DashboardPage(page);
 
         // Mock empty groups response
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([], 0).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([], 0)
+                .build(),
+        );
 
         await page.goto('/dashboard');
 
@@ -113,9 +147,18 @@ test.describe('Dashboard Groups Display and Loading States', () => {
     test('should navigate to group details when clicking group card', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder.groupForUser(user.uid).withId('group-abc').withName('Test Group').build();
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId('group-abc')
+            .withName('Test Group')
+            .build();
 
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([group], 1)
+                .build(),
+        );
         await page.goto('/dashboard');
 
         // Wait for groups to load
@@ -157,7 +200,12 @@ test.describe('Dashboard Error Handling', () => {
         await dashboardPage.verifyErrorState('Server temporarily unavailable');
 
         // Mock successful API response for retry
-        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([], 0).build());
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([], 0)
+                .build(),
+        );
 
         // Click try again
         await dashboardPage.clickTryAgain();

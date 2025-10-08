@@ -76,13 +76,20 @@ describe('GroupShareService', () => {
             const userId = 'owner-id';
 
             // Set up test group using builder
-            const testGroup = new GroupDTOBuilder().withId(groupId).withCreatedBy(userId).build();
+            const testGroup = new GroupDTOBuilder()
+                .withId(groupId)
+                .withCreatedBy(userId)
+                .build();
 
             stubReader.setDocument('groups', groupId, testGroup);
             await initializeGroupBalance(groupId); // Initialize balance for incremental updates
 
             // Set up group membership so user has access (as owner)
-            const membershipDoc = new GroupMemberDocumentBuilder().withUserId(userId).withGroupId(groupId).asAdmin().build();
+            const membershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId(userId)
+                .withGroupId(groupId)
+                .asAdmin()
+                .build();
             stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
 
             const result = await groupShareService.generateShareableLink(userId, groupId);
@@ -109,7 +116,10 @@ describe('GroupShareService', () => {
 
         beforeEach(async () => {
             // Set up test group
-            const testGroup = new GroupDTOBuilder().withId(groupId).withCreatedBy('owner-id').build();
+            const testGroup = new GroupDTOBuilder()
+                .withId(groupId)
+                .withCreatedBy('owner-id')
+                .build();
             stubReader.setDocument('groups', groupId, testGroup);
             await initializeGroupBalance(groupId); // Initialize balance for incremental updates
 
@@ -127,7 +137,11 @@ describe('GroupShareService', () => {
 
         it(`should succeed when group has ${MAX_GROUP_MEMBERS - 1} members`, async () => {
             // Create MAX_GROUP_MEMBERS - 1 existing members
-            const existingMembers = Array.from({ length: MAX_GROUP_MEMBERS - 1 }, (_, i) => new GroupMemberDocumentBuilder().withUserId(`user-${i}`).withGroupId(groupId).build());
+            const existingMembers = Array.from({ length: MAX_GROUP_MEMBERS - 1 }, (_, i) =>
+                new GroupMemberDocumentBuilder()
+                    .withUserId(`user-${i}`)
+                    .withGroupId(groupId)
+                    .build());
 
             stubReader.setGroupMembers(groupId, existingMembers);
 
@@ -137,7 +151,11 @@ describe('GroupShareService', () => {
 
         it(`should fail when group already has ${MAX_GROUP_MEMBERS} members`, async () => {
             // Create exactly MAX_GROUP_MEMBERS existing members
-            const existingMembers = Array.from({ length: MAX_GROUP_MEMBERS }, (_, i) => new GroupMemberDocumentBuilder().withUserId(`user-${i}`).withGroupId(groupId).build());
+            const existingMembers = Array.from({ length: MAX_GROUP_MEMBERS }, (_, i) =>
+                new GroupMemberDocumentBuilder()
+                    .withUserId(`user-${i}`)
+                    .withGroupId(groupId)
+                    .build());
 
             stubReader.setGroupMembers(groupId, existingMembers);
 
@@ -158,7 +176,11 @@ describe('GroupShareService', () => {
         it(`should detect overflow in getAllGroupMembers when group has > ${MAX_GROUP_MEMBERS}`, async () => {
             // Create MAX_GROUP_MEMBERS + 1 members (edge case - should never happen in practice)
             // This tests the overflow detection in FirestoreReader.getAllGroupMembers directly
-            const tooManyMembers = Array.from({ length: MAX_GROUP_MEMBERS + 1 }, (_, i) => new GroupMemberDocumentBuilder().withUserId(`user-${i}`).withGroupId(groupId).build());
+            const tooManyMembers = Array.from({ length: MAX_GROUP_MEMBERS + 1 }, (_, i) =>
+                new GroupMemberDocumentBuilder()
+                    .withUserId(`user-${i}`)
+                    .withGroupId(groupId)
+                    .build());
 
             stubReader.setGroupMembers(groupId, tooManyMembers);
 

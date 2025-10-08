@@ -394,7 +394,11 @@ export class GroupService {
      * Create a new group with the creator as the owner/admin
      * IMPORTANT: The creator is automatically added as a member with 'owner' role
      */
-    async createGroup(userId: string, groupData: CreateGroupRequest = new CreateGroupRequestBuilder().build()): Promise<GroupDTO> {
+    async createGroup(
+        userId: string,
+        groupData: CreateGroupRequest = new CreateGroupRequestBuilder()
+            .build(),
+    ): Promise<GroupDTO> {
         return measure.measureDb('createGroup', async () => this._createGroup(userId, groupData));
     }
 

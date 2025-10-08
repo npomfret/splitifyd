@@ -108,7 +108,10 @@ test.describe('Registration Authentication Flow', () => {
 test.describe('Registration Flow - Already Authenticated', () => {
     test('should redirect already authenticated user from register page', async ({ pageWithLogging: page, authenticatedMockFirebase }) => {
         // Create authenticated user for this test
-        const testUser = ClientUserBuilder.validUser().withDisplayName('Existing User').build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .withDisplayName('Existing User')
+            .build();
 
         await setupSuccessfulApiMocks(page);
 
@@ -149,7 +152,9 @@ test.describe('Registration Flow - Already Authenticated', () => {
     });
 
     test('should navigate to dashboard when no returnUrl present', async ({ pageWithLogging: page, mockFirebase }) => {
-        const testUser = ClientUserBuilder.validUser().build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .build();
         const registerPage = new RegisterPage(page);
 
         mockFirebase.mockRegisterSuccess(testUser);
@@ -170,7 +175,9 @@ test.describe('Registration Flow - Already Authenticated', () => {
 
 test.describe('Registration Form - Loading and Disabled States', () => {
     test('should show loading state during registration attempt', async ({ pageWithLogging: page, mockFirebase }) => {
-        const testUser = ClientUserBuilder.validUser().build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .build();
         const registerPage = new RegisterPage(page);
 
         // Configure mock with delayed response to test loading state
@@ -225,7 +232,9 @@ test.describe('Registration Form - Loading and Disabled States', () => {
     });
 
     test('should disable all interactive elements during loading state', async ({ pageWithLogging: page, mockFirebase }) => {
-        const testUser = ClientUserBuilder.validUser().build();
+        const testUser = ClientUserBuilder
+            .validUser()
+            .build();
         const registerPage = new RegisterPage(page);
         mockFirebase.mockRegisterWithDelay(testUser, 1000);
 

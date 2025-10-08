@@ -32,7 +32,8 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
         });
 
         test('should be able to register a new user in the emulator', async () => {
-            const userData = new TestUserBuilder().build();
+            const userData = new TestUserBuilder()
+                .build();
             const registeredUser = await apiDriver.register(userData);
 
             expect(registeredUser).toHaveProperty('user');
@@ -54,7 +55,8 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
     describe('Firebase Auth Integration', () => {
         test('should register a new user and create Firebase Auth record', async () => {
             // This test verifies actual Firebase Auth integration
-            const userData = new UserRegistrationBuilder().build();
+            const userData = new UserRegistrationBuilder()
+                .build();
 
             const response = await apiDriver.register(userData);
 
@@ -68,7 +70,8 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
     describe('Duplicate Registration Prevention', () => {
         describe('Sequential Registration', () => {
             test('should prevent duplicate email registration', async () => {
-                const userData = new UserRegistrationBuilder().build();
+                const userData = new UserRegistrationBuilder()
+                    .build();
 
                 // First registration should succeed
                 const firstResponse = await apiDriver.register(userData);
@@ -80,7 +83,8 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
             });
 
             test('should return consistent error message for duplicate emails', async () => {
-                const userData = new UserRegistrationBuilder().build();
+                const userData = new UserRegistrationBuilder()
+                    .build();
 
                 // Create user first
                 await apiDriver.register(userData);
@@ -106,7 +110,8 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
 
         describe('Concurrent Registration', () => {
             test('should handle concurrent registration attempts with same email', async () => {
-                const userData = new UserRegistrationBuilder().build();
+                const userData = new UserRegistrationBuilder()
+                    .build();
 
                 // Attempt to register the same user concurrently
                 const promises = Array(5)
@@ -129,7 +134,8 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
             });
 
             test('should handle rapid sequential registrations with same email', async () => {
-                const userData = new UserRegistrationBuilder().build();
+                const userData = new UserRegistrationBuilder()
+                    .build();
 
                 // First registration
                 await apiDriver.register(userData);
@@ -145,13 +151,19 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
         describe('Case Sensitivity', () => {
             test('should treat email addresses case-insensitively', async () => {
                 const baseEmail = generateTestEmail();
-                const userData = new UserRegistrationBuilder().withEmail(baseEmail.toLowerCase()).build();
+                const userData = new UserRegistrationBuilder()
+                    .withEmail(baseEmail.toLowerCase())
+                    .build();
 
                 // Register with lowercase
                 await apiDriver.register(userData);
 
                 // Try with uppercase - should fail
-                const upperCaseData = new UserRegistrationBuilder().withEmail(baseEmail.toUpperCase()).withPassword(userData.password).withDisplayName(userData.displayName).build();
+                const upperCaseData = new UserRegistrationBuilder()
+                    .withEmail(baseEmail.toUpperCase())
+                    .withPassword(userData.password)
+                    .withDisplayName(userData.displayName)
+                    .build();
 
                 await expect(apiDriver.register(upperCaseData)).rejects.toThrow(/409|email.*exists/i);
 
@@ -169,21 +181,29 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
         describe('Edge Cases', () => {
             test('should handle registration with trimmed email addresses', async () => {
                 const baseEmail = generateTestEmail();
-                const userData = new UserRegistrationBuilder().withEmail(baseEmail).build();
+                const userData = new UserRegistrationBuilder()
+                    .withEmail(baseEmail)
+                    .build();
 
                 // Register normally
                 await apiDriver.register(userData);
 
                 // Try with spaces - should be trimmed and treated as duplicate
-                const spacedData = new UserRegistrationBuilder().withEmail(`  ${baseEmail}  `).withPassword(userData.password).withDisplayName(userData.displayName).build();
+                const spacedData = new UserRegistrationBuilder()
+                    .withEmail(`  ${baseEmail}  `)
+                    .withPassword(userData.password)
+                    .withDisplayName(userData.displayName)
+                    .build();
 
                 // Server trims email spaces and detects duplicate email
                 await expect(apiDriver.register(spacedData)).rejects.toThrow(/409|email.*exists|already.*registered/i);
             });
 
             test('should allow different users with different emails', async () => {
-                const user1 = new UserRegistrationBuilder().build();
-                const user2 = new UserRegistrationBuilder().build();
+                const user1 = new UserRegistrationBuilder()
+                    .build();
+                const user2 = new UserRegistrationBuilder()
+                    .build();
 
                 // Both registrations should succeed
                 const response1 = await apiDriver.register(user1);
@@ -197,7 +217,8 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
 
         describe('Error Recovery', () => {
             test('should allow registration after previous failure', async () => {
-                const userData = new UserRegistrationBuilder().build();
+                const userData = new UserRegistrationBuilder()
+                    .build();
 
                 // First attempt with invalid password
                 const invalidData = { ...userData, password: '123' }; // Too weak
