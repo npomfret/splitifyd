@@ -6,12 +6,6 @@ import { ApiError } from '../../../../utils/errors';
 describe('ExactSplitStrategy', () => {
     const strategy = new ExactSplitStrategy();
 
-    describe('requiresSplitsData', () => {
-        it('should return true as exact splits require splits data', () => {
-            expect(strategy.requiresSplitsData()).toBe(true);
-        });
-    });
-
     describe('validateSplits', () => {
         const participants = ['user1', 'user2', 'user3'];
 
@@ -304,60 +298,6 @@ describe('ExactSplitStrategy', () => {
                 ])
                 .build();
             expect(() => strategy.validateSplits(100, participants, splitsOutsideTolerance)).toThrow(new ApiError(400, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount'));
-        });
-    });
-
-    describe('calculateSplits', () => {
-        it('should return exact splits as provided', () => {
-            const participants = ['user1', 'user2'];
-            const splits = ExpenseSplitBuilder
-                .exactSplit([
-                    { uid: 'user1', amount: 70 },
-                    { uid: 'user2', amount: 30 },
-                ])
-                .build();
-            const result = strategy.calculateSplits(100, participants, splits);
-
-            expect(result).toHaveLength(2);
-            expect(result[0]).toEqual(SplitAssertionBuilder.split('user1', 70));
-            expect(result[1]).toEqual(SplitAssertionBuilder.split('user2', 30));
-        });
-
-        it('should preserve percentage if provided', () => {
-            const participants = ['user1', 'user2'];
-            const splits = ExpenseSplitBuilder
-                .exactSplit([
-                    { uid: 'user1', amount: 70, percentage: 70 },
-                    { uid: 'user2', amount: 30, percentage: 30 },
-                ])
-                .build();
-            const result = strategy.calculateSplits(100, participants, splits);
-
-            expect(result).toHaveLength(2);
-            expect(result[0]).toEqual(SplitAssertionBuilder.splitWithPercentage('user1', 70, 70));
-            expect(result[1]).toEqual(SplitAssertionBuilder.splitWithPercentage('user2', 30, 30));
-        });
-
-        it('should not include percentage field when undefined', () => {
-            const participants = ['user1', 'user2'];
-            const splits = ExpenseSplitBuilder
-                .exactSplit([
-                    { uid: 'user1', amount: 70 },
-                    { uid: 'user2', amount: 30 },
-                ])
-                .build();
-            const result = strategy.calculateSplits(100, participants, splits);
-
-            expect(result).toHaveLength(2);
-            expect(result[0]).toEqual(SplitAssertionBuilder.split('user1', 70));
-            expect(result[1]).toEqual(SplitAssertionBuilder.split('user2', 30));
-            expect(result[0]).not.toHaveProperty('percentage');
-            expect(result[1]).not.toHaveProperty('percentage');
-        });
-
-        it('should throw error if splits are not provided', () => {
-            const participants = ['user1', 'user2'];
-            expect(() => strategy.calculateSplits(100, participants)).toThrow('Splits are required for exact split type');
         });
     });
 });

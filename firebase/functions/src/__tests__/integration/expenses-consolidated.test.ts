@@ -1,7 +1,7 @@
 // Consolidated Expense Management Integration Tests
 // Combines tests from expenses-api.test.ts, ExpenseService.integration.test.ts, and expenses-full-details.test.ts
 
-import { PooledTestUser } from '@splitifyd/shared';
+import { calculateEqualSplits, PooledTestUser } from '@splitifyd/shared';
 import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, ExpenseUpdateBuilder, generateShortId, NotificationDriver, TestGroupManager } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
@@ -128,11 +128,14 @@ describe('Expenses Management - Consolidated Tests', () => {
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
 
             // Test API update
+            const participants1 = [users[0].uid, users[1].uid];
             const apiUpdateData = new ExpenseUpdateBuilder()
                 .withDescription('Updated Test Expense')
                 .withAmount(150.5)
                 .withCurrency('USD')
                 .withCategory('food')
+                .withParticipants(participants1)
+                .withSplits(calculateEqualSplits(150.5, 'USD', participants1))
                 .build();
             await apiDriver.updateExpense(createdExpense.id, apiUpdateData, users[0].token);
 
@@ -141,9 +144,11 @@ describe('Expenses Management - Consolidated Tests', () => {
             expect(apiUpdatedExpense.amount).toBe(apiUpdateData.amount);
 
             // Test API update with participant recalculation
+            const participants2 = [users[0].uid, users[1].uid, users[2].uid];
             const secondUpdateData = {
                 amount: 200,
-                participants: [users[0].uid, users[1].uid, users[2].uid],
+                participants: participants2,
+                splits: calculateEqualSplits(200, 'USD', participants2),
             };
             await apiDriver.updateExpense(createdExpense.id, secondUpdateData, users[0].token);
 
@@ -151,9 +156,9 @@ describe('Expenses Management - Consolidated Tests', () => {
             expect(finalUpdatedExpense.amount).toBe(200);
             expect(finalUpdatedExpense.participants).toEqual([users[0].uid, users[1].uid, users[2].uid]);
             expect(finalUpdatedExpense.splits).toHaveLength(3);
-            finalUpdatedExpense.splits.forEach((split: any) => {
-                expect(split.amount).toBeCloseTo(66.67, 2); // 200 / 3
-            });
+            // Verify splits sum to total amount (200 / 3 = 66.66, 66.66, 66.68)
+            const totalSplits = finalUpdatedExpense.splits.reduce((sum: number, split: any) => sum + split.amount, 0);
+            expect(totalSplits).toBeCloseTo(200, 1);
         });
 
         test('should track edit history and update timestamps', async () => {
@@ -170,12 +175,15 @@ describe('Expenses Management - Consolidated Tests', () => {
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
 
             // Make multiple updates
+            const historyParticipants = [users[0].uid, users[1].uid];
             await apiDriver.updateExpense(
                 createdExpense.id,
                 new ExpenseUpdateBuilder()
                     .withAmount(150)
                     .withCurrency('USD')
                     .withDescription('First Update')
+                    .withParticipants(historyParticipants)
+                    .withSplits(calculateEqualSplits(150, 'USD', historyParticipants))
                     .build(),
                 users[0].token,
             );
@@ -186,6 +194,8 @@ describe('Expenses Management - Consolidated Tests', () => {
                     .withCurrency('USD')
                     .withDescription('First Update')
                     .withCategory('transport')
+                    .withParticipants(historyParticipants)
+                    .withSplits(calculateEqualSplits(200, 'USD', historyParticipants))
                     .build(),
                 users[0].token,
             );
@@ -215,11 +225,14 @@ describe('Expenses Management - Consolidated Tests', () => {
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
 
             // Creator should be able to update
+            const permissionParticipants = [users[0].uid, users[1].uid];
             await apiDriver.updateExpense(
                 createdExpense.id,
                 new ExpenseUpdateBuilder()
                     .withAmount(150)
                     .withCurrency('USD')
+                    .withParticipants(permissionParticipants)
+                    .withSplits(calculateEqualSplits(150, 'USD', permissionParticipants))
                     .build(),
                 users[0].token,
             );
@@ -231,6 +244,8 @@ describe('Expenses Management - Consolidated Tests', () => {
                     .withDescription('Updated by non-creator')
                     .withAmount(120)
                     .withCurrency('USD')
+                    .withParticipants(permissionParticipants)
+                    .withSplits(calculateEqualSplits(120, 'USD', permissionParticipants))
                     .build(),
                 users[2].token,
             );
@@ -263,10 +278,13 @@ describe('Expenses Management - Consolidated Tests', () => {
             expect(initialBalances.balancesByCurrency.USD).toBeDefined();
             expect(initialBalances.balancesByCurrency.EUR).toBeUndefined();
 
+            const currencyUpdateParticipants = [users[0].uid, users[1].uid];
             const currencyUpdate = new ExpenseUpdateBuilder()
                 .withAmount(200)
                 .withCurrency('EUR')
                 .withDescription('Changed to EUR')
+                .withParticipants(currencyUpdateParticipants)
+                .withSplits(calculateEqualSplits(200, 'EUR', currencyUpdateParticipants))
                 .build();
 
             await apiDriver.updateExpense(createdExpense.id, currencyUpdate, users[0].token);

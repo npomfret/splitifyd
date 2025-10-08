@@ -3,10 +3,10 @@ import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 
 import { CreateExpenseRequest, ExpenseSplit, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
-import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 import { validateAmountPrecision } from '../utils/amount-validation';
 import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
 import { sanitizeString } from '../utils/security';
+import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 
 const expenseSplitSchema = Joi.object({
     uid: Joi.string().required(),
@@ -66,7 +66,7 @@ const createExpenseSchema = Joi.object({
     date: dateValidationSchema.required(),
     splitType: Joi.string().valid(SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE).required(),
     participants: Joi.array().items(Joi.string()).min(1).required(),
-    splits: Joi.array().items(expenseSplitSchema).optional(),
+    splits: Joi.array().items(expenseSplitSchema).required(),
     receiptUrl: Joi.string().uri().optional().allow(''),
 });
 
@@ -264,7 +264,8 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
         update.paidBy = value.paidBy;
     }
 
-    if ('splitType' in value || 'participants' in value || 'splits' in value) {
+    // If amount, splitType, participants, or splits are being updated, require complete split information
+    if ('amount' in value || 'splitType' in value || 'participants' in value || 'splits' in value) {
         const splitType = value.splitType || SplitTypes.EQUAL;
         if (!value.participants) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_PARTICIPANTS', 'Participants are required for split updates');
@@ -286,13 +287,16 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
             }
         }
 
-        // Use strategy pattern to validate splits for updates
-        const splitStrategyFactory = SplitStrategyFactory.getInstance();
-        const splitStrategy = splitStrategyFactory.getStrategy(splitType);
-
-        if (splitStrategy.requiresSplitsData() && (!Array.isArray(splits) || splits.length !== participants.length)) {
+        // Splits are always required
+        if (!Array.isArray(splits) || splits.length !== participants.length) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLITS', 'Splits must be provided for all participants');
         }
+
+        // Use strategy pattern to validate splits for updates
+        // Note: amount validation is not critical here - will be handled when expense is retrieved and updated
+        const splitStrategyFactory = SplitStrategyFactory.getInstance();
+        const splitStrategy = splitStrategyFactory.getStrategy(splitType);
+        splitStrategy.validateSplits(value.amount ?? 0, participants, splits, currency);
 
         update.splitType = splitType;
         update.participants = participants.map((p: string) => p.trim());
@@ -311,11 +315,4 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
     }
 
     return sanitizeExpenseData(update);
-};
-
-export const calculateSplits = (amount: number, splitType: string, participants: string[], splits?: ExpenseSplit[]): ExpenseSplit[] => {
-    // Use strategy pattern to calculate splits
-    const splitStrategyFactory = SplitStrategyFactory.getInstance();
-    const splitStrategy = splitStrategyFactory.getStrategy(splitType);
-    return splitStrategy.calculateSplits(amount, participants, splits);
 };

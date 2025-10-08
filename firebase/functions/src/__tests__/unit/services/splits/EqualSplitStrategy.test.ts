@@ -1,96 +1,109 @@
-import { ExpenseSplitBuilder, SplitAssertionBuilder } from '@splitifyd/test-support';
+import { calculateEqualSplits } from '@splitifyd/shared';
 import { describe, expect, it } from 'vitest';
 import { EqualSplitStrategy } from '../../../../services/splits/EqualSplitStrategy';
 
 describe('EqualSplitStrategy', () => {
     const strategy = new EqualSplitStrategy();
 
-    describe('requiresSplitsData', () => {
-        it('should return false as equal splits do not require splits data', () => {
-            expect(strategy.requiresSplitsData()).toBe(false);
-        });
-    });
-
     describe('validateSplits', () => {
-        it('should not throw error for valid participants', () => {
-            const participants = ['user1', 'user2', 'user3'];
-            expect(() => strategy.validateSplits(100, participants)).not.toThrow();
-        });
-
-        it('should not throw error when splits data is provided (but not required)', () => {
+        it('should validate equal splits for two participants', () => {
             const participants = ['user1', 'user2'];
-            const splits = ExpenseSplitBuilder
-                .equalSplit(['user1', 'user2'], 100)
-                .build();
-            expect(() => strategy.validateSplits(100, participants, splits)).not.toThrow();
+            const splits = calculateEqualSplits(100, 'USD', participants);
+
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).not.toThrow();
         });
 
-        it('should not throw error for single participant', () => {
+        it('should validate equal splits for three participants', () => {
+            const participants = ['user1', 'user2', 'user3'];
+            const splits = calculateEqualSplits(100, 'USD', participants);
+
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).not.toThrow();
+        });
+
+        it('should validate equal splits for single participant', () => {
             const participants = ['user1'];
-            expect(() => strategy.validateSplits(100, participants)).not.toThrow();
-        });
-    });
+            const splits = calculateEqualSplits(100, 'USD', participants);
 
-    describe('calculateSplits', () => {
-        it('should calculate equal splits for two participants', () => {
-            const participants = ['user1', 'user2'];
-            const result = strategy.calculateSplits(100, participants);
-
-            expect(result).toHaveLength(2);
-            expect(result[0]).toEqual(SplitAssertionBuilder.split('user1', 50));
-            expect(result[1]).toEqual(SplitAssertionBuilder.split('user2', 50));
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).not.toThrow();
         });
 
-        it('should calculate equal splits for three participants', () => {
+        it('should validate equal splits with currency-aware precision (JPY)', () => {
             const participants = ['user1', 'user2', 'user3'];
-            const result = strategy.calculateSplits(100, participants);
+            const splits = calculateEqualSplits(100, 'JPY', participants);
 
-            expect(result).toHaveLength(3);
-            expect(result[0]).toEqual(SplitAssertionBuilder.split('user1', 33.33));
-            expect(result[1]).toEqual(SplitAssertionBuilder.split('user2', 33.33));
-            expect(result[2]).toEqual(SplitAssertionBuilder.split('user3', 33.33));
+            expect(() => strategy.validateSplits(100, participants, splits, 'JPY')).not.toThrow();
         });
 
-        it('should handle decimal amounts correctly', () => {
+        it('should reject when splits array is missing', () => {
             const participants = ['user1', 'user2'];
-            const result = strategy.calculateSplits(10.5, participants);
 
-            expect(result).toHaveLength(2);
-            expect(result[0]).toEqual(SplitAssertionBuilder.split('user1', 5.25));
-            expect(result[1]).toEqual(SplitAssertionBuilder.split('user2', 5.25));
+            expect(() => strategy.validateSplits(100, participants, undefined, 'USD')).toThrow('Splits must be provided');
         });
 
-        it('should round amounts to 2 decimal places', () => {
+        it('should reject when splits length does not match participants', () => {
             const participants = ['user1', 'user2', 'user3'];
-            const result = strategy.calculateSplits(10, participants);
+            const splits = calculateEqualSplits(100, 'USD', ['user1', 'user2']);
 
-            expect(result).toHaveLength(3);
-            expect(result[0]).toEqual(SplitAssertionBuilder.split('user1', 3.33));
-            expect(result[1]).toEqual(SplitAssertionBuilder.split('user2', 3.33));
-            expect(result[2]).toEqual(SplitAssertionBuilder.split('user3', 3.33));
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).toThrow('Splits must be provided');
         });
 
-        it('should handle single participant', () => {
-            const participants = ['user1'];
-            const result = strategy.calculateSplits(100, participants);
-
-            expect(result).toHaveLength(1);
-            expect(result[0]).toEqual(SplitAssertionBuilder.split('user1', 100));
-        });
-
-        it('should ignore provided splits data', () => {
+        it('should reject when split amount is missing', () => {
             const participants = ['user1', 'user2'];
-            const splits = ExpenseSplitBuilder
-                .exactSplit([
-                    { uid: 'user1', amount: 70 },
-                    { uid: 'user2', amount: 30 },
-                ])
-                .build();
-            const result = strategy.calculateSplits(100, participants, splits);
+            const splits = [{ uid: 'user1', amount: 50 }, { uid: 'user2', amount: undefined as any }];
 
-            expect(result).toHaveLength(2);
-            expect(result[0]).toEqual(SplitAssertionBuilder.split('user1', 50));
-            expect(result[1]).toEqual(SplitAssertionBuilder.split('user2', 50));
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).toThrow('Split amount is required');
+        });
+
+        it('should reject when splits do not sum to total', () => {
+            const participants = ['user1', 'user2'];
+            const splits = [
+                { uid: 'user1', amount: 40 },
+                { uid: 'user2', amount: 40 },
+            ];
+
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).toThrow('Split amounts must equal total amount');
+        });
+
+        it('should reject when there are duplicate users', () => {
+            const participants = ['user1', 'user2'];
+            const splits = [
+                { uid: 'user1', amount: 50 },
+                { uid: 'user1', amount: 50 },
+            ];
+
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).toThrow('Each participant can only appear once');
+        });
+
+        it('should reject when split user is not a participant', () => {
+            const participants = ['user1', 'user2'];
+            const splits = [
+                { uid: 'user1', amount: 50 },
+                { uid: 'user3', amount: 50 },
+            ];
+
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).toThrow('Split user must be a participant');
+        });
+
+        it('should reject unequal splits for equal split type', () => {
+            const participants = ['user1', 'user2'];
+            const splits = [
+                { uid: 'user1', amount: 70 },
+                { uid: 'user2', amount: 30 },
+            ];
+
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).toThrow('all participants should have equal amounts');
+        });
+
+        it('should allow remainder distribution (one person gets slightly more)', () => {
+            const participants = ['user1', 'user2', 'user3'];
+            // 100 / 3 = 33.33, 33.33, 33.34 (last person gets remainder)
+            const splits = [
+                { uid: 'user1', amount: 33.33 },
+                { uid: 'user2', amount: 33.33 },
+                { uid: 'user3', amount: 33.34 },
+            ];
+
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).not.toThrow();
         });
     });
 });

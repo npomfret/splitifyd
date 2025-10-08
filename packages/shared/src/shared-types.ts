@@ -587,7 +587,7 @@ export interface CreateExpenseRequest {
     date: string;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
     participants: string[];
-    splits?: ExpenseSplit[];
+    splits: ExpenseSplit[];
     receiptUrl?: string;
 }
 

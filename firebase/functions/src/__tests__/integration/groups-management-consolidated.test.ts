@@ -1,4 +1,4 @@
-import { MemberRoles, MemberStatuses, PooledTestUser } from '@splitifyd/shared';
+import { calculateEqualSplits, MemberRoles, MemberStatuses, PooledTestUser } from '@splitifyd/shared';
 import {
     ApiDriver,
     borrowTestUsers,
@@ -440,7 +440,11 @@ describe('Groups Management - Consolidated Tests', () => {
             );
 
             // Try concurrent expense updates
-            const updatePromises = [apiDriver.updateExpense(expense.id, { amount: 200 }, users[0].token), apiDriver.updateExpense(expense.id, { amount: 300 }, users[0].token)];
+            const concurrentParticipants = [users[0].uid, users[1].uid];
+            const updatePromises = [
+                apiDriver.updateExpense(expense.id, { amount: 200, participants: concurrentParticipants, splits: calculateEqualSplits(200, 'USD', concurrentParticipants) }, users[0].token),
+                apiDriver.updateExpense(expense.id, { amount: 300, participants: concurrentParticipants, splits: calculateEqualSplits(300, 'USD', concurrentParticipants) }, users[0].token),
+            ];
 
             const results = await Promise.allSettled(updatePromises);
             const successes = results.filter((r) => r.status === 'fulfilled');
@@ -480,7 +484,11 @@ describe('Groups Management - Consolidated Tests', () => {
             );
 
             // Try concurrent delete and update
-            const promises = [apiDriver.deleteExpense(expense.id, users[0].token), apiDriver.updateExpense(expense.id, { amount: 75 }, users[0].token)];
+            const deleteUpdateParticipants = [users[0].uid, users[1].uid];
+            const promises = [
+                apiDriver.deleteExpense(expense.id, users[0].token),
+                apiDriver.updateExpense(expense.id, { amount: 75, participants: deleteUpdateParticipants, splits: calculateEqualSplits(75, 'USD', deleteUpdateParticipants) }, users[0].token),
+            ];
 
             const results = await Promise.allSettled(promises);
             const successes = results.filter((r) => r.status === 'fulfilled');
@@ -1191,11 +1199,14 @@ describe('Groups Management - Consolidated Tests', () => {
             expect(fetchedExpense.description).toBe('Update Test Expense');
 
             // Update the expense
+            const updateParticipants = [users[0].uid, users[1].uid];
             await apiDriver.updateExpense(
                 createdExpense.id,
                 {
                     amount: 80,
                     description: 'Updated Test Expense',
+                    participants: updateParticipants,
+                    splits: calculateEqualSplits(80, 'USD', updateParticipants),
                 },
                 users[0].token,
             );

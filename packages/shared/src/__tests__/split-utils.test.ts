@@ -105,8 +105,8 @@ describe('Split Utils', () => {
             it('should handle 2-way split with odd amount', () => {
                 const splits = calculateEqualSplits(101, 'JPY', ['user1', 'user2']);
                 expect(splits).toEqual([
-                    { uid: 'user1', amount: 51 },
-                    { uid: 'user2', amount: 50 }, // Last gets remainder
+                    { uid: 'user1', amount: 50 },
+                    { uid: 'user2', amount: 51 }, // Last gets remainder
                 ]);
                 const total = splits.reduce((sum, s) => sum + s.amount, 0);
                 expect(total).toBe(101);
@@ -139,9 +139,10 @@ describe('Split Utils', () => {
                 const participants = Array.from({ length: 7 }, (_, i) => `user${i + 1}`);
                 const splits = calculateEqualSplits(100, 'USD', participants);
 
-                // First 6 get 14.29, last gets 14.26
-                expect(splits.slice(0, 6).every((s) => s.amount === 14.29)).toBe(true);
-                expect(splits[6].amount).toBe(14.26);
+                // Using integer math: 10000 cents / 7 = 1428 cents base (14.28)
+                // First 6 get 14.28, last gets remainder: 100 - (14.28 * 6) = 14.32
+                expect(splits.slice(0, 6).every((s) => s.amount === 14.28)).toBe(true);
+                expect(splits[6].amount).toBe(14.32);
 
                 // Verify total (account for floating point precision)
                 const total = splits.reduce((sum, s) => sum + s.amount, 0);
@@ -326,6 +327,204 @@ describe('Split Utils', () => {
                     { uid: 'user1', percentage: 50, amount: 50.0 },
                     { uid: 'user2', percentage: 50, amount: 50.0 },
                 ]);
+            });
+        });
+    });
+
+    describe('CRITICAL: Mathematical Precision Guarantees - Zero Tolerance', () => {
+        // These tests ensure splits ALWAYS sum to exactly the total amount with NO floating point errors
+        // ANY failure here means the split calculation is broken and MUST be fixed
+
+        describe('Equal Splits - Precision Guarantee', () => {
+            const testCases = [
+                // [amount, currency, participantCount, description]
+                // Zero-decimal currencies
+                [100, 'JPY', 3, 'JPY with 3 people'],
+                [1000, 'KRW', 7, 'KRW with 7 people'],
+                [999, 'VND', 11, 'VND prime participants'],
+                [10001, 'CLP', 13, 'CLP large amount'],
+
+                // One-decimal currencies
+                [100.5, 'MGA', 3, 'MGA with decimals'],
+                [999.9, 'MRU', 7, 'MRU edge amount'],
+                [10.1, 'MGA', 11, 'MGA small amount'],
+
+                // Two-decimal currencies
+                [100, 'USD', 3, 'USD standard case'],
+                [100, 'USD', 7, 'USD 7 people'],
+                [100, 'EUR', 11, 'EUR prime participants'],
+                [99.99, 'GBP', 3, 'GBP edge amount'],
+                [0.03, 'USD', 3, 'USD very small amount'],
+                [1000000.01, 'USD', 17, 'USD large amount prime participants'],
+                [33.33, 'CAD', 19, 'CAD complex division'],
+
+                // Three-decimal currencies
+                [100, 'BHD', 3, 'BHD standard case'],
+                [999.999, 'KWD', 7, 'KWD edge amount'],
+                [10.001, 'OMR', 11, 'OMR small amount'],
+                [100.123, 'JOD', 13, 'JOD complex amount'],
+            ] as const;
+
+            testCases.forEach(([amount, currency, participantCount, description]) => {
+                it(`${description}: ${amount} ${currency} ÷ ${participantCount} must sum EXACTLY to ${amount}`, () => {
+                    const participants = Array.from({ length: participantCount }, (_, i) => `user${i + 1}`);
+                    const splits = calculateEqualSplits(amount, currency, participants);
+
+                    // Sum all split amounts
+                    const total = splits.reduce((sum, split) => sum + split.amount, 0);
+
+                    // Round the total to currency precision to eliminate floating point accumulation errors
+                    // (e.g., 33.33 + 33.33 + 33.34 = 100.00000000000001 in JavaScript)
+                    const roundedTotal = roundToCurrencyPrecision(total, currency);
+                    expect(roundedTotal).toBe(amount);
+
+                    // Verify no split has more precision than currency allows
+                    const decimals = getCurrencyDecimals(currency);
+                    splits.forEach((split) => {
+                        const rounded = roundToCurrencyPrecision(split.amount, currency);
+                        expect(split.amount).toBe(rounded);
+                    });
+                });
+            });
+
+            it('should handle 100 edge cases without ANY precision errors', () => {
+                // Test many random-ish amounts to catch edge cases
+                const amounts = [0.01, 0.02, 0.03, 0.99, 1.01, 9.99, 10.01, 33.33, 66.67, 99.99, 100.01, 1000.01];
+                const participantCounts = [2, 3, 5, 7, 11, 13];
+
+                amounts.forEach((amount) => {
+                    participantCounts.forEach((count) => {
+                        const participants = Array.from({ length: count }, (_, i) => `user${i + 1}`);
+                        const splits = calculateEqualSplits(amount, 'USD', participants);
+                        const total = splits.reduce((sum, split) => sum + split.amount, 0);
+                        const roundedTotal = roundToCurrencyPrecision(total, 'USD');
+                        expect(roundedTotal).toBe(amount);
+                    });
+                });
+            });
+        });
+
+        describe('Percentage Splits - Precision Guarantee', () => {
+            const testCases = [
+                // [amount, currency, participantCount, description]
+                [100, 'JPY', 3, 'JPY with 3 people'],
+                [1000, 'KRW', 7, 'KRW with 7 people'],
+                [100.5, 'MGA', 3, 'MGA with decimals'],
+                [100, 'USD', 3, 'USD standard case'],
+                [100, 'USD', 7, 'USD 7 people'],
+                [100, 'USD', 11, 'USD prime participants'],
+                [99.99, 'USD', 13, 'USD edge amount'],
+                [100, 'BHD', 3, 'BHD standard case'],
+                [100.123, 'BHD', 7, 'BHD complex amount'],
+            ] as const;
+
+            testCases.forEach(([amount, currency, participantCount, description]) => {
+                it(`${description}: ${amount} ${currency} ÷ ${participantCount} must sum EXACTLY to ${amount}`, () => {
+                    const participants = Array.from({ length: participantCount }, (_, i) => `user${i + 1}`);
+                    const splits = calculatePercentageSplits(amount, currency, participants);
+
+                    // Sum all split amounts
+                    const total = splits.reduce((sum, split) => sum + split.amount, 0);
+
+                    // Round the total to currency precision to eliminate floating point accumulation errors
+                    const roundedTotal = roundToCurrencyPrecision(total, currency);
+                    expect(roundedTotal).toBe(amount);
+
+                    // Verify percentages sum to exactly 100%
+                    const totalPercentage = splits.reduce((sum, split) => split.percentage + sum, 0);
+                    expect(totalPercentage).toBe(100);
+
+                    // Verify no split has more precision than currency allows
+                    const decimals = getCurrencyDecimals(currency);
+                    splits.forEach((split) => {
+                        const rounded = roundToCurrencyPrecision(split.amount, currency);
+                        expect(split.amount).toBe(rounded);
+                    });
+                });
+            });
+        });
+
+        describe('Exact Splits - Precision Guarantee', () => {
+            // Exact splits use the same logic as equal splits initially
+            const testCases = [
+                [100, 'JPY', 3],
+                [100, 'USD', 7],
+                [100.123, 'BHD', 11],
+            ] as const;
+
+            testCases.forEach(([amount, currency, participantCount]) => {
+                it(`${amount} ${currency} ÷ ${participantCount} must sum EXACTLY to ${amount}`, () => {
+                    const participants = Array.from({ length: participantCount }, (_, i) => `user${i + 1}`);
+                    const splits = calculateExactSplits(amount, currency, participants);
+
+                    const total = splits.reduce((sum, split) => sum + split.amount, 0);
+                    const roundedTotal = roundToCurrencyPrecision(total, currency);
+                    expect(roundedTotal).toBe(amount);
+                });
+            });
+        });
+
+        describe('Stress Test - Large Scale Precision', () => {
+            it('should handle 1000 splits with perfect precision (USD)', () => {
+                const participants = Array.from({ length: 1000 }, (_, i) => `user${i + 1}`);
+                const splits = calculateEqualSplits(12345.67, 'USD', participants);
+
+                const total = splits.reduce((sum, split) => sum + split.amount, 0);
+                const roundedTotal = roundToCurrencyPrecision(total, 'USD');
+                expect(roundedTotal).toBe(12345.67);
+            });
+
+            it('should handle 100 splits with perfect precision (BHD)', () => {
+                const participants = Array.from({ length: 100 }, (_, i) => `user${i + 1}`);
+                const splits = calculateEqualSplits(999.999, 'BHD', participants);
+
+                const total = splits.reduce((sum, split) => sum + split.amount, 0);
+                const roundedTotal = roundToCurrencyPrecision(total, 'BHD');
+                expect(roundedTotal).toBe(999.999);
+            });
+
+            it('should handle very small amounts with many participants', () => {
+                // 1 cent split 50 ways should still be exact
+                const participants = Array.from({ length: 50 }, (_, i) => `user${i + 1}`);
+                const splits = calculateEqualSplits(0.50, 'USD', participants);
+
+                const total = splits.reduce((sum, split) => sum + split.amount, 0);
+                const roundedTotal = roundToCurrencyPrecision(total, 'USD');
+                expect(roundedTotal).toBe(0.50);
+            });
+        });
+
+        describe('Floating Point Edge Cases', () => {
+            // These amounts are known to cause floating point issues
+            it('should handle 0.1 + 0.2 precision issue', () => {
+                // In JavaScript: 0.1 + 0.2 = 0.30000000000000004
+                const splits = calculateEqualSplits(0.30, 'USD', ['user1', 'user2']);
+                const total = splits.reduce((sum, split) => sum + split.amount, 0);
+                const roundedTotal = roundToCurrencyPrecision(total, 'USD');
+                expect(roundedTotal).toBe(0.30);
+            });
+
+            it('should handle 1/3 divisions correctly', () => {
+                // 100 / 3 = 33.333...
+                const splits = calculateEqualSplits(100, 'USD', ['user1', 'user2', 'user3']);
+                const total = splits.reduce((sum, split) => sum + split.amount, 0);
+                const roundedTotal = roundToCurrencyPrecision(total, 'USD');
+                expect(roundedTotal).toBe(100);
+            });
+
+            it('should handle 1/7 divisions correctly', () => {
+                // 100 / 7 = 14.285714...
+                const splits = calculateEqualSplits(100, 'USD', ['user1', 'user2', 'user3', 'user4', 'user5', 'user6', 'user7']);
+                const total = splits.reduce((sum, split) => sum + split.amount, 0);
+                const roundedTotal = roundToCurrencyPrecision(total, 'USD');
+                expect(roundedTotal).toBe(100);
+            });
+
+            it('should handle 99.99 / 3 precision', () => {
+                const splits = calculateEqualSplits(99.99, 'USD', ['user1', 'user2', 'user3']);
+                const total = splits.reduce((sum, split) => sum + split.amount, 0);
+                const roundedTotal = roundToCurrencyPrecision(total, 'USD');
+                expect(roundedTotal).toBe(99.99);
             });
         });
     });

@@ -3,10 +3,23 @@ import { generateShortId, randomCategory, randomChoice, randomDate, randomString
 
 export class CreateExpenseRequestBuilder {
     private expense: CreateExpenseRequest;
+    private splitsExplicitlySet = false;
 
     constructor() {
         const userId = `user-${generateShortId()}`;
         const { currency, amount } = randomValidCurrencyAmountPair(5, 500);
+        const splitType = randomChoice(['equal', 'exact', 'percentage'] as const) as 'equal' | 'exact' | 'percentage';
+        const participants = [userId];
+
+        // Calculate initial splits using currency-aware logic
+        let splits;
+        if (splitType === 'equal') {
+            splits = calculateEqualSplits(amount, currency, participants);
+        } else if (splitType === 'exact') {
+            splits = calculateExactSplits(amount, currency, participants);
+        } else {
+            splits = calculatePercentageSplits(amount, currency, participants);
+        }
 
         this.expense = {
             groupId: `group-${generateShortId()}`,
@@ -14,8 +27,9 @@ export class CreateExpenseRequestBuilder {
             amount,
             currency,
             paidBy: userId,
-            splitType: randomChoice(['equal', 'exact', 'percentage']),
-            participants: [userId],
+            splitType,
+            participants,
+            splits,
             date: randomDate(),
             category: randomCategory(),
         };
@@ -53,6 +67,7 @@ export class CreateExpenseRequestBuilder {
 
     withSplits(splits: Array<{ uid: string; amount: number; percentage?: number; }>): this {
         this.expense.splits = [...splits];
+        this.splitsExplicitlySet = true;
         return this;
     }
 
@@ -77,9 +92,10 @@ export class CreateExpenseRequestBuilder {
     }
 
     build(): CreateExpenseRequest {
-        // Auto-generate splits if not explicitly provided using shared currency-aware utilities
+        // Only recalculate splits if they weren't explicitly set via withSplits()
+        // This allows tests to provide invalid splits for validation testing
         let splits = this.expense.splits;
-        if (!splits && this.expense.participants.length > 0) {
+        if (!this.splitsExplicitlySet) {
             if (this.expense.splitType === 'equal') {
                 splits = calculateEqualSplits(this.expense.amount, this.expense.currency, this.expense.participants);
             } else if (this.expense.splitType === 'exact') {
@@ -97,7 +113,7 @@ export class CreateExpenseRequestBuilder {
             paidBy: this.expense.paidBy,
             splitType: this.expense.splitType,
             participants: [...this.expense.participants],
-            splits: splits ? [...splits] : undefined,
+            splits: [...splits],
             date: this.expense.date,
             category: this.expense.category,
             ...(this.expense.receiptUrl && { receiptUrl: this.expense.receiptUrl }),

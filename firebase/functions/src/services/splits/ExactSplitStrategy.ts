@@ -5,10 +5,6 @@ import { ApiError } from '../../utils/errors';
 import { ISplitStrategy } from './ISplitStrategy';
 
 export class ExactSplitStrategy implements ISplitStrategy {
-    requiresSplitsData(): boolean {
-        return true;
-    }
-
     validateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[], currencyCode?: string): void {
         if (!Array.isArray(splits) || splits.length !== participants.length) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLITS', 'Splits must be provided for all participants');
@@ -47,26 +43,5 @@ export class ExactSplitStrategy implements ISplitStrategy {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_USER', 'Split user must be a participant');
             }
         }
-    }
-
-    calculateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[]): ExpenseSplit[] {
-        if (!splits) {
-            throw new Error('Splits are required for exact split type');
-        }
-
-        // For exact splits, we just return the provided splits as they already contain the exact amounts
-        return splits.map((split) => {
-            const result: ExpenseSplit = {
-                uid: split.uid,
-                amount: split.amount!,
-            };
-
-            // Only include percentage if it's actually defined (not undefined)
-            if (split.percentage !== undefined) {
-                result.percentage = split.percentage;
-            }
-
-            return result;
-        });
     }
 }

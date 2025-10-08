@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { UserToken } from '@splitifyd/shared';
+import { calculateEqualSplits, UserToken } from '@splitifyd/shared';
 import { borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseUpdateBuilder, NotificationDriver } from '@splitifyd/test-support';
 import { ApiDriver } from '@splitifyd/test-support';
 import { getFirestore } from '../../firebase';
@@ -50,11 +50,15 @@ describe('Expense Locking Debug Test', () => {
         // Created expense
 
         // Try to update the expense twice simultaneously
+        const lockingTestParticipants = [user1.uid];
         const updatePromises = [
             await apiDriver.updateExpense(
                 expense.id,
                 new ExpenseUpdateBuilder()
                     .withAmount(200)
+                    .withCurrency('EUR')
+                    .withParticipants(lockingTestParticipants)
+                    .withSplits(calculateEqualSplits(200, 'EUR', lockingTestParticipants))
                     .build(),
                 user1.token,
             ),
@@ -62,6 +66,9 @@ describe('Expense Locking Debug Test', () => {
                 expense.id,
                 new ExpenseUpdateBuilder()
                     .withAmount(300)
+                    .withCurrency('EUR')
+                    .withParticipants(lockingTestParticipants)
+                    .withSplits(calculateEqualSplits(300, 'EUR', lockingTestParticipants))
                     .build(),
                 user1.token,
             ),

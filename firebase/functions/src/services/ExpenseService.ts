@@ -175,8 +175,9 @@ export class ExpenseService {
         // Create the expense document
         const now = new Date().toISOString();
 
-        // Calculate splits based on split type
-        const splits = expenseValidation.calculateSplits(validatedExpenseData.amount, validatedExpenseData.splitType, validatedExpenseData.participants, validatedExpenseData.splits);
+        // Use client-calculated splits (already validated)
+        // Client sends splits calculated using currency-aware logic from @splitifyd/shared
+        const splits = validatedExpenseData.splits;
 
         // Generate expense ID early (local operation, no DB call)
         const expenseId = this.firestoreWriter.generateDocumentId(FirestoreCollections.EXPENSES);
@@ -315,26 +316,14 @@ export class ExpenseService {
         // Date is already an ISO string from updateData, no conversion needed
         // FirestoreWriter handles ISO → Timestamp conversion
 
-        // Handle split recalculation if needed
+        // Use client-calculated splits if provided (already validated)
         if (updateData.splitType || updateData.participants || updateData.splits || updateData.amount) {
-            const amount = updateData.amount !== undefined ? updateData.amount : expense.amount;
             const splitType = updateData.splitType !== undefined ? updateData.splitType : expense.splitType;
-            const participants = updateData.participants !== undefined ? updateData.participants : expense.participants;
+            const splits = updateData.splits !== undefined ? updateData.splits : expense.splits;
 
-            // If only amount is updated and splitType is 'exact', convert to equal splits
-            let finalSplitType = splitType;
-            let splits = updateData.splits !== undefined ? updateData.splits : expense.splits;
-
-            if (updateData.amount && !updateData.splitType && !updateData.participants && !updateData.splits) {
-                if (splitType === SplitTypes.EXACT) {
-                    // When only amount changes on exact splits, convert to equal splits
-                    finalSplitType = SplitTypes.EQUAL;
-                    splits = [];
-                }
-            }
-
-            updates.splits = expenseValidation.calculateSplits(amount, finalSplitType, participants, splits);
-            updates.splitType = finalSplitType;
+            // Client always sends splits calculated using currency-aware logic from @splitifyd/shared
+            updates.splits = splits;
+            updates.splitType = splitType;
         }
 
         // Use transaction to update expense atomically with optimistic locking and balance update

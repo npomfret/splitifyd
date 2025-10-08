@@ -6,12 +6,6 @@ import { ApiError } from '../../../../utils/errors';
 describe('PercentageSplitStrategy', () => {
     const strategy = new PercentageSplitStrategy();
 
-    describe('requiresSplitsData', () => {
-        it('should return true as percentage splits require splits data', () => {
-            expect(strategy.requiresSplitsData()).toBe(true);
-        });
-    });
-
     describe('validateSplits', () => {
         const participants = ['user1', 'user2', 'user3'];
 
@@ -39,43 +33,6 @@ describe('PercentageSplitStrategy', () => {
                 ])
                 .build();
             expect(() => strategy.validateSplits(100, participants, splits)).toThrow(new ApiError(400, 'INVALID_PERCENTAGE_TOTAL', 'Percentages must add up to 100'));
-        });
-    });
-
-    describe('calculateSplits', () => {
-        it('should calculate splits based on percentages', () => {
-            const participants = ['user1', 'user2'];
-            const splits = ExpenseSplitBuilder
-                .percentageSplit(100, [
-                    { uid: 'user1', percentage: 70 },
-                    { uid: 'user2', percentage: 30 },
-                ])
-                .build();
-            const result = strategy.calculateSplits(100, participants, splits);
-
-            expect(result).toHaveLength(2);
-            expect(result[0]).toEqual(SplitAssertionBuilder.splitWithPercentage('user1', 70, 70));
-            expect(result[1]).toEqual(SplitAssertionBuilder.splitWithPercentage('user2', 30, 30));
-        });
-
-        it('should handle decimal percentages', () => {
-            const participants = ['user1', 'user2'];
-            const splits = ExpenseSplitBuilder
-                .percentageSplit(100, [
-                    { uid: 'user1', percentage: 33.33 },
-                    { uid: 'user2', percentage: 66.67 },
-                ])
-                .build();
-            const result = strategy.calculateSplits(100, participants, splits);
-
-            expect(result).toHaveLength(2);
-            expect(result[0]).toEqual(SplitAssertionBuilder.splitWithPercentage('user1', 33.33, 33.33));
-            expect(result[1]).toEqual(SplitAssertionBuilder.splitWithPercentage('user2', 66.67, 66.67));
-        });
-
-        it('should throw error if splits are not provided', () => {
-            const participants = ['user1', 'user2'];
-            expect(() => strategy.calculateSplits(100, participants)).toThrow('Splits are required for percentage split type');
         });
     });
 });

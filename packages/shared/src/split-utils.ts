@@ -54,21 +54,28 @@ export function calculateEqualSplits(totalAmount: number, currencyCode: string, 
         return [];
     }
 
-    // Calculate base split amount and round to currency precision
-    const splitAmount = totalAmount / participantIds.length;
-    const roundedAmount = roundToCurrencyPrecision(splitAmount, currencyCode);
+    const decimals = getCurrencyDecimals(currencyCode);
+    const multiplier = Math.pow(10, decimals);
 
-    // Calculate total allocated so far
-    const totalAllocated = roundedAmount * (participantIds.length - 1);
+    // Convert to smallest currency unit (integer arithmetic to avoid floating point errors)
+    const totalUnits = Math.round(totalAmount * multiplier);
+    const numParticipants = participantIds.length;
 
-    // Last participant gets the remainder to ensure total adds up exactly
-    const remainder = roundToCurrencyPrecision(totalAmount - totalAllocated, currencyCode);
+    // Calculate base split in smallest units (integer division)
+    const baseUnits = Math.floor(totalUnits / numParticipants);
 
-    // Create splits: all but last get rounded amount, last gets remainder
-    return participantIds.map((uid, index) => ({
+    // Calculate splits: all but last get base amount
+    const splits: ExpenseSplit[] = participantIds.map((uid, index) => ({
         uid,
-        amount: index === participantIds.length - 1 ? remainder : roundedAmount,
+        amount: baseUnits / multiplier,
     }));
+
+    // Calculate the last split as total - sum of others to ensure perfect precision
+    // This accounts for any floating point errors in the division
+    const sumOfOthers = splits.slice(0, -1).reduce((sum, split) => sum + split.amount, 0);
+    splits[splits.length - 1].amount = roundToCurrencyPrecision(totalAmount - sumOfOthers, currencyCode);
+
+    return splits;
 }
 
 /**
@@ -108,29 +115,32 @@ export function calculatePercentageSplits(totalAmount: number, currencyCode: str
         return [];
     }
 
+    const decimals = getCurrencyDecimals(currencyCode);
+    const multiplier = Math.pow(10, decimals);
+
+    // Convert to smallest currency unit (integer arithmetic to avoid floating point errors)
+    const totalUnits = Math.round(totalAmount * multiplier);
+    const numParticipants = participantIds.length;
+
     // Calculate base percentage
-    const basePercentage = 100 / participantIds.length;
+    const basePercentage = 100 / numParticipants;
 
-    // Calculate amount for base percentage
-    const baseAmount = (totalAmount * basePercentage) / 100;
-    const roundedAmount = roundToCurrencyPrecision(baseAmount, currencyCode);
+    // Calculate base split in smallest units (integer division)
+    const baseUnits = Math.floor(totalUnits / numParticipants);
 
-    // Calculate total allocated so far
-    const totalAllocated = roundedAmount * (participantIds.length - 1);
+    // Calculate splits: all but last get base percentage and amount
+    const splits: ExpenseSplit[] = participantIds.map((uid) => ({
+        uid,
+        percentage: basePercentage,
+        amount: baseUnits / multiplier,
+    }));
 
-    // Last participant gets remainder
-    const remainder = roundToCurrencyPrecision(totalAmount - totalAllocated, currencyCode);
+    // Calculate the last split's amount as total - sum of others to ensure perfect precision
+    const sumOfOthers = splits.slice(0, -1).reduce((sum, split) => sum + split.amount, 0);
+    splits[splits.length - 1].amount = roundToCurrencyPrecision(totalAmount - sumOfOthers, currencyCode);
 
-    // Last participant's percentage ensures total is exactly 100%
-    const lastPercentage = 100 - basePercentage * (participantIds.length - 1);
+    // Adjust last participant's percentage to ensure total is exactly 100%
+    splits[splits.length - 1].percentage = 100 - basePercentage * (numParticipants - 1);
 
-    // Create splits
-    return participantIds.map((uid, index) => {
-        const isLast = index === participantIds.length - 1;
-        return {
-            uid,
-            percentage: isLast ? lastPercentage : basePercentage,
-            amount: isLast ? remainder : roundedAmount,
-        };
-    });
+    return splits;
 }

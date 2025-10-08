@@ -322,6 +322,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 paidBy: 'user1',
                 participants: ['user1'],
                 splitType: 'equal',
+                splits: [{ uid: 'user1', amount: -50 }],
                 date: new Date().toISOString(),
             };
 
@@ -345,6 +346,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 paidBy: 'user1',
                 participants: ['user1'],
                 splitType: 'equal',
+                splits: [{ uid: 'user1', amount: 100 }],
                 date: new Date().toISOString(),
             };
 

@@ -19,16 +19,28 @@ interface ExpenseUpdate {
 export class ExpenseUpdateBuilder {
     private update: ExpenseUpdate;
 
-    constructor() {
-        const { currency, amount } = randomValidCurrencyAmountPair(5, 500);
+    constructor(useDefaults: boolean = true) {
+        if (useDefaults) {
+            const { currency, amount } = randomValidCurrencyAmountPair(5, 500);
 
-        this.update = {
-            description: `Updated ${randomChoice(['Dinner', 'Lunch', 'Coffee', 'Gas', 'Movie', 'Grocery'])} ${randomString(4)}`,
-            amount,
-            currency,
-            category: randomCategory(),
-            date: randomDate(),
-        };
+            this.update = {
+                description: `Updated ${randomChoice(['Dinner', 'Lunch', 'Coffee', 'Gas', 'Movie', 'Grocery'])} ${randomString(4)}`,
+                amount,
+                currency,
+                category: randomCategory(),
+                date: randomDate(),
+            };
+        } else {
+            this.update = {};
+        }
+    }
+
+    /**
+     * Create a minimal builder with no default values
+     * Useful for unit tests that want to test specific fields only
+     */
+    static minimal(): ExpenseUpdateBuilder {
+        return new ExpenseUpdateBuilder(false);
     }
 
     withAmount(amount: number): this {

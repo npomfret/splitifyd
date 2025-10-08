@@ -45,7 +45,7 @@
  * and normal-flow/user-notification-system.test.ts
  */
 
-import { PooledTestUser } from '@splitifyd/shared';
+import { calculateEqualSplits, PooledTestUser } from '@splitifyd/shared';
 import {
     ApiDriver,
     borrowTestUsers,
@@ -212,8 +212,9 @@ describe('Notifications Management - Consolidated Tests', () => {
             notificationDriver.clearEvents();
 
             // Perform multiple rapid parallel updates
-            // Due to transaction conflicts, not all updates may succeed when updating the same document concurrently
-            await Promise.all([
+            // Due to optimistic locking, some updates may fail with CONCURRENT_UPDATE (409) errors
+            // This is expected and correct behavior - we verify notifications are generated for successful updates
+            const results = await Promise.allSettled([
                 apiDriver.updateGroup(
                     group.id,
                     new GroupUpdateBuilder()
@@ -238,12 +239,35 @@ describe('Notifications Management - Consolidated Tests', () => {
                 ),
             ]);
 
-            // Wait for update notifications - allow more time for triggers to process
-            // With parallel updates, database triggers may take longer to process all changes
-            await user1Listener.waitForEventCount(group.id, 'group', 3);
+            // Analyze results - some may succeed, some may fail due to concurrent modification
+            const successes = results.filter((r) => r.status === 'fulfilled');
+            const failures = results.filter((r) => r.status === 'rejected');
 
-            // Verify we received all 3 update events
-            user1Listener.assertEventCount(group.id, 3, 'group');
+            // At least one update should succeed
+            expect(successes.length).toBeGreaterThan(0);
+
+            // Note: Failures are NOT guaranteed - depends on timing of Firebase's optimistic lock detection
+            // Sometimes all updates succeed (fast execution), sometimes 1-2 fail (concurrent conflict detected)
+            // If there are failures, they should be CONCURRENT_UPDATE conflicts (expected)
+            if (failures.length > 0) {
+                const conflicts = failures.filter(
+                    (r) =>
+                        r.status === 'rejected'
+                        && (r.reason?.message?.includes('CONCURRENT_UPDATE') || r.reason?.message?.includes('409')),
+                );
+                expect(conflicts.length).toBeGreaterThan(0);
+            }
+
+            // Wait for notifications matching the number of successful updates
+            await user1Listener.waitForEventCount(group.id, 'group', successes.length);
+
+            // Verify we received exactly the number of notifications matching successful updates
+            // This proves notifications are NOT lost despite concurrent update conflicts
+            user1Listener.assertEventCount(group.id, successes.length, 'group');
+
+            // Verify final group state reflects one of the successful updates
+            const finalGroup = await apiDriver.getGroup(group.id, user1.token);
+            expect(['Update 1', 'Update 2', 'Update 3']).toContain(finalGroup.name);
         });
     });
 
@@ -790,11 +814,14 @@ describe('Notifications Management - Consolidated Tests', () => {
             notificationDriver.clearEvents();
 
             // ACTION: Test expense update notification
+            const expenseUpdateParticipants = [user1.uid, user2.uid];
             await apiDriver.updateExpense(
                 expense.id,
                 new ExpenseUpdateBuilder()
                     .withAmount(45.0)
                     .withCurrency('USD')
+                    .withParticipants(expenseUpdateParticipants)
+                    .withSplits(calculateEqualSplits(45.0, 'USD', expenseUpdateParticipants))
                     .build(),
                 user1.token,
             );

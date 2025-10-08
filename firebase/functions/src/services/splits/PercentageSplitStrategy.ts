@@ -4,10 +4,6 @@ import { ApiError } from '../../utils/errors';
 import { ISplitStrategy } from './ISplitStrategy';
 
 export class PercentageSplitStrategy implements ISplitStrategy {
-    requiresSplitsData(): boolean {
-        return true;
-    }
-
     validateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[], currencyCode?: string): void {
         if (!Array.isArray(splits) || splits.length !== participants.length) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLITS', 'Splits must be provided for all participants');
@@ -43,17 +39,5 @@ export class PercentageSplitStrategy implements ISplitStrategy {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_USER', 'Split user must be a participant');
             }
         }
-    }
-
-    calculateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[]): ExpenseSplit[] {
-        if (!splits) {
-            throw new Error('Splits are required for percentage split type');
-        }
-
-        return splits.map((split) => ({
-            uid: split.uid,
-            amount: Math.round(((totalAmount * (split.percentage ?? 0)) / 100) * 100) / 100,
-            percentage: split.percentage,
-        }));
     }
 }
