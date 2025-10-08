@@ -1,11 +1,11 @@
-import { signal, computed } from '@preact/signals';
-import { GroupDTO, MemberRole, GroupPermissions, GroupMember } from '@splitifyd/shared';
+import { computed, signal } from '@preact/signals';
+import { GroupDTO, GroupMember, GroupPermissions, MemberRole } from '@splitifyd/shared';
 
 /**
  * Permission cache with TTL
  */
 class PermissionCache {
-    private cache = new Map<string, { value: boolean; expires: number }>();
+    private cache = new Map<string, { value: boolean; expires: number; }>();
     private ttl = 60000; // 1 minute TTL
 
     check(key: string, compute: () => boolean): boolean {
@@ -40,7 +40,7 @@ class PermissionCache {
  * Mirrors the backend permission logic for immediate UI feedback
  */
 class ClientPermissionEngine {
-    static checkPermission(group: GroupDTO, members: GroupMember[], userId: string, action: keyof GroupPermissions | 'viewGroup', options: { expense?: any } = {}): boolean {
+    static checkPermission(group: GroupDTO, members: GroupMember[], userId: string, action: keyof GroupPermissions | 'viewGroup', options: { expense?: any; } = {}): boolean {
         const member = members.find((m) => m.uid === userId);
         if (!member) {
             return false;
@@ -65,7 +65,7 @@ class ClientPermissionEngine {
         return this.evaluatePermission(permission, member.memberRole, userId, options);
     }
 
-    private static evaluatePermission(permission: string, userRole: MemberRole, userId: string, options: { expense?: any }): boolean {
+    private static evaluatePermission(permission: string, userRole: MemberRole, userId: string, options: { expense?: any; }): boolean {
         switch (permission) {
             case 'anyone':
                 return userRole !== 'viewer';

@@ -1,6 +1,6 @@
-import type { GroupDTO, SecurityPreset, GroupPermissions, UserThemeColor } from '@splitifyd/shared';
-import { SecurityPresets, MemberRoles, MemberStatuses } from '@splitifyd/shared';
-import { generateShortId, randomChoice, randomString, BuilderTimestamp, timestampToISOString } from '../test-helpers';
+import type { GroupDTO, GroupPermissions, SecurityPreset, UserThemeColor } from '@splitifyd/shared';
+import { MemberRoles, MemberStatuses, SecurityPresets } from '@splitifyd/shared';
+import { BuilderTimestamp, generateShortId, randomChoice, randomString, timestampToISOString } from '../test-helpers';
 
 /**
  * Builder for creating Group objects for tests
@@ -10,8 +10,8 @@ export class GroupDTOBuilder {
     // Infrastructure audit metadata
     private auditFields = {
         id: `group-${generateShortId()}`,
-        createdAt: new Date() as Date | string | { toDate(): Date },
-        updatedAt: new Date() as Date | string | { toDate(): Date },
+        createdAt: new Date() as Date | string | { toDate(): Date; },
+        updatedAt: new Date() as Date | string | { toDate(): Date; },
     };
 
     // Business logic fields
@@ -20,7 +20,7 @@ export class GroupDTOBuilder {
         name: string;
         description?: string;
         securityPreset: SecurityPreset;
-        presetAppliedAt: Date | string | { toDate(): Date };
+        presetAppliedAt: Date | string | { toDate(): Date; };
         permissions: GroupPermissions;
     } = {
         createdBy: `user-${generateShortId()}`,

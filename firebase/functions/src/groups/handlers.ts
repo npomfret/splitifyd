@@ -1,11 +1,11 @@
 import { Response } from 'express';
 
 import { AuthenticatedRequest } from '../auth/middleware';
-import { Errors } from '../utils/errors';
-import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
-import { validateCreateGroup, validateUpdateGroup, validateGroupId, sanitizeGroupData } from './validation';
+import { DOCUMENT_CONFIG, HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { Errors } from '../utils/errors';
+import { sanitizeGroupData, validateCreateGroup, validateGroupId, validateUpdateGroup } from './validation';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());

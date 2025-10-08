@@ -1,12 +1,12 @@
-import { render, screen, waitFor } from '@testing-library/preact';
-import { vi, beforeEach, describe, it, expect, afterEach } from 'vitest';
-import userEvent from '@testing-library/user-event';
 import { CommentsSection } from '@/components/comments/CommentsSection';
 import { CommentBuilder } from '@splitifyd/test-support';
+import { render, screen, waitFor } from '@testing-library/preact';
+import userEvent from '@testing-library/user-event';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock Heroicons to avoid JSX serialization issues
 vi.mock('@heroicons/react/24/outline', () => ({
-    PaperAirplaneIcon: () => <div data-testid="paper-airplane-icon">Send</div>,
+    PaperAirplaneIcon: () => <div data-testid='paper-airplane-icon'>Send</div>,
 }));
 
 // Mock the comments store without hoisting issues
@@ -31,20 +31,22 @@ vi.mock('@/stores/comments-store', async () => {
 
 // Mock child components
 vi.mock('@/components/comments/CommentsList', () => ({
-    CommentsList: ({ comments, loading, hasMore, onLoadMore, maxHeight }: { comments: any[]; loading: boolean; hasMore: boolean; onLoadMore: () => void; maxHeight: string }) => (
-        <div data-testid="comments-list">
-            <div data-testid="comments-count">{comments.length}</div>
-            <div data-testid="loading-state">{loading ? 'loading' : 'not-loading'}</div>
-            <div data-testid="has-more">{hasMore ? 'has-more' : 'no-more'}</div>
-            <div data-testid="max-height">{maxHeight}</div>
+    CommentsList: ({ comments, loading, hasMore, onLoadMore, maxHeight }: { comments: any[]; loading: boolean; hasMore: boolean; onLoadMore: () => void; maxHeight: string; }) => (
+        <div data-testid='comments-list'>
+            <div data-testid='comments-count'>{comments.length}</div>
+            <div data-testid='loading-state'>{loading ? 'loading' : 'not-loading'}</div>
+            <div data-testid='has-more'>{hasMore ? 'has-more' : 'no-more'}</div>
+            <div data-testid='max-height'>{maxHeight}</div>
             {hasMore && (
                 <button
-                    data-testid="load-more-button"
+                    data-testid='load-more-button'
                     onClick={() => {
                         // Properly handle the promise to avoid unhandled rejections
-                        Promise.resolve(onLoadMore()).catch(() => {
-                            // Error is handled by the store
-                        });
+                        Promise
+                            .resolve(onLoadMore())
+                            .catch(() => {
+                                // Error is handled by the store
+                            });
                     }}
                 >
                     Load More
@@ -55,10 +57,10 @@ vi.mock('@/components/comments/CommentsList', () => ({
 }));
 
 vi.mock('@/components/comments/CommentInput', () => ({
-    CommentInput: ({ onSubmit, disabled, placeholder }: { onSubmit: (text: string) => Promise<void>; disabled?: boolean; placeholder?: string }) => (
-        <div data-testid="comment-input">
+    CommentInput: ({ onSubmit, disabled, placeholder }: { onSubmit: (text: string) => Promise<void>; disabled?: boolean; placeholder?: string; }) => (
+        <div data-testid='comment-input'>
             <input
-                data-testid="input-field"
+                data-testid='input-field'
                 placeholder={placeholder}
                 disabled={disabled}
                 onKeyDown={(e) => {
@@ -72,7 +74,7 @@ vi.mock('@/components/comments/CommentInput', () => ({
                     }
                 }}
             />
-            <div data-testid="disabled-state">{disabled ? 'disabled' : 'enabled'}</div>
+            <div data-testid='disabled-state'>{disabled ? 'disabled' : 'enabled'}</div>
         </div>
     ),
 }));
@@ -131,7 +133,7 @@ describe('CommentsSection', () => {
             expect(mockCommentsStore.registerComponent).toHaveBeenCalledWith('group', 'group-1');
 
             // Change target
-            rerender(<CommentsSection targetType="expense" targetId="expense-2" />);
+            rerender(<CommentsSection targetType='expense' targetId='expense-2' />);
 
             expect(mockCommentsStore.deregisterComponent).toHaveBeenCalledWith('group-1');
             expect(mockCommentsStore.registerComponent).toHaveBeenCalledWith('expense', 'expense-2');

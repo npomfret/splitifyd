@@ -1,13 +1,13 @@
+import { PolicyDTO, PolicyVersion } from '@splitifyd/shared';
 import * as crypto from 'crypto';
-import { ApiError } from '../utils/errors';
+import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
-import { LoggerContext } from '../utils/logger-context';
-import { PolicyDTO, PolicyVersion } from '@splitifyd/shared';
 import { measureDb } from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { PolicyDocumentSchema } from '../schemas';
-import { z } from 'zod';
+import { ApiError } from '../utils/errors';
+import { LoggerContext } from '../utils/logger-context';
 import { IFirestoreReader } from './firestore';
 import { IFirestoreWriter } from './firestore';
 
@@ -57,7 +57,7 @@ export class PolicyService {
     /**
      * List all policies
      */
-    async listPolicies(): Promise<{ policies: PolicyDTO[]; count: number }> {
+    async listPolicies(): Promise<{ policies: PolicyDTO[]; count: number; }> {
         try {
             const policies = await this.firestoreReader.getAllPolicies();
 
@@ -102,7 +102,7 @@ export class PolicyService {
     /**
      * Get specific version content
      */
-    async getPolicyVersion(id: string, hash: string): Promise<PolicyVersion & { versionHash: string }> {
+    async getPolicyVersion(id: string, hash: string): Promise<PolicyVersion & { versionHash: string; }> {
         try {
             const policy = await this.firestoreReader.getPolicy(id);
 
@@ -137,11 +137,11 @@ export class PolicyService {
     /**
      * Create new draft version (not published)
      */
-    async updatePolicy(id: string, text: string, publish: boolean = false): Promise<{ versionHash: string; currentVersionHash?: string }> {
+    async updatePolicy(id: string, text: string, publish: boolean = false): Promise<{ versionHash: string; currentVersionHash?: string; }> {
         return measureDb('PolicyService.updatePolicy', async () => this._updatePolicy(id, text, publish));
     }
 
-    private async _updatePolicy(id: string, text: string, publish: boolean = false): Promise<{ versionHash: string; currentVersionHash?: string }> {
+    private async _updatePolicy(id: string, text: string, publish: boolean = false): Promise<{ versionHash: string; currentVersionHash?: string; }> {
         LoggerContext.update({ policyId: id, operation: 'update-policy', publish });
 
         try {
@@ -209,7 +209,7 @@ export class PolicyService {
     /**
      * Publish a policy version (internal helper)
      */
-    async publishPolicyInternal(id: string, versionHash: string): Promise<{ currentVersionHash: string }> {
+    async publishPolicyInternal(id: string, versionHash: string): Promise<{ currentVersionHash: string; }> {
         if (!versionHash) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'VERSION_HASH_REQUIRED', 'Version hash is required');
         }
@@ -254,11 +254,11 @@ export class PolicyService {
     /**
      * Publish a policy version
      */
-    async publishPolicy(id: string, versionHash: string): Promise<{ currentVersionHash: string }> {
+    async publishPolicy(id: string, versionHash: string): Promise<{ currentVersionHash: string; }> {
         return measureDb('PolicyService.publishPolicy', async () => this._publishPolicy(id, versionHash));
     }
 
-    private async _publishPolicy(id: string, versionHash: string): Promise<{ currentVersionHash: string }> {
+    private async _publishPolicy(id: string, versionHash: string): Promise<{ currentVersionHash: string; }> {
         LoggerContext.update({ policyId: id, operation: 'publish-policy', versionHash });
 
         return this.publishPolicyInternal(id, versionHash);
@@ -277,7 +277,7 @@ export class PolicyService {
     /**
      * Create a new policy (internal helper)
      */
-    async createPolicyInternal(policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string }> {
+    async createPolicyInternal(policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string; }> {
         if (!policyName || !text) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_FIELDS', 'Policy name and text are required');
         }
@@ -329,11 +329,11 @@ export class PolicyService {
     /**
      * Create a new policy
      */
-    async createPolicy(policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string }> {
+    async createPolicy(policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string; }> {
         return measureDb('PolicyService.createPolicy', async () => this._createPolicy(policyName, text, customId));
     }
 
-    private async _createPolicy(policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string }> {
+    private async _createPolicy(policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string; }> {
         LoggerContext.update({ operation: 'create-policy', policyName, customId });
 
         return this.createPolicyInternal(policyName, text, customId);

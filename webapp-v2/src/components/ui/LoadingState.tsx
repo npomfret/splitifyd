@@ -1,5 +1,5 @@
-import { LoadingSpinner } from './LoadingSpinner';
 import { useTranslation } from 'react-i18next';
+import { LoadingSpinner } from './LoadingSpinner';
 
 interface LoadingStateProps {
     message?: string;
@@ -15,7 +15,7 @@ export function LoadingState({ message, fullPage = false, size = 'md', className
         <div className={`flex flex-col items-center justify-center ${className}`}>
             <LoadingSpinner size={size} />
             {displayMessage && (
-                <p className="mt-3 text-sm text-gray-600" data-testid="loading-message">
+                <p className='mt-3 text-sm text-gray-600' data-testid='loading-message'>
                     {displayMessage}
                 </p>
             )}
@@ -23,7 +23,7 @@ export function LoadingState({ message, fullPage = false, size = 'md', className
     );
 
     if (fullPage) {
-        return <div className="min-h-screen flex items-center justify-center bg-gray-50">{content}</div>;
+        return <div className='min-h-screen flex items-center justify-center bg-gray-50'>{content}</div>;
     }
 
     return content;

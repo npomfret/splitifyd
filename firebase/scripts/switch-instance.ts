@@ -1,9 +1,9 @@
 #!/usr/bin/env npx tsx
 
+import { execSync } from 'child_process';
+import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as dotenv from 'dotenv';
-import { execSync } from 'child_process';
 import { logger } from './logger';
 
 const instance: string | undefined = process.argv[2];

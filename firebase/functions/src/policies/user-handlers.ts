@@ -1,10 +1,10 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
-import { ApiError } from '../utils/errors';
-import { validateAcceptMultiplePolicies } from './validation';
 import { getAuth, getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { ApiError } from '../utils/errors';
+import { validateAcceptMultiplePolicies } from './validation';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());

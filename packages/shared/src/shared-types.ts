@@ -675,16 +675,16 @@ export interface SettlementWithMembers extends SoftDeletable {
 
 export interface GroupFullDetailsDTO {
     group: GroupDTO;
-    members: { members: GroupMember[] };
-    expenses: { expenses: ExpenseDTO[]; hasMore: boolean; nextCursor?: string };
+    members: { members: GroupMember[]; };
+    expenses: { expenses: ExpenseDTO[]; hasMore: boolean; nextCursor?: string; };
     balances: GroupBalances;
-    settlements: { settlements: SettlementWithMembers[]; hasMore: boolean; nextCursor?: string };
+    settlements: { settlements: SettlementWithMembers[]; hasMore: boolean; nextCursor?: string; };
 }
 
 export interface ExpenseFullDetailsDTO {
     expense: ExpenseDTO;
     group: GroupDTO;
-    members: { members: GroupMember[] };
+    members: { members: GroupMember[]; };
 }
 
 // ========================================================================

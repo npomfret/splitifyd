@@ -1,7 +1,7 @@
+import { getFirestore } from '../firebase';
+import type { IAuthService } from '../services/auth';
 import type { IFirestoreWriter } from '../services/firestore';
 import { UserService } from '../services/UserService2';
-import type { IAuthService } from '../services/auth';
-import { getFirestore } from '../firebase';
 
 interface PoolUser {
     token: string;

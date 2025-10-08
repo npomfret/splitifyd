@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'preact/hooks';
-import { Globe } from './Globe';
 import { useTranslation } from 'react-i18next';
+import { Globe } from './Globe';
 
 export function HeroSection() {
     const { t } = useTranslation();
@@ -57,28 +57,28 @@ export function HeroSection() {
     }, []);
 
     return (
-        <section ref={heroRef} class="hero relative min-h-screen flex items-center justify-center overflow-hidden">
+        <section ref={heroRef} class='hero relative min-h-screen flex items-center justify-center overflow-hidden'>
             {/* Globe Background */}
-            <div class="absolute inset-0 z-0">
+            <div class='absolute inset-0 z-0'>
                 <Globe />
             </div>
 
             {/* Hero Content */}
-            <div class="hero-content container mx-auto px-4 relative z-10 text-center">
-                <h1 ref={h1Ref} class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+            <div class='hero-content container mx-auto px-4 relative z-10 text-center'>
+                <h1 ref={h1Ref} class='text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight'>
                     {t('landing.hero.title')}
                 </h1>
 
-                <p ref={pRef} class="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto mb-12">
-                    {t('landing.hero.subtitle')} <strong class="text-gray-900">{t('landing.hero.highlight')}</strong> {t('landing.hero.focusMessage')}
+                <p ref={pRef} class='text-lg md:text-xl text-gray-700 max-w-3xl mx-auto mb-12'>
+                    {t('landing.hero.subtitle')} <strong class='text-gray-900'>{t('landing.hero.highlight')}</strong> {t('landing.hero.focusMessage')}
                 </p>
 
                 <img
                     ref={imgRef}
-                    src="https://placehold.co/800x450/6A0DAD/FFFFFF/png?text=Your+App+Screenshot+Here"
+                    src='https://placehold.co/800x450/6A0DAD/FFFFFF/png?text=Your+App+Screenshot+Here'
                     alt={t('landing.hero.appScreenshotAlt')}
-                    class="hero-image mx-auto rounded-2xl shadow-2xl max-w-full"
-                    loading="lazy"
+                    class='hero-image mx-auto rounded-2xl shadow-2xl max-w-full'
+                    loading='lazy'
                 />
             </div>
         </section>

@@ -1,6 +1,6 @@
-import { Page, Locator, expect } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
+import { BasePage } from './BasePage';
 
 /**
  * Leave Group Dialog Page Object Model for Playwright tests

@@ -4,9 +4,9 @@
  * Manages the state for joining a group via share link
  */
 
-import { signal, ReadonlySignal } from '@preact/signals';
-import { apiClient } from '../apiClient';
+import { ReadonlySignal, signal } from '@preact/signals';
 import { GroupDTO } from '@splitifyd/shared';
+import { apiClient } from '../apiClient';
 
 class JoinGroupStore {
     // Private signals - encapsulated within the class

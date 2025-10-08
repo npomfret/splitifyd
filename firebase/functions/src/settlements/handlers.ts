@@ -1,13 +1,13 @@
+import { CreateSettlementRequest, CreateSettlementResponse, DeleteSettlementResponse, UpdateSettlementRequest, UpdateSettlementResponse } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
-import { ApiError } from '../utils/errors';
-import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
-import { createSettlementSchema, updateSettlementSchema, settlementIdSchema } from './validation';
-import { CreateSettlementRequest, UpdateSettlementRequest, CreateSettlementResponse, UpdateSettlementResponse, DeleteSettlementResponse } from '@splitifyd/shared';
 import { getAuth, getFirestore } from '../firebase';
+import { logger, LoggerContext } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { ApiError } from '../utils/errors';
+import { createSettlementSchema, settlementIdSchema, updateSettlementSchema } from './validation';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());

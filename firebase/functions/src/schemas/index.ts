@@ -32,7 +32,7 @@
 // Services should import DTOs from @splitifyd/shared instead.
 
 // Comment schemas
-export { CommentDocumentSchema, CommentDataSchema } from './comment';
+export { CommentDataSchema, CommentDocumentSchema } from './comment';
 
 // Expense schemas
 export { ExpenseDocumentSchema } from './expense';
@@ -41,7 +41,7 @@ export { ExpenseDocumentSchema } from './expense';
 export { SettlementDocumentSchema } from './settlement';
 
 // ShareLink schemas
-export { ShareLinkDocumentSchema, ShareLinkDataSchema, type ParsedShareLink } from './sharelink';
+export { type ParsedShareLink, ShareLinkDataSchema, ShareLinkDocumentSchema } from './sharelink';
 
 // User schemas
 export { UserDocumentSchema } from './user';
@@ -65,12 +65,12 @@ export { validateUpdate } from './validation-helpers';
 // ==========================================
 // These schemas validate application-layer data (DTOs with ISO strings)
 export {
-    BalanceCalculationResultSchema,
     BalanceCalculationInputSchema,
+    BalanceCalculationResultSchema,
     BalanceDisplaySchema,
     CurrencyBalanceDisplaySchema,
-    type ParsedBalanceCalculationResult,
     type ParsedBalanceCalculationInput,
+    type ParsedBalanceCalculationResult,
     type ParsedCurrencyBalances,
 } from './balance';
 
@@ -78,4 +78,4 @@ export {
 // GROUP BALANCE SCHEMAS
 // ==========================================
 // Schemas for pre-computed group balances stored in Firestore
-export { GroupBalanceDocumentSchema, GroupBalanceDTOSchema, type GroupBalanceDocument, type GroupBalanceDTO } from './group-balance';
+export { type GroupBalanceDocument, GroupBalanceDocumentSchema, type GroupBalanceDTO, GroupBalanceDTOSchema } from './group-balance';

@@ -1,4 +1,3 @@
-import { Errors } from '../utils/errors';
 import {
     CreateGroupRequest,
     DELETED_AT_FIELD,
@@ -13,30 +12,31 @@ import {
     SettlementDTO,
     UpdateGroupRequest,
 } from '@splitifyd/shared';
-import { BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupBalanceDTO } from '../schemas';
+import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { DOCUMENT_CONFIG, FIRESTORE, FirestoreCollections } from '../constants';
 import { logger, LoggerContext } from '../logger';
-import * as dateHelpers from '../utils/dateHelpers';
-import { PermissionEngine } from '../permissions';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
-import type { IFirestoreReader, IFirestoreWriter, GetGroupsForUserOptions } from './firestore';
-import { UserService } from './UserService2';
-import { ExpenseService } from './ExpenseService';
-import { SettlementService } from './SettlementService';
-import { GroupMemberService } from './GroupMemberService';
-import { NotificationService } from './notification-service';
-import { GroupShareService } from './GroupShareService';
+import { PermissionEngine } from '../permissions';
+import { BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupBalanceDTO } from '../schemas';
+import * as dateHelpers from '../utils/dateHelpers';
+import { Errors } from '../utils/errors';
 import { getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
-import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
+import { ExpenseService } from './ExpenseService';
+import type { GetGroupsForUserOptions, IFirestoreReader, IFirestoreWriter } from './firestore';
+import { GroupMemberService } from './GroupMemberService';
+import { GroupShareService } from './GroupShareService';
+import { NotificationService } from './notification-service';
+import { SettlementService } from './SettlementService';
+import { UserService } from './UserService2';
 
 /**
  * Enhanced types for group data fetching with groupId
  * Note: ExpenseDTO and SettlementDTO already have groupId, so these types are redundant
  * but kept for backwards compatibility during refactoring
  */
-type ExpenseWithGroupId = ExpenseDTO & { groupId: string };
-type SettlementWithGroupId = SettlementDTO & { groupId: string };
+type ExpenseWithGroupId = ExpenseDTO & { groupId: string; };
+type SettlementWithGroupId = SettlementDTO & { groupId: string; };
 
 /**
  * Service for managing group operations
@@ -107,7 +107,7 @@ export class GroupService {
     /**
      * Fetch a group and verify user access
      */
-    private async fetchGroupWithAccess(groupId: string, userId: string, requireWriteAccess: boolean = false): Promise<{ group: GroupDTO }> {
+    private async fetchGroupWithAccess(groupId: string, userId: string, requireWriteAccess: boolean = false): Promise<{ group: GroupDTO; }> {
         const group = await this.firestoreReader.getGroup(groupId);
 
         if (!group) {
@@ -146,7 +146,7 @@ export class GroupService {
     private async batchFetchGroupData(groupIds: string[]): Promise<{
         expensesByGroup: Map<string, ExpenseWithGroupId[]>;
         settlementsByGroup: Map<string, SettlementWithGroupId[]>;
-        expenseMetadataByGroup: Map<string, { count: number; lastExpenseTime?: Date }>;
+        expenseMetadataByGroup: Map<string, { count: number; lastExpenseTime?: Date; }>;
     }> {
         if (groupIds.length === 0) {
             return {
@@ -200,7 +200,7 @@ export class GroupService {
 
         // Organize expenses by group ID
         const expensesByGroup = new Map<string, ExpenseWithGroupId[]>();
-        const expenseMetadataByGroup = new Map<string, { count: number; lastExpenseTime?: Date }>();
+        const expenseMetadataByGroup = new Map<string, { count: number; lastExpenseTime?: Date; }>();
 
         for (const expenseArray of expenseResults) {
             for (const expense of expenseArray) {
@@ -269,7 +269,7 @@ export class GroupService {
     /**
      * Calculate totalOwed and totalOwing from netBalance
      */
-    private calculateBalanceBreakdown(netBalance: number): { netBalance: number; totalOwed: number; totalOwing: number } {
+    private calculateBalanceBreakdown(netBalance: number): { netBalance: number; totalOwed: number; totalOwing: number; } {
         return {
             netBalance,
             totalOwed: netBalance > 0 ? netBalance : 0,
@@ -754,8 +754,8 @@ export class GroupService {
             const { expenses, settlements, shareLinks, groupComments, expenseComments: expenseCommentSnapshots } = await this.firestoreReader.getGroupDeletionData(groupId);
 
             // Calculate total documents for logging
-            const totalDocuments =
-                expenses.size + settlements.size + shareLinks.size + groupComments.size + (memberIds?.length || 0) + expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0);
+            const totalDocuments = expenses.size + settlements.size + shareLinks.size + groupComments.size + (memberIds?.length || 0)
+                + expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0);
 
             logger.info('Data discovery complete', {
                 groupId,

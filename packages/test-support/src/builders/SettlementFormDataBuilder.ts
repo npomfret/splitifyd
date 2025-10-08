@@ -1,4 +1,4 @@
-import { randomString, randomChoice, randomValidCurrencyAmountPair } from '../test-helpers';
+import { randomChoice, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export interface SettlementFormData {
     payerName: string; // Display name of who paid

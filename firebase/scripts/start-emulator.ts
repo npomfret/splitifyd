@@ -1,9 +1,9 @@
 #!/usr/bin/env npx tsx
 
-import { spawn, ChildProcess } from 'child_process';
+import { getFunctionsPort, getProjectId, getRegion } from '@splitifyd/test-support';
+import { ChildProcess, spawn } from 'child_process';
 import * as http from 'http';
 import { logger } from './logger';
-import { getProjectId, getRegion, getFunctionsPort } from '@splitifyd/test-support';
 
 interface EmulatorConfig {
     uiPort: number;

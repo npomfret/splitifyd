@@ -82,7 +82,7 @@ export class LoggerContext {
     /**
      * Add business entity context
      */
-    static setBusinessContext(context: { groupId?: string; expenseId?: string; settlementId?: string }): void {
+    static setBusinessContext(context: { groupId?: string; expenseId?: string; settlementId?: string; }): void {
         this.update(context);
     }
 

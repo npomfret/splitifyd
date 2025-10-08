@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { SplitTypes } from '@splitifyd/shared';
+import { z } from 'zod';
 
 // Schema for ExpenseSplit (from @splitifyd/shared)
 const ExpenseSplitSchema = z.object({

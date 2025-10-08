@@ -20,7 +20,7 @@ export type MetricType = 'api' | 'db' | 'trigger';
 /**
  * Circular buffer implementation for bounded collections
  */
-class CircularBuffer<T extends { timestamp: number }> {
+class CircularBuffer<T extends { timestamp: number; }> {
     private buffer: T[] = [];
     private pointer = 0;
 
@@ -108,7 +108,7 @@ export class LightweightMetrics {
     /**
      * Get snapshot of all metrics
      */
-    getSnapshot(): { api: Metric[]; db: Metric[]; trigger: Metric[] } {
+    getSnapshot(): { api: Metric[]; db: Metric[]; trigger: Metric[]; } {
         return {
             api: this.apiMetrics.toArray(),
             db: this.dbMetrics.toArray(),

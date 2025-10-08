@@ -1,6 +1,6 @@
-import { expect, test } from '../../utils/console-logging-fixture';
-import { mockGroupsApi, mockGroupDetailApi, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
 import { DashboardPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ListGroupsResponseBuilder, ThemeBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
+import { expect, test } from '../../utils/console-logging-fixture';
+import { mockGroupCommentsApi, mockGroupDetailApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
 test.describe('Dashboard User Interface and Responsiveness', () => {
     test('should display user menu and allow interaction', async ({ authenticatedPage }) => {
@@ -31,11 +31,11 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
 
         // Create multiple groups to test grid layout
         const groups = Array.from({ length: 6 }, (_, i) =>
-            GroupDTOBuilder.groupForUser(user.uid)
+            GroupDTOBuilder
+                .groupForUser(user.uid)
                 .withId(`group-${i + 1}`)
                 .withName(`Test Group ${i + 1}`)
-                .build(),
-        );
+                .build());
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(groups, groups.length).build());
 

@@ -14,15 +14,15 @@
  * - Performance monitoring with sampling
  */
 
-import type { Transaction, DocumentReference, Timestamp } from 'firebase-admin/firestore';
-import type { CommentTargetType, ShareLinkDTO, ExpenseDTO, GroupDTO, SettlementDTO, RegisteredUser, CommentDTO } from '@splitifyd/shared';
+import type { CommentDTO, CommentTargetType, ExpenseDTO, GroupDTO, RegisteredUser, SettlementDTO, ShareLinkDTO } from '@splitifyd/shared';
+import type { DocumentReference, Timestamp, Transaction } from 'firebase-admin/firestore';
 import type { GroupBalanceDTO } from '../../schemas';
 import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
 
 export interface WriteResult {
     id: string;
     success: boolean;
-    timestamp?: Timestamp | Date; //todo: remove this
+    timestamp?: Timestamp | Date; // todo: remove this
     error?: string;
 }
 
@@ -279,7 +279,7 @@ export interface IFirestoreWriter {
      * @param updates - Array of user notification updates
      * @returns Batch write result with success/failure counts
      */
-    batchSetUserNotifications(updates: Array<{ userId: string; data: any; merge?: boolean }>): Promise<BatchWriteResult>;
+    batchSetUserNotifications(updates: Array<{ userId: string; data: any; merge?: boolean; }>): Promise<BatchWriteResult>;
 
     // ========================================================================
     // Test Pool Operations (for TestUserPoolService)
@@ -307,7 +307,7 @@ export interface IFirestoreWriter {
      * @param updates - The updates to apply
      * @returns Write result
      */
-    updateTestPoolUser(email: string, updates: { status?: 'available' | 'borrowed' }): Promise<WriteResult>;
+    updateTestPoolUser(email: string, updates: { status?: 'available' | 'borrowed'; }): Promise<WriteResult>;
 
     // ========================================================================
     // System Operations
@@ -317,7 +317,7 @@ export interface IFirestoreWriter {
      * Perform health check operations (test read/write)
      * @returns Health check result with timing information
      */
-    performHealthCheck(): Promise<{ success: boolean; responseTime: number }>;
+    performHealthCheck(): Promise<{ success: boolean; responseTime: number; }>;
 
     // ========================================================================
     // Group Balance Operations

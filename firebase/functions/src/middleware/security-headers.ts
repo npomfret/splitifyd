@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { getConfig } from '../client-config';
 
 export function applySecurityHeaders(req: Request, res: Response, next: NextFunction): void {
@@ -16,14 +16,14 @@ export function applySecurityHeaders(req: Request, res: Response, next: NextFunc
         res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload'); // Force HTTPS for 1 year
         res.setHeader(
             'Content-Security-Policy',
-            "default-src 'self'; " +
-                "script-src 'self' https://apis.google.com https://www.gstatic.com; " +
-                "style-src 'self' https://fonts.googleapis.com; " +
-                "font-src 'self' https://fonts.gstatic.com; " +
-                "img-src 'self' data: https:; " +
-                "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com wss://*.firebaseio.com; " +
-                "frame-ancestors 'none'; " +
-                'report-uri /csp-violation-report;',
+            'default-src \'self\'; '
+                + 'script-src \'self\' https://apis.google.com https://www.gstatic.com; '
+                + 'style-src \'self\' https://fonts.googleapis.com; '
+                + 'font-src \'self\' https://fonts.gstatic.com; '
+                + 'img-src \'self\' data: https:; '
+                + 'connect-src \'self\' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com wss://*.firebaseio.com; '
+                + 'frame-ancestors \'none\'; '
+                + 'report-uri /csp-violation-report;',
         );
     }
 

@@ -1,8 +1,8 @@
-import { expect, simpleTest as test } from '../../fixtures/simple-test.fixture';
-import { CreateGroupModalPage, LoginPage } from '../../pages';
+import { CreateGroupFormDataBuilder, generateTestGroupName } from '@splitifyd/test-support';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../config/timeouts';
 import { SELECTORS } from '../../constants/selectors';
-import { generateTestGroupName, CreateGroupFormDataBuilder } from '@splitifyd/test-support';
+import { expect, simpleTest as test } from '../../fixtures/simple-test.fixture';
+import { CreateGroupModalPage, LoginPage } from '../../pages';
 
 /**
  * Comprehensive Error Handling E2E Tests
@@ -54,7 +54,8 @@ test.describe('Network & Server Error Handling', () => {
             if (!intercepted) {
                 throw new Error('Request not intercepted yet');
             }
-        }).toPass({ timeout: 5000, intervals: [100] });
+        })
+            .toPass({ timeout: 5000, intervals: [100] });
 
         // Wait for error message to appear (this is the expected behavior)
         const errorMessage = createGroupModal.getErrorMessage().first();

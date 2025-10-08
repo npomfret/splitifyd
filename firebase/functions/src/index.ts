@@ -1,34 +1,34 @@
-import { onRequest } from 'firebase-functions/v2/https';
 import express from 'express';
-import { authenticate } from './auth/middleware';
-import { authenticateAdmin } from './auth/middleware';
-import { register } from './auth/handlers';
-import { applyStandardMiddleware } from './utils/middleware';
-import { logger } from './logger';
-import { getEnhancedConfigResponse } from './utils/config-response';
-import { getConfig } from './client-config';
-import { sendHealthCheckResponse, ApiError } from './utils/errors';
-import { APP_VERSION } from './utils/version';
-import { HTTP_STATUS, SYSTEM } from './constants';
-import { disableETags } from './middleware/cache-control';
-import { timestampToISO } from './utils/dateHelpers';
-import { createExpense, updateExpense, deleteExpense, getExpenseFullDetails } from './expenses/handlers';
-import { generateShareableLink, previewGroupByLink, joinGroupByLink } from './groups/shareHandlers';
-import { leaveGroup, removeGroupMember } from './groups/memberHandlers';
-import { getCurrentPolicy } from './policies/public-handlers';
-import { createGroup, updateGroup, deleteGroup, listGroups, getGroupFullDetails } from './groups/handlers';
-import { createSettlement, updateSettlement, deleteSettlement } from './settlements/handlers';
-import { createComment, listGroupComments, listExpenseComments } from './comments/handlers';
-import { getFirestore, getAuth } from './firebase';
-import { listPolicies, getPolicy, getPolicyVersion, updatePolicy, publishPolicy, createPolicy, deletePolicyVersion } from './policies/handlers';
-import { acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
-import { updateUserProfile, changePassword } from './user/handlers';
-import { BUILD_INFO } from './utils/build-info';
+import { onRequest } from 'firebase-functions/v2/https';
 import * as fs from 'fs';
 import * as path from 'path';
+import { register } from './auth/handlers';
+import { authenticate } from './auth/middleware';
+import { authenticateAdmin } from './auth/middleware';
+import { getConfig } from './client-config';
+import { createComment, listExpenseComments, listGroupComments } from './comments/handlers';
+import { HTTP_STATUS, SYSTEM } from './constants';
+import { createExpense, deleteExpense, getExpenseFullDetails, updateExpense } from './expenses/handlers';
+import { getAuth, getFirestore } from './firebase';
+import { createGroup, deleteGroup, getGroupFullDetails, listGroups, updateGroup } from './groups/handlers';
+import { leaveGroup, removeGroupMember } from './groups/memberHandlers';
+import { generateShareableLink, joinGroupByLink, previewGroupByLink } from './groups/shareHandlers';
+import { logger } from './logger';
+import { disableETags } from './middleware/cache-control';
+import { metrics } from './monitoring/lightweight-metrics';
+import { createPolicy, deletePolicyVersion, getPolicy, getPolicyVersion, listPolicies, publishPolicy, updatePolicy } from './policies/handlers';
+import { getCurrentPolicy } from './policies/public-handlers';
+import { acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
+import { createSettlement, deleteSettlement, updateSettlement } from './settlements/handlers';
 import { borrowTestUser, returnTestUser } from './test-pool/handlers';
 import { testClearPolicyAcceptances, testPromoteToAdmin } from './test/policy-handlers';
-import { metrics } from './monitoring/lightweight-metrics';
+import { changePassword, updateUserProfile } from './user/handlers';
+import { BUILD_INFO } from './utils/build-info';
+import { getEnhancedConfigResponse } from './utils/config-response';
+import { timestampToISO } from './utils/dateHelpers';
+import { ApiError, sendHealthCheckResponse } from './utils/errors';
+import { applyStandardMiddleware } from './utils/middleware';
+import { APP_VERSION } from './utils/version';
 
 // Initialize ApplicationBuilder
 import { ApplicationBuilder } from './services/ApplicationBuilder';
@@ -47,10 +47,10 @@ export function getAppBuilder(): ApplicationBuilder {
 // Firebase instances are now accessed through ApplicationBuilder for better encapsulation
 
 // Import triggers and scheduled functions
-import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker';
-import { trackGroupCommentChanges, trackExpenseCommentChanges } from './triggers/comment-tracker';
-import { logMetrics } from './scheduled/metrics-logger';
 import { FirestoreCollections } from './constants';
+import { logMetrics } from './scheduled/metrics-logger';
+import { trackExpenseChanges, trackGroupChanges, trackSettlementChanges } from './triggers/change-tracker';
+import { trackExpenseCommentChanges, trackGroupCommentChanges } from './triggers/comment-tracker';
 
 // Removed emulator connection test at module level to prevent connection creation
 // The emulator connection will be tested lazily when first needed
@@ -86,7 +86,7 @@ function getApp(): express.Application {
 function setupRoutes(app: express.Application): void {
     // Enhanced health check endpoint (no auth required)
     app.get('/health', async (req: express.Request, res: express.Response) => {
-        const checks: Record<string, { status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string }> = {};
+        const checks: Record<string, { status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string; }> = {};
 
         // Use encapsulated health check operation
         const appBuilder = getAppBuilder();
@@ -458,7 +458,7 @@ export const api = onRequest(
 );
 
 // Export Firestore triggers for realtime change tracking
-export { trackGroupChanges, trackExpenseChanges, trackSettlementChanges, trackGroupCommentChanges, trackExpenseCommentChanges };
+export { trackExpenseChanges, trackExpenseCommentChanges, trackGroupChanges, trackGroupCommentChanges, trackSettlementChanges };
 
 // Note: User notification lifecycle is now handled directly in UserService business logic
 // - Notification document creation: UserService.createUserDirect()

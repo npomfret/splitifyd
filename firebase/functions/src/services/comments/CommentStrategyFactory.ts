@@ -1,9 +1,9 @@
 import { CommentTargetType, CommentTargetTypes } from '@splitifyd/shared';
-import { ICommentStrategy } from './ICommentStrategy';
-import { GroupCommentStrategy } from './GroupCommentStrategy';
-import { ExpenseCommentStrategy } from './ExpenseCommentStrategy';
 import type { IFirestoreReader } from '../firestore';
 import { GroupMemberService } from '../GroupMemberService';
+import { ExpenseCommentStrategy } from './ExpenseCommentStrategy';
+import { GroupCommentStrategy } from './GroupCommentStrategy';
+import { ICommentStrategy } from './ICommentStrategy';
 
 /**
  * Factory for creating comment strategies based on target type

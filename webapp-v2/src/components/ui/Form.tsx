@@ -1,6 +1,6 @@
+import { logError } from '@/utils/browser-logger.ts';
 import { JSX } from 'preact';
 import { useCallback, useState } from 'preact/hooks';
-import { logError } from '@/utils/browser-logger.ts';
 import { useTranslation } from 'react-i18next';
 
 interface FormProps {

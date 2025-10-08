@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach, vi, type MockedFunction } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, type MockedFunction, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/preact';
-import { useTranslation } from 'react-i18next';
-import { LeaveGroupDialog } from '@/components/group/LeaveGroupDialog';
 import { apiClient } from '@/app/apiClient';
-import { logError } from '@/utils/browser-logger';
+import { LeaveGroupDialog } from '@/components/group/LeaveGroupDialog';
 import { useNavigation } from '@/hooks/useNavigation';
+import { logError } from '@/utils/browser-logger';
+import { fireEvent, render, screen, waitFor } from '@testing-library/preact';
+import { useTranslation } from 'react-i18next';
 
 // Mock all dependencies
 vi.mock('react-i18next');

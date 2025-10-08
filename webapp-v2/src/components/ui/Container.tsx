@@ -21,7 +21,8 @@ export function Container({ children, maxWidth = 'lg', className = '' }: Contain
         mx-auto px-4 sm:px-6 lg:px-8
         ${maxWidthClasses[maxWidth]}
         ${className}
-      `.trim()}
+      `
+                .trim()}
         >
             {children}
         </div>

@@ -1,9 +1,9 @@
-import { signal, batch } from '@preact/signals';
-import { userNotificationDetector, UserNotificationDetector } from '@/utils/user-notification-detector';
-import { logError, logInfo } from '@/utils/browser-logger';
-import { ExpenseDTO, GroupDTO, GroupBalances, GroupMember, SettlementWithMembers } from '@splitifyd/shared';
-import { apiClient } from '../apiClient';
 import { permissionsStore } from '@/stores/permissions-store.ts';
+import { logError, logInfo } from '@/utils/browser-logger';
+import { UserNotificationDetector, userNotificationDetector } from '@/utils/user-notification-detector';
+import { batch, signal } from '@preact/signals';
+import { ExpenseDTO, GroupBalances, GroupDTO, GroupMember, SettlementWithMembers } from '@splitifyd/shared';
+import { apiClient } from '../apiClient';
 
 interface EnhancedGroupDetailStore {
     // State

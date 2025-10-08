@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest';
 import { generateShortId, NotificationDriver } from '@splitifyd/test-support';
-import { PolicyService } from '../../services/PolicyService';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { getFirestore } from '../../firebase';
 import { FirestoreReader } from '../../services/firestore';
 import { FirestoreWriter } from '../../services/firestore';
-import { getFirestore } from '../../firebase';
+import { PolicyService } from '../../services/PolicyService';
 
 /**
  * Minimal PolicyService Integration Tests

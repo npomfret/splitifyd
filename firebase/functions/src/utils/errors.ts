@@ -1,6 +1,6 @@
 import { Response } from 'express';
-import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
+import { logger } from '../logger';
 import { timestampToISO } from './dateHelpers';
 
 /**
@@ -69,7 +69,7 @@ export const sendError = (res: Response, error: ApiError | Error, correlationId?
 /**
  * Send standardized health check response
  */
-export const sendHealthCheckResponse = (res: Response, checks: Record<string, { status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string }>): void => {
+export const sendHealthCheckResponse = (res: Response, checks: Record<string, { status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string; }>): void => {
     const overallStatus = Object.values(checks).every((check) => check.status === 'healthy') ? 'healthy' : 'unhealthy';
     const response: HealthCheckResponse = {
         status: overallStatus,

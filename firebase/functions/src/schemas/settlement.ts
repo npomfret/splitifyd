@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { FirestoreTimestampSchema, AuditFieldsSchema, SoftDeletionFieldsSchema, UserIdSchema, GroupIdSchema, CurrencyCodeSchema, createDocumentSchemas } from './common';
+import { AuditFieldsSchema, createDocumentSchemas, CurrencyCodeSchema, FirestoreTimestampSchema, GroupIdSchema, SoftDeletionFieldsSchema, UserIdSchema } from './common';
 
 /**
  * Base Settlement schema without document ID

@@ -1,8 +1,8 @@
 import { render } from 'preact';
 import { App } from './App';
 import { AuthProvider } from './app/providers/AuthProvider';
-import { logUserAction, logButtonClick } from './utils/browser-logger';
 import i18n from './i18n';
+import { logButtonClick, logUserAction } from './utils/browser-logger';
 import './styles/global.css';
 
 // Global click interceptor for audit trail
@@ -27,9 +27,7 @@ document.addEventListener(
                 page: window.location.pathname,
                 element: 'native-button',
             });
-        }
-
-        // Handle link clicks
+        } // Handle link clicks
         else if (target.tagName === 'A' || target.closest('a')) {
             const link = (target.tagName === 'A' ? target : target.closest('a')) as HTMLAnchorElement;
             const linkText = link.textContent?.trim() || link.getAttribute('aria-label') || i18n.t('main.unknownLink');
@@ -41,9 +39,7 @@ document.addEventListener(
                 page: window.location.pathname,
                 element: 'link',
             });
-        }
-
-        // Handle other clickable elements with onclick or role="button"
+        } // Handle other clickable elements with onclick or role="button"
         else if (target.onclick || target.getAttribute('role') === 'button') {
             const elementText = target.textContent?.trim() || target.getAttribute('aria-label') || i18n.t('main.unknownElement');
 

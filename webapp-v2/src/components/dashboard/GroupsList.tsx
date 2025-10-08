@@ -1,9 +1,9 @@
-import { useTranslation } from 'react-i18next';
-import { navigationService } from '@/services/navigation.service';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
+import { navigationService } from '@/services/navigation.service';
+import { useTranslation } from 'react-i18next';
 import { LoadingSpinner } from '../ui';
-import { GroupCard } from './GroupCard';
 import { EmptyGroupsState } from './EmptyGroupsState';
+import { GroupCard } from './GroupCard';
 
 interface GroupsListProps {
     onCreateGroup: () => void;
@@ -15,29 +15,29 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
     const { t } = useTranslation();
     if (enhancedGroupsStore.loading && !enhancedGroupsStore.initialized) {
         return (
-            <div class="flex items-center justify-center py-8">
+            <div class='flex items-center justify-center py-8'>
                 <LoadingSpinner />
-                <span class="ml-3 text-gray-600">{t('dashboardComponents.groupsList.loading')}</span>
+                <span class='ml-3 text-gray-600'>{t('dashboardComponents.groupsList.loading')}</span>
             </div>
         );
     }
 
     if (enhancedGroupsStore.error) {
         return (
-            <div class="text-center py-8">
-                <div class="text-red-600 mb-4">
-                    <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class='text-center py-8'>
+                <div class='text-red-600 mb-4'>
+                    <svg class='w-12 h-12 mx-auto mb-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                         <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                            stroke-linecap='round'
+                            stroke-linejoin='round'
+                            stroke-width='2'
+                            d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z'
                         />
                     </svg>
-                    <h4 class="text-lg font-medium text-red-800" role="alert" data-testid="groups-load-error-title">
+                    <h4 class='text-lg font-medium text-red-800' role='alert' data-testid='groups-load-error-title'>
                         {t('dashboardComponents.groupsList.loadFailed')}
                     </h4>
-                    <p class="text-red-600 mt-1" role="alert" data-testid="groups-load-error-message">
+                    <p class='text-red-600 mt-1' role='alert' data-testid='groups-load-error-message'>
                         {enhancedGroupsStore.error}
                     </p>
                 </div>
@@ -46,7 +46,7 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
                         enhancedGroupsStore.clearError();
                         enhancedGroupsStore.refreshGroups();
                     }}
-                    class="bg-red-100 text-red-700 px-4 py-2 rounded-md hover:bg-red-200 transition-colors text-sm font-medium"
+                    class='bg-red-100 text-red-700 px-4 py-2 rounded-md hover:bg-red-200 transition-colors text-sm font-medium'
                 >
                     {t('dashboardComponents.groupsList.tryAgain')}
                 </button>
@@ -59,17 +59,17 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
     }
 
     return (
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" data-testid="groups-grid">
+        <div class='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4' data-testid='groups-grid'>
             {enhancedGroupsStore.isCreatingGroup && (
-                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 flex items-center justify-center">
+                <div class='border-2 border-dashed border-gray-300 rounded-lg p-6 flex items-center justify-center'>
                     <LoadingSpinner />
-                    <span class="ml-3 text-gray-600">{t('dashboardComponents.groupsList.creating')}</span>
+                    <span class='ml-3 text-gray-600'>{t('dashboardComponents.groupsList.creating')}</span>
                 </div>
             )}
             {enhancedGroupsStore.groups.map((group) => (
-                <div key={group.id} class="relative">
+                <div key={group.id} class='relative'>
                     {enhancedGroupsStore.updatingGroupIds.has(group.id) && (
-                        <div class="absolute inset-0 bg-white bg-opacity-75 rounded-lg flex items-center justify-center z-10">
+                        <div class='absolute inset-0 bg-white bg-opacity-75 rounded-lg flex items-center justify-center z-10'>
                             <LoadingSpinner />
                         </div>
                     )}

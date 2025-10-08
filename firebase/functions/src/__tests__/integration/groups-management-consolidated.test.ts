@@ -1,16 +1,16 @@
-import { beforeEach, describe, expect, test } from 'vitest';
-import { v4 as uuidv4 } from 'uuid';
+import { MemberRoles, MemberStatuses, PooledTestUser } from '@splitifyd/shared';
 import {
     ApiDriver,
-    CreateGroupRequestBuilder,
-    CreateExpenseRequestBuilder,
-    CreateSettlementRequestBuilder,
-    GroupUpdateBuilder,
     borrowTestUsers,
+    CreateExpenseRequestBuilder,
+    CreateGroupRequestBuilder,
+    CreateSettlementRequestBuilder,
     generateShortId,
+    GroupUpdateBuilder,
     NotificationDriver,
 } from '@splitifyd/test-support';
-import { PooledTestUser, MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { v4 as uuidv4 } from 'uuid';
+import { beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
@@ -382,8 +382,8 @@ describe('Groups Management - Consolidated Tests', () => {
             const failures = results.filter((r) => r.status === 'rejected');
             const conflicts = results.filter(
                 (r) =>
-                    r.status === 'rejected' &&
-                    (r.reason?.response?.data?.error?.code === 'CONCURRENT_UPDATE' || r.reason?.message?.includes('CONCURRENT_UPDATE') || r.reason?.message?.includes('409')),
+                    r.status === 'rejected'
+                    && (r.reason?.response?.data?.error?.code === 'CONCURRENT_UPDATE' || r.reason?.message?.includes('CONCURRENT_UPDATE') || r.reason?.message?.includes('409')),
             );
 
             expect(successes.length).toBeGreaterThan(0);
@@ -1410,7 +1410,10 @@ describe('Groups Management - Consolidated Tests', () => {
 
         describe('Member Retrieval', () => {
             test('should return all members for a group', async () => {
-                const testGroup = await groupService.createGroup(users[0].uid, new CreateGroupRequestBuilder().withName('All Members Test Group').withDescription('Testing member retrieval').build());
+                const testGroup = await groupService.createGroup(
+                    users[0].uid,
+                    new CreateGroupRequestBuilder().withName('All Members Test Group').withDescription('Testing member retrieval').build(),
+                );
 
                 // Add second member via share link (production code path)
                 const { linkId } = await groupShareService.generateShareableLink(users[0].uid, testGroup.id);

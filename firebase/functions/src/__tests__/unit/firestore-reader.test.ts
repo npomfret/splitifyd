@@ -4,13 +4,13 @@
  * Tests the basic functionality of the FirestoreReader service and MockFirestoreReader
  */
 
-import { describe, test, expect, beforeEach } from 'vitest';
-import { FirestoreReader } from '../../services/firestore';
-import { StubFirestoreReader, createTestUser, createTestGroup, createTestExpense } from './mocks/firestore-stubs';
-import { getAuth, getFirestore } from '../../firebase';
-import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { SecurityPresets } from '@splitifyd/shared';
 import { GroupDTOBuilder } from '@splitifyd/test-support';
+import { beforeEach, describe, expect, test } from 'vitest';
+import { getAuth, getFirestore } from '../../firebase';
+import { ApplicationBuilder } from '../../services/ApplicationBuilder';
+import { FirestoreReader } from '../../services/firestore';
+import { createTestExpense, createTestGroup, createTestUser, StubFirestoreReader } from './mocks/firestore-stubs';
 
 describe('FirestoreReader', () => {
     const firestore = getFirestore();

@@ -1,4 +1,4 @@
-import { UserThemeColor, MemberRoles, MemberStatuses, ColorPattern, USER_COLORS, COLOR_PATTERNS, GroupMembershipDTO } from '@splitifyd/shared';
+import { COLOR_PATTERNS, ColorPattern, GroupMembershipDTO, MemberRoles, MemberStatuses, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';
 
 /**

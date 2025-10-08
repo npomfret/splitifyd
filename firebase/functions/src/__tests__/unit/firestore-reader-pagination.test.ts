@@ -6,10 +6,10 @@
  * firestore-read-encapsulation-report.md
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { StubFirestoreReader } from './mocks/firestore-stubs';
 import type { GroupDTO } from '@splitifyd/shared';
 import { GroupDTOBuilder } from '@splitifyd/test-support';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { StubFirestoreReader } from './mocks/firestore-stubs';
 
 describe('FirestoreReader Pagination Performance', () => {
     let stubReader: StubFirestoreReader;
@@ -182,7 +182,9 @@ describe('FirestoreReader Pagination Performance', () => {
 
                 // Most importantly: This operation should complete in <50ms
                 // The old implementation would take 2-5 seconds for 1000 groups
-            }).not.toThrow();
+            })
+                .not
+                .toThrow();
         });
     });
 

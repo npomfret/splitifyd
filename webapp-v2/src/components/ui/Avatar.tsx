@@ -1,5 +1,5 @@
-import { getInitials, getAvatarSize, getContrastColor, type AvatarProps } from '@/utils/avatar.ts';
 import { themeStore } from '@/app/stores/theme-store.ts';
+import { type AvatarProps, getAvatarSize, getContrastColor, getInitials } from '@/utils/avatar.ts';
 import type { UserThemeColor } from '@splitifyd/shared';
 
 interface EnhancedAvatarProps extends AvatarProps {
@@ -57,7 +57,7 @@ export function Avatar({ displayName, userId, size = 'md', themeColor, photoURL 
             </span>
 
             {/* Pattern overlay for colorblind accessibility */}
-            {userTheme.pattern !== 'solid' && <div className="absolute inset-0 pointer-events-none opacity-20" style={getPatternOverlay(userTheme.pattern)} />}
+            {userTheme.pattern !== 'solid' && <div className='absolute inset-0 pointer-events-none opacity-20' style={getPatternOverlay(userTheme.pattern)} />}
         </div>
     );
 }

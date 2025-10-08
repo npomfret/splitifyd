@@ -17,9 +17,9 @@ export function AuthForm({ onSubmit, error, disabled = false, children }: AuthFo
     };
 
     return (
-        <form onSubmit={handleSubmit} class="space-y-6">
+        <form onSubmit={handleSubmit} class='space-y-6'>
             {error && <ErrorMessage error={error} />}
-            <fieldset disabled={disabled} class="space-y-6">
+            <fieldset disabled={disabled} class='space-y-6'>
                 {children}
             </fieldset>
         </form>

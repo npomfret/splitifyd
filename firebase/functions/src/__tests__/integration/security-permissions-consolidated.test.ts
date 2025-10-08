@@ -1,10 +1,10 @@
 // Consolidated Security and Permissions Integration Tests
 // Combines tests from security-and-permissions.test.ts, permission-edge-cases.test.ts, and security-preset-validation.integration.test.ts
 
-import { beforeEach, describe, expect, test } from 'vitest';
-import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, UserRegistrationBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, NotificationDriver } from '@splitifyd/test-support';
 import { GroupDTO, PooledTestUser, UserToken } from '@splitifyd/shared';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, NotificationDriver, UserRegistrationBuilder } from '@splitifyd/test-support';
+import { v4 as uuidv4 } from 'uuid';
+import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 
 describe('Security and Permissions - Consolidated Tests', () => {
@@ -94,7 +94,9 @@ describe('Security and Permissions - Consolidated Tests', () => {
             await expect(apiDriver.getGroupBalances(privateGroup.id, users[1].token)).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied|not.*member/i);
 
             // Non-member should not be able to modify group
-            await expect(apiDriver.updateGroup(testGroup.id, new GroupUpdateBuilder().withName('Hacked Name').build(), users[2].token)).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied/i);
+            await expect(apiDriver.updateGroup(testGroup.id, new GroupUpdateBuilder().withName('Hacked Name').build(), users[2].token)).rejects.toThrow(
+                /404|not.*found|403|forbidden|access.*denied/i,
+            );
 
             // Member (not owner) should not be able to delete group
             await expect(apiDriver.deleteGroup(testGroup.id, users[1].token)).rejects.toThrow(/403|forbidden|unauthorized|access.*denied/i);

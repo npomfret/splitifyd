@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { ExpenseService } from '../../../services/ExpenseService';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
-import { ApiError } from '../../../utils/errors';
-import { HTTP_STATUS } from '../../../constants';
-import { Timestamp } from 'firebase-admin/firestore';
 import type { CreateExpenseRequest } from '@splitifyd/shared';
 import { ExpenseDTOBuilder } from '@splitifyd/test-support';
+import { Timestamp } from 'firebase-admin/firestore';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { HTTP_STATUS } from '../../../constants';
+import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { ExpenseService } from '../../../services/ExpenseService';
+import { ApiError } from '../../../utils/errors';
+import { StubAuthService, StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 
 describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;

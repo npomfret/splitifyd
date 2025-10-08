@@ -1,12 +1,12 @@
-import { ApiError } from '../utils/errors';
+import { PolicyAcceptanceStatusDTO, UserPolicyStatusResponse } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
-import { LoggerContext } from '../utils/logger-context';
 import { measureDb } from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
+import { ApiError } from '../utils/errors';
+import { LoggerContext } from '../utils/logger-context';
 import { IFirestoreReader } from './firestore';
 import { IFirestoreWriter } from './firestore';
-import { PolicyAcceptanceStatusDTO, UserPolicyStatusResponse } from '@splitifyd/shared';
 
 /**
  * Interface for policy acceptance request
@@ -43,11 +43,11 @@ export class UserPolicyService {
     /**
      * Accept multiple policy versions for a user
      */
-    async acceptMultiplePolicies(userId: string, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: string; versionHash: string; acceptedAt: string }>> {
+    async acceptMultiplePolicies(userId: string, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: string; versionHash: string; acceptedAt: string; }>> {
         return measureDb('UserPolicyService.acceptMultiplePolicies', async () => this._acceptMultiplePolicies(userId, acceptances));
     }
 
-    private async _acceptMultiplePolicies(userId: string, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: string; versionHash: string; acceptedAt: string }>> {
+    private async _acceptMultiplePolicies(userId: string, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: string; versionHash: string; acceptedAt: string; }>> {
         LoggerContext.update({ userId, operation: 'accept-multiple-policies', count: acceptances.length });
 
         try {

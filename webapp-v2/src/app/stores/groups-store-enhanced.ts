@@ -1,9 +1,9 @@
-import { signal, batch, computed, ReadonlySignal } from '@preact/signals';
-import { GroupDTO, CreateGroupRequest } from '@splitifyd/shared';
-import { apiClient, ApiError } from '../apiClient';
-import { logWarning, logInfo } from '@/utils/browser-logger.ts';
-import { userNotificationDetector, UserNotificationDetector } from '@/utils/user-notification-detector.ts';
+import { logInfo, logWarning } from '@/utils/browser-logger.ts';
 import { streamingMetrics } from '@/utils/streaming-metrics';
+import { UserNotificationDetector, userNotificationDetector } from '@/utils/user-notification-detector.ts';
+import { batch, computed, ReadonlySignal, signal } from '@preact/signals';
+import { CreateGroupRequest, GroupDTO } from '@splitifyd/shared';
+import { apiClient, ApiError } from '../apiClient';
 
 interface EnhancedGroupsStore {
     groups: GroupDTO[];
@@ -204,7 +204,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
         try {
             // Send update to server (only name and description are supported by API)
-            const updateData: { name?: string; description?: string } = {};
+            const updateData: { name?: string; description?: string; } = {};
             if (updates.name !== undefined) updateData.name = updates.name;
             if (updates.description !== undefined) updateData.description = updates.description;
 
@@ -326,7 +326,8 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
                     // NO OPTIMISTIC UPDATES - just refresh from server
                     // This ensures the dashboard accurately reflects server state
-                    this.refreshGroups()
+                    this
+                        .refreshGroups()
                         .then(() => {
                             logInfo('Groups refresh completed after change detection', {
                                 userId,
@@ -339,7 +340,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
                                 error: error instanceof Error ? error.message : String(error),
                                 userId,
                                 groupId,
-                            }),
+                            })
                         );
                 },
                 onGroupRemoved: (groupId) => {
@@ -403,7 +404,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             logWarning('Failed to refresh groups after subscription setup', {
                 error: error instanceof Error ? error.message : String(error),
                 userId,
-            }),
+            })
         );
     }
 

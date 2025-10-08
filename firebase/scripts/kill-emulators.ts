@@ -1,8 +1,8 @@
 #!/usr/bin/env npx tsx
 
+import { getAllEmulatorPorts } from '@splitifyd/test-support';
 import { execSync } from 'child_process';
 import { logger } from './logger';
-import { getAllEmulatorPorts } from '@splitifyd/test-support';
 
 let ports: number[] = [];
 try {

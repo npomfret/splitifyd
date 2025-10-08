@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
 import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
-import { collection, getDocs, doc, setDoc, getDoc, onSnapshot, query, limit, Timestamp } from 'firebase/firestore';
+import { ExpenseDTOBuilder, getFirestorePort, GroupBalanceDocumentBuilder, GroupDTOBuilder, NotificationDriver, PolicyDocumentBuilder, SettlementDTOBuilder } from '@splitifyd/test-support';
+import { collection, doc, getDoc, getDocs, limit, onSnapshot, query, setDoc, Timestamp } from 'firebase/firestore';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { getFirestorePort, GroupDTOBuilder, ExpenseDTOBuilder, SettlementDTOBuilder, PolicyDocumentBuilder, GroupBalanceDocumentBuilder, NotificationDriver } from '@splitifyd/test-support';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { getFirestore } from '../../firebase';
 
 // Security rules test to verify production rules work correctly

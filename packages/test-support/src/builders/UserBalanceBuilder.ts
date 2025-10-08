@@ -182,7 +182,7 @@ export class DebtScenarios {
     /**
      * Mixed currency scenarios - returns both USD and EUR balances separately
      */
-    static mixedCurrencyScenarios(): { usd: Record<string, UserBalance>; eur: Record<string, UserBalance> } {
+    static mixedCurrencyScenarios(): { usd: Record<string, UserBalance>; eur: Record<string, UserBalance>; } {
         const usdBalances = {
             user1: new UserBalanceBuilder().withUserId('user1').owesUser('user2', 100).owedByUser('user3', 50).build(),
             user2: new UserBalanceBuilder().withUserId('user2').owesUser('user3', 80).owedByUser('user1', 100).build(),

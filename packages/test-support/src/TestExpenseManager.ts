@@ -62,7 +62,7 @@ export class TestExpenseManager {
      * Creates a reusable expense setup for comment tests
      * Returns a group with a pre-existing expense for comment testing
      */
-    public static async getGroupWithExpenseForComments(users: UserToken[]): Promise<{ group: GroupDTO; expense: any }> {
+    public static async getGroupWithExpenseForComments(users: UserToken[]): Promise<{ group: GroupDTO; expense: any; }> {
         const group = await TestGroupManager.getOrCreateGroup(users, { memberCount: users.length });
         const expense = await this.getOrCreateExpense(group, users, users[0], {
             description: 'Expense for comment testing',

@@ -1,8 +1,8 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { BasePage } from './base.page';
-import { FORM_LABELS } from '../constants/selectors';
 import { PooledTestUser } from '@splitifyd/shared';
 import { ExpenseFormData } from '@splitifyd/test-support';
+import { FORM_LABELS } from '../constants/selectors';
+import { BasePage } from './base.page';
 import { groupDetailUrlPattern } from './group-detail.page.ts';
 
 export class ExpenseFormPage extends BasePage {
@@ -36,7 +36,8 @@ export class ExpenseFormPage extends BasePage {
             if (title.includes('Loading...')) {
                 throw new Error(`Page still loading: ${title}`);
             }
-        }).toPass({ timeout: 5000, intervals: [100, 250, 500] });
+        })
+            .toPass({ timeout: 5000, intervals: [100, 250, 500] });
 
         // Step 1: Wait for basic page layout elements to be visible
         // Check for the expense form header
@@ -93,10 +94,11 @@ export class ExpenseFormPage extends BasePage {
             if (missingMembers.length > 0) {
                 throw new Error(`Members not loaded in "Who paid?" section: ${missingMembers.join(', ')} - waiting for all members data`);
             }
-        }).toPass({
-            timeout,
-            intervals: [100, 250, 500, 2000],
-        });
+        })
+            .toPass({
+                timeout,
+                intervals: [100, 250, 500, 2000],
+            });
 
         // Wait for ALL members to appear in "Split between" section
         await expect(async () => {
@@ -111,10 +113,11 @@ export class ExpenseFormPage extends BasePage {
             if (missingMembers.length > 0) {
                 throw new Error(`Members not loaded in "Split between" section: ${missingMembers.join(', ')} - waiting for all members data`);
             }
-        }).toPass({
-            timeout,
-            intervals: [100, 250, 500, 2000],
-        });
+        })
+            .toPass({
+                timeout,
+                intervals: [100, 250, 500, 2000],
+            });
     }
 
     // Form field locators
@@ -218,7 +221,8 @@ export class ExpenseFormPage extends BasePage {
         }
 
         // Fallback: try to find by display name in label text
-        const labelByText = this.page
+        const labelByText = this
+            .page
             .locator('label')
             .filter({
                 has: this.page.locator('input[type="radio"][name="paidBy"]'),
@@ -328,7 +332,8 @@ export class ExpenseFormPage extends BasePage {
                     }
                 }
                 // If no errors found, continue - this will exit the polling
-            }).toPass({ timeout: 1000, intervals: [100, 250] });
+            })
+                .toPass({ timeout: 1000, intervals: [100, 250] });
         } catch (error) {
             // Re-throw permission errors
             if (error instanceof Error && error.message.includes('Permission error detected')) {
@@ -409,7 +414,8 @@ export class ExpenseFormPage extends BasePage {
 
     getClockIcon() {
         // Clock icon button that opens the time selector - try multiple selectors
-        return this.page
+        return this
+            .page
             .locator(
                 [
                     'button[aria-label*="time" i]',
@@ -420,7 +426,8 @@ export class ExpenseFormPage extends BasePage {
                     '[role="button"]:has(svg)',
                     'button.time-selector-trigger',
                     '[data-testid="time-selector"]',
-                ].join(', '),
+                ]
+                    .join(', '),
             )
             .first();
     }
@@ -488,7 +495,7 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Verify that form fields are pre-filled with expected values from copied expense
      */
-    async verifyPreFilledValues(expectedValues: { description?: string; amount?: string; category?: string }): Promise<void> {
+    async verifyPreFilledValues(expectedValues: { description?: string; amount?: string; category?: string; }): Promise<void> {
         if (expectedValues.description) {
             const descriptionInput = this.getExpenseDescriptionField();
             await expect(descriptionInput).toHaveValue(expectedValues.description);

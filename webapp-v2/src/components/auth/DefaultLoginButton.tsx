@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'preact/hooks';
+import { firebaseConfigManager } from '@/app/firebase-config.ts';
+import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui';
-import { firebaseConfigManager } from '@/app/firebase-config.ts';
 
 interface DefaultLoginButtonProps {
     onFillForm: (email: string, password: string) => Promise<void>;
@@ -50,7 +50,7 @@ export function DefaultLoginButton({ onFillForm, onSubmit, disabled }: DefaultLo
     }
 
     return (
-        <Button type="button" variant="secondary" size="sm" onClick={handleDefaultLogin} disabled={disabled || loading} loading={loading} className="w-full" data-testid="default-login-button">
+        <Button type='button' variant='secondary' size='sm' onClick={handleDefaultLogin} disabled={disabled || loading} loading={loading} className='w-full' data-testid='default-login-button'>
             {t('auth.defaultLoginButton')}
         </Button>
     );

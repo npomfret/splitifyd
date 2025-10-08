@@ -1,5 +1,5 @@
-import { randomString, randomChoice, randomCategory, generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
 import { SplitTypes } from '@splitifyd/shared';
+import { generateShortId, randomCategory, randomChoice, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 interface ExpenseDraft {
     description: string;
@@ -11,7 +11,7 @@ interface ExpenseDraft {
     category: string;
     splitType: string;
     participants: string[];
-    splits: Array<{ userId: string; amount: number; percentage?: number }>;
+    splits: Array<{ userId: string; amount: number; percentage?: number; }>;
     timestamp: number;
 }
 
@@ -83,7 +83,7 @@ export class ExpenseDraftBuilder {
         return this;
     }
 
-    withSplits(splits: Array<{ userId: string; amount: number; percentage?: number }>): this {
+    withSplits(splits: Array<{ userId: string; amount: number; percentage?: number; }>): this {
         this.draft.splits = [...splits];
         return this;
     }

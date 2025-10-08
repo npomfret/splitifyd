@@ -1,14 +1,14 @@
-import express from 'express';
-import { getConfig } from '../client-config';
 import { randomUUID } from 'crypto';
-import { validateRequestStructure, validateContentType } from '../middleware/validation';
-import { applySecurityHeaders } from '../middleware/security-headers';
-import { applyCacheControl } from '../middleware/cache-control';
-import { logger, LoggerContext } from '../logger';
-import { detectLanguageFromHeader, getTranslationFunction, initializeI18n, LocalizedRequest } from './i18n';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
-import { getAuth, getFirestore } from '../firebase';
+import express from 'express';
 import type { AuthenticatedRequest } from '../auth/middleware';
+import { getConfig } from '../client-config';
+import { getAuth, getFirestore } from '../firebase';
+import { logger, LoggerContext } from '../logger';
+import { applyCacheControl } from '../middleware/cache-control';
+import { applySecurityHeaders } from '../middleware/security-headers';
+import { validateContentType, validateRequestStructure } from '../middleware/validation';
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { detectLanguageFromHeader, getTranslationFunction, initializeI18n, LocalizedRequest } from './i18n';
 
 // Initialize services
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth());

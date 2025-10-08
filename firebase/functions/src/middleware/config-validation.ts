@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { AppConfiguration } from '@splitifyd/shared';
+import { z } from 'zod';
 
 const FirebaseConfigSchema = z.object({
     apiKey: z.string().min(1),

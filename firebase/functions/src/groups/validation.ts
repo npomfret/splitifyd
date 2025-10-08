@@ -1,42 +1,47 @@
+import { CreateGroupRequest, UpdateGroupRequest } from '@splitifyd/shared';
 import * as Joi from 'joi';
+import { VALIDATION_LIMITS } from '../constants';
 import { Errors } from '../utils/errors';
 import { sanitizeString } from '../utils/security';
-import { VALIDATION_LIMITS } from '../constants';
-import { CreateGroupRequest, UpdateGroupRequest } from '@splitifyd/shared';
 
 /**
  * Schema for create group request
  */
-const createGroupSchema = Joi.object({
-    name: Joi.string()
-        .trim()
-        .min(1)
-        .max(VALIDATION_LIMITS.MAX_GROUP_NAME_LENGTH)
-        .required()
-        .messages({
-            'string.empty': 'Group name is required',
-            'string.max': `Group name must be less than ${VALIDATION_LIMITS.MAX_GROUP_NAME_LENGTH} characters`,
-        }),
-    description: Joi.string().trim().max(VALIDATION_LIMITS.MAX_GROUP_DESCRIPTION_LENGTH).allow('').optional(),
-    members: Joi.array()
-        .items(
-            Joi.object({
-                uid: Joi.string().required(),
-                displayName: Joi.string().required(),
-                email: Joi.string().email().required(),
+const createGroupSchema = Joi
+    .object({
+        name: Joi
+            .string()
+            .trim()
+            .min(1)
+            .max(VALIDATION_LIMITS.MAX_GROUP_NAME_LENGTH)
+            .required()
+            .messages({
+                'string.empty': 'Group name is required',
+                'string.max': `Group name must be less than ${VALIDATION_LIMITS.MAX_GROUP_NAME_LENGTH} characters`,
             }),
-        )
-        .max(VALIDATION_LIMITS.MAX_GROUP_MEMBERS)
-        .optional(),
-}).required();
+        description: Joi.string().trim().max(VALIDATION_LIMITS.MAX_GROUP_DESCRIPTION_LENGTH).allow('').optional(),
+        members: Joi
+            .array()
+            .items(
+                Joi.object({
+                    uid: Joi.string().required(),
+                    displayName: Joi.string().required(),
+                    email: Joi.string().email().required(),
+                }),
+            )
+            .max(VALIDATION_LIMITS.MAX_GROUP_MEMBERS)
+            .optional(),
+    })
+    .required();
 
 /**
  * Schema for update group request
  */
-const updateGroupSchema = Joi.object({
-    name: Joi.string().trim().min(1).max(VALIDATION_LIMITS.MAX_GROUP_NAME_LENGTH).optional(),
-    description: Joi.string().trim().max(VALIDATION_LIMITS.MAX_GROUP_DESCRIPTION_LENGTH).allow('').optional(),
-})
+const updateGroupSchema = Joi
+    .object({
+        name: Joi.string().trim().min(1).max(VALIDATION_LIMITS.MAX_GROUP_NAME_LENGTH).optional(),
+        description: Joi.string().trim().max(VALIDATION_LIMITS.MAX_GROUP_DESCRIPTION_LENGTH).allow('').optional(),
+    })
     .min(1)
     .required();
 

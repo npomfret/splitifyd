@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder } from '@splitifyd/test-support';
+import { describe, expect, it } from 'vitest';
 import { validateCreateExpense } from '../../../expenses/validation';
 import { createSettlementSchema } from '../../../settlements/validation';
 import { ApiError } from '../../../utils/errors';
-import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder } from '@splitifyd/test-support';
 
 describe('Currency-Aware Amount Validation', () => {
     describe('Zero Decimal Currencies (JPY, KRW, VND, etc.)', () => {

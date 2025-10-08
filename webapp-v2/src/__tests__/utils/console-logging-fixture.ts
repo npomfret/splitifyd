@@ -1,9 +1,9 @@
-import { test as base, Page } from '@playwright/test';
-import * as fs from 'fs';
-import { createTestDirectory, createConsoleLogPath, createScreenshotPath, logTestArtifactPaths } from './test-utils';
-import { createMockFirebase, MockFirebase, mockFullyAcceptedPoliciesApi } from './mock-firebase-service';
+import { Page, test as base } from '@playwright/test';
 import { ClientUser } from '@splitifyd/shared';
 import { ClientUserBuilder } from '@splitifyd/test-support';
+import * as fs from 'fs';
+import { createMockFirebase, MockFirebase, mockFullyAcceptedPoliciesApi } from './mock-firebase-service';
+import { createConsoleLogPath, createScreenshotPath, createTestDirectory, logTestArtifactPaths } from './test-utils';
 
 /**
  * Extended test fixture that provides automatic console logging and enhanced failure handling
@@ -13,7 +13,7 @@ type ConsoleLoggingFixtures = {
     pageWithLogging: Page;
     mockFirebase: MockFirebase;
     authenticatedMockFirebase: (user: ClientUser) => Promise<MockFirebase>;
-    authenticatedPage: { page: Page; user: ClientUser; mockFirebase: MockFirebase };
+    authenticatedPage: { page: Page; user: ClientUser; mockFirebase: MockFirebase; };
 };
 
 // Add an afterEach hook to handle final reporting
@@ -26,7 +26,7 @@ base.afterEach(async ({}, testInfo) => {
         const testDir = createTestDirectory(testInfo);
         const consoleLogPath = createConsoleLogPath(testDir);
 
-        const artifactPaths: { [key: string]: string } = {
+        const artifactPaths: { [key: string]: string; } = {
             'Console Log': consoleLogPath,
             'Test Directory': testDir,
         };

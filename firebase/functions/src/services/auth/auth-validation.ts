@@ -6,10 +6,10 @@
  */
 
 import * as Joi from 'joi';
-import { ApiError } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
-import { AuthErrorCode } from './auth-types';
+import { ApiError } from '../../utils/errors';
 import { displayNameSchema } from '../../validation/validationSchemas';
+import { AuthErrorCode } from './auth-types';
 
 /**
  * Email validation regex (same as used in auth/validation.ts)
@@ -37,7 +37,8 @@ const createUserSchema = Joi.object({
     }),
     displayName: displayNameSchema,
     emailVerified: Joi.boolean().optional().default(false),
-    phoneNumber: Joi.string()
+    phoneNumber: Joi
+        .string()
         .pattern(/^\+[1-9]\d{1,14}$/)
         .optional()
         .messages({
@@ -57,7 +58,8 @@ const updateUserSchema = Joi.object({
     email: Joi.string().pattern(EMAIL_REGEX).optional().messages({
         'string.pattern.base': 'Invalid email format',
     }),
-    phoneNumber: Joi.string()
+    phoneNumber: Joi
+        .string()
         .pattern(/^\+[1-9]\d{1,14}$/)
         .allow(null)
         .optional()
@@ -77,7 +79,8 @@ const updateUserSchema = Joi.object({
 /**
  * User ID validation schema
  */
-const userIdSchema = Joi.string()
+const userIdSchema = Joi
+    .string()
     .min(1)
     .max(128)
     .pattern(/^[a-zA-Z0-9_-]+$/)
@@ -102,7 +105,8 @@ const emailSchema = Joi.string().pattern(EMAIL_REGEX).required().messages({
 /**
  * Phone number validation schema
  */
-const phoneNumberSchema = Joi.string()
+const phoneNumberSchema = Joi
+    .string()
     .pattern(/^\+[1-9]\d{1,14}$/)
     .required()
     .messages({

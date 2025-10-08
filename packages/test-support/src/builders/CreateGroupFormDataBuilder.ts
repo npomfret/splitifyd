@@ -1,4 +1,4 @@
-import { randomString, generateShortId } from '../test-helpers';
+import { generateShortId, randomString } from '../test-helpers';
 
 export interface CreateGroupFormData {
     name?: string;

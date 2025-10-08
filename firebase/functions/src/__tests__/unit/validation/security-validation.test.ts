@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 import { StubAuthService } from '../mocks/firestore-stubs';
 
 /**
@@ -63,7 +63,7 @@ describe('Security Validation - Token and Input Validation', () => {
 
     describe('Input Injection Attack Prevention', () => {
         test('should reject SQL injection attempts in authorization header', () => {
-            const sqlInjectionTokens = ["'; DROP TABLE users; --", "' OR '1'='1", "admin'/*", "1' UNION SELECT * FROM secrets--"];
+            const sqlInjectionTokens = ['\'; DROP TABLE users; --', '\' OR \'1\'=\'1', 'admin\'/*', '1\' UNION SELECT * FROM secrets--'];
 
             for (const token of sqlInjectionTokens) {
                 // These should be treated as invalid tokens

@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'preact/hooks';
-import { useAuthRequired } from '../app/hooks/useAuthRequired';
-import { apiClient } from '../app/apiClient';
-import { BaseLayout } from '../components/layout/BaseLayout';
 import { Input } from '@/components/ui';
 import { Button } from '@/components/ui';
 import { Alert } from '@/components/ui';
+import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import { apiClient } from '../app/apiClient';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
+import { BaseLayout } from '../components/layout/BaseLayout';
 
 interface PasswordChangeData {
     currentPassword: string;
@@ -139,37 +139,37 @@ export function SettingsPage() {
     const isDisplayNameTooLong = displayName.trim().length > 100;
 
     return (
-        <BaseLayout title={t('settingsPage.title')} description={t('settingsPage.description')} headerVariant="dashboard">
-            <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-                    <div class="px-6 py-4 border-b border-gray-200">
-                        <h1 class="text-xl font-semibold text-gray-900" data-testid="account-settings-header">
+        <BaseLayout title={t('settingsPage.title')} description={t('settingsPage.description')} headerVariant='dashboard'>
+            <div class='max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+                <div class='bg-white rounded-lg shadow-sm border border-gray-200'>
+                    <div class='px-6 py-4 border-b border-gray-200'>
+                        <h1 class='text-xl font-semibold text-gray-900' data-testid='account-settings-header'>
                             {t('settingsPage.accountSettingsHeader')}
                         </h1>
-                        <p class="text-sm text-gray-600">{t('settingsPage.accountSettingsSubheader')}</p>
+                        <p class='text-sm text-gray-600'>{t('settingsPage.accountSettingsSubheader')}</p>
                     </div>
 
-                    <div class="p-6 space-y-6">
+                    <div class='p-6 space-y-6'>
                         {/* Success/Error Messages */}
-                        {successMessage && <Alert type="success" message={successMessage} />}
-                        {errorMessage && <Alert type="error" message={errorMessage} />}
+                        {successMessage && <Alert type='success' message={successMessage} />}
+                        {errorMessage && <Alert type='error' message={errorMessage} />}
 
                         {/* Profile Information Section */}
-                        <div class="space-y-4" data-testid="profile-information-section">
-                            <h2 class="text-lg font-medium text-gray-900">{t('settingsPage.profileInformationHeader')}</h2>
+                        <div class='space-y-4' data-testid='profile-information-section'>
+                            <h2 class='text-lg font-medium text-gray-900'>{t('settingsPage.profileInformationHeader')}</h2>
 
                             {/* Display Name Display */}
-                            <div class="text-sm">
-                                <span class="text-gray-600">{t('settingsPage.currentDisplayName')} </span>
-                                <span data-testid="profile-display-name" class="font-medium text-gray-900">
+                            <div class='text-sm'>
+                                <span class='text-gray-600'>{t('settingsPage.currentDisplayName')}</span>
+                                <span data-testid='profile-display-name' class='font-medium text-gray-900'>
                                     {user.displayName || user.email.split('@')[0]}
                                 </span>
                             </div>
 
                             {/* Email Display */}
-                            <div class="text-sm">
-                                <span class="text-gray-600">{t('settingsPage.email')} </span>
-                                <span data-testid="profile-email" class="font-medium text-gray-900">
+                            <div class='text-sm'>
+                                <span class='text-gray-600'>{t('settingsPage.email')}</span>
+                                <span data-testid='profile-email' class='font-medium text-gray-900'>
                                     {user.email}
                                 </span>
                             </div>
@@ -182,75 +182,77 @@ export function SettingsPage() {
                                 placeholder={t('settingsPage.displayNamePlaceholder')}
                                 disabled={authStore.isUpdatingProfile}
                                 error={isDisplayNameEmpty ? t('settingsPage.errorMessages.displayNameEmpty') : isDisplayNameTooLong ? t('settingsPage.errorMessages.displayNameTooLong') : undefined}
-                                data-testid="display-name-input"
+                                data-testid='display-name-input'
                             />
 
                             <Button
                                 onClick={handleDisplayNameUpdate}
                                 disabled={!hasDisplayNameChanged || authStore.isUpdatingProfile || isDisplayNameEmpty || isDisplayNameTooLong}
                                 loading={authStore.isUpdatingProfile}
-                                data-testid="save-changes-button"
+                                data-testid='save-changes-button'
                             >
                                 {t('settingsPage.saveChangesButton')}
                             </Button>
                         </div>
 
                         {/* Password Section */}
-                        <div class="border-t border-gray-200 pt-6 space-y-4" data-testid="password-section">
-                            <h2 class="text-lg font-medium text-gray-900">{t('settingsPage.passwordHeader')}</h2>
+                        <div class='border-t border-gray-200 pt-6 space-y-4' data-testid='password-section'>
+                            <h2 class='text-lg font-medium text-gray-900'>{t('settingsPage.passwordHeader')}</h2>
 
-                            {!showPasswordForm ? (
-                                <Button variant="secondary" onClick={() => setShowPasswordForm(true)} data-testid="change-password-button">
-                                    {t('settingsPage.changePasswordButton')}
-                                </Button>
-                            ) : (
-                                <div class="space-y-4" data-testid="password-form">
-                                    <Input
-                                        label={t('settingsPage.currentPasswordLabel')}
-                                        type="password"
-                                        name="currentPassword"
-                                        value={passwordData.currentPassword}
-                                        onChange={(value) => setPasswordData((prev) => ({ ...prev, currentPassword: value }))}
-                                        disabled={isLoading}
-                                        autoComplete="current-password"
-                                        id="current-password-input"
-                                        data-testid="current-password-input"
-                                    />
+                            {!showPasswordForm
+                                ? (
+                                    <Button variant='secondary' onClick={() => setShowPasswordForm(true)} data-testid='change-password-button'>
+                                        {t('settingsPage.changePasswordButton')}
+                                    </Button>
+                                )
+                                : (
+                                    <div class='space-y-4' data-testid='password-form'>
+                                        <Input
+                                            label={t('settingsPage.currentPasswordLabel')}
+                                            type='password'
+                                            name='currentPassword'
+                                            value={passwordData.currentPassword}
+                                            onChange={(value) => setPasswordData((prev) => ({ ...prev, currentPassword: value }))}
+                                            disabled={isLoading}
+                                            autoComplete='current-password'
+                                            id='current-password-input'
+                                            data-testid='current-password-input'
+                                        />
 
-                                    <Input
-                                        label={t('settingsPage.newPasswordLabel')}
-                                        type="password"
-                                        name="newPassword"
-                                        value={passwordData.newPassword}
-                                        onChange={(value) => setPasswordData((prev) => ({ ...prev, newPassword: value }))}
-                                        disabled={isLoading}
-                                        autoComplete="new-password"
-                                        id="new-password-input"
-                                        data-testid="new-password-input"
-                                    />
+                                        <Input
+                                            label={t('settingsPage.newPasswordLabel')}
+                                            type='password'
+                                            name='newPassword'
+                                            value={passwordData.newPassword}
+                                            onChange={(value) => setPasswordData((prev) => ({ ...prev, newPassword: value }))}
+                                            disabled={isLoading}
+                                            autoComplete='new-password'
+                                            id='new-password-input'
+                                            data-testid='new-password-input'
+                                        />
 
-                                    <Input
-                                        label={t('settingsPage.confirmNewPasswordLabel')}
-                                        type="password"
-                                        name="confirmNewPassword"
-                                        value={passwordData.confirmNewPassword}
-                                        onChange={(value) => setPasswordData((prev) => ({ ...prev, confirmNewPassword: value }))}
-                                        disabled={isLoading}
-                                        autoComplete="new-password"
-                                        id="confirm-password-input"
-                                        data-testid="confirm-password-input"
-                                    />
+                                        <Input
+                                            label={t('settingsPage.confirmNewPasswordLabel')}
+                                            type='password'
+                                            name='confirmNewPassword'
+                                            value={passwordData.confirmNewPassword}
+                                            onChange={(value) => setPasswordData((prev) => ({ ...prev, confirmNewPassword: value }))}
+                                            disabled={isLoading}
+                                            autoComplete='new-password'
+                                            id='confirm-password-input'
+                                            data-testid='confirm-password-input'
+                                        />
 
-                                    <div class="flex space-x-3">
-                                        <Button onClick={handlePasswordChange} disabled={isLoading} loading={isLoading} data-testid="update-password-button">
-                                            {t('settingsPage.updatePasswordButton')}
-                                        </Button>
-                                        <Button variant="secondary" onClick={handleCancelPasswordChange} disabled={isLoading} data-testid="cancel-password-button">
-                                            {t('settingsPage.cancelButton')}
-                                        </Button>
+                                        <div class='flex space-x-3'>
+                                            <Button onClick={handlePasswordChange} disabled={isLoading} loading={isLoading} data-testid='update-password-button'>
+                                                {t('settingsPage.updatePasswordButton')}
+                                            </Button>
+                                            <Button variant='secondary' onClick={handleCancelPasswordChange} disabled={isLoading} data-testid='cancel-password-button'>
+                                                {t('settingsPage.cancelButton')}
+                                            </Button>
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
                         </div>
                     </div>
                 </div>

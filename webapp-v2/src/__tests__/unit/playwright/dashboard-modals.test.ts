@@ -1,6 +1,6 @@
+import { CreateGroupModalPage, DashboardPage, FORM_VALIDATION, GroupDTOBuilder, ListGroupsResponseBuilder, randomString } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockApiFailure, mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
-import { CreateGroupModalPage, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, randomString, FORM_VALIDATION } from '@splitifyd/test-support';
 
 // ============================================================================
 // Dashboard Create Group Functionality

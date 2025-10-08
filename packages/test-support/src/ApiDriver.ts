@@ -5,8 +5,8 @@ import {
     CurrentPolicyResponse,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
-    GroupDTO,
     GroupBalances,
+    GroupDTO,
     GroupFullDetailsDTO,
     JoinGroupResponse,
     LeaveGroupResponse,
@@ -23,9 +23,9 @@ import {
     UserToken,
 } from '@splitifyd/shared';
 
+import { UserRegistrationBuilder } from './builders';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';
-import { UserRegistrationBuilder } from './builders';
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
@@ -73,7 +73,7 @@ export class ApiDriver {
     }
 
     async borrowTestUser(): Promise<PooledTestUser> {
-        const poolUser = (await this.apiRequest('/test-pool/borrow', 'POST', {})) as { email: string; token: string; password: string };
+        const poolUser = (await this.apiRequest('/test-pool/borrow', 'POST', {})) as { email: string; token: string; password: string; };
 
         const { email, password, token } = poolUser;
 
@@ -91,7 +91,7 @@ export class ApiDriver {
         };
     }
 
-    private async firebaseSignIn(userInfo: { email: string; password: string; token?: string }): Promise<UserToken> {
+    private async firebaseSignIn(userInfo: { email: string; password: string; token?: string; }): Promise<UserToken> {
         // Use Firebase Auth REST API to sign in
 
         let signInResponse: Response;
@@ -118,15 +118,15 @@ export class ApiDriver {
         }
 
         if (!signInResponse.ok) {
-            const error = (await signInResponse.json()) as { error?: { message?: string } };
+            const error = (await signInResponse.json()) as { error?: { message?: string; }; };
             throw new Error(`Custom token exchange failed: ${error.error?.message || 'Unknown error'}`);
         }
 
-        const authData = (await signInResponse.json()) as { idToken: string };
+        const authData = (await signInResponse.json()) as { idToken: string; };
 
         // We need the UID. In a real test setup, you might need to use the Admin SDK
         // to get this, but for this test, we'll just decode the token (INSECURE, FOR TESTING ONLY).
-        const decodedToken = JSON.parse(Buffer.from(authData.idToken.split('.')[1], 'base64').toString()) as { user_id: string };
+        const decodedToken = JSON.parse(Buffer.from(authData.idToken.split('.')[1], 'base64').toString()) as { user_id: string; };
 
         return {
             uid: decodedToken.user_id,
@@ -264,7 +264,7 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}`, 'DELETE', null, token);
     }
 
-    async listGroups(token: string, params?: { limit?: number; cursor?: string; order?: 'asc' | 'desc'; includeMetadata?: boolean }): Promise<ListGroupsResponse> {
+    async listGroups(token: string, params?: { limit?: number; cursor?: string; order?: 'asc' | 'desc'; includeMetadata?: boolean; }): Promise<ListGroupsResponse> {
         const queryParams = new URLSearchParams();
         if (params?.limit) queryParams.append('limit', params.limit.toString());
         if (params?.cursor) queryParams.append('cursor', params.cursor);
@@ -274,7 +274,7 @@ export class ApiDriver {
         return await this.apiRequest(`/groups${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
     }
 
-    async register(userData: { email: string; password: string; displayName: string; termsAccepted?: boolean; cookiePolicyAccepted?: boolean }): Promise<RegisterResponse> {
+    async register(userData: { email: string; password: string; displayName: string; termsAccepted?: boolean; cookiePolicyAccepted?: boolean; }): Promise<RegisterResponse> {
         // Ensure required policy acceptance fields are provided with defaults
         const registrationData = {
             ...userData,

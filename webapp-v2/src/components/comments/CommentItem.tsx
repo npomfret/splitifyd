@@ -1,7 +1,7 @@
-import { useTranslation } from 'react-i18next';
-import { formatDistanceToNow } from '@/utils/dateUtils.ts';
 import { getInitials } from '@/utils/avatar.ts';
+import { formatDistanceToNow } from '@/utils/dateUtils.ts';
 import type { CommentDTO } from '@splitifyd/shared';
+import { useTranslation } from 'react-i18next';
 
 interface CommentItemProps {
     comment: CommentDTO;
@@ -30,24 +30,24 @@ export function CommentItem({ comment, showAvatar = true, className = '' }: Comm
     };
 
     return (
-        <div className={`flex gap-3 ${className}`} data-testid="comment-item">
+        <div className={`flex gap-3 ${className}`} data-testid='comment-item'>
             {showAvatar && (
-                <div className="flex-shrink-0">
-                    {comment.authorAvatar ? (
-                        <img src={comment.authorAvatar} alt={comment.authorName} className="w-8 h-8 rounded-full object-cover" />
-                    ) : (
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${getAvatarColor(comment.authorId)}`}>
-                            {getInitials(comment.authorName)}
-                        </div>
-                    )}
+                <div className='flex-shrink-0'>
+                    {comment.authorAvatar
+                        ? <img src={comment.authorAvatar} alt={comment.authorName} className='w-8 h-8 rounded-full object-cover' />
+                        : (
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${getAvatarColor(comment.authorId)}`}>
+                                {getInitials(comment.authorName)}
+                            </div>
+                        )}
                 </div>
             )}
-            <div className="flex-1 min-w-0">
-                <div className="flex items-baseline gap-2 flex-wrap">
-                    <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{comment.authorName}</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">{formatTimestamp(comment.createdAt)}</span>
+            <div className='flex-1 min-w-0'>
+                <div className='flex items-baseline gap-2 flex-wrap'>
+                    <span className='font-medium text-sm text-gray-900 dark:text-gray-100'>{comment.authorName}</span>
+                    <span className='text-xs text-gray-500 dark:text-gray-400'>{formatTimestamp(comment.createdAt)}</span>
                 </div>
-                <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">{comment.text}</p>
+                <p className='mt-1 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words'>{comment.text}</p>
             </div>
         </div>
     );

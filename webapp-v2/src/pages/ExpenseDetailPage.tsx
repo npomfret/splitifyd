@@ -1,18 +1,18 @@
-import { useEffect, useState } from 'preact/hooks';
-import { useSignal, useComputed, batch } from '@preact/signals';
-import { useTranslation } from 'react-i18next';
-import { navigationService } from '@/services/navigation.service';
-import { apiClient } from '../app/apiClient';
-import { BaseLayout } from '../components/layout/BaseLayout';
-import { LoadingSpinner, Card, Button, Avatar } from '@/components/ui';
-import { Stack } from '@/components/ui';
-import { SplitBreakdown } from '../components/expense/SplitBreakdown';
-import { ExpenseActions } from '../components/expense/ExpenseActions';
 import { CommentsSection } from '@/components/comments';
-import { formatDistanceToNow, formatLocalDateTime, formatExpenseDateTime } from '../utils/dateUtils';
+import { Avatar, Button, Card, LoadingSpinner } from '@/components/ui';
+import { Stack } from '@/components/ui';
+import { navigationService } from '@/services/navigation.service';
 import { formatCurrency } from '@/utils/currency';
+import { batch, useComputed, useSignal } from '@preact/signals';
 import { ExpenseDTO, GroupDTO, GroupMember } from '@splitifyd/shared';
+import { useEffect, useState } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
+import { apiClient } from '../app/apiClient';
+import { ExpenseActions } from '../components/expense/ExpenseActions';
+import { SplitBreakdown } from '../components/expense/SplitBreakdown';
+import { BaseLayout } from '../components/layout/BaseLayout';
 import { logError } from '../utils/browser-logger';
+import { formatDistanceToNow, formatExpenseDateTime, formatLocalDateTime } from '../utils/dateUtils';
 
 interface ExpenseDetailPageProps {
     groupId?: string;
@@ -159,8 +159,8 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
     if (loading.value) {
         return (
             <BaseLayout>
-                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-                    <LoadingSpinner size="lg" />
+                <div className='min-h-screen bg-gray-50 dark:bg-gray-900 p-4'>
+                    <LoadingSpinner size='lg' />
                 </div>
             </BaseLayout>
         );
@@ -169,13 +169,13 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
     if (error.value || !expense.value) {
         return (
             <BaseLayout>
-                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-                    <Card className="max-w-md mx-auto mt-8">
-                        <Stack spacing="md">
-                            <h2 className="text-xl font-semibold text-red-600" role="alert" data-testid="page-error-title">
+                <div className='min-h-screen bg-gray-50 dark:bg-gray-900 p-4'>
+                    <Card className='max-w-md mx-auto mt-8'>
+                        <Stack spacing='md'>
+                            <h2 className='text-xl font-semibold text-red-600' role='alert' data-testid='page-error-title'>
                                 {t('pages.expenseDetailPage.error')}
                             </h2>
-                            <p className="text-gray-600 dark:text-gray-400">{error.value || t('pages.expenseDetailPage.expenseNotFound')}</p>
+                            <p className='text-gray-600 dark:text-gray-400'>{error.value || t('pages.expenseDetailPage.expenseNotFound')}</p>
                             <Button onClick={handleBack}>{t('pages.expenseDetailPage.backToGroup')}</Button>
                         </Stack>
                     </Card>
@@ -189,48 +189,50 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
     return (
         <BaseLayout
             title={`${truncateDescription(expense.value.description)}${t('pages.expenseDetailPage.titleSeparator')}${formatCurrency(expense.value.amount, expense.value.currency)}`}
-            description={`${t('pages.expenseDetailPage.expenseFor')}${expense.value.description}${t('pages.expenseDetailPage.titleSeparator')}${formatCurrency(expense.value.amount, expense.value.currency)}`}
-            headerVariant="dashboard"
+            description={`${t('pages.expenseDetailPage.expenseFor')}${expense.value.description}${t('pages.expenseDetailPage.titleSeparator')}${
+                formatCurrency(expense.value.amount, expense.value.currency)
+            }`}
+            headerVariant='dashboard'
         >
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <div className='min-h-screen bg-gray-50 dark:bg-gray-900'>
                 {/* Page Header */}
-                <div className="bg-white dark:bg-gray-800 shadow-sm">
-                    <div className="max-w-3xl mx-auto px-4 py-4">
-                        <div className="flex items-center justify-between">
-                            <Button variant="ghost" onClick={handleBack}>
+                <div className='bg-white dark:bg-gray-800 shadow-sm'>
+                    <div className='max-w-3xl mx-auto px-4 py-4'>
+                        <div className='flex items-center justify-between'>
+                            <Button variant='ghost' onClick={handleBack}>
                                 {t('pages.expenseDetailPage.backButton')}
                             </Button>
-                            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                            <h1 className='text-xl font-bold text-gray-900 dark:text-white'>
                                 {truncateDescription(expense.value.description)}
                                 {t('pages.expenseDetailPage.titleSeparator')}
                                 {formatCurrency(expense.value.amount, expense.value.currency)}
                             </h1>
-                            <div className="w-16"></div> {/* Spacer for centered title */}
+                            <div className='w-16'></div> {/* Spacer for centered title */}
                         </div>
                     </div>
                 </div>
 
                 {/* Content */}
-                <div className="max-w-3xl mx-auto px-4 py-6">
-                    <Stack spacing="md">
+                <div className='max-w-3xl mx-auto px-4 py-6'>
+                    <Stack spacing='md'>
                         {/* Consolidated Top Card - Main Info, Paid By, Actions, and Metadata */}
                         <Card>
-                            <Stack spacing="lg">
+                            <Stack spacing='lg'>
                                 {/* Top Section - Amount & Description */}
-                                <div className="text-center pb-4 border-b border-gray-200 dark:border-gray-700">
-                                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="expense-amount">
+                                <div className='text-center pb-4 border-b border-gray-200 dark:border-gray-700'>
+                                    <h2 className='text-3xl font-bold text-gray-900 dark:text-white' data-testid='expense-amount'>
                                         {formatCurrency(expense.value.amount, expense.value.currency)}
                                     </h2>
-                                    <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">{expense.value.description}</p>
+                                    <p className='text-lg text-gray-600 dark:text-gray-400 mt-2'>{expense.value.description}</p>
                                 </div>
 
                                 {/* Middle Section - Key Details Grid */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                                     {/* Date */}
                                     <div>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('pages.expenseDetailPage.date')}</p>
-                                        <p className="font-medium text-gray-900 dark:text-white">{formatExpenseDateTime(expense.value.date)}</p>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                        <p className='text-sm text-gray-500 dark:text-gray-400'>{t('pages.expenseDetailPage.date')}</p>
+                                        <p className='font-medium text-gray-900 dark:text-white'>{formatExpenseDateTime(expense.value.date)}</p>
+                                        <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
                                             ({formatDistanceToNow(new Date(expense.value.date))}
                                             {t('pages.expenseDetailPage.ago')})
                                         </p>
@@ -238,24 +240,24 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
 
                                     {/* Category */}
                                     <div>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('pages.expenseDetailPage.category')}</p>
-                                        <p className="font-medium text-gray-900 dark:text-white">{expense.value.category}</p>
+                                        <p className='text-sm text-gray-500 dark:text-gray-400'>{t('pages.expenseDetailPage.category')}</p>
+                                        <p className='font-medium text-gray-900 dark:text-white'>{expense.value.category}</p>
                                     </div>
 
                                     {/* Paid By */}
                                     <div>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{t('pages.expenseDetailPage.paidBy')}</p>
-                                        <div className="flex items-center gap-2">
-                                            <Avatar displayName={payer?.displayName || 'Unknown'} userId={expense.value.paidBy} size="sm" />
+                                        <p className='text-sm text-gray-500 dark:text-gray-400 mb-2'>{t('pages.expenseDetailPage.paidBy')}</p>
+                                        <div className='flex items-center gap-2'>
+                                            <Avatar displayName={payer?.displayName || 'Unknown'} userId={expense.value.paidBy} size='sm' />
                                             <div>
-                                                <p className="font-medium text-gray-900 dark:text-white text-sm">{payer?.displayName || t('pages.expenseDetailPage.unknown')}</p>
+                                                <p className='font-medium text-gray-900 dark:text-white text-sm'>{payer?.displayName || t('pages.expenseDetailPage.unknown')}</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Actions Section */}
-                                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <div className='pt-4 border-t border-gray-200 dark:border-gray-700'>
                                     <ExpenseActions expense={expense.value} onEdit={handleEdit} onDelete={handleDelete} onShare={handleShare} onCopy={handleCopy} />
                                 </div>
                             </Stack>
@@ -268,48 +270,48 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
 
                         {/* Comments Section */}
                         <Card>
-                            <Stack spacing="md">
-                                <h3 className="font-semibold text-gray-900 dark:text-white">{t('pages.expenseDetailPage.discussion')}</h3>
-                                <CommentsSection targetType="expense" targetId={expenseId!} maxHeight="300px" />
+                            <Stack spacing='md'>
+                                <h3 className='font-semibold text-gray-900 dark:text-white'>{t('pages.expenseDetailPage.discussion')}</h3>
+                                <CommentsSection targetType='expense' targetId={expenseId!} maxHeight='300px' />
                             </Stack>
                         </Card>
 
                         {/* Receipt - Kept Separate */}
                         {expense.value.receiptUrl && (
                             <Card>
-                                <Stack spacing="md">
-                                    <h3 className="font-semibold text-gray-900 dark:text-white">{t('pages.expenseDetailPage.receipt')}</h3>
-                                    <div className="text-center">
+                                <Stack spacing='md'>
+                                    <h3 className='font-semibold text-gray-900 dark:text-white'>{t('pages.expenseDetailPage.receipt')}</h3>
+                                    <div className='text-center'>
                                         <img
                                             src={expense.value.receiptUrl}
-                                            alt="Receipt"
-                                            className="max-w-full h-auto rounded-lg shadow-md mx-auto max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                                            loading="lazy"
+                                            alt='Receipt'
+                                            className='max-w-full h-auto rounded-lg shadow-md mx-auto max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity'
+                                            loading='lazy'
                                             onClick={() => setShowReceiptModal(true)}
                                         />
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{t('pages.expenseDetailPage.clickToViewFullSize')}</p>
+                                        <p className='text-sm text-gray-500 dark:text-gray-400 mt-2'>{t('pages.expenseDetailPage.clickToViewFullSize')}</p>
                                     </div>
                                 </Stack>
                             </Card>
                         )}
 
                         {/* Metadata - Moved to Bottom */}
-                        <Card className="bg-gray-50 dark:bg-gray-800/50">
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
-                                <div className="flex items-center justify-between">
+                        <Card className='bg-gray-50 dark:bg-gray-800/50'>
+                            <div className='text-sm text-gray-600 dark:text-gray-400'>
+                                <div className='flex items-center justify-between'>
                                     <span>
                                         {t('pages.expenseDetailPage.added')}
                                         {formatDistanceToNow(new Date(expense.value.createdAt))}
                                     </span>
-                                    <span className="text-xs">{formatLocalDateTime(expense.value.createdAt)}</span>
+                                    <span className='text-xs'>{formatLocalDateTime(expense.value.createdAt)}</span>
                                 </div>
                                 {expense.value.updatedAt !== expense.value.createdAt && (
-                                    <div className="flex items-center justify-between mt-1">
+                                    <div className='flex items-center justify-between mt-1'>
                                         <span>
                                             {t('pages.expenseDetailPage.lastUpdated')}
                                             {formatDistanceToNow(new Date(expense.value.updatedAt))}
                                         </span>
-                                        <span className="text-xs">{formatLocalDateTime(expense.value.updatedAt)}</span>
+                                        <span className='text-xs'>{formatLocalDateTime(expense.value.updatedAt)}</span>
                                     </div>
                                 )}
                             </div>
@@ -320,10 +322,10 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                 {/* Receipt Modal */}
                 {showReceiptModal && expense.value?.receiptUrl && (
                     <div
-                        className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+                        className='fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4'
                         onClick={() => setShowReceiptModal(false)}
-                        role="dialog"
-                        aria-modal="true"
+                        role='dialog'
+                        aria-modal='true'
                         aria-label={t('pages.expenseDetailPage.receiptViewer')}
                         onKeyDown={(e) => {
                             if (e.key === 'Escape') {
@@ -332,20 +334,20 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         }}
                         tabIndex={-1}
                     >
-                        <div className="relative max-w-4xl max-h-full">
+                        <div className='relative max-w-4xl max-h-full'>
                             <button
                                 onClick={() => setShowReceiptModal(false)}
-                                className="absolute top-2 right-2 z-10 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-75 transition-all focus:outline-none focus:ring-2 focus:ring-white"
+                                className='absolute top-2 right-2 z-10 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-75 transition-all focus:outline-none focus:ring-2 focus:ring-white'
                                 aria-label={t('pages.expenseDetailPage.closeReceiptViewer')}
                             >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
                                 </svg>
                             </button>
                             <img
                                 src={expense.value.receiptUrl}
                                 alt={t('pages.expenseDetailPage.receiptFullSize')}
-                                className="max-w-full max-h-full object-contain rounded-lg"
+                                className='max-w-full max-h-full object-contain rounded-lg'
                                 onClick={(e) => e.stopPropagation()}
                             />
                         </div>

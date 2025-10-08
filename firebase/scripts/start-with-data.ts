@@ -3,16 +3,16 @@
 assert(process.env.GCLOUD_PROJECT, 'GCLOUD_PROJECT must be set');
 assert(process.env.NODE_ENV === undefined); // todo
 
-import * as path from 'path';
-import * as fs from 'fs';
-import * as dotenv from 'dotenv';
-import { ChildProcess } from 'child_process';
-import { logger } from './logger';
-import assert from 'node:assert';
-import { startEmulator } from './start-emulator';
-import { seedPolicies } from './seed-policies';
-import { generateTestData } from './generate-test-data';
 import { getPorts, getProjectId } from '@splitifyd/test-support';
+import { ChildProcess } from 'child_process';
+import * as dotenv from 'dotenv';
+import * as fs from 'fs';
+import assert from 'node:assert';
+import * as path from 'path';
+import { generateTestData } from './generate-test-data';
+import { logger } from './logger';
+import { seedPolicies } from './seed-policies';
+import { startEmulator } from './start-emulator';
 
 async function runSeedPoliciesStep(): Promise<void> {
     logger.info('');

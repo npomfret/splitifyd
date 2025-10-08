@@ -1,7 +1,8 @@
 import * as Joi from 'joi';
 import { VALIDATION_LIMITS } from '../constants';
 
-export const displayNameSchema = Joi.string()
+export const displayNameSchema = Joi
+    .string()
     .min(2)
     .max(VALIDATION_LIMITS.MAX_DISPLAY_NAME_LENGTH)
     .pattern(/^[a-zA-Z0-9\s\-_.]+$/)

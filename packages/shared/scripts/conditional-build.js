@@ -7,9 +7,9 @@
  * During local development, it creates wrapper files that use tsx to run TypeScript directly.
  */
 
+import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);

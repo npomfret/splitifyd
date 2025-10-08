@@ -23,14 +23,15 @@ export function Card({ title, subtitle, children, onClick, className = '', paddi
     ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}
     ${paddingClasses[padding]}
     ${className}
-  `.trim();
+  `
+        .trim();
 
     const content = (
         <>
             {(title || subtitle) && (
-                <div className="mb-4">
-                    {title && <h3 className="text-lg font-semibold text-gray-900">{title}</h3>}
-                    {subtitle && <p className="text-sm text-gray-600 mt-1">{subtitle}</p>}
+                <div className='mb-4'>
+                    {title && <h3 className='text-lg font-semibold text-gray-900'>{title}</h3>}
+                    {subtitle && <p className='text-sm text-gray-600 mt-1'>{subtitle}</p>}
                 </div>
             )}
             {children}
@@ -42,7 +43,7 @@ export function Card({ title, subtitle, children, onClick, className = '', paddi
             <div
                 className={baseClasses}
                 onClick={onClick}
-                role="button"
+                role='button'
                 tabIndex={0}
                 data-testid={dataTestId}
                 onKeyDown={(e) => {

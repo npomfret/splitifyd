@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
 
 /**
@@ -190,9 +190,9 @@ export abstract class BasePage {
 
                 if (attempt === maxAttempts - 1) {
                     throw new Error(
-                        `Failed to fill input ${inputIdentifier} after ${maxAttempts} attempts. ` +
-                            `Expected value: "${value}", Current value: "${currentValue}". ` +
-                            `This suggests Preact signal reactivity issues.`,
+                        `Failed to fill input ${inputIdentifier} after ${maxAttempts} attempts. `
+                            + `Expected value: "${value}", Current value: "${currentValue}". `
+                            + `This suggests Preact signal reactivity issues.`,
                     );
                 }
 
@@ -300,9 +300,9 @@ export abstract class BasePage {
                 };
             });
             throw new Error(
-                `Modal failed to close after pressing Escape. ` +
-                    `Still visible: ${isStillVisible}, URL: ${currentUrl}, ` +
-                    `Focused element: ${focusedElement.tag}#${focusedElement.id}.${focusedElement.class}`,
+                `Modal failed to close after pressing Escape. `
+                    + `Still visible: ${isStillVisible}, URL: ${currentUrl}, `
+                    + `Focused element: ${focusedElement.tag}#${focusedElement.id}.${focusedElement.class}`,
             );
         }
     }

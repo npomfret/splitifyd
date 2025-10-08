@@ -1,4 +1,4 @@
-import { randomDate, generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
+import { generateShortId, randomDate, randomValidCurrencyAmountPair } from '../test-helpers';
 
 interface SettlementUpdate {
     amount?: number;

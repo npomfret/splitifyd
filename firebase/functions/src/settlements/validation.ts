@@ -1,7 +1,7 @@
-import * as Joi from 'joi';
 import { CreateSettlementRequest, UpdateSettlementRequest } from '@splitifyd/shared';
-import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
+import * as Joi from 'joi';
 import { createJoiAmountSchema } from '../utils/amount-validation';
+import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
 
 const amountSchema = createJoiAmountSchema('currency').required().messages({
     'number.base': 'Amount must be a number',
@@ -16,7 +16,8 @@ const noteSchema = Joi.string().max(500).optional().allow('').messages({
 });
 
 // UTC-only date validation for settlements
-const dateSchema = Joi.string()
+const dateSchema = Joi
+    .string()
     .custom((value, helpers) => {
         // Optional field - allow undefined
         if (value === undefined || value === null) {
@@ -50,40 +51,43 @@ const dateSchema = Joi.string()
         'date.min': 'Date cannot be more than 10 years in the past',
     });
 
-export const createSettlementSchema = Joi.object<CreateSettlementRequest>({
-    groupId: Joi.string().required().messages({
-        'any.required': 'Group ID is required',
-    }),
-    payerId: Joi.string().required().messages({
-        'any.required': 'Payer ID is required',
-    }),
-    payeeId: Joi.string().required().messages({
-        'any.required': 'Payee ID is required',
-    }),
-    amount: amountSchema,
-    currency: Joi.string().length(3).uppercase().required(),
-    date: dateSchema,
-    note: noteSchema,
-}).custom((value, helpers) => {
-    if (value.payerId === value.payeeId) {
-        return helpers.error('any.invalid', {
-            message: 'Payer and payee cannot be the same person',
-        });
-    }
-    return value;
-});
+export const createSettlementSchema = Joi
+    .object<CreateSettlementRequest>({
+        groupId: Joi.string().required().messages({
+            'any.required': 'Group ID is required',
+        }),
+        payerId: Joi.string().required().messages({
+            'any.required': 'Payer ID is required',
+        }),
+        payeeId: Joi.string().required().messages({
+            'any.required': 'Payee ID is required',
+        }),
+        amount: amountSchema,
+        currency: Joi.string().length(3).uppercase().required(),
+        date: dateSchema,
+        note: noteSchema,
+    })
+    .custom((value, helpers) => {
+        if (value.payerId === value.payeeId) {
+            return helpers.error('any.invalid', {
+                message: 'Payer and payee cannot be the same person',
+            });
+        }
+        return value;
+    });
 
-export const updateSettlementSchema = Joi.object<UpdateSettlementRequest>({
-    amount: createJoiAmountSchema('currency').optional().messages({
-        'number.base': 'Amount must be a number',
-        'number.positive': 'Amount must be greater than 0',
-        'number.max': 'Amount cannot exceed 999,999.99',
-        'number.precision': '{#message}',
-    }),
-    currency: Joi.string().length(3).uppercase().optional(),
-    date: dateSchema,
-    note: noteSchema,
-})
+export const updateSettlementSchema = Joi
+    .object<UpdateSettlementRequest>({
+        amount: createJoiAmountSchema('currency').optional().messages({
+            'number.base': 'Amount must be a number',
+            'number.positive': 'Amount must be greater than 0',
+            'number.max': 'Amount cannot exceed 999,999.99',
+            'number.precision': '{#message}',
+        }),
+        currency: Joi.string().length(3).uppercase().optional(),
+        date: dateSchema,
+        note: noteSchema,
+    })
     .min(1)
     .messages({
         'object.min': 'At least one field must be provided for update',

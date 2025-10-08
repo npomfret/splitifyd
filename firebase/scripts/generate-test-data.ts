@@ -1,10 +1,10 @@
 #!/usr/bin/env tsx
 
-import { ApiDriver, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 import type { GroupDTO } from '@splitifyd/shared';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
 import { UserRegistration } from '@splitifyd/shared';
 import { AuthenticatedFirebaseUser } from '@splitifyd/shared';
+import { ApiDriver, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
@@ -24,7 +24,7 @@ interface GroupWithInvite extends GroupDTO {
 interface TestDataConfig {
     userCount: number;
     groupCount: number;
-    regularExpensesPerUser: { min: number; max: number };
+    regularExpensesPerUser: { min: number; max: number; };
     largeGroupExpenseCount: number;
     mode: 'fast' | 'full';
 }
@@ -592,8 +592,8 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
         if (!currencyBalances) continue;
 
         // Find who owes and who is owed
-        const debtors: { user: AuthenticatedFirebaseUser; amount: number }[] = [];
-        const creditors: { user: AuthenticatedFirebaseUser; amount: number }[] = [];
+        const debtors: { user: AuthenticatedFirebaseUser; amount: number; }[] = [];
+        const creditors: { user: AuthenticatedFirebaseUser; amount: number; }[] = [];
 
         for (const member of groupMembers) {
             const balance = currencyBalances[member.uid];
@@ -888,9 +888,9 @@ export async function generateTestData(): Promise<void> {
 
     const parallelUsers = await Promise.all(
         firstThreeUsers.map((userInfo) =>
-            (async function (userInfo: UserRegistration): Promise<AuthenticatedFirebaseUser> {
+            (async function(userInfo: UserRegistration): Promise<AuthenticatedFirebaseUser> {
                 return await driver.createUser(userInfo);
-            })(userInfo),
+            })(userInfo)
         ),
     );
     console.log(`✓ Created ${parallelUsers.length} users in parallel`);

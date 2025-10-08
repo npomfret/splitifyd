@@ -1,4 +1,4 @@
-import { UserBalance, SettlementDTO } from '@splitifyd/shared';
+import { SettlementDTO, UserBalance } from '@splitifyd/shared';
 import type { ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
 
 export class SettlementProcessor {

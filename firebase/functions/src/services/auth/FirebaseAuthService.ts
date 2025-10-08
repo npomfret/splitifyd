@@ -14,7 +14,7 @@
  */
 
 import type { Auth } from 'firebase-admin/auth';
-import type { UserRecord, UpdateRequest, CreateRequest, GetUsersResult, DecodedIdToken, ListUsersResult, DeleteUsersResult } from 'firebase-admin/auth';
+import type { CreateRequest, DecodedIdToken, DeleteUsersResult, GetUsersResult, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 
 import { IAuthService } from './IAuthService';
 
@@ -54,22 +54,22 @@ interface ValidatedUpdateUserRequest extends UpdateRequest {
     emailVerified?: boolean;
     disabled?: boolean;
 }
-import { logger } from '../../logger';
-import { LoggerContext } from '../../utils/logger-context';
-import { ApiError, Errors } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
+import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
+import { ApiError, Errors } from '../../utils/errors';
+import { LoggerContext } from '../../utils/logger-context';
 import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
 import {
+    validateBatchUserIds,
     validateCreateUser,
+    validateCustomClaims,
+    validateEmail,
+    validateIdToken,
+    validateListUsersOptions,
+    validatePhoneNumber,
     validateUpdateUser,
     validateUserId,
-    validateEmail,
-    validatePhoneNumber,
-    validateIdToken,
-    validateCustomClaims,
-    validateListUsersOptions,
-    validateBatchUserIds,
 } from './auth-validation';
 
 export class FirebaseAuthService implements IAuthService {
@@ -216,7 +216,7 @@ export class FirebaseAuthService implements IAuthService {
         );
     }
 
-    async getUsers(uids: { uid: string }[]): Promise<GetUsersResult> {
+    async getUsers(uids: { uid: string; }[]): Promise<GetUsersResult> {
         const context = this.createContext('getUsers');
 
         // Extract UIDs and validate if enabled

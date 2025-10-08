@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { GroupCommentStrategy } from '../../../../services/comments/GroupCommentStrategy';
-import { StubFirestoreReader } from '../../mocks/firestore-stubs';
-import { ApiError } from '../../../../utils/errors';
-import { HTTP_STATUS } from '../../../../constants';
 import { GroupDTOBuilder } from '@splitifyd/test-support';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { HTTP_STATUS } from '../../../../constants';
+import { GroupCommentStrategy } from '../../../../services/comments/GroupCommentStrategy';
+import { ApiError } from '../../../../utils/errors';
+import { StubFirestoreReader } from '../../mocks/firestore-stubs';
 
 const createStubGroupMemberService = () => ({
     isGroupMemberAsync: vi.fn(),

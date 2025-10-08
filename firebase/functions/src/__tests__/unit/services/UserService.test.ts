@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach, beforeAll } from 'vitest';
-import { UserService } from '../../../services/UserService2';
-import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
-import { HTTP_STATUS } from '../../../constants';
 import { type UserThemeColor } from '@splitifyd/shared';
 import { USER_COLORS } from '@splitifyd/shared';
-import { ApiError } from '../../../utils/errors';
-import { UserDocumentBuilder, UserRegistrationBuilder, UserUpdateBuilder, PasswordChangeBuilder } from '@splitifyd/test-support';
+import { PasswordChangeBuilder, UserDocumentBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { UserService } from '../../../services/UserService2';
+import { ApiError } from '../../../utils/errors';
 import { initializeI18n } from '../../../utils/i18n';
+import { StubAuthService, StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 
 describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;
@@ -325,11 +325,13 @@ describe('UserService - Consolidated Unit Tests', () => {
                 userService.updateProfile(nonExistentUid, {
                     displayName: 'Test',
                 }),
-            ).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.NOT_FOUND,
-                }),
-            );
+            )
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.NOT_FOUND,
+                    }),
+                );
         });
     });
 
@@ -365,11 +367,13 @@ describe('UserService - Consolidated Unit Tests', () => {
                     currentPassword: 'OldPassword123!',
                     newPassword: 'NewPassword123!',
                 }),
-            ).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.NOT_FOUND,
-                }),
-            );
+            )
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.NOT_FOUND,
+                    }),
+                );
         });
     });
 
@@ -444,7 +448,7 @@ describe('UserService - Consolidated Unit Tests', () => {
             });
 
             it('should accept valid displayName', async () => {
-                //todo
+                // todo
             });
 
             it('should validate preferredLanguage enum', async () => {
@@ -647,7 +651,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (!displayName || displayName.trim().length === 0) {
                         throw new ApiError(400, 'INVALID_DISPLAY_NAME', 'Display name cannot be empty');
                     }
-                }).toThrow('Display name cannot be empty');
+                })
+                    .toThrow('Display name cannot be empty');
             });
 
             it('should reject display names with only whitespace', () => {
@@ -656,7 +661,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (!displayName || displayName.trim().length === 0) {
                         throw new ApiError(400, 'INVALID_DISPLAY_NAME', 'Display name cannot be empty');
                     }
-                }).toThrow('Display name cannot be empty');
+                })
+                    .toThrow('Display name cannot be empty');
             });
 
             it('should reject display names that are too long', () => {
@@ -666,7 +672,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (displayName.length > maxLength) {
                         throw new ApiError(400, 'INVALID_DISPLAY_NAME', `Display name cannot exceed ${maxLength} characters`);
                     }
-                }).toThrow('Display name cannot exceed 100 characters');
+                })
+                    .toThrow('Display name cannot exceed 100 characters');
             });
 
             it('should accept valid display names', () => {
@@ -678,7 +685,9 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (displayName.length > 100) {
                         throw new ApiError(400, 'INVALID_DISPLAY_NAME', 'Display name cannot exceed 100 characters');
                     }
-                }).not.toThrow();
+                })
+                    .not
+                    .toThrow();
             });
 
             it('should trim whitespace from display names', () => {
@@ -704,7 +713,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                         if (!emailRegex.test(email)) {
                             throw new ApiError(400, 'INVALID_EMAIL', 'Invalid email format');
                         }
-                    }).toThrow('Invalid email format');
+                    })
+                        .toThrow('Invalid email format');
                 });
             });
 
@@ -717,7 +727,9 @@ describe('UserService - Consolidated Unit Tests', () => {
                         if (!emailRegex.test(email)) {
                             throw new ApiError(400, 'INVALID_EMAIL', 'Invalid email format');
                         }
-                    }).not.toThrow();
+                    })
+                        .not
+                        .toThrow();
                 });
             });
         });
@@ -730,7 +742,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (password.length < minLength) {
                         throw new ApiError(400, 'WEAK_PASSWORD', `Password must be at least ${minLength} characters long`);
                     }
-                }).toThrow('Password must be at least 8 characters long');
+                })
+                    .toThrow('Password must be at least 8 characters long');
             });
 
             it('should reject passwords without uppercase letters', () => {
@@ -739,7 +752,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (!/[A-Z]/.test(password)) {
                         throw new ApiError(400, 'WEAK_PASSWORD', 'Password must contain at least one uppercase letter');
                     }
-                }).toThrow('Password must contain at least one uppercase letter');
+                })
+                    .toThrow('Password must contain at least one uppercase letter');
             });
 
             it('should reject passwords without lowercase letters', () => {
@@ -748,7 +762,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (!/[a-z]/.test(password)) {
                         throw new ApiError(400, 'WEAK_PASSWORD', 'Password must contain at least one lowercase letter');
                     }
-                }).toThrow('Password must contain at least one lowercase letter');
+                })
+                    .toThrow('Password must contain at least one lowercase letter');
             });
 
             it('should reject passwords without numbers', () => {
@@ -757,7 +772,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (!/[0-9]/.test(password)) {
                         throw new ApiError(400, 'WEAK_PASSWORD', 'Password must contain at least one number');
                     }
-                }).toThrow('Password must contain at least one number');
+                })
+                    .toThrow('Password must contain at least one number');
             });
 
             it('should reject passwords without special characters', () => {
@@ -766,7 +782,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
                         throw new ApiError(400, 'WEAK_PASSWORD', 'Password must contain at least one special character');
                     }
-                }).toThrow('Password must contain at least one special character');
+                })
+                    .toThrow('Password must contain at least one special character');
             });
 
             it('should accept strong passwords', () => {
@@ -788,7 +805,9 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
                         throw new ApiError(400, 'WEAK_PASSWORD', 'Password must contain at least one special character');
                     }
-                }).not.toThrow();
+                })
+                    .not
+                    .toThrow();
             });
 
             it('should reject passwords that are the same as current password', () => {
@@ -799,7 +818,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (currentPassword === newPassword) {
                         throw new ApiError(400, 'INVALID_PASSWORD', 'New password must be different from current password');
                     }
-                }).toThrow('New password must be different from current password');
+                })
+                    .toThrow('New password must be different from current password');
             });
         });
 
@@ -812,7 +832,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (!validLanguages.includes(language)) {
                         throw new ApiError(400, 'INVALID_LANGUAGE', 'Invalid language code');
                     }
-                }).toThrow('Invalid language code');
+                })
+                    .toThrow('Invalid language code');
             });
 
             it('should accept valid language codes', () => {
@@ -823,7 +844,9 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (!validLanguages.includes(language)) {
                         throw new ApiError(400, 'INVALID_LANGUAGE', 'Invalid language code');
                     }
-                }).not.toThrow();
+                })
+                    .not
+                    .toThrow();
             });
         });
 
@@ -836,7 +859,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (photoURL && !urlRegex.test(photoURL)) {
                         throw new ApiError(400, 'INVALID_URL', 'Invalid photo URL format');
                     }
-                }).toThrow('Invalid photo URL format');
+                })
+                    .toThrow('Invalid photo URL format');
             });
 
             it('should accept valid photo URLs', () => {
@@ -847,7 +871,9 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (photoURL && !urlRegex.test(photoURL)) {
                         throw new ApiError(400, 'INVALID_URL', 'Invalid photo URL format');
                     }
-                }).not.toThrow();
+                })
+                    .not
+                    .toThrow();
             });
 
             it('should accept null photo URL', () => {
@@ -858,7 +884,9 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (photoURL && !urlRegex.test(photoURL)) {
                         throw new ApiError(400, 'INVALID_URL', 'Invalid photo URL format');
                     }
-                }).not.toThrow();
+                })
+                    .not
+                    .toThrow();
             });
         });
 
@@ -870,7 +898,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (!confirmDelete) {
                         throw new ApiError(400, 'CONFIRMATION_REQUIRED', 'Account deletion must be confirmed');
                     }
-                }).toThrow('Account deletion must be confirmed');
+                })
+                    .toThrow('Account deletion must be confirmed');
             });
 
             it('should accept valid deletion confirmation', () => {
@@ -880,7 +909,9 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (!confirmDelete) {
                         throw new ApiError(400, 'CONFIRMATION_REQUIRED', 'Account deletion must be confirmed');
                     }
-                }).not.toThrow();
+                })
+                    .not
+                    .toThrow();
             });
         });
 
@@ -892,7 +923,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (!termsAccepted) {
                         throw new ApiError(400, 'TERMS_REQUIRED', 'You must accept the Terms of Service');
                     }
-                }).toThrow('You must accept the Terms of Service');
+                })
+                    .toThrow('You must accept the Terms of Service');
             });
 
             it('should require cookie policy acceptance', () => {
@@ -902,7 +934,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (!cookiePolicyAccepted) {
                         throw new ApiError(400, 'COOKIE_POLICY_REQUIRED', 'You must accept the Cookie Policy');
                     }
-                }).toThrow('You must accept the Cookie Policy');
+                })
+                    .toThrow('You must accept the Cookie Policy');
             });
 
             it('should accept valid policy acceptances', () => {
@@ -916,7 +949,9 @@ describe('UserService - Consolidated Unit Tests', () => {
                     if (!cookiePolicyAccepted) {
                         throw new ApiError(400, 'COOKIE_POLICY_REQUIRED', 'You must accept the Cookie Policy');
                     }
-                }).not.toThrow();
+                })
+                    .not
+                    .toThrow();
             });
         });
     });

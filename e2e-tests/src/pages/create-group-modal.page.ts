@@ -1,8 +1,8 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { BasePage } from './base.page';
-import { ARIA_ROLES, SELECTORS } from '../constants/selectors';
 import { PooledTestUser } from '@splitifyd/shared';
 import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
+import { ARIA_ROLES, SELECTORS } from '../constants/selectors';
+import { BasePage } from './base.page';
 
 export class CreateGroupModalPage extends BasePage {
     readonly modalTitle = translationEn.createGroupModal.title;
@@ -104,7 +104,8 @@ export class CreateGroupModalPage extends BasePage {
             if (isOpen) {
                 throw new Error('Modal still open');
             }
-        }).toPass({ timeout: 5000, intervals: [100, 250] });
+        })
+            .toPass({ timeout: 5000, intervals: [100, 250] });
     }
 
     getGroupNameInput() {

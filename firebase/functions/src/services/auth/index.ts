@@ -6,8 +6,8 @@
  */
 
 // Core interface and implementations
-export { IAuthService } from './IAuthService';
 export { FirebaseAuthService } from './FirebaseAuthService';
+export { IAuthService } from './IAuthService';
 
 // Types and interfaces (only shared/public types)
 // Note: Internal implementation types are now co-located within FirebaseAuthService.ts

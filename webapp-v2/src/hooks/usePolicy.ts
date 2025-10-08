@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'preact/hooks';
-import { logError } from '../utils/browser-logger';
 import { PolicyIds } from '@splitifyd/shared';
+import { useEffect, useState } from 'preact/hooks';
+import { logError } from '../utils/browser-logger';
 
 interface PolicyResponse {
     id: string;

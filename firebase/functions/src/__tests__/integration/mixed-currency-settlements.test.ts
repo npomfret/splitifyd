@@ -2,8 +2,8 @@
 // Tests mixed currency settlement behavior directly via API
 // This test reproduces the same scenario as the failing e2e test to isolate the issue
 
-import { describe, expect, test, afterEach } from 'vitest';
-import { ApiDriver, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, borrowTestUsers, TestGroupManager, NotificationDriver } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, NotificationDriver, TestGroupManager } from '@splitifyd/test-support';
+import { afterEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 
 describe('Mixed Currency Settlements - API Integration', () => {

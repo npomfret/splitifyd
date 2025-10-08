@@ -1,10 +1,10 @@
-import { describe, it, test, expect, beforeEach } from 'vitest';
-import { GroupMemberService } from '../../../services/GroupMemberService';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
+import { type GroupMembershipDTO, MemberRoles } from '@splitifyd/shared';
 import { GroupDTOBuilder, ThemeBuilder } from '@splitifyd/test-support';
-import { MemberRoles, type GroupMembershipDTO } from '@splitifyd/shared';
+import { beforeEach, describe, expect, it, test } from 'vitest';
+import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { GroupMemberService } from '../../../services/GroupMemberService';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
+import { StubAuthService, StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {
     let groupMemberService: GroupMemberService;

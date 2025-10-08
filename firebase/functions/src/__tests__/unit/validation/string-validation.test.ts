@@ -1,9 +1,9 @@
-import { describe, test, expect } from 'vitest';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
+import { describe, expect, test } from 'vitest';
+import { VALIDATION_LIMITS } from '../../../constants';
 import { validateCreateExpense, validateUpdateExpense } from '../../../expenses/validation';
 import { validateCreateGroup } from '../../../groups/validation';
 import { ApiError } from '../../../utils/errors';
-import { VALIDATION_LIMITS } from '../../../constants';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
 
 describe('String Length Validation - Focused Tests', () => {
     const baseValidExpenseData = new CreateExpenseRequestBuilder().withAmount(1).withCurrency('USD').withGroupId('test-group-id').withDescription('Test expense').withCurrency('USD').build();
@@ -20,8 +20,9 @@ describe('String Length Validation - Focused Tests', () => {
                 validateCreateExpense({
                     ...baseValidExpenseData,
                     description: tooLongDescription,
-                }),
-            ).toThrow(ApiError);
+                })
+            )
+                .toThrow(ApiError);
 
             // Should accept at limit
             const result = validateCreateExpense({
@@ -40,8 +41,9 @@ describe('String Length Validation - Focused Tests', () => {
                 validateCreateGroup({
                     ...baseValidGroupData,
                     name: tooLongName,
-                }),
-            ).toThrow(ApiError);
+                })
+            )
+                .toThrow(ApiError);
 
             // Should accept at limit
             const result = validateCreateGroup({
@@ -64,14 +66,15 @@ describe('String Length Validation - Focused Tests', () => {
                 validateCreateExpense({
                     ...baseValidExpenseData,
                     description: '   ', // Only whitespace
-                }),
-            ).toThrow(ApiError);
+                })
+            )
+                .toThrow(ApiError);
         });
     });
 
     describe('Special Characters Handling', () => {
         test('should preserve special characters in text fields', () => {
-            const specialText = "Café & Restaurant - 50% off @ John's!";
+            const specialText = 'Café & Restaurant - 50% off @ John\'s!';
 
             const expenseResult = validateCreateExpense({
                 ...baseValidExpenseData,
@@ -95,8 +98,9 @@ describe('String Length Validation - Focused Tests', () => {
             expect(() =>
                 validateUpdateExpense({
                     description: tooLongDescription,
-                }),
-            ).toThrow(ApiError);
+                })
+            )
+                .toThrow(ApiError);
 
             // Should accept valid update
             const result = validateUpdateExpense({

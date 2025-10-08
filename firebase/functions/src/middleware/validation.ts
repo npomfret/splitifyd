@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import { Errors, sendError } from '../utils/errors';
+import { NextFunction, Request, Response } from 'express';
 import { getConfig } from '../client-config';
+import { Errors, sendError } from '../utils/errors';
 import { checkForDangerousPatterns } from '../utils/security';
 
 /**

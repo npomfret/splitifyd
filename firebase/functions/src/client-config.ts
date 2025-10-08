@@ -1,8 +1,8 @@
+import { AppConfiguration, EnvironmentConfig, FirebaseConfig } from '@splitifyd/shared';
 import { z } from 'zod';
 import { DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
-import { AppConfiguration, EnvironmentConfig, FirebaseConfig } from '@splitifyd/shared';
-import { validateAppConfiguration } from './middleware/config-validation';
 import { logger } from './logger';
+import { validateAppConfiguration } from './middleware/config-validation';
 
 // Cache for lazy-loaded configurations
 let cachedConfig: ClientConfig | null = null;
@@ -171,14 +171,14 @@ function buildAppConfiguration(): AppConfiguration {
 
     const firebase: FirebaseConfig = config.isProduction
         ? {
-              apiKey: env.CLIENT_API_KEY!,
-              authDomain: env.CLIENT_AUTH_DOMAIN!,
-              projectId,
-              storageBucket: env.CLIENT_STORAGE_BUCKET!,
-              messagingSenderId: env.CLIENT_MESSAGING_SENDER_ID!,
-              appId: env.CLIENT_APP_ID!,
-              measurementId: env.CLIENT_MEASUREMENT_ID,
-          }
+            apiKey: env.CLIENT_API_KEY!,
+            authDomain: env.CLIENT_AUTH_DOMAIN!,
+            projectId,
+            storageBucket: env.CLIENT_STORAGE_BUCKET!,
+            messagingSenderId: env.CLIENT_MESSAGING_SENDER_ID!,
+            appId: env.CLIENT_APP_ID!,
+            measurementId: env.CLIENT_MEASUREMENT_ID,
+        }
         : MINIMAL_EMULATOR_CLIENT_CONFIG;
 
     // Validate required fields in production

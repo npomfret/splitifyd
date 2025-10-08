@@ -1,5 +1,5 @@
-import { ApiDriver } from '@splitifyd/test-support';
 import { PooledTestUser } from '@splitifyd/shared';
+import { ApiDriver } from '@splitifyd/test-support';
 
 /**
  * Thin wrapper around the remote test user pool API.

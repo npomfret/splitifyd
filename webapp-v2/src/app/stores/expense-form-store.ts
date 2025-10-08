@@ -1,12 +1,12 @@
-import { signal, ReadonlySignal } from '@preact/signals';
-import { CreateExpenseRequest, ExpenseDTO, ExpenseSplit, SplitTypes, calculateEqualSplits, calculateExactSplits, calculatePercentageSplits } from '@splitifyd/shared';
+import { logWarning } from '@/utils/browser-logger.ts';
+import { getAmountPrecisionError } from '@/utils/currency-validation.ts';
+import { getUTCDateTime, isDateInFuture } from '@/utils/dateUtils.ts';
+import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
+import { ReadonlySignal, signal } from '@preact/signals';
+import { calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, CreateExpenseRequest, ExpenseDTO, ExpenseSplit, SplitTypes } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
-import { logWarning } from '@/utils/browser-logger.ts';
-import { getUTCDateTime, isDateInFuture } from '@/utils/dateUtils.ts';
-import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
-import { getAmountPrecisionError } from '@/utils/currency-validation.ts';
 
 interface ExpenseFormStore {
     // Form fields
@@ -836,15 +836,15 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         // Check if any field has been modified from initial state
         const hasAmount = this.#amountSignal.value > 0;
         return (
-            this.#descriptionSignal.value.trim() !== '' ||
-            hasAmount ||
-            this.#currencySignal.value !== '' ||
-            this.#dateSignal.value !== getTodayDate() ||
-            this.#paidBySignal.value !== '' ||
-            this.#categorySignal.value !== 'food' ||
-            this.#splitTypeSignal.value !== SplitTypes.EQUAL ||
-            this.#participantsSignal.value.length > 0 ||
-            this.#splitsSignal.value.length > 0
+            this.#descriptionSignal.value.trim() !== ''
+            || hasAmount
+            || this.#currencySignal.value !== ''
+            || this.#dateSignal.value !== getTodayDate()
+            || this.#paidBySignal.value !== ''
+            || this.#categorySignal.value !== 'food'
+            || this.#splitTypeSignal.value !== SplitTypes.EQUAL
+            || this.#participantsSignal.value.length > 0
+            || this.#splitsSignal.value.length > 0
         );
     }
 

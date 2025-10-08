@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest';
 import * as crypto from 'crypto';
-import { PolicyService } from '../../../services/PolicyService';
-import { StubFirestoreReader, StubFirestoreWriter, createMockPolicyDocument } from '../mocks/firestore-stubs';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
+import { PolicyService } from '../../../services/PolicyService';
+import { createMockPolicyDocument, StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 
 /**
  * Consolidated PolicyService Unit Tests
@@ -1073,12 +1073,14 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             stubReader.setRawDocument(policyId, policy);
             await expect(
                 policyService.updatePolicy(policyId, baseContent), // Same text as original
-            ).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.CONFLICT,
-                    code: 'VERSION_ALREADY_EXISTS',
-                }),
-            );
+            )
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.CONFLICT,
+                        code: 'VERSION_ALREADY_EXISTS',
+                    }),
+                );
 
             // Different content should succeed
             stubWriter.setWriteResult(policyId, true);

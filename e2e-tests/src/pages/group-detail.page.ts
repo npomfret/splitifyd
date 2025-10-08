@@ -1,13 +1,13 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import { ExpenseFormPage } from './expense-form.page';
-import { ExpenseDetailPage } from './expense-detail.page';
-import { SettlementFormPage } from './settlement-form.page';
+import { DashboardPage } from './dashboard.page.ts';
 import { EditGroupModalPage } from './edit-group-modal.page';
+import { ExpenseDetailPage } from './expense-detail.page';
+import { ExpenseFormPage } from './expense-form.page';
 import { LeaveGroupModalPage } from './leave-group-modal.page';
 import { RemoveMemberModalPage } from './remove-member-modal.page';
+import { SettlementFormPage } from './settlement-form.page';
 import { ShareGroupModalPage } from './share-group-modal.page';
-import { DashboardPage } from './dashboard.page.ts';
 
 export class GroupDetailPage extends BasePage {
     constructor(page: Page) {
@@ -47,7 +47,8 @@ export class GroupDetailPage extends BasePage {
     getAddExpenseButton() {
         // Primary selector: use data-testid
         // Fallback: use role and name for robustness
-        return this.page
+        return this
+            .page
             .locator('[data-testid="add-expense-button"]')
             .or(this.page.getByRole('button', { name: /add expense/i }))
             .first();
@@ -131,10 +132,11 @@ export class GroupDetailPage extends BasePage {
             if (title !== text) {
                 throw new Error(`Title is still "${title}", waiting for "${text}"`);
             }
-        }).toPass({
-            timeout: 5000,
-            intervals: [500, 1000, 1500, 2000], // Retry at these intervals
-        });
+        })
+            .toPass({
+                timeout: 5000,
+                intervals: [500, 1000, 1500, 2000], // Retry at these intervals
+            });
     }
 
     async waitForGroupDescription(text: string) {
@@ -146,10 +148,11 @@ export class GroupDetailPage extends BasePage {
             if (description !== text) {
                 throw new Error(`Description is still "${description}", waiting for "${text}"`);
             }
-        }).toPass({
-            timeout: 5000,
-            intervals: [500, 1000, 1500, 2000], // Retry at these intervals
-        });
+        })
+            .toPass({
+                timeout: 5000,
+                intervals: [500, 1000, 1500, 2000], // Retry at these intervals
+            });
     }
 
     // Share functionality accessors
@@ -190,12 +193,13 @@ export class GroupDetailPage extends BasePage {
                 // Get member names for better debugging
                 const memberNames = await this.getMemberNames();
                 throw new Error(
-                    `Member count mismatch. Expected: ${expectedCount}, ` +
-                        `Text shows: ${textCount}, Actual items: ${actualItems}. ` +
-                        `Members: [${memberNames.join(', ')}]. URL: ${this.page.url()}`,
+                    `Member count mismatch. Expected: ${expectedCount}, `
+                        + `Text shows: ${textCount}, Actual items: ${actualItems}. `
+                        + `Members: [${memberNames.join(', ')}]. URL: ${this.page.url()}`,
                 );
             }
-        }).toPass({ timeout });
+        })
+            .toPass({ timeout });
 
         // Double-check we're still on the group page after waiting
         const finalUrl = this.page.url();
@@ -253,10 +257,11 @@ export class GroupDetailPage extends BasePage {
             if (!isVisible) {
                 throw new Error(`Expense with description "${expenseDescription}" found but not visible yet`);
             }
-        }).toPass({
-            timeout: 5000,
-            intervals: [100, 200, 300, 500, 1000],
-        });
+        })
+            .toPass({
+                timeout: 5000,
+                intervals: [100, 200, 300, 500, 1000],
+            });
     }
 
     private async sanityCheckPageUrl(currentUrl: string, targetGroupUrl: string) {
@@ -272,7 +277,8 @@ export class GroupDetailPage extends BasePage {
      * This replaces repeated complex locator chains in tests
      */
     getBalancesSection() {
-        return this.page
+        return this
+            .page
             .locator('.bg-white')
             .filter({
                 has: this.page.getByRole('heading', { name: 'Balances' }),
@@ -539,17 +545,18 @@ export class GroupDetailPage extends BasePage {
             }
 
             // Settlement successfully removed
-        }).toPass({
-            timeout: 5000,
-            intervals: [100, 200, 300, 500, 1000],
-        });
+        })
+            .toPass({
+                timeout: 5000,
+                intervals: [100, 200, 300, 500, 1000],
+            });
     }
 
     /**
      * Verify settlement details in history
      * Properly scoped to the payment history container
      */
-    async verifySettlementDetails(details: { note: string; amount?: string; payerName?: string; payeeName?: string }): Promise<void> {
+    async verifySettlementDetails(details: { note: string; amount?: string; payerName?: string; payeeName?: string; }): Promise<void> {
         // Assert we're in the right state
         await expect(this.page).toHaveURL(groupDetailUrlPattern());
 
@@ -592,10 +599,11 @@ export class GroupDetailPage extends BasePage {
                     throw new Error(`Payee name "${details.payeeName}" not visible yet`);
                 }
             }
-        }).toPass({
-            timeout: 5000,
-            intervals: [100, 200, 300, 500, 1000],
-        });
+        })
+            .toPass({
+                timeout: 5000,
+                intervals: [100, 200, 300, 500, 1000],
+            });
     }
 
     /**
@@ -678,7 +686,8 @@ export class GroupDetailPage extends BasePage {
     }
 
     private getBalancesSectionByContext() {
-        return this.page
+        return this
+            .page
             .locator('.bg-white')
             .filter({
                 has: this.page.getByRole('heading', { name: 'Balances' }),
@@ -704,7 +713,7 @@ export class GroupDetailPage extends BasePage {
             // Check each relationship to find one with the matching amount
             let foundMatchingAmount = false;
             let actualAmounts: string[] = [];
-            let debugInfo: Array<{ amount: string; trimmed: string; length: number; charCodes: number[] }> = [];
+            let debugInfo: Array<{ amount: string; trimmed: string; length: number; charCodes: number[]; }> = [];
 
             for (let i = 0; i < count; i++) {
                 const relationshipSpan = debtRelationshipSpans.nth(i);
@@ -744,19 +753,22 @@ export class GroupDetailPage extends BasePage {
                 };
 
                 throw new Error(
-                    `Debt amount mismatch for ${debtorName} → ${creditorName}\n` +
-                        `Expected: "${expectedAmount}" (trimmed: "${expectedTrimmed}", length: ${expectedDebugInfo.length}, chars: [${expectedDebugInfo.charCodes.join(',')}])\n` +
-                        `Found amounts: ${actualAmounts
-                            .map((amt, idx) => `"${amt}" (trimmed: "${debugInfo[idx].trimmed}", length: ${debugInfo[idx].length}, chars: [${debugInfo[idx].charCodes.join(',')}])`)
-                            .join(', ')}`,
+                    `Debt amount mismatch for ${debtorName} → ${creditorName}\n`
+                        + `Expected: "${expectedAmount}" (trimmed: "${expectedTrimmed}", length: ${expectedDebugInfo.length}, chars: [${expectedDebugInfo.charCodes.join(',')}])\n`
+                        + `Found amounts: ${
+                            actualAmounts
+                                .map((amt, idx) => `"${amt}" (trimmed: "${debugInfo[idx].trimmed}", length: ${debugInfo[idx].length}, chars: [${debugInfo[idx].charCodes.join(',')}])`)
+                                .join(', ')
+                        }`,
                 );
             }
 
             // If we get here, everything matches!
-        }).toPass({
-            timeout: 5000,
-            intervals: [100, 200, 300, 500, 1000],
-        });
+        })
+            .toPass({
+                timeout: 5000,
+                intervals: [100, 200, 300, 500, 1000],
+            });
     }
     /**
      * Verify that all members in the group are settled up (no outstanding balances)
@@ -776,10 +788,11 @@ export class GroupDetailPage extends BasePage {
             if (count === 0) {
                 throw new Error('No "All settled up!" in balances section found yet');
             }
-        }).toPass({
-            timeout: 3000,
-            intervals: [100, 200, 300, 400, 500, 1000],
-        });
+        })
+            .toPass({
+                timeout: 3000,
+                intervals: [100, 200, 300, 400, 500, 1000],
+            });
 
         // Double-check that there are no debt relationships visible
         const balancesSection = this.getBalancesSection();
@@ -945,7 +958,8 @@ export class GroupDetailPage extends BasePage {
         await expect(async () => {
             const count = await this.getCommentItems().count();
             expect(count).toBe(expectedCount);
-        }).toPass({ timeout });
+        })
+            .toPass({ timeout });
     }
 
     /**

@@ -1,21 +1,21 @@
+import { ShareGroupModal } from '@/components/group';
+import { navigationService } from '@/services/navigation.service';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { navigationService } from '@/services/navigation.service';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { enhancedGroupsStore } from '../app/stores/groups-store-enhanced';
-import { BaseLayout } from '../components/layout/BaseLayout';
-import { DashboardGrid } from '../components/layout/DashboardGrid';
-import { GroupsList } from '../components/dashboard/GroupsList';
 import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 import { DashboardStats } from '../components/dashboard/DashboardStats';
+import { GroupsList } from '../components/dashboard/GroupsList';
 import { QuickActionsCard } from '../components/dashboard/QuickActionsCard';
-import { ShareGroupModal } from '@/components/group';
+import { BaseLayout } from '../components/layout/BaseLayout';
+import { DashboardGrid } from '../components/layout/DashboardGrid';
 
 export function DashboardPage() {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [shareModalState, setShareModalState] = useState<{ isOpen: boolean; groupId: string; groupName: string }>({
+    const [shareModalState, setShareModalState] = useState<{ isOpen: boolean; groupId: string; groupName: string; }>({
         isOpen: false,
         groupId: '',
         groupName: '',
@@ -62,29 +62,29 @@ export function DashboardPage() {
     };
 
     return (
-        <BaseLayout title={t('dashboard.title')} description={t('dashboard.description')} headerVariant="dashboard">
+        <BaseLayout title={t('dashboard.title')} description={t('dashboard.description')} headerVariant='dashboard'>
             <DashboardGrid
                 mainContent={
                     <>
                         {/* Quick Actions - Show at top on mobile, hide on large screens */}
-                        <div class="lg:hidden mb-6">
+                        <div class='lg:hidden mb-6'>
                             <QuickActionsCard onCreateGroup={() => setIsCreateModalOpen(true)} />
                         </div>
 
                         {/* Welcome Section - Only show for first-time users (no groups) after loading is complete */}
                         {enhancedGroupsStore.groups.length === 0 && enhancedGroupsStore.initialized && !enhancedGroupsStore.loading && (
-                            <div class="mb-6">
-                                <h2 class="text-2xl font-bold text-gray-900 mb-2">{t('dashboard.welcomeMessage', { name: user.displayName || user.email.split('@')[0] })}</h2>
-                                <p class="text-gray-600">{t('dashboard.welcomeDescription')}</p>
+                            <div class='mb-6'>
+                                <h2 class='text-2xl font-bold text-gray-900 mb-2'>{t('dashboard.welcomeMessage', { name: user.displayName || user.email.split('@')[0] })}</h2>
+                                <p class='text-gray-600'>{t('dashboard.welcomeDescription')}</p>
                             </div>
                         )}
 
                         {/* Groups Section */}
-                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-testid="groups-container">
-                            <div class="flex items-center justify-between mb-6">
-                                <h3 class="text-lg font-semibold text-gray-900">{t('dashboard.yourGroups')}</h3>
+                        <div class='bg-white rounded-lg shadow-sm border border-gray-200 p-6' data-testid='groups-container'>
+                            <div class='flex items-center justify-between mb-6'>
+                                <h3 class='text-lg font-semibold text-gray-900'>{t('dashboard.yourGroups')}</h3>
                                 <button
-                                    class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors text-sm font-medium hidden lg:block"
+                                    class='bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors text-sm font-medium hidden lg:block'
                                     onClick={() => setIsCreateModalOpen(true)}
                                 >
                                     {t('dashboard.createGroup')}
@@ -97,9 +97,9 @@ export function DashboardPage() {
                     </>
                 }
                 sidebarContent={
-                    <div class="space-y-4">
+                    <div class='space-y-4'>
                         {/* Quick Actions - Show in sidebar on large screens only */}
-                        <div class="hidden lg:block">
+                        <div class='hidden lg:block'>
                             <QuickActionsCard onCreateGroup={() => setIsCreateModalOpen(true)} />
                         </div>
                         <DashboardStats />

@@ -1,7 +1,7 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
+import { TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
 import { loadTranslation } from './translation-loader';
-import { TEST_TIMEOUTS } from '../test-constants';
 
 const translation = loadTranslation();
 
@@ -122,7 +122,8 @@ export class CreateGroupModalPage extends BasePage {
      */
     getCloseButton(): Locator {
         // The close button is in the header and has an SVG icon
-        return this.getModalContainer()
+        return this
+            .getModalContainer()
             .locator('button')
             .filter({
                 has: this.page.locator('svg'),

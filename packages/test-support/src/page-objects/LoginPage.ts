@@ -1,8 +1,8 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
+import { TEST_ROUTES, TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
-import { loadTranslation } from './translation-loader';
 import { DashboardPage } from './DashboardPage';
-import { TEST_TIMEOUTS, TEST_ROUTES } from '../test-constants';
+import { loadTranslation } from './translation-loader';
 
 const translation = loadTranslation();
 
@@ -36,7 +36,8 @@ export class LoginPage extends BasePage {
      * Login page heading container - helps identify we're on the right page
      */
     getPageHeading(): Locator {
-        return this.getLoginFormContainer()
+        return this
+            .getLoginFormContainer()
             .locator('..')
             .getByRole('heading', { name: /sign.*in/i });
     }

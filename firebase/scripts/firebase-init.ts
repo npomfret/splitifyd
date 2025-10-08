@@ -1,6 +1,6 @@
-import * as path from 'path';
-import * as fs from 'fs';
 import * as admin from 'firebase-admin';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export function isProduction() {
     return process.env.NODE_ENV === 'production';

@@ -15,7 +15,7 @@ export function getInitials(displayName: string): string {
 }
 
 // Get size classes for avatars
-export function getAvatarSize(size: AvatarProps['size'] = 'md'): { container: string; text: string } {
+export function getAvatarSize(size: AvatarProps['size'] = 'md'): { container: string; text: string; } {
     switch (size) {
         case 'sm':
             return { container: 'w-6 h-6', text: 'text-xs' };

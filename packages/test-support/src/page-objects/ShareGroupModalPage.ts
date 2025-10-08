@@ -1,7 +1,7 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
+import { TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
 import { loadTranslation } from './translation-loader';
-import { TEST_TIMEOUTS } from '../test-constants';
 
 const translation = loadTranslation();
 

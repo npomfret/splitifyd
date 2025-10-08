@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
 import { formatCurrency, type FormatOptions } from '@/utils/currency/currencyFormatter.ts';
+import { describe, expect, it, vi } from 'vitest';
 
 // Mock the getCurrency function from shared package
 vi.mock('@splitifyd/shared', () => ({

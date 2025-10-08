@@ -1,6 +1,6 @@
-import { route } from 'preact-router';
 import { ROUTES, routes } from '@/constants/routes';
 import { logUserAction } from '@/utils/browser-logger';
+import { route } from 'preact-router';
 
 /**
  * Centralized navigation service for consistent routing throughout the application.
@@ -28,7 +28,7 @@ class NavigationService {
      * Navigate to a specific route with optional query parameters
      * Returns a Promise that resolves when navigation is complete
      */
-    navigateTo(path: string, options: { replace?: boolean; queryParams?: Record<string, string> } = {}): Promise<void> {
+    navigateTo(path: string, options: { replace?: boolean; queryParams?: Record<string, string>; } = {}): Promise<void> {
         const { replace = false, queryParams } = options;
 
         // Build full URL with query parameters

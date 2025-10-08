@@ -1,11 +1,11 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/preact';
 import { ErrorMessage } from '@/components/auth/ErrorMessage.tsx';
+import { render, screen } from '@testing-library/preact';
+import { describe, expect, it } from 'vitest';
 
 describe('ErrorMessage Component', () => {
     describe('error display', () => {
         it('should render error message when error is provided', () => {
-            render(<ErrorMessage error="Something went wrong" />);
+            render(<ErrorMessage error='Something went wrong' />);
 
             const errorElement = screen.getByTestId('error-message');
             expect(errorElement).toBeInTheDocument();
@@ -13,7 +13,7 @@ describe('ErrorMessage Component', () => {
         });
 
         it('should have proper semantic attributes for accessibility', () => {
-            render(<ErrorMessage error="Validation failed" />);
+            render(<ErrorMessage error='Validation failed' />);
 
             const errorElement = screen.getByTestId('error-message');
             expect(errorElement).toBeInTheDocument();
@@ -24,7 +24,7 @@ describe('ErrorMessage Component', () => {
         });
 
         it('should include error icon in the display', () => {
-            render(<ErrorMessage error="Network error occurred" />);
+            render(<ErrorMessage error='Network error occurred' />);
 
             const errorElement = screen.getByTestId('error-message');
             expect(errorElement).toBeInTheDocument();
@@ -36,7 +36,7 @@ describe('ErrorMessage Component', () => {
         });
 
         it('should apply proper error styling classes', () => {
-            render(<ErrorMessage error="Form validation error" />);
+            render(<ErrorMessage error='Form validation error' />);
 
             const errorElement = screen.getByTestId('error-message');
             expect(errorElement).toHaveClass('text-red-600');
@@ -106,14 +106,14 @@ describe('ErrorMessage Component', () => {
         });
 
         it('should not render when error is empty string', () => {
-            render(<ErrorMessage error="" />);
+            render(<ErrorMessage error='' />);
 
             const errorElement = screen.queryByTestId('error-message');
             expect(errorElement).not.toBeInTheDocument();
         });
 
         it('should render when error is whitespace-only (considered truthy)', () => {
-            render(<ErrorMessage error="   " />);
+            render(<ErrorMessage error='   ' />);
 
             const errorElement = screen.getByTestId('error-message');
             expect(errorElement).toBeInTheDocument();
@@ -125,7 +125,7 @@ describe('ErrorMessage Component', () => {
 
     describe('custom className', () => {
         it('should apply default className when none provided', () => {
-            render(<ErrorMessage error="Test error" />);
+            render(<ErrorMessage error='Test error' />);
 
             const errorElement = screen.getByTestId('error-message');
             expect(errorElement).toBeInTheDocument();
@@ -135,7 +135,7 @@ describe('ErrorMessage Component', () => {
         });
 
         it('should append custom className to default classes', () => {
-            render(<ErrorMessage error="Test error" className="mt-4 font-bold" />);
+            render(<ErrorMessage error='Test error' className='mt-4 font-bold' />);
 
             const errorElement = screen.getByTestId('error-message');
             expect(errorElement).toBeInTheDocument();
@@ -146,7 +146,7 @@ describe('ErrorMessage Component', () => {
         });
 
         it('should handle empty custom className', () => {
-            render(<ErrorMessage error="Test error" className="" />);
+            render(<ErrorMessage error='Test error' className='' />);
 
             const errorElement = screen.getByTestId('error-message');
             expect(errorElement).toBeInTheDocument();
@@ -156,7 +156,7 @@ describe('ErrorMessage Component', () => {
 
     describe('component structure', () => {
         it('should have proper HTML structure', () => {
-            render(<ErrorMessage error="Structural test error" />);
+            render(<ErrorMessage error='Structural test error' />);
 
             const errorElement = screen.getByTestId('error-message');
             expect(errorElement).toBeInTheDocument();
@@ -183,7 +183,7 @@ describe('ErrorMessage Component', () => {
         });
 
         it('should have accessible text content structure', () => {
-            render(<ErrorMessage error="Accessibility test error" />);
+            render(<ErrorMessage error='Accessibility test error' />);
 
             const errorElement = screen.getByTestId('error-message');
             const paragraph = errorElement.querySelector('p');
@@ -196,7 +196,7 @@ describe('ErrorMessage Component', () => {
     describe('integration with semantic error patterns', () => {
         it('should follow error display requirements from style guide', () => {
             // Based on webapp-and-style-guide.md requirements
-            render(<ErrorMessage error="Form validation error" />);
+            render(<ErrorMessage error='Form validation error' />);
 
             const errorElement = screen.getByTestId('error-message');
 
@@ -215,7 +215,7 @@ describe('ErrorMessage Component', () => {
         });
 
         it('should be detectable by E2E error collection systems', () => {
-            render(<ErrorMessage error="API connection failed" />);
+            render(<ErrorMessage error='API connection failed' />);
 
             const errorElement = screen.getByTestId('error-message');
 

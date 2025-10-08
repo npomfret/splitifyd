@@ -1,5 +1,5 @@
-import { test, expect } from '../../utils/console-logging-fixture';
 import { ClientUserBuilder, RegisterPage, TEST_TIMEOUTS } from '@splitifyd/test-support';
+import { expect, test } from '../../utils/console-logging-fixture';
 
 test.describe('Registration Navigation Flows', () => {
     test('should navigate to login page when clicking sign in link', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -21,10 +21,7 @@ test.describe('Registration Navigation Flows', () => {
     // doesn't accept or forward query parameters). This would need to be implemented in the
     // application first before testing it.
 
-    test('should navigate to login when clicking sign in link', async ({
-        pageWithLogging: page,
-        mockFirebase,
-    }) => {
+    test('should navigate to login when clicking sign in link', async ({ pageWithLogging: page, mockFirebase }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -58,11 +55,9 @@ test.describe('Registration Navigation Flows', () => {
 });
 
 test.describe('Registration Success Navigation', () => {
-    test('should navigate to dashboard after successful registration', async ({
-        pageWithLogging: page,
-        mockFirebase,
-    }) => {
-        const testUser = ClientUserBuilder.validUser()
+    test('should navigate to dashboard after successful registration', async ({ pageWithLogging: page, mockFirebase }) => {
+        const testUser = ClientUserBuilder
+            .validUser()
             .withDisplayName('New User')
             .withEmail('newuser@example.com')
             .build();
@@ -83,10 +78,7 @@ test.describe('Registration Success Navigation', () => {
         await expect(dashboardPage.getUserMenuButton()).toContainText(testUser.displayName);
     });
 
-    test('should navigate to returnUrl after successful registration when specified', async ({
-        pageWithLogging: page,
-        mockFirebase,
-    }) => {
+    test('should navigate to returnUrl after successful registration when specified', async ({ pageWithLogging: page, mockFirebase }) => {
         const testUser = ClientUserBuilder.validUser().build();
         const registerPage = new RegisterPage(page);
         const returnUrl = '/groups/target-group';
@@ -190,10 +182,7 @@ test.describe('Registration Page State Persistence', () => {
         // Note: This tests sessionStorage cleanup after successful registration
     });
 
-    test('should handle browser back button after registration', async ({
-        pageWithLogging: page,
-        mockFirebase,
-    }) => {
+    test('should handle browser back button after registration', async ({ pageWithLogging: page, mockFirebase }) => {
         const testUser = ClientUserBuilder.validUser().build();
         const registerPage = new RegisterPage(page);
 
@@ -277,7 +266,8 @@ test.describe('Registration Page Error Recovery', () => {
         await registerPage.verifyErrorMessage('Email already registered.');
 
         // Change to success for retry
-        const testUser = ClientUserBuilder.validUser()
+        const testUser = ClientUserBuilder
+            .validUser()
             .withDisplayName('John Doe')
             .withEmail('newemail@example.com')
             .build();

@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { apiClient, type PolicyAcceptanceStatusDTO } from '../app/apiClient';
-import { logError } from '../utils/browser-logger';
 import { useAuth } from '../app/hooks/useAuth';
+import { logError } from '../utils/browser-logger';
 
 interface PolicyAcceptanceState {
     needsAcceptance: boolean;

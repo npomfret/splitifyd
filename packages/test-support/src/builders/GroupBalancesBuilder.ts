@@ -22,8 +22,8 @@ export class GroupBalancesBuilder {
         userBalances: Record<string, ExtendedUserBalance>;
         simplifiedDebts: Array<
             SimplifiedDebt & {
-                from: { uid: string; displayName?: string };
-                to: { uid: string; displayName?: string };
+                from: { uid: string; displayName?: string; };
+                to: { uid: string; displayName?: string; };
             }
         >;
     };
@@ -81,7 +81,7 @@ export class GroupBalancesBuilder {
     /**
      * Add a simplified debt entry
      */
-    addSimplifiedDebt(from: { uid: string; displayName?: string }, to: { uid: string; displayName?: string }, amount: number, currency: string = 'USD'): this {
+    addSimplifiedDebt(from: { uid: string; displayName?: string; }, to: { uid: string; displayName?: string; }, amount: number, currency: string = 'USD'): this {
         this.balances.simplifiedDebts.push({
             from,
             to,
@@ -128,7 +128,7 @@ export class GroupBalancesBuilder {
     /**
      * Convenience method: Set up a scenario with no debts (all settled up)
      */
-    withNoDebts(...users: Array<{ uid: string; displayName: string }>): this {
+    withNoDebts(...users: Array<{ uid: string; displayName: string; }>): this {
         users.forEach((user) => {
             this.addUserBalance(user.uid, {
                 displayName: user.displayName,
@@ -144,8 +144,8 @@ export class GroupBalancesBuilder {
         userBalances: Record<string, ExtendedUserBalance>;
         simplifiedDebts: Array<
             SimplifiedDebt & {
-                from: { uid: string; displayName?: string };
-                to: { uid: string; displayName?: string };
+                from: { uid: string; displayName?: string; };
+                to: { uid: string; displayName?: string; };
             }
         >;
     } {

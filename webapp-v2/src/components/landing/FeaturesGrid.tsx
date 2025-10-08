@@ -1,5 +1,5 @@
-import { FeatureCard } from './FeatureCard';
 import { useTranslation } from 'react-i18next';
+import { FeatureCard } from './FeatureCard';
 
 export function FeaturesGrid() {
     const { t } = useTranslation();
@@ -49,14 +49,12 @@ export function FeaturesGrid() {
     ];
 
     return (
-        <section class="features py-20 bg-gray-50">
-            <div class="container mx-auto px-4">
-                <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-12">{t('landing.features.sectionTitle')}</h2>
+        <section class='features py-20 bg-gray-50'>
+            <div class='container mx-auto px-4'>
+                <h2 class='text-3xl md:text-4xl font-bold text-center text-gray-900 mb-12'>{t('landing.features.sectionTitle')}</h2>
 
-                <div class="feature-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {features.map((feature, index) => (
-                        <FeatureCard key={index} {...feature} delay={index * 100} />
-                    ))}
+                <div class='feature-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
+                    {features.map((feature, index) => <FeatureCard key={index} {...feature} delay={index * 100} />)}
                 </div>
             </div>
         </section>

@@ -1,5 +1,5 @@
-import { generateNewUserDetails } from '../test-helpers';
 import { UserRegistration } from '@splitifyd/shared';
+import { generateNewUserDetails } from '../test-helpers';
 
 export class UserRegistrationBuilder {
     private userRegistration: UserRegistration;

@@ -1,10 +1,10 @@
-import { Errors, ApiError } from '../utils/errors';
+import { MemberRoles } from '@splitifyd/shared';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
+import { ApiError, Errors } from '../utils/errors';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
-import { MemberRoles } from '@splitifyd/shared';
 
 export class GroupMemberService {
     constructor(
@@ -12,11 +12,11 @@ export class GroupMemberService {
         private readonly firestoreWriter: IFirestoreWriter,
     ) {}
 
-    async leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string }> {
+    async leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string; }> {
         return measure.measureDb('GroupMemberService.leaveGroup', async () => this._removeMemberFromGroup(userId, groupId, userId, true));
     }
 
-    async removeGroupMember(userId: string, groupId: string, memberId: string): Promise<{ success: true; message: string }> {
+    async removeGroupMember(userId: string, groupId: string, memberId: string): Promise<{ success: true; message: string; }> {
         return measure.measureDb('GroupMemberService.removeGroupMember', async () => this._removeMemberFromGroup(userId, groupId, memberId, false));
     }
 
@@ -27,7 +27,7 @@ export class GroupMemberService {
      * @param targetUserId - The user being removed (could be same as requesting user for leave)
      * @param isLeaving - true for self-leave, false for admin removal
      */
-    private async _removeMemberFromGroup(requestingUserId: string, groupId: string, targetUserId: string, isLeaving: boolean): Promise<{ success: true; message: string }> {
+    private async _removeMemberFromGroup(requestingUserId: string, groupId: string, targetUserId: string, isLeaving: boolean): Promise<{ success: true; message: string; }> {
         const timer = new PerformanceTimer();
 
         LoggerContext.setBusinessContext({ groupId });
@@ -98,7 +98,8 @@ export class GroupMemberService {
             // If it's our specific "outstanding balance" error from the validation above, re-throw it
             if (balanceError instanceof ApiError) {
                 const details = balanceError.details;
-                const hasOutstandingBalance = details?.message?.includes('Cannot leave group with outstanding balance') || details?.message?.includes('Cannot remove member with outstanding balance');
+                const hasOutstandingBalance = details?.message?.includes('Cannot leave group with outstanding balance')
+                    || details?.message?.includes('Cannot remove member with outstanding balance');
                 if (hasOutstandingBalance) {
                     throw balanceError;
                 }

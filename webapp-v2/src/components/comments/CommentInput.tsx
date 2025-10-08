@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'preact/hooks';
-import { useSignal } from '@preact/signals';
-import { useTranslation } from 'react-i18next';
 import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
+import { useSignal } from '@preact/signals';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 
 interface CommentInputProps {
     onSubmit: (text: string) => Promise<void>;
@@ -79,7 +79,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
 
     return (
         <form onSubmit={handleSubmit} className={`flex flex-col gap-2 ${className}`}>
-            <div className="relative">
+            <div className='relative'>
                 <textarea
                     ref={textareaRef}
                     value={text.value}
@@ -114,37 +114,37 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                     `}
                     rows={1}
                     style={{ minHeight: '38px', maxHeight: '120px' }}
-                    aria-label="Comment text"
+                    aria-label='Comment text'
                     aria-invalid={isOverLimit}
                 />
                 <button
-                    type="submit"
+                    type='submit'
                     disabled={!text.value.trim() || isOverLimit || (disabled && !isEditing.value) || isSubmitting}
                     className={`
                         absolute right-2 bottom-2
                         p-1.5 rounded-lg
                         transition-colors
                         ${
-                            text.value.trim() && !isOverLimit && !(disabled && !isEditing.value) && !isSubmitting
-                                ? 'text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20'
-                                : 'text-gray-400 cursor-not-allowed'
-                        }
+                        text.value.trim() && !isOverLimit && !(disabled && !isEditing.value) && !isSubmitting
+                            ? 'text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20'
+                            : 'text-gray-400 cursor-not-allowed'
+                    }
                     `}
-                    aria-label="Send comment"
+                    aria-label='Send comment'
                 >
-                    {isSubmitting ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <PaperAirplaneIcon className="w-4 h-4" />}
+                    {isSubmitting ? <div className='w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin' /> : <PaperAirplaneIcon className='w-4 h-4' />}
                 </button>
             </div>
 
-            <div className="flex items-center justify-between text-xs">
-                <div className="text-gray-500 dark:text-gray-400">
-                    {error ? (
-                        <span className="text-red-500 dark:text-red-400" role="alert" data-testid="comment-error-message">
-                            {error}
-                        </span>
-                    ) : (
-                        <span className="text-xs text-gray-400 dark:text-gray-500">{t('comments.commentInput.helpText')}</span>
-                    )}
+            <div className='flex items-center justify-between text-xs'>
+                <div className='text-gray-500 dark:text-gray-400'>
+                    {error
+                        ? (
+                            <span className='text-red-500 dark:text-red-400' role='alert' data-testid='comment-error-message'>
+                                {error}
+                            </span>
+                        )
+                        : <span className='text-xs text-gray-400 dark:text-gray-500'>{t('comments.commentInput.helpText')}</span>}
                 </div>
                 {text.value.length > 0 && (
                     <span

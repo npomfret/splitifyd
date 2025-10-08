@@ -1,10 +1,10 @@
 import { Response } from 'express';
-import { ApiError } from '../utils/errors';
-import { logger } from '../logger';
-import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
+import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { ApiError } from '../utils/errors';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());

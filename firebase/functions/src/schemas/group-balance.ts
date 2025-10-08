@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { Timestamp } from 'firebase-admin/firestore';
+import { z } from 'zod';
 
 /**
  * Schema for the UserBalance map within GroupBalance

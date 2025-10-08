@@ -1,15 +1,15 @@
-import { describe, it, beforeEach, expect, vi } from 'vitest';
-import { CommentService } from '../../../services/CommentService';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { StubFirestoreReader, StubFirestoreWriter, StubAuthService, clearSharedStorage } from '../mocks/firestore-stubs';
-import { ApiError } from '../../../utils/errors';
-import { HTTP_STATUS } from '../../../constants';
-import { GroupDTOBuilder, ExpenseDTOBuilder, CommentBuilder, CommentRequestBuilder, AuthUserRecordBuilder } from '@splitifyd/test-support';
 import { CommentTargetTypes } from '@splitifyd/shared';
-import { Timestamp } from 'firebase-admin/firestore';
 import type { CommentTargetType, CreateCommentRequest } from '@splitifyd/shared';
-import { validateCreateComment, validateListCommentsQuery, validateTargetId, validateCommentId } from '../../../comments/validation';
+import { AuthUserRecordBuilder, CommentBuilder, CommentRequestBuilder, ExpenseDTOBuilder, GroupDTOBuilder } from '@splitifyd/test-support';
+import { Timestamp } from 'firebase-admin/firestore';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { validateCommentId, validateCreateComment, validateListCommentsQuery, validateTargetId } from '../../../comments/validation';
+import { HTTP_STATUS } from '../../../constants';
+import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { CommentService } from '../../../services/CommentService';
+import { ApiError } from '../../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
+import { clearSharedStorage, StubAuthService, StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 
 describe('CommentService - Consolidated Tests', () => {
     let commentService: CommentService;
@@ -27,7 +27,10 @@ describe('CommentService - Consolidated Tests', () => {
         commentService = applicationBuilder.buildCommentService();
 
         // Set up test user in auth stub
-        stubAuth.setUser('user-id', new AuthUserRecordBuilder().withUid('user-id').withEmail('test@example.com').withDisplayName('Test User').withPhotoURL('https://example.com/photo.jpg').build());
+        stubAuth.setUser(
+            'user-id',
+            new AuthUserRecordBuilder().withUid('user-id').withEmail('test@example.com').withDisplayName('Test User').withPhotoURL('https://example.com/photo.jpg').build(),
+        );
 
         // Reset mocks
         stubAuth.clear();
@@ -218,7 +221,9 @@ describe('CommentService - Consolidated Tests', () => {
 
             await expect(
                 commentService.createComment(CommentTargetTypes.GROUP, 'test-group', { text: 'Test comment', targetType: CommentTargetTypes.GROUP, targetId: 'test-group' }, 'user-id'),
-            ).rejects.toThrow(ApiError);
+            )
+                .rejects
+                .toThrow(ApiError);
         });
 
         it('should throw error when user lacks access', async () => {
@@ -226,7 +231,9 @@ describe('CommentService - Consolidated Tests', () => {
 
             await expect(
                 commentService.createComment(CommentTargetTypes.GROUP, 'nonexistent-group', { text: 'Test comment', targetType: CommentTargetTypes.GROUP, targetId: 'nonexistent-group' }, 'user-id'),
-            ).rejects.toThrow(ApiError);
+            )
+                .rejects
+                .toThrow(ApiError);
         });
     });
 

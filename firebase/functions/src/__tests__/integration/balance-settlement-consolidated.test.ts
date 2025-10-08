@@ -1,15 +1,15 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { PooledTestUser, UserToken } from '@splitifyd/shared';
 import {
     ApiDriver,
     borrowTestUsers,
-    CreateGroupRequestBuilder,
     CreateExpenseRequestBuilder,
+    CreateGroupRequestBuilder,
     CreateSettlementRequestBuilder,
+    NotificationDriver,
     SettlementUpdateBuilder,
     TestGroupManager,
-    NotificationDriver,
 } from '@splitifyd/test-support';
-import { PooledTestUser, UserToken } from '@splitifyd/shared';
+import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 
 describe('Balance & Settlement - Consolidated Tests', () => {

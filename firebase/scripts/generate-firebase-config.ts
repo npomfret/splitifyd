@@ -1,8 +1,8 @@
 #!/usr/bin/env npx tsx
 
+import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as dotenv from 'dotenv';
 import { logger } from './logger';
 
 dotenv.config({ path: path.join(__dirname, '../functions/.env') });

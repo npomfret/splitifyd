@@ -1,4 +1,4 @@
-import { UserBalance, ExpenseDTO } from '@splitifyd/shared';
+import { ExpenseDTO, UserBalance } from '@splitifyd/shared';
 import type { ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
 
 export class ExpenseProcessor {

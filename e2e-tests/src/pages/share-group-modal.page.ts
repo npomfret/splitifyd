@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { BasePage } from './base.page';
 import { PooledTestUser } from '@splitifyd/shared';
 import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
+import { BasePage } from './base.page';
 
 export class ShareGroupModalPage extends BasePage {
     constructor(page: Page, userInfo?: PooledTestUser) {
@@ -50,7 +50,8 @@ export class ShareGroupModalPage extends BasePage {
             if (!shareLink || !shareLink.includes('/join?')) {
                 throw new Error(`Invalid share link: ${shareLink}`);
             }
-        }).toPass({ timeout: 5000 });
+        })
+            .toPass({ timeout: 5000 });
     }
 
     async getShareLink(): Promise<string> {
@@ -111,6 +112,7 @@ export class ShareGroupModalPage extends BasePage {
             if (currentLink === previousLink) {
                 throw new Error(`Share link has not changed yet. Current: ${currentLink}`);
             }
-        }).toPass({ timeout });
+        })
+            .toPass({ timeout });
     }
 }

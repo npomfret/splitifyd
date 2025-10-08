@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { FirestoreTimestampSchema, OptionalAuditFieldsSchema, UserIdSchema, createDocumentSchemas } from './common';
+import { createDocumentSchemas, FirestoreTimestampSchema, OptionalAuditFieldsSchema, UserIdSchema } from './common';
 
 /**
  * Zod schema for Policy version validation

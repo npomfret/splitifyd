@@ -1,6 +1,6 @@
-import { test, expect } from '../../utils/console-logging-fixture';
+import { ClientUserBuilder, DashboardPage, LoginPage, TEST_TIMEOUTS } from '@splitifyd/test-support';
+import { expect, test } from '../../utils/console-logging-fixture';
 import { setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
-import { ClientUserBuilder, LoginPage, DashboardPage, TEST_TIMEOUTS } from '@splitifyd/test-support';
 
 test.describe('Authentication Flow', () => {
     test('should log in successfully and navigate to dashboard', async ({ pageWithLogging: page, mockFirebase }) => {

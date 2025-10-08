@@ -1,5 +1,5 @@
-import { test, expect } from '../../utils/console-logging-fixture';
 import { ClientUserBuilder, RegisterPage } from '@splitifyd/test-support';
+import { expect, test } from '../../utils/console-logging-fixture';
 
 test.describe('Registration Form Reactivity and UI States', () => {
     test('should clear error state when component mounts', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -44,7 +44,8 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.verifyErrorMessage('An account with this email already exists.');
 
         // Change mock to success for second attempt with different email
-        const testUser = ClientUserBuilder.validUser()
+        const testUser = ClientUserBuilder
+            .validUser()
             .withDisplayName('John Doe')
             .withEmail('newemail@example.com')
             .build();
@@ -58,10 +59,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await expect(page).toHaveURL('/dashboard');
     });
 
-    test('should reactively update submit button based on form validity', async ({
-        pageWithLogging: page,
-        mockFirebase,
-    }) => {
+    test('should reactively update submit button based on form validity', async ({ pageWithLogging: page, mockFirebase }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -183,10 +181,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.verifySubmitButtonState(true);
     });
 
-    test('should update submit button state when password mismatch is corrected', async ({
-        pageWithLogging: page,
-        mockFirebase,
-    }) => {
+    test('should update submit button state when password mismatch is corrected', async ({ pageWithLogging: page, mockFirebase }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -259,10 +254,7 @@ test.describe('Registration Form Error Display and Recovery', () => {
         await expect(registerPage.getSubmitButton()).toBeDisabled();
     });
 
-    test('should handle email clearing to remove email-related errors', async ({
-        pageWithLogging: page,
-        mockFirebase,
-    }) => {
+    test('should handle email clearing to remove email-related errors', async ({ pageWithLogging: page, mockFirebase }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 

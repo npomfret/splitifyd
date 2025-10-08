@@ -1,9 +1,9 @@
 export { BasePage } from './BasePage';
+export { CreateGroupModalPage } from './CreateGroupModalPage';
+export { DashboardPage } from './DashboardPage';
+export { EditGroupModalPage } from './EditGroupModalPage';
+export { GroupDetailPage } from './GroupDetailPage';
+export { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
 export { LoginPage } from './LoginPage';
 export { RegisterPage } from './RegisterPage';
-export { DashboardPage } from './DashboardPage';
-export { GroupDetailPage } from './GroupDetailPage';
-export { CreateGroupModalPage } from './CreateGroupModalPage';
-export { EditGroupModalPage } from './EditGroupModalPage';
 export { ShareGroupModalPage } from './ShareGroupModalPage';
-export { LeaveGroupDialogPage } from './LeaveGroupDialogPage';

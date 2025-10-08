@@ -1,11 +1,11 @@
-import { createContext } from 'preact';
-import { useState, useEffect } from 'preact/hooks';
-import { useTranslation } from 'react-i18next';
-import type { ComponentChildren } from 'preact';
-import type { AuthStore } from '../stores/auth-store';
-import { getAuthStore } from '../stores/auth-store';
 import { LoadingSpinner } from '@/components/ui';
 import { logError } from '@/utils/browser-logger.ts';
+import { createContext } from 'preact';
+import type { ComponentChildren } from 'preact';
+import { useEffect, useState } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
+import type { AuthStore } from '../stores/auth-store';
+import { getAuthStore } from '../stores/auth-store';
 
 export const AuthContext = createContext<AuthStore | null>(null);
 
@@ -56,13 +56,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     if (initError) {
         return (
-            <div class="min-h-screen flex items-center justify-center">
-                <div class="text-center">
-                    <h2 class="text-2xl font-bold text-red-600 mb-2" role="alert" data-testid="auth-error-heading">
+            <div class='min-h-screen flex items-center justify-center'>
+                <div class='text-center'>
+                    <h2 class='text-2xl font-bold text-red-600 mb-2' role='alert' data-testid='auth-error-heading'>
                         {t('authProvider.authenticationError')}
                     </h2>
-                    <p class="text-gray-600 mb-4">{initError}</p>
-                    <button onClick={() => window.location.reload()} class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    <p class='text-gray-600 mb-4'>{initError}</p>
+                    <button onClick={() => window.location.reload()} class='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'>
                         {t('authProvider.retry')}
                     </button>
                 </div>
@@ -73,8 +73,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Show loading until auth is initialized
     if (!authStore) {
         return (
-            <div class="min-h-screen flex items-center justify-center">
-                <LoadingSpinner size="lg" />
+            <div class='min-h-screen flex items-center justify-center'>
+                <LoadingSpinner size='lg' />
             </div>
         );
     }

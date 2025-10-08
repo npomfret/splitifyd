@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { BaseLayout } from '../components/layout/BaseLayout';
-import { HeroSection } from '../components/landing/HeroSection';
-import { FeaturesGrid } from '../components/landing/FeaturesGrid';
 import { CTASection } from '../components/landing/CTASection';
+import { FeaturesGrid } from '../components/landing/FeaturesGrid';
+import { HeroSection } from '../components/landing/HeroSection';
+import { BaseLayout } from '../components/layout/BaseLayout';
 import '../styles/landing.css';
 
 export function LandingPage() {
@@ -10,18 +10,18 @@ export function LandingPage() {
 
     return (
         <BaseLayout title={t('pages.landingPage.title')} description={t('pages.landingPage.description')}>
-            <div class="bg-white">
-                <main class="pt-16">
+            <div class='bg-white'>
+                <main class='pt-16'>
                     <HeroSection />
                     <FeaturesGrid />
                     <CTASection />
 
                     {/* Transparency Notice */}
-                    <section class="transparency-notice py-8 bg-gray-50">
-                        <div class="container mx-auto px-4">
-                            <div class="transparency-content text-center text-gray-600">
+                    <section class='transparency-notice py-8 bg-gray-50'>
+                        <div class='container mx-auto px-4'>
+                            <div class='transparency-content text-center text-gray-600'>
                                 <p>
-                                    <strong class="text-gray-800">{t('pages.landingPage.transparencyNotice.bold')}</strong> {t('pages.landingPage.transparencyNotice.text')}
+                                    <strong class='text-gray-800'>{t('pages.landingPage.transparencyNotice.bold')}</strong> {t('pages.landingPage.transparencyNotice.text')}
                                 </p>
                             </div>
                         </div>

@@ -1,8 +1,8 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
+import { TEST_ROUTES, TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
-import { loadTranslation } from './translation-loader';
 import { DashboardPage } from './DashboardPage';
-import { TEST_TIMEOUTS, TEST_ROUTES } from '../test-constants';
+import { loadTranslation } from './translation-loader';
 
 const translation = loadTranslation();
 
@@ -36,7 +36,8 @@ export class RegisterPage extends BasePage {
      * Register page heading container - helps identify we're on the right page
      */
     getPageHeading(): Locator {
-        return this.getRegisterFormContainer()
+        return this
+            .getRegisterFormContainer()
             .locator('..')
             .getByRole('heading', { name: translation.registerPage.title });
     }
@@ -274,8 +275,8 @@ export class RegisterPage extends BasePage {
             const errorVisible = await this.getErrorContainer().isVisible();
             const errorText = errorVisible ? await this.getErrorMessage() : 'No error message';
             throw new Error(
-                `Failed to navigate to dashboard after registration. Current URL: ${currentUrl}. ` +
-                    `Error displayed: ${errorVisible}. Error message: "${errorText}"`,
+                `Failed to navigate to dashboard after registration. Current URL: ${currentUrl}. `
+                    + `Error displayed: ${errorVisible}. Error message: "${errorText}"`,
             );
         }
 
@@ -306,8 +307,8 @@ export class RegisterPage extends BasePage {
             const currentUrl = this.page.url();
             const errorVisible = await this.getErrorContainer().isVisible();
             throw new Error(
-                `Registration failure behavior not as expected. Current URL: ${currentUrl}, ` +
-                    `Error visible: ${errorVisible}. Expected to stay on register page with error message.`,
+                `Registration failure behavior not as expected. Current URL: ${currentUrl}, `
+                    + `Error visible: ${errorVisible}. Expected to stay on register page with error message.`,
             );
         }
     }
@@ -380,8 +381,8 @@ export class RegisterPage extends BasePage {
             const isVisible = await errorContainer.isVisible();
             const actualText = isVisible ? await this.getErrorMessage() : 'No error message';
             throw new Error(
-                `Error message verification failed. Expected: "${expectedMessage}", ` +
-                    `Actual: "${actualText}", Error visible: ${isVisible}`,
+                `Error message verification failed. Expected: "${expectedMessage}", `
+                    + `Actual: "${actualText}", Error visible: ${isVisible}`,
             );
         }
     }

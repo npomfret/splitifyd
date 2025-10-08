@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/preact';
 import { ExpenseBasicFields } from '@/components/expense-form/ExpenseBasicFields';
 import { ExpenseCategory } from '@splitifyd/shared';
+import { cleanup, fireEvent, render, screen } from '@testing-library/preact';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom';
 
 // Mock the translation hook
@@ -13,17 +13,17 @@ vi.mock('react-i18next', () => ({
 
 // Mock the UI components
 vi.mock('@/components/ui', () => ({
-    Card: ({ children }: { children: any }) => <div data-testid="card">{children}</div>,
+    Card: ({ children }: { children: any; }) => <div data-testid='card'>{children}</div>,
     Button: ({ children, onClick, ...props }: any) => (
         <button onClick={onClick} {...props}>
             {children}
         </button>
     ),
     CurrencyAmountInput: ({ amount, currency, onAmountChange, onCurrencyChange, recentCurrencies, ...props }: any) => (
-        <div data-testid="currency-amount-input">
-            <input data-testid="amount-input" value={amount} onChange={(e) => onAmountChange((e.target as HTMLInputElement).value)} {...props} />
-            <select data-testid="currency-select" value={currency} onChange={(e) => onCurrencyChange((e.target as HTMLSelectElement).value)}>
-                <option value="">Select Currency</option>
+        <div data-testid='currency-amount-input'>
+            <input data-testid='amount-input' value={amount} onChange={(e) => onAmountChange((e.target as HTMLInputElement).value)} {...props} />
+            <select data-testid='currency-select' value={currency} onChange={(e) => onCurrencyChange((e.target as HTMLSelectElement).value)}>
+                <option value=''>Select Currency</option>
                 {recentCurrencies?.map((curr: string) => (
                     <option key={curr} value={curr}>
                         {curr}
@@ -33,9 +33,9 @@ vi.mock('@/components/ui', () => ({
         </div>
     ),
     CategorySuggestionInput: ({ value, onChange, suggestions, ...props }: any) => (
-        <div data-testid="category-suggestion-input">
-            <input data-testid="category-input" value={value} onChange={(e) => onChange((e.target as HTMLInputElement).value)} {...props} />
-            <div data-testid="suggestions" style={{ display: 'none' }}>
+        <div data-testid='category-suggestion-input'>
+            <input data-testid='category-input' value={value} onChange={(e) => onChange((e.target as HTMLInputElement).value)} {...props} />
+            <div data-testid='suggestions' style={{ display: 'none' }}>
                 {suggestions?.map((suggestion: any) => (
                     <div key={suggestion.name} data-testid={`suggestion-${suggestion.name}`}>
                         {suggestion.displayName}
@@ -44,12 +44,12 @@ vi.mock('@/components/ui', () => ({
             </div>
         </div>
     ),
-    TimeInput: ({ value, onChange, ...props }: any) => <input data-testid="time-input" type="time" value={value} onChange={(e) => onChange((e.target as HTMLInputElement).value)} {...props} />,
+    TimeInput: ({ value, onChange, ...props }: any) => <input data-testid='time-input' type='time' value={value} onChange={(e) => onChange((e.target as HTMLInputElement).value)} {...props} />,
 }));
 
 // Mock the Stack component
 vi.mock('@/components/ui/Stack', () => ({
-    Stack: ({ children }: { children: any }) => <div data-testid="stack">{children}</div>,
+    Stack: ({ children }: { children: any; }) => <div data-testid='stack'>{children}</div>,
 }));
 
 // Mock the currency service
@@ -78,7 +78,7 @@ vi.mock('@/utils/dateUtils.ts', () => ({
 
 // Mock heroicons
 vi.mock('@heroicons/react/24/outline', () => ({
-    ClockIcon: ({ className, ...props }: any) => <div data-testid="clock-icon" className={className} {...props} />,
+    ClockIcon: ({ className, ...props }: any) => <div data-testid='clock-icon' className={className} {...props} />,
 }));
 
 describe('ExpenseBasicFields - Recent Amounts & Category Suggestions', () => {

@@ -1,11 +1,11 @@
 import { expect, Page } from '@playwright/test';
-import { DashboardPage as BaseDashboardPage } from '@splitifyd/test-support';
 import { PooledTestUser } from '@splitifyd/shared';
+import { DashboardPage as BaseDashboardPage } from '@splitifyd/test-support';
+import { CreateGroupFormData, CreateGroupFormDataBuilder, generateShortId, randomString } from '@splitifyd/test-support';
 import { CreateGroupModalPage } from './create-group-modal.page.ts';
 import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
-import { generateShortId, randomString, CreateGroupFormDataBuilder, CreateGroupFormData } from '@splitifyd/test-support';
-import { JoinGroupPage } from './join-group.page.ts';
 import { HeaderPage } from './header.page';
+import { JoinGroupPage } from './join-group.page.ts';
 
 let i = 0;
 
@@ -176,10 +176,11 @@ export class DashboardPage extends BaseDashboardPage {
             if (!hasGroupsContainer && !hasEmptyState && !hasErrorState && !hasLoadingSpinner) {
                 throw new Error('Groups content not yet loaded - waiting for groups container, empty state, error state, or loading spinner');
             }
-        }).toPass({
-            timeout: 5000,
-            intervals: [100, 250, 500],
-        });
+        })
+            .toPass({
+                timeout: 5000,
+                intervals: [100, 250, 500],
+            });
 
         // Final DOM check
         await this.waitForDomContentLoaded();
@@ -189,7 +190,7 @@ export class DashboardPage extends BaseDashboardPage {
      * E2E-specific: Wait for a group to not be present (with custom polling intervals)
      * Delegates to base class but adds e2e-specific polling strategy
      */
-    async waitForGroupToNotBePresent(groupName: string, options: { timeout?: number } = {}) {
+    async waitForGroupToNotBePresent(groupName: string, options: { timeout?: number; } = {}) {
         await expect(this.page).toHaveURL(/\/dashboard/);
         const timeout = options.timeout || 5000;
 
@@ -201,7 +202,7 @@ export class DashboardPage extends BaseDashboardPage {
      * E2E-specific: Wait for a group to appear (delegates to base class)
      * Accepts options object for backwards compatibility
      */
-    async waitForGroupToAppear(groupName: string, options: { timeout?: number } | number = {}) {
+    async waitForGroupToAppear(groupName: string, options: { timeout?: number; } | number = {}) {
         const timeout = typeof options === 'number' ? options : options.timeout || 5000;
         await super.waitForGroupToAppear(groupName, timeout);
     }

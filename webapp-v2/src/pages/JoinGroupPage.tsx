@@ -4,19 +4,19 @@
  * Handles joining a group via share link invitation
  */
 
+import { navigationService } from '@/services/navigation.service';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { navigationService } from '@/services/navigation.service';
 import { joinGroupStore } from '../app/stores/join-group-store';
 // import { useAuthRequired } from '../app/hooks/useAuthRequired';
-import { BaseLayout } from '../components/layout/BaseLayout';
 import { Card } from '@/components/ui';
 import { Stack } from '@/components/ui';
 import { Button } from '@/components/ui';
 import { LoadingSpinner } from '@/components/ui';
 import { GroupPreview } from '../components/join-group/GroupPreview';
-import { MembersPreview } from '../components/join-group/MembersPreview';
 import { JoinButton } from '../components/join-group/JoinButton';
+import { MembersPreview } from '../components/join-group/MembersPreview';
+import { BaseLayout } from '../components/layout/BaseLayout';
 
 interface JoinGroupPageProps {
     linkId?: string;
@@ -61,16 +61,16 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     // Show error if no link ID provided
     if (!actualLinkId) {
         return (
-            <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant="dashboard">
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                    <Card className="w-full max-w-md">
-                        <div className="text-center py-8">
-                            <div className="text-red-500 text-4xl mb-4" role="alert" data-testid="invalid-link-warning">
+            <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant='dashboard'>
+                <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4'>
+                    <Card className='w-full max-w-md'>
+                        <div className='text-center py-8'>
+                            <div className='text-red-500 text-4xl mb-4' role='alert' data-testid='invalid-link-warning'>
                                 ⚠️
                             </div>
-                            <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('errors.invalidLink')}</h2>
-                            <p className="text-gray-600 mb-6">{t('joinGroupPage.errors.invalidLink')}</p>
-                            <Button variant="secondary" onClick={() => navigationService.goToDashboard()} className="w-full">
+                            <h2 className='text-xl font-semibold text-gray-900 mb-2'>{t('errors.invalidLink')}</h2>
+                            <p className='text-gray-600 mb-6'>{t('joinGroupPage.errors.invalidLink')}</p>
+                            <Button variant='secondary' onClick={() => navigationService.goToDashboard()} className='w-full'>
                                 {t('notFoundPage.goToDashboard')}
                             </Button>
                         </div>
@@ -83,12 +83,12 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     // Show loading state while loading preview
     if (loadingPreview) {
         return (
-            <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant="dashboard">
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                    <Card className="w-full max-w-md">
-                        <div className="text-center py-8">
-                            <LoadingSpinner size="lg" />
-                            <p className="text-gray-600 mt-4">{t('joinGroupPage.loadingGroup')}</p>
+            <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant='dashboard'>
+                <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4'>
+                    <Card className='w-full max-w-md'>
+                        <div className='text-center py-8'>
+                            <LoadingSpinner size='lg' />
+                            <p className='text-gray-600 mt-4'>{t('joinGroupPage.loadingGroup')}</p>
                         </div>
                     </Card>
                 </div>
@@ -99,16 +99,16 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     // Show error state
     if (error && !group) {
         return (
-            <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant="dashboard">
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                    <Card className="w-full max-w-md">
-                        <div className="text-center py-8">
-                            <div className="text-red-500 text-4xl mb-4" role="alert" data-testid="unable-join-warning">
+            <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant='dashboard'>
+                <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4'>
+                    <Card className='w-full max-w-md'>
+                        <div className='text-center py-8'>
+                            <div className='text-red-500 text-4xl mb-4' role='alert' data-testid='unable-join-warning'>
                                 ⚠️
                             </div>
-                            <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('joinGroupPage.errors.joinFailed')}</h2>
-                            <p className="text-gray-600 mb-6">{error}</p>
-                            <Button variant="secondary" onClick={() => navigationService.goToDashboard()} className="w-full">
+                            <h2 className='text-xl font-semibold text-gray-900 mb-2'>{t('joinGroupPage.errors.joinFailed')}</h2>
+                            <p className='text-gray-600 mb-6'>{error}</p>
+                            <Button variant='secondary' onClick={() => navigationService.goToDashboard()} className='w-full'>
                                 {t('notFoundPage.goToDashboard')}
                             </Button>
                         </div>
@@ -121,18 +121,18 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     // Show success state
     if (joinSuccess && group) {
         return (
-            <BaseLayout title={t('joinGroupPage.joinedTitle', { groupName: group.name })} headerVariant="dashboard">
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4" data-join-success="true">
-                    <Card className="w-full max-w-md">
-                        <div className="text-center py-8">
-                            <div className="text-green-500 text-4xl mb-4">✅</div>
-                            <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('joinGroupPage.welcome', { groupName: group.name })}</h2>
-                            <p className="text-gray-600 mb-6">{t('joinGroupPage.joinSuccess')}</p>
-                            <Stack spacing="md">
-                                <Button onClick={() => navigationService.goToGroup(group.id)} fullWidth className="py-3">
+            <BaseLayout title={t('joinGroupPage.joinedTitle', { groupName: group.name })} headerVariant='dashboard'>
+                <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4' data-join-success='true'>
+                    <Card className='w-full max-w-md'>
+                        <div className='text-center py-8'>
+                            <div className='text-green-500 text-4xl mb-4'>✅</div>
+                            <h2 className='text-xl font-semibold text-gray-900 mb-2'>{t('joinGroupPage.welcome', { groupName: group.name })}</h2>
+                            <p className='text-gray-600 mb-6'>{t('joinGroupPage.joinSuccess')}</p>
+                            <Stack spacing='md'>
+                                <Button onClick={() => navigationService.goToGroup(group.id)} fullWidth className='py-3'>
                                     {t('joinGroupPage.goToGroup')}
                                 </Button>
-                                <Button variant="secondary" onClick={() => navigationService.goToDashboard()} fullWidth>
+                                <Button variant='secondary' onClick={() => navigationService.goToDashboard()} fullWidth>
                                     {t('joinGroupPage.backToDashboard')}
                                 </Button>
                             </Stack>
@@ -146,14 +146,14 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     // Show group preview and join option
     if (group) {
         return (
-            <BaseLayout title={`${isAlreadyMember ? group.name : t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant="dashboard">
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                    <div className="w-full max-w-md">
-                        <div className="text-center mb-6">
-                            <h1 className="text-2xl font-bold text-gray-900 mb-2">{isAlreadyMember ? group.name : t('joinGroupPage.title')}</h1>
+            <BaseLayout title={`${isAlreadyMember ? group.name : t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant='dashboard'>
+                <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4'>
+                    <div className='w-full max-w-md'>
+                        <div className='text-center mb-6'>
+                            <h1 className='text-2xl font-bold text-gray-900 mb-2'>{isAlreadyMember ? group.name : t('joinGroupPage.title')}</h1>
                         </div>
 
-                        <Stack spacing="lg">
+                        <Stack spacing='lg'>
                             {/* Group Preview */}
                             <GroupPreview group={group} memberCount={memberCount} />
 
@@ -162,35 +162,35 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
 
                             {/* Already Member Message */}
                             {isAlreadyMember && (
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-                                    <p className="text-blue-800 font-medium mb-2">{t('joinGroupPage.alreadyMember')}</p>
-                                    <p className="text-blue-600 text-sm">{t('joinGroupPage.alreadyMemberDescription')}</p>
+                                <div className='bg-blue-50 border border-blue-200 rounded-lg p-4 text-center'>
+                                    <p className='text-blue-800 font-medium mb-2'>{t('joinGroupPage.alreadyMember')}</p>
+                                    <p className='text-blue-600 text-sm'>{t('joinGroupPage.alreadyMemberDescription')}</p>
                                 </div>
                             )}
 
                             {/* Error message if any */}
                             {error && !isAlreadyMember && (
-                                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                                    <p className="text-red-700 text-sm" role="alert" data-testid="join-group-error-message">
+                                <div className='bg-red-50 border border-red-200 rounded-lg p-3'>
+                                    <p className='text-red-700 text-sm' role='alert' data-testid='join-group-error-message'>
                                         {error}
                                     </p>
-                                    <Button variant="ghost" size="sm" onClick={joinGroupStore.clearError} className="mt-2 text-red-600 hover:text-red-700">
+                                    <Button variant='ghost' size='sm' onClick={joinGroupStore.clearError} className='mt-2 text-red-600 hover:text-red-700'>
                                         {t('common.dismiss')}
                                     </Button>
                                 </div>
                             )}
 
                             {/* Action Buttons */}
-                            <Stack spacing="md">
-                                {isAlreadyMember ? (
-                                    <Button onClick={() => navigationService.goToGroup(group.id)} fullWidth className="py-3">
-                                        {t('joinGroupPage.goToGroup')}
-                                    </Button>
-                                ) : (
-                                    <JoinButton onJoin={handleJoinGroup} loading={joining} />
-                                )}
+                            <Stack spacing='md'>
+                                {isAlreadyMember
+                                    ? (
+                                        <Button onClick={() => navigationService.goToGroup(group.id)} fullWidth className='py-3'>
+                                            {t('joinGroupPage.goToGroup')}
+                                        </Button>
+                                    )
+                                    : <JoinButton onJoin={handleJoinGroup} loading={joining} />}
 
-                                <Button variant="secondary" onClick={() => navigationService.goToDashboard()} fullWidth>
+                                <Button variant='secondary' onClick={() => navigationService.goToDashboard()} fullWidth>
                                     {t('joinGroupPage.cancel')}
                                 </Button>
                             </Stack>
@@ -203,11 +203,11 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
 
     // Fallback - shouldn't reach here
     return (
-        <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant="dashboard">
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                <Card className="w-full max-w-md">
-                    <div className="text-center py-8">
-                        <p className="text-gray-600">Loading...</p>
+        <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant='dashboard'>
+            <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4'>
+                <Card className='w-full max-w-md'>
+                    <div className='text-center py-8'>
+                        <p className='text-gray-600'>Loading...</p>
                     </div>
                 </Card>
             </div>

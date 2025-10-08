@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Card, Avatar } from '../ui';
+import { Avatar, Card } from '../ui';
 import { Stack } from '../ui/Stack';
 
 interface Member {
@@ -18,14 +18,14 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
     const { t } = useTranslation();
     return (
         <Card>
-            <Stack spacing="md">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <Stack spacing='md'>
+                <h2 className='text-lg font-semibold text-gray-900 dark:text-white'>
                     {t('expenseComponents.payerSelector.label')}{' '}
-                    <span className="text-red-500" data-testid="required-indicator">
+                    <span className='text-red-500' data-testid='required-indicator'>
                         {t('expenseComponents.payerSelector.requiredIndicator')}
                     </span>
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3'>
                     {members.map((member) => (
                         <label
                             key={member.uid}
@@ -35,20 +35,20 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
               `}
                         >
                             <input
-                                type="radio"
-                                name="paidBy"
+                                type='radio'
+                                name='paidBy'
                                 value={member.uid}
                                 checked={paidBy === member.uid}
                                 onChange={() => updateField('paidBy', member.uid)}
-                                className="text-blue-600 focus:ring-blue-500"
+                                className='text-blue-600 focus:ring-blue-500'
                             />
-                            <Avatar displayName={member.displayName} userId={member.uid} size="sm" />
-                            <span className="text-sm font-medium text-gray-900 dark:text-white">{member.displayName}</span>
+                            <Avatar displayName={member.displayName} userId={member.uid} size='sm' />
+                            <span className='text-sm font-medium text-gray-900 dark:text-white'>{member.displayName}</span>
                         </label>
                     ))}
                 </div>
                 {validationErrors.paidBy && (
-                    <p className="text-sm text-red-600 dark:text-red-400" role="alert" data-testid="validation-error-paidBy">
+                    <p className='text-sm text-red-600 dark:text-red-400' role='alert' data-testid='validation-error-paidBy'>
                         {validationErrors.paidBy}
                     </p>
                 )}

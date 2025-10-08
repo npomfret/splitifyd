@@ -159,7 +159,7 @@ export class ApiInterceptor {
     /**
      * Update user information for better request/response tracking
      */
-    updateUserInfo(userInfo: { userIndex?: number; userEmail?: string }): void {
+    updateUserInfo(userInfo: { userIndex?: number; userEmail?: string; }): void {
         this.options = { ...this.options, ...userInfo };
     }
 
@@ -193,16 +193,22 @@ Responses: ${this.responses.length}
 Log file: ${this.logFile}
 
 Recent requests:
-${this.requests
-    .slice(-5)
-    .map((req) => `${req.method} ${req.url} (${req.timestamp.toISOString()})`)
-    .join('\n')}
+${
+                this
+                    .requests
+                    .slice(-5)
+                    .map((req) => `${req.method} ${req.url} (${req.timestamp.toISOString()})`)
+                    .join('\n')
+            }
 
 Recent responses:
-${this.responses
-    .slice(-5)
-    .map((res) => `${res.status} ${res.url} (${res.timestamp.toISOString()})`)
-    .join('\n')}`;
+${
+                this
+                    .responses
+                    .slice(-5)
+                    .map((res) => `${res.status} ${res.url} (${res.timestamp.toISOString()})`)
+                    .join('\n')
+            }`;
 
             await testInfo.attach('api-traffic-summary.txt', {
                 body: summary,

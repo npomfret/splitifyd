@@ -39,7 +39,7 @@ describe('Hardcoded Values Validation', () => {
             .split('\n')
             .filter(Boolean);
 
-        const violations: { file: string; matches: string[] }[] = [];
+        const violations: { file: string; matches: string[]; }[] = [];
 
         gitFiles.forEach((file) => {
             // Skip exceptions and excluded directories

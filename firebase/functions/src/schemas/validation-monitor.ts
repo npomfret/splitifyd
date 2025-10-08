@@ -157,7 +157,8 @@ class EnhancedValidationError extends Error {
  * Format ZodError into readable string
  */
 function formatZodError(error: z.ZodError): string {
-    return error.issues
+    return error
+        .issues
         .map((err: z.ZodIssue) => {
             const path = err.path.length > 0 ? `${err.path.join('.')}: ` : '';
             return `${path}${err.message}`;

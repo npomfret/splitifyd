@@ -1,8 +1,8 @@
+import { CommentTargetType, CommentTargetTypes, CreateCommentRequest } from '@splitifyd/shared';
 import * as Joi from 'joi';
-import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
+import { ApiError } from '../utils/errors';
 import { sanitizeString } from '../utils/security';
-import { CreateCommentRequest, CommentTargetTypes, CommentTargetType } from '@splitifyd/shared';
 
 // Joi validation schema for creating comments
 const createCommentSchema = Joi.object({
@@ -72,7 +72,7 @@ export const validateCreateComment = (body: any): CreateCommentRequest => {
 /**
  * Validates query parameters for listing comments
  */
-export const validateListCommentsQuery = (query: any): { cursor?: string; limit: number } => {
+export const validateListCommentsQuery = (query: any): { cursor?: string; limit: number; } => {
     const { error, value } = listCommentsQuerySchema.validate(query, { abortEarly: false, stripUnknown: true });
 
     if (error) {

@@ -1,11 +1,11 @@
-import { Page, BrowserContext } from '@playwright/test';
+import { BrowserContext, Page } from '@playwright/test';
+import { PooledTestUser } from '@splitifyd/shared';
+import { ApiDriver } from '@splitifyd/test-support';
+import { ApiInterceptor, attachApiInterceptor, attachScreenshotHandler, ScreenshotHandler } from '../helpers';
+import { DashboardPage, LoginPage } from '../pages';
+import { AuthenticationWorkflow } from '../workflows';
 import { baseTest } from './base-test';
 import { getUserPool } from './user-pool.fixture';
-import { AuthenticationWorkflow } from '../workflows';
-import { LoginPage, DashboardPage } from '../pages';
-import { PooledTestUser } from '@splitifyd/shared';
-import { attachApiInterceptor, attachScreenshotHandler, ApiInterceptor, ScreenshotHandler } from '../helpers';
-import { ApiDriver } from '@splitifyd/test-support';
 
 interface BrowserInstance {
     page: Page;
@@ -16,7 +16,7 @@ interface BrowserInstance {
 }
 
 interface SimpleTestFixtures {
-    newEmptyBrowser(): Promise<{ page: Page; loginPage: LoginPage }>;
+    newEmptyBrowser(): Promise<{ page: Page; loginPage: LoginPage; }>;
 
     /**
      * Creates multiple logged-in browsers at once for multi-user testing scenarios.
@@ -35,7 +35,7 @@ interface SimpleTestFixtures {
      * const [owner, member1, member2] = browsers;
      * // Use: owner.page, owner.dashboardPage, owner.user, etc.
      */
-    createLoggedInBrowsers(count: number): Promise<Array<{ page: Page; dashboardPage: DashboardPage; user: PooledTestUser }>>;
+    createLoggedInBrowsers(count: number): Promise<Array<{ page: Page; dashboardPage: DashboardPage; user: PooledTestUser; }>>;
 }
 
 const apiDriver = new ApiDriver();

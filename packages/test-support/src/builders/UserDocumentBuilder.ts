@@ -1,6 +1,6 @@
 import { SystemUserRoles, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
-import { generateShortId } from '../test-helpers';
 import { Timestamp } from 'firebase-admin/firestore';
+import { generateShortId } from '../test-helpers';
 
 // Define UserDocument interface to match the firebase functions schema
 // This avoids circular dependency while matching the expected structure

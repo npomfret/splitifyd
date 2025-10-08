@@ -4,9 +4,9 @@
  */
 
 import { Page } from '@playwright/test';
+import { PooledTestUser } from '@splitifyd/shared';
 import { ProxiedMethodError } from '../errors/test-errors';
 import { collectPageState } from './page-state-collector';
-import { PooledTestUser } from '@splitifyd/shared';
 
 /**
  * Configuration for the error handling proxy
@@ -118,7 +118,7 @@ export function createErrorHandlingProxy<T extends object>(instance: T, classNam
             }
 
             // Return wrapped function
-            return function (this: any, ...args: any[]) {
+            return function(this: any, ...args: any[]) {
                 const methodName = String(prop);
 
                 // Call the original method

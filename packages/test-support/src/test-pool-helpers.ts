@@ -1,5 +1,5 @@
-import { ApiDriver } from './ApiDriver';
 import { PooledTestUser } from '@splitifyd/shared';
+import { ApiDriver } from './ApiDriver';
 
 /**
  * Borrows test users from the pool with automatic cleanup.

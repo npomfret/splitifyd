@@ -42,18 +42,17 @@ export function EmailInput({ value, onInput, error, placeholder, required = true
     const hasError = !!displayError;
 
     return (
-        <div class="space-y-1">
-            <label for="email-input" class="block text-sm font-medium text-gray-700">
-                {t('auth.emailInput.label')}{' '}
-                {required && (
-                    <span class="text-red-500" data-testid="required-indicator">
+        <div class='space-y-1'>
+            <label for='email-input' class='block text-sm font-medium text-gray-700'>
+                {t('auth.emailInput.label')} {required && (
+                    <span class='text-red-500' data-testid='required-indicator'>
                         {t('auth.emailInput.requiredIndicator')}
                     </span>
                 )}
             </label>
             <input
-                id="email-input"
-                type="email"
+                id='email-input'
+                type='email'
                 value={value}
                 onInput={handleInput}
                 onBlur={handleBlur}
@@ -61,7 +60,7 @@ export function EmailInput({ value, onInput, error, placeholder, required = true
                 required={required}
                 autoFocus={autoFocus}
                 disabled={disabled}
-                autocomplete="email"
+                autocomplete='email'
                 aria-label={t('auth.emailInput.label')}
                 aria-required={required}
                 aria-invalid={hasError}
@@ -74,7 +73,7 @@ export function EmailInput({ value, onInput, error, placeholder, required = true
         `}
             />
             {displayError && (
-                <p id="email-error" class="text-sm text-red-600" role="alert">
+                <p id='email-error' class='text-sm text-red-600' role='alert'>
                     {displayError}
                 </p>
             )}

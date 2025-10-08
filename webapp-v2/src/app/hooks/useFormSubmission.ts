@@ -1,9 +1,9 @@
-import { useEffect } from 'preact/hooks';
-import { route } from 'preact-router';
-import { useComputed } from '@preact/signals';
 import { routes } from '@/constants/routes';
-import { expenseFormStore } from '../stores/expense-form-store';
 import { logError } from '@/utils/browser-logger.ts';
+import { useComputed } from '@preact/signals';
+import { route } from 'preact-router';
+import { useEffect } from 'preact/hooks';
+import { expenseFormStore } from '../stores/expense-form-store';
 
 interface UseFormSubmissionOptions {
     groupId: string;
@@ -79,7 +79,7 @@ export function useFormSubmission({ groupId, expenseId, isEditMode, isCopyMode, 
         }
     };
 
-    const handleSelectAll = (members: Array<{ uid: string }>) => {
+    const handleSelectAll = (members: Array<{ uid: string; }>) => {
         const allMemberIds = members.map((m) => m.uid);
         expenseFormStore.setParticipants(allMemberIds);
     };

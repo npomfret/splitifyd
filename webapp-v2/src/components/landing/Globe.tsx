@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
-import type { Scene, WebGLRenderer } from 'three';
 import { logError } from '@/utils/browser-logger.ts';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import type { Scene, WebGLRenderer } from 'three';
 
 export function Globe() {
     const { t } = useTranslation();
@@ -207,9 +207,9 @@ export function Globe() {
     if (hasError) {
         // Fallback for error state
         return (
-            <div class="w-full h-full flex items-center justify-center">
-                <div class="text-purple-200 text-center">
-                    <div class="w-32 h-32 mx-auto mb-4 rounded-full bg-purple-100/20"></div>
+            <div class='w-full h-full flex items-center justify-center'>
+                <div class='text-purple-200 text-center'>
+                    <div class='w-32 h-32 mx-auto mb-4 rounded-full bg-purple-100/20'></div>
                     <p>{t('landing.globe.loadError')}</p>
                 </div>
             </div>
@@ -219,19 +219,19 @@ export function Globe() {
     // Render a simple placeholder during E2E tests instead of the heavy Three.js globe
     if (isPlaywrightTest && !isLoading) {
         return (
-            <div id="globe-container" class="w-full h-full relative">
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="w-32 h-32 rounded-full bg-purple-100/20" data-testid="globe-placeholder"></div>
+            <div id='globe-container' class='w-full h-full relative'>
+                <div class='absolute inset-0 flex items-center justify-center'>
+                    <div class='w-32 h-32 rounded-full bg-purple-100/20' data-testid='globe-placeholder'></div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div id="globe-container" ref={containerRef} class="w-full h-full relative">
+        <div id='globe-container' ref={containerRef} class='w-full h-full relative'>
             {isLoading && (
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+                <div class='absolute inset-0 flex items-center justify-center'>
+                    <div class='w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin'></div>
                 </div>
             )}
         </div>

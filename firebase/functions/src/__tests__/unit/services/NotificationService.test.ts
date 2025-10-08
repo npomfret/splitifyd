@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { NotificationService, type ChangeType } from '../../../services/notification-service';
-import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { beforeEach, describe, expect, it } from 'vitest';
 import type { UserNotificationDocument } from '../../../schemas/user-notifications';
+import { type ChangeType, NotificationService } from '../../../services/notification-service';
+import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 
 describe('NotificationService - Comprehensive Unit Tests', () => {
     let notificationService: NotificationService;

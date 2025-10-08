@@ -1,9 +1,9 @@
 import { Response } from 'express';
-import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { LocalizedRequest } from '../utils/i18n';
-import { Errors } from '../utils/errors';
+import { HTTP_STATUS } from '../constants';
 import { getAppBuilder } from '../index';
+import { Errors } from '../utils/errors';
+import { LocalizedRequest } from '../utils/i18n';
 
 /**
  * Update current user's profile

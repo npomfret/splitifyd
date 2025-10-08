@@ -1,4 +1,4 @@
-import { randomNumber, generateShortId } from '../test-helpers';
+import { generateShortId, randomNumber } from '../test-helpers';
 
 interface CommentQuery {
     cursor?: string;

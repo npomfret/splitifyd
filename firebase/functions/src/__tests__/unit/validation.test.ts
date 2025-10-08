@@ -1,7 +1,7 @@
+import { CreateExpenseRequestBuilder, RegisterRequestBuilder } from '@splitifyd/test-support';
 import { validateRegisterRequest } from '../../auth/validation';
 import { validateCreateExpense, validateUpdateExpense } from '../../expenses/validation';
 import { ApiError } from '../../utils/errors';
-import { RegisterRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 
 describe('Auth Validation', () => {
     describe('validateRegisterRequest', () => {

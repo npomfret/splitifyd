@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import { LoggerContext, LogContext } from './logger-context';
+import { LogContext, LoggerContext } from './logger-context';
 
 /**
  * Logger instance that can have its own additional context
@@ -99,14 +99,13 @@ class ContextualLoggerImpl implements ContextualLogger {
     error(message: string, error: Error | any, additionalContext?: any): void {
         const context = this.getFullContext();
 
-        const errorData =
-            error instanceof Error
-                ? {
-                      name: error.name,
-                      message: error.message,
-                      stack: error.stack,
-                  }
-                : error;
+        const errorData = error instanceof Error
+            ? {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+            }
+            : error;
 
         const logData = this.buildLogData(context, { error: errorData }, true);
 

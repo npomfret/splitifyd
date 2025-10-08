@@ -1,7 +1,7 @@
-import { getRecentAmounts } from '../stores/expense-form-store';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
-import { useFormState } from './useFormState';
+import { getRecentAmounts } from '../stores/expense-form-store';
 import { useFormInitialization } from './useFormInitialization';
+import { useFormState } from './useFormState';
 import { useFormSubmission } from './useFormSubmission';
 
 interface UseExpenseFormOptions {

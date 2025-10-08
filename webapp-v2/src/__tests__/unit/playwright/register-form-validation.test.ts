@@ -1,5 +1,5 @@
-import { test, expect } from '../../utils/console-logging-fixture';
 import { RegisterPage } from '@splitifyd/test-support';
+import { expect, test } from '../../utils/console-logging-fixture';
 
 test.describe('Registration Form Validation', () => {
     test('should show validation error for empty name field', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -44,10 +44,7 @@ test.describe('Registration Form Validation', () => {
         await expect(registerPage.getSubmitButton()).toBeDisabled();
     });
 
-    test('should show validation error for empty confirm password field', async ({
-        pageWithLogging: page,
-        mockFirebase,
-    }) => {
+    test('should show validation error for empty confirm password field', async ({ pageWithLogging: page, mockFirebase }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -61,10 +58,7 @@ test.describe('Registration Form Validation', () => {
         await expect(registerPage.getSubmitButton()).toBeDisabled();
     });
 
-    test('should show validation error when passwords do not match', async ({
-        pageWithLogging: page,
-        mockFirebase,
-    }) => {
+    test('should show validation error when passwords do not match', async ({ pageWithLogging: page, mockFirebase }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -159,10 +153,7 @@ test.describe('Registration Form Validation', () => {
         await registerPage.verifyCheckboxStates(false, false);
     });
 
-    test('should accept valid minimum length password (6 characters)', async ({
-        pageWithLogging: page,
-        mockFirebase,
-    }) => {
+    test('should accept valid minimum length password (6 characters)', async ({ pageWithLogging: page, mockFirebase }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -177,10 +168,7 @@ test.describe('Registration Form Validation', () => {
         await expect(registerPage.getSubmitButton()).toBeEnabled();
     });
 
-    test('should enable submit when all validation requirements are met', async ({
-        pageWithLogging: page,
-        mockFirebase,
-    }) => {
+    test('should enable submit when all validation requirements are met', async ({ pageWithLogging: page, mockFirebase }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 

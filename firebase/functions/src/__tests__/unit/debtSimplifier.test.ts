@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { simplifyDebts } from '../../utils/debtSimplifier';
 import { DebtScenarios } from '@splitifyd/test-support';
+import { describe, expect, it } from 'vitest';
+import { simplifyDebts } from '../../utils/debtSimplifier';
 
 describe('simplifyDebts', () => {
     it('should return empty array for empty balances', () => {

@@ -1,6 +1,6 @@
-import { signal, ReadonlySignal } from '@preact/signals';
-import { firebaseConfigManager } from '../app/firebase-config';
+import { ReadonlySignal, signal } from '@preact/signals';
 import type { AppConfiguration } from '@splitifyd/shared';
+import { firebaseConfigManager } from '../app/firebase-config';
 
 interface ConfigStore {
     // State getters - readonly values for external consumers

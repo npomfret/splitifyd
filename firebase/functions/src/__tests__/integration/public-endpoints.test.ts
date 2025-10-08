@@ -1,5 +1,5 @@
-import { describe, expect, test, afterEach } from 'vitest';
-import { ApiDriver, RegisterRequestBuilder, NotificationDriver } from '@splitifyd/test-support';
+import { ApiDriver, NotificationDriver, RegisterRequestBuilder } from '@splitifyd/test-support';
+import { afterEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 
 describe('Public Endpoints Tests', () => {
@@ -151,7 +151,7 @@ describe('Public Endpoints Tests', () => {
                     referrer: '',
                     'violated-directive': 'script-src',
                     'effective-directive': 'script-src',
-                    'original-policy': "default-src 'self'; script-src 'self'",
+                    'original-policy': 'default-src \'self\'; script-src \'self\'',
                     disposition: 'enforce',
                     'blocked-uri': 'https://evil.example.com/script.js',
                     'status-code': 200,

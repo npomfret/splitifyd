@@ -1,7 +1,7 @@
-import { StaticPageLayout } from '../../components/StaticPageLayout';
 import { usePolicy } from '@/hooks/usePolicy.ts';
-import { PolicyRenderer } from '../../components/policy/PolicyRenderer';
 import { useTranslation } from 'react-i18next';
+import { PolicyRenderer } from '../../components/policy/PolicyRenderer';
+import { StaticPageLayout } from '../../components/StaticPageLayout';
 
 export function PrivacyPolicyPage() {
     const { t } = useTranslation();
@@ -28,34 +28,34 @@ export function PrivacyPolicyPage() {
 
     return (
         <StaticPageLayout title={t('staticPages.privacyPolicy.title')} description={t('staticPages.privacyPolicy.description')} canonical={canonical} structuredData={structuredData}>
-            <div class="space-y-6">
-                <div class="text-sm text-gray-500 mb-8">
+            <div class='space-y-6'>
+                <div class='text-sm text-gray-500 mb-8'>
                     {t('staticPages.common.lastUpdated')} {lastUpdated}
                 </div>
 
                 {loading && (
-                    <div class="flex justify-center py-12">
-                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <div class='flex justify-center py-12'>
+                        <div class='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
                     </div>
                 )}
 
                 {error && (
-                    <div class="bg-red-50 border border-red-200 rounded-md p-4">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <div class='bg-red-50 border border-red-200 rounded-md p-4'>
+                        <div class='flex'>
+                            <div class='flex-shrink-0'>
+                                <svg class='h-5 w-5 text-red-400' viewBox='0 0 20 20' fill='currentColor'>
                                     <path
-                                        fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-                                        clip-rule="evenodd"
+                                        fill-rule='evenodd'
+                                        d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z'
+                                        clip-rule='evenodd'
                                     />
                                 </svg>
                             </div>
-                            <div class="ml-3">
-                                <h3 class="text-sm font-medium text-red-800" role="alert" data-testid="privacy-policy-error-heading">
+                            <div class='ml-3'>
+                                <h3 class='text-sm font-medium text-red-800' role='alert' data-testid='privacy-policy-error-heading'>
                                     {t('staticPages.privacyPolicy.loadError')}
                                 </h3>
-                                <div class="mt-2 text-sm text-red-700" role="alert" data-testid="privacy-policy-error-message">
+                                <div class='mt-2 text-sm text-red-700' role='alert' data-testid='privacy-policy-error-message'>
                                     <p>{error}</p>
                                 </div>
                             </div>

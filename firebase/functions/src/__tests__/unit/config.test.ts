@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
-import { getEnhancedConfigResponse } from '../../utils/config-response';
+import { describe, expect, it, vi } from 'vitest';
 import { validateAppConfiguration } from '../../middleware/config-validation';
+import { getEnhancedConfigResponse } from '../../utils/config-response';
 
 // Mock the getConfig and getAppConfig functions
 vi.mock('../../client-config', () => ({

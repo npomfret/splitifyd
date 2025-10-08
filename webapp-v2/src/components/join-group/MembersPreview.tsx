@@ -19,10 +19,10 @@ export function MembersPreview({ memberCount }: MembersPreviewProps) {
     }
 
     return (
-        <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-gray-900 mb-3">{t('joinGroupComponents.membersPreview.groupSize')}</h3>
+        <div className='bg-gray-50 rounded-lg p-4'>
+            <h3 className='text-sm font-medium text-gray-900 mb-3'>{t('joinGroupComponents.membersPreview.groupSize')}</h3>
 
-            <div className="text-sm text-gray-700">
+            <div className='text-sm text-gray-700'>
                 {memberCount} {memberCount === 1 ? t('common.member') : t('common.members')}
             </div>
         </div>

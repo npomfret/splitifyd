@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase/firestore';
-import { firebaseService, FirebaseService } from '../app/firebase';
+import { FirebaseService, firebaseService } from '../app/firebase';
 import { logError, logInfo } from './browser-logger';
 
 /**

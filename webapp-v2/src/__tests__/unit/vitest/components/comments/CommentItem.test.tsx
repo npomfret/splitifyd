@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/preact';
-import { vi, beforeEach, describe, it, expect } from 'vitest';
 import { CommentItem } from '@/components/comments/CommentItem';
-import { CommentBuilder } from '@splitifyd/test-support';
 import type { CommentDTO } from '@splitifyd/shared';
+import { CommentBuilder } from '@splitifyd/test-support';
+import { render, screen } from '@testing-library/preact';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock date utils
 vi.mock('@/utils/dateUtils', () => ({

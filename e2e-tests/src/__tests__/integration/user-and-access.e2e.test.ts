@@ -1,12 +1,12 @@
 import { expect } from '@playwright/test';
-import { simpleTest } from '../../fixtures';
-import { SettingsPage, RegisterPage, DashboardPage, HomepagePage, LoginPage, GroupDetailPage, JoinGroupPage } from '../../pages';
-import { DEFAULT_PASSWORD, generateTestEmail, generateTestUserName, generateTestGroupName, CreateGroupFormDataBuilder, TestUserBuilder } from '@splitifyd/test-support';
-import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
+import { CreateGroupFormDataBuilder, DEFAULT_PASSWORD, generateTestEmail, generateTestGroupName, generateTestUserName, TestUserBuilder } from '@splitifyd/test-support';
 import { ApiDriver } from '@splitifyd/test-support';
-import { PolicyAcceptanceModalPage } from '../../pages/policy-acceptance-modal.page';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page';
+import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
+import { simpleTest } from '../../fixtures';
 import { getUserPool } from '../../fixtures/user-pool.fixture';
+import { DashboardPage, GroupDetailPage, HomepagePage, JoinGroupPage, LoginPage, RegisterPage, SettingsPage } from '../../pages';
+import { groupDetailUrlPattern } from '../../pages/group-detail.page';
+import { PolicyAcceptanceModalPage } from '../../pages/policy-acceptance-modal.page';
 
 /**
  * Consolidated User Management and Access E2E Tests

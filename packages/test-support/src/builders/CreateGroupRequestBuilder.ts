@@ -1,5 +1,5 @@
 import type { CreateGroupRequest } from '@splitifyd/shared';
-import { randomString, randomChoice, generateShortId } from '../test-helpers';
+import { generateShortId, randomChoice, randomString } from '../test-helpers';
 
 export class CreateGroupRequestBuilder {
     private group: CreateGroupRequest;

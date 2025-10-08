@@ -1,10 +1,10 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
+import { TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
 import { EditGroupModalPage } from './EditGroupModalPage';
-import { ShareGroupModalPage } from './ShareGroupModalPage';
 import { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
+import { ShareGroupModalPage } from './ShareGroupModalPage';
 import { loadTranslation } from './translation-loader';
-import { TEST_TIMEOUTS } from '../test-constants';
 
 const translation = loadTranslation();
 
@@ -38,7 +38,8 @@ export class GroupDetailPage extends BasePage {
      * Members section container - found by "Members" heading
      */
     getMembersContainer(): Locator {
-        return this.page
+        return this
+            .page
             .locator('div')
             .filter({
                 has: this.page.getByRole('heading').filter({ hasText: /^members$/i }),
@@ -50,7 +51,8 @@ export class GroupDetailPage extends BasePage {
      * Expenses section container - found by "Expenses" or "Recent Expenses" heading
      */
     getExpensesContainer(): Locator {
-        return this.page
+        return this
+            .page
             .locator('div')
             .filter({
                 has: this.page.getByRole('heading').filter({ hasText: /expenses/i }),
@@ -62,7 +64,8 @@ export class GroupDetailPage extends BasePage {
      * Balance/Debts section container - found by "Balance" or "Balances" heading
      */
     getBalanceContainer(): Locator {
-        return this.page
+        return this
+            .page
             .locator('div')
             .filter({
                 has: this.page.getByRole('heading').filter({ hasText: /balance/i }),
@@ -74,7 +77,8 @@ export class GroupDetailPage extends BasePage {
      * Settlement section container - found by "Settlements" heading
      */
     getSettlementContainer(): Locator {
-        return this.page
+        return this
+            .page
             .locator('div')
             .filter({
                 has: this.page.getByRole('heading').filter({ hasText: /settlement/i }),
@@ -227,7 +231,8 @@ export class GroupDetailPage extends BasePage {
      * Targets the <p> element specifically to avoid matching parent containers
      */
     getEmptyExpensesState(): Locator {
-        return this.getExpensesContainer()
+        return this
+            .getExpensesContainer()
             .locator('p')
             .filter({ hasText: /no.*expenses/i });
     }

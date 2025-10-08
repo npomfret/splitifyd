@@ -9,7 +9,7 @@ const XSS_OPTIONS: IFilterXSSOptions = {
     stripBlankChar: true,
 };
 
-export const checkForDangerousPatterns = (requestString: string): { isDangerous: boolean; matchedPattern?: string } => {
+export const checkForDangerousPatterns = (requestString: string): { isDangerous: boolean; matchedPattern?: string; } => {
     const dangerousPatterns = [
         { pattern: /__proto__/, name: '__proto__ prototype pollution' },
         { pattern: /constructor/, name: 'constructor property access' },

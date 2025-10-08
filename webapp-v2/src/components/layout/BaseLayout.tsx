@@ -1,7 +1,7 @@
 import { ComponentChildren } from 'preact';
-import { Header } from './Header';
-import { Footer } from './Footer';
 import { SEOHead } from '../SEOHead';
+import { Footer } from './Footer';
+import { Header } from './Header';
 
 interface BaseLayoutProps {
     children: ComponentChildren;
@@ -17,12 +17,12 @@ interface BaseLayoutProps {
 
 export function BaseLayout({ children, title, description, canonical, ogImage, structuredData, headerVariant = 'default', showHeader = true, showFooter = true }: BaseLayoutProps) {
     return (
-        <div class="min-h-screen bg-gray-50 flex flex-col">
+        <div class='min-h-screen bg-gray-50 flex flex-col'>
             {title && <SEOHead title={title} description={description || title} canonical={canonical} ogImage={ogImage} structuredData={structuredData} />}
 
             {showHeader && <Header variant={headerVariant} />}
 
-            <main class="flex-1">{children}</main>
+            <main class='flex-1'>{children}</main>
 
             {showFooter && <Footer />}
         </div>

@@ -1,12 +1,12 @@
-import { useTranslation } from 'react-i18next';
-import { navigationService } from '@/services/navigation.service';
-import { useExpenseForm } from '../app/hooks/useExpenseForm';
-import { useAuthRequired } from '../app/hooks/useAuthRequired';
-import { Card, Button } from '@/components/ui';
+import { ExpenseBasicFields, ExpenseFormActions, ExpenseFormHeader, ParticipantSelector, PayerSelector, SplitAmountInputs, SplitTypeSelector } from '@/components/expense-form';
+import { Button, Card } from '@/components/ui';
 import { Stack } from '@/components/ui';
-import { LoadingState, ErrorState } from '@/components/ui';
+import { ErrorState, LoadingState } from '@/components/ui';
+import { navigationService } from '@/services/navigation.service';
+import { useTranslation } from 'react-i18next';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
+import { useExpenseForm } from '../app/hooks/useExpenseForm';
 import { BaseLayout } from '../components/layout/BaseLayout';
-import { ExpenseFormHeader, ExpenseBasicFields, PayerSelector, ParticipantSelector, SplitTypeSelector, SplitAmountInputs, ExpenseFormActions } from '@/components/expense-form';
 
 interface AddExpensePageProps {
     groupId?: string;
@@ -28,14 +28,14 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     if (!groupId) {
         return (
             <BaseLayout title={t('pages.addExpensePage.errorTitle')}>
-                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
-                    <Card className="max-w-md w-full">
-                        <Stack spacing="md">
-                            <h2 className="text-xl font-semibold text-red-600" role="alert" data-testid="page-error-title">
+                <div className='min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4'>
+                    <Card className='max-w-md w-full'>
+                        <Stack spacing='md'>
+                            <h2 className='text-xl font-semibold text-red-600' role='alert' data-testid='page-error-title'>
                                 {t('pages.addExpensePage.error')}
                             </h2>
-                            <p className="text-gray-600">{t('pages.addExpensePage.noGroupMessage')}</p>
-                            <Button variant="primary" onClick={() => navigationService.goToDashboard()}>
+                            <p className='text-gray-600'>{t('pages.addExpensePage.noGroupMessage')}</p>
+                            <Button variant='primary' onClick={() => navigationService.goToDashboard()}>
                                 {t('pages.addExpensePage.backToDashboard')}
                             </Button>
                         </Stack>
@@ -67,14 +67,14 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     if (formState.initError) {
         return (
             <BaseLayout title={t('pages.addExpensePage.errorTitle')}>
-                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
-                    <Card className="max-w-md w-full">
-                        <Stack spacing="md">
-                            <h2 className="text-xl font-semibold text-red-600" role="alert" data-testid="page-error-title">
+                <div className='min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4'>
+                    <Card className='max-w-md w-full'>
+                        <Stack spacing='md'>
+                            <h2 className='text-xl font-semibold text-red-600' role='alert' data-testid='page-error-title'>
                                 {t('pages.addExpensePage.error')}
                             </h2>
-                            <p className="text-gray-600">{formState.initError}</p>
-                            <Button variant="primary" onClick={() => navigationService.goToGroup(groupId)}>
+                            <p className='text-gray-600'>{formState.initError}</p>
+                            <Button variant='primary' onClick={() => navigationService.goToGroup(groupId)}>
                                 {t('pages.addExpensePage.backToGroup')}
                             </Button>
                         </Stack>
@@ -88,14 +88,14 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     if (!formState.group) {
         return (
             <BaseLayout title={t('pages.addExpensePage.errorTitle')}>
-                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
-                    <Card className="max-w-md w-full">
-                        <Stack spacing="md">
-                            <h2 className="text-xl font-semibold text-red-600" role="alert" data-testid="page-error-title">
+                <div className='min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4'>
+                    <Card className='max-w-md w-full'>
+                        <Stack spacing='md'>
+                            <h2 className='text-xl font-semibold text-red-600' role='alert' data-testid='page-error-title'>
                                 {t('pages.addExpensePage.groupNotFound')}
                             </h2>
-                            <p className="text-gray-600">{t('pages.addExpensePage.groupNotFoundMessage')}</p>
-                            <Button variant="primary" onClick={() => navigationService.goToDashboard()}>
+                            <p className='text-gray-600'>{t('pages.addExpensePage.groupNotFoundMessage')}</p>
+                            <Button variant='primary' onClick={() => navigationService.goToDashboard()}>
                                 {t('pages.addExpensePage.backToDashboard')}
                             </Button>
                         </Stack>
@@ -113,16 +113,16 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
         <BaseLayout
             title={`${pageTitle} - ${formState.group.name}${t('pages.addExpensePage.titleSuffix')}`}
             description={`${pageDescription}${t('pages.addExpensePage.titleIn')}${formState.group.name}`}
-            headerVariant="dashboard"
+            headerVariant='dashboard'
         >
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <div className='min-h-screen bg-gray-50 dark:bg-gray-900'>
                 <ExpenseFormHeader isEditMode={isEditMode} isCopyMode={isCopyMode} groupName={formState.group.name} onCancel={formState.handleCancel} />
 
-                <div className="max-w-3xl mx-auto px-4 py-6">
+                <div className='max-w-3xl mx-auto px-4 py-6'>
                     <form onSubmit={formState.handleSubmit}>
-                        <Stack spacing="md">
+                        <Stack spacing='md'>
                             {/* Error message */}
-                            {formState.formError && <ErrorState error={formState.formError} className="mb-4" />}
+                            {formState.formError && <ErrorState error={formState.formError} className='mb-4' />}
 
                             {/* Basic expense details */}
                             <ExpenseBasicFields
@@ -170,7 +170,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                                         />
 
                                         {formState.validationErrors.splits && (
-                                            <p className="text-sm text-red-600 dark:text-red-400 mt-2" role="alert" data-testid="validation-error-splits">
+                                            <p className='text-sm text-red-600 dark:text-red-400 mt-2' role='alert' data-testid='validation-error-splits'>
                                                 {formState.validationErrors.splits}
                                             </p>
                                         )}

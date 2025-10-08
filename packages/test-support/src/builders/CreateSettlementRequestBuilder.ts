@@ -1,5 +1,5 @@
-import { randomDate, randomString, randomValidCurrencyAmountPair, generateShortId } from '../test-helpers';
 import type { CreateSettlementRequest } from '@splitifyd/shared';
+import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class CreateSettlementRequestBuilder {
     private settlement: CreateSettlementRequest;

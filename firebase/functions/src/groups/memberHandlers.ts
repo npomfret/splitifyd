@@ -1,9 +1,9 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { validateGroupId } from './validation';
-import { logger } from '../logger';
 import { getAuth, getFirestore } from '../firebase';
+import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { validateGroupId } from './validation';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());

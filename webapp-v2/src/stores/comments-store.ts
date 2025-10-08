@@ -1,8 +1,8 @@
-import { signal, ReadonlySignal } from '@preact/signals';
+import { ReadonlySignal, signal } from '@preact/signals';
 import type { CommentDTO, CommentTargetType, ListCommentsResponse } from '@splitifyd/shared';
 import { apiClient } from '../app/apiClient';
 import { logError, logInfo } from '../utils/browser-logger';
-import { userNotificationDetector, UserNotificationDetector } from '../utils/user-notification-detector';
+import { UserNotificationDetector, userNotificationDetector } from '../utils/user-notification-detector';
 
 interface CommentsStore {
     // State getters - readonly values for external consumers

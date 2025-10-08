@@ -13,7 +13,7 @@
  * - Follows the same patterns as IFirestoreReader/Writer
  */
 
-import type { UserRecord, UpdateRequest, CreateRequest, GetUsersResult, DecodedIdToken, ListUsersResult, DeleteUsersResult } from 'firebase-admin/auth';
+import type { CreateRequest, DecodedIdToken, DeleteUsersResult, GetUsersResult, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 
 export interface IAuthService {
     // ========================================================================
@@ -42,7 +42,7 @@ export interface IAuthService {
      * @returns GetUsersResult with found/not found users
      * @throws ApiError if operation fails
      */
-    getUsers(uids: { uid: string }[]): Promise<GetUsersResult>;
+    getUsers(uids: { uid: string; }[]): Promise<GetUsersResult>;
 
     /**
      * Update user profile in Firebase Auth

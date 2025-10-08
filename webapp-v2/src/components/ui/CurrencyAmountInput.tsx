@@ -1,7 +1,7 @@
-import { useCallback, useRef, useMemo } from 'preact/hooks';
-import { useTranslation } from 'react-i18next';
-import { CurrencyService, type Currency } from '@/app/services/currencyService';
 import { useCurrencySelector } from '@/app/hooks/useCurrencySelector';
+import { type Currency, CurrencyService } from '@/app/services/currencyService';
+import { useCallback, useMemo, useRef } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 
 interface CurrencyAmountInputProps {
     amount: number;
@@ -83,7 +83,7 @@ export function CurrencyAmountInput({
 
         return (
             <>
-                {title && <div className="px-3 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">{title}</div>}
+                {title && <div className='px-3 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50'>{title}</div>}
                 {currencies.map((curr, index) => {
                     const globalIndex = startIndex + index;
                     const isHighlighted = highlightedIndex === globalIndex;
@@ -91,8 +91,8 @@ export function CurrencyAmountInput({
                     return (
                         <button
                             key={curr.acronym}
-                            type="button"
-                            role="option"
+                            type='button'
+                            role='option'
                             aria-selected={currency === curr.acronym}
                             onClick={() => handleCurrencySelect(curr)}
                             onMouseEnter={() => setHighlightedIndex(globalIndex)}
@@ -119,22 +119,22 @@ export function CurrencyAmountInput({
     return (
         <div className={className}>
             {label && (
-                <label htmlFor={inputId} className="block text-sm font-medium leading-6 text-gray-900 mb-2">
+                <label htmlFor={inputId} className='block text-sm font-medium leading-6 text-gray-900 mb-2'>
                     {label}
                     {required && (
-                        <span className="text-red-500 ml-1" data-testid="required-indicator">
+                        <span className='text-red-500 ml-1' data-testid='required-indicator'>
                             {t('uiComponents.currencyAmountInput.requiredIndicator')}
                         </span>
                     )}
                 </label>
             )}
 
-            <div className="relative">
-                <div className="flex">
+            <div className='relative'>
+                <div className='flex'>
                     {/* Currency selector button */}
                     <button
                         ref={currencyButtonRef}
-                        type="button"
+                        type='button'
                         onClick={handleCurrencyClickWrapper}
                         disabled={disabled}
                         className={`
@@ -146,19 +146,19 @@ export function CurrencyAmountInput({
             `}
                         aria-label={t('uiComponents.currencyAmountInput.selectCurrency')}
                         aria-expanded={isOpen}
-                        aria-haspopup="listbox"
+                        aria-haspopup='listbox'
                     >
-                        <span className="font-medium text-lg">{selectedCurrency?.symbol ?? currency}</span>
+                        <span className='font-medium text-lg'>{selectedCurrency?.symbol ?? currency}</span>
                         <svg
                             className={`ml-1 h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
+                            xmlns='http://www.w3.org/2000/svg'
+                            viewBox='0 0 20 20'
+                            fill='currentColor'
                         >
                             <path
-                                fillRule="evenodd"
-                                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                                clipRule="evenodd"
+                                fillRule='evenodd'
+                                d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z'
+                                clipRule='evenodd'
                             />
                         </svg>
                     </button>
@@ -167,8 +167,8 @@ export function CurrencyAmountInput({
                     <input
                         ref={inputRef}
                         id={inputId}
-                        type="number"
-                        inputMode="decimal"
+                        type='number'
+                        inputMode='decimal'
                         min={minValue}
                         step={stepValue}
                         value={amount}
@@ -192,49 +192,51 @@ export function CurrencyAmountInput({
 
                 {/* Currency dropdown */}
                 {isOpen && (
-                    <div ref={dropdownRef} role="listbox" className="absolute z-20 mt-1 w-full max-w-md bg-white shadow-lg max-h-80 rounded-md overflow-hidden ring-1 ring-black ring-opacity-5">
+                    <div ref={dropdownRef} role='listbox' className='absolute z-20 mt-1 w-full max-w-md bg-white shadow-lg max-h-80 rounded-md overflow-hidden ring-1 ring-black ring-opacity-5'>
                         {/* Search input */}
-                        <div className="sticky top-0 bg-white border-b border-gray-200 p-2">
+                        <div className='sticky top-0 bg-white border-b border-gray-200 p-2'>
                             <input
                                 ref={searchInputRef}
-                                type="text"
+                                type='text'
                                 value={searchTerm}
                                 onChange={handleSearchChange}
                                 onKeyDown={handleKeyDown}
                                 placeholder={t('uiComponents.currencyAmountInput.searchPlaceholder')}
-                                className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-600"
-                                aria-label="Search currencies"
+                                className='w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-600'
+                                aria-label='Search currencies'
                             />
                         </div>
 
                         {/* Currency list */}
-                        <div className="overflow-auto max-h-64">
-                            {filteredCurrencies.length === 0 ? (
-                                <div className="px-3 py-4 text-sm text-gray-500 text-center" role="status">
-                                    {t('uiComponents.currencyAmountInput.noCurrencies')}
-                                </div>
-                            ) : (
-                                <>
-                                    {renderCurrencyGroup(groupedCurrencies.recent.length > 0 ? t('uiComponents.currencyAmountInput.recent') : '', groupedCurrencies.recent, 0)}
-                                    {renderCurrencyGroup(
-                                        groupedCurrencies.common.length > 0 ? t('uiComponents.currencyAmountInput.common') : '',
-                                        groupedCurrencies.common,
-                                        groupedCurrencies.recent.length,
-                                    )}
-                                    {renderCurrencyGroup(
-                                        groupedCurrencies.others.length > 0 ? t('uiComponents.currencyAmountInput.allCurrencies') : '',
-                                        groupedCurrencies.others,
-                                        groupedCurrencies.recent.length + groupedCurrencies.common.length,
-                                    )}
-                                </>
-                            )}
+                        <div className='overflow-auto max-h-64'>
+                            {filteredCurrencies.length === 0
+                                ? (
+                                    <div className='px-3 py-4 text-sm text-gray-500 text-center' role='status'>
+                                        {t('uiComponents.currencyAmountInput.noCurrencies')}
+                                    </div>
+                                )
+                                : (
+                                    <>
+                                        {renderCurrencyGroup(groupedCurrencies.recent.length > 0 ? t('uiComponents.currencyAmountInput.recent') : '', groupedCurrencies.recent, 0)}
+                                        {renderCurrencyGroup(
+                                            groupedCurrencies.common.length > 0 ? t('uiComponents.currencyAmountInput.common') : '',
+                                            groupedCurrencies.common,
+                                            groupedCurrencies.recent.length,
+                                        )}
+                                        {renderCurrencyGroup(
+                                            groupedCurrencies.others.length > 0 ? t('uiComponents.currencyAmountInput.allCurrencies') : '',
+                                            groupedCurrencies.others,
+                                            groupedCurrencies.recent.length + groupedCurrencies.common.length,
+                                        )}
+                                    </>
+                                )}
                         </div>
                     </div>
                 )}
             </div>
 
             {error && (
-                <p id={`${inputId}-error`} className="mt-2 text-sm text-red-600" role="alert" data-testid="currency-input-error-message">
+                <p id={`${inputId}-error`} className='mt-2 text-sm text-red-600' role='alert' data-testid='currency-input-error-message'>
                     {error}
                 </p>
             )}

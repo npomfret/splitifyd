@@ -1,6 +1,6 @@
-import { z } from 'zod';
 import { SplitTypes } from '@splitifyd/shared';
-import { FirestoreTimestampSchema, AuditFieldsSchema, SoftDeletionFieldsSchema, UserIdSchema, GroupIdSchema, CurrencyCodeSchema, createDocumentSchemas } from './common';
+import { z } from 'zod';
+import { AuditFieldsSchema, createDocumentSchemas, CurrencyCodeSchema, FirestoreTimestampSchema, GroupIdSchema, SoftDeletionFieldsSchema, UserIdSchema } from './common';
 
 /**
  * Zod schema for expense splits

@@ -11,7 +11,7 @@ import { Page } from '@playwright/test';
 interface PageState {
     title: string;
     url: string;
-    viewport?: { width: number; height: number };
+    viewport?: { width: number; height: number; };
     visibleButtons: string[];
     visibleHeadings: string[];
     visibleErrors: string[];

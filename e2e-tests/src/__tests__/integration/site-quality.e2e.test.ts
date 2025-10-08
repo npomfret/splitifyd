@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
-import { simpleTest as test, expect } from '../../fixtures/simple-test.fixture';
-import { HomepagePage, PricingPage } from '../../pages';
+import { expect, simpleTest as test } from '../../fixtures/simple-test.fixture';
 import { waitForApp } from '../../helpers';
+import { HomepagePage, PricingPage } from '../../pages';
 
 test.describe('Site Quality - Accessibility', () => {
     test('should not have critical accessibility issues', async ({ newEmptyBrowser }) => {

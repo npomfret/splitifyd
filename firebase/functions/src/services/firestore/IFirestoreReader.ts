@@ -13,8 +13,8 @@
  * - Real-time subscription management
  */
 
-import type { Transaction } from 'firebase-admin/firestore';
 import type { ISOString } from '@splitifyd/shared';
+import type { Transaction } from 'firebase-admin/firestore';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 
 /**
@@ -71,9 +71,9 @@ export interface GetGroupsForUserOptions extends Pick<PaginationOptions, 'limit'
 
 // Import parsed types from schemas
 import { CommentTargetType } from '@splitifyd/shared';
+import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, RegisteredUser, SettlementDTO } from '@splitifyd/shared/src';
+import type { GroupBalanceDTO, ParsedShareLink } from '../../schemas';
 import type { UserNotificationDocument } from '../../schemas/user-notifications';
-import type { ParsedShareLink, GroupBalanceDTO } from '../../schemas';
-import type { ExpenseDTO, GroupDTO, PolicyDTO, RegisteredUser, SettlementDTO, GroupMembershipDTO, CommentDTO } from '@splitifyd/shared/src';
 
 export interface IFirestoreReader {
     // ========================================================================
@@ -252,7 +252,7 @@ export interface IFirestoreReader {
      * @param token - The share link token
      * @returns Object with groupId and share link, or null if not found
      */
-    findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ParsedShareLink } | null>;
+    findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ParsedShareLink; } | null>;
 
     // ========================================================================
     // Comment Operations
@@ -274,7 +274,7 @@ export interface IFirestoreReader {
             orderBy?: FirestoreOrderField;
             direction?: 'asc' | 'desc';
         },
-    ): Promise<{ comments: CommentDTO[]; hasMore: boolean; nextCursor?: string }>;
+    ): Promise<{ comments: CommentDTO[]; hasMore: boolean; nextCursor?: string; }>;
 
     /**
      * Get a specific comment by target and comment ID

@@ -1,6 +1,6 @@
+import { FirebaseService } from '@/app/firebase.ts';
 import { Page } from '@playwright/test';
 import { ClientUser, ListGroupsResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
-import { FirebaseService } from '@/app/firebase.ts';
 
 interface AuthError {
     code: string;
@@ -372,7 +372,7 @@ export async function mockGroupsApi(page: Page, response: ListGroupsResponse): P
  * Handles requests with or without query parameters
  * @param url - Can be a path like '/api/groups' or a full URL with query params like '/api/groups?includeMetadata=true'
  */
-export async function mockApiFailure(page: Page, url: string, status: number, error: { error: string }): Promise<void> {
+export async function mockApiFailure(page: Page, url: string, status: number, error: { error: string; }): Promise<void> {
     // Parse the URL to separate path and query params
     const urlObj = new URL(url, 'http://dummy'); // Use dummy base for parsing
     const targetPath = urlObj.pathname;

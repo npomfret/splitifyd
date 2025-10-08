@@ -1,8 +1,8 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { BasePage } from './base.page';
-import { ARIA_ROLES, BUTTON_TEXTS } from '../constants/selectors';
 import { PooledTestUser } from '@splitifyd/shared';
 import translation from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
+import { ARIA_ROLES, BUTTON_TEXTS } from '../constants/selectors';
+import { BasePage } from './base.page';
 
 export class RegisterPage extends BasePage {
     constructor(page: Page, userInfo?: PooledTestUser) {
@@ -65,15 +65,17 @@ export class RegisterPage extends BasePage {
         // Wait for either:
         // 1. Button becomes disabled (indicates processing started)
         // 2. Immediate redirect to dashboard (instant registration)
-        await Promise.race([
-            // Option 1: Wait for button to become disabled (processing started)
-            expect(submitButton).toBeDisabled({ timeout: 2000 }),
+        await Promise
+            .race([
+                // Option 1: Wait for button to become disabled (processing started)
+                expect(submitButton).toBeDisabled({ timeout: 2000 }),
 
-            // Option 2: Wait for immediate redirect (so fast button never visibly disables)
-            this.page.waitForURL(/\/dashboard/, { timeout: 1000 }),
-        ]).catch(() => {
-            // It's ok if neither happens immediately, we'll still wait for the final redirect
-        });
+                // Option 2: Wait for immediate redirect (so fast button never visibly disables)
+                this.page.waitForURL(/\/dashboard/, { timeout: 1000 }),
+            ])
+            .catch(() => {
+                // It's ok if neither happens immediately, we'll still wait for the final redirect
+            });
 
         // Now wait for the final redirect to dashboard (registration success)
         // This should happen whether we saw the button disable or not

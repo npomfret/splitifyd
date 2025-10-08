@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { expenseFormStore } from '@/app/stores/expense-form-store';
-import { SplitTypes } from '@splitifyd/shared';
 import type { UserScopedStorage } from '@/utils/userScopedStorage';
+import { SplitTypes } from '@splitifyd/shared';
 import { ExpenseDraftBuilder } from '@splitifyd/test-support';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the dependencies
 vi.mock('@/app/apiClient', () => ({

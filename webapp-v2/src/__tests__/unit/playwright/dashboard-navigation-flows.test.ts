@@ -1,6 +1,6 @@
+import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
-import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
 
 test.describe('Dashboard Navigation Flows', () => {
     test('should navigate to group detail when clicking group card', async ({ authenticatedPage }) => {
@@ -47,7 +47,10 @@ test.describe('Dashboard Navigation Flows', () => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const groups = [GroupDTOBuilder.groupForUser(user.uid).withName('Group 1').withId('group-1').build(), GroupDTOBuilder.groupForUser(user.uid).withName('Group 2').withId('group-2').build()];
+        const groups = [
+            GroupDTOBuilder.groupForUser(user.uid).withName('Group 1').withId('group-1').build(),
+            GroupDTOBuilder.groupForUser(user.uid).withName('Group 2').withId('group-2').build(),
+        ];
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata(groups).build());
         await mockGenerateShareLinkApi(page, 'group-1');

@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'vitest';
+import type { UserRegistration } from '@splitifyd/shared';
+import { UserRegistrationBuilder } from '@splitifyd/test-support';
+import { describe, expect, it } from 'vitest';
 import { validateRegisterRequest } from '../../../auth/validation';
 import { HTTP_STATUS } from '../../../constants';
 import { ApiError } from '../../../utils/errors';
-import { UserRegistrationBuilder } from '@splitifyd/test-support';
-import type { UserRegistration } from '@splitifyd/shared';
 
 /**
  * Registration Validation Unit Tests

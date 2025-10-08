@@ -1,15 +1,16 @@
-import * as Joi from 'joi';
-import { ApiError } from '../utils/errors';
-import { HTTP_STATUS } from '../constants';
-import { displayNameSchema } from '../validation/validationSchemas';
 import { UserRegistration } from '@splitifyd/shared';
+import * as Joi from 'joi';
+import { HTTP_STATUS } from '../constants';
+import { ApiError } from '../utils/errors';
+import { displayNameSchema } from '../validation/validationSchemas';
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&\s]{8,}$/;
 
 const registerSchema = Joi.object({
-    email: Joi.string()
+    email: Joi
+        .string()
         .trim()
         .min(1)
         .pattern(EMAIL_REGEX)

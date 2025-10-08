@@ -9,28 +9,28 @@
  * - Audit logging for write operations
  */
 
-import { z } from 'zod';
-import type { Firestore, Transaction, DocumentReference } from 'firebase-admin/firestore';
+import { type CommentTargetType, CommentTargetTypes } from '@splitifyd/shared';
+import type { DocumentReference, Firestore, Transaction } from 'firebase-admin/firestore';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { z } from 'zod';
+import { FIRESTORE, HTTP_STATUS } from '../../constants';
 import { logger } from '../../logger';
-import { ApiError } from '../../utils/errors';
-import { HTTP_STATUS, FIRESTORE } from '../../constants';
-import { CommentTargetTypes, type CommentTargetType } from '@splitifyd/shared';
-import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 import { measureDb } from '../../monitoring/measure';
+import { ApiError } from '../../utils/errors';
+import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 
 // Import schemas for validation
-import { UserDocumentSchema, GroupDocumentSchema, ExpenseDocumentSchema, SettlementDocumentSchema, CommentDataSchema, PolicyDocumentSchema, GroupBalanceDocumentSchema } from '../../schemas';
-import { UserNotificationDocumentSchema } from '../../schemas/user-notifications';
+import { CommentDataSchema, ExpenseDocumentSchema, GroupBalanceDocumentSchema, GroupDocumentSchema, PolicyDocumentSchema, SettlementDocumentSchema, UserDocumentSchema } from '../../schemas';
 import { TopLevelGroupMemberSchema } from '../../schemas';
 import { validateUpdate } from '../../schemas';
+import { UserNotificationDocumentSchema } from '../../schemas/user-notifications';
 
 // Import types
-import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
-import type { GroupBalanceDTO } from '../../schemas';
-import type { ShareLinkDTO, RegisteredUser, GroupDTO, ExpenseDTO, SettlementDTO, CommentDTO } from '@splitifyd/shared';
-import type { IFirestoreWriter, WriteResult, BatchWriteResult } from './IFirestoreWriter';
+import type { CommentDTO, ExpenseDTO, GroupDTO, RegisteredUser, SettlementDTO, ShareLinkDTO } from '@splitifyd/shared';
 import { FirestoreCollections } from '../../constants';
+import type { GroupBalanceDTO } from '../../schemas';
+import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
+import type { BatchWriteResult, IFirestoreWriter, WriteResult } from './IFirestoreWriter';
 
 /**
  * Validation metrics for monitoring validation coverage and effectiveness
@@ -247,19 +247,24 @@ export class FirestoreWriter implements IFirestoreWriter {
             validatedFields: metrics.validatedFields || [],
             skippedFields: metrics.skippedFields || [],
             skipReason: metrics.skipReason,
-            validationCoveragePercent:
-                metrics.validatedFieldCount && metrics.skippedFieldCount
-                    ? Math.round((metrics.validatedFieldCount / (metrics.validatedFieldCount + metrics.skippedFieldCount)) * 100)
-                    : metrics.validationType === 'full'
-                      ? 100
-                      : 0,
+            validationCoveragePercent: metrics.validatedFieldCount && metrics.skippedFieldCount
+                ? Math.round((metrics.validatedFieldCount / (metrics.validatedFieldCount + metrics.skippedFieldCount)) * 100)
+                : metrics.validationType === 'full'
+                ? 100
+                : 0,
         });
     }
 
     /**
      * Safely validate merged data, handling FieldValue operations gracefully
      */
-    private safeValidateUpdate<T>(schema: any, mergedData: Record<string, any>, schemaName: string, documentId: string, collection: string): { isValid: boolean; data?: T; skipValidation?: boolean } {
+    private safeValidateUpdate<T>(
+        schema: any,
+        mergedData: Record<string, any>,
+        schemaName: string,
+        documentId: string,
+        collection: string,
+    ): { isValid: boolean; data?: T; skipValidation?: boolean; } {
         try {
             const validatedData = this.validateMergedData<T>(schema, mergedData, schemaName, documentId, collection);
 
@@ -1334,7 +1339,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    async batchSetUserNotifications(updates: Array<{ userId: string; data: any; merge?: boolean }>): Promise<BatchWriteResult> {
+    async batchSetUserNotifications(updates: Array<{ userId: string; data: any; merge?: boolean; }>): Promise<BatchWriteResult> {
         return measureDb('FirestoreWriter.batchSetUserNotifications', async () => {
             const allResults: WriteResult[] = [];
             let totalSuccess = 0;
@@ -1534,7 +1539,7 @@ export class FirestoreWriter implements IFirestoreWriter {
      * Perform health check operations (lightweight connectivity check)
      * @returns Health check result with timing information
      */
-    async performHealthCheck(): Promise<{ success: boolean; responseTime: number }> {
+    async performHealthCheck(): Promise<{ success: boolean; responseTime: number; }> {
         return measureDb('FirestoreWriter.performHealthCheck', async () => {
             const startTime = Date.now();
 
@@ -1611,7 +1616,7 @@ export class FirestoreWriter implements IFirestoreWriter {
      * Update a test pool user document
      * Note: This bypasses schema validation as test-user-pool is not a canonical collection
      */
-    async updateTestPoolUser(email: string, updates: { status?: 'available' | 'borrowed' }): Promise<WriteResult> {
+    async updateTestPoolUser(email: string, updates: { status?: 'available' | 'borrowed'; }): Promise<WriteResult> {
         return measureDb('FirestoreWriter.updateTestPoolUser', async () => {
             try {
                 await this.db.collection('test-user-pool').doc(email).update(updates);

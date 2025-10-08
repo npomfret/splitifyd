@@ -1,5 +1,5 @@
 import type { ExpenseDTO } from '@splitifyd/shared';
-import { BuilderTimestamp, timestampToISOString, generateShortId, randomString, randomChoice, randomDate, randomCategory, randomValidCurrencyAmountPair } from '../test-helpers';
+import { BuilderTimestamp, generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair, timestampToISOString } from '../test-helpers';
 
 /**
  * Builder for creating ExpenseDTO objects for tests
@@ -102,7 +102,7 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
-    withSplits(splits: Array<{ uid: string; amount: number; percentage?: number }>): this {
+    withSplits(splits: Array<{ uid: string; amount: number; percentage?: number; }>): this {
         this.expense.splits = [...splits];
         return this;
     }

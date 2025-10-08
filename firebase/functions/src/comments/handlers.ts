@@ -1,12 +1,12 @@
+import { CommentTargetType, CommentTargetTypes, CreateCommentResponse, ListCommentsResponse } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
-import { ApiError } from '../utils/errors';
-import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
-import { validateCreateComment } from './validation';
-import { CommentTargetTypes, CommentTargetType, CreateCommentResponse, ListCommentsResponse } from '@splitifyd/shared';
 import { getAppBuilder } from '../index';
+import { logger } from '../logger';
+import { ApiError } from '../utils/errors';
+import { validateCreateComment } from './validation';
 
 /**
  * Create a new comment
@@ -76,7 +76,7 @@ export const listGroupComments = async (req: AuthenticatedRequest, res: Response
                 limit: parseInt(limit as string, 10) || 20,
             });
 
-        const response: { success: boolean; data: ListCommentsResponse } = {
+        const response: { success: boolean; data: ListCommentsResponse; } = {
             success: true,
             data: responseData,
         };
@@ -120,7 +120,7 @@ export const listExpenseComments = async (req: AuthenticatedRequest, res: Respon
                 limit: parseInt(limit as string, 10) || 20,
             });
 
-        const response: { success: boolean; data: ListCommentsResponse } = {
+        const response: { success: boolean; data: ListCommentsResponse; } = {
             success: true,
             data: responseData,
         };

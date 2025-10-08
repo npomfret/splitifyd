@@ -1,10 +1,10 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
+import { TEST_ROUTES, TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
-import { loadTranslation } from './translation-loader';
 import { CreateGroupModalPage } from './CreateGroupModalPage';
 import { GroupDetailPage } from './GroupDetailPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
-import { TEST_TIMEOUTS, TEST_ROUTES } from '../test-constants';
+import { loadTranslation } from './translation-loader';
 
 const translation = loadTranslation();
 
@@ -28,7 +28,8 @@ export class DashboardPage extends BasePage {
      * Groups container - found by the "Your Groups" heading
      */
     getGroupsContainer(): Locator {
-        return this.page
+        return this
+            .page
             .locator('section, div')
             .filter({
                 has: this.page.getByRole('heading', { name: translation.dashboard.yourGroups }),
@@ -41,7 +42,8 @@ export class DashboardPage extends BasePage {
      */
     getQuickActionsContainer(): Locator {
         // Find the container with Quick Actions heading
-        return this.page
+        return this
+            .page
             .locator('div')
             .filter({
                 has: this.page.getByRole('heading', { name: translation.quickActions.title, exact: true }),
@@ -54,7 +56,8 @@ export class DashboardPage extends BasePage {
      */
     getStatsContainer(): Locator {
         // Find the stats container by heading
-        return this.page
+        return this
+            .page
             .locator('div')
             .filter({
                 has: this.page.getByRole('heading', { name: translation.dashboardStats.title, exact: true }),
@@ -200,7 +203,8 @@ export class DashboardPage extends BasePage {
      */
     getStatsTotalGroups(): Locator {
         // Find the stat item by its label, then get the visible number
-        return this.getStatsContainer()
+        return this
+            .getStatsContainer()
             .locator('div, li')
             .filter({ hasText: /total.*groups/i })
             .first()
@@ -214,7 +218,8 @@ export class DashboardPage extends BasePage {
      */
     getStatsActiveGroups(): Locator {
         // Find the stat item by its label, then get the visible number
-        return this.getStatsContainer()
+        return this
+            .getStatsContainer()
             .locator('div, li')
             .filter({ hasText: /active.*groups/i })
             .first()
@@ -258,7 +263,8 @@ export class DashboardPage extends BasePage {
      * Loading indicator for creating new group
      */
     getCreateGroupLoadingIndicator(): Locator {
-        return this.getGroupsGrid()
+        return this
+            .getGroupsGrid()
             .locator('div')
             .filter({
                 has: this.page.getByText(translation.dashboardComponents.groupsList.creating),
@@ -269,7 +275,8 @@ export class DashboardPage extends BasePage {
      * Group update loading overlay
      */
     getGroupUpdateLoadingOverlay(groupId?: string): Locator {
-        const baseSelector = this.getGroupsGrid()
+        const baseSelector = this
+            .getGroupsGrid()
             .locator('.absolute.inset-0')
             .filter({
                 has: this.page.locator('[data-testid="loading-spinner"], .animate-spin'),
@@ -552,7 +559,6 @@ export class DashboardPage extends BasePage {
             await expect(this.getGroupCards()).toHaveCount(expectedCount);
         }
     }
-
 
     /**
      * Verify dashboard stats display

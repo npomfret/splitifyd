@@ -1,11 +1,11 @@
 import { test as base } from '@playwright/test';
-import { attachApiInterceptor, attachConsoleHandler, ApiInterceptor } from '../helpers';
+import { ApiInterceptor, attachApiInterceptor, attachConsoleHandler } from '../helpers';
 
 // Global counter for browser instances across all tests
 let globalBrowserIndex = 0;
 
 // Extend base test to inject Playwright flag, i18n language setting, and console handling
-export const baseTest = base.extend<{ apiInterceptor: ApiInterceptor }>({
+export const baseTest = base.extend<{ apiInterceptor: ApiInterceptor; }>({
     apiInterceptor: async ({ page }, use, testInfo) => {
         // Create the API interceptor
         const apiInterceptor = attachApiInterceptor(page, { testInfo });

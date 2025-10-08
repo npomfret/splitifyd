@@ -1,6 +1,6 @@
-import { z } from 'zod';
 import { SecurityPresets } from '@splitifyd/shared';
-import { FirestoreTimestampSchema, AuditFieldsSchema, UserIdSchema, createDocumentSchemas } from './common';
+import { z } from 'zod';
+import { AuditFieldsSchema, createDocumentSchemas, FirestoreTimestampSchema, UserIdSchema } from './common';
 
 /**
  * Base Group schema without document ID

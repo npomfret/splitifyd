@@ -10,8 +10,8 @@
 
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { ApiDriver, borrowTestUsers, generateTestEmail, UserRegistrationBuilder, TestUserBuilder, NotificationDriver } from '@splitifyd/test-support';
 import { PooledTestUser } from '@splitifyd/shared';
+import { ApiDriver, borrowTestUsers, generateTestEmail, NotificationDriver, TestUserBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
 import { getFirestore } from '../../firebase';
 
 describe('Authentication and Registration - Integration Tests (Essential Firebase Behavior Only)', () => {

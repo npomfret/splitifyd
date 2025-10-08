@@ -1,15 +1,15 @@
-import {FieldValue} from 'firebase-admin/firestore';
-import {z} from 'zod';
-import {ApiError} from '../utils/errors';
-import {FirestoreCollections, HTTP_STATUS} from '../constants';
-import * as dateHelpers from '../utils/dateHelpers';
-import {logger} from '../logger';
-import {LoggerContext} from '../utils/logger-context';
+import { CreateSettlementRequest, GroupMember, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest } from '@splitifyd/shared';
+import { FieldValue } from 'firebase-admin/firestore';
+import { z } from 'zod';
+import { FirestoreCollections, HTTP_STATUS } from '../constants';
+import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
-import {PerformanceTimer} from '../monitoring/PerformanceTimer';
-import {CreateSettlementRequest, GroupMember, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest} from '@splitifyd/shared';
-import type {IFirestoreReader, IFirestoreWriter} from './firestore';
-import {IncrementalBalanceService} from './balance/IncrementalBalanceService';
+import { PerformanceTimer } from '../monitoring/PerformanceTimer';
+import * as dateHelpers from '../utils/dateHelpers';
+import { ApiError } from '../utils/errors';
+import { LoggerContext } from '../utils/logger-context';
+import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
+import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -38,7 +38,7 @@ export class SettlementService {
     private async fetchGroupMemberData(groupId: string, userId: string): Promise<GroupMember> {
         const [userData, memberData] = await Promise.all([
             this.firestoreReader.getUser(userId),
-            this.firestoreReader.getGroupMember(groupId, userId)
+            this.firestoreReader.getGroupMember(groupId, userId),
         ]);
 
         if (!userData) {
@@ -54,7 +54,8 @@ export class SettlementService {
             const validatedData = UserDataSchema.parse(userData);
 
             // Generate initials from display name
-            const initials = validatedData.displayName
+            const initials = validatedData
+                .displayName
                 .split(' ')
                 .map((n) => n[0])
                 .join('')

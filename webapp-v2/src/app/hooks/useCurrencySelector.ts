@@ -1,6 +1,6 @@
-import { useCallback, useRef, useState, useEffect, useMemo } from 'preact/hooks';
 import { useDebounce } from '@/utils/debounce.ts';
-import { CurrencyService, type Currency } from '../services/currencyService';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { type Currency, CurrencyService } from '../services/currencyService';
 
 interface UseCurrencySelectorOptions {
     onCurrencyChange: (currency: string) => void;

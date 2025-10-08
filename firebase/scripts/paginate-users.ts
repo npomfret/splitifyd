@@ -1,8 +1,8 @@
 #!/usr/bin/env npx tsx
 import * as admin from 'firebase-admin';
-import { Firestore, DocumentSnapshot, FieldPath } from 'firebase-admin/firestore';
-import { parseEnvironment, initializeFirebase } from './firebase-init';
+import { DocumentSnapshot, FieldPath, Firestore } from 'firebase-admin/firestore';
 import { FirestoreCollections } from '../functions/src/constants';
+import { initializeFirebase, parseEnvironment } from './firebase-init';
 
 /**
  * Script to paginate through user documents in Firestore

@@ -8,8 +8,8 @@
  * 4. Handles edge cases (missing data, empty arrays)
  */
 
-import { describe, test, expect } from 'vitest';
 import { ExpenseDTOBuilder } from '@splitifyd/test-support';
+import { describe, expect, test } from 'vitest';
 
 /**
  * Extract affected users from expense data (before and after states)
@@ -147,7 +147,8 @@ describe('Expense Change Tracking Logic', () => {
             // Act & Assert: Should throw error when trying to iterate undefined participants
             expect(() => {
                 extractAffectedUsersFromExpense(null, expenseData);
-            }).toThrow();
+            })
+                .toThrow();
         });
     });
 });

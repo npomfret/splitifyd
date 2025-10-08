@@ -1,18 +1,18 @@
+import { COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
+import type { GroupMembershipDTO } from '@splitifyd/shared';
 import { randomBytes } from 'crypto';
 import { z } from 'zod';
-import { ApiError } from '../utils/errors';
-import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
-import { COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
+import { FirestoreCollections } from '../constants';
+import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { ShareLinkDataSchema } from '../schemas';
+import { ApiError } from '../utils/errors';
+import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import type { GroupMemberService } from './GroupMemberService';
-import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
-import { FirestoreCollections } from '../constants';
-import type { GroupMembershipDTO } from '@splitifyd/shared';
 
 export class GroupShareService {
     constructor(
@@ -43,7 +43,7 @@ export class GroupShareService {
         };
     }
 
-    private async findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ShareLinkDTO }> {
+    private async findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ShareLinkDTO; }> {
         const result = await this.firestoreReader.findShareLinkByToken(token);
 
         if (!result) {
@@ -181,11 +181,11 @@ export class GroupShareService {
         };
     }
 
-    async joinGroupByLink(userId: string, linkId: string): Promise<{ groupId: string; groupName: string; message: string; success: boolean }> {
+    async joinGroupByLink(userId: string, linkId: string): Promise<{ groupId: string; groupName: string; message: string; success: boolean; }> {
         return measure.measureDb('GroupShareService.joinGroupByLink', async () => this._joinGroupByLink(userId, linkId));
     }
 
-    private async _joinGroupByLink(userId: string, linkId: string): Promise<{ groupId: string; groupName: string; message: string; success: boolean }> {
+    private async _joinGroupByLink(userId: string, linkId: string): Promise<{ groupId: string; groupName: string; message: string; success: boolean; }> {
         const timer = new PerformanceTimer();
 
         if (!linkId) {

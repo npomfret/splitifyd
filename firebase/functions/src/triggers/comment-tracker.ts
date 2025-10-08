@@ -1,7 +1,7 @@
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
+import { getAuth, getFirestore } from '../firebase';
 import { logger } from '../logger';
 import { measureTrigger } from '../monitoring/measure';
-import { getAuth, getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 import { FirestoreCollections } from '../constants';

@@ -1,9 +1,9 @@
-import { beforeEach, describe, expect, test } from 'vitest';
-import { v4 as uuidv4 } from 'uuid';
+import { PooledTestUser } from '@splitifyd/shared';
 import { borrowTestUsers, NotificationDriver } from '@splitifyd/test-support';
 import { ApiDriver, TestExpenseManager } from '@splitifyd/test-support';
+import { v4 as uuidv4 } from 'uuid';
+import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
-import { PooledTestUser } from '@splitifyd/shared';
 
 /**
  * Minimal Comments integration tests - only testing Firebase-specific behavior

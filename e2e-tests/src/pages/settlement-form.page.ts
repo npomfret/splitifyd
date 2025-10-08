@@ -1,6 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { BasePage } from './base.page';
 import { PooledTestUser } from '@splitifyd/shared';
+import { BasePage } from './base.page';
 
 interface SettlementData {
     payerName: string; // Display name of who paid
@@ -80,7 +80,8 @@ export class SettlementFormPage extends BasePage {
             if (expectedCount && realOptions.length !== expectedCount) {
                 throw new Error(`Dropdown has ${realOptions.length} members but expected ${expectedCount}. Found: [${realOptions.join(', ')}]`);
             }
-        }).toPass({ timeout: 5000 });
+        })
+            .toPass({ timeout: 5000 });
     }
 
     async findOptionByDisplayName(select: Locator, displayName: string): Promise<string> {
@@ -132,7 +133,8 @@ export class SettlementFormPage extends BasePage {
             if (realOptions.length < expectedMemberCount - 1) {
                 throw new Error(`Payee dropdown has ${realOptions.length} members but expected at least ${expectedMemberCount - 1}. Found: [${realOptions.join(', ')}]`);
             }
-        }).toPass({ timeout: 5000 });
+        })
+            .toPass({ timeout: 5000 });
     }
 
     /**
@@ -186,7 +188,9 @@ export class SettlementFormPage extends BasePage {
             // After payer selection, payee dropdown should have expectedMemberCount - 1 members
             if (realOptions.length !== expectedMemberCount - 1) {
                 throw new Error(
-                    `After payer selection, payee dropdown has ${realOptions.length} members but expected ${expectedMemberCount - 1}. Found: [${realOptions.join(', ')}]. Payer selected: "${settlement.payerName}"`,
+                    `After payer selection, payee dropdown has ${realOptions.length} members but expected ${expectedMemberCount - 1}. Found: [${
+                        realOptions.join(', ')
+                    }]. Payer selected: "${settlement.payerName}"`,
                 );
             }
 
@@ -196,10 +200,11 @@ export class SettlementFormPage extends BasePage {
             if (!hasTargetPayee) {
                 throw new Error(`Payee "${settlement.payeeName}" not found in dropdown. Available options: [${payeeTexts.join(', ')}]. Payer selected: "${settlement.payerName}"`);
             }
-        }).toPass({
-            timeout: 10000,
-            intervals: [100, 200, 500, 1000], // Try more frequently at first
-        });
+        })
+            .toPass({
+                timeout: 10000,
+                intervals: [100, 200, 500, 1000], // Try more frequently at first
+            });
 
         // Select payee by display name
         const payeeValue = await this.findOptionByDisplayName(payeeSelect, settlement.payeeName);
@@ -224,7 +229,8 @@ export class SettlementFormPage extends BasePage {
             if (actualAmount !== expectedAmount || checkNote !== settlement.note) {
                 throw new Error('Form values still changing');
             }
-        }).toPass({ timeout: 500, intervals: [50, 100] });
+        })
+            .toPass({ timeout: 500, intervals: [50, 100] });
         const currentAmount = await amountInput.inputValue();
         const currentNote = await noteInput.inputValue();
         const currentPayer = await payerSelect.inputValue();
@@ -298,7 +304,7 @@ export class SettlementFormPage extends BasePage {
     /**
      * Verify form values match expected
      */
-    async verifyFormValues(expected: { amount: string; note: string }): Promise<void> {
+    async verifyFormValues(expected: { amount: string; note: string; }): Promise<void> {
         const amountInput = this.getAmountInput();
         const noteInput = this.getNoteInput();
 
@@ -311,7 +317,7 @@ export class SettlementFormPage extends BasePage {
     /**
      * Update a settlement (form should already be in edit mode)
      */
-    async updateSettlement(data: { amount: string; note: string }): Promise<void> {
+    async updateSettlement(data: { amount: string; note: string; }): Promise<void> {
         // Assert form is in update mode before updating
         const modal = this.getModal();
         await expect(modal).toBeVisible();

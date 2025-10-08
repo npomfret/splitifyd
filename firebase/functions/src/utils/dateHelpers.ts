@@ -1,4 +1,4 @@
-import { Timestamp, FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 
 /**
  * Date handling utilities for consistent timestamp management across the application.
@@ -61,7 +61,7 @@ export const timestampToISO = (value: Timestamp | Date | string): string => {
     if (value instanceof Timestamp) {
         return value.toDate().toISOString();
     } else if (typeof value === 'string') {
-        //hack
+        // hack
         return value.toString();
     }
     return value.toISOString();
@@ -213,7 +213,7 @@ export const assertTimestamp = (value: unknown, fieldName: string): Timestamp =>
  * @param maxYearsAgo - Maximum years in the past (default 10)
  * @returns Object with validation result and error message if invalid
  */
-export const validateUTCDate = (isoString: string, maxYearsAgo: number = 10): { valid: boolean; error?: string } => {
+export const validateUTCDate = (isoString: string, maxYearsAgo: number = 10): { valid: boolean; error?: string; } => {
     // Check UTC format
     if (!isUTCFormat(isoString)) {
         return {

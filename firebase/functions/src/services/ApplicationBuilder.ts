@@ -1,20 +1,20 @@
+import * as admin from 'firebase-admin';
 import type { Firestore } from 'firebase-admin/firestore';
-import { FirestoreReader, type IFirestoreReader, type IFirestoreWriter } from './firestore';
-import { FirestoreWriter } from './firestore';
-import { UserService } from './UserService2';
-import { GroupService } from './GroupService';
-import { ExpenseService } from './ExpenseService';
-import { SettlementService } from './SettlementService';
-import { CommentService } from './CommentService';
-import { PolicyService } from './PolicyService';
-import { UserPolicyService } from './UserPolicyService';
-import { GroupMemberService } from './GroupMemberService';
-import { GroupShareService } from './GroupShareService';
-import { NotificationService } from './notification-service';
 import { IAuthService } from './auth';
 import { FirebaseAuthService } from './auth';
-import * as admin from 'firebase-admin';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
+import { CommentService } from './CommentService';
+import { ExpenseService } from './ExpenseService';
+import { FirestoreReader, type IFirestoreReader, type IFirestoreWriter } from './firestore';
+import { FirestoreWriter } from './firestore';
+import { GroupMemberService } from './GroupMemberService';
+import { GroupService } from './GroupService';
+import { GroupShareService } from './GroupShareService';
+import { NotificationService } from './notification-service';
+import { PolicyService } from './PolicyService';
+import { SettlementService } from './SettlementService';
+import { UserPolicyService } from './UserPolicyService';
+import { UserService } from './UserService2';
 
 export class ApplicationBuilder {
     // Base infrastructure - created once

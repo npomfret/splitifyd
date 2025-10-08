@@ -1,9 +1,9 @@
+import { apiClient } from '@/app/apiClient';
+import { ConfirmDialog } from '@/components/ui';
+import { useNavigation } from '@/hooks/useNavigation';
+import { logError } from '@/utils/browser-logger';
 import { useSignal } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
-import { ConfirmDialog } from '@/components/ui';
-import { apiClient } from '@/app/apiClient';
-import { logError } from '@/utils/browser-logger';
-import { useNavigation } from '@/hooks/useNavigation';
 
 interface LeaveGroupDialogProps {
     isOpen: boolean;
@@ -48,7 +48,7 @@ export function LeaveGroupDialog({ isOpen, onClose, groupId, hasOutstandingBalan
             cancelText={t('membersList.leaveGroupDialog.cancelText')}
             variant={hasOutstandingBalance ? 'info' : 'warning'}
             loading={isProcessing.value}
-            data-testid="leave-group-dialog"
+            data-testid='leave-group-dialog'
         />
     );
 }

@@ -1,6 +1,6 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { logger } from '../logger';
-import { metrics, Metric } from '../monitoring/lightweight-metrics';
+import { Metric, metrics } from '../monitoring/lightweight-metrics';
 
 export const logMetrics = onSchedule(
     {

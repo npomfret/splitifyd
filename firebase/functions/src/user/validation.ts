@@ -1,7 +1,7 @@
 import * as Joi from 'joi';
 import { Errors } from '../utils/errors';
-import { sanitizeString } from '../utils/security';
 import { translateJoiError } from '../utils/i18n-validation';
+import { sanitizeString } from '../utils/security';
 
 // Password requirements regex - must contain at least 8 characters, one uppercase, one lowercase, one number, and one special character
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -9,22 +9,24 @@ const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@
 /**
  * Schema for update user profile request
  */
-const updateUserProfileSchema = Joi.object({
-    displayName: Joi.string().trim().min(1).max(100).optional().messages({
-        'string.empty': 'Display name cannot be empty',
-        'string.max': 'Display name must be 100 characters or less',
-    }),
-    photoURL: Joi.string().uri().allow(null, '').optional().messages({
-        'string.uri': 'Invalid photo URL format',
-    }),
-    preferredLanguage: Joi.string()
-        .trim()
-        .valid('en') // Add more languages as they become available
-        .optional()
-        .messages({
-            'any.only': 'Language must be one of: en',
+const updateUserProfileSchema = Joi
+    .object({
+        displayName: Joi.string().trim().min(1).max(100).optional().messages({
+            'string.empty': 'Display name cannot be empty',
+            'string.max': 'Display name must be 100 characters or less',
         }),
-})
+        photoURL: Joi.string().uri().allow(null, '').optional().messages({
+            'string.uri': 'Invalid photo URL format',
+        }),
+        preferredLanguage: Joi
+            .string()
+            .trim()
+            .valid('en') // Add more languages as they become available
+            .optional()
+            .messages({
+                'any.only': 'Language must be one of: en',
+            }),
+    })
     .min(1)
     .messages({
         'object.min': 'At least one field (displayName, photoURL, or preferredLanguage) must be provided',

@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'preact/hooks';
-import { navigationService } from '@/services/navigation.service';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
+import { navigationService } from '@/services/navigation.service';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 
 interface UserMenuProps {
@@ -38,42 +38,42 @@ export function UserMenu({ user }: UserMenuProps) {
     const userName = user.displayName || user.email.split('@')[0];
 
     return (
-        <div class="relative" ref={menuRef}>
+        <div class='relative' ref={menuRef}>
             <button
-                data-testid="user-menu-button"
+                data-testid='user-menu-button'
                 onClick={(e) => {
                     e.stopPropagation();
                     setIsOpen(!isOpen);
                 }}
-                class="flex items-center space-x-2 hover:bg-gray-100 rounded-lg px-2 py-1 transition-colors"
+                class='flex items-center space-x-2 hover:bg-gray-100 rounded-lg px-2 py-1 transition-colors'
                 aria-expanded={isOpen}
-                aria-haspopup="true"
-                aria-controls="user-dropdown-menu"
+                aria-haspopup='true'
+                aria-controls='user-dropdown-menu'
             >
-                <div class="w-8 h-8 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center">
-                    <span class="text-sm font-medium">{userInitial}</span>
+                <div class='w-8 h-8 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center'>
+                    <span class='text-sm font-medium'>{userInitial}</span>
                 </div>
-                <div class="hidden sm:block text-left">
-                    <p class="text-sm font-medium text-gray-700">{userName}</p>
-                    <p class="text-xs text-gray-500">{user.email}</p>
+                <div class='hidden sm:block text-left'>
+                    <p class='text-sm font-medium text-gray-700'>{userName}</p>
+                    <p class='text-xs text-gray-500'>{user.email}</p>
                 </div>
-                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                <svg class='w-4 h-4 text-gray-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' />
                 </svg>
             </button>
 
             {isOpen && (
                 <div
-                    id="user-dropdown-menu"
-                    data-testid="user-dropdown-menu"
-                    class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
-                    role="menu"
-                    aria-orientation="vertical"
-                    aria-labelledby="user-menu-button"
+                    id='user-dropdown-menu'
+                    data-testid='user-dropdown-menu'
+                    class='absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50'
+                    role='menu'
+                    aria-orientation='vertical'
+                    aria-labelledby='user-menu-button'
                 >
-                    <div class="px-4 py-2 border-b border-gray-100">
-                        <p class="text-sm font-medium text-gray-900">{userName}</p>
-                        <p class="text-xs text-gray-500">{user.email}</p>
+                    <div class='px-4 py-2 border-b border-gray-100'>
+                        <p class='text-sm font-medium text-gray-900'>{userName}</p>
+                        <p class='text-xs text-gray-500'>{user.email}</p>
                     </div>
 
                     <button
@@ -81,9 +81,9 @@ export function UserMenu({ user }: UserMenuProps) {
                             setIsOpen(false);
                             navigationService.goToDashboard();
                         }}
-                        class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                        data-testid="user-menu-dashboard-link"
-                        role="menuitem"
+                        class='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors'
+                        data-testid='user-menu-dashboard-link'
+                        role='menuitem'
                     >
                         {t('userMenu.dashboard')}
                     </button>
@@ -93,17 +93,17 @@ export function UserMenu({ user }: UserMenuProps) {
                             setIsOpen(false);
                             navigationService.goToSettings();
                         }}
-                        class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                        data-testid="user-menu-settings-link"
-                        role="menuitem"
+                        class='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors'
+                        data-testid='user-menu-settings-link'
+                        role='menuitem'
                     >
                         {t('userMenu.settings')}
                     </button>
 
-                    <hr class="my-1 border-gray-100" />
+                    <hr class='my-1 border-gray-100' />
 
                     <button
-                        data-testid="sign-out-button"
+                        data-testid='sign-out-button'
                         onClick={async (e) => {
                             e.stopPropagation();
                             try {
@@ -115,9 +115,9 @@ export function UserMenu({ user }: UserMenuProps) {
                                 console.error('Logout failed:', error);
                             }
                         }}
-                        class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        class='w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors'
                         disabled={authStore.loading}
-                        role="menuitem"
+                        role='menuitem'
                     >
                         {authStore.loading ? t('userMenu.signingOut') : t('userMenu.signOut')}
                     </button>

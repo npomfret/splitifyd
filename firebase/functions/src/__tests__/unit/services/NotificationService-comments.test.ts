@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { NotificationService, type ChangeType } from '../../../services/notification-service';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { type ChangeType, NotificationService } from '../../../services/notification-service';
 import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 
 // Mock logger

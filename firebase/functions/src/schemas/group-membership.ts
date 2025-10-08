@@ -1,6 +1,6 @@
+import { COLOR_PATTERNS, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { z } from 'zod';
-import { MemberRoles, MemberStatuses, COLOR_PATTERNS } from '@splitifyd/shared';
-import { UserIdSchema, FirestoreTimestampSchema } from './common';
+import { FirestoreTimestampSchema, UserIdSchema } from './common';
 
 /**
  * Zod schema for UserThemeColor validation in Firestore documents

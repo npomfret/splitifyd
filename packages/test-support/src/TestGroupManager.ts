@@ -1,7 +1,7 @@
 import { GroupDTO } from '@splitifyd/shared';
+import { UserToken } from '@splitifyd/shared';
 import { ApiDriver } from './ApiDriver';
 import { generateShortId } from './test-helpers';
-import { UserToken } from '@splitifyd/shared';
 
 interface GroupOptions {
     memberCount?: number;

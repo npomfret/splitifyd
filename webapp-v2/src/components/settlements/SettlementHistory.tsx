@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'preact/hooks';
-import { LoadingSpinner, ConfirmDialog } from '../ui';
+import { apiClient } from '@/app/apiClient.ts';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
-import { apiClient } from '@/app/apiClient.ts';
-import type { SettlementWithMembers } from '@splitifyd/shared';
-import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { useTranslation } from 'react-i18next';
-import { formatDistanceToNow } from '@/utils/dateUtils.ts';
 import { formatCurrency } from '@/utils/currency';
+import { formatDistanceToNow } from '@/utils/dateUtils.ts';
+import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import type { SettlementWithMembers } from '@splitifyd/shared';
+import { useEffect, useState } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
+import { ConfirmDialog, LoadingSpinner } from '../ui';
 
 interface SettlementHistoryProps {
     groupId: string;
@@ -86,7 +86,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
 
     if (isLoading && settlements.length === 0) {
         return (
-            <div class="flex justify-center items-center py-8">
+            <div class='flex justify-center items-center py-8'>
                 <LoadingSpinner />
             </div>
         );
@@ -96,33 +96,33 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
 
     if (settlements.length === 0) {
         return (
-            <div class="text-center py-8">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class='text-center py-8'>
+                <svg class='mx-auto h-12 w-12 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        stroke-linecap='round'
+                        stroke-linejoin='round'
+                        stroke-width='2'
+                        d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
                     />
                 </svg>
-                <p class="mt-2 text-sm text-gray-500">{t('settlementHistory.noPaymentsYet')}</p>
+                <p class='mt-2 text-sm text-gray-500'>{t('settlementHistory.noPaymentsYet')}</p>
             </div>
         );
     }
 
     return (
-        <div class="space-y-3">
+        <div class='space-y-3'>
             {/* Admin toggle for deleted settlements */}
             {isGroupOwner && onShowDeletedChange && (
-                <div class="pb-2 border-b border-gray-200">
-                    <label class="flex items-center space-x-2 text-sm cursor-pointer">
+                <div class='pb-2 border-b border-gray-200'>
+                    <label class='flex items-center space-x-2 text-sm cursor-pointer'>
                         <input
-                            type="checkbox"
+                            type='checkbox'
                             checked={showDeletedSettlements}
                             onChange={(e) => onShowDeletedChange(e.currentTarget.checked)}
-                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            class='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
                         />
-                        <span class="text-gray-700">{t('settlementHistory.showDeletedSettlements')}</span>
+                        <span class='text-gray-700'>{t('settlementHistory.showDeletedSettlements')}</span>
                     </label>
                 </div>
             )}
@@ -134,53 +134,53 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                 const deletedByUser = settlement.deletedBy ? members.find((m) => m.uid === settlement.deletedBy) : null;
 
                 return (
-                    <div key={settlement.id} class="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow" data-testid="settlement-item">
-                        <div class="flex justify-between items-start">
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-900">
-                                    <span class="font-semibold">{settlement.payer.displayName}</span>
+                    <div key={settlement.id} class='p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow' data-testid='settlement-item'>
+                        <div class='flex justify-between items-start'>
+                            <div class='flex-1'>
+                                <p class='text-sm font-medium text-gray-900'>
+                                    <span class='font-semibold'>{settlement.payer.displayName}</span>
                                     {' → '}
-                                    <span class="font-semibold">{settlement.payee.displayName}</span>
+                                    <span class='font-semibold'>{settlement.payee.displayName}</span>
                                 </p>
 
-                                {settlement.note && <p class="mt-1 text-sm text-gray-500">{settlement.note}</p>}
+                                {settlement.note && <p class='mt-1 text-sm text-gray-500'>{settlement.note}</p>}
 
-                                <p class="mt-1 text-xs text-gray-400">
+                                <p class='mt-1 text-xs text-gray-400'>
                                     {formatDate(settlement.date)}
                                     {isDeleted && settlement.deletedAt && (
-                                        <span class="ml-2 text-red-600" data-financial-amount="deleted">
+                                        <span class='ml-2 text-red-600' data-financial-amount='deleted'>
                                             • {t('settlementHistory.deletedBy')} {deletedByUser?.displayName || t('common.unknown')} {formatDistanceToNow(new Date(settlement.deletedAt))}
                                         </span>
                                     )}
                                 </p>
                             </div>
 
-                            <div class="flex items-start gap-2 ml-4">
-                                <div class="text-right">
-                                    <p class={`text-lg font-bold ${isCurrentUserPayee ? 'text-green-600' : isCurrentUserPayer ? 'text-gray-700' : 'text-gray-600'}`} data-financial-amount="settlement">
+                            <div class='flex items-start gap-2 ml-4'>
+                                <div class='text-right'>
+                                    <p class={`text-lg font-bold ${isCurrentUserPayee ? 'text-green-600' : isCurrentUserPayer ? 'text-gray-700' : 'text-gray-600'}`} data-financial-amount='settlement'>
                                         {isCurrentUserPayee && '+'}
                                         {formatCurrency(settlement.amount, settlement.currency)}
                                     </p>
                                 </div>
 
-                                <div class="flex gap-1">
+                                <div class='flex gap-1'>
                                     {onEditSettlement && (
                                         <button
                                             onClick={() => onEditSettlement(settlement)}
-                                            class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                                            class='p-1 text-gray-400 hover:text-blue-600 transition-colors'
                                             title={t('settlementHistory.editPaymentTooltip')}
-                                            data-testid="edit-settlement-button"
+                                            data-testid='edit-settlement-button'
                                         >
-                                            <PencilIcon class="h-4 w-4" />
+                                            <PencilIcon class='h-4 w-4' />
                                         </button>
                                     )}
                                     <button
                                         onClick={() => handleDeleteClick(settlement)}
-                                        class="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                        class='p-1 text-gray-400 hover:text-red-600 transition-colors'
                                         title={t('settlementHistory.deletePaymentTooltip')}
-                                        data-testid="delete-settlement-button"
+                                        data-testid='delete-settlement-button'
                                     >
-                                        <TrashIcon class="h-4 w-4" />
+                                        <TrashIcon class='h-4 w-4' />
                                     </button>
                                 </div>
                             </div>
@@ -190,11 +190,11 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
             })}
 
             {hasMore && (
-                <div class="text-center pt-4">
+                <div class='text-center pt-4'>
                     <button
                         onClick={() => enhancedGroupDetailStore.loadMoreSettlements()}
                         disabled={isLoading}
-                        class="px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50"
+                        class='px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50'
                     >
                         {isLoading ? t('common.loading') : t('settlementHistory.loadMore')}
                     </button>

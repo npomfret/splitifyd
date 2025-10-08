@@ -1,12 +1,12 @@
 import * as Joi from 'joi';
-import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
+import { ApiError } from '../utils/errors';
 
-import { sanitizeString } from '../utils/security';
-import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
-import { ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest, SplitTypes } from '@splitifyd/shared';
+import { CreateExpenseRequest, ExpenseSplit, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
 import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 import { validateAmountPrecision } from '../utils/amount-validation';
+import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
+import { sanitizeString } from '../utils/security';
 
 const expenseSplitSchema = Joi.object({
     uid: Joi.string().required(),
@@ -16,7 +16,8 @@ const expenseSplitSchema = Joi.object({
 
 // Date validation schema with proper constraints
 // Custom UTC-only date validation schema
-const utcDateValidationSchema = Joi.string()
+const utcDateValidationSchema = Joi
+    .string()
     .custom((value, helpers) => {
         // First check if it's a string
         if (typeof value !== 'string') {
@@ -69,18 +70,20 @@ const createExpenseSchema = Joi.object({
     receiptUrl: Joi.string().uri().optional().allow(''),
 });
 
-const updateExpenseSchema = Joi.object({
-    amount: Joi.number().positive().optional(),
-    currency: Joi.string().length(3).uppercase().optional(),
-    description: Joi.string().trim().min(1).max(200).optional(),
-    category: Joi.string().trim().min(1).max(50).optional(),
-    date: dateValidationSchema.optional(),
-    paidBy: Joi.string().optional(),
-    splitType: Joi.string().valid(SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE).optional(),
-    participants: Joi.array().items(Joi.string()).min(1).optional(),
-    splits: Joi.array().items(expenseSplitSchema).optional(),
-    receiptUrl: Joi.string().uri().optional().allow(''),
-}).min(1);
+const updateExpenseSchema = Joi
+    .object({
+        amount: Joi.number().positive().optional(),
+        currency: Joi.string().length(3).uppercase().optional(),
+        description: Joi.string().trim().min(1).max(200).optional(),
+        category: Joi.string().trim().min(1).max(50).optional(),
+        date: dateValidationSchema.optional(),
+        paidBy: Joi.string().optional(),
+        splitType: Joi.string().valid(SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE).optional(),
+        participants: Joi.array().items(Joi.string()).min(1).optional(),
+        splits: Joi.array().items(expenseSplitSchema).optional(),
+        receiptUrl: Joi.string().uri().optional().allow(''),
+    })
+    .min(1);
 
 const sanitizeExpenseData = <T extends CreateExpenseRequest | UpdateExpenseRequest>(data: T): T => {
     const sanitized = { ...data };

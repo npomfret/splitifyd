@@ -1,8 +1,8 @@
-import { useComputed } from '@preact/signals';
 import { useAuth } from '@/app/hooks/useAuth.ts';
+import { useNavigation } from '@/hooks/useNavigation';
+import { useComputed } from '@preact/signals';
 import { lazy, Suspense } from 'preact/compat';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@/hooks/useNavigation';
 
 // Lazy load UserMenu to avoid SSG issues
 const UserMenu = lazy(() => import('./UserMenu').then((m) => ({ default: m.UserMenu })));
@@ -33,7 +33,7 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
 
         if (isAuthenticated.value && user.value) {
             return (
-                <div class="flex items-center gap-4">
+                <div class='flex items-center gap-4'>
                     <Suspense fallback={<div>...</div>}>
                         <UserMenu user={user.value} />
                     </Suspense>
@@ -42,11 +42,11 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
         }
 
         return (
-            <div class="flex items-center gap-4">
-                <button onClick={() => navigation.goToLogin()} class="text-gray-700 hover:text-purple-600 transition-colors" data-testid="header-login-link">
+            <div class='flex items-center gap-4'>
+                <button onClick={() => navigation.goToLogin()} class='text-gray-700 hover:text-purple-600 transition-colors' data-testid='header-login-link'>
                     {t('header.login')}
                 </button>
-                <button onClick={() => navigation.goToRegister()} class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors" data-testid="header-signup-link">
+                <button onClick={() => navigation.goToRegister()} class='bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors' data-testid='header-signup-link'>
                     {t('header.signUp')}
                 </button>
             </div>
@@ -57,11 +57,11 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
 
     return (
         <header class={headerClasses}>
-            <div class="max-w-7xl mx-auto px-4">
-                <nav class="flex items-center justify-between h-16">
-                    <div class="flex items-center space-x-8">
-                        <button onClick={() => (isAuthenticated.value ? navigation.goToDashboard() : navigation.goHome())} class="flex items-center" data-testid="header-logo-link">
-                            <img src="/images/logo.svg" alt={t('header.logoAlt')} class="h-8" />
+            <div class='max-w-7xl mx-auto px-4'>
+                <nav class='flex items-center justify-between h-16'>
+                    <div class='flex items-center space-x-8'>
+                        <button onClick={() => (isAuthenticated.value ? navigation.goToDashboard() : navigation.goHome())} class='flex items-center' data-testid='header-logo-link'>
+                            <img src='/images/logo.svg' alt={t('header.logoAlt')} class='h-8' />
                         </button>
                         {getNavLinks()}
                     </div>

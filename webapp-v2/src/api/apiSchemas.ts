@@ -5,8 +5,8 @@
  * This ensures type safety at runtime and catches server contract violations
  */
 
-import { z } from 'zod';
 import { SplitTypes } from '@splitifyd/shared';
+import { z } from 'zod';
 
 const UserThemeColorSchema = z.object({
     light: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),

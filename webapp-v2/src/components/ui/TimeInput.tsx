@@ -1,7 +1,7 @@
+import { convertTo12HourDisplay, filterTimeSuggestions, formatTime12, formatTime24, generateTimeSuggestions, parseTimeString } from '@/utils/timeParser.ts';
 import { useSignal } from '@preact/signals';
-import { useRef, useEffect } from 'preact/hooks';
+import { useEffect, useRef } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { parseTimeString, formatTime24, formatTime12, generateTimeSuggestions, filterTimeSuggestions, convertTo12HourDisplay } from '@/utils/timeParser.ts';
 
 interface TimeInputProps {
     value: string; // "14:30" format (24-hour)
@@ -134,51 +134,52 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
     return (
         <div className={`relative ${className}`} ref={containerRef}>
             {label && (
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {label}{' '}
-                    {required && (
-                        <span className="text-red-500" data-testid="required-indicator">
+                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                    {label} {required && (
+                        <span className='text-red-500' data-testid='required-indicator'>
                             {t('uiComponents.timeInput.requiredIndicator')}
                         </span>
                     )}
                 </label>
             )}
 
-            {!isEditing.value ? (
-                // Display mode - clickable label
-                <button
-                    type="button"
-                    onClick={handleLabelClick}
-                    className={`text-left px-3 py-2 border rounded-lg w-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                        error ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    } dark:bg-gray-700 dark:text-white`}
-                >
-                    {t('uiComponents.timeInput.at')}
-                    {inputValue.value}
-                </button>
-            ) : (
-                // Edit mode - input field
-                <input
-                    ref={inputRef}
-                    type="text"
-                    value={inputValue.value}
-                    onInput={handleInputChange}
-                    onBlur={handleBlur}
-                    onKeyDown={handleKeyDown}
-                    placeholder={t('uiComponents.timeInput.placeholder')}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white ${
-                        error ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    }`}
-                />
-            )}
+            {!isEditing.value
+                ? (
+                    // Display mode - clickable label
+                    <button
+                        type='button'
+                        onClick={handleLabelClick}
+                        className={`text-left px-3 py-2 border rounded-lg w-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                            error ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
+                        } dark:bg-gray-700 dark:text-white`}
+                    >
+                        {t('uiComponents.timeInput.at')}
+                        {inputValue.value}
+                    </button>
+                )
+                : (
+                    // Edit mode - input field
+                    <input
+                        ref={inputRef}
+                        type='text'
+                        value={inputValue.value}
+                        onInput={handleInputChange}
+                        onBlur={handleBlur}
+                        onKeyDown={handleKeyDown}
+                        placeholder={t('uiComponents.timeInput.placeholder')}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white ${
+                            error ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
+                        }`}
+                    />
+                )}
 
             {/* Suggestions dropdown */}
             {isEditing.value && showSuggestions.value && suggestions.value.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                <div className='absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto'>
                     {suggestions.value.map((suggestion, index) => (
                         <button
                             key={suggestion}
-                            type="button"
+                            type='button'
                             onMouseDown={(e) => {
                                 e.preventDefault(); // Prevent blur
                                 handleSuggestionClick(suggestion);
@@ -192,7 +193,7 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
             )}
 
             {error && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-1" role="alert" data-testid="time-input-error-message">
+                <p className='text-sm text-red-600 dark:text-red-400 mt-1' role='alert' data-testid='time-input-error-message'>
                     {error}
                 </p>
             )}

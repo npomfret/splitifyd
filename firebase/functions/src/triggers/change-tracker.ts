@@ -1,12 +1,12 @@
-import { Change, FirestoreEvent, onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { logger } from '../logger';
-import { ChangeType } from '../utils/change-detection';
 import { DocumentSnapshot } from 'firebase-admin/firestore';
 import { ParamsOf } from 'firebase-functions';
-import { measureTrigger } from '../monitoring/measure';
-import { getAuth, getFirestore } from '../firebase';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { Change, FirestoreEvent, onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { FirestoreCollections } from '../constants';
+import { getAuth, getFirestore } from '../firebase';
+import { logger } from '../logger';
+import { measureTrigger } from '../monitoring/measure';
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { ChangeType } from '../utils/change-detection';
 
 const firestore = getFirestore();
 const appBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());

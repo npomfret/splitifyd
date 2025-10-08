@@ -1,11 +1,11 @@
 import type { ExpenseDTO, SettlementDTO, UserBalance } from '@splitifyd/shared';
-import type { ParsedCurrencyBalances as CurrencyBalances, GroupBalanceDTO } from '../../schemas';
+import type { Transaction } from 'firebase-admin/firestore';
+import { logger } from '../../logger';
+import type { GroupBalanceDTO, ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
+import type { IFirestoreWriter } from '../firestore';
+import { DebtSimplificationService } from './DebtSimplificationService';
 import { ExpenseProcessor } from './ExpenseProcessor';
 import { SettlementProcessor } from './SettlementProcessor';
-import { DebtSimplificationService } from './DebtSimplificationService';
-import { logger } from '../../logger';
-import type { IFirestoreWriter } from '../firestore';
-import type { Transaction } from 'firebase-admin/firestore';
 
 export class IncrementalBalanceService {
     private expenseProcessor: ExpenseProcessor;

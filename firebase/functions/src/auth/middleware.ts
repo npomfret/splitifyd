@@ -1,11 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
-import { Errors, sendError } from '../utils/errors';
+import { AuthenticatedUser, SystemUserRoles } from '@splitifyd/shared';
+import { NextFunction, Request, Response } from 'express';
+import { AUTH } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
 import { logger } from '../logger';
-import { AUTH } from '../constants';
-import { SystemUserRoles, AuthenticatedUser } from '@splitifyd/shared';
 import { LoggerContext } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { Errors, sendError } from '../utils/errors';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());

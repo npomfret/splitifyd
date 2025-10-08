@@ -1,4 +1,4 @@
-import type { SettlementWithMembers, GroupMember } from '@splitifyd/shared';
+import type { GroupMember, SettlementWithMembers } from '@splitifyd/shared';
 import { generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
 import { GroupMemberBuilder } from './GroupMemberBuilder';
 

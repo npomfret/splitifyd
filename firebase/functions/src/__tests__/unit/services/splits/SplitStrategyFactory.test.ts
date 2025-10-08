@@ -1,9 +1,9 @@
-import { expect, describe, it } from 'vitest';
-import { SplitStrategyFactory } from '../../../../services/splits/SplitStrategyFactory';
+import { SplitTypes } from '@splitifyd/shared';
+import { describe, expect, it } from 'vitest';
 import { EqualSplitStrategy } from '../../../../services/splits/EqualSplitStrategy';
 import { ExactSplitStrategy } from '../../../../services/splits/ExactSplitStrategy';
 import { PercentageSplitStrategy } from '../../../../services/splits/PercentageSplitStrategy';
-import { SplitTypes } from '@splitifyd/shared';
+import { SplitStrategyFactory } from '../../../../services/splits/SplitStrategyFactory';
 
 describe('SplitStrategyFactory', () => {
     describe('getInstance', () => {

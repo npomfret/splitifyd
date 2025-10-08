@@ -1,11 +1,12 @@
-import { test, expect } from '../../utils/console-logging-fixture';
+import { ClientUserBuilder, DashboardPage, RegisterPage, TEST_TIMEOUTS } from '@splitifyd/test-support';
+import { expect, test } from '../../utils/console-logging-fixture';
 import { setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
-import { ClientUserBuilder, RegisterPage, DashboardPage, TEST_TIMEOUTS } from '@splitifyd/test-support';
 
 test.describe('Registration Authentication Flow', () => {
     test('should register successfully and navigate to dashboard', async ({ pageWithLogging: page, mockFirebase }) => {
         // 1. Create test user data
-        const testUser = ClientUserBuilder.validUser()
+        const testUser = ClientUserBuilder
+            .validUser()
             .withDisplayName('John Smith')
             .withEmail('john.smith@example.com')
             .build();
@@ -105,10 +106,7 @@ test.describe('Registration Authentication Flow', () => {
 });
 
 test.describe('Registration Flow - Already Authenticated', () => {
-    test('should redirect already authenticated user from register page', async ({
-        pageWithLogging: page,
-        authenticatedMockFirebase,
-    }) => {
+    test('should redirect already authenticated user from register page', async ({ pageWithLogging: page, authenticatedMockFirebase }) => {
         // Create authenticated user for this test
         const testUser = ClientUserBuilder.validUser().withDisplayName('Existing User').build();
 
@@ -127,11 +125,9 @@ test.describe('Registration Flow - Already Authenticated', () => {
         await expect(dashboardPage.getUserMenuButton()).toContainText('Existing User');
     });
 
-    test('should redirect to returnUrl after registration when present', async ({
-        pageWithLogging: page,
-        mockFirebase,
-    }) => {
-        const testUser = ClientUserBuilder.validUser()
+    test('should redirect to returnUrl after registration when present', async ({ pageWithLogging: page, mockFirebase }) => {
+        const testUser = ClientUserBuilder
+            .validUser()
             .withDisplayName('New User')
             .withEmail('newuser@example.com')
             .build();
@@ -228,10 +224,7 @@ test.describe('Registration Form - Loading and Disabled States', () => {
         await expect(submitButton).toBeEnabled();
     });
 
-    test('should disable all interactive elements during loading state', async ({
-        pageWithLogging: page,
-        mockFirebase,
-    }) => {
+    test('should disable all interactive elements during loading state', async ({ pageWithLogging: page, mockFirebase }) => {
         const testUser = ClientUserBuilder.validUser().build();
         const registerPage = new RegisterPage(page);
         mockFirebase.mockRegisterWithDelay(testUser, 1000);

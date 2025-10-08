@@ -1,5 +1,5 @@
 import { PolicyDTO } from '@splitifyd/shared';
-import { BuilderTimestamp, timestampToISOString, generateShortId } from '../test-helpers';
+import { BuilderTimestamp, generateShortId, timestampToISOString } from '../test-helpers';
 
 /**
  * Builder for creating PolicyDTO objects for tests

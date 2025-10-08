@@ -1,9 +1,9 @@
+import { SystemUserRoles, TestErrorResponse, TestPromoteToAdminResponse, TestSuccessResponse } from '@splitifyd/shared';
 import { Request, Response } from 'express';
-import { logger } from '../logger';
-import { getAuth, getFirestore } from '../firebase';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { getConfig } from '../client-config';
-import { SystemUserRoles, TestErrorResponse, TestSuccessResponse, TestPromoteToAdminResponse } from '@splitifyd/shared';
+import { getAuth, getFirestore } from '../firebase';
+import { logger } from '../logger';
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());

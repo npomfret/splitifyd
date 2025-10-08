@@ -312,7 +312,8 @@ export class NotificationListener {
                 })
                 .join('\n');
 
-            const allEventsDetails = this.receivedEvents
+            const allEventsDetails = this
+                .receivedEvents
                 .map((doc, index) => {
                     const eventJson = {
                         version: doc.changeVersion,
@@ -329,7 +330,8 @@ export class NotificationListener {
                 '',
                 `All events for this user (${this.receivedEvents.length}):`,
                 allEventsDetails || '\t(no events)',
-            ].join('\n');
+            ]
+                .join('\n');
 
             throw new Error(errorMessage);
         }

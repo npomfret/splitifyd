@@ -1,18 +1,18 @@
-import { UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { AuthErrors, RegisteredUser, SystemUserRoles, UserRegistration, UserThemeColor } from '@splitifyd/shared';
-import { logger } from '../logger';
-import { LoggerContext } from '../utils/logger-context';
-import { ApiError, Errors } from '../utils/errors';
-import { HTTP_STATUS } from '../constants';
-import { assignThemeColor } from '../user-management/assign-theme-color';
+import { GroupMember, GroupMembershipDTO, GroupMembersResponse } from '@splitifyd/shared/src';
+import { UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { validateRegisterRequest } from '../auth/validation';
-import { validateChangePassword, validateUpdateUserProfile } from '../user/validation';
+import { HTTP_STATUS } from '../constants';
+import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
-import { NotificationService } from './notification-service';
-import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import { assignThemeColor } from '../user-management/assign-theme-color';
+import { validateChangePassword, validateUpdateUserProfile } from '../user/validation';
+import { ApiError, Errors } from '../utils/errors';
+import { LoggerContext } from '../utils/logger-context';
 import type { IAuthService } from './auth';
-import { GroupMembersResponse, GroupMember, GroupMembershipDTO } from '@splitifyd/shared/src';
+import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import { NotificationService } from './notification-service';
 
 /**
  * Result of a successful user registration
@@ -42,7 +42,7 @@ export class UserService {
      * Validates that a user record has all required fields
      * @throws Error if required fields are missing
      */
-    private validateUserRecord(userRecord: UserRecord): asserts userRecord is UserRecord & { email: string; displayName: string } {
+    private validateUserRecord(userRecord: UserRecord): asserts userRecord is UserRecord & { email: string; displayName: string; } {
         if (!userRecord.email || !userRecord.displayName) {
             throw new Error(`User ${userRecord.uid} missing required fields: email and displayName are mandatory`);
         }
@@ -51,7 +51,7 @@ export class UserService {
     /**
      * Creates a RegisteredUser from Firebase Auth record and Firestore data
      */
-    private createUserProfile(userRecord: UserRecord & { email: string; displayName: string }, firestoreData: any): RegisteredUser {
+    private createUserProfile(userRecord: UserRecord & { email: string; displayName: string; }, firestoreData: any): RegisteredUser {
         return {
             uid: userRecord.uid,
             email: userRecord.email,
@@ -105,7 +105,7 @@ export class UserService {
             return profile;
         } catch (error) {
             // Check if error is from Firebase Auth (user not found)
-            const firebaseError = error as { code?: string };
+            const firebaseError = error as { code?: string; };
             if (firebaseError.code === 'auth/user-not-found') {
                 logger.error('User not found in Firebase Auth', error as Error);
                 throw Errors.NOT_FOUND('User not found');
@@ -233,7 +233,7 @@ export class UserService {
      * @returns Success message
      * @throws ApiError if password change fails
      */
-    async changePassword(userId: string, requestBody: unknown): Promise<{ message: string }> {
+    async changePassword(userId: string, requestBody: unknown): Promise<{ message: string; }> {
         LoggerContext.update({ userId, operation: 'change-password' });
 
         // Validate the request body

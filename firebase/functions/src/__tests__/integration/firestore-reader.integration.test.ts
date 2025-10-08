@@ -7,10 +7,10 @@
  * These tests use the Firebase emulator to verify actual Firestore operations.
  */
 
-import { describe, test, expect, afterEach } from 'vitest';
-import { ApiDriver, CreateGroupRequestBuilder, UserRegistrationBuilder, NotificationDriver } from '@splitifyd/test-support';
-import { FirestoreReader } from '../../services/firestore';
+import { ApiDriver, CreateGroupRequestBuilder, NotificationDriver, UserRegistrationBuilder } from '@splitifyd/test-support';
+import { afterEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
+import { FirestoreReader } from '../../services/firestore';
 
 describe('FirestoreReader Integration Tests', () => {
     const apiDriver = new ApiDriver();

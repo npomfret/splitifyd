@@ -1,4 +1,4 @@
-import { randomString, randomChoice, randomEmail, randomBoolean } from '../test-helpers';
+import { randomBoolean, randomChoice, randomEmail, randomString } from '../test-helpers';
 
 interface RegisterRequest {
     email: string;

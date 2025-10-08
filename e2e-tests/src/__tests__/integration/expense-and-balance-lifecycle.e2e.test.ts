@@ -1,5 +1,5 @@
+import { CreateGroupFormDataBuilder, ExpenseFormDataBuilder, generateShortId, SettlementFormDataBuilder } from '@splitifyd/test-support';
 import { expect, simpleTest } from '../../fixtures';
-import { generateShortId, ExpenseFormDataBuilder, SettlementFormDataBuilder, CreateGroupFormDataBuilder } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 
 /**
@@ -182,7 +182,13 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // PHASE 4: Test cross-currency settlement (settle with different currency)
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
         await settlementForm.submitSettlement(
-            new SettlementFormDataBuilder().withPayerName(user2DisplayName).withPayeeName(user1DisplayName).withAmount('25').withCurrency('EUR').withNote('Cross-currency settlement test').build(),
+            new SettlementFormDataBuilder()
+                .withPayerName(user2DisplayName)
+                .withPayeeName(user1DisplayName)
+                .withAmount('25')
+                .withCurrency('EUR')
+                .withNote('Cross-currency settlement test')
+                .build(),
             2,
         );
 
@@ -345,7 +351,11 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
         const user3DisplayName = await user3DashboardPage.header.getCurrentUserDisplayName();
 
-        const [groupDetailPage1, groupDetailPage2, groupDetailPage3] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().build(), user2DashboardPage, user3DashboardPage);
+        const [groupDetailPage1, groupDetailPage2, groupDetailPage3] = await user1DashboardPage.createMultiUserGroup(
+            new CreateGroupFormDataBuilder().build(),
+            user2DashboardPage,
+            user3DashboardPage,
+        );
         const groupId = groupDetailPage1.inferGroupId();
         const pages = [groupDetailPage1, groupDetailPage2, groupDetailPage3];
 
@@ -559,7 +569,13 @@ simpleTest.describe('Settlement CRUD Operations', () => {
 
         // Test 1: Normal settlement creation and display
         const settlementForm1 = await groupDetailPage.clickSettleUpButton(2);
-        const settlementData1 = new SettlementFormDataBuilder().withPayerName(payerName).withPayeeName(payeeName).withAmount('101').withCurrency('JPY').withNote('Test payment for history').build();
+        const settlementData1 = new SettlementFormDataBuilder()
+            .withPayerName(payerName)
+            .withPayeeName(payeeName)
+            .withAmount('101')
+            .withCurrency('JPY')
+            .withNote('Test payment for history')
+            .build();
 
         await settlementForm1.submitSettlement(settlementData1, 2);
         await groupDetailPage.openHistoryIfClosed();
@@ -756,7 +772,11 @@ simpleTest.describe('Copy Expense Feature', () => {
         const user3DisplayName = await user3DashboardPage.header.getCurrentUserDisplayName();
 
         // Create 3-user group
-        const [groupDetailPage1, groupDetailPage2, groupDetailPage3] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder().build(), user2DashboardPage, user3DashboardPage);
+        const [groupDetailPage1, groupDetailPage2, groupDetailPage3] = await user1DashboardPage.createMultiUserGroup(
+            new CreateGroupFormDataBuilder().build(),
+            user2DashboardPage,
+            user3DashboardPage,
+        );
 
         // Create original expense with complex split
         const originalExpenseFormPage = await groupDetailPage1.clickAddExpenseButton();

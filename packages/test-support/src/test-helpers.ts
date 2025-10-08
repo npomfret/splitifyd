@@ -44,7 +44,8 @@ export function generateNewUserDetails(prefix = 'u') {
 }
 
 export function randomString(length: number = 8): string {
-    return Math.random()
+    return Math
+        .random()
         .toString(36)
         .substring(2, 2 + length);
 }
@@ -96,7 +97,7 @@ export { getCurrencyDecimals, roundToCurrencyPrecision };
  * @param max Maximum amount (default: 500)
  * @returns Object with currency code and valid amount
  */
-export function randomValidCurrencyAmountPair(min: number = 5, max: number = 500): { currency: string; amount: number } {
+export function randomValidCurrencyAmountPair(min: number = 5, max: number = 500): { currency: string; amount: number; } {
     // Currency lists by decimal precision (excluding USD)
     const currenciesByDecimals: Record<number, string[]> = {
         0: ['JPY', 'KRW', 'VND', 'CLP', 'ISK', 'PYG'], // Zero decimals
@@ -127,7 +128,7 @@ export function randomCategory(): string {
  * Type for timestamp values in builders
  * Supports Date objects, ISO strings, and Firestore Timestamps
  */
-export type BuilderTimestamp = Date | string | { toDate(): Date };
+export type BuilderTimestamp = Date | string | { toDate(): Date; };
 
 /**
  * Converts various timestamp formats to ISO string

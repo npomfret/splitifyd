@@ -5,9 +5,6 @@
  * This ensures the server response matches our expected types
  */
 
-import { ApiErrorResponseSchema, responseSchemas } from '../api/apiSchemas';
-import { z } from 'zod';
-import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';
 import type {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -37,6 +34,9 @@ import type {
     UserPolicyStatusResponse,
     UserProfileResponse,
 } from '@splitifyd/shared';
+import { z } from 'zod';
+import { ApiErrorResponseSchema, responseSchemas } from '../api/apiSchemas';
+import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';
 
 // All types are now imported from shared-types
 
@@ -378,10 +378,9 @@ class ApiClient {
                             status: response.status,
                             statusText: response.statusText,
                         });
-                    }
-                    // Handle simple error format
+                    } // Handle simple error format
                     else if (typeof parsedError.error === 'string') {
-                        const simpleError = parsedError as { error: string; field?: string };
+                        const simpleError = parsedError as { error: string; field?: string; };
                         const code = simpleError.field ? `VALIDATION_${simpleError.field.toUpperCase()}` : 'VALIDATION_ERROR';
                         throw new ApiError(
                             simpleError.error,
@@ -442,7 +441,9 @@ class ApiClient {
                 const result = validator.safeParse(data);
                 if (!result.success) {
                     // Create a more detailed error message
-                    const errorDetails = result.error.issues
+                    const errorDetails = result
+                        .error
+                        .issues
                         .map((issue) => {
                             const path = issue.path.join('.');
                             const expected = 'expected' in issue ? issue.expected : issue.code;
@@ -537,7 +538,7 @@ class ApiClient {
     }
 
     // Convenience methods for common endpoints (using enhanced RequestConfig internally)
-    async getGroups(options?: { includeMetadata?: boolean; page?: number; limit?: number; order?: 'asc' | 'desc'; cursor?: string }): Promise<ListGroupsResponse> {
+    async getGroups(options?: { includeMetadata?: boolean; page?: number; limit?: number; order?: 'asc' | 'desc'; cursor?: string; }): Promise<ListGroupsResponse> {
         const query: Record<string, string> = {};
         if (options?.includeMetadata) query.includeMetadata = 'true';
         if (options?.page) query.page = options.page.toString();
@@ -763,7 +764,7 @@ class ApiClient {
     }
 
     // User profile management methods
-    async updateUserProfile(data: { displayName?: string }): Promise<UserProfileResponse> {
+    async updateUserProfile(data: { displayName?: string; }): Promise<UserProfileResponse> {
         return this.request({
             endpoint: '/user/profile',
             method: 'PUT',
@@ -771,7 +772,7 @@ class ApiClient {
         });
     }
 
-    async changePassword(data: { currentPassword: string; newPassword: string }): Promise<MessageResponse> {
+    async changePassword(data: { currentPassword: string; newPassword: string; }): Promise<MessageResponse> {
         return this.request({
             endpoint: '/user/change-password',
             method: 'POST',
@@ -804,7 +805,7 @@ class ApiClient {
         const query: Record<string, string> = {};
         if (cursor) query.cursor = cursor;
 
-        const response = await this.request<{ success: boolean; data: ListCommentsResponse }>({
+        const response = await this.request<{ success: boolean; data: ListCommentsResponse; }>({
             endpoint: '/groups/:groupId/comments',
             method: 'GET',
             params: { groupId },
@@ -817,7 +818,7 @@ class ApiClient {
         const query: Record<string, string> = {};
         if (cursor) query.cursor = cursor;
 
-        const response = await this.request<{ success: boolean; data: ListCommentsResponse }>({
+        const response = await this.request<{ success: boolean; data: ListCommentsResponse; }>({
             endpoint: '/expenses/:expenseId/comments',
             method: 'GET',
             params: { expenseId },

@@ -1,4 +1,4 @@
-import type { GroupDTO, ListGroupsResponse, ChangeMetadata } from '@splitifyd/shared';
+import type { ChangeMetadata, GroupDTO, ListGroupsResponse } from '@splitifyd/shared';
 
 /**
  * Builder for creating ListGroupsResponse objects for tests
@@ -40,7 +40,7 @@ export class ListGroupsResponseBuilder {
         return this;
     }
 
-    withPagination(pagination: { limit: number; order: string }): this {
+    withPagination(pagination: { limit: number; order: string; }): this {
         this.response.pagination = pagination;
         return this;
     }

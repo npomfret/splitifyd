@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { logger } from '../logger';
 import { getAuth, getFirestore } from '../firebase';
+import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();

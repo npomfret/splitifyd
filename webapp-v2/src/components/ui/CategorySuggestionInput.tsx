@@ -1,6 +1,6 @@
-import { useCallback, useRef, useState, useEffect } from 'preact/hooks';
-import { useTranslation } from 'react-i18next';
 import type { ExpenseCategory } from '@splitifyd/shared';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 
 interface CategorySuggestionInputProps {
     value: string;
@@ -128,21 +128,21 @@ export function CategorySuggestionInput({ value, onChange, suggestions, classNam
     const inputClasses = [...baseInputClasses, stateClasses, className].filter(Boolean).join(' ');
 
     return (
-        <div className="relative">
+        <div className='relative'>
             {label && (
-                <label htmlFor={inputId} className="block text-sm font-medium leading-6 text-gray-900 mb-2">
+                <label htmlFor={inputId} className='block text-sm font-medium leading-6 text-gray-900 mb-2'>
                     {label}
                     {required && (
-                        <span className="text-red-500 ml-1" data-testid="required-indicator">
+                        <span className='text-red-500 ml-1' data-testid='required-indicator'>
                             {t('uiComponents.categorySuggestionInput.requiredIndicator')}
                         </span>
                     )}
                 </label>
             )}
-            <div className="relative">
+            <div className='relative'>
                 <input
                     ref={inputRef}
-                    type="text"
+                    type='text'
                     id={inputId}
                     value={value}
                     onChange={handleInputChange}
@@ -153,17 +153,17 @@ export function CategorySuggestionInput({ value, onChange, suggestions, classNam
                     aria-invalid={!!error}
                     aria-describedby={error ? `${inputId}-error` : undefined}
                     aria-expanded={isOpen}
-                    aria-haspopup="listbox"
-                    role="combobox"
-                    autoComplete="off"
+                    aria-haspopup='listbox'
+                    role='combobox'
+                    autoComplete='off'
                 />
 
                 {/* Suggestions dropdown */}
                 {isOpen && filteredSuggestions.length > 0 && (
                     <div
                         ref={dropdownRef}
-                        className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
-                        role="listbox"
+                        className='absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm'
+                        role='listbox'
                     >
                         {filteredSuggestions.map((suggestion, index) => (
                             <div
@@ -172,18 +172,18 @@ export function CategorySuggestionInput({ value, onChange, suggestions, classNam
                                 className={`cursor-pointer select-none relative py-2 pl-3 pr-9 flex items-center space-x-3 ${
                                     index === highlightedIndex ? 'bg-indigo-600 text-white' : 'text-gray-900 hover:bg-gray-100'
                                 }`}
-                                role="option"
+                                role='option'
                                 aria-selected={index === highlightedIndex}
                             >
-                                <span className="text-lg">{suggestion.icon}</span>
-                                <span className="font-normal block truncate">{suggestion.displayName}</span>
+                                <span className='text-lg'>{suggestion.icon}</span>
+                                <span className='font-normal block truncate'>{suggestion.displayName}</span>
                             </div>
                         ))}
                     </div>
                 )}
             </div>
             {error && (
-                <p id={`${inputId}-error`} className="mt-2 text-sm text-red-600" role="alert" data-testid="category-input-error-message">
+                <p id={`${inputId}-error`} className='mt-2 text-sm text-red-600' role='alert' data-testid='category-input-error-message'>
                     {error}
                 </p>
             )}

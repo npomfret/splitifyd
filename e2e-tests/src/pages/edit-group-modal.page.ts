@@ -47,7 +47,8 @@ export class EditGroupModalPage extends BasePage {
             if (currentValue !== name) {
                 throw new Error('Form value still changing');
             }
-        }).toPass({ timeout: 500, intervals: [50, 100] });
+        })
+            .toPass({ timeout: 500, intervals: [50, 100] });
 
         const currentValue = await this.nameInput.inputValue();
         if (currentValue !== name) {
@@ -72,7 +73,8 @@ export class EditGroupModalPage extends BasePage {
             if (currentValue !== description) {
                 throw new Error('Form value still changing');
             }
-        }).toPass({ timeout: 500, intervals: [50, 100] });
+        })
+            .toPass({ timeout: 500, intervals: [50, 100] });
 
         const currentValue = await this.descriptionTextarea.inputValue();
         if (currentValue !== description) {
@@ -99,7 +101,8 @@ export class EditGroupModalPage extends BasePage {
             if (!isEnabled) {
                 throw new Error('Save button became disabled - race condition detected');
             }
-        }).toPass({ timeout: 200, intervals: [25, 50] });
+        })
+            .toPass({ timeout: 200, intervals: [25, 50] });
 
         const isStillEnabled = await this.saveButton.isEnabled();
         if (!isStillEnabled) {

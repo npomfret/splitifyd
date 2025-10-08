@@ -1,7 +1,7 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
+import { PooledTestUser } from '@splitifyd/shared';
 import { EMULATOR_URL } from '../helpers';
 import { createErrorHandlingProxy } from '../utils/error-proxy';
-import { PooledTestUser } from '@splitifyd/shared';
 import { HeaderPage } from './header.page';
 
 export abstract class BasePage {

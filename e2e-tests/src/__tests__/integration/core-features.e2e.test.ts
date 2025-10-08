@@ -1,6 +1,6 @@
-import { expect, simpleTest } from '../../fixtures';
+import { CreateGroupFormDataBuilder, ExpenseFormDataBuilder, generateShortId } from '@splitifyd/test-support';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
-import { generateShortId, ExpenseFormDataBuilder, CreateGroupFormDataBuilder } from '@splitifyd/test-support';
+import { expect, simpleTest } from '../../fixtures';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 
 /**
@@ -248,7 +248,8 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
             const newUrl = member1Page.url();
             if (newUrl.includes('/404')) return;
             throw new Error(`Expected 404 after removal, got: ${currentUrl}`);
-        }).toPass({ timeout: 10000, intervals: [1000] });
+        })
+            .toPass({ timeout: 10000, intervals: [1000] });
 
         // 2. Member2 (watching group) should see member count decrease to 2 WITHOUT refresh
         await member2GroupDetailPage.waitForMemberCount(2);

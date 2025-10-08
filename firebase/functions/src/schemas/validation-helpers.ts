@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { validateWithMonitoring } from './validation-monitor';
 import type { ContextualLogger } from '../utils/contextual-logger';
+import { validateWithMonitoring } from './validation-monitor';
 
 /**
  * Validate data during update operations

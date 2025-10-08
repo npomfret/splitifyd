@@ -1,18 +1,18 @@
-import { useTranslation } from 'react-i18next';
-import { useSignal, useComputed } from '@preact/signals';
-import { useEffect } from 'preact/hooks';
-import { navigationService } from '@/services/navigation.service';
-import { Card } from '../ui/Card';
+import { apiClient } from '@/app/apiClient';
+import { useAuthRequired } from '@/app/hooks/useAuthRequired';
+import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import { LoadingSpinner } from '@/components/ui';
+import { ConfirmDialog } from '@/components/ui';
+import { navigationService } from '@/services/navigation.service';
+import { logError } from '@/utils/browser-logger';
+import { UserMinusIcon, UserPlusIcon } from '@heroicons/react/24/outline';
+import { useComputed, useSignal } from '@preact/signals';
+import { GroupMember } from '@splitifyd/shared';
+import { useEffect } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
-import { ConfirmDialog } from '@/components/ui';
-import { UserPlusIcon, UserMinusIcon } from '@heroicons/react/24/outline';
-import { GroupMember } from '@splitifyd/shared';
-import { apiClient } from '@/app/apiClient';
-import { logError } from '@/utils/browser-logger';
-import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
-import { useAuthRequired } from '@/app/hooks/useAuthRequired';
+import { Card } from '../ui/Card';
 
 interface MembersListWithManagementProps {
     groupId: string;
@@ -124,53 +124,55 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
 
     if (loading.value) {
         return (
-            <Card className="p-6">
+            <Card className='p-6'>
                 <LoadingSpinner />
             </Card>
         );
     }
 
     const membersList = (
-        <div className="space-y-3">
+        <div className='space-y-3'>
             {members.value.map((member) => (
                 <div
                     key={member.uid}
-                    className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50"
-                    data-testid="member-item"
+                    className='flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50'
+                    data-testid='member-item'
                     data-member-name={member.displayName}
                     data-member-id={member.uid}
                 >
-                    <div className="flex items-center gap-3">
-                        <Avatar displayName={member.displayName || t('common.user')} userId={member.uid} size="sm" />
-                        <div className="flex flex-col">
-                            <span className="font-medium text-gray-900 text-sm">
+                    <div className='flex items-center gap-3'>
+                        <Avatar displayName={member.displayName || t('common.user')} userId={member.uid} size='sm' />
+                        <div className='flex flex-col'>
+                            <span className='font-medium text-gray-900 text-sm'>
                                 {member.displayName}
-                                {member.uid === currentUserId && <span className="text-gray-500 ml-1">({t('common.you')})</span>}
+                                {member.uid === currentUserId && <span className='text-gray-500 ml-1'>({t('common.you')})</span>}
                             </span>
-                            {getMemberRole(member) && <span className="text-xs text-gray-500">{getMemberRole(member)}</span>}
+                            {getMemberRole(member) && <span className='text-xs text-gray-500'>{getMemberRole(member)}</span>}
                         </div>
                     </div>
                     {/* Show actions only if current user is owner */}
-                    {isOwner && member.uid !== currentUserId ? (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                                memberToRemove.value = member;
-                                showRemoveConfirm.value = true;
-                            }}
-                            disabled={memberHasOutstandingBalance(member.uid)}
-                            data-testid="remove-member-button"
-                        >
-                            <UserMinusIcon className="h-4 w-4" />
-                        </Button>
-                    ) : null}
+                    {isOwner && member.uid !== currentUserId
+                        ? (
+                            <Button
+                                variant='ghost'
+                                size='sm'
+                                onClick={() => {
+                                    memberToRemove.value = member;
+                                    showRemoveConfirm.value = true;
+                                }}
+                                disabled={memberHasOutstandingBalance(member.uid)}
+                                data-testid='remove-member-button'
+                            >
+                                <UserMinusIcon className='h-4 w-4' />
+                            </Button>
+                        )
+                        : null}
                 </div>
             ))}
             {onInviteClick && (
-                <Button variant="secondary" size="sm" onClick={onInviteClick} className="w-full">
+                <Button variant='secondary' size='sm' onClick={onInviteClick} className='w-full'>
                     <>
-                        <UserPlusIcon className="h-4 w-4 mr-1" />
+                        <UserPlusIcon className='h-4 w-4 mr-1' />
                         {t('membersList.inviteOthers')}
                     </>
                 </Button>
@@ -178,17 +180,18 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
         </div>
     );
 
-    const content =
-        variant === 'sidebar' ? (
-            <div className="border rounded-lg bg-white p-4 space-y-4">
-                <div className="flex justify-between items-center">
-                    <h3 className="font-semibold text-gray-900">{t('membersList.title')}</h3>
+    const content = variant === 'sidebar'
+        ? (
+            <div className='border rounded-lg bg-white p-4 space-y-4'>
+                <div className='flex justify-between items-center'>
+                    <h3 className='font-semibold text-gray-900'>{t('membersList.title')}</h3>
                 </div>
                 {membersList}
             </div>
-        ) : (
-            <Card className="p-6">
-                <h2 className="text-lg font-semibold mb-4">{t('membersList.title')}</h2>
+        )
+        : (
+            <Card className='p-6'>
+                <h2 className='text-lg font-semibold mb-4'>{t('membersList.title')}</h2>
                 {membersList}
             </Card>
         );
@@ -209,7 +212,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                     cancelText={t('membersList.leaveGroupDialog.cancelText')}
                     variant={hasOutstandingBalance.value ? 'info' : 'warning'}
                     loading={isProcessing.value}
-                    data-testid="leave-group-dialog"
+                    data-testid='leave-group-dialog'
                 />
             )}
 
@@ -222,16 +225,14 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                 }}
                 onConfirm={handleRemoveMember}
                 title={t('membersList.removeMemberDialog.title')}
-                message={
-                    memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid)
-                        ? t('membersList.removeMemberDialog.messageWithBalance', { name: memberToRemove.value.displayName || t('membersList.thisMember') })
-                        : t('membersList.removeMemberDialog.messageConfirm', { name: memberToRemove.value?.displayName || t('membersList.thisMember') })
-                }
+                message={memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid)
+                    ? t('membersList.removeMemberDialog.messageWithBalance', { name: memberToRemove.value.displayName || t('membersList.thisMember') })
+                    : t('membersList.removeMemberDialog.messageConfirm', { name: memberToRemove.value?.displayName || t('membersList.thisMember') })}
                 confirmText={memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid) ? t('common.understood') : t('membersList.removeMemberDialog.confirmText')}
                 cancelText={t('membersList.leaveGroupDialog.cancelText')}
                 variant={memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid) ? 'info' : 'warning'}
                 loading={isProcessing.value}
-                data-testid="remove-member-dialog"
+                data-testid='remove-member-dialog'
             />
         </>
     );

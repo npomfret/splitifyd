@@ -1,6 +1,6 @@
+import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
-import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
 
 test.describe('Dashboard Stats Display', () => {
     test('should display loading skeleton while groups are loading', async ({ authenticatedPage }) => {
@@ -77,7 +77,10 @@ test.describe('Dashboard Stats Display', () => {
         await dashboardPage.verifyStatsDisplayed(2, 2);
 
         // Establish baseline notification state for both existing groups
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).build());
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder().withChangeVersion(1).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).build(),
+        );
 
         // Simulate adding a new group via notification
         const newGroup = GroupDTOBuilder.groupForUser(testUser.uid).withName('Group 3').withId('group-3').build();
@@ -129,7 +132,10 @@ test.describe('Dashboard Stats Display', () => {
 
         // Trigger notification to refresh the dashboard
         // When a group is deleted, we trigger a notification with updated change version
-        await mockFirebase.triggerNotificationUpdate(testUser.uid, new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).build());
+        await mockFirebase.triggerNotificationUpdate(
+            testUser.uid,
+            new UserNotificationDocumentBuilder().withChangeVersion(2).withGroupDetails('group-1', 1).withGroupDetails('group-2', 1).build(),
+        );
 
         // Verify updated count - assertions automatically retry until condition is met
         await dashboardPage.verifyStatsDisplayed(2, 2);
@@ -258,7 +264,8 @@ test.describe('Dashboard Group Card Actions', () => {
         const { page, user: testUser } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
             .withName('Owed Group')
             .withId('group-123')
             .withBalance({
@@ -279,14 +286,15 @@ test.describe('Dashboard Group Card Actions', () => {
         // Verify owed balance display - contains check to handle "$50.00" formatting
         const balanceBadge = dashboardPage.getGroupCardBalance('Owed Group');
         await expect(balanceBadge).toBeVisible();
-        await expect(balanceBadge).toContainText("You're owed");
+        await expect(balanceBadge).toContainText('You\'re owed');
     });
 
     test('should display correct balance for owing money', async ({ authenticatedPage }) => {
         const { page, user: testUser } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
             .withName('Owing Group')
             .withId('group-123')
             .withBalance({

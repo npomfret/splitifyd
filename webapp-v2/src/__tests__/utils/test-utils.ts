@@ -12,7 +12,8 @@ import * as path from 'path';
  */
 export function createTestDirectory(testInfo: any): string {
     // Clean test title for use in file path (remove special characters)
-    const cleanTitle = testInfo.title
+    const cleanTitle = testInfo
+        .title
         .replace(/[^a-zA-Z0-9\s-_]/g, '')
         .replace(/\s+/g, '-')
         .toLowerCase();
@@ -21,7 +22,8 @@ export function createTestDirectory(testInfo: any): string {
     const testDir = path.join(
         'playwright-report',
         'test-artifacts',
-        testInfo.titlePath[0]
+        testInfo
+            .titlePath[0]
             .replace(/[^a-zA-Z0-9\s-_]/g, '')
             .replace(/\s+/g, '-')
             .toLowerCase(),
@@ -58,7 +60,7 @@ export function createScreenshotPath(testDir: string, suffix = 'failure'): strin
  * @param testTitle - The test title for identification (can be empty for failure scenarios)
  * @param filePaths - Object containing file paths to log
  */
-export function logTestArtifactPaths(testTitle: string, filePaths: { [key: string]: string }): void {
+export function logTestArtifactPaths(testTitle: string, filePaths: { [key: string]: string; }): void {
     if (testTitle) {
         console.log(`\n🧪 Test: ${testTitle}`);
     }

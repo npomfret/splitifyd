@@ -1,10 +1,10 @@
-import { useEffect } from 'preact/hooks';
-import { useComputed } from '@preact/signals';
-import { useTranslation } from 'react-i18next';
-import { CommentsList } from './CommentsList';
-import { CommentInput } from './CommentInput';
 import { commentsStore } from '@/stores/comments-store.ts';
+import { useComputed } from '@preact/signals';
 import type { CommentTargetType } from '@splitifyd/shared';
+import { useEffect } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
+import { CommentInput } from './CommentInput';
+import { CommentsList } from './CommentsList';
 
 interface CommentsSectionProps {
     targetType: CommentTargetType;
@@ -42,11 +42,11 @@ export function CommentsSection({ targetType, targetId, maxHeight = '400px', cla
     };
 
     return (
-        <div className={`flex flex-col gap-4 ${className}`} data-testid="comments-section">
+        <div className={`flex flex-col gap-4 ${className}`} data-testid='comments-section'>
             {/* Error message */}
             {error.value && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                    <p className="text-sm text-red-700 dark:text-red-400" role="alert" data-testid="comments-error-message">
+                <div className='bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3'>
+                    <p className='text-sm text-red-700 dark:text-red-400' role='alert' data-testid='comments-error-message'>
                         {error.value}
                     </p>
                 </div>
@@ -56,7 +56,7 @@ export function CommentsSection({ targetType, targetId, maxHeight = '400px', cla
             <CommentsList comments={comments.value} loading={loading.value} hasMore={hasMore.value} onLoadMore={handleLoadMore} maxHeight={maxHeight} />
 
             {/* Comment input */}
-            <div className="border-t pt-4 dark:border-gray-700">
+            <div className='border-t pt-4 dark:border-gray-700'>
                 <CommentInput
                     onSubmit={handleSubmit}
                     disabled={submitting.value}

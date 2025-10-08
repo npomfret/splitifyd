@@ -273,7 +273,7 @@ class FunctionPerformanceAnalyzer {
     private aggregateMetricsForType(
         operationName: string,
         metricType: 'api' | 'db' | 'trigger',
-    ): { sampledCount: number; sampledSuccessRate: number; sampledAvgDuration: number; sampledP95: number; lastSeen: Date } | null {
+    ): { sampledCount: number; sampledSuccessRate: number; sampledAvgDuration: number; sampledP95: number; lastSeen: Date; } | null {
         let totalSampledCount = 0;
         let totalSampledDuration = 0;
         let totalSuccessful = 0;
@@ -344,7 +344,7 @@ class FunctionPerformanceAnalyzer {
         return sample.slice(0, sampleSize);
     }
 
-    private calculateTrend(executions: FunctionExecution[]): { trend: 'increasing' | 'decreasing' | 'stable'; trendPercentage: number } {
+    private calculateTrend(executions: FunctionExecution[]): { trend: 'increasing' | 'decreasing' | 'stable'; trendPercentage: number; } {
         // Require minimum sample size for statistical validity
         if (executions.length < 20) {
             return { trend: 'stable', trendPercentage: 0 };
@@ -630,7 +630,7 @@ class FunctionPerformanceAnalyzer {
         } else {
             console.log('❌ NO DATA FOUND');
             console.log('Expected log format: [timestamp] functions: Finished "function-name" in XXX.XXXms');
-            console.log("Make sure you're analyzing Firebase Functions debug logs!");
+            console.log('Make sure you\'re analyzing Firebase Functions debug logs!');
         }
 
         // Display slow API requests (>1s)
@@ -680,7 +680,8 @@ class FunctionPerformanceAnalyzer {
                     stat.outliers.length,
                     stat.trend,
                     stat.trendPercentage.toFixed(1),
-                ].join(','),
+                ]
+                    .join(','),
             );
         }
 

@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { PooledTestUser } from '@splitifyd/shared';
 import { borrowTestUsers, NotificationDriver } from '@splitifyd/test-support';
 import { ApiDriver, TestExpenseManager } from '@splitifyd/test-support';
-import { PooledTestUser } from '@splitifyd/shared';
+import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 
 /**

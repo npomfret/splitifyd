@@ -1,4 +1,4 @@
-import { CURRENCIES, getCurrency, isValidCurrency, type Currency } from '@/utils/currency';
+import { CURRENCIES, type Currency, getCurrency, isValidCurrency } from '@/utils/currency';
 import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
 
 interface GroupedCurrencies {
@@ -136,10 +136,10 @@ export class CurrencyService {
         const searchLower = searchTerm.toLowerCase();
         return currencies.filter(
             (curr) =>
-                curr.symbol.toLowerCase().includes(searchLower) ||
-                curr.acronym.toLowerCase().includes(searchLower) ||
-                curr.name.toLowerCase().includes(searchLower) ||
-                curr.countries.some((country) => country.toLowerCase().includes(searchLower)),
+                curr.symbol.toLowerCase().includes(searchLower)
+                || curr.acronym.toLowerCase().includes(searchLower)
+                || curr.name.toLowerCase().includes(searchLower)
+                || curr.countries.some((country) => country.toLowerCase().includes(searchLower)),
         );
     }
 
@@ -159,7 +159,7 @@ export class CurrencyService {
     /**
      * Calculate min and step values based on currency decimal digits
      */
-    getCurrencyInputConfig(currencyCode: string): { minValue: string; stepValue: string } {
+    getCurrencyInputConfig(currencyCode: string): { minValue: string; stepValue: string; } {
         const currency = this.getCurrencyByCode(currencyCode);
         const decimalDigits = currency?.decimal_digits ?? 2; // Default to 2 if unknown
         const step = Math.pow(10, -decimalDigits); // 0.01 for 2 digits, 1 for 0 digits, 0.001 for 3 digits

@@ -1,9 +1,9 @@
 // Consolidated Expense Management Integration Tests
 // Combines tests from expenses-api.test.ts, ExpenseService.integration.test.ts, and expenses-full-details.test.ts
 
-import { beforeEach, describe, expect, test } from 'vitest';
-import { ApiDriver, CreateExpenseRequestBuilder, ExpenseUpdateBuilder, borrowTestUsers, TestGroupManager, generateShortId, NotificationDriver } from '@splitifyd/test-support';
 import { PooledTestUser } from '@splitifyd/shared';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, ExpenseUpdateBuilder, generateShortId, NotificationDriver, TestGroupManager } from '@splitifyd/test-support';
+import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 
 describe('Expenses Management - Consolidated Tests', () => {

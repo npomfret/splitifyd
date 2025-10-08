@@ -1,11 +1,11 @@
-import { render, screen, waitFor } from '@testing-library/preact';
-import { vi, beforeEach, describe, it, expect } from 'vitest';
-import userEvent from '@testing-library/user-event';
 import { CommentInput } from '@/components/comments/CommentInput';
+import { render, screen, waitFor } from '@testing-library/preact';
+import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock Heroicons to avoid JSX serialization issues
 vi.mock('@heroicons/react/24/outline', () => ({
-    PaperAirplaneIcon: () => <div data-testid="paper-airplane-icon">Send</div>,
+    PaperAirplaneIcon: () => <div data-testid='paper-airplane-icon'>Send</div>,
 }));
 
 describe('CommentInput - Core Functionality', () => {

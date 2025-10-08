@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { UserNotificationDetector } from '@/utils/user-notification-detector.ts';
 import type { FirebaseService } from '@/app/firebase';
+import { UserNotificationDetector } from '@/utils/user-notification-detector.ts';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock Firebase
 vi.mock('@/app/firebase', () => ({

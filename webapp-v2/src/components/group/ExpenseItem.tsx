@@ -1,11 +1,11 @@
-import { useMemo } from 'preact/hooks';
+import { themeStore } from '@/app/stores/theme-store.ts';
+import { formatCurrency } from '@/utils/currency';
 import { formatDistanceToNow, formatExpenseDateTime } from '@/utils/dateUtils.ts';
 import { ExpenseDTO, GroupMember } from '@splitifyd/shared';
 import { DELETED_AT_FIELD } from '@splitifyd/shared';
-import { formatCurrency } from '@/utils/currency';
-import { Avatar } from '../ui/Avatar';
-import { themeStore } from '@/app/stores/theme-store.ts';
+import { useMemo } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import { Avatar } from '../ui/Avatar';
 
 interface ExpenseItemProps {
     expense: ExpenseDTO;
@@ -42,31 +42,31 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                 backgroundColor: isDeleted ? '' : `${themeColor}08`, // Very light background
             }}
             onClick={() => onClick?.(expense)}
-            data-testid="expense-item"
+            data-testid='expense-item'
         >
-            <div className="flex justify-between items-start">
-                <div className="flex-1">
-                    <div className="flex items-center gap-3">
+            <div className='flex justify-between items-start'>
+                <div className='flex-1'>
+                    <div className='flex items-center gap-3'>
                         {/* User avatar */}
-                        <Avatar displayName={paidByUser?.displayName || t('common.unknown')} userId={expense.paidBy} size="sm" themeColor={paidByUser?.themeColor} />
+                        <Avatar displayName={paidByUser?.displayName || t('common.unknown')} userId={expense.paidBy} size='sm' themeColor={paidByUser?.themeColor} />
 
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2">
+                        <div className='flex-1'>
+                            <div className='flex items-center gap-2'>
                                 <p className={`font-medium ${isDeleted ? 'line-through text-gray-500' : ''}`}>{expense.description}</p>
                                 {isDeleted && (
-                                    <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded" data-testid="deleted-badge">
+                                    <span className='text-xs bg-red-100 text-red-800 px-2 py-1 rounded' data-testid='deleted-badge'>
                                         {t('expenseItem.deleted')}
                                     </span>
                                 )}
                             </div>
-                            <p className="text-sm text-gray-600">
+                            <p className='text-sm text-gray-600'>
                                 {t('expenseItem.paidBy')}{' '}
-                                <span className="font-medium" style={{ color: isDeleted ? '' : themeColor }}>
+                                <span className='font-medium' style={{ color: isDeleted ? '' : themeColor }}>
                                     {paidByUser?.displayName || t('common.unknown')}
                                 </span>{' '}
                                 • {formatExpenseDateTime(expense.date)}
                                 {isDeleted && expense.deletedAt && (
-                                    <span className="ml-2 text-red-600">
+                                    <span className='ml-2 text-red-600'>
                                         • {t('expenseItem.deletedBy')} {deletedByUser?.displayName || t('common.unknown')} {formatDistanceToNow(new Date(expense.deletedAt))}
                                     </span>
                                 )}
@@ -75,15 +75,15 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                     </div>
                 </div>
 
-                <div className="text-right ml-4 flex items-start gap-2">
+                <div className='text-right ml-4 flex items-start gap-2'>
                     <div>
                         <p className={`font-semibold ${isDeleted ? 'text-gray-500' : ''}`}>{formattedAmount}</p>
-                        <p className="text-xs text-gray-500">{expense.category}</p>
+                        <p className='text-xs text-gray-500'>{expense.category}</p>
 
                         {/* Theme color indicator dot */}
                         {!isDeleted && paidByTheme && (
                             <div
-                                className="w-2 h-2 rounded-full mt-1 ml-auto"
+                                className='w-2 h-2 rounded-full mt-1 ml-auto'
                                 style={{ backgroundColor: themeColor }}
                                 title={`${paidByUser?.displayName || t('common.unknown')} (${paidByTheme.name})`}
                             />
@@ -94,16 +94,16 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                     {!isDeleted && onCopy && (
                         <button
                             onClick={handleCopyClick}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-gray-200 rounded text-gray-600 hover:text-gray-800"
+                            className='opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-gray-200 rounded text-gray-600 hover:text-gray-800'
                             title={t('expenseItem.copyExpense')}
                             aria-label={t('expenseItem.copyExpense')}
                         >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                                 <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
                                     strokeWidth={2}
-                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                    d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z'
                                 />
                             </svg>
                         </button>

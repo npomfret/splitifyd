@@ -1,4 +1,4 @@
-import type { UserThemeColor, ColorPattern } from '@splitifyd/shared';
+import type { ColorPattern, UserThemeColor } from '@splitifyd/shared';
 
 /**
  * Builder for UserThemeColor objects used in test data

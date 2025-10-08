@@ -976,7 +976,7 @@ export default [
         name: 'CFA Franc BCEAO',
         symbol: 'CFA',
         decimal_digits: 0,
-        countries: ['Benin', 'Burkina Faso', "Côte d'Ivoire", 'Guinea-Bissau', 'Mali', 'Niger', 'Senegal', 'Togo'],
+        countries: ['Benin', 'Burkina Faso', 'Côte d\'Ivoire', 'Guinea-Bissau', 'Mali', 'Niger', 'Senegal', 'Togo'],
     },
     {
         acronym: 'XPF',

@@ -1,20 +1,20 @@
-import { useEffect } from 'preact/hooks';
-import { useSignal, useComputed } from '@preact/signals';
-import { useTranslation } from 'react-i18next';
+import { CommentsSection } from '@/components/comments';
+import { BalanceSummary, EditGroupModal, ExpensesList, GroupActions, GroupHeader, LeaveGroupDialog, MembersListWithManagement, ShareGroupModal } from '@/components/group';
+import { SettlementForm, SettlementHistory } from '@/components/settlements';
+import { Button, Card, LoadingSpinner } from '@/components/ui';
+import { Stack } from '@/components/ui';
+import { SidebarCard } from '@/components/ui/SidebarCard';
 import { navigationService } from '@/services/navigation.service';
-import { enhancedGroupDetailStore } from '../app/stores/group-detail-store-enhanced';
+import { useComputed, useSignal } from '@preact/signals';
+import type { SettlementWithMembers } from '@splitifyd/shared';
+import { useEffect } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { useGroupModals } from '../app/hooks/useGroupModals';
+import { enhancedGroupDetailStore } from '../app/stores/group-detail-store-enhanced';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { GroupDetailGrid } from '../components/layout/GroupDetailGrid';
-import { LoadingSpinner, Card, Button } from '@/components/ui';
-import { Stack } from '@/components/ui';
-import { GroupActions, GroupHeader, MembersListWithManagement, ExpensesList, BalanceSummary, ShareGroupModal, EditGroupModal, LeaveGroupDialog } from '@/components/group';
-import { SettlementForm, SettlementHistory } from '@/components/settlements';
-import { SidebarCard } from '@/components/ui/SidebarCard';
-import { CommentsSection } from '@/components/comments';
 import { logError, logInfo } from '../utils/browser-logger';
-import type { SettlementWithMembers } from '@splitifyd/shared';
 
 interface GroupDetailPageProps {
     id?: string;
@@ -86,7 +86,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     if (loading.value && !isInitialized.value) {
         return (
             <BaseLayout>
-                <div className="container mx-auto px-4 py-8">
+                <div className='container mx-auto px-4 py-8'>
                     <LoadingSpinner />
                 </div>
             </BaseLayout>
@@ -119,11 +119,11 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         // Other errors show inline
         return (
             <BaseLayout>
-                <div className="container mx-auto px-4 py-8" data-testid="error-container">
-                    <Card className="p-6 text-center">
-                        <h2 className="text-xl font-semibold mb-2">{t('pages.groupDetailPage.errorLoadingGroup')}</h2>
-                        <p className="text-gray-600 mb-4">{error.value}</p>
-                        <Button variant="primary" onClick={() => navigationService.goToDashboard()}>
+                <div className='container mx-auto px-4 py-8' data-testid='error-container'>
+                    <Card className='p-6 text-center'>
+                        <h2 className='text-xl font-semibold mb-2'>{t('pages.groupDetailPage.errorLoadingGroup')}</h2>
+                        <p className='text-gray-600 mb-4'>{error.value}</p>
+                        <Button variant='primary' onClick={() => navigationService.goToDashboard()}>
                             {t('pages.groupDetailPage.backToDashboard')}
                         </Button>
                     </Card>
@@ -142,7 +142,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             // Still loading
             return (
                 <BaseLayout>
-                    <div className="container mx-auto px-4 py-8">
+                    <div className='container mx-auto px-4 py-8'>
                         <LoadingSpinner />
                     </div>
                 </BaseLayout>
@@ -200,14 +200,14 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         <BaseLayout
             title={`${group.value!.name}${t('pages.groupDetailPage.titleSuffix')}`}
             description={`${t('pages.groupDetailPage.manageExpensesFor')}${group.value!.name}`}
-            headerVariant="dashboard"
+            headerVariant='dashboard'
         >
             <GroupDetailGrid
                 leftSidebar={
                     <>
                         <MembersListWithManagement
                             groupId={groupId!}
-                            variant="sidebar"
+                            variant='sidebar'
                             onInviteClick={handleShare}
                             onMemberChange={() => enhancedGroupDetailStore.refreshAll()}
                             onLeaveGroupClick={handleLeaveGroup}
@@ -221,16 +221,16 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                             onLeaveGroup={canLeaveGroup.value ? handleLeaveGroup : undefined}
                             isGroupOwner={isGroupOwner.value ?? false}
                             canLeaveGroup={canLeaveGroup.value}
-                            variant="vertical"
+                            variant='vertical'
                         />
                     </>
                 }
                 mainContent={
-                    <Stack spacing="lg">
+                    <Stack spacing='lg'>
                         <GroupHeader group={group.value!} members={members.value} expenseCount={expenses.value.length} onSettings={handleSettings} isGroupOwner={isGroupOwner.value ?? false} />
 
                         {/* Mobile-only quick actions */}
-                        <div className="lg:hidden">
+                        <div className='lg:hidden'>
                             <GroupActions
                                 onAddExpense={handleAddExpense}
                                 onSettleUp={handleSettleUp}
@@ -253,7 +253,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                         />
 
                         {/* Mobile-only members list */}
-                        <div className="lg:hidden">
+                        <div className='lg:hidden'>
                             <MembersListWithManagement
                                 groupId={groupId!}
                                 onInviteClick={handleShare}
@@ -263,24 +263,24 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                         </div>
 
                         {/* Mobile-only balance summary */}
-                        <div className="lg:hidden">
+                        <div className='lg:hidden'>
                             <BalanceSummary />
                         </div>
                     </Stack>
                 }
                 rightSidebar={
                     <>
-                        <BalanceSummary variant="sidebar" />
+                        <BalanceSummary variant='sidebar' />
 
                         {/* Comments Section */}
-                        <SidebarCard title={t('pages.groupDetailPage.comments')} className="flex-1">
-                            <CommentsSection targetType="group" targetId={groupId!} maxHeight="300px" />
+                        <SidebarCard title={t('pages.groupDetailPage.comments')} className='flex-1'>
+                            <CommentsSection targetType='group' targetId={groupId!} maxHeight='300px' />
                         </SidebarCard>
 
                         {/* Settlement History Section */}
                         <SidebarCard title={t('pages.groupDetailPage.paymentHistory')}>
-                            <div className="space-y-3">
-                                <Button variant="secondary" size="sm" className="w-full" onClick={() => modals.toggleSettlementHistory()}>
+                            <div className='space-y-3'>
+                                <Button variant='secondary' size='sm' className='w-full' onClick={() => modals.toggleSettlementHistory()}>
                                     {modals.showSettlementHistory.value ? t('pages.groupDetailPage.hideHistory') : t('pages.groupDetailPage.showHistory')}
                                 </Button>
                                 {modals.showSettlementHistory.value && (
@@ -305,7 +305,15 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
             {/* Edit Group Modal */}
             {isGroupOwner.value && (
-                <EditGroupModal isOpen={modals.showEditModal.value} group={group.value!} onClose={() => modals.closeEditModal()} onSuccess={handleGroupUpdateSuccess} onDelete={handleGroupDelete} />
+                <EditGroupModal
+                    isOpen={modals
+                        .showEditModal
+                        .value}
+                    group={group.value!}
+                    onClose={() => modals.closeEditModal()}
+                    onSuccess={handleGroupUpdateSuccess}
+                    onDelete={handleGroupDelete}
+                />
             )}
 
             {/* Settlement Form Modal */}

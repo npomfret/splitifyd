@@ -45,20 +45,20 @@
  * and normal-flow/user-notification-system.test.ts
  */
 
-import { beforeEach, describe, expect, test } from 'vitest';
-import { v4 as uuidv4 } from 'uuid';
+import { PooledTestUser } from '@splitifyd/shared';
 import {
     ApiDriver,
     borrowTestUsers,
     CreateExpenseRequestBuilder,
     CreateGroupRequestBuilder,
+    CreateSettlementRequestBuilder,
     ExpenseUpdateBuilder,
     GroupUpdateBuilder,
     NotificationDriver,
-    CreateSettlementRequestBuilder,
 } from '@splitifyd/test-support';
+import { v4 as uuidv4 } from 'uuid';
+import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
-import { PooledTestUser } from '@splitifyd/shared';
 
 describe('Notifications Management - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();
@@ -392,7 +392,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             user2Listener.assertEventCount(dynamicGroup.id, 0, 'transaction');
 
             {
-                //sanity check
+                // sanity check
                 // const {members} = await apiDriver.getGroupFullDetails(dynamicGroup.id, user1.token);
                 // expect(members.members.length).toBe(1);
                 // expect(members.members[0].uid).toBe(user1.uid);

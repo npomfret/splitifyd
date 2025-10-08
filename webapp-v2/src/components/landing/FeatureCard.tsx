@@ -38,11 +38,11 @@ export function FeatureCard({ icon, title, description, iconColor = 'default', d
             data-icon-color={iconColor}
         >
             <div class={`w-16 h-16 mb-4 rounded-full flex items-center justify-center ${iconColor === 'green' ? 'bg-green-100' : 'bg-purple-100'}`}>
-                <img src={icon} alt="" class="w-8 h-8" />
+                <img src={icon} alt='' class='w-8 h-8' />
             </div>
 
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">{title}</h3>
-            <p class="text-gray-600 leading-relaxed">{description}</p>
+            <h3 class='text-xl font-semibold text-gray-900 mb-3'>{title}</h3>
+            <p class='text-gray-600 leading-relaxed'>{description}</p>
         </div>
     );
 }

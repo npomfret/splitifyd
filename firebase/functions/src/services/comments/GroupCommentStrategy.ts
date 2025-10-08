@@ -1,8 +1,8 @@
-import { ICommentStrategy } from './ICommentStrategy';
-import { ApiError } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
+import { ApiError } from '../../utils/errors';
 import type { IFirestoreReader } from '../firestore';
 import { GroupMemberService } from '../GroupMemberService';
+import { ICommentStrategy } from './ICommentStrategy';
 
 /**
  * Strategy for handling comments on group entities

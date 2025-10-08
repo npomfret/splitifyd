@@ -1,4 +1,4 @@
-import { generateShortId, BuilderTimestamp, timestampToISOString } from '../test-helpers';
+import { BuilderTimestamp, generateShortId, timestampToISOString } from '../test-helpers';
 
 interface GroupBalanceDocument {
     groupId: string;

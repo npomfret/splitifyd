@@ -1,7 +1,7 @@
-import { expect, describe, it } from 'vitest';
+import { ExpenseSplitBuilder, SplitAssertionBuilder } from '@splitifyd/test-support';
+import { describe, expect, it } from 'vitest';
 import { PercentageSplitStrategy } from '../../../../services/splits/PercentageSplitStrategy';
 import { ApiError } from '../../../../utils/errors';
-import { ExpenseSplitBuilder, SplitAssertionBuilder } from '@splitifyd/test-support';
 
 describe('PercentageSplitStrategy', () => {
     const strategy = new PercentageSplitStrategy();
@@ -16,11 +16,13 @@ describe('PercentageSplitStrategy', () => {
         const participants = ['user1', 'user2', 'user3'];
 
         it('should validate correct percentage splits', () => {
-            const splits = ExpenseSplitBuilder.percentageSplit(100, [
-                { uid: 'user1', percentage: 30 },
-                { uid: 'user2', percentage: 40 },
-                { uid: 'user3', percentage: 30 },
-            ]).build();
+            const splits = ExpenseSplitBuilder
+                .percentageSplit(100, [
+                    { uid: 'user1', percentage: 30 },
+                    { uid: 'user2', percentage: 40 },
+                    { uid: 'user3', percentage: 30 },
+                ])
+                .build();
             expect(() => strategy.validateSplits(100, participants, splits)).not.toThrow();
         });
 
@@ -29,11 +31,13 @@ describe('PercentageSplitStrategy', () => {
         });
 
         it('should throw error if percentages do not sum to 100', () => {
-            const splits = ExpenseSplitBuilder.percentageSplit(100, [
-                { uid: 'user1', percentage: 30 },
-                { uid: 'user2', percentage: 40 },
-                { uid: 'user3', percentage: 20 }, // Total = 90, not 100
-            ]).build();
+            const splits = ExpenseSplitBuilder
+                .percentageSplit(100, [
+                    { uid: 'user1', percentage: 30 },
+                    { uid: 'user2', percentage: 40 },
+                    { uid: 'user3', percentage: 20 }, // Total = 90, not 100
+                ])
+                .build();
             expect(() => strategy.validateSplits(100, participants, splits)).toThrow(new ApiError(400, 'INVALID_PERCENTAGE_TOTAL', 'Percentages must add up to 100'));
         });
     });
@@ -41,10 +45,12 @@ describe('PercentageSplitStrategy', () => {
     describe('calculateSplits', () => {
         it('should calculate splits based on percentages', () => {
             const participants = ['user1', 'user2'];
-            const splits = ExpenseSplitBuilder.percentageSplit(100, [
-                { uid: 'user1', percentage: 70 },
-                { uid: 'user2', percentage: 30 },
-            ]).build();
+            const splits = ExpenseSplitBuilder
+                .percentageSplit(100, [
+                    { uid: 'user1', percentage: 70 },
+                    { uid: 'user2', percentage: 30 },
+                ])
+                .build();
             const result = strategy.calculateSplits(100, participants, splits);
 
             expect(result).toHaveLength(2);
@@ -54,10 +60,12 @@ describe('PercentageSplitStrategy', () => {
 
         it('should handle decimal percentages', () => {
             const participants = ['user1', 'user2'];
-            const splits = ExpenseSplitBuilder.percentageSplit(100, [
-                { uid: 'user1', percentage: 33.33 },
-                { uid: 'user2', percentage: 66.67 },
-            ]).build();
+            const splits = ExpenseSplitBuilder
+                .percentageSplit(100, [
+                    { uid: 'user1', percentage: 33.33 },
+                    { uid: 'user2', percentage: 66.67 },
+                ])
+                .build();
             const result = strategy.calculateSplits(100, participants, splits);
 
             expect(result).toHaveLength(2);

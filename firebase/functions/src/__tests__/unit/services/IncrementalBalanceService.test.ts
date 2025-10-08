@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import type { SettlementDTO } from '@splitifyd/shared';
+import { ExpenseDTOBuilder } from '@splitifyd/test-support';
+import { beforeEach, describe, expect, it } from 'vitest';
+import type { GroupBalanceDTO } from '../../../schemas';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
 import { StubFirestoreWriter } from '../mocks/firestore-stubs';
-import { ExpenseDTOBuilder } from '@splitifyd/test-support';
-import type { SettlementDTO } from '@splitifyd/shared';
-import type { GroupBalanceDTO } from '../../../schemas';
 
 describe('IncrementalBalanceService - Unit Tests', () => {
     let service: IncrementalBalanceService;

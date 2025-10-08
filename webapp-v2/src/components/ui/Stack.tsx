@@ -39,7 +39,8 @@ export function Stack({ direction = 'vertical', spacing = 'md', align = 'stretch
         ${spacingClasses[direction][spacing]}
         ${alignClasses[align]}
         ${className}
-      `.trim()}
+      `
+                .trim()}
         >
             {children}
         </div>

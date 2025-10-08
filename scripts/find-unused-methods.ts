@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
-import { Project, SyntaxKind, InterfaceDeclaration, ClassDeclaration } from 'ts-morph';
 import * as path from 'path';
+import { ClassDeclaration, InterfaceDeclaration, Project, SyntaxKind } from 'ts-morph';
 
 interface MethodInfo {
     name: string;
@@ -193,7 +193,7 @@ function countImplementations(interfaceName: string, methodName: string, project
     return count;
 }
 
-function countInvocations(methodName: string, project: Project): { total: number; test: number; production: number } {
+function countInvocations(methodName: string, project: Project): { total: number; test: number; production: number; } {
     let testCount = 0;
     let productionCount = 0;
 

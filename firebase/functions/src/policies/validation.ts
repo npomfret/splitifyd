@@ -1,6 +1,6 @@
 import * as Joi from 'joi';
-import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
+import { ApiError } from '../utils/errors';
 import { sanitizeString } from '../utils/security';
 
 /**
@@ -14,12 +14,14 @@ const policyAcceptanceItemSchema = Joi.object({
 /**
  * Schema for accept multiple policies request
  */
-const acceptMultiplePoliciesSchema = Joi.object({
-    acceptances: Joi.array().items(policyAcceptanceItemSchema).min(1).required().messages({
-        'array.min': 'At least one policy acceptance is required',
-        'any.required': 'Acceptances array is required',
-    }),
-}).required();
+const acceptMultiplePoliciesSchema = Joi
+    .object({
+        acceptances: Joi.array().items(policyAcceptanceItemSchema).min(1).required().messages({
+            'array.min': 'At least one policy acceptance is required',
+            'any.required': 'Acceptances array is required',
+        }),
+    })
+    .required();
 
 /**
  * Accept policy request interface
@@ -71,39 +73,45 @@ export const validateAcceptMultiplePolicies = (body: unknown): AcceptMultiplePol
 /**
  * Schema for create policy request
  */
-const createPolicySchema = Joi.object({
-    policyName: Joi.string().trim().min(1).max(100).required().messages({
-        'string.empty': 'Policy name is required',
-        'any.required': 'Policy name is required',
-        'string.max': 'Policy name must be 100 characters or less',
-    }),
-    text: Joi.string().min(1).required().messages({
-        'string.empty': 'Policy text is required',
-        'any.required': 'Policy text is required',
-    }),
-    publish: Joi.boolean().optional().default(false),
-}).required();
+const createPolicySchema = Joi
+    .object({
+        policyName: Joi.string().trim().min(1).max(100).required().messages({
+            'string.empty': 'Policy name is required',
+            'any.required': 'Policy name is required',
+            'string.max': 'Policy name must be 100 characters or less',
+        }),
+        text: Joi.string().min(1).required().messages({
+            'string.empty': 'Policy text is required',
+            'any.required': 'Policy text is required',
+        }),
+        publish: Joi.boolean().optional().default(false),
+    })
+    .required();
 
 /**
  * Schema for update policy request
  */
-const updatePolicySchema = Joi.object({
-    text: Joi.string().min(1).required().messages({
-        'string.empty': 'Policy text is required',
-        'any.required': 'Policy text is required',
-    }),
-    publish: Joi.boolean().optional().default(false),
-}).required();
+const updatePolicySchema = Joi
+    .object({
+        text: Joi.string().min(1).required().messages({
+            'string.empty': 'Policy text is required',
+            'any.required': 'Policy text is required',
+        }),
+        publish: Joi.boolean().optional().default(false),
+    })
+    .required();
 
 /**
  * Schema for publish policy request
  */
-const publishPolicySchema = Joi.object({
-    versionHash: Joi.string().trim().min(1).required().messages({
-        'string.empty': 'Version hash is required',
-        'any.required': 'Version hash is required',
-    }),
-}).required();
+const publishPolicySchema = Joi
+    .object({
+        versionHash: Joi.string().trim().min(1).required().messages({
+            'string.empty': 'Version hash is required',
+            'any.required': 'Version hash is required',
+        }),
+    })
+    .required();
 
 /**
  * Create policy request interface

@@ -74,16 +74,16 @@ export function Input({
     return (
         <div>
             {label && (
-                <label htmlFor={inputId} className="block text-sm font-medium leading-6 text-gray-900 mb-2">
+                <label htmlFor={inputId} className='block text-sm font-medium leading-6 text-gray-900 mb-2'>
                     {label}
                     {required && (
-                        <span className="text-red-500 ml-1" data-testid="required-indicator">
+                        <span className='text-red-500 ml-1' data-testid='required-indicator'>
                             {t('common.required')}
                         </span>
                     )}
                 </label>
             )}
-            <div className="relative">
+            <div className='relative'>
                 <input
                     type={type}
                     id={inputId}
@@ -103,7 +103,7 @@ export function Input({
                 />
             </div>
             {error && (
-                <p id={`${inputId}-error`} className="mt-2 text-sm text-red-600" role="alert" data-testid="input-error-message">
+                <p id={`${inputId}-error`} className='mt-2 text-sm text-red-600' role='alert' data-testid='input-error-message'>
                     {error}
                 </p>
             )}

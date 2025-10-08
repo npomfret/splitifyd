@@ -1,13 +1,13 @@
-import { beforeEach, describe, expect, it } from 'vitest';
-import { GroupService } from '../../services/GroupService';
-import { ApplicationBuilder } from '../../services/ApplicationBuilder';
-import { StubAuthService, StubFirestoreReader, StubFirestoreWriter } from './mocks/firestore-stubs';
-import { CreateGroupRequestBuilder, GroupDTOBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
-import { ApiError } from '../../utils/errors';
-import { validateCreateGroup, validateGroupId, validateUpdateGroup } from '../../groups/validation';
-import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
 import { CreateGroupRequest } from '@splitifyd/shared';
+import { CreateGroupRequestBuilder, GroupDTOBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
+import { validateCreateGroup, validateGroupId, validateUpdateGroup } from '../../groups/validation';
+import { ApplicationBuilder } from '../../services/ApplicationBuilder';
+import { GroupService } from '../../services/GroupService';
+import { ApiError } from '../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
+import { StubAuthService, StubFirestoreReader, StubFirestoreWriter } from './mocks/firestore-stubs';
 
 describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;

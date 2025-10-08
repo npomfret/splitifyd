@@ -1,7 +1,7 @@
-import { describe, test, expect, beforeAll } from 'vitest';
+import { GroupDTO, GroupMember, MemberRoles, MemberStatuses, PermissionLevels, SecurityPresets, UserThemeColor } from '@splitifyd/shared';
+import { GroupDTOBuilder, GroupMemberBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import { beforeAll, describe, expect, test } from 'vitest';
 import { z } from 'zod';
-import { GroupDTO, GroupMember, MemberRoles, MemberStatuses, SecurityPresets, PermissionLevels, UserThemeColor } from '@splitifyd/shared';
-import { GroupMemberBuilder, ThemeBuilder, GroupDTOBuilder } from '@splitifyd/test-support';
 
 // Import webapp Zod schemas for validation
 // Note: These are the actual schemas used by the frontend to validate API responses

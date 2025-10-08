@@ -1,6 +1,6 @@
-import { expect, describe, it } from 'vitest';
+import { ExpenseSplitBuilder, SplitAssertionBuilder } from '@splitifyd/test-support';
+import { describe, expect, it } from 'vitest';
 import { EqualSplitStrategy } from '../../../../services/splits/EqualSplitStrategy';
-import { SplitAssertionBuilder, ExpenseSplitBuilder } from '@splitifyd/test-support';
 
 describe('EqualSplitStrategy', () => {
     const strategy = new EqualSplitStrategy();
@@ -78,10 +78,12 @@ describe('EqualSplitStrategy', () => {
 
         it('should ignore provided splits data', () => {
             const participants = ['user1', 'user2'];
-            const splits = ExpenseSplitBuilder.exactSplit([
-                { uid: 'user1', amount: 70 },
-                { uid: 'user2', amount: 30 },
-            ]).build();
+            const splits = ExpenseSplitBuilder
+                .exactSplit([
+                    { uid: 'user1', amount: 70 },
+                    { uid: 'user2', amount: 30 },
+                ])
+                .build();
             const result = strategy.calculateSplits(100, participants, splits);
 
             expect(result).toHaveLength(2);

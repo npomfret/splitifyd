@@ -1,10 +1,10 @@
 #!/usr/bin/env npx tsx
 
-import * as path from 'path';
-import * as fs from 'fs';
-import assert from 'node:assert';
 import { PolicyIds } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
+import * as fs from 'fs';
+import assert from 'node:assert';
+import * as path from 'path';
 import { getEnvironment, initializeFirebase } from './firebase-init';
 
 /*
@@ -23,9 +23,9 @@ console.log(`🎯 Running policy seeding for ${env.environment}`);
 // Initialize Firebase using common pattern
 initializeFirebase(env);
 
+import { FirestoreCollections } from '../functions/src/constants';
 import { getAuth, getFirestore } from '../functions/src/firebase';
 import { ApplicationBuilder } from '../functions/src/services/ApplicationBuilder';
-import { FirestoreCollections } from '../functions/src/constants';
 
 // Get Firebase instances
 const firestoreDb = getFirestore();

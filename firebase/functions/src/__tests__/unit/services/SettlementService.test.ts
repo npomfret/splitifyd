@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { SettlementService } from '../../../services/SettlementService';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { StubFirestoreReader, StubFirestoreWriter, StubAuthService } from '../mocks/firestore-stubs';
-import { HTTP_STATUS } from '../../../constants';
 import type { CreateSettlementRequest } from '@splitifyd/shared';
 import { CreateSettlementRequestBuilder } from '@splitifyd/test-support';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { HTTP_STATUS } from '../../../constants';
+import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { SettlementService } from '../../../services/SettlementService';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
+import { StubAuthService, StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 
 describe('SettlementService - Unit Tests', () => {
     let settlementService: SettlementService;

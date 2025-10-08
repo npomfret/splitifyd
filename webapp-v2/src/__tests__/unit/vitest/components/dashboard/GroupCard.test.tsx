@@ -1,8 +1,8 @@
-import { render, screen, fireEvent } from '@testing-library/preact';
-import { vi, describe, it, beforeEach, expect } from 'vitest';
 import { GroupCard } from '@/components/dashboard/GroupCard.tsx';
 import { GroupDTO, RegisteredUser } from '@splitifyd/shared';
 import { GroupDTOBuilder, TestUserBuilder } from '@splitifyd/test-support';
+import { fireEvent, render, screen } from '@testing-library/preact';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock react-i18next
 vi.mock('react-i18next', () => ({
@@ -138,7 +138,7 @@ describe('GroupCard', () => {
 
         render(<GroupCard group={group} onClick={mockOnClick} />);
 
-        const balanceDisplay = screen.getByText("You're owed $42.75");
+        const balanceDisplay = screen.getByText('You\'re owed $42.75');
         expect(balanceDisplay).toBeInTheDocument();
         expect(balanceDisplay).toHaveClass('text-green-600');
     });

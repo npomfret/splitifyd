@@ -1,12 +1,12 @@
+import { MessageResponse } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
-import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
-import { validateCreateExpense, validateUpdateExpense, validateExpenseId } from './validation';
 import { getAuth, getFirestore } from '../firebase';
+import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
-import { MessageResponse } from '@splitifyd/shared';
+import { validateCreateExpense, validateExpenseId, validateUpdateExpense } from './validation';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());

@@ -1,9 +1,9 @@
-import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { GroupMemberService } from '../../../services/GroupMemberService';
-import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
-import { ApiError } from '../../../utils/errors';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { GroupMemberService } from '../../../services/GroupMemberService';
+import { ApiError } from '../../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
+import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 
 // Create mock services
 const createMockUserService = () => ({
@@ -80,8 +80,9 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
     describe('Subcollection Query Performance Edge Cases', () => {
         test('should handle large subcollection results without memory issues', async () => {
             // Mock large result set (1000 members) through MockFirestoreReader
-            const largeMemberSet = Array.from({ length: 1000 }, (_, i) =>
-                new GroupMemberDocumentBuilder().withUserId(`user-${i}`).withGroupId('large-group').withRole(MemberRoles.MEMBER).withStatus(MemberStatuses.ACTIVE).build(),
+            const largeMemberSet = Array.from(
+                { length: 1000 },
+                (_, i) => new GroupMemberDocumentBuilder().withUserId(`user-${i}`).withGroupId('large-group').withRole(MemberRoles.MEMBER).withStatus(MemberStatuses.ACTIVE).build(),
             );
 
             vi.spyOn(stubFirestoreReader, 'getAllGroupMembers').mockResolvedValue(largeMemberSet);

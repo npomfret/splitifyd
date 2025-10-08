@@ -10,51 +10,50 @@
  * for migration guidance.
  */
 
-import type { Firestore } from 'firebase-admin/firestore';
-import { logger } from '../../logger';
 import {
-    SecurityPresets,
-    CommentTargetTypes,
-    MAX_GROUP_MEMBERS,
+    type CommentDTO,
     type CommentTargetType,
+    CommentTargetTypes,
     type ExpenseDTO,
     type GroupDTO,
-    type SettlementDTO,
+    type GroupMembershipDTO,
+    MAX_GROUP_MEMBERS,
     type PolicyDTO,
     type RegisteredUser,
-    type GroupMembershipDTO,
-    type CommentDTO,
+    SecurityPresets,
+    type SettlementDTO,
 } from '@splitifyd/shared';
-import { ApiError } from '../../utils/errors';
+import type { Firestore } from 'firebase-admin/firestore';
+import { FieldPath, Filter, Timestamp } from 'firebase-admin/firestore';
 import { HTTP_STATUS } from '../../constants';
-import { FieldPath, Timestamp, Filter } from 'firebase-admin/firestore';
+import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
-import { safeParseISOToTimestamp, assertTimestamp } from '../../utils/dateHelpers';
+import { assertTimestamp, safeParseISOToTimestamp } from '../../utils/dateHelpers';
+import { ApiError } from '../../utils/errors';
 import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 
 // Import all schemas for validation (these still validate Timestamp objects from Firestore)
 import {
-    UserDocumentSchema,
-    GroupDocumentSchema,
     ExpenseDocumentSchema,
-    SettlementDocumentSchema,
-    PolicyDocumentSchema,
     GroupBalanceDocumentSchema,
     type GroupBalanceDTO,
-
+    GroupDocumentSchema,
+    PolicyDocumentSchema,
+    SettlementDocumentSchema,
+    UserDocumentSchema,
     // Note: GroupChangeDocumentSchema removed as unused
 } from '../../schemas';
 import { TopLevelGroupMemberSchema } from '../../schemas';
-import { UserNotificationDocumentSchema, type UserNotificationDocument } from '../../schemas/user-notifications';
-import { ShareLinkDocumentSchema, type ParsedShareLink } from '../../schemas';
+import { type ParsedShareLink, ShareLinkDocumentSchema } from '../../schemas';
 import { CommentDocumentSchema } from '../../schemas';
+import { type UserNotificationDocument, UserNotificationDocumentSchema } from '../../schemas/user-notifications';
 
 // Note: ParsedGroupMemberDocument no longer exported from schemas after DTO migration
 // FirestoreReader now works directly with GroupMembershipDTO from @splitifyd/shared
-import type { IFirestoreReader, FirestoreOrderField } from './IFirestoreReader';
-import type { QueryOptions, PaginatedResult, GroupsPaginationCursor, OrderBy, BatchGroupFetchOptions } from './IFirestoreReader';
 import { FirestoreCollections } from '../../constants';
 import type { TopLevelGroupMemberDocument } from '../../types';
+import type { FirestoreOrderField, IFirestoreReader } from './IFirestoreReader';
+import type { BatchGroupFetchOptions, GroupsPaginationCursor, OrderBy, PaginatedResult, QueryOptions } from './IFirestoreReader';
 
 export class FirestoreReader implements IFirestoreReader {
     constructor(private readonly db: Firestore) {}
@@ -378,7 +377,8 @@ export class FirestoreReader implements IFirestoreReader {
             const chunk = groupIds.slice(i, i + 10);
             const remainingLimit = options.limit - allGroups.length;
 
-            let query = this.db
+            let query = this
+                .db
                 .collection(FirestoreCollections.GROUPS)
                 .where(FieldPath.documentId(), 'in', chunk)
                 .orderBy(options.orderBy.field, options.orderBy.direction)
@@ -438,7 +438,7 @@ export class FirestoreReader implements IFirestoreReader {
      * @param options - Query options including limit, cursor, and orderBy
      * @returns Paginated result with groups ordered by most recent activity
      */
-    async getGroupsForUserV2(userId: string, options?: { limit?: number; cursor?: string; orderBy?: OrderBy }): Promise<PaginatedResult<GroupDTO[]>> {
+    async getGroupsForUserV2(userId: string, options?: { limit?: number; cursor?: string; orderBy?: OrderBy; }): Promise<PaginatedResult<GroupDTO[]>> {
         return measureDb('USER_GROUPS_V2', async () => {
             const limit = options?.limit || 10;
 
@@ -546,7 +546,8 @@ export class FirestoreReader implements IFirestoreReader {
     async getAllGroupMemberIds(groupId: string): Promise<string[]> {
         return measureDb('GET_MEMBER_IDS', async () => {
             // Optimized: Only fetch uid field from Firestore
-            const membersQuery = this.db
+            const membersQuery = this
+                .db
                 .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
                 .where('groupId', '==', groupId)
                 .select('uid')
@@ -568,7 +569,8 @@ export class FirestoreReader implements IFirestoreReader {
         return measureDb('GET_MEMBERS', async () => {
             // Use top-level collection instead of subcollection
             // Fetch one extra to detect overflow
-            const membersQuery = this.db
+            const membersQuery = this
+                .db
                 .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
                 .where('groupId', '==', groupId)
                 .limit(MAX_GROUP_MEMBERS + 1);
@@ -864,7 +866,7 @@ export class FirestoreReader implements IFirestoreReader {
     // Share Link Operations
     // ========================================================================
 
-    async findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ParsedShareLink } | null> {
+    async findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ParsedShareLink; } | null> {
         try {
             const snapshot = await this.db.collectionGroup('shareLinks').where('token', '==', token).where('isActive', '==', true).limit(1).get();
 
@@ -903,7 +905,7 @@ export class FirestoreReader implements IFirestoreReader {
             orderBy?: FirestoreOrderField;
             direction?: 'asc' | 'desc';
         } = {},
-    ): Promise<{ comments: CommentDTO[]; hasMore: boolean; nextCursor?: string }> {
+    ): Promise<{ comments: CommentDTO[]; hasMore: boolean; nextCursor?: string; }> {
         try {
             const { limit = 50, cursor, orderBy = 'createdAt', direction = 'desc' } = options;
 

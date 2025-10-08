@@ -1,9 +1,9 @@
+import { ReturnTestUserResponse } from '@splitifyd/shared';
 import type { Request, Response } from 'express';
-import { TestUserPoolService } from './TestUserPoolService';
 import { getAuth, getFirestore, isEmulator } from '../firebase';
 import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
-import { ReturnTestUserResponse } from '@splitifyd/shared';
+import { TestUserPoolService } from './TestUserPoolService';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());

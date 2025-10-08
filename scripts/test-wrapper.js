@@ -39,7 +39,7 @@ function getTestCommand(scriptType, packageName) {
         'webapp-v2': {
             test: 'npm run test:unit && npm run test:integration',
             'test:unit': 'vitest run src/__tests__/unit/vitest && playwright test',
-            'test:integration': "echo 'no integration tests' && exit 0",
+            'test:integration': 'echo \'no integration tests\' && exit 0',
         },
         '@splitifyd/e2e-tests': {
             test: 'npm run test:unit && npm run test:integration',
@@ -50,12 +50,12 @@ function getTestCommand(scriptType, packageName) {
         '@splitifyd/shared': {
             test: 'npm run test:unit && npm run test:integration',
             'test:unit': 'vitest run src/__tests__/',
-            'test:integration': "echo 'No integration tests for shared package'",
+            'test:integration': 'echo \'No integration tests for shared package\'',
         },
         '@splitifyd/test-support': {
             test: 'npm run test:unit && npm run test:integration',
-            'test:unit': "npm run build && echo 'There are no unit tests in test-support'",
-            'test:integration': "npm run build && echo 'There are no integration tests in test-support'",
+            'test:unit': 'npm run build && echo \'There are no unit tests in test-support\'',
+            'test:integration': 'npm run build && echo \'There are no integration tests in test-support\'',
         },
         backend: {
             test: 'cd functions && npm test',

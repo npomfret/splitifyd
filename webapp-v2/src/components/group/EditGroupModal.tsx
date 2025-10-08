@@ -1,9 +1,9 @@
-import { useTranslation } from 'react-i18next';
-import { useState, useRef, useEffect } from 'preact/hooks';
 import { apiClient } from '@/app/apiClient.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
-import { Input, Button, Form } from '../ui';
 import { GroupDTO } from '@splitifyd/shared';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
+import { Button, Form, Input } from '../ui';
 
 interface EditGroupModalProps {
     isOpen: boolean;
@@ -172,28 +172,28 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
 
     return (
         <>
-            <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" onClick={handleBackdropClick} role="presentation">
-                <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="edit-group-modal-title">
+            <div class='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} role='presentation'>
+                <div class='relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white' ref={modalRef} role='dialog' aria-modal='true' aria-labelledby='edit-group-modal-title'>
                     {/* Modal Header */}
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 id="edit-group-modal-title" class="text-lg font-semibold text-gray-900" data-testid="edit-group-modal-title">
+                    <div class='flex items-center justify-between mb-6'>
+                        <h3 id='edit-group-modal-title' class='text-lg font-semibold text-gray-900' data-testid='edit-group-modal-title'>
                             {t('editGroupModal.title')}
                         </h3>
-                        <button onClick={onClose} class="text-gray-400 hover:text-gray-600 transition-colors" disabled={isSubmitting}>
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <button onClick={onClose} class='text-gray-400 hover:text-gray-600 transition-colors' disabled={isSubmitting}>
+                            <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
                             </svg>
                         </button>
                     </div>
 
                     {/* Modal Content */}
                     <Form onSubmit={handleSubmit}>
-                        <div class="space-y-4">
+                        <div class='space-y-4'>
                             {/* GroupDTO Name */}
                             <div>
                                 <Input
                                     label={t('editGroupModal.groupNameLabel')}
-                                    type="text"
+                                    type='text'
                                     placeholder={t('editGroupModal.groupNamePlaceholder')}
                                     value={groupName}
                                     onChange={(value) => {
@@ -203,15 +203,15 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
                                     required
                                     disabled={isSubmitting}
                                     error={validationError || undefined}
-                                    data-testid="group-name-input"
+                                    data-testid='group-name-input'
                                 />
                             </div>
 
                             {/* GroupDTO Description (Optional) */}
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">{t('editGroupModal.descriptionLabel')}</label>
+                                <label class='block text-sm font-medium text-gray-700 mb-2'>{t('editGroupModal.descriptionLabel')}</label>
                                 <textarea
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                                    class='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none'
                                     rows={3}
                                     placeholder={t('editGroupModal.descriptionPlaceholder')}
                                     value={groupDescription}
@@ -220,25 +220,25 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
                                     }}
                                     disabled={isSubmitting}
                                     maxLength={200}
-                                    data-testid="group-description-input"
+                                    data-testid='group-description-input'
                                 />
                             </div>
 
                             {/* Error Display */}
                             {validationError && (
-                                <div class="bg-red-50 border border-red-200 rounded-md p-3">
-                                    <div class="flex">
-                                        <div class="flex-shrink-0">
-                                            <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                <div class='bg-red-50 border border-red-200 rounded-md p-3'>
+                                    <div class='flex'>
+                                        <div class='flex-shrink-0'>
+                                            <svg class='h-5 w-5 text-red-400' fill='currentColor' viewBox='0 0 20 20'>
                                                 <path
-                                                    fill-rule="evenodd"
-                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                                    clip-rule="evenodd"
+                                                    fill-rule='evenodd'
+                                                    d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
+                                                    clip-rule='evenodd'
                                                 />
                                             </svg>
                                         </div>
-                                        <div class="ml-3">
-                                            <p class="text-sm text-red-800" role="alert" data-testid="edit-group-validation-error">
+                                        <div class='ml-3'>
+                                            <p class='text-sm text-red-800' role='alert' data-testid='edit-group-validation-error'>
                                                 {validationError}
                                             </p>
                                         </div>
@@ -248,15 +248,15 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
                         </div>
 
                         {/* Modal Footer */}
-                        <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
-                            <Button type="button" variant="danger" onClick={handleDeleteClick} disabled={isSubmitting} data-testid="delete-group-button">
+                        <div class='flex items-center justify-between mt-6 pt-4 border-t border-gray-200'>
+                            <Button type='button' variant='danger' onClick={handleDeleteClick} disabled={isSubmitting} data-testid='delete-group-button'>
                                 {t('editGroupModal.deleteGroupButton')}
                             </Button>
-                            <div class="flex items-center space-x-3">
-                                <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting} data-testid="cancel-edit-group-button">
+                            <div class='flex items-center space-x-3'>
+                                <Button type='button' variant='secondary' onClick={onClose} disabled={isSubmitting} data-testid='cancel-edit-group-button'>
                                     {t('editGroupModal.cancelButton')}
                                 </Button>
-                                <Button type="submit" loading={isSubmitting} disabled={!isFormValid || !hasChanges} data-testid="save-changes-button">
+                                <Button type='submit' loading={isSubmitting} disabled={!isFormValid || !hasChanges} data-testid='save-changes-button'>
                                     {t('editGroupModal.saveChangesButton')}
                                 </Button>
                             </div>
@@ -267,41 +267,41 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
 
             {/* Enhanced Delete Confirmation Dialog */}
             {showDeleteConfirm && (
-                <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
-                    <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full mx-4" data-testid="delete-group-dialog">
+                <div class='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center'>
+                    <div class='relative bg-white rounded-lg shadow-lg max-w-md w-full mx-4' data-testid='delete-group-dialog'>
                         {/* Header */}
-                        <div class="px-6 py-4 border-b border-gray-200">
-                            <h3 class="text-lg font-semibold text-red-800 flex items-center">
-                                <span class="mr-2">⚠️</span>
+                        <div class='px-6 py-4 border-b border-gray-200'>
+                            <h3 class='text-lg font-semibold text-red-800 flex items-center'>
+                                <span class='mr-2'>⚠️</span>
                                 {t('editGroupModal.deleteConfirmDialog.title')}
                             </h3>
                         </div>
 
                         {/* Content */}
-                        <div class="px-6 py-4">
+                        <div class='px-6 py-4'>
                             {/* Warning Message */}
-                            <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
-                                <h4 class="text-red-800 font-semibold mb-2">{t('editGroupModal.deleteConfirmDialog.warningTitle')}</h4>
-                                <p class="text-red-700 text-sm mb-3">{t('editGroupModal.deleteConfirmDialog.warningMessage')}</p>
-                                <ul class="text-red-700 text-sm list-disc list-inside space-y-1">
+                            <div class='bg-red-50 border border-red-200 rounded-md p-4 mb-4'>
+                                <h4 class='text-red-800 font-semibold mb-2'>{t('editGroupModal.deleteConfirmDialog.warningTitle')}</h4>
+                                <p class='text-red-700 text-sm mb-3'>{t('editGroupModal.deleteConfirmDialog.warningMessage')}</p>
+                                <ul class='text-red-700 text-sm list-disc list-inside space-y-1'>
                                     <li>{t('editGroupModal.deleteConfirmDialog.warningList.expenses')}</li>
                                     <li>{t('editGroupModal.deleteConfirmDialog.warningList.settlements')}</li>
                                     <li>{t('editGroupModal.deleteConfirmDialog.warningList.members')}</li>
                                     <li>{t('editGroupModal.deleteConfirmDialog.warningList.history')}</li>
                                 </ul>
-                                <p class="text-red-800 font-semibold text-sm mt-3">{t('editGroupModal.deleteConfirmDialog.cannotUndo')}</p>
+                                <p class='text-red-800 font-semibold text-sm mt-3'>{t('editGroupModal.deleteConfirmDialog.cannotUndo')}</p>
                             </div>
 
                             {/* Confirmation Input */}
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">{t('editGroupModal.deleteConfirmDialog.typeToConfirm', { groupName: group.name })}</label>
-                                <Input type="text" placeholder={group.name} value={confirmationText} onChange={setConfirmationText} className="w-full" disabled={isDeleting} />
+                            <div class='mb-4'>
+                                <label class='block text-sm font-medium text-gray-700 mb-2'>{t('editGroupModal.deleteConfirmDialog.typeToConfirm', { groupName: group.name })}</label>
+                                <Input type='text' placeholder={group.name} value={confirmationText} onChange={setConfirmationText} className='w-full' disabled={isDeleting} />
                             </div>
 
                             {/* Error Message */}
                             {deleteError && (
-                                <div class="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
-                                    <p class="text-sm text-red-800" role="alert">
+                                <div class='bg-red-50 border border-red-200 rounded-md p-3 mb-4'>
+                                    <p class='text-sm text-red-800' role='alert'>
                                         {deleteError}
                                     </p>
                                 </div>
@@ -309,19 +309,19 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
 
                             {/* Loading State */}
                             {isDeleting && (
-                                <div class="text-center text-gray-600 mb-4">
-                                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600 mx-auto mb-2"></div>
-                                    <p class="text-sm">{t('editGroupModal.deleteConfirmDialog.deletingMessage')}</p>
+                                <div class='text-center text-gray-600 mb-4'>
+                                    <div class='animate-spin rounded-full h-6 w-6 border-b-2 border-red-600 mx-auto mb-2'></div>
+                                    <p class='text-sm'>{t('editGroupModal.deleteConfirmDialog.deletingMessage')}</p>
                                 </div>
                             )}
                         </div>
 
                         {/* Footer */}
-                        <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-                            <Button type="button" variant="secondary" onClick={handleDeleteCancel} disabled={isDeleting}>
+                        <div class='px-6 py-4 border-t border-gray-200 flex justify-end space-x-3'>
+                            <Button type='button' variant='secondary' onClick={handleDeleteCancel} disabled={isDeleting}>
                                 {t('editGroupModal.deleteConfirmDialog.cancelText')}
                             </Button>
-                            <Button type="button" variant="danger" onClick={handleDeleteConfirm} disabled={isDeleting || confirmationText !== group.name} loading={isDeleting}>
+                            <Button type='button' variant='danger' onClick={handleDeleteConfirm} disabled={isDeleting || confirmationText !== group.name} loading={isDeleting}>
                                 {isDeleting ? t('editGroupModal.deleteConfirmDialog.deletingText') : t('editGroupModal.deleteConfirmDialog.confirmText')}
                             </Button>
                         </div>

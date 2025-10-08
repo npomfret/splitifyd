@@ -1,6 +1,6 @@
-import { useEffect } from 'preact/hooks';
 import { configStore } from '@/stores/config-store';
 import type { AppConfiguration } from '@splitifyd/shared';
+import { useEffect } from 'preact/hooks';
 
 export function useConfig(): AppConfiguration | null {
     useEffect(() => {

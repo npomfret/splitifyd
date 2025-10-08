@@ -1,4 +1,4 @@
-import { randomString, randomChoice, randomDate, randomCategory, randomValidCurrencyAmountPair } from '../test-helpers';
+import { randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 interface ExpenseUpdate {
     amount?: number;
@@ -66,7 +66,7 @@ export class ExpenseUpdateBuilder {
         return this;
     }
 
-    withSplits(splits: Array<{ uid: string; amount: number; percentage?: number }>): this {
+    withSplits(splits: Array<{ uid: string; amount: number; percentage?: number; }>): this {
         this.update.splits = [...splits];
         return this;
     }

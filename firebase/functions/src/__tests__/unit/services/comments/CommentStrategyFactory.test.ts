@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { CommentStrategyFactory } from '../../../../services/comments/CommentStrategyFactory';
-import { GroupCommentStrategy } from '../../../../services/comments/GroupCommentStrategy';
-import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCommentStrategy';
-import { StubFirestoreReader } from '../../mocks/firestore-stubs';
 import { CommentTargetTypes } from '@splitifyd/shared';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { CommentStrategyFactory } from '../../../../services/comments/CommentStrategyFactory';
+import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCommentStrategy';
+import { GroupCommentStrategy } from '../../../../services/comments/GroupCommentStrategy';
+import { StubFirestoreReader } from '../../mocks/firestore-stubs';
 
 const createStubGroupMemberService = () => ({
     isGroupMemberAsync: vi.fn(),
@@ -59,19 +59,22 @@ describe('CommentStrategyFactory', () => {
 
             expect(() => {
                 factory.getStrategy(invalidType);
-            }).toThrow('Unsupported comment target type: UNKNOWN_TYPE');
+            })
+                .toThrow('Unsupported comment target type: UNKNOWN_TYPE');
         });
 
         it('should throw error for null target type', () => {
             expect(() => {
                 factory.getStrategy(null as any);
-            }).toThrow('Unsupported comment target type: null');
+            })
+                .toThrow('Unsupported comment target type: null');
         });
 
         it('should throw error for undefined target type', () => {
             expect(() => {
                 factory.getStrategy(undefined as any);
-            }).toThrow('Unsupported comment target type: undefined');
+            })
+                .toThrow('Unsupported comment target type: undefined');
         });
     });
 

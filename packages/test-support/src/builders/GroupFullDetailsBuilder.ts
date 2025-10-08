@@ -1,4 +1,4 @@
-import type { GroupFullDetailsDTO, GroupDTO, GroupMember, ExpenseDTO, GroupBalances, SettlementWithMembers } from '@splitifyd/shared';
+import type { ExpenseDTO, GroupBalances, GroupDTO, GroupFullDetailsDTO, GroupMember, SettlementWithMembers } from '@splitifyd/shared';
 
 /**
  * Builder for creating GroupFullDetails responses for testing

@@ -1,7 +1,7 @@
 import { SplitTypes } from '@splitifyd/shared';
-import { ISplitStrategy } from './ISplitStrategy';
 import { EqualSplitStrategy } from './EqualSplitStrategy';
 import { ExactSplitStrategy } from './ExactSplitStrategy';
+import { ISplitStrategy } from './ISplitStrategy';
 import { PercentageSplitStrategy } from './PercentageSplitStrategy';
 
 export class SplitStrategyFactory {

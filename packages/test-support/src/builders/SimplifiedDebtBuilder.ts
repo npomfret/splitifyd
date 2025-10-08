@@ -6,8 +6,8 @@ import type { SimplifiedDebt } from '@splitifyd/shared';
  */
 export class SimplifiedDebtBuilder {
     private debt: SimplifiedDebt & {
-        from: { uid: string; displayName?: string };
-        to: { uid: string; displayName?: string };
+        from: { uid: string; displayName?: string; };
+        to: { uid: string; displayName?: string; };
     };
 
     constructor() {
@@ -56,8 +56,8 @@ export class SimplifiedDebtBuilder {
     }
 
     build(): SimplifiedDebt & {
-        from: { uid: string; displayName?: string };
-        to: { uid: string; displayName?: string };
+        from: { uid: string; displayName?: string; };
+        to: { uid: string; displayName?: string; };
     } {
         return { ...this.debt };
     }

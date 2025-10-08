@@ -1,5 +1,5 @@
 import type { CommentDTO } from '@splitifyd/shared';
-import { randomString, randomChoice, randomDate, generateShortId, BuilderTimestamp, timestampToISOString } from '../test-helpers';
+import { BuilderTimestamp, generateShortId, randomChoice, randomDate, randomString, timestampToISOString } from '../test-helpers';
 
 export class CommentBuilder {
     private comment: CommentDTO = {

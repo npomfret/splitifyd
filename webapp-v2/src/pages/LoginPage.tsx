@@ -1,13 +1,13 @@
-import { useEffect, useState, useRef } from 'preact/hooks';
-import { useTranslation } from 'react-i18next';
 import { navigationService } from '@/services/navigation.service';
-import { AuthLayout } from '../components/auth/AuthLayout';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { AuthForm } from '../components/auth/AuthForm';
+import { AuthLayout } from '../components/auth/AuthLayout';
+import { DefaultLoginButton } from '../components/auth/DefaultLoginButton';
 import { EmailInput } from '../components/auth/EmailInput';
 import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
-import { DefaultLoginButton } from '../components/auth/DefaultLoginButton';
-import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { logError } from '../utils/browser-logger';
 
 export function LoginPage() {
@@ -100,15 +100,15 @@ export function LoginPage() {
             <AuthForm onSubmit={handleSubmit} error={errorValue} disabled={loadingValue}>
                 <EmailInput value={email} onInput={setEmail} autoFocus disabled={loadingValue} />
 
-                <PasswordInput value={password} onInput={setPassword} disabled={loadingValue} autoComplete="current-password" />
+                <PasswordInput value={password} onInput={setPassword} disabled={loadingValue} autoComplete='current-password' />
 
-                <div class="flex items-center justify-between">
-                    <label class="flex items-center">
-                        <input type="checkbox" data-testid="remember-me-checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" disabled={loadingValue} />
-                        <span class="ml-2 block text-sm text-gray-700">{t('loginPage.rememberMe')}</span>
+                <div class='flex items-center justify-between'>
+                    <label class='flex items-center'>
+                        <input type='checkbox' data-testid='remember-me-checkbox' class='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded' disabled={loadingValue} />
+                        <span class='ml-2 block text-sm text-gray-700'>{t('loginPage.rememberMe')}</span>
                     </label>
 
-                    <button type="button" onClick={() => navigationService.goToResetPassword()} class="text-sm text-blue-600 hover:text-blue-500 transition-colors">
+                    <button type='button' onClick={() => navigationService.goToResetPassword()} class='text-sm text-blue-600 hover:text-blue-500 transition-colors'>
                         {t('loginPage.forgotPassword')}
                     </button>
                 </div>
@@ -119,12 +119,12 @@ export function LoginPage() {
 
                 <DefaultLoginButton onFillForm={handleFillForm} onSubmit={() => handleSubmit(new Event('submit'))} disabled={loadingValue} />
 
-                <div class="text-center">
-                    <p class="text-sm text-gray-600">
+                <div class='text-center'>
+                    <p class='text-sm text-gray-600'>
                         {t('loginPage.noAccount')}{' '}
                         <button
-                            type="button"
-                            data-testid="loginpage-signup-button"
+                            type='button'
+                            data-testid='loginpage-signup-button'
                             onClick={() => {
                                 // Preserve returnUrl when navigating to register
                                 const urlParams = new URLSearchParams(window.location.search);
@@ -136,7 +136,7 @@ export function LoginPage() {
                                     navigationService.goToRegister();
                                 }
                             }}
-                            class="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                            class='font-medium text-blue-600 hover:text-blue-500 transition-colors'
                         >
                             {t('loginPage.signUp')}
                         </button>

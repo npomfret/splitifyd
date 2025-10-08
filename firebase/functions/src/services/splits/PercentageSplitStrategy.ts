@@ -1,6 +1,6 @@
 import { ExpenseSplit } from '@splitifyd/shared';
-import { ApiError } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
+import { ApiError } from '../../utils/errors';
 import { ISplitStrategy } from './ISplitStrategy';
 
 export class PercentageSplitStrategy implements ISplitStrategy {

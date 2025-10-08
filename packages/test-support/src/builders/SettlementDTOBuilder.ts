@@ -1,6 +1,6 @@
-import { CreateSettlementRequestBuilder } from './CreateSettlementRequestBuilder';
 import type { SettlementDTO } from '@splitifyd/shared';
 import { timestampToISOString } from '../test-helpers';
+import { CreateSettlementRequestBuilder } from './CreateSettlementRequestBuilder';
 
 /**
  * Builder for creating Settlement objects for tests
@@ -15,7 +15,7 @@ export class SettlementDTOBuilder extends CreateSettlementRequestBuilder {
     };
 
     // Business logic field that happens to be in Settlement interface
-    private businessFields: { createdBy: string } = {
+    private businessFields: { createdBy: string; } = {
         createdBy: 'default-user-id',
     };
     private excludeCurrency = false;

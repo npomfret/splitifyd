@@ -118,10 +118,10 @@ export class UnifiedConsoleHandler {
                         type: msgType,
                         location: location
                             ? {
-                                  url: location.url,
-                                  lineNumber: location.lineNumber,
-                                  columnNumber: location.columnNumber,
-                              }
+                                url: location.url,
+                                lineNumber: location.lineNumber,
+                                columnNumber: location.columnNumber,
+                            }
                             : undefined,
                         timestamp,
                         userInfo: {
@@ -160,7 +160,7 @@ export class UnifiedConsoleHandler {
     /**
      * Format user information for error reporting
      */
-    private formatUserInfo(userInfo?: { userIndex?: number; userEmail?: string }): string {
+    private formatUserInfo(userInfo?: { userIndex?: number; userEmail?: string; }): string {
         if (!userInfo || (userInfo.userIndex === undefined && !userInfo.userEmail)) {
             return 'unknown user';
         }
@@ -230,12 +230,13 @@ export class UnifiedConsoleHandler {
 
             // Attach console errors to test report
             if (hasConsoleErrors) {
-                const consoleErrorReport = this.consoleErrors
+                const consoleErrorReport = this
+                    .consoleErrors
                     .map(
                         (err, index) =>
-                            `${index + 1}. ${err.type.toUpperCase()}: ${err.message}\n` +
-                            `   Location: ${err.location?.url || 'unknown'}:${err.location?.lineNumber || '?'}:${err.location?.columnNumber || '?'}\n` +
-                            `   Time: ${err.timestamp.toISOString()}`,
+                            `${index + 1}. ${err.type.toUpperCase()}: ${err.message}\n`
+                            + `   Location: ${err.location?.url || 'unknown'}:${err.location?.lineNumber || '?'}:${err.location?.columnNumber || '?'}\n`
+                            + `   Time: ${err.timestamp.toISOString()}`,
                     )
                     .join('\n\n');
 
@@ -247,7 +248,8 @@ export class UnifiedConsoleHandler {
 
             // Attach page errors to test report
             if (hasPageErrors) {
-                const pageErrorReport = this.pageErrors
+                const pageErrorReport = this
+                    .pageErrors
                     .map((err, index) => `${index + 1}. ${err.name}: ${err.message}\n` + `${err.stack ? `Stack trace:\n${err.stack}\n` : ''}` + `Time: ${err.timestamp.toISOString()}`)
                     .join('\n\n');
 
@@ -263,7 +265,8 @@ export class UnifiedConsoleHandler {
                 let errorMessage = `Test had ${this.consoleErrors.length} console error(s) and ${this.pageErrors.length} page error(s).`;
 
                 if (this.consoleErrors.length > 0) {
-                    const consoleErrorUsers = this.consoleErrors
+                    const consoleErrorUsers = this
+                        .consoleErrors
                         .map((error) => {
                             return this.formatUserInfo(error.userInfo);
                         })
@@ -273,7 +276,8 @@ export class UnifiedConsoleHandler {
                 }
 
                 if (this.pageErrors.length > 0) {
-                    const pageErrorUsers = this.pageErrors
+                    const pageErrorUsers = this
+                        .pageErrors
                         .map((error) => {
                             const userInfo = this.formatUserInfo(error.userInfo);
                             // Debug: log what user info we have for this error
@@ -298,7 +302,8 @@ export class UnifiedConsoleHandler {
             let ignoredMessage = `Console errors: ${this.consoleErrors.length}, Page errors: ${this.pageErrors.length}`;
 
             if (this.consoleErrors.length > 0) {
-                const consoleErrorUsers = this.consoleErrors
+                const consoleErrorUsers = this
+                    .consoleErrors
                     .map((error) => this.formatUserInfo(error.userInfo))
                     .filter((user, index, arr) => arr.indexOf(user) === index)
                     .join(', ');
@@ -306,7 +311,8 @@ export class UnifiedConsoleHandler {
             }
 
             if (this.pageErrors.length > 0) {
-                const pageErrorUsers = this.pageErrors
+                const pageErrorUsers = this
+                    .pageErrors
                     .map((error) => this.formatUserInfo(error.userInfo))
                     .filter((user, index, arr) => arr.indexOf(user) === index)
                     .join(', ');

@@ -1,17 +1,17 @@
-import { ReadonlySignal, signal } from '@preact/signals';
-import type { User as FirebaseUser } from 'firebase/auth';
-import { firebaseService } from '../firebase';
-import { apiClient } from '../apiClient';
 import { USER_ID_KEY } from '@/constants.ts';
 import { logError } from '@/utils/browser-logger.ts';
+import { createUserScopedStorage } from '@/utils/userScopedStorage.ts';
+import { ReadonlySignal, signal } from '@preact/signals';
 import type { ClientUser } from '@splitifyd/shared';
 import { AuthErrors } from '@splitifyd/shared';
-import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
-import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
-import { themeStore } from './theme-store';
-import { createUserScopedStorage } from '@/utils/userScopedStorage.ts';
+import type { User as FirebaseUser } from 'firebase/auth';
+import { apiClient } from '../apiClient';
+import { firebaseService } from '../firebase';
 import { CurrencyService } from '../services/currencyService';
 import { expenseFormStore } from './expense-form-store';
+import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
+import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
+import { themeStore } from './theme-store';
 
 // Auth types - moved from types/auth.ts
 interface AuthState {
@@ -27,7 +27,7 @@ interface AuthActions {
     register: (email: string, password: string, displayName: string, termsAccepted: boolean, cookiePolicyAccepted: boolean) => Promise<void>;
     logout: () => Promise<void>;
     resetPassword: (email: string) => Promise<void>;
-    updateUserProfile: (updates: { displayName?: string }) => Promise<void>;
+    updateUserProfile: (updates: { displayName?: string; }) => Promise<void>;
     clearError: () => void;
     refreshAuthToken: () => Promise<string>;
 }
@@ -235,7 +235,7 @@ class AuthStoreImpl implements AuthStore {
         }
     }
 
-    async updateUserProfile(updates: { displayName?: string }): Promise<void> {
+    async updateUserProfile(updates: { displayName?: string; }): Promise<void> {
         this.#errorSignal.value = null;
         this.#isUpdatingProfileSignal.value = true;
 

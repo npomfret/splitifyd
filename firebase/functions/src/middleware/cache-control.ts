@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { getConfig } from '../client-config';
 
 /**
@@ -13,7 +13,7 @@ export function applyCacheControl(req: Request, res: Response, next: NextFunctio
     const config = getConfig();
 
     // Define static pages and config endpoints that can have minimal caching
-    const staticPages: Record<string, { dev: number; prod: number }> = {
+    const staticPages: Record<string, { dev: number; prod: number; }> = {
         '/': { dev: 300, prod: 300 }, // 5 minutes
         '/login': { dev: 300, prod: 300 }, // 5 minutes
         '/terms': { dev: 300, prod: 3600 }, // 5 min dev, 1 hour prod
