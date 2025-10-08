@@ -140,7 +140,7 @@ describe('GroupService - Unit Tests', () => {
             const userId = 'test-user-123';
             const groupId = 'test-group-456';
 
-            // Set up existing group (not marked for deletion yet) with Firestore Timestamps
+            // Set up existing group (not marked for deletion yet)
             const existingGroup = new GroupDTOBuilder()
                 .withId(groupId)
                 .withName('Test Group')

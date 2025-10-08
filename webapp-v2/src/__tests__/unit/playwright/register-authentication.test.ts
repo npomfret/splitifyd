@@ -19,11 +19,7 @@ test.describe('Registration Authentication Flow', () => {
         await registerPage.navigate();
 
         // 4. Complete registration and navigate to dashboard (fluent interface)
-        const dashboardPage = await registerPage.registerAndNavigateToDashboard(
-            testUser.displayName,
-            testUser.email,
-            'SecurePassword123',
-        );
+        const dashboardPage = await registerPage.registerAndNavigateToDashboard(testUser.displayName, testUser.email, 'SecurePassword123');
 
         // 5. Verify successful registration and navigation
         await expect(dashboardPage.getUserMenuButton()).toContainText(testUser.displayName);
@@ -162,11 +158,7 @@ test.describe('Registration Flow - Already Authenticated', () => {
         await registerPage.navigate();
 
         // Complete registration - should default to dashboard
-        const dashboardPage = await registerPage.registerAndNavigateToDashboard(
-            testUser.displayName,
-            testUser.email,
-            'Password123',
-        );
+        const dashboardPage = await registerPage.registerAndNavigateToDashboard(testUser.displayName, testUser.email, 'Password123');
 
         await expect(page).toHaveURL(/\/dashboard/);
         await expect(dashboardPage.getUserMenuButton()).toContainText(testUser.displayName);

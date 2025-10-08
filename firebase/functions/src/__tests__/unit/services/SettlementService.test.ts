@@ -66,7 +66,13 @@ describe('SettlementService - Unit Tests', () => {
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
-            // Set up group memberships for both users
+            // Set up group memberships for all users (creator, payer, payee)
+            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId('creator-user')
+                .withGroupId(groupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
             const payerMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId('payer-user')
                 .withGroupId(groupId)
@@ -79,6 +85,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .build();
+            stubReader.setDocument('group-members', `${groupId}_creator-user`, creatorMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
@@ -95,59 +102,9 @@ describe('SettlementService - Unit Tests', () => {
             expect(result.note).toBe('Test settlement');
         });
 
-        it('should reject settlement with zero amount', async () => {
-            // Arrange
-            const userId = 'creator-user';
-            const invalidSettlementData = new CreateSettlementRequestBuilder()
-                .withAmount(0) // Invalid amount
-                .withCurrency('USD')
-                .build();
-
-            // Act & Assert
-            await expect(settlementService.createSettlement(invalidSettlementData, userId)).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_AMOUNT',
-                    message: 'Amount must be greater than 0',
-                }),
-            );
-        });
-
-        it('should reject settlement with negative amount', async () => {
-            // Arrange
-            const userId = 'creator-user';
-            const invalidSettlementData = new CreateSettlementRequestBuilder()
-                .withAmount(-10) // Invalid negative amount
-                .withCurrency('USD')
-                .build();
-
-            // Act & Assert
-            await expect(settlementService.createSettlement(invalidSettlementData, userId)).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_AMOUNT',
-                    message: 'Amount must be greater than 0',
-                }),
-            );
-        });
-
-        it('should reject settlement with excessive amount', async () => {
-            // Arrange
-            const userId = 'creator-user';
-            const invalidSettlementData = new CreateSettlementRequestBuilder()
-                .withAmount(1000000) // Exceeds maximum amount
-                .withCurrency('USD')
-                .build();
-
-            // Act & Assert
-            await expect(settlementService.createSettlement(invalidSettlementData, userId)).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_AMOUNT',
-                    message: 'Amount cannot exceed 999999.99',
-                }),
-            );
-        });
+        // Note: Amount validation tests (zero, negative, excessive) were removed
+        // because validation was moved to the API handler layer (Joi schemas)
+        // per commit cec536b9. Service-level tests should not test handler-level validation.
 
         it('should handle optional note field correctly', async () => {
             // Arrange
@@ -168,7 +125,13 @@ describe('SettlementService - Unit Tests', () => {
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
-            // Set up group memberships for both users
+            // Set up group memberships for all users (creator, payer, payee)
+            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId('creator-user')
+                .withGroupId(groupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
             const payerMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId('payer-user')
                 .withGroupId(groupId)
@@ -181,6 +144,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .build();
+            stubReader.setDocument('group-members', `${groupId}_creator-user`, creatorMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
@@ -226,7 +190,13 @@ describe('SettlementService - Unit Tests', () => {
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
             await initializeGroupBalance(groupId); // Initialize balance for incremental updates
 
-            // Set up group memberships for both users
+            // Set up group memberships for all users (creator, payer, payee)
+            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId('creator-user')
+                .withGroupId(groupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
             const payerMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId('valid-payer')
                 .withGroupId(groupId)
@@ -239,6 +209,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .build();
+            stubReader.setDocument('group-members', `${groupId}_creator-user`, creatorMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_valid-payer`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_valid-payee`, payeeMembershipDoc);
 
@@ -266,7 +237,13 @@ describe('SettlementService - Unit Tests', () => {
             setGroupData(groupId, { id: groupId, name: 'Test Group' });
             await initializeGroupBalance(groupId); // Initialize balance for incremental updates
 
-            // Set up group memberships for both users
+            // Set up group memberships for all users (creator, payer, payee)
+            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId('creator-user')
+                .withGroupId(groupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
             const payerMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId('payer-user')
                 .withGroupId(groupId)
@@ -279,6 +256,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .build();
+            stubReader.setDocument('group-members', `${groupId}_creator-user`, creatorMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
@@ -306,7 +284,13 @@ describe('SettlementService - Unit Tests', () => {
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
-            // Set up group memberships for both users
+            // Set up group memberships for all users (creator, payer, payee)
+            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId('creator-user')
+                .withGroupId(groupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
             const payerMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId('payer-user')
                 .withGroupId(groupId)
@@ -319,6 +303,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .build();
+            stubReader.setDocument('group-members', `${groupId}_creator-user`, creatorMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
@@ -345,13 +330,20 @@ describe('SettlementService - Unit Tests', () => {
             await initializeGroupBalance(groupId); // Initialize balance for incremental updates
             stubReader.verifyGroupMembership = () => Promise.resolve(true);
 
-            // Set up group memberships - payee is member, payer is not
+            // Set up group memberships - creator and payee are members, payer is not
+            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId('creator-user')
+                .withGroupId(groupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
             const payeeMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId('payee-user')
                 .withGroupId(groupId)
                 .withRole('member')
                 .withStatus('active')
                 .build();
+            stubReader.setDocument('group-members', `${groupId}_creator-user`, creatorMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
             // Act & Assert
@@ -382,14 +374,20 @@ describe('SettlementService - Unit Tests', () => {
             await initializeGroupBalance(groupId); // Initialize balance for incremental updates
             stubReader.verifyGroupMembership = () => Promise.resolve(true);
 
-            // Set up group memberships - payer is member, payee is not
-            const payerMembershipDoc = {
-                userId: 'payer-user',
-                groupId: groupId,
-                memberRole: 'member',
-                memberStatus: 'active',
-                joinedAt: new Date().toISOString(),
-            };
+            // Set up group memberships - creator and payer are members, payee is not
+            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId('creator-user')
+                .withGroupId(groupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
+            const payerMembershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId('payer-user')
+                .withGroupId(groupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
+            stubReader.setDocument('group-members', `${groupId}_creator-user`, creatorMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
 
             // Act & Assert
@@ -445,7 +443,13 @@ describe('SettlementService - Unit Tests', () => {
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
-            // Set up group memberships for both users
+            // Set up group memberships for all users (creator, payer, payee)
+            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId('creator-user')
+                .withGroupId(groupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
             const payerMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId('payer-user')
                 .withGroupId(groupId)
@@ -458,6 +462,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .build();
+            stubReader.setDocument('group-members', `${groupId}_creator-user`, creatorMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
@@ -489,7 +494,13 @@ describe('SettlementService - Unit Tests', () => {
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
-            // Set up group memberships for both users
+            // Set up group memberships for all users (creator, payer, payee)
+            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId('creator-user')
+                .withGroupId(groupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
             const payerMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId('payer-user')
                 .withGroupId(groupId)
@@ -502,6 +513,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .build();
+            stubReader.setDocument('group-members', `${groupId}_creator-user`, creatorMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
@@ -530,7 +542,13 @@ describe('SettlementService - Unit Tests', () => {
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
-            // Set up group memberships for both users
+            // Set up group memberships for all users (creator, payer, payee)
+            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId('creator-user')
+                .withGroupId(groupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
             const payerMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId('payer-user')
                 .withGroupId(groupId)
@@ -543,6 +561,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .build();
+            stubReader.setDocument('group-members', `${groupId}_creator-user`, creatorMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 
@@ -571,7 +590,13 @@ describe('SettlementService - Unit Tests', () => {
             setUserData('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
             setUserData('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
-            // Set up group memberships
+            // Set up group memberships for all users (creator, payer, payee)
+            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId('creator-user')
+                .withGroupId(groupId)
+                .withRole('member')
+                .withStatus('active')
+                .build();
             const payerMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId('payer-user')
                 .withGroupId(groupId)
@@ -584,6 +609,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .build();
+            stubReader.setDocument('group-members', `${groupId}_creator-user`, creatorMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 

@@ -36,10 +36,7 @@ export class RegisterPage extends BasePage {
      * Register page heading container - helps identify we're on the right page
      */
     getPageHeading(): Locator {
-        return this
-            .getRegisterFormContainer()
-            .locator('..')
-            .getByRole('heading', { name: translation.registerPage.title });
+        return this.getRegisterFormContainer().locator('..').getByRole('heading', { name: translation.registerPage.title });
     }
 
     /**
@@ -198,12 +195,7 @@ export class RegisterPage extends BasePage {
     /**
      * Fill all registration form fields
      */
-    async fillRegistrationForm(
-        name: string,
-        email: string,
-        password: string,
-        confirmPassword: string = password,
-    ): Promise<void> {
+    async fillRegistrationForm(name: string, email: string, password: string, confirmPassword: string = password): Promise<void> {
         await this.fillName(name);
         await this.fillEmail(email);
         await this.fillPassword(password);
@@ -255,12 +247,7 @@ export class RegisterPage extends BasePage {
      * Fluent version - verifies successful registration and returns DashboardPage
      * Use this when you expect registration to succeed
      */
-    async registerAndNavigateToDashboard(
-        name: string,
-        email: string,
-        password: string,
-        confirmPassword: string = password,
-    ): Promise<DashboardPage> {
+    async registerAndNavigateToDashboard(name: string, email: string, password: string, confirmPassword: string = password): Promise<DashboardPage> {
         await this.fillRegistrationForm(name, email, password, confirmPassword);
         await this.acceptAllPolicies();
 
@@ -274,10 +261,7 @@ export class RegisterPage extends BasePage {
             const currentUrl = this.page.url();
             const errorVisible = await this.getErrorContainer().isVisible();
             const errorText = errorVisible ? await this.getErrorMessage() : 'No error message';
-            throw new Error(
-                `Failed to navigate to dashboard after registration. Current URL: ${currentUrl}. `
-                    + `Error displayed: ${errorVisible}. Error message: "${errorText}"`,
-            );
+            throw new Error(`Failed to navigate to dashboard after registration. Current URL: ${currentUrl}. ` + `Error displayed: ${errorVisible}. Error message: "${errorText}"`);
         }
 
         const dashboardPage = new DashboardPage(this.page);
@@ -290,12 +274,7 @@ export class RegisterPage extends BasePage {
      * Fluent version - verifies we stay on register page and error appears
      * Use this when you expect registration to fail (duplicate email, weak password, etc.)
      */
-    async registerExpectingFailure(
-        name: string,
-        email: string,
-        password: string,
-        confirmPassword: string = password,
-    ): Promise<void> {
+    async registerExpectingFailure(name: string, email: string, password: string, confirmPassword: string = password): Promise<void> {
         await this.fillRegistrationForm(name, email, password, confirmPassword);
         await this.acceptAllPolicies();
         await this.submitForm();
@@ -306,10 +285,7 @@ export class RegisterPage extends BasePage {
         } catch (error) {
             const currentUrl = this.page.url();
             const errorVisible = await this.getErrorContainer().isVisible();
-            throw new Error(
-                `Registration failure behavior not as expected. Current URL: ${currentUrl}, `
-                    + `Error visible: ${errorVisible}. Expected to stay on register page with error message.`,
-            );
+            throw new Error(`Registration failure behavior not as expected. Current URL: ${currentUrl}, ` + `Error visible: ${errorVisible}. Expected to stay on register page with error message.`);
         }
     }
 
@@ -380,10 +356,7 @@ export class RegisterPage extends BasePage {
         } catch (error) {
             const isVisible = await errorContainer.isVisible();
             const actualText = isVisible ? await this.getErrorMessage() : 'No error message';
-            throw new Error(
-                `Error message verification failed. Expected: "${expectedMessage}", `
-                    + `Actual: "${actualText}", Error visible: ${isVisible}`,
-            );
+            throw new Error(`Error message verification failed. Expected: "${expectedMessage}", ` + `Actual: "${actualText}", Error visible: ${isVisible}`);
         }
     }
 

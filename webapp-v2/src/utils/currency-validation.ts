@@ -23,13 +23,9 @@ export function validateAmountPrecision(amount: number, currencyCode: string): v
     if (actualDecimals > maxDecimals) {
         const currency = getCurrency(currencyCode);
         if (maxDecimals === 0) {
-            throw new Error(
-                `Amount must be a whole number for ${currencyCode} (${currency.name}). Received ${actualDecimals} decimal place(s).`,
-            );
+            throw new Error(`Amount must be a whole number for ${currencyCode} (${currency.name}). Received ${actualDecimals} decimal place(s).`);
         } else {
-            throw new Error(
-                `Amount must have at most ${maxDecimals} decimal place(s) for ${currencyCode} (${currency.name}). Received ${actualDecimals} decimal place(s).`,
-            );
+            throw new Error(`Amount must have at most ${maxDecimals} decimal place(s) for ${currencyCode} (${currency.name}). Received ${actualDecimals} decimal place(s).`);
         }
     }
 }

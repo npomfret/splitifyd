@@ -10,6 +10,7 @@ import { ApiError } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import { GroupMemberService } from './GroupMemberService';
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -30,16 +31,12 @@ export class SettlementService {
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly incrementalBalanceService: IncrementalBalanceService,
-    ) {
-    }
+    ) {}
     /**
      * Fetch group member data for settlements
      */
     private async fetchGroupMemberData(groupId: string, userId: string): Promise<GroupMember> {
-        const [userData, memberData] = await Promise.all([
-            this.firestoreReader.getUser(userId),
-            this.firestoreReader.getGroupMember(groupId, userId),
-        ]);
+        const [userData, memberData] = await Promise.all([this.firestoreReader.getUser(userId), this.firestoreReader.getGroupMember(groupId, userId)]);
 
         if (!userData) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${userId} not found`);
@@ -153,6 +150,12 @@ export class SettlementService {
         LoggerContext.update({ userId, operation: 'create-settlement', amount: settlementData.amount });
 
         timer.startPhase('query');
+
+        // Verify group exists first (like ExpenseService)
+        const groupData = await this.firestoreReader.getGroup(settlementData.groupId);
+        if (!groupData) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+        }
 
         // Verify each user is a member
         const memberIds = await this.firestoreReader.getAllGroupMemberIds(settlementData.groupId);

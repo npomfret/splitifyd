@@ -508,16 +508,18 @@ export class GroupService {
             // IMPORTANT: All reads must happen before any writes in Firestore transactions
 
             // PHASE 1: ALL READS FIRST
-            const freshDoc = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
-            if (!freshDoc) {
+            const currentGroup = await this.firestoreReader.getGroupInTransaction(transaction, groupId);
+            if (!currentGroup) {
                 throw Errors.NOT_FOUND('Group');
             }
 
             // Read membership documents that need updating
             const membershipSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
 
-            // Optimistic locking validation could use originalUpdatedAt if needed
-            // const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
+            // Optimistic locking: Check if group was updated since we fetched it (compare ISO strings)
+            if (group.updatedAt !== currentGroup.updatedAt) {
+                throw Errors.CONCURRENT_UPDATE();
+            }
 
             // Create updated data with current timestamp for optimistic response
             const now = new Date().toISOString();

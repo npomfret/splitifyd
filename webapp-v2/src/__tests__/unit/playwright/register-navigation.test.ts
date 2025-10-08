@@ -68,11 +68,7 @@ test.describe('Registration Success Navigation', () => {
         await registerPage.navigate();
 
         // Register and verify navigation to dashboard
-        const dashboardPage = await registerPage.registerAndNavigateToDashboard(
-            testUser.displayName,
-            testUser.email,
-            'Password123',
-        );
+        const dashboardPage = await registerPage.registerAndNavigateToDashboard(testUser.displayName, testUser.email, 'Password123');
 
         await expect(page).toHaveURL('/dashboard');
         await expect(dashboardPage.getUserMenuButton()).toContainText(testUser.displayName);

@@ -20,8 +20,7 @@ describe('Concurrent Operations Integration Tests', () => {
     let testUser4: PooledTestUser;
     let testGroup: GroupDTO;
 
-    beforeAll(async () => {
-    });
+    beforeAll(async () => {});
 
     beforeEach(async () => {
         // Create test users
@@ -434,9 +433,9 @@ describe('Concurrent Operations Integration Tests', () => {
                     ),
             ];
 
-            const results = await Promise.allSettled(operations.map(op => op()));
+            const results = await Promise.allSettled(operations.map((op) => op()));
 
-            const succeeded = results.filter(r => r.status === 'fulfilled');
+            const succeeded = results.filter((r) => r.status === 'fulfilled');
 
             expect(succeeded.length).toBeGreaterThan(0);
 
@@ -463,26 +462,29 @@ describe('Concurrent Operations Integration Tests', () => {
             const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
             await groupShareService.joinGroupByLink(testUser2.uid, linkId);
 
-            const operations = Array.from({ length: 15 }, (_, i) => () =>
-                expenseService.createExpense(
-                    testUser1.uid,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(testGroup.id)
-                        .withPaidBy(testUser1.uid)
-                        .withAmount(50 + i)
-                        .withCurrency('USD')
-                        .withParticipants([testUser1.uid, testUser2.uid])
-                        .withSplitType('equal')
-                        .build(),
-                ));
+            const operations = Array.from(
+                { length: 15 },
+                (_, i) => () =>
+                    expenseService.createExpense(
+                        testUser1.uid,
+                        new CreateExpenseRequestBuilder()
+                            .withGroupId(testGroup.id)
+                            .withPaidBy(testUser1.uid)
+                            .withAmount(50 + i)
+                            .withCurrency('USD')
+                            .withParticipants([testUser1.uid, testUser2.uid])
+                            .withSplitType('equal')
+                            .build(),
+                    ),
+            );
 
-            const results = await Promise.allSettled(operations.map(op => op()));
+            const results = await Promise.allSettled(operations.map((op) => op()));
 
-            const succeeded = results.filter(r => r.status === 'fulfilled') as PromiseFulfilledResult<any>[];
+            const succeeded = results.filter((r) => r.status === 'fulfilled') as PromiseFulfilledResult<any>[];
 
             expect(succeeded.length).toBeGreaterThan(0);
 
-            const successfulExpenses = succeeded.map(r => r.value);
+            const successfulExpenses = succeeded.map((r) => r.value);
             const expectedDebt = successfulExpenses.reduce((sum, exp) => sum + exp.amount / 2, 0);
 
             const balances = await apiDriver.getGroupBalances(testGroup.id, testUser1.token);
@@ -627,9 +629,9 @@ describe('Concurrent Operations Integration Tests', () => {
                     ),
             ];
 
-            const results = await Promise.allSettled(operations.map(op => op()));
+            const results = await Promise.allSettled(operations.map((op) => op()));
 
-            const succeeded = results.filter(r => r.status === 'fulfilled');
+            const succeeded = results.filter((r) => r.status === 'fulfilled');
 
             expect(succeeded.length).toBeGreaterThan(0);
 
@@ -638,7 +640,7 @@ describe('Concurrent Operations Integration Tests', () => {
             const currencies = Object.keys(balances.balancesByCurrency);
             expect(currencies.length).toBeGreaterThan(0);
 
-            currencies.forEach(currency => {
+            currencies.forEach((currency) => {
                 const currencyBalances = balances.balancesByCurrency[currency];
                 const sum = Object.values(currencyBalances).reduce((total, userBal: any) => total + userBal.netBalance, 0);
                 expect(sum).toBeCloseTo(0, 2);
