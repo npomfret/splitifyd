@@ -203,6 +203,65 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                     .withAmount(-100)
                     .withCurrency('USD').build(), settlementUsers[0].token)).rejects.toThrow(/status 400.*VALIDATION_ERROR/);
             });
+
+            test('should update balances correctly when settlement currency is changed', async () => {
+                const currencyTestGroup = await TestGroupManager.getOrCreateGroup([settlementUsers[0], settlementUsers[1]], {memberCount: 2, fresh: true});
+
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withGroupId(currencyTestGroup.id)
+                    .withDescription('Test Expense')
+                    .withAmount(300)
+                    .withCurrency('USD')
+                    .withPaidBy(settlementUsers[0].uid)
+                    .withParticipants([settlementUsers[0].uid, settlementUsers[1].uid])
+                    .withSplitType('equal')
+                    .build();
+
+                await apiDriver.createExpense(expenseData, settlementUsers[0].token);
+                await apiDriver.waitForBalanceUpdate(currencyTestGroup.id, settlementUsers[0].token, 3000);
+
+                const settlementData = new CreateSettlementRequestBuilder()
+                    .withGroupId(currencyTestGroup.id)
+                    .withPayerId(settlementUsers[1].uid)
+                    .withPayeeId(settlementUsers[0].uid)
+                    .withAmount(50)
+                    .withCurrency('USD')
+                    .withNote('Original USD settlement')
+                    .build();
+
+                const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
+                const initialBalances = await apiDriver.waitForBalanceUpdate(currencyTestGroup.id, settlementUsers[0].token, 3000);
+
+                const initialUsdDebt = initialBalances.simplifiedDebts.find((d) => d.currency === 'USD');
+                expect(initialUsdDebt).toBeDefined();
+                expect(initialUsdDebt?.amount).toBe(100);
+                expect(initialBalances.balancesByCurrency.USD).toBeDefined();
+                expect(initialBalances.balancesByCurrency.EUR).toBeUndefined();
+
+                const currencyUpdate = new SettlementUpdateBuilder()
+                    .withAmount(50)
+                    .withCurrency('EUR')
+                    .withNote('Changed to EUR')
+                    .build();
+
+                await apiDriver.updateSettlement(created.id, currencyUpdate, settlementUsers[0].token);
+                const updatedBalances = await apiDriver.waitForBalanceUpdate(currencyTestGroup.id, settlementUsers[0].token, 3000);
+
+                const updatedUsdDebt = updatedBalances.simplifiedDebts.find((d) => d.currency === 'USD');
+                expect(updatedUsdDebt).toBeDefined();
+                expect(updatedUsdDebt?.amount).toBe(150);
+
+                const eurDebtAfter = updatedBalances.simplifiedDebts.find((d) => d.currency === 'EUR');
+                expect(eurDebtAfter).toBeDefined();
+                expect(eurDebtAfter?.amount).toBe(50);
+                expect(eurDebtAfter?.from.uid).toBe(settlementUsers[0].uid);
+                expect(eurDebtAfter?.to.uid).toBe(settlementUsers[1].uid);
+
+                expect(updatedBalances.balancesByCurrency.USD).toBeDefined();
+                expect(updatedBalances.balancesByCurrency.EUR).toBeDefined();
+                expect(updatedBalances.balancesByCurrency.EUR[settlementUsers[0].uid].netBalance).toBe(-50);
+                expect(updatedBalances.balancesByCurrency.EUR[settlementUsers[1].uid].netBalance).toBe(50);
+            });
         });
 
         describe('Settlement Deletion', () => {
