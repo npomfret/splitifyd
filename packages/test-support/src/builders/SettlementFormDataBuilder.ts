@@ -1,4 +1,4 @@
-import { randomString, randomDecimal, randomChoice, randomCurrency } from '../test-helpers';
+import { randomString, randomChoice, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export interface SettlementFormData {
     payerName: string; // Display name of who paid
@@ -16,11 +16,13 @@ export class SettlementFormDataBuilder {
     private settlement: SettlementFormData;
 
     constructor() {
+        const { currency, amount } = randomValidCurrencyAmountPair(5, 200);
+
         this.settlement = {
             payerName: '', // No default - must be explicitly set
             payeeName: '', // No default - must be explicitly set
-            amount: randomDecimal(5, 200).toString(),
-            currency: randomCurrency(),
+            amount: amount.toString(),
+            currency,
             note: `${randomChoice(['Payment', 'Settlement', 'Reimbursement', 'Cash back'])} ${randomString(4)}`,
         };
     }

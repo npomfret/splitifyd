@@ -49,7 +49,7 @@ function getTestCommand(scriptType, packageName) {
         },
         '@splitifyd/shared': {
             test: 'npm run test:unit && npm run test:integration',
-            'test:unit': "echo 'No unit tests for shared package'",
+            'test:unit': 'vitest run src/__tests__/',
             'test:integration': "echo 'No integration tests for shared package'",
         },
         '@splitifyd/test-support': {

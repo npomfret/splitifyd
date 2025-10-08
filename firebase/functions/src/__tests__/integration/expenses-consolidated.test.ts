@@ -1,10 +1,10 @@
 // Consolidated Expense Management Integration Tests
 // Combines tests from expenses-api.test.ts, ExpenseService.integration.test.ts, and expenses-full-details.test.ts
 
-import { beforeEach, describe, expect, test } from 'vitest';
-import { ApiDriver, CreateExpenseRequestBuilder, ExpenseUpdateBuilder, borrowTestUsers, TestGroupManager, generateShortId, NotificationDriver } from '@splitifyd/test-support';
-import { PooledTestUser } from '@splitifyd/shared';
-import { getFirestore } from '../../firebase';
+import {beforeEach, describe, expect, test} from 'vitest';
+import {ApiDriver, CreateExpenseRequestBuilder, ExpenseUpdateBuilder, borrowTestUsers, TestGroupManager, generateShortId, NotificationDriver} from '@splitifyd/test-support';
+import {PooledTestUser} from '@splitifyd/shared';
+import {getFirestore} from '../../firebase';
 
 describe('Expenses Management - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();
@@ -14,7 +14,7 @@ describe('Expenses Management - Consolidated Tests', () => {
 
     beforeEach(async () => {
         users = await borrowTestUsers(4);
-        testGroup = await TestGroupManager.getOrCreateGroup(users, { memberCount: 3 });
+        testGroup = await TestGroupManager.getOrCreateGroup(users, {memberCount: 3});
     });
 
     afterEach(async () => {
@@ -63,15 +63,8 @@ describe('Expenses Management - Consolidated Tests', () => {
             const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('API Integration Test')
-                .withAmount(100)
-                .withCurrency('USD')
                 .withPaidBy(users[0].uid)
-                .withSplitType('exact')
                 .withParticipants([users[0].uid, users[1].uid])
-                .withSplits([
-                    { uid: users[0].uid, amount: 60 },
-                    { uid: users[1].uid, amount: 40 },
-                ])
                 .build();
 
             // Test API creation and retrieval
@@ -86,28 +79,24 @@ describe('Expenses Management - Consolidated Tests', () => {
         test('should list and paginate group expenses', async () => {
             // Create multiple expenses for listing
             const uniqueId = generateShortId();
+            const descr1 = `First Test Expense ${uniqueId}`;
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(90.0)
-                    .withCurrency('USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants(users.slice(0, 3).map((u) => u.uid))
-                    .withDescription(`First Test Expense ${uniqueId}`)
-                    .withSplitType('equal')
+                    .withDescription(descr1)
                     .build(),
                 users[0].token,
             );
 
+            const descr2 = `Second Test Expense ${uniqueId}`;
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(60.0)
-                    .withCurrency('USD')
                     .withPaidBy(users[1].uid)
                     .withParticipants(users.slice(0, 3).map((u) => u.uid))
-                    .withDescription(`Second Test Expense ${uniqueId}`)
-                    .withSplitType('equal')
+                    .withDescription(descr2)
                     .build(),
                 users[1].token,
             );
@@ -116,8 +105,8 @@ describe('Expenses Management - Consolidated Tests', () => {
             const apiResponse = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
             expect(apiResponse.expenses.length).toBeGreaterThanOrEqual(2);
             const descriptions = apiResponse.expenses.map((e: any) => e.description);
-            expect(descriptions).toContain(`First Test Expense ${uniqueId}`);
-            expect(descriptions).toContain(`Second Test Expense ${uniqueId}`);
+            expect(descriptions).toContain(descr1);
+            expect(descriptions).toContain(descr2);
 
             // Test API listing
             const apiListResponse = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
@@ -204,10 +193,23 @@ describe('Expenses Management - Consolidated Tests', () => {
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
 
             // Creator should be able to update
-            await apiDriver.updateExpense(createdExpense.id, new ExpenseUpdateBuilder().withAmount(150).withCurrency('USD').build(), users[0].token);
+            await apiDriver.updateExpense(createdExpense.id, new ExpenseUpdateBuilder()
+                    .withAmount(150)
+                    .withCurrency('USD')
+                    .build(),
+                users[0].token
+            );
 
             // Non-creator should be able to update (no restrictions without permission setup)
-            const updatedExpense = await apiDriver.updateExpense(createdExpense.id, new ExpenseUpdateBuilder().withDescription('Updated by non-creator').withCurrency('USD').build(), users[2].token);
+            const updatedExpense = await apiDriver.updateExpense(createdExpense.id,
+                new ExpenseUpdateBuilder()
+                    .withDescription('Updated by non-creator')
+                    .withAmount(120)
+                    .withCurrency('USD')
+                    .build(),
+                users[2].token
+            );
+
             expect(updatedExpense.description).toBe('Updated by non-creator');
         });
 
@@ -265,20 +267,6 @@ describe('Expenses Management - Consolidated Tests', () => {
             }
         });
     });
-
-    // REMOVED: Expense Access Control and Security tests that duplicate unit test coverage
-    // The following tests have been moved to ExpenseService.focused.test.ts:
-    // - Participant access validation (should allow participants to access expense)
-    // - Non-participant access denial (should deny access to non-participants)
-    // - Soft delete handling (should handle soft-deleted expenses correctly)
-    // - Data transformation (should transform expense data correctly)
-    // - Receipt URL handling (should handle expense without receipt URL)
-    //
-    // These integration tests provided no additional value beyond API testing
-    // since the access control logic itself is now comprehensively tested in unit tests.
-    //
-    // PERFORMANCE IMPROVEMENT: The converted tests run in ~4ms vs the original ~2420ms
-    // providing the same coverage with 99.8% faster execution time.
 
     describe('Expense Deletion and Soft Delete Behavior', () => {
         test('should handle expense deletion with proper access control', async () => {
@@ -358,12 +346,8 @@ describe('Expenses Management - Consolidated Tests', () => {
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withDescription(`Full details test expense ${uniqueId}`)
-                    .withAmount(90.0)
-                    .withCurrency('USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid, users[2].uid])
-                    .withSplitType('equal')
                     .build(),
                 users[0].token,
             );
@@ -389,16 +373,15 @@ describe('Expenses Management - Consolidated Tests', () => {
             const complexExpense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withDescription('Complex expense test')
                     .withAmount(100)
                     .withCurrency('USD')
                     .withPaidBy(users[1].uid)
                     .withParticipants([users[0].uid, users[1].uid, users[2].uid])
                     .withSplitType('exact')
                     .withSplits([
-                        { uid: users[0].uid, amount: 30 },
-                        { uid: users[1].uid, amount: 40 },
-                        { uid: users[2].uid, amount: 30 },
+                        {uid: users[0].uid, amount: 30},
+                        {uid: users[1].uid, amount: 40},
+                        {uid: users[2].uid, amount: 30},
                     ])
                     .build(),
                 users[0].token,
@@ -418,8 +401,6 @@ describe('Expenses Management - Consolidated Tests', () => {
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid])
-                    .withAmount(99)
-                    .withCurrency('USD')
                     .build(),
                 users[0].token,
             );
@@ -438,8 +419,6 @@ describe('Expenses Management - Consolidated Tests', () => {
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(90)
-                    .withCurrency('USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants(users.slice(0, 3).map((u) => u.uid))
                     .build(),

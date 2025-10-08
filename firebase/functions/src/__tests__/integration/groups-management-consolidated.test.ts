@@ -87,9 +87,6 @@ describe('Groups Management - Consolidated Tests', () => {
             // Test with expenses for balance verification
             const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
-                .withDescription('Test expense')
-                .withAmount(100)
-                .withCurrency("USD")
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid])
                 .withSplitType('equal')
@@ -213,9 +210,6 @@ describe('Groups Management - Consolidated Tests', () => {
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid])
-                    .withAmount(50)
-                    .withCurrency('USD')
-                    .withSplitType('equal')
                     .build(),
                 users[0].token,
             );
@@ -246,9 +240,6 @@ describe('Groups Management - Consolidated Tests', () => {
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withDescription(`Full details test ${uniqueId}`)
-                    .withAmount(90)
-                    .withCurrency('USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid, users[2].uid])
                     .withSplitType('equal')
@@ -261,9 +252,7 @@ describe('Groups Management - Consolidated Tests', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(users[1].uid)
                     .withPayeeId(users[0].uid)
-                    .withAmount(20)
-                    .withCurrency('USD')
-                    .withNote(`Settlement test ${uniqueId}`).build(),
+                    .build(),
                 users[1].token,
             );
 
@@ -497,12 +486,17 @@ describe('Groups Management - Consolidated Tests', () => {
                     .withPayerId(users[0].uid)
                     .withPayeeId(users[1].uid)
                     .withAmount(50)
-                    .withNote('Test settlement').build(),
+                    .withCurrency("USD")
+                    .withNote('Test settlement')
+                    .build(),
                 users[0].token,
             );
 
             // Try concurrent settlement updates
-            const updatePromises = [apiDriver.updateSettlement(settlement.id, {amount: 75}, users[0].token), apiDriver.updateSettlement(settlement.id, {amount: 100}, users[0].token)];
+            const updatePromises = [
+                apiDriver.updateSettlement(settlement.id, {amount: 75}, users[0].token),
+                apiDriver.updateSettlement(settlement.id, {amount: 100}, users[0].token)
+            ];
 
             const results = await Promise.allSettled(updatePromises);
             const successes = results.filter((r) => r.status === 'fulfilled');
@@ -1385,8 +1379,7 @@ describe('Groups Management - Consolidated Tests', () => {
                 .withGroupId(groupId)
                 .withPayerId(member1.uid)
                 .withPayeeId(owner.uid)
-                .withAmount(50.0)
-                .withCurrency('USD').build();
+                .build();
             await apiDriver.createSettlement(settlementData, member1.token);
 
             // Create multiple share links to populate shareLinks subcollection
@@ -1401,10 +1394,6 @@ describe('Groups Management - Consolidated Tests', () => {
             await apiDriver.createExpenseComment(expenses[2].id, 'Expense comment 1', owner.token);
             await apiDriver.createExpenseComment(expenses[2].id, 'Expense comment 2', member1.token);
             await apiDriver.createExpenseComment(expenses[3].id, 'Another expense comment', member2.token);
-
-            // Use FirestoreReader for proper verification
-            const firestore = getFirestore();
-            const firestoreReader = new FirestoreReader(firestore);
 
             // VERIFICATION BEFORE DELETION: Use the group deletion data method that mirrors the actual deletion logic
             const groupDeletionData = await firestoreReader.getGroupDeletionData(groupId);

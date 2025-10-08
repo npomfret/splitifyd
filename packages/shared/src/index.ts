@@ -7,5 +7,8 @@ export * from './user-colors';
 // Export currency definitions and utilities
 export * from './currencies';
 
+// Export split calculation utilities
+export * from './split-utils';
+
 // Export application constants
 export * from './constants';

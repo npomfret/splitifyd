@@ -759,9 +759,8 @@ describe('Notifications Management - Consolidated Tests', () => {
                 .withGroupId(eventGroup.id)
                 .withPayerId(user2.uid)
                 .withPayeeId(user1.uid)
-                .withAmount(15.0)
-                .withCurrency('USD')
-                .build(), user2.token);
+                .build(),
+                user2.token);
 
             // WAIT: Wait for settlement transaction notifications
             await user1Listener.waitForEventCount(eventGroup.id, 'transaction', 1);
@@ -1157,8 +1156,6 @@ describe('Notifications Management - Consolidated Tests', () => {
                 .withGroupId(balanceGroup.id)
                 .withPayerId(user2.uid)
                 .withPayeeId(user1.uid)
-                .withAmount(30.0)
-                .withCurrency('USD')
                 .build();
 
             await apiDriver.createSettlement(settlement, user2.token);

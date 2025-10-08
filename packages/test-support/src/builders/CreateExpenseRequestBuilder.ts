@@ -1,16 +1,18 @@
-import { randomString, randomDecimal, randomChoice, randomDate, randomCurrency, randomCategory, generateShortId } from '../test-helpers';
-import { CreateExpenseRequest } from '@splitifyd/shared';
+import { randomString, randomChoice, randomDate, randomCategory, randomValidCurrencyAmountPair, generateShortId } from '../test-helpers';
+import { CreateExpenseRequest, calculateEqualSplits, calculateExactSplits, calculatePercentageSplits } from '@splitifyd/shared';
 
 export class CreateExpenseRequestBuilder {
     private expense: CreateExpenseRequest;
 
     constructor() {
         const userId = `user-${generateShortId()}`;
+        const { currency, amount } = randomValidCurrencyAmountPair(5, 500);
+
         this.expense = {
             groupId: `group-${generateShortId()}`,
             description: `${randomChoice(['Dinner', 'Lunch', 'Coffee', 'Gas', 'Movie', 'Grocery'])} ${randomString(4)}`,
-            amount: randomDecimal(5, 500),
-            currency: randomCurrency(),
+            amount,
+            currency,
             paidBy: userId,
             splitType: randomChoice(['equal', 'exact', 'percentage']),
             participants: [userId],
@@ -75,31 +77,15 @@ export class CreateExpenseRequestBuilder {
     }
 
     build(): CreateExpenseRequest {
-        // Auto-generate splits if not explicitly provided
+        // Auto-generate splits if not explicitly provided using shared currency-aware utilities
         let splits = this.expense.splits;
         if (!splits && this.expense.participants.length > 0) {
             if (this.expense.splitType === 'equal') {
-                const splitAmount = this.expense.amount / this.expense.participants.length;
-                splits = this.expense.participants.map((userId: string) => ({
-                    uid: userId,
-                    amount: splitAmount,
-                }));
+                splits = calculateEqualSplits(this.expense.amount, this.expense.currency, this.expense.participants);
             } else if (this.expense.splitType === 'exact') {
-                // For exact splits, distribute evenly as default
-                const splitAmount = this.expense.amount / this.expense.participants.length;
-                splits = this.expense.participants.map((userId: string) => ({
-                    uid: userId,
-                    amount: splitAmount,
-                }));
+                splits = calculateExactSplits(this.expense.amount, this.expense.currency, this.expense.participants);
             } else if (this.expense.splitType === 'percentage') {
-                // For percentage splits, distribute evenly as default
-                const percentage = 100 / this.expense.participants.length;
-                const splitAmount = (this.expense.amount * percentage) / 100;
-                splits = this.expense.participants.map((userId: string) => ({
-                    uid: userId,
-                    amount: splitAmount,
-                    percentage: percentage,
-                }));
+                splits = calculatePercentageSplits(this.expense.amount, this.expense.currency, this.expense.participants);
             }
         }
 

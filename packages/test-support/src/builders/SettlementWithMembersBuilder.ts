@@ -1,5 +1,5 @@
 import type { SettlementWithMembers, GroupMember } from '@splitifyd/shared';
-import { generateShortId, randomDecimal, randomCurrency } from '../test-helpers';
+import { generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
 import { GroupMemberBuilder } from './GroupMemberBuilder';
 
 /**
@@ -17,13 +17,15 @@ export class SettlementWithMembersBuilder {
 
         const payee = new GroupMemberBuilder().withUid('payee-user').withDisplayName('Payee User').build();
 
+        const { currency, amount } = randomValidCurrencyAmountPair(10, 500);
+
         this.settlement = {
             id: `settlement-${generateShortId()}`,
             groupId: `group-${generateShortId()}`,
             payer,
             payee,
-            amount: randomDecimal(10, 500),
-            currency: randomCurrency(),
+            amount,
+            currency,
             date: new Date().toISOString(),
             createdAt: new Date().toISOString(),
             deletedAt: null,

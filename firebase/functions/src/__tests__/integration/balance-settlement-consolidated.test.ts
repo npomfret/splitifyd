@@ -21,8 +21,11 @@ describe('Balance & Settlement - Consolidated Tests', () => {
     describe('Basic Balance Calculation', () => {
         test('should return correct response structure for empty and populated groups', async () => {
             // Test empty group balance structure
-            const emptyGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName('Empty Balance Test').build(), users[0].token);
+            const emptyGroup = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Empty Balance Test')
+                    .build(),
+                users[0].token);
 
             const emptyBalances = await apiDriver.getGroupBalances(emptyGroup.id, users[0].token);
             expect(emptyBalances.groupId).toBe(emptyGroup.id);
@@ -56,18 +59,6 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             expect(populatedBalances.balancesByCurrency.USD[users[0].uid]).toHaveProperty('netBalance');
             expect(populatedBalances.balancesByCurrency.USD[users[0].uid].netBalance).toBeGreaterThan(0); // User 0 should be owed money
         });
-
-        // REMOVED: Redundant test - now covered by BalanceCalculationService.scenarios.test.ts
-        // test('should handle basic two-user balance calculations', async () => {
-        //     // Mathematical balance calculation logic is now comprehensively tested in unit tests
-        //     // This integration test provided no additional value beyond API testing
-        // });
-
-        // REMOVED: Redundant test - now covered by BalanceCalculationService.scenarios.test.ts
-        // test('should handle zero-sum scenarios correctly', async () => {
-        //     // Zero-sum balance calculation logic is now tested in unit tests
-        //     // This integration test provided no additional value beyond API testing
-        // });
 
         test('should handle authentication and authorization correctly', async () => {
             const testGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder()
@@ -124,6 +115,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
                 expect(retrieved.id).toBe(created.id);
                 expect(retrieved.amount).toBe(100.0);
+                expect(retrieved.currency).toBe("USD");
                 expect(retrieved.note).toBe('Retrieve test');
                 expect(retrieved.payer).toBeDefined();
                 expect(retrieved.payee).toBeDefined();
@@ -136,7 +128,6 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(settlementUsers[0].uid)
                     .withPayeeId(settlementUsers[1].uid)
-                    .withCurrency('USD')
                     .build();
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
@@ -165,12 +156,14 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
                 const updateData = new SettlementUpdateBuilder()
                     .withAmount(75.25)
-                    .withCurrency('USD')
-                    .withNote('Updated note').build();
+                    .withCurrency('EUR')
+                    .withNote('Updated note')
+                    .build();
 
                 const updated = await apiDriver.updateSettlement(created.id, updateData, settlementUsers[0].token);
 
                 expect(updated.amount).toBe(75.25);
+                expect(updated.currency).toBe("EUR");
                 expect(updated.note).toBe('Updated note');
             });
 
@@ -179,14 +172,18 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(settlementUsers[0].uid)
                     .withPayeeId(settlementUsers[1].uid)
-                    .withCurrency('USD').build();
+                    .withCurrency('USD')
+                    .withAmount(1)
+                    .build();
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
-                await expect(apiDriver.updateSettlement(created.id, new SettlementUpdateBuilder()
-                    .withAmount(100)
-                    .withCurrency('USD').build(), settlementUsers[1].token)).rejects.toThrow(
-                    /status 403.*NOT_SETTLEMENT_CREATOR/,
+                await expect(apiDriver.updateSettlement(created.id,
+                    new SettlementUpdateBuilder()
+                        .withAmount(100)
+                        .withCurrency('USD')
+                        .build(),
+                    settlementUsers[1].token)).rejects.toThrow(/status 403.*NOT_SETTLEMENT_CREATOR/,
                 );
             });
 
@@ -195,13 +192,19 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(settlementUsers[0].uid)
                     .withPayeeId(settlementUsers[1].uid)
-                    .withCurrency('USD').build();
+                    .withAmount(1)
+                    .withCurrency('USD')
+                    .build();
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
-                await expect(apiDriver.updateSettlement(created.id, new SettlementUpdateBuilder()
-                    .withAmount(-100)
-                    .withCurrency('USD').build(), settlementUsers[0].token)).rejects.toThrow(/status 400.*VALIDATION_ERROR/);
+                await expect(apiDriver.updateSettlement(
+                    created.id,
+                    new SettlementUpdateBuilder()
+                        .withAmount(-100)
+                        .withCurrency('USD')
+                        .build(),
+                    settlementUsers[0].token)).rejects.toThrow(/status 400.*VALIDATION_ERROR/);
             });
 
             test('should update balances correctly when settlement currency is changed', async () => {
@@ -270,7 +273,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(settlementUsers[0].uid)
                     .withPayeeId(settlementUsers[1].uid)
-                    .withCurrency('USD').build();
+                    .build();
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
                 await apiDriver.deleteSettlement(created.id, settlementUsers[0].token);
@@ -283,7 +286,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(settlementUsers[0].uid)
                     .withPayeeId(settlementUsers[1].uid)
-                    .withCurrency('USD').build();
+                    .build();
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
@@ -549,8 +552,6 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                 .withGroupId(testGroup.id)
                 .withPayerId(settlementUsers[0].uid)
                 .withPayeeId(settlementUsers[1].uid)
-                .withAmount(100.0)
-                .withCurrency('USD')
                 .withNote('Test soft delete')
                 .build();
 
@@ -576,8 +577,6 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                 .withGroupId(testGroup.id)
                 .withPayerId(settlementCreator.uid)
                 .withPayeeId(settlementUsers[2].uid)
-                .withAmount(75.0)
-                .withCurrency('USD')
                 .build();
 
             const created = await apiDriver.createSettlement(settlementData, settlementCreator.token);
@@ -597,8 +596,6 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                 .withGroupId(testGroup.id)
                 .withPayerId(settlementCreator.uid)
                 .withPayeeId(settlementUsers[1].uid)
-                .withAmount(50.0)
-                .withCurrency('USD')
                 .build();
 
             const created = await apiDriver.createSettlement(settlementData, settlementCreator.token);
@@ -612,8 +609,6 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                 .withGroupId(testGroup.id)
                 .withPayerId(settlementUsers[0].uid)
                 .withPayeeId(settlementUsers[1].uid)
-                .withAmount(100.0)
-                .withCurrency('USD')
                 .build();
 
             const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
@@ -630,8 +625,6 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                 .withGroupId(testGroup.id)
                 .withPayerId(settlementUsers[0].uid)
                 .withPayeeId(settlementUsers[1].uid)
-                .withAmount(100.0)
-                .withCurrency('USD')
                 .build();
 
             const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);

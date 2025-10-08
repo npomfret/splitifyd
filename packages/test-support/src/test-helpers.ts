@@ -1,3 +1,6 @@
+// Import currency utilities from shared package
+import { getCurrencyDecimals, roundToCurrencyPrecision } from '@splitifyd/shared';
+
 /**
  * Generates a short, readable UUID for test data
  * Format: 8 alphanumeric characters
@@ -79,6 +82,41 @@ export function randomEmail(): string {
 
 export function randomCurrency(): string {
     return randomChoice(['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY']);
+}
+
+// Re-export currency utilities for backward compatibility
+export { getCurrencyDecimals, roundToCurrencyPrecision };
+
+/**
+ * Generates a valid random currency/amount pair
+ * Ensures the amount has the correct decimal precision for the selected currency
+ * Excludes USD as requested
+ *
+ * @param min Minimum amount (default: 5)
+ * @param max Maximum amount (default: 500)
+ * @returns Object with currency code and valid amount
+ */
+export function randomValidCurrencyAmountPair(min: number = 5, max: number = 500): { currency: string; amount: number } {
+    // Currency lists by decimal precision (excluding USD)
+    const currenciesByDecimals: Record<number, string[]> = {
+        0: ['JPY', 'KRW', 'VND', 'CLP', 'ISK', 'PYG'], // Zero decimals
+        1: ['MGA', 'MRU'], // One decimal
+        2: ['EUR', 'GBP', 'CAD', 'AUD', 'CHF', 'SEK', 'NOK', 'DKK', 'PLN'], // Two decimals (excluding USD)
+        3: ['BHD', 'KWD', 'OMR', 'JOD', 'TND'], // Three decimals
+    };
+
+    // Pick a random decimal precision group
+    const decimalOptions: number[] = [0, 1, 2, 3];
+    const selectedDecimals: number = randomChoice<number>(decimalOptions);
+
+    // Pick a random currency from that group
+    const currencyList: string[] = currenciesByDecimals[selectedDecimals];
+    const currency: string = randomChoice<string>(currencyList);
+
+    // Generate amount with correct decimal precision
+    const amount: number = randomDecimal(min, max, selectedDecimals);
+
+    return { currency, amount };
 }
 
 export function randomCategory(): string {

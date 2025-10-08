@@ -205,8 +205,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withGroupId(groupId)
                 .withPayerId('valid-payer')
                 .withPayeeId('valid-payee')
-                .withAmount(100)
-                .withCurrency('USD').build();
+                .build();
 
             // Mock valid user data
             setUserData('valid-payer', {
@@ -255,8 +254,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
                 .withPayeeId('payee-user')
-                .withAmount(100)
-                .withCurrency('USD').build();
+                .build();
 
             // Mock basic setup
             setGroupData(groupId, {id: groupId, name: 'Test Group'});
@@ -292,8 +290,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
                 .withPayeeId('payee-user')
-                .withAmount(100)
-                .withCurrency('USD').build();
+                .build();
 
             // Mock valid data
             setGroupData(groupId, {id: groupId, name: 'Test Group'});
@@ -331,8 +328,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withGroupId(groupId)
                 .withPayerId('non-member-payer')
                 .withPayeeId('payee-user')
-                .withAmount(100)
-                .withCurrency('USD').build();
+                .build();
 
             // Mock group and user data
             setGroupData(groupId, {id: groupId, name: 'Test Group'});
@@ -403,8 +399,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
                 .withPayeeId('payee-user')
-                .withAmount(100)
-                .withCurrency('USD').build();
+                .build();
 
             // Don't set group data (simulating non-existent group)
             stubReader.verifyGroupMembership = () => Promise.resolve(true);
@@ -551,8 +546,6 @@ describe('SettlementService - Unit Tests', () => {
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
                 .withPayeeId('payee-user')
-                .withAmount(100)
-                .withCurrency('USD')
                 .build();
 
             // Mock required data
@@ -566,12 +559,14 @@ describe('SettlementService - Unit Tests', () => {
                 .withUserId('payer-user')
                 .withGroupId(groupId)
                 .withRole('member')
-                .withStatus('active').build();
+                .withStatus('active')
+                .build();
             const payeeMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId('payee-user')
                 .withGroupId(groupId)
                 .withRole('member')
-                .withStatus('active').build();
+                .withStatus('active')
+                .build();
             stubReader.setDocument('group-members', `${groupId}_payer-user`, payerMembershipDoc);
             stubReader.setDocument('group-members', `${groupId}_payee-user`, payeeMembershipDoc);
 

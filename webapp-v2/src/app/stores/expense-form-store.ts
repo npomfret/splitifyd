@@ -1,5 +1,13 @@
 import { signal, ReadonlySignal } from '@preact/signals';
-import { CreateExpenseRequest, ExpenseDTO, ExpenseSplit, SplitTypes } from '@splitifyd/shared';
+import {
+    CreateExpenseRequest,
+    ExpenseDTO,
+    ExpenseSplit,
+    SplitTypes,
+    calculateEqualSplits,
+    calculateExactSplits,
+    calculatePercentageSplits,
+} from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
@@ -479,23 +487,15 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     calculateEqualSplits(): void {
         const participants = this.#participantsSignal.value;
         const amount = this.#amountSignal.value;
+        const currency = this.#currencySignal.value;
 
-        if (participants.length === 0 || amount <= 0) {
+        if (participants.length === 0 || amount <= 0 || !currency) {
             this.#splitsSignal.value = [];
             return;
         }
 
-        // Calculate equal split amount
-        const splitAmount = Math.floor((amount * 100) / participants.length) / 100;
-        const remainder = amount - splitAmount * participants.length;
-
-        // Create splits
-        const splits: ExpenseSplit[] = participants.map((uid, index) => ({
-            uid,
-            amount: index === 0 ? splitAmount + remainder : splitAmount,
-        }));
-
-        this.#splitsSignal.value = splits;
+        // Use shared currency-aware split calculation
+        this.#splitsSignal.value = calculateEqualSplits(amount, currency, participants);
     }
 
     updateSplitAmount(uid: string, amount: number): void {
@@ -557,34 +557,27 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     private handleSplitTypeChange(newType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE): void {
         const participants = this.#participantsSignal.value;
         const amount = this.#amountSignal.value;
+        const currency = this.#currencySignal.value;
 
-        if (participants.length === 0 || amount <= 0) {
+        if (participants.length === 0 || amount <= 0 || !currency) {
             this.#splitsSignal.value = [];
             return;
         }
 
         switch (newType) {
             case SplitTypes.EQUAL:
-                this.calculateEqualSplits();
+                // Use shared currency-aware equal split calculation
+                this.#splitsSignal.value = calculateEqualSplits(amount, currency, participants);
                 break;
 
             case SplitTypes.EXACT:
-                // Initialize with equal amounts as a starting point
-                const exactAmount = amount / participants.length;
-                this.#splitsSignal.value = participants.map((uid) => ({
-                    uid,
-                    amount: exactAmount,
-                }));
+                // Use shared currency-aware exact split calculation (equal amounts as starting point)
+                this.#splitsSignal.value = calculateExactSplits(amount, currency, participants);
                 break;
 
             case SplitTypes.PERCENTAGE:
-                // Initialize with equal percentages
-                const equalPercentage = 100 / participants.length;
-                this.#splitsSignal.value = participants.map((uid) => ({
-                    uid,
-                    percentage: equalPercentage,
-                    amount: (amount * equalPercentage) / 100,
-                }));
+                // Use shared currency-aware percentage split calculation
+                this.#splitsSignal.value = calculatePercentageSplits(amount, currency, participants);
                 break;
         }
     }

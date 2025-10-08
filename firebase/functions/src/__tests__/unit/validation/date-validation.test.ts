@@ -10,8 +10,6 @@ describe('Date Validation Unit Tests', () => {
             futureDate.setDate(futureDate.getDate() + 30); // 30 days in the future
 
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(1)
-                .withCurrency('USD')
                 .withDate(futureDate.toISOString())
                 .build();
 
@@ -24,8 +22,6 @@ describe('Date Validation Unit Tests', () => {
             nearFutureDate.setHours(nearFutureDate.getHours() + 23); // 23 hours in the future
 
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(1)
-                .withCurrency('USD')
                 .withDate(nearFutureDate.toISOString())
                 .build();
 
@@ -38,8 +34,6 @@ describe('Date Validation Unit Tests', () => {
             futureDate.setHours(futureDate.getHours() + 25); // 25 hours in the future
 
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(1)
-                .withCurrency('USD')
                 .withDate(futureDate.toISOString())
                 .build();
 
@@ -53,8 +47,6 @@ describe('Date Validation Unit Tests', () => {
             validOldDate.setFullYear(validOldDate.getFullYear() - 2); // 2 years ago
 
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(1)
-                .withCurrency('USD')
                 .withDate(validOldDate.toISOString())
                 .build();
 
@@ -67,8 +59,6 @@ describe('Date Validation Unit Tests', () => {
             veryOldDate.setFullYear(veryOldDate.getFullYear() - 11); // 11 years ago
 
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(1)
-                .withCurrency('USD')
                 .withDate(veryOldDate.toISOString())
                 .build();
 
@@ -82,8 +72,6 @@ describe('Date Validation Unit Tests', () => {
             boundaryDate.setDate(boundaryDate.getDate() + 1); // One day within the boundary
 
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(1)
-                .withCurrency('USD')
                 .withDate(boundaryDate.toISOString())
                 .build();
 
@@ -107,8 +95,6 @@ describe('Date Validation Unit Tests', () => {
 
             invalidDates.forEach((invalidDate) => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(1)
-                    .withCurrency('USD')
                     .withDate(invalidDate as string)
                     .build();
 
@@ -126,8 +112,6 @@ describe('Date Validation Unit Tests', () => {
                 dateObj.setFullYear(currentYear - 1); // Set to last year to be safe
 
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(1)
-                    .withCurrency('USD')
                     .withDate(dateObj.toISOString())
                     .build();
 
@@ -145,8 +129,6 @@ describe('Date Validation Unit Tests', () => {
 
             nonUtcDates.forEach((nonUtcDate) => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(1)
-                    .withCurrency('USD')
                     .withDate(nonUtcDate)
                     .build();
 
@@ -167,8 +149,6 @@ describe('Date Validation Unit Tests', () => {
 
             nonStringDates.forEach((nonStringDate) => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(1)
-                    .withCurrency('USD')
                     .build();
 
                 // Override the date field with the invalid value for testing
@@ -185,7 +165,6 @@ describe('Date Validation Unit Tests', () => {
             futureDate.setDate(futureDate.getDate() + 30);
 
             const updateData = new ExpenseUpdateBuilder()
-                .withCurrency('USD')
                 .withDate(futureDate.toISOString())
                 .build();
 
@@ -197,7 +176,6 @@ describe('Date Validation Unit Tests', () => {
             validDate.setMonth(validDate.getMonth() - 1); // 1 month ago
 
             const updateData = new ExpenseUpdateBuilder()
-                .withCurrency('USD')
                 .withDate(validDate.toISOString())
                 .build();
 

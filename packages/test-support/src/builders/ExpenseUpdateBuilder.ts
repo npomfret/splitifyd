@@ -1,4 +1,4 @@
-import { randomString, randomDecimal, randomChoice, randomDate, randomCurrency, randomCategory } from '../test-helpers';
+import { randomString, randomChoice, randomDate, randomCategory, randomValidCurrencyAmountPair } from '../test-helpers';
 
 interface ExpenseUpdate {
     amount?: number;
@@ -20,10 +20,12 @@ export class ExpenseUpdateBuilder {
     private update: ExpenseUpdate;
 
     constructor() {
+        const { currency, amount } = randomValidCurrencyAmountPair(5, 500);
+
         this.update = {
             description: `Updated ${randomChoice(['Dinner', 'Lunch', 'Coffee', 'Gas', 'Movie', 'Grocery'])} ${randomString(4)}`,
-            amount: randomDecimal(5, 500),
-            currency: randomCurrency(),
+            amount,
+            currency,
             category: randomCategory(),
             date: randomDate(),
         };

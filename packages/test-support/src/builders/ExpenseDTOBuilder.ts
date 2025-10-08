@@ -1,5 +1,5 @@
 import type { ExpenseDTO } from '@splitifyd/shared';
-import { BuilderTimestamp, timestampToISOString, generateShortId, randomString, randomChoice, randomDecimal, randomDate, randomCurrency, randomCategory } from '../test-helpers';
+import { BuilderTimestamp, timestampToISOString, generateShortId, randomString, randomChoice, randomDate, randomCategory, randomValidCurrencyAmountPair } from '../test-helpers';
 
 /**
  * Builder for creating ExpenseDTO objects for tests
@@ -10,6 +10,7 @@ export class ExpenseDTOBuilder {
 
     constructor() {
         const userId = `user-${generateShortId()}`;
+        const { currency, amount } = randomValidCurrencyAmountPair(5, 500);
 
         this.expense = {
             // Audit fields (BaseDTO)
@@ -20,13 +21,13 @@ export class ExpenseDTOBuilder {
             // Business fields
             groupId: `group-${generateShortId()}`,
             description: `${randomChoice(['Dinner', 'Lunch', 'Coffee', 'Gas', 'Movie', 'Grocery'])} ${randomString(4)}`,
-            amount: randomDecimal(5, 500),
-            currency: randomCurrency(),
+            amount,
+            currency,
             paidBy: userId,
             createdBy: userId,
             splitType: randomChoice(['equal', 'exact', 'percentage'] as const),
             participants: [userId],
-            splits: [{ uid: userId, amount: randomDecimal(5, 500) }],
+            splits: [{ uid: userId, amount }],
             date: randomDate(),
             category: randomCategory(),
             deletedAt: null,

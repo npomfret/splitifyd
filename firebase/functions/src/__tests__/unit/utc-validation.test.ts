@@ -137,8 +137,8 @@ describe('UTC Date Validation', () => {
     describe('Settlement Validation', () => {
         it('should accept settlements with UTC dates', () => {
             const validSettlement = new CreateSettlementRequestBuilder()
-                .withCurrency('USD')
-                .withDate('2024-01-01T00:00:00.000Z').build();
+                .withDate('2024-01-01T00:00:00.000Z')
+                .build();
 
             const result = createSettlementSchema.validate(validSettlement);
             expect(result.error).toBeUndefined();
@@ -146,7 +146,6 @@ describe('UTC Date Validation', () => {
 
         it('should accept settlements without dates (server will use current time)', () => {
             const validSettlement = new CreateSettlementRequestBuilder()
-                .withCurrency('USD')
                 .withoutDate()
                 .build();
 
@@ -156,7 +155,6 @@ describe('UTC Date Validation', () => {
 
         it('should reject settlements with non-UTC dates', () => {
             const invalidSettlement = new CreateSettlementRequestBuilder()
-                .withCurrency('USD')
                 .withDate('2024-01-01T00:00:00-05:00') // Non-UTC timezone
                 .build();
 
@@ -170,8 +168,8 @@ describe('UTC Date Validation', () => {
             future.setDate(future.getDate() + 2); // 2 days in future, beyond 24h buffer
 
             const futureSettlement = new CreateSettlementRequestBuilder()
-                .withCurrency('USD')
-                .withDate(future.toISOString()).build();
+                .withDate(future.toISOString())
+                .build();
 
             const result = createSettlementSchema.validate(futureSettlement);
             expect(result.error).toBeDefined();

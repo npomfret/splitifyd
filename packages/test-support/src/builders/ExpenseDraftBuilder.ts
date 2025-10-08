@@ -1,4 +1,4 @@
-import { randomString, randomDecimal, randomChoice, randomCategory, randomCurrency, generateShortId } from '../test-helpers';
+import { randomString, randomChoice, randomCategory, generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
 import { SplitTypes } from '@splitifyd/shared';
 
 interface ExpenseDraft {
@@ -21,12 +21,12 @@ export class ExpenseDraftBuilder {
     constructor() {
         const userId = `user-${generateShortId()}`;
         const now = Date.now();
-        const amount = randomDecimal(5, 100);
+        const { currency, amount } = randomValidCurrencyAmountPair(5, 100);
 
         this.draft = {
             description: `${randomChoice(['Lunch', 'Coffee', 'Dinner', 'Gas', 'Movie', 'Grocery'])} ${randomString(4)}`,
             amount,
-            currency: randomCurrency(),
+            currency,
             date: new Date(now).toISOString().split('T')[0], // YYYY-MM-DD format
             time: new Date(now).toTimeString().slice(0, 5), // HH:MM format
             paidBy: userId,

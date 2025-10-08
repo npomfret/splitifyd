@@ -1,4 +1,4 @@
-import { randomString, randomDecimal, randomChoice, randomCurrency } from '../test-helpers';
+import { randomString, randomChoice, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export interface ExpenseFormData {
     description: string;
@@ -17,10 +17,12 @@ export class ExpenseFormDataBuilder {
     private expense: ExpenseFormData;
 
     constructor() {
+        const { currency, amount } = randomValidCurrencyAmountPair(5, 500);
+
         this.expense = {
             description: `${randomChoice(['Dinner', 'Lunch', 'Coffee', 'Gas', 'Movie', 'Grocery'])} ${randomString(4)}`,
-            amount: randomDecimal(5, 500),
-            currency: randomCurrency(),
+            amount,
+            currency,
             paidByDisplayName: '', // No default - must be explicitly set
             splitType: randomChoice(['equal', 'exact', 'percentage']),
             participants: [],

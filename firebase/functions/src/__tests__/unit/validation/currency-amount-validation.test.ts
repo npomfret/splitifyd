@@ -27,6 +27,7 @@ describe('Currency-Aware Amount Validation', () => {
             const expenseData = new CreateExpenseRequestBuilder()
                 .withAmount(100.50)
                 .withCurrency('JPY')
+                .withSplitType('equal')
                 .withParticipants(['user1'])
                 .withPaidBy('user1')
                 .build();
@@ -75,6 +76,7 @@ describe('Currency-Aware Amount Validation', () => {
             const expenseData = new CreateExpenseRequestBuilder()
                 .withAmount(100.123)
                 .withCurrency('EUR')
+                .withSplitType('equal')
                 .withParticipants(['user1'])
                 .withPaidBy('user1')
                 .build();
@@ -106,6 +108,7 @@ describe('Currency-Aware Amount Validation', () => {
             const expenseData = new CreateExpenseRequestBuilder()
                 .withAmount(10.1234)
                 .withCurrency('KWD')
+                .withSplitType('equal')
                 .withParticipants(['user1'])
                 .withPaidBy('user1')
                 .build();
@@ -137,6 +140,7 @@ describe('Currency-Aware Amount Validation', () => {
             const expenseData = new CreateExpenseRequestBuilder()
                 .withAmount(100.55)
                 .withCurrency('MRU')
+                .withSplitType('equal')
                 .withParticipants(['user1'])
                 .withPaidBy('user1')
                 .build();

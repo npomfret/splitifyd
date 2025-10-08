@@ -1,16 +1,17 @@
-import { randomDecimal, randomDate, randomString, randomCurrency, generateShortId } from '../test-helpers';
+import { randomDate, randomString, randomValidCurrencyAmountPair, generateShortId } from '../test-helpers';
 import type { CreateSettlementRequest } from '@splitifyd/shared';
 
 export class CreateSettlementRequestBuilder {
     private settlement: CreateSettlementRequest;
 
     constructor() {
+        const { currency, amount } = randomValidCurrencyAmountPair(5, 200);
         this.settlement = {
             groupId: `group-${generateShortId()}`,
             payerId: `user-${generateShortId()}`,
             payeeId: `user-${generateShortId()}`,
-            amount: randomDecimal(5, 200),
-            currency: randomCurrency(),
+            amount,
+            currency,
             date: randomDate(),
             note: `Settlement ${randomString(6)}`,
         };
