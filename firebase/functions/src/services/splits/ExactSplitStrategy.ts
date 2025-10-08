@@ -2,13 +2,14 @@ import { ExpenseSplit } from '@splitifyd/shared';
 import { ApiError } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
 import { ISplitStrategy } from './ISplitStrategy';
+import { getCurrencyTolerance } from '../../utils/amount-validation';
 
 export class ExactSplitStrategy implements ISplitStrategy {
     requiresSplitsData(): boolean {
         return true;
     }
 
-    validateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[]): void {
+    validateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[], currencyCode?: string): void {
         if (!Array.isArray(splits) || splits.length !== participants.length) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLITS', 'Splits must be provided for all participants');
         }
@@ -25,7 +26,10 @@ export class ExactSplitStrategy implements ISplitStrategy {
             return sum + split.amount!;
         }, 0);
 
-        if (Math.abs(totalSplit - totalAmount) > 0.01) {
+        // Use currency-specific tolerance, fallback to 0.01 if currency not provided
+        const tolerance = currencyCode ? getCurrencyTolerance(currencyCode) : 0.01;
+
+        if (Math.abs(totalSplit - totalAmount) > tolerance) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount');
         }
 

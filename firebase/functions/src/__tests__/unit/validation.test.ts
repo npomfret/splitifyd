@@ -52,6 +52,7 @@ describe('Expense Validation', () => {
                 .withDescription('Dinner at restaurant')
                 .withCategory('food')
                 .withAmount(100.5)
+                .withCurrency('USD')
                 .withSplitType('equal')
                 .withReceiptUrl('https://example.com/receipt.jpg')
                 .build();

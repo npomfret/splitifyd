@@ -6,6 +6,7 @@ import { sanitizeString } from '../utils/security';
 import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
 import { ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest, SplitTypes } from '@splitifyd/shared';
 import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
+import { validateAmountPrecision } from '../utils/amount-validation';
 
 const expenseSplitSchema = Joi.object({
     uid: Joi.string().required(),
@@ -148,10 +149,30 @@ export const validateCreateExpense = (body: any): CreateExpenseRequest => {
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'PAYER_NOT_PARTICIPANT', 'Payer must be a participant');
     }
 
+    // Validate main expense amount precision for currency
+    try {
+        validateAmountPrecision(value.amount, value.currency);
+    } catch (error) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT_PRECISION', (error as Error).message);
+    }
+
+    // Validate split amounts precision if splits are provided
+    if (value.splits && Array.isArray(value.splits)) {
+        for (const split of value.splits) {
+            if (split.amount !== undefined) {
+                try {
+                    validateAmountPrecision(split.amount, value.currency);
+                } catch (error) {
+                    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_AMOUNT_PRECISION', (error as Error).message);
+                }
+            }
+        }
+    }
+
     // Use strategy pattern to validate splits based on split type
     const splitStrategyFactory = SplitStrategyFactory.getInstance();
     const splitStrategy = splitStrategyFactory.getStrategy(value.splitType);
-    splitStrategy.validateSplits(value.amount, value.participants, value.splits);
+    splitStrategy.validateSplits(value.amount, value.participants, value.splits, value.currency);
 
     const expenseData = {
         groupId: value.groupId.trim(),
@@ -214,6 +235,15 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
         update.currency = value.currency;
     }
 
+    // Validate amount precision if both amount and currency are provided
+    if ('amount' in update && 'currency' in update) {
+        try {
+            validateAmountPrecision(update.amount!, update.currency!);
+        } catch (error) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT_PRECISION', (error as Error).message);
+        }
+    }
+
     if ('description' in value) {
         update.description = value.description.trim();
     }
@@ -238,6 +268,20 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
         }
         const participants = value.participants;
         const splits = value.splits;
+
+        // Validate split amounts precision if currency is available and splits are provided
+        const currency = value.currency;
+        if (currency && splits && Array.isArray(splits)) {
+            for (const split of splits) {
+                if (split.amount !== undefined) {
+                    try {
+                        validateAmountPrecision(split.amount, currency);
+                    } catch (error) {
+                        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_AMOUNT_PRECISION', (error as Error).message);
+                    }
+                }
+            }
+        }
 
         // Use strategy pattern to validate splits for updates
         const splitStrategyFactory = SplitStrategyFactory.getInstance();

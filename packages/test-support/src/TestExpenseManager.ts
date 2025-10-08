@@ -1,9 +1,8 @@
-import { GroupDTO } from '@splitifyd/shared';
-import { ApiDriver } from './ApiDriver';
-import { CreateExpenseRequestBuilder } from './builders';
-import { generateShortId } from './test-helpers';
-import { TestGroupManager } from './TestGroupManager';
-import { UserToken } from '@splitifyd/shared';
+import {GroupDTO, UserToken} from '@splitifyd/shared';
+import {ApiDriver} from './ApiDriver';
+import {CreateExpenseRequestBuilder} from './builders';
+import {generateShortId} from './test-helpers';
+import {TestGroupManager} from './TestGroupManager';
 
 interface ExpenseOptions {
     amount?: number;
@@ -12,6 +11,9 @@ interface ExpenseOptions {
     fresh?: boolean;
 }
 
+/**
+ * @deprecated delete this bullshit
+ */
 export class TestExpenseManager {
     private static expenseCache: Map<string, Promise<any>> = new Map();
     private static apiDriver = new ApiDriver();
@@ -41,12 +43,12 @@ export class TestExpenseManager {
     private static async createFreshExpense(group: GroupDTO, users: UserToken[], payer: UserToken, options: ExpenseOptions = {}): Promise<any> {
         const { amount = 50.0, description, category = 'food' } = options;
         const uniqueId = generateShortId();
-        const expenseDescription = description || `Shared expense ${uniqueId}`;
 
         const expenseData = new CreateExpenseRequestBuilder()
             .withGroupId(group.id)
-            .withDescription(expenseDescription)
+            .withDescription(description || `Shared expense ${uniqueId}`)
             .withAmount(amount)
+            .withCurrency("USD")
             .withPaidBy(payer.uid)
             .withParticipants(users.map((u) => u.uid))
             .withCategory(category)

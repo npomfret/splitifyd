@@ -6,9 +6,10 @@ export interface ISplitStrategy {
      * @param totalAmount The total expense amount
      * @param participants Array of participant user IDs
      * @param splits The splits to validate (may be undefined for EQUAL type)
+     * @param currencyCode Optional currency code for precision validation
      * @throws ApiError if validation fails
      */
-    validateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[]): void;
+    validateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[], currencyCode?: string): void;
 
     /**
      * Calculates the final split amounts for all participants

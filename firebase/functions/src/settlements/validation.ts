@@ -1,11 +1,13 @@
 import * as Joi from 'joi';
 import { CreateSettlementRequest, UpdateSettlementRequest } from '@splitifyd/shared';
 import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
+import { createJoiAmountSchema } from '../utils/amount-validation';
 
-const amountSchema = Joi.number().positive().precision(2).max(999999.99).required().messages({
+const amountSchema = createJoiAmountSchema('currency').required().messages({
     'number.base': 'Amount must be a number',
     'number.positive': 'Amount must be greater than 0',
     'number.max': 'Amount cannot exceed 999,999.99',
+    'number.precision': '{#message}',
     'any.required': 'Amount is required',
 });
 
@@ -72,10 +74,11 @@ export const createSettlementSchema = Joi.object<CreateSettlementRequest>({
 });
 
 export const updateSettlementSchema = Joi.object<UpdateSettlementRequest>({
-    amount: Joi.number().positive().precision(2).max(999999.99).optional().messages({
+    amount: createJoiAmountSchema('currency').optional().messages({
         'number.base': 'Amount must be a number',
         'number.positive': 'Amount must be greater than 0',
         'number.max': 'Amount cannot exceed 999,999.99',
+        'number.precision': '{#message}',
     }),
     currency: Joi.string().length(3).uppercase().optional(),
     date: dateSchema,

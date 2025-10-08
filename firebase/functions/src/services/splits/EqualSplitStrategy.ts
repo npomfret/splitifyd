@@ -6,7 +6,7 @@ export class EqualSplitStrategy implements ISplitStrategy {
         return false;
     }
 
-    validateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[]): void {
+    validateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[], currencyCode?: string): void {
         // Equal splits don't require explicit splits data
         // The only validation needed is that participants array is valid (done elsewhere)
         // No conditional logic needed here - equal splits are always valid if participants exist

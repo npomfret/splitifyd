@@ -8,7 +8,7 @@ export class PercentageSplitStrategy implements ISplitStrategy {
         return true;
     }
 
-    validateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[]): void {
+    validateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[], currencyCode?: string): void {
         if (!Array.isArray(splits) || splits.length !== participants.length) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLITS', 'Splits must be provided for all participants');
         }

@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { validateCreateExpense } from '../../expenses/validation';
-import { createSettlementSchema } from '../../settlements/validation';
-import { isUTCFormat, parseUTCOnly, validateUTCDate } from '../../utils/dateHelpers';
-import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder } from '@splitifyd/test-support';
+import {describe, it, expect} from 'vitest';
+import {validateCreateExpense} from '../../expenses/validation';
+import {createSettlementSchema} from '../../settlements/validation';
+import {isUTCFormat, parseUTCOnly, validateUTCDate} from '../../utils/dateHelpers';
+import {CreateExpenseRequestBuilder, CreateSettlementRequestBuilder} from '@splitifyd/test-support';
 
 describe('UTC Date Validation', () => {
     describe('dateHelpers', () => {
@@ -101,13 +101,19 @@ describe('UTC Date Validation', () => {
 
     describe('Expense Validation', () => {
         it('should accept expenses with UTC dates', () => {
-            const validExpense = new CreateExpenseRequestBuilder().withDate('2024-01-01T00:00:00.000Z').build();
+            const validExpense = new CreateExpenseRequestBuilder()
+                .withAmount(1)
+                .withCurrency('USD')
+                .withDate('2024-01-01T00:00:00.000Z')
+                .build();
 
             expect(() => validateCreateExpense(validExpense)).not.toThrow();
         });
 
         it('should reject expenses with non-UTC dates', () => {
             const invalidExpense = new CreateExpenseRequestBuilder()
+                .withAmount(1)
+                .withCurrency('USD')
                 .withDate('2024-01-01T00:00:00-05:00') // Non-UTC timezone
                 .build();
 
@@ -118,7 +124,11 @@ describe('UTC Date Validation', () => {
             const future = new Date();
             future.setDate(future.getDate() + 2); // 2 days in future, beyond 24h buffer
 
-            const futureExpense = new CreateExpenseRequestBuilder().withDate(future.toISOString()).build();
+            const futureExpense = new CreateExpenseRequestBuilder()
+                .withAmount(1)
+                .withCurrency('USD')
+                .withDate(future.toISOString())
+                .build();
 
             expect(() => validateCreateExpense(futureExpense)).toThrow('Date cannot be in the future');
         });
@@ -126,14 +136,19 @@ describe('UTC Date Validation', () => {
 
     describe('Settlement Validation', () => {
         it('should accept settlements with UTC dates', () => {
-            const validSettlement = new CreateSettlementRequestBuilder().withDate('2024-01-01T00:00:00.000Z').build();
+            const validSettlement = new CreateSettlementRequestBuilder()
+                .withCurrency('USD')
+                .withDate('2024-01-01T00:00:00.000Z').build();
 
             const result = createSettlementSchema.validate(validSettlement);
             expect(result.error).toBeUndefined();
         });
 
         it('should accept settlements without dates (server will use current time)', () => {
-            const validSettlement = new CreateSettlementRequestBuilder().withoutDate().build();
+            const validSettlement = new CreateSettlementRequestBuilder()
+                .withCurrency('USD')
+                .withoutDate()
+                .build();
 
             const result = createSettlementSchema.validate(validSettlement);
             expect(result.error).toBeUndefined();
@@ -141,6 +156,7 @@ describe('UTC Date Validation', () => {
 
         it('should reject settlements with non-UTC dates', () => {
             const invalidSettlement = new CreateSettlementRequestBuilder()
+                .withCurrency('USD')
                 .withDate('2024-01-01T00:00:00-05:00') // Non-UTC timezone
                 .build();
 
@@ -153,7 +169,9 @@ describe('UTC Date Validation', () => {
             const future = new Date();
             future.setDate(future.getDate() + 2); // 2 days in future, beyond 24h buffer
 
-            const futureSettlement = new CreateSettlementRequestBuilder().withDate(future.toISOString()).build();
+            const futureSettlement = new CreateSettlementRequestBuilder()
+                .withCurrency('USD')
+                .withDate(future.toISOString()).build();
 
             const result = createSettlementSchema.validate(futureSettlement);
             expect(result.error).toBeDefined();
