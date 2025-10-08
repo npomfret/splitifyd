@@ -69,6 +69,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
     beforeEach(async () => {
         [user1, user2, user3] = await borrowTestUsers(3);
+        await notificationDriver.waitForQuiet();
     });
 
     afterEach(async () => {
