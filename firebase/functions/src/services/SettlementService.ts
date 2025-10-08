@@ -1,16 +1,16 @@
-import { FieldValue } from 'firebase-admin/firestore';
-import { z } from 'zod';
-import { ApiError } from '../utils/errors';
-import { FirestoreCollections, HTTP_STATUS } from '../constants';
+import {FieldValue} from 'firebase-admin/firestore';
+import {z} from 'zod';
+import {ApiError} from '../utils/errors';
+import {FirestoreCollections, HTTP_STATUS} from '../constants';
 import * as dateHelpers from '../utils/dateHelpers';
-import { logger } from '../logger';
-import { LoggerContext } from '../utils/logger-context';
+import {logger} from '../logger';
+import {LoggerContext} from '../utils/logger-context';
 import * as measure from '../monitoring/measure';
-import { PerformanceTimer } from '../monitoring/PerformanceTimer';
-import { CreateSettlementRequest, GroupMember, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest } from '@splitifyd/shared';
-import type { IFirestoreReader, IFirestoreWriter } from './firestore';
-import { GroupMemberService } from './GroupMemberService';
-import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
+import {PerformanceTimer} from '../monitoring/PerformanceTimer';
+import {CreateSettlementRequest, GroupMember, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest} from '@splitifyd/shared';
+import type {IFirestoreReader, IFirestoreWriter} from './firestore';
+import {GroupMemberService} from './GroupMemberService';
+import {IncrementalBalanceService} from './balance/IncrementalBalanceService';
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -31,32 +31,16 @@ export class SettlementService {
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly incrementalBalanceService: IncrementalBalanceService,
-    ) {}
-
-    /**
-     * Verify that specified users are members of the group using subcollection
-     */
-    private async verifyUsersInGroup(groupId: string, userIds: string[]): Promise<void> {
-        const groupData = await this.firestoreReader.getGroup(groupId);
-
-        if (!groupData) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-        }
-
-        // Verify each user is a member
-        for (const userId of userIds) {
-            const member = await this.firestoreReader.getGroupMember(groupId, userId);
-            if (!member) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'USER_NOT_IN_GROUP', `User ${userId} is not a member of this group`);
-            }
-        }
+    ) {
     }
-
     /**
      * Fetch group member data for settlements
      */
     private async fetchGroupMemberData(groupId: string, userId: string): Promise<GroupMember> {
-        const [userData, memberData] = await Promise.all([this.firestoreReader.getUser(userId), this.firestoreReader.getGroupMember(groupId, userId)]);
+        const [userData, memberData] = await Promise.all([
+            this.firestoreReader.getUser(userId),
+            this.firestoreReader.getGroupMember(groupId, userId)
+        ]);
 
         if (!userData) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${userId} not found`);
@@ -168,17 +152,15 @@ export class SettlementService {
         LoggerContext.setBusinessContext({ groupId: settlementData.groupId });
         LoggerContext.update({ userId, operation: 'create-settlement', amount: settlementData.amount });
 
-        // Validate amount
-        if (settlementData.amount <= 0) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT', 'Amount must be greater than 0');
-        }
-        if (settlementData.amount > 999999.99) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT', 'Amount cannot exceed 999999.99');
-        }
-
         timer.startPhase('query');
-        await this.firestoreReader.verifyGroupMembership(settlementData.groupId, userId);
-        await this.verifyUsersInGroup(settlementData.groupId, [settlementData.payerId, settlementData.payeeId]);
+
+        // Verify each user is a member
+        const memberIds = await this.firestoreReader.getAllGroupMemberIds(settlementData.groupId);
+        for (const uid of [userId, settlementData.payerId, settlementData.payeeId]) {
+            if (!memberIds.includes(uid)) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'USER_NOT_IN_GROUP', `User ${uid} is not a member of this group`);
+            }
+        }
 
         const now = new Date().toISOString();
         const settlementDate = settlementData.date || now;
@@ -207,7 +189,6 @@ export class SettlementService {
         const settlementId = this.firestoreWriter.generateDocumentId(FirestoreCollections.SETTLEMENTS);
 
         // Get members for balance update
-        const memberIds = await this.firestoreReader.getAllGroupMemberIds(settlementData.groupId);
         timer.endPhase();
 
         // Create settlement and update group balance atomically
