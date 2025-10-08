@@ -115,7 +115,13 @@ npx vitest watch
 
 #### Playwright Tests
 
-For Playwright tests in `webapp-v2/src/__tests__/unit/playwright/`, **always use the `run-test.sh` script** instead of running `npx playwright test` directly. This script provides better error handling, automatic port detection, and consistent test execution.
+**IMPORTANT:** For Playwright tests in `webapp-v2/src/__tests__/unit/playwright/`, you **MUST use the `run-test.sh` script**. Do NOT run `npx playwright test` directly as it will cause issues with port detection and test execution.
+
+The `run-test.sh` script provides:
+- Automatic port detection (works with random ports to avoid conflicts)
+- Better error messages and debugging output
+- Consistent test environment setup
+- Built-in flakiness detection with `--repeat` flag
 
 ```bash
 # Navigate to the webapp-v2 directory first
