@@ -13,7 +13,6 @@ import {
 import { PooledTestUser, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
-import { FirestoreReader } from '../../services/firestore';
 import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
 
 describe('Groups Management - Consolidated Tests', () => {

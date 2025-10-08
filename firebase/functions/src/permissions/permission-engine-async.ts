@@ -1,5 +1,4 @@
 import { ExpenseDTO, GroupDTO, GroupPermissions, MemberRoles, MemberStatuses, PermissionLevels } from '@splitifyd/shared';
-import { IFirestoreReader } from '../services/firestore';
 import { GroupMembership } from '@splitifyd/shared/src';
 
 interface PermissionCheckOptions {

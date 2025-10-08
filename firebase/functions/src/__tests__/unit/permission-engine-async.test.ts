@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from 'vitest';
-import { GroupDTO, PermissionLevels, GroupMembership } from '@splitifyd/shared';
+import { GroupDTO, PermissionLevels } from '@splitifyd/shared';
 import { PermissionEngineAsync } from '../../permissions/permission-engine-async';
 import { GroupDTOBuilder, ExpenseDTOBuilder } from '@splitifyd/test-support';
 import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';

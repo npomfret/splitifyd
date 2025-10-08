@@ -9,7 +9,6 @@ import * as measure from '../monitoring/measure';
 import {PerformanceTimer} from '../monitoring/PerformanceTimer';
 import {CreateSettlementRequest, GroupMember, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest} from '@splitifyd/shared';
 import type {IFirestoreReader, IFirestoreWriter} from './firestore';
-import {GroupMemberService} from './GroupMemberService';
 import {IncrementalBalanceService} from './balance/IncrementalBalanceService';
 
 /**
@@ -398,8 +397,6 @@ export class SettlementService {
         if (settlement.deletedAt) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'ALREADY_DELETED', 'Settlement is already deleted');
         }
-
-        await this.firestoreReader.verifyGroupMembership(settlement.groupId, userId);
 
         // Permission check: User must be settlement creator or group admin
         const memberData = await this.firestoreReader.getGroupMember(settlement.groupId, userId);
