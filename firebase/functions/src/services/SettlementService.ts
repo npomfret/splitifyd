@@ -6,7 +6,7 @@ import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import * as dateHelpers from '../utils/dateHelpers';
-import { ApiError } from '../utils/errors';
+import {ApiError, Errors} from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
@@ -152,13 +152,21 @@ export class SettlementService {
         timer.startPhase('query');
 
         // Verify group exists first (like ExpenseService)
-        const groupData = await this.firestoreReader.getGroup(settlementData.groupId);
+        const [groupData, memberIds, member] = await Promise.all([
+            this.firestoreReader.getGroup(settlementData.groupId),
+            this.firestoreReader.getAllGroupMemberIds(settlementData.groupId),
+            this.firestoreReader.getGroupMember(settlementData.groupId, userId),
+        ]);
+
         if (!groupData) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+            throw Errors.NOT_FOUND('Group');
+        }
+
+        if (!member || !memberIds.includes(userId)) {
+            throw Errors.FORBIDDEN();
         }
 
         // Verify each user is a member
-        const memberIds = await this.firestoreReader.getAllGroupMemberIds(settlementData.groupId);
         for (const uid of [userId, settlementData.payerId, settlementData.payeeId]) {
             if (!memberIds.includes(uid)) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'USER_NOT_IN_GROUP', `User ${uid} is not a member of this group`);

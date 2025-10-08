@@ -417,7 +417,7 @@ describe('SettlementService - Unit Tests', () => {
             await expect(settlementService.createSettlement(settlementData, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
-                    code: 'GROUP_NOT_FOUND',
+                    code: 'NOT_FOUND',
                     message: 'Group not found',
                 }),
             );
