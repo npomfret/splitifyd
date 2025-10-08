@@ -66,14 +66,7 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
         // Mock group detail API for when we navigate to the group page
-        const members = [
-            new GroupMemberBuilder()
-                .withUid(user.uid)
-                .withDisplayName(user.displayName)
-                .withEmail(user.email)
-                .withTheme(ThemeBuilder.blue().build())
-                .build(),
-        ];
+        const members = [new GroupMemberBuilder().withUid(user.uid).withDisplayName(user.displayName).withEmail(user.email).withTheme(ThemeBuilder.blue().build()).build()];
         const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
         await mockGroupDetailApi(page, 'interactive-group', fullDetails);
         await mockGroupCommentsApi(page, 'interactive-group');

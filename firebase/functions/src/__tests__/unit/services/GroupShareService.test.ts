@@ -36,7 +36,6 @@ describe('GroupShareService', () => {
         // Create ApplicationBuilder and build GroupShareService
         applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
         groupShareService = applicationBuilder.buildGroupShareService();
-
     });
 
     describe('previewGroupByLink', () => {

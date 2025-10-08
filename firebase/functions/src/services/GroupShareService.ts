@@ -138,7 +138,7 @@ export class GroupShareService {
             id: shareToken,
             groupId,
             createdBy: userId,
-            timings: timer.getTimings()
+            timings: timer.getTimings(),
         });
 
         return {
@@ -181,11 +181,11 @@ export class GroupShareService {
         };
     }
 
-    async joinGroupByLink(userId: string, linkId: string,): Promise<{ groupId: string; groupName: string; message: string; success: boolean }> {
+    async joinGroupByLink(userId: string, linkId: string): Promise<{ groupId: string; groupName: string; message: string; success: boolean }> {
         return measure.measureDb('GroupShareService.joinGroupByLink', async () => this._joinGroupByLink(userId, linkId));
     }
 
-    private async _joinGroupByLink(userId: string, linkId: string,): Promise<{ groupId: string; groupName: string; message: string; success: boolean }> {
+    private async _joinGroupByLink(userId: string, linkId: string): Promise<{ groupId: string; groupName: string; message: string; success: boolean }> {
         const timer = new PerformanceTimer();
 
         if (!linkId) {
@@ -238,35 +238,34 @@ export class GroupShareService {
 
         // Atomic transaction: check group exists and create member subcollection
         timer.startPhase('transaction');
-        const result = await this.firestoreWriter.runTransaction(
-            async (transaction) => {
-                const groupSnapshot = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
+        const result = await this.firestoreWriter.runTransaction(async (transaction) => {
+            const groupSnapshot = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
 
-                if (!groupSnapshot) {
-                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-                }
+            if (!groupSnapshot) {
+                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+            }
 
-                // Update group timestamp to reflect membership change
-                await this.firestoreWriter.touchGroup(groupId, transaction);
+            // Update group timestamp to reflect membership change
+            await this.firestoreWriter.touchGroup(groupId, transaction);
 
-                // Write to top-level collection for improved querying (using ISO strings - DTOs)
-                const topLevelMemberDoc = {
-                    ...createTopLevelMembershipDocument(memberDoc, now),
-                    createdAt: now,
-                    updatedAt: now,
-                };
+            // Write to top-level collection for improved querying (using ISO strings - DTOs)
+            const topLevelMemberDoc = {
+                ...createTopLevelMembershipDocument(memberDoc, now),
+                createdAt: now,
+                updatedAt: now,
+            };
 
-                // FirestoreWriter.createInTransaction handles conversion and validation
-                this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, getTopLevelMembershipDocId(userId, groupId), topLevelMemberDoc);
+            // FirestoreWriter.createInTransaction handles conversion and validation
+            this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, getTopLevelMembershipDocId(userId, groupId), topLevelMemberDoc);
 
-                // Note: Group notifications are handled by the trackGroupChanges trigger
-                // which fires when the group's updatedAt timestamp is modified above
+            // Note: Group notifications are handled by the trackGroupChanges trigger
+            // which fires when the group's updatedAt timestamp is modified above
 
-                return {
-                    groupName: preCheckGroup.name,
-                    invitedBy: shareLink.createdBy,
-                };
-            });
+            return {
+                groupName: preCheckGroup.name,
+                invitedBy: shareLink.createdBy,
+            };
+        });
 
         timer.endPhase();
 
@@ -275,7 +274,7 @@ export class GroupShareService {
             userId,
             linkId: linkId.substring(0, 4) + '...',
             invitedBy: result.invitedBy,
-            timings: timer.getTimings()
+            timings: timer.getTimings(),
         });
 
         return {

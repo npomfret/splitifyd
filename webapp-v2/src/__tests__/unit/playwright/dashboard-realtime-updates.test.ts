@@ -82,7 +82,10 @@ test.describe('Dashboard Real-time Notifications', () => {
         await mockFirebase.triggerNotificationUpdate(user.uid, { changeVersion: 2, groups: { 'valid-group': { lastGroupDetailsChange: new Date() } } });
 
         // Send notification with invalid group ID
-        await mockFirebase.triggerNotificationUpdate(user.uid, new UserNotificationDocumentBuilder().withChangeVersion(3).withGroupDetails('non-existent-id', 1).withGroupDetails('valid-group', 1).build());
+        await mockFirebase.triggerNotificationUpdate(
+            user.uid,
+            new UserNotificationDocumentBuilder().withChangeVersion(3).withGroupDetails('non-existent-id', 1).withGroupDetails('valid-group', 1).build(),
+        );
 
         // Verify dashboard remains stable despite malformed/invalid notifications
         await dashboardPage.verifyGroupDisplayed('Valid Group');

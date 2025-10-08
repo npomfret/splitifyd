@@ -149,8 +149,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                                     {formatDate(settlement.date)}
                                     {isDeleted && settlement.deletedAt && (
                                         <span class="ml-2 text-red-600" data-financial-amount="deleted">
-                                            • {t('settlementHistory.deletedBy')} {deletedByUser?.displayName || t('common.unknown')}{' '}
-                                            {formatDistanceToNow(new Date(settlement.deletedAt))}
+                                            • {t('settlementHistory.deletedBy')} {deletedByUser?.displayName || t('common.unknown')} {formatDistanceToNow(new Date(settlement.deletedAt))}
                                         </span>
                                     )}
                                 </p>

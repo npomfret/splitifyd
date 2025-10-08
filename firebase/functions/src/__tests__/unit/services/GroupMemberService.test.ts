@@ -48,7 +48,6 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         const testGroup = new GroupDTOBuilder().withId(testGroupId).withName('Test Group').build();
         stubReader.setDocument('groups', testGroupId, testGroup);
         await initializeGroupBalance(testGroupId); // Initialize balance for incremental updates
-
     });
 
     describe('getAllGroupMembers', () => {

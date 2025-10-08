@@ -126,7 +126,7 @@ export class GroupMemberService {
         logger.info(logEvent, {
             id: targetUserId,
             groupId,
-            timings: timer.getTimings()
+            timings: timer.getTimings(),
         });
 
         return {

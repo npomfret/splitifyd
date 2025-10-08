@@ -766,11 +766,7 @@ export class FirestoreWriter implements IFirestoreWriter {
 
     async setGroupBalance(groupId: string, balance: GroupBalanceDTO): Promise<void> {
         try {
-            const balanceRef = this.db
-                .collection(FirestoreCollections.GROUPS)
-                .doc(groupId)
-                .collection('metadata')
-                .doc('balance');
+            const balanceRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance');
 
             // Convert DTO to Firestore document (ISO strings → Timestamps)
             const convertedData = this.convertISOToTimestamps(balance);
@@ -789,11 +785,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     }
 
     setGroupBalanceInTransaction(transaction: Transaction, groupId: string, balance: GroupBalanceDTO): void {
-        const balanceRef = this.db
-            .collection(FirestoreCollections.GROUPS)
-            .doc(groupId)
-            .collection('metadata')
-            .doc('balance');
+        const balanceRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance');
 
         // Convert DTO to Firestore document (ISO strings → Timestamps)
         const convertedData = this.convertISOToTimestamps(balance);
@@ -807,29 +799,17 @@ export class FirestoreWriter implements IFirestoreWriter {
     }
 
     async getGroupBalanceInTransaction(transaction: Transaction, groupId: string): Promise<GroupBalanceDTO> {
-        const balanceRef = this.db
-            .collection(FirestoreCollections.GROUPS)
-            .doc(groupId)
-            .collection('metadata')
-            .doc('balance');
+        const balanceRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance');
 
         const doc = await transaction.get(balanceRef);
 
         if (!doc.exists) {
-            throw new ApiError(
-                HTTP_STATUS.INTERNAL_ERROR,
-                'BALANCE_NOT_FOUND',
-                `Balance not found for group ${groupId}`
-            );
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'BALANCE_NOT_FOUND', `Balance not found for group ${groupId}`);
         }
 
         const data = doc.data();
         if (!data) {
-            throw new ApiError(
-                HTTP_STATUS.INTERNAL_ERROR,
-                'BALANCE_READ_ERROR',
-                'Balance document is empty'
-            );
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'BALANCE_READ_ERROR', 'Balance document is empty');
         }
 
         // Validate and convert to DTO (Timestamps → ISO strings)
@@ -837,17 +817,8 @@ export class FirestoreWriter implements IFirestoreWriter {
         return this.convertTimestampsToISO(validated) as any as GroupBalanceDTO;
     }
 
-    updateGroupBalanceInTransaction(
-        transaction: Transaction,
-        groupId: string,
-        currentBalance: GroupBalanceDTO,
-        updater: (current: GroupBalanceDTO) => GroupBalanceDTO
-    ): void {
-        const balanceRef = this.db
-            .collection(FirestoreCollections.GROUPS)
-            .doc(groupId)
-            .collection('metadata')
-            .doc('balance');
+    updateGroupBalanceInTransaction(transaction: Transaction, groupId: string, currentBalance: GroupBalanceDTO, updater: (current: GroupBalanceDTO) => GroupBalanceDTO): void {
+        const balanceRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance');
 
         // Apply update function
         const newBalance = updater(currentBalance);
@@ -1370,7 +1341,7 @@ export class FirestoreWriter implements IFirestoreWriter {
             let totalFailure = 0;
 
             const BATCH_SIZE = FIRESTORE.TRANSACTION_MAX_WRITES;
-            const chunks: typeof updates[] = [];
+            const chunks: (typeof updates)[] = [];
             for (let i = 0; i < updates.length; i += BATCH_SIZE) {
                 chunks.push(updates.slice(i, i + BATCH_SIZE));
             }

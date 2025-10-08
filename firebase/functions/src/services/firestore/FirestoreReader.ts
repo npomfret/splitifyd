@@ -195,28 +195,15 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getGroupBalance(groupId: string): Promise<GroupBalanceDTO> {
         try {
-            const doc = await this.db
-                .collection(FirestoreCollections.GROUPS)
-                .doc(groupId)
-                .collection('metadata')
-                .doc('balance')
-                .get();
+            const doc = await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance').get();
 
             if (!doc.exists) {
-                throw new ApiError(
-                    HTTP_STATUS.INTERNAL_ERROR,
-                    'BALANCE_NOT_FOUND',
-                    `Balance not found for group ${groupId}`
-                );
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'BALANCE_NOT_FOUND', `Balance not found for group ${groupId}`);
             }
 
             const data = doc.data();
             if (!data) {
-                throw new ApiError(
-                    HTTP_STATUS.INTERNAL_ERROR,
-                    'BALANCE_READ_ERROR',
-                    'Balance document is empty'
-                );
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'BALANCE_READ_ERROR', 'Balance document is empty');
             }
 
             // Validate with Firestore schema (expects Timestamps)

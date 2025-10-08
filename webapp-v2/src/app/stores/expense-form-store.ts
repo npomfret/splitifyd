@@ -1,13 +1,5 @@
 import { signal, ReadonlySignal } from '@preact/signals';
-import {
-    CreateExpenseRequest,
-    ExpenseDTO,
-    ExpenseSplit,
-    SplitTypes,
-    calculateEqualSplits,
-    calculateExactSplits,
-    calculatePercentageSplits,
-} from '@splitifyd/shared';
+import { CreateExpenseRequest, ExpenseDTO, ExpenseSplit, SplitTypes, calculateEqualSplits, calculateExactSplits, calculatePercentageSplits } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';

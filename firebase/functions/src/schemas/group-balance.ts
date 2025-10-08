@@ -15,10 +15,7 @@ export const UserBalanceSchema = z.object({
 /**
  * Schema for CurrencyBalances - record of userId to UserBalance
  */
-export const CurrencyBalancesSchema = z.record(
-    z.string(),
-    UserBalanceSchema
-);
+export const CurrencyBalancesSchema = z.record(z.string(), UserBalanceSchema);
 
 /**
  * Schema for SimplifiedDebt

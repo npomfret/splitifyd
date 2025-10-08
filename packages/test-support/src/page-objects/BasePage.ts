@@ -43,10 +43,7 @@ export abstract class BasePage {
             } catch (error) {
                 if (attempt === maxAttempts - 1) {
                     const currentValue = await input.inputValue();
-                    throw new Error(
-                        `Failed to clear input ${inputIdentifier} after ${maxAttempts} attempts. ` +
-                            `Initial value: "${initialValue}", Current value: "${currentValue}"`,
-                    );
+                    throw new Error(`Failed to clear input ${inputIdentifier} after ${maxAttempts} attempts. ` + `Initial value: "${initialValue}", Current value: "${currentValue}"`);
                 }
             }
         }
@@ -99,10 +96,7 @@ export abstract class BasePage {
             } catch (error) {
                 // If we're on the last attempt, re-throw the error
                 if (attempt === maxAttempts - 1) {
-                    throw new Error(
-                        `Failed to fill input ${inputIdentifier} after ${maxAttempts} attempts. ` +
-                            `Last error: ${error instanceof Error ? error.message : String(error)}`,
-                    );
+                    throw new Error(`Failed to fill input ${inputIdentifier} after ${maxAttempts} attempts. ` + `Last error: ${error instanceof Error ? error.message : String(error)}`);
                 }
                 // Otherwise, retry after clearing the input
                 await this.clearPreactInput(input);
@@ -132,11 +126,7 @@ export abstract class BasePage {
             const ariaDisabled = await button.getAttribute('aria-disabled');
             const disabled = await button.getAttribute('disabled');
 
-            throw new Error(
-                `Button "${text}" is not enabled. ` +
-                    `Visible: ${isVisible}, aria-disabled: ${ariaDisabled}, disabled attribute: ${disabled !== null}, ` +
-                    `Current URL: ${currentUrl}`,
-            );
+            throw new Error(`Button "${text}" is not enabled. ` + `Visible: ${isVisible}, aria-disabled: ${ariaDisabled}, disabled attribute: ${disabled !== null}, ` + `Current URL: ${currentUrl}`);
         }
     }
 

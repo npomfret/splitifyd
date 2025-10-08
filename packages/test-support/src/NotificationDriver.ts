@@ -82,10 +82,7 @@ export class NotificationDriver {
         while (Date.now() - startTime < timeoutMs) {
             // Query Firestore directly for recent notification updates
             const cutoffTime = new Date(Date.now() - quietDurationMs);
-            const recentUpdates = await this.firestore
-                .collection('user-notifications')
-                .where('lastModified', '>', cutoffTime)
-                .get();
+            const recentUpdates = await this.firestore.collection('user-notifications').where('lastModified', '>', cutoffTime).get();
 
             if (recentUpdates.empty) {
                 // System is quiet - no notifications updated in the last quietDurationMs
@@ -98,10 +95,7 @@ export class NotificationDriver {
 
         // Timeout - query again to see which users are still active
         const cutoffTime = new Date(Date.now() - quietDurationMs);
-        const recentUpdates = await this.firestore
-            .collection('user-notifications')
-            .where('lastModified', '>', cutoffTime)
-            .get();
+        const recentUpdates = await this.firestore.collection('user-notifications').where('lastModified', '>', cutoffTime).get();
 
         const activeUsers = recentUpdates.docs.map((doc) => doc.id);
         console.warn(`⚠️  waitForQuiet timed out after ${timeoutMs}ms. Recent activity from ${activeUsers.length} users: ${activeUsers.join(', ')}`);

@@ -91,7 +91,6 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             }
         });
 
-
         test('GET /groups should return successfully despite invalid securityPreset values', async () => {
             // Call the API endpoint that would normally fail with invalid data
             const response = await apiDriver.listGroups(testUser.token);

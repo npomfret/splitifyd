@@ -85,11 +85,7 @@ export class ApplicationBuilder {
 
     buildSettlementService(): SettlementService {
         if (!this.settlementService) {
-            this.settlementService = new SettlementService(
-                this.buildFirestoreReader(),
-                this.buildFirestoreWriter(),
-                this.buildIncrementalBalanceService(),
-            );
+            this.settlementService = new SettlementService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildIncrementalBalanceService());
         }
         return this.settlementService;
     }

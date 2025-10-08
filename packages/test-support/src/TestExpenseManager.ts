@@ -1,8 +1,8 @@
-import {GroupDTO, UserToken} from '@splitifyd/shared';
-import {ApiDriver} from './ApiDriver';
-import {CreateExpenseRequestBuilder} from './builders';
-import {generateShortId} from './test-helpers';
-import {TestGroupManager} from './TestGroupManager';
+import { GroupDTO, UserToken } from '@splitifyd/shared';
+import { ApiDriver } from './ApiDriver';
+import { CreateExpenseRequestBuilder } from './builders';
+import { generateShortId } from './test-helpers';
+import { TestGroupManager } from './TestGroupManager';
 
 interface ExpenseOptions {
     amount?: number;
@@ -48,7 +48,7 @@ export class TestExpenseManager {
             .withGroupId(group.id)
             .withDescription(description || `Shared expense ${uniqueId}`)
             .withAmount(amount)
-            .withCurrency("USD")
+            .withCurrency('USD')
             .withPaidBy(payer.uid)
             .withParticipants(users.map((u) => u.uid))
             .withCategory(category)

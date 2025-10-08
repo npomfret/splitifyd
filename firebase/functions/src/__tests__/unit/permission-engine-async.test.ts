@@ -199,9 +199,7 @@ describe('PermissionEngineAsync', () => {
                 .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
 
-            expect(() => PermissionEngineAsync.checkPermission(member, groupWithoutPermissions, testUserId, 'expenseEditing')).toThrow(
-                'Group group456 is missing permissions configuration',
-            );
+            expect(() => PermissionEngineAsync.checkPermission(member, groupWithoutPermissions, testUserId, 'expenseEditing')).toThrow('Group group456 is missing permissions configuration');
         });
 
         test('should throw error if specific permission missing', () => {

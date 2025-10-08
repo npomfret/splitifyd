@@ -1,11 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-    getCurrencyDecimals,
-    roundToCurrencyPrecision,
-    calculateEqualSplits,
-    calculateExactSplits,
-    calculatePercentageSplits,
-} from '../split-utils';
+import { getCurrencyDecimals, roundToCurrencyPrecision, calculateEqualSplits, calculateExactSplits, calculatePercentageSplits } from '../split-utils';
 
 describe('Split Utils', () => {
     describe('getCurrencyDecimals', () => {
@@ -80,8 +74,8 @@ describe('Split Utils', () => {
         it('should handle already-rounded amounts', () => {
             expect(roundToCurrencyPrecision(100, 'JPY')).toBe(100);
             expect(roundToCurrencyPrecision(100.5, 'MGA')).toBe(100.5);
-            expect(roundToCurrencyPrecision(100.50, 'USD')).toBe(100.50);
-            expect(roundToCurrencyPrecision(100.500, 'BHD')).toBe(100.500);
+            expect(roundToCurrencyPrecision(100.5, 'USD')).toBe(100.5);
+            expect(roundToCurrencyPrecision(100.5, 'BHD')).toBe(100.5);
         });
     });
 
@@ -123,9 +117,9 @@ describe('Split Utils', () => {
             it('should split evenly divisible amounts', () => {
                 const splits = calculateEqualSplits(90, 'USD', ['user1', 'user2', 'user3']);
                 expect(splits).toEqual([
-                    { uid: 'user1', amount: 30.00 },
-                    { uid: 'user2', amount: 30.00 },
-                    { uid: 'user3', amount: 30.00 },
+                    { uid: 'user1', amount: 30.0 },
+                    { uid: 'user2', amount: 30.0 },
+                    { uid: 'user3', amount: 30.0 },
                 ]);
             });
 
@@ -229,8 +223,8 @@ describe('Split Utils', () => {
             ]);
 
             expect(calculateExactSplits(100, 'USD', ['user1', 'user2'])).toEqual([
-                { uid: 'user1', amount: 50.00 },
-                { uid: 'user2', amount: 50.00 },
+                { uid: 'user1', amount: 50.0 },
+                { uid: 'user2', amount: 50.0 },
             ]);
         });
     });
@@ -247,9 +241,9 @@ describe('Split Utils', () => {
                 // Last participant percentage is calculated from actual remainder amount
                 expect(splits[2].percentage).toBeCloseTo(33.33, 1);
 
-                expect(splits[0].amount).toBe(30.00);
-                expect(splits[1].amount).toBe(30.00);
-                expect(splits[2].amount).toBe(30.00);
+                expect(splits[0].amount).toBe(30.0);
+                expect(splits[1].amount).toBe(30.0);
+                expect(splits[2].amount).toBe(30.0);
 
                 const totalAmount = splits.reduce((sum, s) => sum + s.amount, 0);
                 expect(totalAmount).toBe(90);
@@ -329,8 +323,8 @@ describe('Split Utils', () => {
             it('should handle 2 participants evenly', () => {
                 const splits = calculatePercentageSplits(100, 'USD', ['user1', 'user2']);
                 expect(splits).toEqual([
-                    { uid: 'user1', percentage: 50, amount: 50.00 },
-                    { uid: 'user2', percentage: 50, amount: 50.00 },
+                    { uid: 'user1', percentage: 50, amount: 50.0 },
+                    { uid: 'user2', percentage: 50, amount: 50.0 },
                 ]);
             });
         });

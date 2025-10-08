@@ -3,9 +3,7 @@ import { mockGroupDetailApi, mockGroupCommentsApi, mockApiFailure } from '../../
 import { GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ExpenseDTOBuilder, GroupDetailPage, ThemeBuilder, GroupBalancesBuilder } from '@splitifyd/test-support';
 
 test.describe('Group Detail - Authentication and Navigation', () => {
-
     test('should redirect unauthenticated user to login', async ({ pageWithLogging: page, mockFirebase }) => {
-
         // mockFirebase fixture starts with logged-out state
         await page.goto('/groups/test-group-id');
 
@@ -211,10 +209,7 @@ test.describe('Group Detail - Balance Display', () => {
             new GroupMemberBuilder().withUid('user-2').withDisplayName('Alice').withEmail('alice@example.com').withTheme(ThemeBuilder.red().build()).build(),
         ];
 
-        const balances = new GroupBalancesBuilder()
-            .withGroupId(groupId)
-            .withSimpleTwoPersonDebt(testUser.uid, testUser.displayName, 'user-2', 'Alice', 25.0)
-            .build();
+        const balances = new GroupBalancesBuilder().withGroupId(groupId).withSimpleTwoPersonDebt(testUser.uid, testUser.displayName, 'user-2', 'Alice', 25.0).build();
 
         const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).withBalances(balances).build();
 

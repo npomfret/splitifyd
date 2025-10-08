@@ -149,7 +149,7 @@ export class SettlementService {
         logger.info('settlements-listed', {
             groupId,
             count: result.count,
-            timings: timer.getTimings()
+            timings: timer.getTimings(),
         });
 
         return result;
@@ -212,27 +212,26 @@ export class SettlementService {
 
         // Create settlement and update group balance atomically
         timer.startPhase('transaction');
-        await this.firestoreWriter.runTransaction(
-            async (transaction) => {
-                // Verify group still exists
-                const groupData = await this.firestoreReader.getGroupInTransaction(transaction, settlementData.groupId);
-                if (!groupData) {
-                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-                }
+        await this.firestoreWriter.runTransaction(async (transaction) => {
+            // Verify group still exists
+            const groupData = await this.firestoreReader.getGroupInTransaction(transaction, settlementData.groupId);
+            if (!groupData) {
+                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+            }
 
-                // Read current balance BEFORE any writes (Firestore transaction rule)
-                const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlementData.groupId);
+            // Read current balance BEFORE any writes (Firestore transaction rule)
+            const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlementData.groupId);
 
-                // Create settlement in transaction
-                this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.SETTLEMENTS, settlementId, settlementDataToCreate);
+            // Create settlement in transaction
+            this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.SETTLEMENTS, settlementId, settlementDataToCreate);
 
-                // Update group timestamp to track activity
-                await this.firestoreWriter.touchGroup(settlementData.groupId, transaction);
+            // Update group timestamp to track activity
+            await this.firestoreWriter.touchGroup(settlementData.groupId, transaction);
 
-                // Apply incremental balance update
-                const settlementToApply: SettlementDTO = { id: settlementId, ...settlementDataToCreate };
-                this.incrementalBalanceService.applySettlementCreated(transaction, settlementData.groupId, currentBalance, settlementToApply, memberIds);
-            });
+            // Apply incremental balance update
+            const settlementToApply: SettlementDTO = { id: settlementId, ...settlementDataToCreate };
+            this.incrementalBalanceService.applySettlementCreated(transaction, settlementData.groupId, currentBalance, settlementToApply, memberIds);
+        });
         timer.endPhase();
 
         // Update context with the created settlement ID
@@ -241,7 +240,7 @@ export class SettlementService {
         logger.info('settlement-created', {
             settlementId,
             groupId: settlementData.groupId,
-            timings: timer.getTimings()
+            timings: timer.getTimings(),
         });
 
         // Build the complete settlement object for the response
@@ -318,29 +317,28 @@ export class SettlementService {
 
         // Update with optimistic locking and balance update
         timer.startPhase('transaction');
-        await this.firestoreWriter.runTransaction(
-            async (transaction) => {
-                const currentSettlement = await this.firestoreReader.getSettlementInTransaction(transaction, settlementId);
-                if (!currentSettlement) {
-                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
-                }
+        await this.firestoreWriter.runTransaction(async (transaction) => {
+            const currentSettlement = await this.firestoreReader.getSettlementInTransaction(transaction, settlementId);
+            if (!currentSettlement) {
+                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
+            }
 
-                // Read current balance BEFORE any writes (Firestore transaction rule)
-                const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlement.groupId);
+            // Read current balance BEFORE any writes (Firestore transaction rule)
+            const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlement.groupId);
 
-                const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
-                this.firestoreWriter.updateInTransaction(transaction, documentPath, {
-                    ...updates,
-                    updatedAt: new Date().toISOString(), // ISO string, FirestoreWriter converts
-                });
-
-                // Update group timestamp to track activity
-                await this.firestoreWriter.touchGroup(settlement.groupId, transaction);
-
-                // Apply incremental balance update with old and new settlement
-                const newSettlement: SettlementDTO = { ...settlement, ...updates };
-                this.incrementalBalanceService.applySettlementUpdated(transaction, settlement.groupId, currentBalance, settlement, newSettlement, memberIds);
+            const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
+            this.firestoreWriter.updateInTransaction(transaction, documentPath, {
+                ...updates,
+                updatedAt: new Date().toISOString(), // ISO string, FirestoreWriter converts
             });
+
+            // Update group timestamp to track activity
+            await this.firestoreWriter.touchGroup(settlement.groupId, transaction);
+
+            // Apply incremental balance update with old and new settlement
+            const newSettlement: SettlementDTO = { ...settlement, ...updates };
+            this.incrementalBalanceService.applySettlementUpdated(transaction, settlement.groupId, currentBalance, settlement, newSettlement, memberIds);
+        });
         timer.endPhase();
 
         timer.startPhase('refetch');
@@ -356,7 +354,7 @@ export class SettlementService {
         logger.info('settlement-updated', {
             settlementId,
             groupId: settlement.groupId,
-            timings: timer.getTimings()
+            timings: timer.getTimings(),
         });
 
         return {
@@ -441,42 +439,41 @@ export class SettlementService {
 
         // Soft delete with optimistic locking and balance update
         timer.startPhase('transaction');
-        await this.firestoreWriter.runTransaction(
-            async (transaction) => {
-                const currentSettlement = await this.firestoreReader.getSettlementInTransaction(transaction, settlementId);
-                if (!currentSettlement) {
-                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
-                }
+        await this.firestoreWriter.runTransaction(async (transaction) => {
+            const currentSettlement = await this.firestoreReader.getSettlementInTransaction(transaction, settlementId);
+            if (!currentSettlement) {
+                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
+            }
 
-                // Check for concurrent updates
-                if (settlement.updatedAt !== currentSettlement.updatedAt) {
-                    throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified concurrently');
-                }
+            // Check for concurrent updates
+            if (settlement.updatedAt !== currentSettlement.updatedAt) {
+                throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified concurrently');
+            }
 
-                // Read current balance BEFORE any writes (Firestore transaction rule)
-                const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlement.groupId);
+            // Read current balance BEFORE any writes (Firestore transaction rule)
+            const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlement.groupId);
 
-                const now = new Date().toISOString();
-                const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
+            const now = new Date().toISOString();
+            const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
 
-                this.firestoreWriter.updateInTransaction(transaction, documentPath, {
-                    deletedAt: now,
-                    deletedBy: userId,
-                    updatedAt: now,
-                });
-
-                // Update group timestamp to track activity
-                await this.firestoreWriter.touchGroup(settlement.groupId, transaction);
-
-                // Apply incremental balance update to remove this settlement's contribution
-                this.incrementalBalanceService.applySettlementDeleted(transaction, settlement.groupId, currentBalance, settlement, memberIds);
+            this.firestoreWriter.updateInTransaction(transaction, documentPath, {
+                deletedAt: now,
+                deletedBy: userId,
+                updatedAt: now,
             });
+
+            // Update group timestamp to track activity
+            await this.firestoreWriter.touchGroup(settlement.groupId, transaction);
+
+            // Apply incremental balance update to remove this settlement's contribution
+            this.incrementalBalanceService.applySettlementDeleted(transaction, settlement.groupId, currentBalance, settlement, memberIds);
+        });
         timer.endPhase();
 
         logger.info('settlement-soft-deleted', {
             settlementId,
             groupId: settlement.groupId,
-            timings: timer.getTimings()
+            timings: timer.getTimings(),
         });
     }
 
@@ -516,38 +513,37 @@ export class SettlementService {
 
         // Delete with optimistic locking and balance update
         timer.startPhase('transaction');
-        await this.firestoreWriter.runTransaction(
-            async (transaction) => {
-                // Step 1: Do ALL reads first - using DTO method
-                const currentSettlement = await this.firestoreReader.getSettlementInTransaction(transaction, settlementId);
-                if (!currentSettlement) {
-                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
-                }
+        await this.firestoreWriter.runTransaction(async (transaction) => {
+            // Step 1: Do ALL reads first - using DTO method
+            const currentSettlement = await this.firestoreReader.getSettlementInTransaction(transaction, settlementId);
+            if (!currentSettlement) {
+                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
+            }
 
-                // Step 2: Check for concurrent updates (compare ISO strings)
-                if (settlement.updatedAt !== currentSettlement.updatedAt) {
-                    throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified concurrently');
-                }
+            // Step 2: Check for concurrent updates (compare ISO strings)
+            if (settlement.updatedAt !== currentSettlement.updatedAt) {
+                throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified concurrently');
+            }
 
-                // Read current balance BEFORE any writes (Firestore transaction rule)
-                const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlement.groupId);
+            // Read current balance BEFORE any writes (Firestore transaction rule)
+            const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlement.groupId);
 
-                // Step 3: Now do ALL writes
-                // Delete the settlement
-                this.firestoreWriter.deleteInTransaction(transaction, `${FirestoreCollections.SETTLEMENTS}/${settlementId}`);
+            // Step 3: Now do ALL writes
+            // Delete the settlement
+            this.firestoreWriter.deleteInTransaction(transaction, `${FirestoreCollections.SETTLEMENTS}/${settlementId}`);
 
-                // Update group timestamp to track activity
-                await this.firestoreWriter.touchGroup(settlement.groupId, transaction);
+            // Update group timestamp to track activity
+            await this.firestoreWriter.touchGroup(settlement.groupId, transaction);
 
-                // Apply incremental balance update to remove this settlement's contribution
-                this.incrementalBalanceService.applySettlementDeleted(transaction, settlement.groupId, currentBalance, settlement, memberIds);
-            });
+            // Apply incremental balance update to remove this settlement's contribution
+            this.incrementalBalanceService.applySettlementDeleted(transaction, settlement.groupId, currentBalance, settlement, memberIds);
+        });
         timer.endPhase();
 
         logger.info('settlement-deleted', {
             settlementId,
             groupId: settlement.groupId,
-            timings: timer.getTimings()
+            timings: timer.getTimings(),
         });
     }
 

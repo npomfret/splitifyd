@@ -1019,12 +1019,7 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         return this.convertTimestampsToISO(doc) as GroupBalanceDTO;
     }
 
-    updateGroupBalanceInTransaction(
-        transaction: any,
-        groupId: string,
-        currentBalance: GroupBalanceDTO,
-        updater: (current: GroupBalanceDTO) => GroupBalanceDTO
-    ): void {
+    updateGroupBalanceInTransaction(transaction: any, groupId: string, currentBalance: GroupBalanceDTO, updater: (current: GroupBalanceDTO) => GroupBalanceDTO): void {
         // Apply updater function to the provided current balance
         const newBalance = updater(currentBalance);
 

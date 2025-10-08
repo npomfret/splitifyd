@@ -1,6 +1,6 @@
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
-import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder} from '@splitifyd/test-support';
+import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
 
 test.describe('Dashboard Stats Display', () => {
     test('should display loading skeleton while groups are loading', async ({ authenticatedPage }) => {
@@ -310,4 +310,3 @@ test.describe('Dashboard Group Card Actions', () => {
         await expect(balanceBadge).toContainText('You owe');
     });
 });
-

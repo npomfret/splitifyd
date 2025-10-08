@@ -78,9 +78,4 @@ export {
 // GROUP BALANCE SCHEMAS
 // ==========================================
 // Schemas for pre-computed group balances stored in Firestore
-export {
-    GroupBalanceDocumentSchema,
-    GroupBalanceDTOSchema,
-    type GroupBalanceDocument,
-    type GroupBalanceDTO,
-} from './group-balance';
+export { GroupBalanceDocumentSchema, GroupBalanceDTOSchema, type GroupBalanceDocument, type GroupBalanceDTO } from './group-balance';

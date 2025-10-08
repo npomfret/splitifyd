@@ -38,9 +38,7 @@ test.describe('Dashboard Create Group Functionality', () => {
     ];
 
     for (const testCase of formValidationCases) {
-        test(`form validation: ${testCase.name} should ${testCase.expectedEnabled ? 'enable' : 'disable'} submit`, async ({
-            authenticatedPage,
-        }) => {
+        test(`form validation: ${testCase.name} should ${testCase.expectedEnabled ? 'enable' : 'disable'} submit`, async ({ authenticatedPage }) => {
             const { page, user } = authenticatedPage;
             const dashboardPage = new DashboardPage(page);
             const group = GroupDTOBuilder.groupForUser(user.uid).withName('Existing Group').build();
@@ -149,7 +147,6 @@ test.describe('Dashboard Create Group Functionality', () => {
         const createGroupModal = new CreateGroupModalPage(page);
         await createGroupModal.verifyModalOpen();
     });
-
 
     test('should open create group modal from mobile button using fluent interface', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;

@@ -1,14 +1,14 @@
-import {getCurrency} from './currencyList';
+import { getCurrency } from './currencyList';
 
 export interface FormatOptions {
     locale?: string;
 }
 
 export const formatCurrency = (amount: number, currencyCode: string, options: FormatOptions = {}): string => {
-    const {locale = 'en-US'} = options;
+    const { locale = 'en-US' } = options;
 
     if (!currencyCode || currencyCode.trim() === '') {
-        throw Error("you must supply a currencyCode AND amount");
+        throw Error('you must supply a currencyCode AND amount');
     }
 
     // getCurrency now throws for invalid currencies (fail-fast principle)

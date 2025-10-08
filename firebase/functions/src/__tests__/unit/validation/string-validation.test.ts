@@ -1,23 +1,14 @@
-import {describe, test, expect} from 'vitest';
-import {validateCreateExpense, validateUpdateExpense} from '../../../expenses/validation';
-import {validateCreateGroup} from '../../../groups/validation';
-import {ApiError} from '../../../utils/errors';
-import {VALIDATION_LIMITS} from '../../../constants';
-import {CreateExpenseRequestBuilder, CreateGroupRequestBuilder} from '@splitifyd/test-support';
+import { describe, test, expect } from 'vitest';
+import { validateCreateExpense, validateUpdateExpense } from '../../../expenses/validation';
+import { validateCreateGroup } from '../../../groups/validation';
+import { ApiError } from '../../../utils/errors';
+import { VALIDATION_LIMITS } from '../../../constants';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
 
 describe('String Length Validation - Focused Tests', () => {
-    const baseValidExpenseData = new CreateExpenseRequestBuilder()
-        .withAmount(1)
-        .withCurrency("USD")
-        .withGroupId('test-group-id')
-        .withDescription('Test expense')
-        .withCurrency('USD')
-        .build();
+    const baseValidExpenseData = new CreateExpenseRequestBuilder().withAmount(1).withCurrency('USD').withGroupId('test-group-id').withDescription('Test expense').withCurrency('USD').build();
 
-    const baseValidGroupData = new CreateGroupRequestBuilder()
-        .withName('Test Group')
-        .withDescription('Test group description')
-        .build();
+    const baseValidGroupData = new CreateGroupRequestBuilder().withName('Test Group').withDescription('Test group description').build();
 
     describe('Critical Validation Boundaries', () => {
         test('should enforce expense description length limit', () => {

@@ -90,7 +90,7 @@ export class CommentService {
             targetType,
             targetId,
             count: comments.length,
-            timings: timer.getTimings()
+            timings: timer.getTimings(),
         });
 
         return {
@@ -152,7 +152,7 @@ export class CommentService {
             targetType,
             targetId,
             commentId: writeResult.id,
-            timings: timer.getTimings()
+            timings: timer.getTimings(),
         });
 
         // Normalize avatar field (null → undefined for DTO)

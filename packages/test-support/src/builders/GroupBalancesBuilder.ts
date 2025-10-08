@@ -81,12 +81,7 @@ export class GroupBalancesBuilder {
     /**
      * Add a simplified debt entry
      */
-    addSimplifiedDebt(
-        from: { uid: string; displayName?: string },
-        to: { uid: string; displayName?: string },
-        amount: number,
-        currency: string = 'USD',
-    ): this {
+    addSimplifiedDebt(from: { uid: string; displayName?: string }, to: { uid: string; displayName?: string }, amount: number, currency: string = 'USD'): this {
         this.balances.simplifiedDebts.push({
             from,
             to,
@@ -108,14 +103,7 @@ export class GroupBalancesBuilder {
      * Convenience method: Set up a simple two-person debt scenario
      * User 'from' owes user 'to' the specified amount
      */
-    withSimpleTwoPersonDebt(
-        fromUid: string,
-        fromName: string,
-        toUid: string,
-        toName: string,
-        amount: number,
-        currency: string = 'USD',
-    ): this {
+    withSimpleTwoPersonDebt(fromUid: string, fromName: string, toUid: string, toName: string, amount: number, currency: string = 'USD'): this {
         // Add user balances
         this.addUserBalance(fromUid, {
             displayName: fromName,

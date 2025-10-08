@@ -366,9 +366,7 @@ export class DashboardPage extends BasePage {
             await expect(this.getYourGroupsHeading()).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
         } catch (error) {
             const currentUrl = this.page.url();
-            throw new Error(
-                `Dashboard page failed to load. Expected URL: ${TEST_ROUTES.DASHBOARD}, Actual URL: ${currentUrl}`,
-            );
+            throw new Error(`Dashboard page failed to load. Expected URL: ${TEST_ROUTES.DASHBOARD}, Actual URL: ${currentUrl}`);
         }
     }
 
@@ -435,10 +433,7 @@ export class DashboardPage extends BasePage {
             await expect(this.page).toHaveURL(TEST_ROUTES.GROUP_DETAIL_PATTERN, { timeout: TEST_TIMEOUTS.NAVIGATION });
         } catch (error) {
             const currentUrl = this.page.url();
-            throw new Error(
-                `Failed to navigate to group detail page after clicking "${groupName}". ` +
-                    `Current URL: ${currentUrl}. Expected pattern: /groups/[id]`,
-            );
+            throw new Error(`Failed to navigate to group detail page after clicking "${groupName}". ` + `Current URL: ${currentUrl}. Expected pattern: /groups/[id]`);
         }
 
         const groupDetailPage = new GroupDetailPage(this.page);
@@ -475,10 +470,7 @@ export class DashboardPage extends BasePage {
             const spinnerVisible = await this.getGroupsLoadingSpinner().isVisible();
             const groupsVisible = await this.getGroupCards().first().isVisible();
             const emptyStateVisible = await this.getEmptyGroupsState().isVisible();
-            throw new Error(
-                `Groups failed to load within ${timeout}ms. ` +
-                    `Spinner visible: ${spinnerVisible}, Groups visible: ${groupsVisible}, Empty state visible: ${emptyStateVisible}`,
-            );
+            throw new Error(`Groups failed to load within ${timeout}ms. ` + `Spinner visible: ${spinnerVisible}, Groups visible: ${groupsVisible}, Empty state visible: ${emptyStateVisible}`);
         }
     }
 
@@ -490,10 +482,7 @@ export class DashboardPage extends BasePage {
             await expect(this.getGroupCard(groupName)).toBeVisible({ timeout });
         } catch (error) {
             const allGroups = await this.getGroupCards().allTextContents();
-            throw new Error(
-                `Group "${groupName}" did not appear within ${timeout}ms. ` +
-                    `Currently visible groups: [${allGroups.join(', ')}]`,
-            );
+            throw new Error(`Group "${groupName}" did not appear within ${timeout}ms. ` + `Currently visible groups: [${allGroups.join(', ')}]`);
         }
     }
 

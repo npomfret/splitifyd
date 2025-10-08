@@ -38,32 +38,31 @@ export class TestUserPoolService {
 
     async borrowUser(): Promise<PoolUser> {
         // Use transaction to atomically claim an available user
-        const result = await this.firestoreWriter.runTransaction(
-            async (transaction) => {
-                // Query for available users directly within transaction
-                // Since we deleted the deprecated getTestUsersByStatus method,
-                // we implement this query directly using the Firestore instance
-                const availableUsersQuery = this.db.collection(POOL_COLLECTION).where('status', '==', 'available').limit(1);
-                const availableUsersSnapshot = await transaction.get(availableUsersQuery);
+        const result = await this.firestoreWriter.runTransaction(async (transaction) => {
+            // Query for available users directly within transaction
+            // Since we deleted the deprecated getTestUsersByStatus method,
+            // we implement this query directly using the Firestore instance
+            const availableUsersQuery = this.db.collection(POOL_COLLECTION).where('status', '==', 'available').limit(1);
+            const availableUsersSnapshot = await transaction.get(availableUsersQuery);
 
-                if (!availableUsersSnapshot.empty) {
-                    // Found an available user - claim it atomically
-                    const doc = availableUsersSnapshot.docs[0];
-                    const data = doc.data() as FirestorePoolUser;
+            if (!availableUsersSnapshot.empty) {
+                // Found an available user - claim it atomically
+                const doc = availableUsersSnapshot.docs[0];
+                const data = doc.data() as FirestorePoolUser;
 
-                    // Update status to borrowed within transaction
-                    this.firestoreWriter.updateInTransaction(transaction, doc.ref.path, { status: 'borrowed' });
+                // Update status to borrowed within transaction
+                this.firestoreWriter.updateInTransaction(transaction, doc.ref.path, { status: 'borrowed' });
 
-                    return {
-                        email: data.email,
-                        token: data.token,
-                        password: data.password,
-                    };
-                }
+                return {
+                    email: data.email,
+                    token: data.token,
+                    password: data.password,
+                };
+            }
 
-                // No available users - return null to create new one outside transaction
-                return null;
-            });
+            // No available users - return null to create new one outside transaction
+            return null;
+        });
 
         if (result) {
             return {

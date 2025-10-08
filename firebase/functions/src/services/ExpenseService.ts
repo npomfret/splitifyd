@@ -120,7 +120,7 @@ export class ExpenseService {
 
         logger.info('expense-retrieved', {
             id: expenseId,
-            timings: timer.getTimings()
+            timings: timer.getTimings(),
         });
 
         return this.transformExpenseToResponse(expense);
@@ -144,7 +144,7 @@ export class ExpenseService {
         const [groupData, memberIds, member] = await Promise.all([
             this.firestoreReader.getGroup(validatedExpenseData.groupId),
             this.firestoreReader.getAllGroupMemberIds(validatedExpenseData.groupId),
-            this.firestoreReader.getGroupMember(validatedExpenseData.groupId, userId)
+            this.firestoreReader.getGroupMember(validatedExpenseData.groupId, userId),
         ]);
         timer.endPhase();
 
@@ -245,7 +245,7 @@ export class ExpenseService {
         logger.info('expense-created', {
             id: createdExpenseRef.id,
             groupId: expenseData.groupId,
-            timings: timer.getTimings()
+            timings: timer.getTimings(),
         });
 
         // Return the expense in response format
@@ -270,7 +270,7 @@ export class ExpenseService {
         const [groupData, memberIds, member] = await Promise.all([
             this.firestoreReader.getGroup(expense.groupId),
             this.firestoreReader.getAllGroupMemberIds(expense.groupId),
-            this.firestoreReader.getGroupMember(expense.groupId, userId)
+            this.firestoreReader.getGroupMember(expense.groupId, userId),
         ]);
         timer.endPhase();
 
@@ -339,49 +339,48 @@ export class ExpenseService {
 
         // Use transaction to update expense atomically with optimistic locking and balance update
         timer.startPhase('transaction');
-        await this.firestoreWriter.runTransaction(
-            async (transaction) => {
-                // Re-fetch expense within transaction to check for concurrent updates
-                // Now using DTO method which returns ISO strings
-                const currentExpense = await this.firestoreReader.getExpenseInTransaction(transaction, expenseId);
+        await this.firestoreWriter.runTransaction(async (transaction) => {
+            // Re-fetch expense within transaction to check for concurrent updates
+            // Now using DTO method which returns ISO strings
+            const currentExpense = await this.firestoreReader.getExpenseInTransaction(transaction, expenseId);
 
-                if (!currentExpense) {
-                    throw Errors.NOT_FOUND('Expense');
-                }
+            if (!currentExpense) {
+                throw Errors.NOT_FOUND('Expense');
+            }
 
-                // Check if expense was updated since we fetched it (compare ISO strings)
-                // Both timestamps are now ISO strings, so we can compare directly
-                if (expense.updatedAt !== currentExpense.updatedAt) {
-                    throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Expense was modified by another user. Please refresh and try again.');
-                }
+            // Check if expense was updated since we fetched it (compare ISO strings)
+            // Both timestamps are now ISO strings, so we can compare directly
+            if (expense.updatedAt !== currentExpense.updatedAt) {
+                throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Expense was modified by another user. Please refresh and try again.');
+            }
 
-                // Read current balance BEFORE any writes (Firestore transaction rule)
-                const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expense.groupId);
+            // Read current balance BEFORE any writes (Firestore transaction rule)
+            const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expense.groupId);
 
-                // Create history entry with ISO timestamp
-                // Filter out undefined values for Firestore compatibility
-                const cleanExpenseData = Object.fromEntries(Object.entries(expense).filter(([, value]) => value !== undefined));
+            // Create history entry with ISO timestamp
+            // Filter out undefined values for Firestore compatibility
+            const cleanExpenseData = Object.fromEntries(Object.entries(expense).filter(([, value]) => value !== undefined));
 
-                const historyEntry = {
-                    ...cleanExpenseData,
-                    modifiedAt: new Date().toISOString(), // ISO string
-                    modifiedBy: userId,
-                    changeType: 'update' as const,
-                    changes: Object.keys(updateData),
-                };
+            const historyEntry = {
+                ...cleanExpenseData,
+                modifiedAt: new Date().toISOString(), // ISO string
+                modifiedBy: userId,
+                changeType: 'update' as const,
+                changes: Object.keys(updateData),
+            };
 
-                // Save history and update expense
-                // FirestoreWriter will convert ISO strings to Timestamps
-                this.firestoreWriter.createInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}/history`, crypto.randomUUID(), historyEntry);
-                this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}`, updates);
+            // Save history and update expense
+            // FirestoreWriter will convert ISO strings to Timestamps
+            this.firestoreWriter.createInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}/history`, crypto.randomUUID(), historyEntry);
+            this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}`, updates);
 
-                // Update group timestamp to track activity
-                await this.firestoreWriter.touchGroup(expense.groupId, transaction);
+            // Update group timestamp to track activity
+            await this.firestoreWriter.touchGroup(expense.groupId, transaction);
 
-                // Apply incremental balance update with old and new expense
-                const newExpense: ExpenseDTO = { ...expense, ...updates };
-                this.incrementalBalanceService.applyExpenseUpdated(transaction, expense.groupId, currentBalance, expense, newExpense, memberIds);
-            });
+            // Apply incremental balance update with old and new expense
+            const newExpense: ExpenseDTO = { ...expense, ...updates };
+            this.incrementalBalanceService.applyExpenseUpdated(transaction, expense.groupId, currentBalance, expense, newExpense, memberIds);
+        });
 
         timer.endPhase();
 
@@ -399,7 +398,7 @@ export class ExpenseService {
         logger.info('expense-updated', {
             id: expenseId,
             changes: Object.keys(updateData),
-            timings: timer.getTimings()
+            timings: timer.getTimings(),
         });
 
         // The expense from IFirestoreReader is already validated and includes the ID
@@ -462,7 +461,7 @@ export class ExpenseService {
         logger.info('expenses-listed', {
             groupId,
             count: expenses.length,
-            timings: timer.getTimings()
+            timings: timer.getTimings(),
         });
 
         return {
@@ -491,7 +490,7 @@ export class ExpenseService {
         const [groupData, memberIds, member] = await Promise.all([
             this.firestoreReader.getGroup(expense.groupId),
             this.firestoreReader.getAllGroupMemberIds(expense.groupId),
-            this.firestoreReader.getGroupMember(expense.groupId, userId)
+            this.firestoreReader.getGroupMember(expense.groupId, userId),
         ]);
         timer.endPhase();
 
@@ -516,50 +515,49 @@ export class ExpenseService {
         try {
             // Use transaction to soft delete expense atomically and update balance
             timer.startPhase('transaction');
-            await this.firestoreWriter.runTransaction(
-                async (transaction) => {
-                    // IMPORTANT: All reads must happen before any writes in Firestore transactions
+            await this.firestoreWriter.runTransaction(async (transaction) => {
+                // IMPORTANT: All reads must happen before any writes in Firestore transactions
 
-                    // Step 1: Do ALL reads first - using DTO methods
-                    const currentExpense = await this.firestoreReader.getExpenseInTransaction(transaction, expenseId);
-                    if (!currentExpense) {
-                        throw Errors.NOT_FOUND('Expense');
-                    }
+                // Step 1: Do ALL reads first - using DTO methods
+                const currentExpense = await this.firestoreReader.getExpenseInTransaction(transaction, expenseId);
+                if (!currentExpense) {
+                    throw Errors.NOT_FOUND('Expense');
+                }
 
-                    // Get group doc to ensure it exists (though we already checked above)
-                    const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, expense.groupId);
-                    if (!groupInTx) {
-                        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group not found');
-                    }
+                // Get group doc to ensure it exists (though we already checked above)
+                const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, expense.groupId);
+                if (!groupInTx) {
+                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group not found');
+                }
 
-                    // Read current balance BEFORE any writes (Firestore transaction rule)
-                    const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expense.groupId);
+                // Read current balance BEFORE any writes (Firestore transaction rule)
+                const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expense.groupId);
 
-                    // Step 2: Check for concurrent updates (compare ISO strings)
-                    if (expense.updatedAt !== currentExpense.updatedAt) {
-                        throw Errors.CONCURRENT_UPDATE();
-                    }
+                // Step 2: Check for concurrent updates (compare ISO strings)
+                if (expense.updatedAt !== currentExpense.updatedAt) {
+                    throw Errors.CONCURRENT_UPDATE();
+                }
 
-                    // Step 3: Now do ALL writes - soft delete the expense
-                    const now = new Date().toISOString();
-                    this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}`, {
-                        [DELETED_AT_FIELD]: now, // ISO string, FirestoreWriter converts to Timestamp
-                        deletedBy: userId,
-                        updatedAt: now, // ISO string for optimistic locking
-                    });
-
-                    // Update group timestamp to track activity
-                    await this.firestoreWriter.touchGroup(expense.groupId, transaction);
-
-                    // Apply incremental balance update to remove this expense's contribution
-                    this.incrementalBalanceService.applyExpenseDeleted(transaction, expense.groupId, currentBalance, expense, memberIds);
+                // Step 3: Now do ALL writes - soft delete the expense
+                const now = new Date().toISOString();
+                this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}`, {
+                    [DELETED_AT_FIELD]: now, // ISO string, FirestoreWriter converts to Timestamp
+                    deletedBy: userId,
+                    updatedAt: now, // ISO string for optimistic locking
                 });
+
+                // Update group timestamp to track activity
+                await this.firestoreWriter.touchGroup(expense.groupId, transaction);
+
+                // Apply incremental balance update to remove this expense's contribution
+                this.incrementalBalanceService.applyExpenseDeleted(transaction, expense.groupId, currentBalance, expense, memberIds);
+            });
             timer.endPhase();
 
             LoggerContext.setBusinessContext({ expenseId });
             logger.info('expense-deleted', {
                 id: expenseId,
-                timings: timer.getTimings()
+                timings: timer.getTimings(),
             });
         } catch (error) {
             logger.error('Failed to delete expense', error as Error, {
@@ -620,7 +618,7 @@ export class ExpenseService {
         logger.info('expense-full-details-retrieved', {
             expenseId,
             groupId: expense.groupId,
-            timings: timer.getTimings()
+            timings: timer.getTimings(),
         });
 
         return {

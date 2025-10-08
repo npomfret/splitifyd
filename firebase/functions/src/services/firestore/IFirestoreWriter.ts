@@ -358,12 +358,7 @@ export interface IFirestoreWriter {
      * @param currentBalance - The current balance (already read in transaction)
      * @param updater - Function that takes current balance and returns updated balance
      */
-    updateGroupBalanceInTransaction(
-        transaction: Transaction,
-        groupId: string,
-        currentBalance: GroupBalanceDTO,
-        updater: (current: GroupBalanceDTO) => GroupBalanceDTO
-    ): void;
+    updateGroupBalanceInTransaction(transaction: Transaction, groupId: string, currentBalance: GroupBalanceDTO, updater: (current: GroupBalanceDTO) => GroupBalanceDTO): void;
 
     // ========================================================================
     // Transaction Helper Methods (Phase 1 - Transaction Foundation)

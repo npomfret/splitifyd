@@ -234,10 +234,7 @@ export class LoginPage extends BasePage {
             const currentUrl = this.page.url();
             const errorVisible = await this.getErrorContainer().isVisible();
             const errorText = errorVisible ? await this.getErrorMessage() : 'No error message';
-            throw new Error(
-                `Failed to navigate to dashboard after login. Current URL: ${currentUrl}. ` +
-                    `Error displayed: ${errorVisible}. Error message: "${errorText}"`,
-            );
+            throw new Error(`Failed to navigate to dashboard after login. Current URL: ${currentUrl}. ` + `Error displayed: ${errorVisible}. Error message: "${errorText}"`);
         }
 
         const dashboardPage = new DashboardPage(this.page);
@@ -260,10 +257,7 @@ export class LoginPage extends BasePage {
         } catch (error) {
             const currentUrl = this.page.url();
             const errorVisible = await this.getErrorContainer().isVisible();
-            throw new Error(
-                `Login failure behavior not as expected. Current URL: ${currentUrl}, ` +
-                    `Error visible: ${errorVisible}. Expected to stay on login page with error message.`,
-            );
+            throw new Error(`Login failure behavior not as expected. Current URL: ${currentUrl}, ` + `Error visible: ${errorVisible}. Expected to stay on login page with error message.`);
         }
     }
 
@@ -352,10 +346,7 @@ export class LoginPage extends BasePage {
         } catch (error) {
             const isVisible = await errorContainer.isVisible();
             const actualText = isVisible ? await this.getErrorMessage() : 'No error message';
-            throw new Error(
-                `Error message verification failed. Expected: "${expectedMessage}", ` +
-                    `Actual: "${actualText}", Error visible: ${isVisible}`,
-            );
+            throw new Error(`Error message verification failed. Expected: "${expectedMessage}", ` + `Actual: "${actualText}", Error visible: ${isVisible}`);
         }
     }
 

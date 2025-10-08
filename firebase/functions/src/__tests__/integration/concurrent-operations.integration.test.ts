@@ -123,27 +123,15 @@ describe('Concurrent Operations Integration Tests', () => {
             const expensePromises = [
                 expenseService.createExpense(
                     testUser1.uid,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(testGroup.id)
-                        .withPaidBy(testUser1.uid)
-                        .withParticipants([testUser1.uid, testUser2.uid])
-                        .build(),
+                    new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(testUser1.uid).withParticipants([testUser1.uid, testUser2.uid]).build(),
                 ),
                 expenseService.createExpense(
                     testUser2.uid,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(testGroup.id)
-                        .withPaidBy(testUser2.uid)
-                        .withParticipants([testUser2.uid, testUser3.uid])
-                        .build(),
+                    new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(testUser2.uid).withParticipants([testUser2.uid, testUser3.uid]).build(),
                 ),
                 expenseService.createExpense(
                     testUser3.uid,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(testGroup.id)
-                        .withPaidBy(testUser3.uid)
-                        .withParticipants([testUser3.uid, testUser4.uid])
-                        .build(),
+                    new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(testUser3.uid).withParticipants([testUser3.uid, testUser4.uid]).build(),
                 ),
             ];
 
@@ -168,11 +156,7 @@ describe('Concurrent Operations Integration Tests', () => {
             // Create expense
             await expenseService.createExpense(
                 testUser1.uid,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(testGroup.id)
-                    .withPaidBy(testUser1.uid)
-                    .withParticipants([testUser1.uid, testUser2.uid])
-                    .build(),
+                new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(testUser1.uid).withParticipants([testUser1.uid, testUser2.uid]).build(),
             );
 
             // Simulate concurrent operations: balance queries and member removal

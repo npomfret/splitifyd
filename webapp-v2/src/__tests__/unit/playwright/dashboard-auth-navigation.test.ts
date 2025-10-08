@@ -2,7 +2,6 @@ import { expect, test } from '../../utils/console-logging-fixture';
 import { mockApiFailure, mockGroupsApi } from '../../utils/mock-firebase-service';
 import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
 
-
 // Test for browser reuse - using fixture-based approach with proper infrastructure
 test.describe('Browser Reuse Test', () => {
     test('test 1 - redirect check', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -18,7 +17,6 @@ test.describe('Browser Reuse Test', () => {
         await expect(page).toHaveURL(/\/dashboard/);
     });
 });
-
 
 test.describe('Dashboard Authentication and Navigation', () => {
     test('should redirect unauthenticated user to login', async ({ pageWithLogging: page, mockFirebase }) => {
