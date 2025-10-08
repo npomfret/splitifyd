@@ -1,10 +1,9 @@
-import { describe, test, expect, beforeEach, beforeAll } from 'vitest';
-import { borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, NotificationDriver } from '@splitifyd/test-support';
-import { GroupDTO } from '@splitifyd/shared';
-import { PooledTestUser } from '@splitifyd/shared';
-import { ApplicationBuilder } from '../../services/ApplicationBuilder';
-import { getAuth, getFirestore } from '../../firebase';
-import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
+import {describe, test, expect, beforeEach, beforeAll} from 'vitest';
+import {borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, NotificationDriver, ApiDriver} from '@splitifyd/test-support';
+import {GroupDTO} from '@splitifyd/shared';
+import {PooledTestUser} from '@splitifyd/shared';
+import {ApplicationBuilder} from '../../services/ApplicationBuilder';
+import {getAuth, getFirestore} from '../../firebase';
 
 describe('Concurrent Operations Integration Tests', () => {
     const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth());
@@ -21,7 +20,8 @@ describe('Concurrent Operations Integration Tests', () => {
     let testUser4: PooledTestUser;
     let testGroup: GroupDTO;
 
-    beforeAll(async () => {});
+    beforeAll(async () => {
+    });
 
     beforeEach(async () => {
         // Create test users
@@ -34,7 +34,10 @@ describe('Concurrent Operations Integration Tests', () => {
         // Create test group
         testGroup = await groupService.createGroup(
             testUser1.uid,
-            new CreateGroupRequestBuilder().withName('Concurrent Operations Test Group').withDescription('Testing concurrent operations').build(),
+            new CreateGroupRequestBuilder()
+                .withName('Concurrent Operations Test Group')
+                .withDescription('Testing concurrent operations')
+                .build(),
         );
     });
 
@@ -47,7 +50,7 @@ describe('Concurrent Operations Integration Tests', () => {
     describe('Concurrent Member Operations', () => {
         test('should handle multiple users joining simultaneously', async () => {
             // Generate share link for concurrent joins (production code path)
-            const { linkId } = await applicationBuilder.buildGroupShareService().generateShareableLink(testUser1.uid, testGroup.id);
+            const {linkId} = await applicationBuilder.buildGroupShareService().generateShareableLink(testUser1.uid, testGroup.id);
 
             // Execute all member additions concurrently via share link
             const addPromises = [
@@ -74,11 +77,11 @@ describe('Concurrent Operations Integration Tests', () => {
             const groupShareService = applicationBuilder.buildGroupShareService();
 
             // Add initial member via share link (production code path)
-            const { linkId: initialLinkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
+            const {linkId: initialLinkId} = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
             await groupShareService.joinGroupByLink(testUser2.uid, initialLinkId);
 
             // Run concurrent operations: queries while adding/removing members
-            const { linkId: concurrentLinkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
+            const {linkId: concurrentLinkId} = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
             const operations = [
                 // Query operations
                 () => firestoreReader.getAllGroupMembers(testGroup.id),
@@ -114,7 +117,7 @@ describe('Concurrent Operations Integration Tests', () => {
             const groupShareService = applicationBuilder.buildGroupShareService();
 
             // Add members to group via share link (production code path)
-            const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
+            const {linkId} = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
             for (const user of [testUser2, testUser3, testUser4]) {
                 await groupShareService.joinGroupByLink(user.uid, linkId);
             }
@@ -123,15 +126,27 @@ describe('Concurrent Operations Integration Tests', () => {
             const expensePromises = [
                 expenseService.createExpense(
                     testUser1.uid,
-                    new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(testUser1.uid).withParticipants([testUser1.uid, testUser2.uid]).build(),
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(testGroup.id)
+                        .withPaidBy(testUser1.uid)
+                        .withParticipants([testUser1.uid, testUser2.uid])
+                        .build(),
                 ),
                 expenseService.createExpense(
                     testUser2.uid,
-                    new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(testUser2.uid).withParticipants([testUser2.uid, testUser3.uid]).build(),
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(testGroup.id)
+                        .withPaidBy(testUser2.uid)
+                        .withParticipants([testUser2.uid, testUser3.uid])
+                        .build(),
                 ),
                 expenseService.createExpense(
                     testUser3.uid,
-                    new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(testUser3.uid).withParticipants([testUser3.uid, testUser4.uid]).build(),
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(testGroup.id)
+                        .withPaidBy(testUser3.uid)
+                        .withParticipants([testUser3.uid, testUser4.uid])
+                        .build(),
                 ),
             ];
 
@@ -150,13 +165,17 @@ describe('Concurrent Operations Integration Tests', () => {
             const groupShareService = applicationBuilder.buildGroupShareService();
 
             // Add member via share link (production code path)
-            const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
+            const {linkId} = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
             await groupShareService.joinGroupByLink(testUser2.uid, linkId);
 
             // Create expense
             await expenseService.createExpense(
                 testUser1.uid,
-                new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(testUser1.uid).withParticipants([testUser1.uid, testUser2.uid]).build(),
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser1.uid)
+                    .withParticipants([testUser1.uid, testUser2.uid])
+                    .build(),
             );
 
             // Simulate concurrent operations: balance queries and member removal
@@ -188,7 +207,7 @@ describe('Concurrent Operations Integration Tests', () => {
             const groupShareService = applicationBuilder.buildGroupShareService();
 
             // Add a member via share link (production code path)
-            const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
+            const {linkId} = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
             await groupShareService.joinGroupByLink(testUser2.uid, linkId);
 
             // Create operations where some will succeed and some will fail
@@ -217,6 +236,311 @@ describe('Concurrent Operations Integration Tests', () => {
             const finalMembers = await firestoreReader.getAllGroupMembers(testGroup.id);
             expect(Array.isArray(finalMembers)).toBe(true);
             expect(finalMembers.some((m) => m.uid === testUser2.uid)).toBe(true);
+        });
+    });
+
+    describe('Balance Correctness Under Concurrent Load', () => {
+        const apiDriver = new ApiDriver();
+
+        test('should maintain mathematically correct balances under heavy concurrent expense and settlement load', async () => {
+            const groupShareService = applicationBuilder.buildGroupShareService();
+
+            const testGroup = await groupService.createGroup(
+                testUser1.uid,
+                new CreateGroupRequestBuilder()
+                    .withName('Concurrent Balance Test')
+                    .build()
+            );
+
+            const {linkId} = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
+            await groupShareService.joinGroupByLink(testUser2.uid, linkId);
+            await groupShareService.joinGroupByLink(testUser3.uid, linkId);
+
+            const operations = [
+                () => expenseService.createExpense(testUser1.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser1.uid)
+                    .withAmount(100)
+                    .withCurrency('USD')
+                    .withParticipants([testUser1.uid, testUser2.uid])
+                    .withSplitType('equal')
+                    .build()),
+                () => expenseService.createExpense(testUser2.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser2.uid)
+                    .withAmount(80)
+                    .withCurrency('USD')
+                    .withParticipants([testUser2.uid, testUser3.uid])
+                    .withSplitType('equal')
+                    .build()),
+                () => expenseService.createExpense(testUser3.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser3.uid)
+                    .withAmount(60)
+                    .withCurrency('USD')
+                    .withParticipants([testUser1.uid, testUser3.uid])
+                    .withSplitType('equal')
+                    .build()),
+                () => expenseService.createExpense(testUser1.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser1.uid)
+                    .withAmount(120)
+                    .withCurrency('USD')
+                    .withParticipants([testUser1.uid, testUser2.uid, testUser3.uid])
+                    .withSplitType('equal')
+                    .build()),
+                () => expenseService.createExpense(testUser2.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser2.uid)
+                    .withAmount(90)
+                    .withCurrency('USD')
+                    .withParticipants([testUser1.uid, testUser2.uid])
+                    .withSplitType('equal')
+                    .build()),
+                () => expenseService.createExpense(testUser3.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser3.uid)
+                    .withAmount(75)
+                    .withCurrency('USD')
+                    .withParticipants([testUser2.uid, testUser3.uid])
+                    .withSplitType('equal')
+                    .build()),
+                () => expenseService.createExpense(testUser1.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser1.uid)
+                    .withAmount(110)
+                    .withCurrency('USD')
+                    .withParticipants([testUser1.uid, testUser3.uid])
+                    .withSplitType('equal')
+                    .build()),
+                () => expenseService.createExpense(testUser2.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser2.uid)
+                    .withAmount(95)
+                    .withCurrency('USD')
+                    .withParticipants([testUser1.uid, testUser2.uid, testUser3.uid])
+                    .withSplitType('equal')
+                    .build()),
+                () => expenseService.createExpense(testUser3.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser3.uid)
+                    .withAmount(85)
+                    .withCurrency('USD')
+                    .withParticipants([testUser1.uid, testUser2.uid])
+                    .withSplitType('equal')
+                    .build()),
+                () => expenseService.createExpense(testUser1.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser1.uid)
+                    .withAmount(70)
+                    .withCurrency('USD')
+                    .withParticipants([testUser2.uid, testUser3.uid])
+                    .withSplitType('equal')
+                    .build()),
+                () => apiDriver.createSettlement(new CreateSettlementRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPayerId(testUser2.uid)
+                    .withPayeeId(testUser1.uid)
+                    .withAmount(25)
+                    .withCurrency('USD')
+                    .build(), testUser2.token),
+                () => apiDriver.createSettlement(new CreateSettlementRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPayerId(testUser3.uid)
+                    .withPayeeId(testUser1.uid)
+                    .withAmount(30)
+                    .withCurrency('USD')
+                    .build(), testUser3.token),
+                () => apiDriver.createSettlement(new CreateSettlementRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPayerId(testUser1.uid)
+                    .withPayeeId(testUser2.uid)
+                    .withAmount(15)
+                    .withCurrency('USD')
+                    .build(), testUser1.token),
+                () => apiDriver.createSettlement(new CreateSettlementRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPayerId(testUser2.uid)
+                    .withPayeeId(testUser3.uid)
+                    .withAmount(20)
+                    .withCurrency('USD')
+                    .build(), testUser2.token),
+                () => apiDriver.createSettlement(new CreateSettlementRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPayerId(testUser3.uid)
+                    .withPayeeId(testUser2.uid)
+                    .withAmount(10)
+                    .withCurrency('USD')
+                    .build(), testUser3.token),
+            ];
+
+            const results = await Promise.allSettled(operations.map(op => op()));
+
+            const succeeded = results.filter(r => r.status === 'fulfilled');
+
+            expect(succeeded.length).toBeGreaterThan(0);
+
+            const balances = await apiDriver.getGroupBalances(testGroup.id, testUser1.token);
+
+            expect(balances.balancesByCurrency.USD).toBeDefined();
+            const user1Balance = balances.balancesByCurrency.USD[testUser1.uid].netBalance;
+            const user2Balance = balances.balancesByCurrency.USD[testUser2.uid].netBalance;
+            const user3Balance = balances.balancesByCurrency.USD[testUser3.uid].netBalance;
+
+            expect(user1Balance + user2Balance + user3Balance).toBeCloseTo(0, 2);
+        });
+
+        test('should handle rapid concurrent updates to same user balance', async () => {
+            const groupShareService = applicationBuilder.buildGroupShareService();
+
+            const testGroup = await groupService.createGroup(
+                testUser1.uid,
+                new CreateGroupRequestBuilder()
+                    .withName('Same User Contention Test')
+                    .build()
+            );
+
+            const {linkId} = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
+            await groupShareService.joinGroupByLink(testUser2.uid, linkId);
+
+            const operations = Array.from({length: 15}, (_, i) =>
+                () => expenseService.createExpense(testUser1.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser1.uid)
+                    .withAmount(50 + i)
+                    .withCurrency('USD')
+                    .withParticipants([testUser1.uid, testUser2.uid])
+                    .withSplitType('equal')
+                    .build())
+            );
+
+            const results = await Promise.allSettled(operations.map(op => op()));
+
+            const succeeded = results.filter(r => r.status === 'fulfilled') as PromiseFulfilledResult<any>[];
+
+            expect(succeeded.length).toBeGreaterThan(0);
+
+            const successfulExpenses = succeeded.map(r => r.value);
+            const expectedDebt = successfulExpenses.reduce((sum, exp) => sum + exp.amount / 2, 0);
+
+            const balances = await apiDriver.getGroupBalances(testGroup.id, testUser1.token);
+
+            expect(balances.balancesByCurrency.USD).toBeDefined();
+            expect(balances.balancesByCurrency.USD[testUser2.uid].netBalance).toBeCloseTo(-expectedDebt, 2);
+            expect(balances.balancesByCurrency.USD[testUser1.uid].netBalance).toBeCloseTo(expectedDebt, 2);
+        });
+
+        test('should maintain correct multi-currency balances under concurrent operations', async () => {
+            const groupShareService = applicationBuilder.buildGroupShareService();
+
+            const testGroup = await groupService.createGroup(
+                testUser1.uid,
+                new CreateGroupRequestBuilder()
+                    .withName('Multi-Currency Concurrent Test')
+                    .build()
+            );
+
+            const {linkId} = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
+            await groupShareService.joinGroupByLink(testUser2.uid, linkId);
+            await groupShareService.joinGroupByLink(testUser3.uid, linkId);
+
+            const operations = [
+                () => expenseService.createExpense(testUser1.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser1.uid)
+                    .withAmount(100)
+                    .withCurrency('USD')
+                    .withParticipants([testUser1.uid, testUser2.uid])
+                    .withSplitType('equal')
+                    .build()),
+                () => expenseService.createExpense(testUser2.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser2.uid)
+                    .withAmount(80)
+                    .withCurrency('EUR')
+                    .withParticipants([testUser2.uid, testUser3.uid])
+                    .withSplitType('equal')
+                    .build()),
+                () => expenseService.createExpense(testUser3.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser3.uid)
+                    .withAmount(60)
+                    .withCurrency('GBP')
+                    .withParticipants([testUser1.uid, testUser3.uid])
+                    .withSplitType('equal')
+                    .build()),
+                () => expenseService.createExpense(testUser1.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser1.uid)
+                    .withAmount(120)
+                    .withCurrency('USD')
+                    .withParticipants([testUser1.uid, testUser2.uid, testUser3.uid])
+                    .withSplitType('equal')
+                    .build()),
+                () => expenseService.createExpense(testUser2.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser2.uid)
+                    .withAmount(90)
+                    .withCurrency('EUR')
+                    .withParticipants([testUser1.uid, testUser2.uid])
+                    .withSplitType('equal')
+                    .build()),
+                () => apiDriver.createSettlement(new CreateSettlementRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPayerId(testUser2.uid)
+                    .withPayeeId(testUser1.uid)
+                    .withAmount(25)
+                    .withCurrency('USD')
+                    .build(), testUser2.token),
+                () => apiDriver.createSettlement(new CreateSettlementRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPayerId(testUser3.uid)
+                    .withPayeeId(testUser2.uid)
+                    .withAmount(30)
+                    .withCurrency('EUR')
+                    .build(), testUser3.token),
+                () => expenseService.createExpense(testUser3.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser3.uid)
+                    .withAmount(75)
+                    .withCurrency('GBP')
+                    .withParticipants([testUser2.uid, testUser3.uid])
+                    .withSplitType('equal')
+                    .build()),
+                () => expenseService.createExpense(testUser1.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser1.uid)
+                    .withAmount(110)
+                    .withCurrency('USD')
+                    .withParticipants([testUser1.uid, testUser3.uid])
+                    .withSplitType('equal')
+                    .build()),
+                () => expenseService.createExpense(testUser2.uid, new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(testUser2.uid)
+                    .withAmount(95)
+                    .withCurrency('EUR')
+                    .withParticipants([testUser1.uid, testUser2.uid, testUser3.uid])
+                    .withSplitType('equal')
+                    .build()),
+            ];
+
+            const results = await Promise.allSettled(operations.map(op => op()));
+
+            const succeeded = results.filter(r => r.status === 'fulfilled');
+
+            expect(succeeded.length).toBeGreaterThan(0);
+
+            const balances = await apiDriver.getGroupBalances(testGroup.id, testUser1.token);
+
+            const currencies = Object.keys(balances.balancesByCurrency);
+            expect(currencies.length).toBeGreaterThan(0);
+
+            currencies.forEach(currency => {
+                const currencyBalances = balances.balancesByCurrency[currency];
+                const sum = Object.values(currencyBalances).reduce((total, userBal: any) => total + userBal.netBalance, 0);
+                expect(sum).toBeCloseTo(0, 2);
+            });
         });
     });
 });
