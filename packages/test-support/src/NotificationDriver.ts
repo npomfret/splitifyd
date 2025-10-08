@@ -72,10 +72,10 @@ export class NotificationDriver {
      * This detects activity from ANY user, including zombie listeners from previous tests
      *
      * @param quietDurationMs - How long the system must be quiet (default: 200ms)
-     * @param timeoutMs - Maximum time to wait (default: 5000ms)
+     * @param timeoutMs - Maximum time to wait (default: 10000ms) ... it can take a long time for the emulator to process them all
      * @returns Promise that resolves when system is quiet or timeout occurs
      */
-    async waitForQuiet(quietDurationMs: number = 200, timeoutMs: number = 5000): Promise<void> {
+    async waitForQuiet(quietDurationMs: number = 200, timeoutMs: number = 10000): Promise<void> {
         const startTime = Date.now();
         const checkIntervalMs = 50; // Poll every 50ms
 
