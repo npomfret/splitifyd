@@ -290,7 +290,7 @@ export class NotificationListener {
             }
 
             if (Date.now() - startTime > timeoutMs) {
-                throw new Error(`Timeout waiting for ${minCount} ${eventType} events for group ${groupId}. Got ${events.length}`);
+                throw new Error(`Timeout after ${timeoutMs}ms waiting for ${minCount} ${eventType} events for group ${groupId}. Got ${events.length}`);
             }
 
             await new Promise((resolve) => setTimeout(resolve, 100));
