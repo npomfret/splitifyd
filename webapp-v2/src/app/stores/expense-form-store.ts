@@ -6,6 +6,7 @@ import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
 import { logWarning } from '@/utils/browser-logger.ts';
 import { getUTCDateTime, isDateInFuture } from '@/utils/dateUtils.ts';
 import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
+import { getAmountPrecisionError } from '@/utils/currency-validation.ts';
 
 interface ExpenseFormStore {
     // Form fields
@@ -384,6 +385,16 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 break;
             case 'currency':
                 this.#currencySignal.value = value as string;
+
+                // Revalidate amount when currency changes (precision rules depend on currency)
+                const currentErrors = { ...this.#validationErrorsSignal.value };
+                const amountError = this.validateField('amount');
+                if (amountError) {
+                    currentErrors.amount = amountError;
+                } else {
+                    delete currentErrors.amount;
+                }
+                this.#validationErrorsSignal.value = currentErrors;
                 break;
             case 'date':
                 this.#dateSignal.value = value as string;
@@ -595,6 +606,15 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                     return 'Amount must be greater than 0';
                 } else if (amt > 1000000) {
                     return 'Amount seems too large';
+                }
+
+                // Validate currency precision if currency is set
+                const currency = this.#currencySignal.value;
+                if (currency) {
+                    const precisionError = getAmountPrecisionError(amt, currency);
+                    if (precisionError) {
+                        return precisionError;
+                    }
                 }
                 break;
 

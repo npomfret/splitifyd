@@ -18,7 +18,7 @@
 
 # edit these to pick your test cases
 TEST_FILE="src/__tests__/integration/expense-and-balance-lifecycle.e2e.test.ts"
-TEST_FILTER="should support real-time expense comments"
+TEST_FILTER="should handle comprehensive multi-currency expenses with precision and cross-currency settlements"
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

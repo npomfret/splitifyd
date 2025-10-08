@@ -188,6 +188,86 @@ export class MockFirebase {
         this.state.delayMs = delayMs;
     }
 
+    /**
+     * Mock successful registration - sets up /register API endpoint to succeed
+     * and automatically triggers authentication after success
+     */
+    public mockRegisterSuccess(user: ClientUser): void {
+        this.page.route('/api/register', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    success: true,
+                    user: {
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName,
+                    },
+                }),
+            });
+
+            // After successful registration, trigger auth state change
+            this.state.currentUser = user;
+            await this.page.evaluate((user) => {
+                window.__TEST_ENV__!.firebase.currentUser = user;
+                if (window.__TEST_ENV__!.firebase.authCallback) {
+                    const token = user ? `mock-token-for-${user.uid}` : null;
+                    window.__TEST_ENV__!.firebase.authCallback(user, token);
+                }
+            }, user);
+        });
+    }
+
+    /**
+     * Mock failed registration - sets up /register API endpoint to fail with error
+     */
+    public mockRegisterFailure(error: AuthError): void {
+        this.page.route('/api/register', (route) => {
+            route.fulfill({
+                status: 400,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    error: error.message,
+                    code: error.code,
+                }),
+            });
+        });
+    }
+
+    /**
+     * Mock registration with delay - useful for testing loading states
+     */
+    public mockRegisterWithDelay(user: ClientUser, delayMs: number): void {
+        this.page.route('/api/register', async (route) => {
+            // Wait for specified delay
+            await this.page.waitForTimeout(delayMs);
+
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    success: true,
+                    user: {
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName,
+                    },
+                }),
+            });
+
+            // After successful registration, trigger auth state change
+            this.state.currentUser = user;
+            await this.page.evaluate((user) => {
+                window.__TEST_ENV__!.firebase.currentUser = user;
+                if (window.__TEST_ENV__!.firebase.authCallback) {
+                    const token = user ? `mock-token-for-${user.uid}` : null;
+                    window.__TEST_ENV__!.firebase.authCallback(user, token);
+                }
+            }, user);
+        });
+    }
+
     public async triggerNotificationUpdate(userId: string, data: any): Promise<void> {
         await this.page.evaluate(
             ({ userId, data }) => {
