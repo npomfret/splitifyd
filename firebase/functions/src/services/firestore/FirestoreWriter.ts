@@ -1621,15 +1621,13 @@ export class FirestoreWriter implements IFirestoreWriter {
             try {
                 await this.db.collection('test-user-pool').doc(email).update(updates);
 
-                logger.info('Test pool user updated', { email, updates });
-
                 return {
                     id: email,
                     success: true,
                     timestamp: new Date(),
                 };
             } catch (error) {
-                logger.error('Failed to update test pool user', error, { email });
+                logger.error('Failed to update test pool user', error, { email, updates });
                 return {
                     id: email,
                     success: false,
