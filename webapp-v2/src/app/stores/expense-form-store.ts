@@ -395,6 +395,12 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                     delete currentErrors.amount;
                 }
                 this.#validationErrorsSignal.value = currentErrors;
+
+                // Recalculate splits when currency changes (currency affects split precision)
+                // Only recalculate if we have all required data
+                if (this.#amountSignal.value > 0 && this.#participantsSignal.value.length > 0) {
+                    this.handleSplitTypeChange(this.#splitTypeSignal.value);
+                }
                 break;
             case 'date':
                 this.#dateSignal.value = value as string;
@@ -407,6 +413,12 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 // Auto-add payer to participants if not already included
                 if (!this.#participantsSignal.value.includes(value as string)) {
                     this.#participantsSignal.value = [...this.#participantsSignal.value, value as string];
+                }
+                // Always recalculate splits when payer changes
+                // This handles the case where participants list changed (e.g., member left group)
+                // Only recalculate if we have all required data
+                if (this.#currencySignal.value && this.#amountSignal.value > 0 && this.#participantsSignal.value.length > 0) {
+                    this.handleSplitTypeChange(this.#splitTypeSignal.value);
                 }
                 break;
             case 'category':

@@ -1,7 +1,7 @@
 import { BrowserContext, Page } from '@playwright/test';
 import { PooledTestUser } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
-import { ApiInterceptor, attachApiInterceptor, attachScreenshotHandler, ScreenshotHandler } from '../helpers';
+import { ApiInterceptor, attachApiInterceptor, attachConsoleHandler, attachScreenshotHandler, ScreenshotHandler, UnifiedConsoleHandler } from '../helpers';
 import { DashboardPage, LoginPage } from '../pages';
 import { AuthenticationWorkflow } from '../workflows';
 import { baseTest } from './base-test';
@@ -12,6 +12,7 @@ interface BrowserInstance {
     context: BrowserContext;
     user?: PooledTestUser;
     apiInterceptor: ApiInterceptor;
+    consoleHandler: UnifiedConsoleHandler;
     screenshotHandler: ScreenshotHandler;
 }
 
@@ -56,6 +57,9 @@ export const simpleTest = baseTest.extend<SimpleTestFixtures>({
             const userIndex = browserInstances.length; // Use current length as index for this user
             const apiInterceptor = attachApiInterceptor(page, { testInfo, userIndex });
 
+            // Set up console handler
+            const consoleHandler = attachConsoleHandler(page, { testInfo, userIndex });
+
             // Set up screenshot handler
             const screenshotHandler = attachScreenshotHandler(page, { testInfo, userIndex });
 
@@ -68,6 +72,7 @@ export const simpleTest = baseTest.extend<SimpleTestFixtures>({
                 page,
                 context,
                 apiInterceptor,
+                consoleHandler,
                 screenshotHandler,
             };
             browserInstances.push(browserInstance);
@@ -88,8 +93,10 @@ export const simpleTest = baseTest.extend<SimpleTestFixtures>({
 
                     // Process any logs that occurred during the test
                     await instance.apiInterceptor.processLogs(testInfo);
+                    await instance.consoleHandler.processErrors(testInfo);
 
                     instance.apiInterceptor.dispose();
+                    instance.consoleHandler.dispose();
 
                     // Close context
                     await instance.context.close();
@@ -131,16 +138,16 @@ export const simpleTest = baseTest.extend<SimpleTestFixtures>({
 
                 // Set up API interceptor
                 const userIndex = browserInstances.length + index; // Use current length + index for this user
-                const apiInterceptor = attachApiInterceptor(page, { testInfo, userIndex });
+                const apiInterceptor = attachApiInterceptor(page, { testInfo, userIndex, userEmail: user.email });
+
+                // Set up console handler
+                const consoleHandler = attachConsoleHandler(page, { testInfo, userIndex, userEmail: user.email });
 
                 // Set up screenshot handler
                 const screenshotHandler = attachScreenshotHandler(page, { testInfo, userIndex });
 
                 const authWorkflow = new AuthenticationWorkflow(page);
                 await authWorkflow.loginExistingUser(user);
-
-                // Update API interceptor with user email now that we have it
-                apiInterceptor.updateUserInfo({ userEmail: user.email });
 
                 // Create dashboard page
                 const dashboardPage = new DashboardPage(page);
@@ -154,12 +161,13 @@ export const simpleTest = baseTest.extend<SimpleTestFixtures>({
                     context,
                     user,
                     apiInterceptor,
+                    consoleHandler,
                     screenshotHandler,
                 };
 
                 const displayName = await dashboardPage.header.getCurrentUserDisplayName();
 
-                console.log(`Browser ${index + 1} using "${displayName}" ${user.email} (id: ${user.uid})`);
+                console.log(`Browser ${index + 1} using "${displayName}" ${user.email} (uid: ${user.uid})`);
 
                 return { browserInstance, result: { page, dashboardPage, user } };
             });
@@ -188,8 +196,10 @@ export const simpleTest = baseTest.extend<SimpleTestFixtures>({
 
                     // Process any logs that occurred during the test
                     await instance.apiInterceptor.processLogs(testInfo);
+                    await instance.consoleHandler.processErrors(testInfo);
 
                     instance.apiInterceptor.dispose();
+                    instance.consoleHandler.dispose();
 
                     // Release user back to pool
                     if (instance.user) {

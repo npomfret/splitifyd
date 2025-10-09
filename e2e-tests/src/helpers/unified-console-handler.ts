@@ -1,7 +1,6 @@
 import { Page, TestInfo } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import { PathUtils } from './path-utils';
 
 interface ConsoleError {
     message: string;
@@ -189,30 +188,26 @@ export class UnifiedConsoleHandler {
         // Check if this test has skip-error-checking annotation
         const skipErrorChecking = testInfo.annotations.some((annotation) => annotation.type === 'skip-error-checking');
 
-        // On test failure, point to console log files
-        if (testFailed) {
-            const relativePath = PathUtils.getRelativePathWithFileUrl(this.logFile);
-            console.log('\n' + '='.repeat(80));
-            console.log('📋 BROWSER CONSOLE LOGS (Test Failed)');
-            console.log('='.repeat(80));
-            console.log(`Test: ${testInfo.title}`);
-            console.log(`File: ${testInfo.file}`);
-            console.log(`📄 Console log: ${relativePath}`);
-            console.log('='.repeat(80) + '\n');
+        // Attach console log if test failed OR if there are errors (so it's available before we throw)
+        if (testFailed || hasConsoleErrors || hasPageErrors) {
+            // Attach console log file reference
+            if (fs.existsSync(this.logFile)) {
+                const filename = path.basename(this.logFile);
+                const fileUrl = `file://${this.logFile}`;
+
+                // Attach file path reference only (consistent with API log format)
+                await testInfo.attach(filename, {
+                    body: `See: ${fileUrl}`,
+                    contentType: 'text/plain',
+                });
+            } else {
+                console.log(`\n⚠️  Console log file not found: ${this.logFile}\n`);
+            }
         }
 
         if ((hasConsoleErrors || hasPageErrors) && !skipErrorChecking) {
             // Print error summary
-            console.log('\n' + '='.repeat(80));
             console.log('❌ BROWSER ERRORS DETECTED');
-            console.log('='.repeat(80));
-            console.log(`Test: ${testInfo.title}`);
-            console.log(`File: ${testInfo.file}`);
-
-            if (hasConsoleErrors) {
-                console.log(`\n📋 Console Errors (${this.consoleErrors.length}):\n`);
-                console.log('Console errors detected in browser. Details are in the console log file above.');
-            }
 
             if (hasPageErrors) {
                 console.log(`\n⚠️  Page Errors (${this.pageErrors.length}):`);
@@ -227,37 +222,6 @@ export class UnifiedConsoleHandler {
             }
 
             console.log('\n' + '='.repeat(80) + '\n');
-
-            // Attach console errors to test report
-            if (hasConsoleErrors) {
-                const consoleErrorReport = this
-                    .consoleErrors
-                    .map(
-                        (err, index) =>
-                            `${index + 1}. ${err.type.toUpperCase()}: ${err.message}\n`
-                            + `   Location: ${err.location?.url || 'unknown'}:${err.location?.lineNumber || '?'}:${err.location?.columnNumber || '?'}\n`
-                            + `   Time: ${err.timestamp.toISOString()}`,
-                    )
-                    .join('\n\n');
-
-                await testInfo.attach('console-errors.txt', {
-                    body: consoleErrorReport,
-                    contentType: 'text/plain',
-                });
-            }
-
-            // Attach page errors to test report
-            if (hasPageErrors) {
-                const pageErrorReport = this
-                    .pageErrors
-                    .map((err, index) => `${index + 1}. ${err.name}: ${err.message}\n` + `${err.stack ? `Stack trace:\n${err.stack}\n` : ''}` + `Time: ${err.timestamp.toISOString()}`)
-                    .join('\n\n');
-
-                await testInfo.attach('page-errors.txt', {
-                    body: pageErrorReport,
-                    contentType: 'text/plain',
-                });
-            }
 
             // FAIL THE TEST if there are errors and test hasn't already failed
             if (testInfo.status !== 'failed') {
@@ -320,7 +284,13 @@ export class UnifiedConsoleHandler {
             }
 
             console.log(ignoredMessage);
-            console.log('These errors are expected for this test.');
+
+            // Always show console log file path when there are errors
+            if (fs.existsSync(this.logFile)) {
+                const fileUrl = `file://${this.logFile}`;
+                console.log(`Console log: ${fileUrl}`);
+            }
+
             console.log('='.repeat(80) + '\n');
         }
     }

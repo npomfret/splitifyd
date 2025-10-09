@@ -260,7 +260,7 @@ export class ExpenseFormPage extends BasePage {
         await this.clickButton(saveButton, { buttonName: 'Save Expense' });
 
         // Wait for navigation away from the add-expense page (indicates save completed)
-        await expect(this.page).not.toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/, { timeout: 10000 });
+        await expect(this.page).not.toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/, { timeout: 3000 });
     }
 
     /**

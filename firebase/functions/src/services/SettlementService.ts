@@ -34,16 +34,14 @@ export class SettlementService {
     ) {}
     /**
      * Fetch group member data for settlements
+     * Handles both current members and departed members (who have left the group)
+     * to allow viewing historical transaction data
      */
     private async fetchGroupMemberData(groupId: string, userId: string): Promise<GroupMember> {
         const [userData, memberData] = await Promise.all([this.firestoreReader.getUser(userId), this.firestoreReader.getGroupMember(groupId, userId)]);
 
         if (!userData) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${userId} not found`);
-        }
-
-        if (!memberData) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'MEMBER_NOT_FOUND', `Member ${userId} not found in group ${groupId}`);
         }
 
         // Validate user data
@@ -59,6 +57,31 @@ export class SettlementService {
                 .toUpperCase()
                 .slice(0, 2);
 
+            // If memberData is null, the user has left the group
+            // But we still need to return their user info for historical data
+            if (!memberData) {
+                return {
+                    uid: userId,
+                    email: validatedData.email,
+                    displayName: validatedData.displayName,
+                    initials,
+                    photoURL: userData.photoURL || null,
+                    themeColor: {
+                        light: '#9CA3AF',
+                        dark: '#6B7280',
+                        name: 'Neutral Gray',
+                        pattern: 'solid',
+                        assignedAt: new Date().toISOString(),
+                        colorIndex: -1, // -1 indicates departed member
+                    },
+                    memberRole: 'member',
+                    memberStatus: 'active', // Last known status before departure
+                    joinedAt: '', // Unknown historical join date
+                    invitedBy: undefined,
+                };
+            }
+
+            // Normal path: member is still in the group
             return {
                 uid: userId,
                 email: validatedData.email,
@@ -577,7 +600,10 @@ export class SettlementService {
 
         const settlements: SettlementWithMembers[] = await Promise.all(
             result.settlements.map(async (settlement) => {
-                const [payerData, payeeData] = await Promise.all([this.fetchGroupMemberData(groupId, settlement.payerId), this.fetchGroupMemberData(groupId, settlement.payeeId)]);
+                const [payerData, payeeData] = await Promise.all([
+                    this.fetchGroupMemberData(groupId, settlement.payerId),
+                    this.fetchGroupMemberData(groupId, settlement.payeeId)
+                ]);
 
                 return {
                     id: settlement.id,

@@ -325,6 +325,60 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                 await expect(apiDriver.deleteSettlement('non-existent-id', settlementUsers[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
             });
         });
+
+        describe('Settlement Access After Member Departure', () => {
+            test('should view settlements after a member leaves the group', async () => {
+                // Setup: Create group with 2 members
+                const testUsers = users.slice(0, 2);
+                const group = await TestGroupManager.getOrCreateGroup(testUsers, {
+                    memberCount: 2,
+                    fresh: true,
+                });
+
+                // Create expense where user 0 pays
+                await apiDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(group.id)
+                        .withAmount(60)
+                        .withCurrency('JPY')
+                        .withPaidBy(testUsers[0].uid)
+                        .withParticipants([testUsers[0].uid, testUsers[1].uid])
+                        .withSplitType('equal')
+                        .build(),
+                    testUsers[0].token,
+                );
+
+                // Wait for balance to update
+                await apiDriver.waitForBalanceUpdate(group.id, testUsers[0].token, 3000);
+
+                // User 1 creates settlement to pay back user 0
+                await apiDriver.createSettlement(
+                    new CreateSettlementRequestBuilder()
+                        .withGroupId(group.id)
+                        .withPayerId(testUsers[1].uid) // User 1 pays
+                        .withPayeeId(testUsers[0].uid) // User 0 receives
+                        .withAmount(30)
+                        .withCurrency('JPY')
+                        .build(),
+                    testUsers[1].token,
+                );
+
+                // User 1 leaves the group
+                await apiDriver.leaveGroup(group.id, testUsers[1].token);
+                
+                const fullDetails = await apiDriver.getGroupFullDetails(group.id, testUsers[0].token);
+
+                // Assertions: Should successfully fetch group details with settlements
+                expect(fullDetails).toBeDefined();
+                expect(fullDetails.group).toBeDefined();
+                expect(fullDetails.settlements.settlements).toHaveLength(1);
+
+                // Settlement should have payer info even though they left
+                const settlement = fullDetails.settlements.settlements[0];
+                expect(settlement.payer.uid).toBe(testUsers[1].uid);
+                expect(settlement.payee.uid).toBe(testUsers[0].uid);
+            });
+        });
     });
 
     describe('Advanced Settlement Scenarios', () => {

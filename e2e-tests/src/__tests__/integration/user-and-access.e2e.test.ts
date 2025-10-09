@@ -132,6 +132,7 @@ simpleTest.describe('User Registration & Account Management', () => {
     });
 
     simpleTest('comprehensive registration flow with loading states, validation, and error handling', async ({ newEmptyBrowser }) => {
+        simpleTest.setTimeout(30000); // Extended timeout for comprehensive test with 4 registrations
         const { page } = await newEmptyBrowser();
         const registerPage = new RegisterPage(page);
         simpleTest.info().annotations.push({ type: 'skip-error-checking', description: '409 Conflict error is expected for duplicate registration' });
@@ -144,6 +145,7 @@ simpleTest.describe('User Registration & Account Management', () => {
         await registerPage.navigate();
         await registerPage.waitForFormReady();
         await registerPage.fillRegistrationForm(displayName, email, password);
+        await registerPage.acceptAllPolicies();
 
         const submitButton = registerPage.getSubmitButton();
         await expect(submitButton).toBeEnabled();
@@ -225,8 +227,10 @@ simpleTest.describe('User Registration & Account Management', () => {
 
         await registerPage.navigate();
         await registerPage.waitForFormReady();
-        await registerPage.register(displayName2, email2, password);
-        await expect(page).toHaveURL(/\/dashboard/);
+        await registerPage.fillRegistrationForm(displayName2, email2, password);
+        await registerPage.acceptAllPolicies();
+        await registerPage.submitForm();
+        await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
     });
 });
 
@@ -540,6 +544,7 @@ simpleTest.describe('Share Link Access Management', () => {
             const { displayName: newUserName, email: newUserEmail, password: newUserPassword } = new TestUserBuilder()
                 .build();
             await registerPage.fillRegistrationForm(newUserName, newUserEmail, newUserPassword);
+            await registerPage.acceptAllPolicies();
             await registerPage.submitForm();
 
             // After successful registration, user should be redirected to the join group page

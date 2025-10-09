@@ -145,6 +145,12 @@ export class RegisterPage extends BasePage {
         await this.getCookieCheckbox().check();
     }
 
+    // Helper method to accept all policies (convenience method)
+    async acceptAllPolicies() {
+        await this.checkTermsCheckbox();
+        await this.checkCookieCheckbox();
+    }
+
     getEmailError() {
         return this.page.locator('[role="alert"], [data-testid*="error"], .error-message');
     }

@@ -1,7 +1,6 @@
 import { Page, TestInfo } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import { PathUtils } from './path-utils';
 
 interface ApiRequest {
     url: string;
@@ -157,69 +156,20 @@ export class ApiInterceptor {
     }
 
     /**
-     * Update user information for better request/response tracking
-     */
-    updateUserInfo(userInfo: { userIndex?: number; userEmail?: string; }): void {
-        this.options = { ...this.options, ...userInfo };
-    }
-
-    /**
      * Process and attach API logs to test report
      */
     async processLogs(testInfo: TestInfo): Promise<void> {
         if (this.disposed) return;
 
         const hasApiTraffic = this.requests.length > 0 || this.responses.length > 0;
-        const testFailed = testInfo.status === 'failed' || testInfo.status === 'timedOut';
-
-        // On test failure, point to API log files
-        if (testFailed && hasApiTraffic) {
-            const relativePath = PathUtils.getRelativePathWithFileUrl(this.logFile);
-            console.log('\n' + '='.repeat(80));
-            console.log('🌐 API REQUEST/RESPONSE LOGS (Test Failed)');
-            console.log('='.repeat(80));
-            console.log(`Test: ${testInfo.title}`);
-            console.log(`File: ${testInfo.file}`);
-            console.log(`📄 API log: ${relativePath}`);
-            console.log(`📊 Requests: ${this.requests.length}, Responses: ${this.responses.length}`);
-            console.log('='.repeat(80) + '\n');
-        }
 
         if (hasApiTraffic) {
-            // Create API summary report
-            const summary = `API Traffic Summary:
-Requests: ${this.requests.length}
-Responses: ${this.responses.length}
-Log file: ${this.logFile}
-
-Recent requests:
-${
-                this
-                    .requests
-                    .slice(-5)
-                    .map((req) => `${req.method} ${req.url} (${req.timestamp.toISOString()})`)
-                    .join('\n')
-            }
-
-Recent responses:
-${
-                this
-                    .responses
-                    .slice(-5)
-                    .map((res) => `${res.status} ${res.url} (${res.timestamp.toISOString()})`)
-                    .join('\n')
-            }`;
-
-            await testInfo.attach('api-traffic-summary.txt', {
-                body: summary,
-                contentType: 'text/plain',
-            });
-
-            // Attach the full log file if it exists
+            // Only attach file path reference, not full content (reduces console verbosity)
             if (fs.existsSync(this.logFile)) {
-                const logContent = fs.readFileSync(this.logFile, 'utf8');
-                await testInfo.attach('api-traffic.log', {
-                    body: logContent,
+                const filename = path.basename(this.logFile);
+                const fileUrl = `file://${this.logFile}`;
+                await testInfo.attach(filename, {
+                    body: `See: ${fileUrl}`,
                     contentType: 'text/plain',
                 });
             }
