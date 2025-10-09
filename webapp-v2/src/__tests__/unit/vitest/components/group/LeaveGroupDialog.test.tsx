@@ -4,7 +4,7 @@ import { apiClient } from '@/app/apiClient';
 import { LeaveGroupDialog } from '@/components/group/LeaveGroupDialog';
 import { useNavigation } from '@/hooks/useNavigation';
 import { logError } from '@/utils/browser-logger';
-import { fireEvent, render, screen, waitFor } from '@testing-library/preact';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/preact';
 import { useTranslation } from 'react-i18next';
 
 // Mock all dependencies
@@ -53,7 +53,7 @@ describe('LeaveGroupDialog', () => {
     });
 
     afterEach(() => {
-        // Reset mock function call counts
+        cleanup();
         mockGoToDashboard.mockClear();
     });
 
@@ -138,19 +138,26 @@ describe('LeaveGroupDialog', () => {
     });
 
     it('shows loading state while processing', async () => {
-        mockApiClient.leaveGroup.mockImplementationOnce(() => new Promise((resolve) => setTimeout(resolve, 100)));
+        let resolvePromise: () => void;
+        const mockPromise = new Promise<void>((resolve) => {
+            resolvePromise = resolve;
+        });
+        mockApiClient.leaveGroup.mockReturnValueOnce(mockPromise);
 
-        render(<LeaveGroupDialog {...defaultProps} />);
+        const { unmount } = render(<LeaveGroupDialog {...defaultProps} />);
 
         const confirmButton = screen.getByTestId('confirm-button');
         fireEvent.click(confirmButton);
 
-        // Check that button is disabled during processing
         expect(confirmButton).toHaveAttribute('aria-busy', 'true');
 
         await waitFor(() => {
             expect(mockApiClient.leaveGroup).toHaveBeenCalledWith('test-group-id');
         });
+
+        resolvePromise!();
+        await mockPromise;
+        unmount();
     });
 
     it('uses correct dialog variant based on balance status', () => {

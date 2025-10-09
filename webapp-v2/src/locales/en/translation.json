@@ -1,4 +1,9 @@
 {
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page"
+  },
   "common": {
     "loading": "Loading...",
     "cancel": "Cancel",

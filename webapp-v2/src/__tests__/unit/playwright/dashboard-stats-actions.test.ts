@@ -7,19 +7,26 @@ test.describe('Dashboard Stats Display', () => {
         const { page, user: testUser } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        // Mock delayed API response to see loading state
-        await page.route('/api/groups?includeMetadata=true', async (route) => {
-            await page.waitForTimeout(1000);
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify(
-                    ListGroupsResponseBuilder
-                        .responseWithMetadata([])
-                        .build(),
-                ),
-            });
-        });
+        // Mock delayed API response to see loading state - use function-based routing to match all variants
+        await page.route(
+            (routeUrl) => {
+                if (routeUrl.pathname !== '/api/groups') return false;
+                const searchParams = new URL(routeUrl.href).searchParams;
+                return searchParams.get('includeMetadata') === 'true';
+            },
+            async (route) => {
+                await page.waitForTimeout(1000);
+                await route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify(
+                        ListGroupsResponseBuilder
+                            .responseWithMetadata([])
+                            .build(),
+                    ),
+                });
+            },
+        );
 
         await dashboardPage.navigate();
 
@@ -133,7 +140,11 @@ test.describe('Dashboard Stats Display', () => {
             .build();
         const updatedGroups = [...initialGroups, newGroup];
 
-        await page.unroute('/api/groups?includeMetadata=true');
+        await page.unroute((routeUrl) => {
+            if (routeUrl.pathname !== '/api/groups') return false;
+            const searchParams = new URL(routeUrl.href).searchParams;
+            return searchParams.get('includeMetadata') === 'true';
+        });
         await mockGroupsApi(
             page,
             ListGroupsResponseBuilder
@@ -206,7 +217,11 @@ test.describe('Dashboard Stats Display', () => {
         // Simulate removing a group
         const remainingGroups = initialGroups.slice(0, 2);
 
-        await page.unroute('/api/groups?includeMetadata=true');
+        await page.unroute((routeUrl) => {
+            if (routeUrl.pathname !== '/api/groups') return false;
+            const searchParams = new URL(routeUrl.href).searchParams;
+            return searchParams.get('includeMetadata') === 'true';
+        });
         await mockGroupsApi(
             page,
             ListGroupsResponseBuilder

@@ -44,6 +44,14 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
     disconnect: vi.fn(),
 }));
 
+// Mock requestAnimationFrame and cancelAnimationFrame for Preact
+global.requestAnimationFrame = vi.fn((callback) => {
+    return setTimeout(callback, 0) as unknown as number;
+});
+global.cancelAnimationFrame = vi.fn((id) => {
+    clearTimeout(id);
+});
+
 // Mock window.matchMedia for GSAP
 Object.defineProperty(window, 'matchMedia', {
     writable: true,

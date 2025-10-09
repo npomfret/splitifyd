@@ -64,15 +64,22 @@ test.describe('Dashboard Groups Display and Loading States', () => {
         const groupsResponse = ListGroupsResponseBuilder
             .responseWithMetadata([], 0)
             .build();
-        await page.route('/api/groups?includeMetadata=true', async (route) => {
-            // Delay response to show loading state
-            await page.waitForTimeout(1000);
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify(groupsResponse),
-            });
-        });
+        await page.route(
+            (routeUrl) => {
+                if (routeUrl.pathname !== '/api/groups') return false;
+                const searchParams = new URL(routeUrl.href).searchParams;
+                return searchParams.get('includeMetadata') === 'true';
+            },
+            async (route) => {
+                // Delay response to show loading state
+                await page.waitForTimeout(1000);
+                await route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify(groupsResponse),
+                });
+            },
+        );
 
         // Navigate and verify loading state appears
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
@@ -178,8 +185,21 @@ test.describe('Dashboard Error Handling', () => {
         const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        // Mock API failure
-        await mockApiFailure(page, '/api/groups?includeMetadata=true', 500, { error: 'Internal Server Error' });
+        // Mock API failure - matches all groups API requests with includeMetadata=true
+        await page.route(
+            (routeUrl) => {
+                if (routeUrl.pathname !== '/api/groups') return false;
+                const searchParams = new URL(routeUrl.href).searchParams;
+                return searchParams.get('includeMetadata') === 'true';
+            },
+            async (route) => {
+                await route.fulfill({
+                    status: 500,
+                    contentType: 'application/json',
+                    body: JSON.stringify({ error: 'Internal Server Error' }),
+                });
+            },
+        );
 
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
@@ -191,8 +211,21 @@ test.describe('Dashboard Error Handling', () => {
         const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        // Mock initial API failure
-        await mockApiFailure(page, '/api/groups?includeMetadata=true', 500, { error: 'Server temporarily unavailable' });
+        // Mock initial API failure - matches all groups API requests with includeMetadata=true
+        await page.route(
+            (routeUrl) => {
+                if (routeUrl.pathname !== '/api/groups') return false;
+                const searchParams = new URL(routeUrl.href).searchParams;
+                return searchParams.get('includeMetadata') === 'true';
+            },
+            async (route) => {
+                await route.fulfill({
+                    status: 500,
+                    contentType: 'application/json',
+                    body: JSON.stringify({ error: 'Server temporarily unavailable' }),
+                });
+            },
+        );
 
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
@@ -219,8 +252,21 @@ test.describe('Dashboard Error Handling', () => {
         const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        // Mock network timeout
-        await mockApiFailure(page, '/api/groups?includeMetadata=true', 408, { error: 'Request timeout' });
+        // Mock network timeout - matches all groups API requests with includeMetadata=true
+        await page.route(
+            (routeUrl) => {
+                if (routeUrl.pathname !== '/api/groups') return false;
+                const searchParams = new URL(routeUrl.href).searchParams;
+                return searchParams.get('includeMetadata') === 'true';
+            },
+            async (route) => {
+                await route.fulfill({
+                    status: 408,
+                    contentType: 'application/json',
+                    body: JSON.stringify({ error: 'Request timeout' }),
+                });
+            },
+        );
 
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 

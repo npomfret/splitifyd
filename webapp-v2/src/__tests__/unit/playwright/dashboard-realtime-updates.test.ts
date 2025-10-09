@@ -43,7 +43,11 @@ test.describe('Dashboard Real-time Notifications', () => {
         );
 
         // Setup updated response
-        await page.unroute('/api/groups?includeMetadata=true');
+        await page.unroute((routeUrl) => {
+            if (routeUrl.pathname !== '/api/groups') return false;
+            const searchParams = new URL(routeUrl.href).searchParams;
+            return searchParams.get('includeMetadata') === 'true';
+        });
         await mockGroupsApi(
             page,
             ListGroupsResponseBuilder
@@ -99,7 +103,11 @@ test.describe('Dashboard Real-time Notifications', () => {
         );
 
         // Send multiple rapid notifications
-        await page.unroute('/api/groups?includeMetadata=true');
+        await page.unroute((routeUrl) => {
+            if (routeUrl.pathname !== '/api/groups') return false;
+            const searchParams = new URL(routeUrl.href).searchParams;
+            return searchParams.get('includeMetadata') === 'true';
+        });
         for (let i = 2; i <= 5; i++) {
             await mockGroupsApi(
                 page,
@@ -112,6 +120,7 @@ test.describe('Dashboard Real-time Notifications', () => {
                 new UserNotificationDocumentBuilder()
                     .withChangeVersion(i)
                     .withGroupChangeCounts('group-1', { groupDetailsChangeCount: 1, transactionChangeCount: i - 1, balanceChangeCount: i - 1, commentChangeCount: 0 })
+                    .withGroupChangeCounts('group-2', { groupDetailsChangeCount: 1, transactionChangeCount: 0, balanceChangeCount: 0, commentChangeCount: 0 })
                     .build(),
             );
         }

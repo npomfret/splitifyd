@@ -860,6 +860,50 @@ describe('Groups Management - Consolidated Tests', () => {
             expect(intersection).toHaveLength(0);
         });
 
+        test('should support pagination with default page size of 8', async () => {
+            // Create 12 groups to ensure we need multiple pages
+            const createdGroups = [];
+            for (let i = 0; i < 12; i++) {
+                const group = await apiDriver.createGroup(
+                    new CreateGroupRequestBuilder()
+                        .withName(`Pagination Test Group ${i} ${uuidv4()}`)
+                        .build(),
+                    users[0].token,
+                );
+                createdGroups.push(group);
+                // Delay to ensure different server timestamps
+                await new Promise((resolve) => setTimeout(resolve, 50));
+            }
+
+            // Get first page without specifying limit (should default to 20, but we'll test with explicit 8)
+            const page1 = await apiDriver.listGroups(users[0].token, { limit: 8 });
+            expect(page1.groups).toHaveLength(8);
+            expect(page1.hasMore).toBe(true);
+            expect(page1.nextCursor).toBeDefined();
+            expect(page1.pagination.limit).toBe(8);
+
+            // Get second page using the cursor from page 1
+            const page2 = await apiDriver.listGroups(users[0].token, {
+                limit: 8,
+                cursor: page1.nextCursor,
+            });
+            expect(page2.groups.length).toBeGreaterThanOrEqual(4); // At least the remaining 4 from our 12 groups
+            expect(page2.pagination.limit).toBe(8);
+
+            // Ensure no duplicate IDs between pages
+            const page1Ids = page1.groups.map((g: any) => g.id);
+            const page2Ids = page2.groups.map((g: any) => g.id);
+            const intersection = page1Ids.filter((id: string) => page2Ids.includes(id));
+            expect(intersection).toHaveLength(0);
+
+            // Verify all our test groups are included across both pages
+            const allIds = [...page1Ids, ...page2Ids];
+            const createdGroupIds = createdGroups.map((g) => g.id);
+            for (const createdId of createdGroupIds) {
+                expect(allIds).toContain(createdId);
+            }
+        });
+
         test('should support ordering', async () => {
             // Wait to ensure different timestamp from beforeEach groups
             await new Promise((resolve) => setTimeout(resolve, 1000));

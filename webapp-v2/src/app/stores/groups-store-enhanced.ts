@@ -14,6 +14,9 @@ interface EnhancedGroupsStore {
     lastRefresh: number;
     updatingGroupIds: Set<string>;
     isCreatingGroup: boolean;
+    currentPage: number;
+    hasMore: boolean;
+    pageSize: number;
 
     // Readonly signal accessors for reactive components
     readonly groupsSignal: ReadonlySignal<GroupDTO[]>;
@@ -24,8 +27,14 @@ interface EnhancedGroupsStore {
     readonly lastRefreshSignal: ReadonlySignal<number>;
     readonly updatingGroupIdsSignal: ReadonlySignal<Set<string>>;
     readonly isCreatingGroupSignal: ReadonlySignal<boolean>;
+    readonly currentPageSignal: ReadonlySignal<number>;
+    readonly hasMoreSignal: ReadonlySignal<boolean>;
+    readonly pageSizeSignal: ReadonlySignal<number>;
 
-    fetchGroups(): Promise<void>;
+    fetchGroups(limit?: number, cursor?: string): Promise<void>;
+    loadNextPage(): Promise<void>;
+    loadPreviousPage(): Promise<void>;
+    setPageSize(size: number): Promise<void>;
     createGroup(data: CreateGroupRequest): Promise<GroupDTO>;
     updateGroup(id: string, updates: Partial<GroupDTO>): Promise<void>;
     refreshGroups(): Promise<void>;
@@ -50,8 +59,13 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     readonly #lastRefreshSignal = signal<number>(0);
     readonly #updatingGroupIdsSignal = signal<Set<string>>(new Set());
     readonly #isCreatingGroupSignal = signal<boolean>(false);
+    readonly #currentPageSignal = signal<number>(1);
+    readonly #hasMoreSignal = signal<boolean>(false);
+    readonly #pageSizeSignal = signal<number>(8);
 
     private notificationUnsubscribe: (() => void) | null = null;
+    private nextCursor: string | null = null;
+    private previousCursors: string[] = []; // Stack of cursors for previous pages
 
     // Reference counting for subscription management
     private subscriberCount = 0;
@@ -95,6 +109,15 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     get isCreatingGroup() {
         return this.#isCreatingGroupSignal.value;
     }
+    get currentPage() {
+        return this.#currentPageSignal.value;
+    }
+    get hasMore() {
+        return this.#hasMoreSignal.value;
+    }
+    get pageSize() {
+        return this.#pageSizeSignal.value;
+    }
 
     // Signal accessors for reactive components - return readonly signals
     get groupsSignal(): ReadonlySignal<GroupDTO[]> {
@@ -122,16 +145,30 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     get isCreatingGroupSignal(): ReadonlySignal<boolean> {
         return this.#isCreatingGroupSignal;
     }
+    get currentPageSignal(): ReadonlySignal<number> {
+        return this.#currentPageSignal;
+    }
+    get hasMoreSignal(): ReadonlySignal<boolean> {
+        return this.#hasMoreSignal;
+    }
+    get pageSizeSignal(): ReadonlySignal<number> {
+        return this.#pageSizeSignal;
+    }
 
-    async fetchGroups(): Promise<void> {
+    async fetchGroups(limit?: number, cursor?: string): Promise<void> {
         this.#loadingSignal.value = true;
         this.#networkErrorSignal.value = null; // Only clear network errors, not validation errors
 
         const startTime = Date.now();
+        const pageSize = limit || this.#pageSizeSignal.value;
 
         try {
-            // Include metadata to get change information
-            const response = await apiClient.getGroups({ includeMetadata: true });
+            // Include metadata to get change information and pagination params
+            const response = await apiClient.getGroups({
+                includeMetadata: true,
+                limit: pageSize,
+                cursor
+            });
 
             // Track REST refresh metrics
             const latency = Date.now() - startTime;
@@ -142,10 +179,15 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
                 groupIds: response.groups.map((g) => g.id),
                 groupCount: response.groups.length,
                 groups: response.groups.map((g) => ({ id: g.id, name: g.name })),
+                hasMore: response.hasMore,
+                cursor,
+                nextCursor: response.nextCursor,
             });
 
-            // Always update with server data - removed optimization that could ignore deleted groups
+            // Update pagination state
             this.#groupsSignal.value = response.groups;
+            this.#hasMoreSignal.value = response.hasMore;
+            this.nextCursor = response.nextCursor || null;
             this.#lastRefreshSignal.value = response.metadata?.serverTime || Date.now();
             this.#initializedSignal.value = true;
         } catch (error: any) {
@@ -153,6 +195,8 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             if (error?.status === 404 || error?.message?.includes('404')) {
                 logInfo('fetchGroups: No groups found (404), clearing list', { error: error?.message });
                 this.#groupsSignal.value = [];
+                this.#hasMoreSignal.value = false;
+                this.nextCursor = null;
                 this.#lastRefreshSignal.value = Date.now();
                 this.#initializedSignal.value = true;
             } else {
@@ -164,6 +208,50 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         }
     }
 
+    async loadNextPage(): Promise<void> {
+        if (!this.#hasMoreSignal.value || !this.nextCursor) {
+            logInfo('loadNextPage: No more pages available');
+            return;
+        }
+
+        // Save current cursor for previous page navigation
+        if (this.nextCursor) {
+            this.previousCursors.push(this.nextCursor);
+        }
+
+        this.#currentPageSignal.value += 1;
+        await this.fetchGroups(this.#pageSizeSignal.value, this.nextCursor);
+    }
+
+    async loadPreviousPage(): Promise<void> {
+        if (this.#currentPageSignal.value <= 1) {
+            logInfo('loadPreviousPage: Already on first page');
+            return;
+        }
+
+        this.#currentPageSignal.value -= 1;
+
+        // Pop the last cursor and use the one before it (or undefined for page 1)
+        this.previousCursors.pop();
+        const previousCursor = this.previousCursors[this.previousCursors.length - 1];
+
+        // If we're going back to page 1, clear the cursor
+        const cursor = this.#currentPageSignal.value === 1 ? undefined : previousCursor;
+        await this.fetchGroups(this.#pageSizeSignal.value, cursor);
+    }
+
+    async setPageSize(size: number): Promise<void> {
+        if (size < 1) {
+            throw new Error('Page size must be at least 1');
+        }
+
+        this.#pageSizeSignal.value = size;
+        this.#currentPageSignal.value = 1;
+        this.previousCursors = [];
+        this.nextCursor = null;
+        await this.fetchGroups(size);
+    }
+
     async createGroup(data: CreateGroupRequest): Promise<GroupDTO> {
         this.#isCreatingGroupSignal.value = true;
         // Clear both error types when starting a new operation
@@ -173,8 +261,11 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         try {
             const newGroup = await apiClient.createGroup(data);
 
-            // Fetch fresh data from server to ensure consistency - only on success
-            await this.fetchGroups();
+            // Reset to first page and fetch fresh data from server to ensure consistency
+            this.#currentPageSignal.value = 1;
+            this.previousCursors = [];
+            this.nextCursor = null;
+            await this.fetchGroups(this.#pageSizeSignal.value);
 
             return newGroup;
         } catch (error) {
@@ -212,9 +303,10 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
                 await apiClient.updateGroup(id, updateData);
             }
 
-            // Fetch fresh data from server to ensure consistency
+            // Fetch fresh data from server to ensure consistency (maintain current page)
             // This also ensures we get any server-side computed fields
-            await this.fetchGroups();
+            const cursor = this.#currentPageSignal.value > 1 ? this.previousCursors[this.previousCursors.length - 1] : undefined;
+            await this.fetchGroups(this.#pageSizeSignal.value, cursor);
         } catch (error) {
             // Categorize errors: validation (400s) vs network/server errors
             if (error instanceof ApiError && (error.code?.startsWith('VALIDATION_') || error.requestContext?.status === 400)) {
@@ -443,6 +535,10 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         }
         this.pendingRefresh = false;
 
+        // Reset pagination state
+        this.nextCursor = null;
+        this.previousCursors = [];
+
         batch(() => {
             this.#groupsSignal.value = [];
             this.#loadingSignal.value = false;
@@ -453,6 +549,9 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             this.#lastRefreshSignal.value = 0;
             this.#updatingGroupIdsSignal.value = new Set();
             this.#isCreatingGroupSignal.value = false;
+            this.#currentPageSignal.value = 1;
+            this.#hasMoreSignal.value = false;
+            this.#pageSizeSignal.value = 8;
         });
 
         this.dispose();

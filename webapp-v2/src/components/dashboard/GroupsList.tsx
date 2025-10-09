@@ -1,7 +1,7 @@
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { navigationService } from '@/services/navigation.service';
 import { useTranslation } from 'react-i18next';
-import { LoadingSpinner } from '../ui';
+import { LoadingSpinner, Pagination } from '../ui';
 import { EmptyGroupsState } from './EmptyGroupsState';
 import { GroupCard } from './GroupCard';
 
@@ -13,6 +13,15 @@ interface GroupsListProps {
 
 export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsListProps) {
     const { t } = useTranslation();
+
+    const handleNextPage = async () => {
+        await enhancedGroupsStore.loadNextPage();
+    };
+
+    const handlePreviousPage = async () => {
+        await enhancedGroupsStore.loadPreviousPage();
+    };
+
     if (enhancedGroupsStore.loading && !enhancedGroupsStore.initialized) {
         return (
             <div class='flex items-center justify-center py-8'>
@@ -54,35 +63,46 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
         );
     }
 
-    if (enhancedGroupsStore.groups.length === 0) {
+    if (enhancedGroupsStore.groups.length === 0 && enhancedGroupsStore.initialized) {
         return <EmptyGroupsState onCreateGroup={onCreateGroup} />;
     }
 
     return (
-        <div class='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4' data-testid='groups-grid'>
-            {enhancedGroupsStore.isCreatingGroup && (
-                <div class='border-2 border-dashed border-gray-300 rounded-lg p-6 flex items-center justify-center'>
-                    <LoadingSpinner />
-                    <span class='ml-3 text-gray-600'>{t('dashboardComponents.groupsList.creating')}</span>
-                </div>
-            )}
-            {enhancedGroupsStore.groups.map((group) => (
-                <div key={group.id} class='relative'>
-                    {enhancedGroupsStore.updatingGroupIds.has(group.id) && (
-                        <div class='absolute inset-0 bg-white bg-opacity-75 rounded-lg flex items-center justify-center z-10'>
-                            <LoadingSpinner />
-                        </div>
-                    )}
-                    <GroupCard
-                        group={group}
-                        onClick={() => {
-                            navigationService.goToGroup(group.id);
-                        }}
-                        onInvite={onInvite}
-                        onAddExpense={onAddExpense}
-                    />
-                </div>
-            ))}
-        </div>
+        <>
+            <div class='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4' data-testid='groups-grid'>
+                {enhancedGroupsStore.isCreatingGroup && (
+                    <div class='border-2 border-dashed border-gray-300 rounded-lg p-6 flex items-center justify-center'>
+                        <LoadingSpinner />
+                        <span class='ml-3 text-gray-600'>{t('dashboardComponents.groupsList.creating')}</span>
+                    </div>
+                )}
+                {enhancedGroupsStore.groups.map((group) => (
+                    <div key={group.id} class='relative'>
+                        {enhancedGroupsStore.updatingGroupIds.has(group.id) && (
+                            <div class='absolute inset-0 bg-white bg-opacity-75 rounded-lg flex items-center justify-center z-10'>
+                                <LoadingSpinner />
+                            </div>
+                        )}
+                        <GroupCard
+                            group={group}
+                            onClick={() => {
+                                navigationService.goToGroup(group.id);
+                            }}
+                            onInvite={onInvite}
+                            onAddExpense={onAddExpense}
+                        />
+                    </div>
+                ))}
+            </div>
+            <Pagination
+                currentPage={enhancedGroupsStore.currentPage}
+                hasMore={enhancedGroupsStore.hasMore}
+                hasPrevious={enhancedGroupsStore.currentPage > 1}
+                onNext={handleNextPage}
+                onPrevious={handlePreviousPage}
+                loading={enhancedGroupsStore.loading}
+                itemsLabel='groups'
+            />
+        </>
     );
 }

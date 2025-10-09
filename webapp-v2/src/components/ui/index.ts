@@ -10,6 +10,7 @@ export { Form } from './Form';
 export { Input } from './Input';
 export { LoadingSpinner } from './LoadingSpinner';
 export { LoadingState } from './LoadingState';
+export { Pagination } from './Pagination';
 export { SidebarCard } from './SidebarCard';
 export { Stack } from './Stack';
 export { TimeInput } from './TimeInput';
