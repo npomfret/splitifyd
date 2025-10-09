@@ -483,5 +483,72 @@ describe('Expenses Management - Consolidated Tests', () => {
                 expect(result.members.members).toHaveLength(3);
             });
         });
+
+        test('should view expense details after a participant leaves the group', async () => {
+            // Create group with 3 users
+            const departedTestUsers = users.slice(0, 3);
+            const departedTestGroup = await TestGroupManager.getOrCreateGroup(departedTestUsers, {
+                memberCount: 3,
+                fresh: true,
+            });
+
+            // Create expense with all 3 participants (user 0 pays, user 1 and 2 owe money)
+            const expense = await apiDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(departedTestGroup.id)
+                    .withAmount(90)
+                    .withCurrency('USD')
+                    .withPaidBy(departedTestUsers[0].uid)
+                    .withParticipants([departedTestUsers[0].uid, departedTestUsers[1].uid, departedTestUsers[2].uid])
+                    .withSplitType('equal')
+                    .build(),
+                departedTestUsers[0].token,
+            );
+
+            // User 1 settles their debt with user 0 so they can leave
+            // User 1 owes $30 to user 0 (90 / 3 = 30)
+            await apiDriver.createSettlement(
+                {
+                    groupId: departedTestGroup.id,
+                    payerId: departedTestUsers[1].uid,
+                    payeeId: departedTestUsers[0].uid,
+                    amount: 30,
+                    currency: 'USD',
+                    note: 'Settling up before leaving',
+                },
+                departedTestUsers[1].token,
+            );
+
+            // User 1 leaves the group (now that balance is settled)
+            await apiDriver.leaveGroup(departedTestGroup.id, departedTestUsers[1].token);
+
+            // User 0 views expense details - should still see User 1's info
+            const fullDetails = await apiDriver.getExpenseFullDetails(expense.id, departedTestUsers[0].token);
+
+            // Assertions
+            expect(fullDetails.expense.participants).toHaveLength(3);
+            expect(fullDetails.members.members).toHaveLength(3); // All 3 participants included
+
+            // Find departed member in members array
+            const departedMember = fullDetails.members.members.find((m: any) => m.uid === departedTestUsers[1].uid);
+            expect(departedMember).toBeDefined();
+
+            // Verify departed member still has real user data
+            if (departedMember) {
+                expect(departedMember.displayName).toBeDefined(); // Real name preserved
+                expect(departedMember.email).toBeDefined(); // Real email preserved
+                expect(departedMember.uid).toBe(departedTestUsers[1].uid);
+
+                // Note: memberStatus is 'active' (last known status) since MemberStatus enum doesn't have 'left'
+                // The fact that they're not in the members subcollection indicates they've departed
+                expect(departedMember.memberStatus).toBe('active');
+            }
+
+            // Verify other participants are still current members
+            const currentMember0 = fullDetails.members.members.find((m: any) => m.uid === departedTestUsers[0].uid);
+            expect(currentMember0?.memberStatus).toBe('active');
+            const currentMember2 = fullDetails.members.members.find((m: any) => m.uid === departedTestUsers[2].uid);
+            expect(currentMember2?.memberStatus).toBe('active');
+        });
     });
 });

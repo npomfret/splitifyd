@@ -58,7 +58,7 @@ export class SettlementService {
                 .slice(0, 2);
 
             // If memberData is null, the user has left the group
-            // But we still need to return their user info for historical data
+            // Show real user profile data; use sentinel values for missing membership fields
             if (!memberData) {
                 return {
                     uid: userId,
@@ -66,17 +66,17 @@ export class SettlementService {
                     displayName: validatedData.displayName,
                     initials,
                     photoURL: userData.photoURL || null,
-                    themeColor: {
+                    themeColor: userData.themeColor || {
                         light: '#9CA3AF',
                         dark: '#6B7280',
                         name: 'Neutral Gray',
                         pattern: 'solid',
                         assignedAt: new Date().toISOString(),
-                        colorIndex: -1, // -1 indicates departed member
+                        colorIndex: -1,
                     },
-                    memberRole: 'member',
-                    memberStatus: 'active', // Last known status before departure
-                    joinedAt: '', // Unknown historical join date
+                    memberRole: 'member', // Last known role before departure
+                    memberStatus: 'active', // Last known status (can't use 'left' - not in enum)
+                    joinedAt: '', // Historical data unavailable
                     invitedBy: undefined,
                 };
             }
