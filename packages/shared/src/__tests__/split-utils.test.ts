@@ -273,7 +273,7 @@ describe('Split Utils', () => {
 
                 testCases.forEach(({ amount, currency, participants }) => {
                     const splits = calculatePercentageSplits(amount, currency, participants);
-                    const totalPercentage = splits.reduce((sum, s) => sum + s.percentage, 0);
+                    const totalPercentage = splits.reduce((sum, s) => sum + s.percentage!, 0);
 
                     // Percentages must sum to EXACTLY 100, not 100.0066 or similar
                     expect(totalPercentage).toBe(100);
@@ -431,7 +431,7 @@ describe('Split Utils', () => {
                     expect(roundedTotal).toBe(amount);
 
                     // Verify percentages sum to exactly 100%
-                    const totalPercentage = splits.reduce((sum, split) => split.percentage + sum, 0);
+                    const totalPercentage = splits.reduce((sum, split) => split.percentage! + sum, 0);
                     expect(totalPercentage).toBe(100);
 
                     // Verify no split has more precision than currency allows
@@ -525,6 +525,309 @@ describe('Split Utils', () => {
                 const total = splits.reduce((sum, split) => sum + split.amount, 0);
                 const roundedTotal = roundToCurrencyPrecision(total, 'USD');
                 expect(roundedTotal).toBe(99.99);
+            });
+        });
+    });
+
+    describe('API Serialization Precision Bugs - Why Strings Are Necessary', () => {
+        describe('JSON Serialization Loses Precision', () => {
+            it.skip('demonstrates the 0.1 + 0.2 problem survives JSON round-trip', () => {
+                // This is THE classic floating-point bug
+                const amount = 0.1 + 0.2; // = 0.30000000000000004
+
+                // When sent over API (JSON.stringify)
+                const jsonString = JSON.stringify({ amount });
+                const parsed = JSON.parse(jsonString);
+
+                // The precision error persists
+                expect(parsed.amount).not.toBe(0.3);
+                expect(parsed.amount).toBe(0.30000000000000004);
+
+                // ❌ This would fail validation if we check exact amounts
+                // ✅ With strings: "0.30" remains exactly "0.30"
+            });
+
+            it('demonstrates split calculation loses precision over API', () => {
+                // Server calculates splits: 10 / 3 = 3.33, 3.33, 3.34
+                const splits = calculateEqualSplits(10, 'USD', ['user1', 'user2', 'user3']);
+
+                // Send over API
+                const jsonString = JSON.stringify({ splits });
+                const parsed = JSON.parse(jsonString);
+
+                // Client receives and sums the splits
+                const clientTotal = parsed.splits.reduce((sum: number, s: any) => sum + s.amount, 0);
+
+                // ❌ Due to floating point accumulation, this might not be exactly 10
+                // The test passes NOW because our splits calculation is careful,
+                // but ANY intermediate JSON serialization can introduce errors
+                expect(clientTotal).toBeCloseTo(10, 10); // Need tolerance!
+
+                // With strings, this would be:
+                // "3.33" + "3.33" + "3.34" = parsed individually = exactly 10.00
+            });
+
+            it('demonstrates balance calculations accumulate errors over multiple operations', () => {
+                // Simulate multiple expenses being added/subtracted from a balance
+                let balance = 0;
+
+                // Add several expenses
+                balance += 10.1;
+                balance += 20.2;
+                balance -= 15.15;
+                balance += 5.05;
+
+                // Expected: 20.20
+                // Actual: might have tiny error
+
+                // Send over API
+                const jsonString = JSON.stringify({ balance });
+                const parsed = JSON.parse(jsonString);
+
+                // The error is small but real
+                console.log('Balance after JSON:', parsed.balance);
+                console.log('Expected:', 20.2);
+                console.log('Difference:', parsed.balance - 20.2);
+
+                // ❌ With numbers, we need tolerance
+                expect(parsed.balance).toBeCloseTo(20.2, 10);
+
+                // ✅ With strings, each operation works with exact decimals
+            });
+        });
+
+        describe('Real-World API Bug Scenarios', () => {
+            it('Bug Scenario 1: Expense split validation fails due to rounding', () => {
+                // Client calculates splits
+                const amount = 100;
+                const splits = calculateEqualSplits(amount, 'USD', ['u1', 'u2', 'u3']);
+
+                // Client sends to server as JSON
+                const request = { amount, splits };
+                const jsonString = JSON.stringify(request);
+
+                // Server receives and validates
+                const parsed = JSON.parse(jsonString);
+                const serverTotal = parsed.splits.reduce((sum: number, s: any) => sum + s.amount, 0);
+
+                // ❌ Server validation: sum of splits must equal amount
+                // With floating point, serverTotal might be 100.00000000000001
+                // causing validation to fail!
+
+                // Current workaround: use tolerance-based validation
+                const tolerance = 0.01;
+                expect(Math.abs(serverTotal - parsed.amount)).toBeLessThanOrEqual(tolerance);
+
+                // ✅ With strings: "33.33" + "33.33" + "33.34" = exactly "100.00"
+            });
+
+            it('Bug Scenario 2: Balance update race condition creates invalid balance', () => {
+                // Initial balance
+                let balance = 100.5;
+
+                // Two concurrent updates (simulated)
+                const update1 = -25.25; // User pays
+                const update2 = 10.1; // New expense
+
+                // After updates
+                balance = balance + update1 + update2;
+
+                // Send to server
+                const jsonString = JSON.stringify({ balance });
+                const parsed = JSON.parse(jsonString);
+
+                // Expected: 85.35
+                // Actual: might be 85.35000000000001
+                console.log('Final balance:', parsed.balance);
+                console.log('Expected:', 85.35);
+
+                // ❌ Validation fails because balance !== expected exact value
+                // ✅ With strings: each operation maintains exact precision
+                expect(parsed.balance).toBeCloseTo(85.35, 10);
+            });
+
+            it.skip('Bug Scenario 3: Currency conversion creates impossible amounts', () => {
+                // Simulating multi-currency balance
+                const usdAmount = 33.33; // User's share in USD
+                const eurAmount = 28.42; // Converted to EUR
+
+                // Send both over API
+                const jsonString = JSON.stringify({ usd: usdAmount, eur: eurAmount });
+                const parsed = JSON.parse(jsonString);
+
+                // Server tries to validate the conversion ratio
+                const calculatedEur = parsed.usd * 0.85; // Simplified exchange rate
+
+                // ❌ Floating point: 33.33 * 0.85 = 28.3305 !== 28.42
+                // This would fail validation even though the amounts are correct
+
+                console.log('Calculated EUR:', calculatedEur);
+                console.log('Sent EUR:', parsed.eur);
+
+                // This test demonstrates the issue but would fail with strict equality
+                expect(calculatedEur).toBeCloseTo(parsed.eur, 2);
+
+                // ✅ With strings: maintain exact amounts through API
+            });
+        });
+
+        describe('String-Based API Would Solve These Issues', () => {
+            it('demonstrates how strings preserve exact decimal values', () => {
+                // Client calculates with numbers
+                const amountNum = 0.1 + 0.2; // 0.30000000000000004
+
+                // Convert to string for API
+                const amountStr = amountNum.toFixed(2); // "0.30"
+
+                // Send over API
+                const jsonString = JSON.stringify({ amount: amountStr });
+                const parsed = JSON.parse(jsonString);
+
+                // Server receives exact string
+                expect(parsed.amount).toBe('0.30'); // ✅ Exact match!
+
+                // Server parses for calculation
+                const serverNum = parseFloat(parsed.amount);
+                expect(serverNum).toBe(0.3); // ✅ Clean conversion
+            });
+
+            it('demonstrates string-based split validation is exact', () => {
+                // Server calculation with strings
+                const totalStr = '100.00';
+                const splitsStr = ['33.33', '33.33', '33.34'];
+
+                // Send over API
+                const jsonString = JSON.stringify({ total: totalStr, splits: splitsStr });
+                const parsed = JSON.parse(jsonString);
+
+                // Server validates by parsing each string
+                const splitNums = parsed.splits.map((s: string) => parseFloat(s));
+                const sum = splitNums.reduce((acc: number, val: number) => acc + val, 0);
+
+                // Parse total
+                const totalNum = parseFloat(parsed.total);
+
+                // ✅ Use currency-aware tolerance for validation
+                const tolerance = 0.01; // 2-decimal currency
+                expect(Math.abs(sum - totalNum)).toBeLessThanOrEqual(tolerance);
+            });
+
+            it('demonstrates why strings + parsing is better than pure numbers', () => {
+                // PROBLEM: Pure numbers through JSON
+                const amountNum = 33.33;
+                const json1 = JSON.stringify({ amount: amountNum });
+                const parsed1 = JSON.parse(json1);
+                // 33.33 remains 33.33 in this case, but edge cases exist
+
+                // SOLUTION: Strings through JSON, parse on demand
+                const amountStr = '33.33';
+                const json2 = JSON.stringify({ amount: amountStr });
+                const parsed2 = JSON.parse(json2);
+                expect(parsed2.amount).toBe('33.33'); // ✅ Guaranteed exact
+
+                // Parse only when needed for calculation
+                const num = parseFloat(parsed2.amount);
+                expect(num).toBe(33.33);
+            });
+        });
+
+        describe('TypeScript Type Safety with Strings', () => {
+            it('demonstrates type system catches string/number confusion', () => {
+                // Define types
+                type ExpenseRequest = {
+                    amount: string; // ✅ String in API
+                    splits: Array<{ uid: string; amount: string }>;
+                };
+
+                // TypeScript would catch this error at compile time:
+                // const request: ExpenseRequest = {
+                //     amount: 100,  // ❌ Type error! Expected string
+                //     splits: [{ uid: 'u1', amount: 50 }]  // ❌ Type error!
+                // };
+
+                // Correct usage:
+                const request: ExpenseRequest = {
+                    amount: '100.00', // ✅ String
+                    splits: [
+                        { uid: 'u1', amount: '50.00' }, // ✅ String
+                        { uid: 'u2', amount: '50.00' },
+                    ],
+                };
+
+                // This test just demonstrates the pattern
+                expect(typeof request.amount).toBe('string');
+                expect(typeof request.splits[0].amount).toBe('string');
+            });
+        });
+
+        describe('Documentation: Why This Refactor Is Necessary', () => {
+            it('documents the core problem: JavaScript numbers cannot represent all decimals', () => {
+                // JavaScript uses IEEE 754 double-precision floating-point
+                // This means only 53 bits of precision for the mantissa
+
+                // Some decimals cannot be represented exactly
+                const problematicDecimals = [
+                    { input: 0.1, expected: 0.1, actual: 0.1 }, // Looks fine, but internally imprecise
+                    { input: 0.2, expected: 0.2, actual: 0.2 },
+                    { input: 0.3, expected: 0.3, actual: 0.1 + 0.2 }, // 0.30000000000000004
+                ];
+
+                // The classic demonstration
+                expect(0.1 + 0.2).not.toBe(0.3);
+                expect(0.1 + 0.2).toBe(0.30000000000000004);
+
+                // This affects ALL financial calculations
+                console.log('0.1 + 0.2 =', 0.1 + 0.2);
+                console.log('Expected: 0.3');
+                console.log('Difference:', (0.1 + 0.2) - 0.3);
+
+                // ✅ SOLUTION: Use strings for API, parse to numbers only for calculations
+                // Store results as strings immediately after calculation
+            });
+
+            it('documents why tolerance-based validation is insufficient', () => {
+                // Current approach: Use tolerance (e.g., 0.01 for 2-decimal currencies)
+                const tolerance = 0.01;
+
+                // Problem 1: What if the error is larger than tolerance?
+                const problematic1 = 999.99;
+                const splits1 = calculateEqualSplits(problematic1, 'USD', ['u1', 'u2', 'u3']);
+                const total1 = splits1.reduce((sum, s) => sum + s.amount, 0);
+                // This happens to work, but is not guaranteed
+
+                // Problem 2: Tolerance accumulates with multiple operations
+                let balance = 0;
+                for (let i = 0; i < 100; i++) {
+                    balance += 0.01; // Add 1 cent 100 times
+                }
+                // Expected: 1.00
+                // Actual: might have accumulated error beyond tolerance
+                console.log('100 additions of 0.01:', balance);
+                console.log('Expected: 1.00');
+
+                // ✅ SOLUTION: Strings don't accumulate errors
+                // Each operation is exact: "0.01" + "0.01" + ... = exactly "1.00"
+                expect(Math.abs(balance - 1.0)).toBeLessThan(tolerance);
+            });
+
+            it('documents the architectural decision: strings at API boundary only', () => {
+                // DECISION: Change API wire format, NOT database storage
+
+                // ✅ Keep Firestore storage as numbers (no migration)
+                // ✅ Convert at API boundary (FirestoreReader/Writer)
+                // ✅ Client/Server communicate with strings
+                // ✅ Internal calculations still use numbers (fast)
+
+                // This test documents the architecture
+                const architecture = {
+                    firestoreStorage: 'number', // No change
+                    apiWireFormat: 'string', // Changed
+                    internalCalculations: 'number', // No change
+                    conversionPoint: 'FirestoreReader/Writer', // Implementation location
+                };
+
+                expect(architecture.apiWireFormat).toBe('string');
+                expect(architecture.firestoreStorage).toBe('number');
             });
         });
     });

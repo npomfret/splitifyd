@@ -17,8 +17,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "node scripts/conditional-build.js",
-    "build:prod": "tsup",
+    "build": "npm run build:check && node scripts/conditional-build.js",
+    "build:check": "tsc --noEmit && npm run test:unit",
+    "build:prod": "npm run build:check && tsup",
     "watch": "tsup --watch",
     "clean": "rm -rf dist",
     "super-clean": "npm run clean && rm -rf node_modules",

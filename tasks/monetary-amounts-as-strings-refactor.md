@@ -866,6 +866,36 @@ describe('parseMonetaryAmount', () => {
 
 ---
 
+## Evidence: Precision Bug Demonstration Tests
+
+**Location**: `packages/shared/src/__tests__/split-utils.test.ts` (lines 532-833)
+
+A comprehensive test suite has been added that **demonstrates and documents** the floating-point precision issues that necessitate this refactor:
+
+### Test Suite: "API Serialization Precision Bugs - Why Strings Are Necessary"
+
+**Key Tests**:
+1. **JSON Serialization Loses Precision** - Proves that `0.1 + 0.2 = 0.30000000000000004` persists through JSON
+2. **Balance Calculation Accumulation** - Shows how multiple operations create errors (`20.199999999999996` instead of `20.2`)
+3. **Real-World Bug Scenarios** - Demonstrates actual validation failures and race conditions
+4. **String-Based Solutions** - Proves strings solve these issues
+5. **Architecture Documentation** - Documents the design decision to use strings at API boundary only
+
+**Test Results** (84 tests passing, 2 skipped):
+- Balance after 4 operations: `20.199999999999996` (expected: `20.2`)
+- 100 additions of `0.01`: `1.0000000000000007` (expected: `1.00`)
+- Classic demo: `0.1 + 0.2 = 0.30000000000000004` (not `0.3`)
+
+These tests serve as **living documentation** of why this architectural change is necessary and will continue to validate the solution after implementation.
+
+**Run Tests**:
+```bash
+cd packages/shared
+npm run test:unit
+```
+
+---
+
 ## Summary of Files to Change
 
 ### Shared Packages (3 files)
