@@ -1,12 +1,11 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { PooledTestUser } from '@splitifyd/shared';
 import translation from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 import { ARIA_ROLES, BUTTON_TEXTS } from '../constants/selectors';
 import { BasePage } from './base.page';
 
 export class RegisterPage extends BasePage {
-    constructor(page: Page, userInfo?: PooledTestUser) {
-        super(page, userInfo);
+    constructor(page: Page) {
+        super(page);
     }
     // Selectors
     readonly url = '/register';

@@ -1,5 +1,4 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { PooledTestUser } from '@splitifyd/shared';
 import { EMULATOR_URL } from '../helpers';
 import { createErrorHandlingProxy } from '../utils/error-proxy';
 import { HeaderPage } from './header.page';
@@ -7,14 +6,12 @@ import { HeaderPage } from './header.page';
 export abstract class BasePage {
     private _header?: HeaderPage;
 
-    constructor(
-        protected _page: Page,
-        protected userInfo?: PooledTestUser,
-    ) {
+    constructor(protected _page: Page) {
         // Apply automatic error handling proxy to all derived classes
         // This wraps all async methods to automatically capture context on errors
         const className = this.constructor.name;
-        return createErrorHandlingProxy(this, className, _page, userInfo, {
+
+        return createErrorHandlingProxy(this, className, _page, {// todo: we need to make this work with the new POMs
             // Configuration options
             captureScreenshot: false, // Can be enabled for debugging
             collectState: true, // Always collect page state on errors

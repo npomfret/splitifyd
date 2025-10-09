@@ -1,11 +1,10 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { PooledTestUser } from '@splitifyd/shared';
 import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 import { BasePage } from './base.page';
 
 export class ShareGroupModalPage extends BasePage {
-    constructor(page: Page, userInfo?: PooledTestUser) {
-        super(page, userInfo);
+    constructor(page: Page) {
+        super(page);
     }
 
     // Element accessors

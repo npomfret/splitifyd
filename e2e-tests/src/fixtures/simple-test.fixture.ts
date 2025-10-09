@@ -143,7 +143,7 @@ export const simpleTest = baseTest.extend<SimpleTestFixtures>({
                 apiInterceptor.updateUserInfo({ userEmail: user.email });
 
                 // Create dashboard page
-                const dashboardPage = new DashboardPage(page, user);
+                const dashboardPage = new DashboardPage(page);
 
                 // Wait for dashboard to be fully loaded (including "Loading your groups" spinner)
                 await dashboardPage.waitForDashboard();

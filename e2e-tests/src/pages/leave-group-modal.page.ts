@@ -32,7 +32,7 @@ export class LeaveGroupModalPage extends BasePage {
         // Button text should be "Leave Group" - proceed with leaving
         await this.clickButton(this.confirmButton, { buttonName: 'Leave Group' });
 
-        const dashboardPage = new DashboardPage(this.page, this.userInfo);
+        const dashboardPage = new DashboardPage(this.page);
         await dashboardPage.waitForDashboard();
         await expect(this.page).toHaveURL(/\/dashboard/);
 

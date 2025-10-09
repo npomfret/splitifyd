@@ -1,5 +1,4 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { PooledTestUser } from '@splitifyd/shared';
 import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 import { BasePage } from './base.page';
 import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
@@ -9,8 +8,8 @@ import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
  * Handles different authentication states and provides robust join operations.
  */
 export class JoinGroupPage extends BasePage {
-    constructor(page: Page, userInfo?: PooledTestUser) {
-        super(page, userInfo);
+    constructor(page: Page) {
+        super(page);
     }
 
     static async joinGroupViaShareLink(page: Page, shareLink: string, groupId?: string) {

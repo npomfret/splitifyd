@@ -109,8 +109,8 @@ test.describe('Network & Server Error Handling', () => {
     });
 
     test('should handle server errors and timeouts appropriately', async ({ createLoggedInBrowsers }) => {
-        const [{ page, dashboardPage, user }] = await createLoggedInBrowsers(1);
-        const createGroupModalPage = new CreateGroupModalPage(page, user);
+        const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
+        const createGroupModalPage = new CreateGroupModalPage(page);
 
         test.info().annotations.push({
             type: 'skip-error-checking',
@@ -190,8 +190,8 @@ test.describe('Network & Server Error Handling', () => {
     });
 
     test('should prevent form submission with invalid data and handle validation errors', async ({ createLoggedInBrowsers }) => {
-        const [{ page, dashboardPage, user }] = await createLoggedInBrowsers(1);
-        const createGroupModalPage = new CreateGroupModalPage(page, user);
+        const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
+        const createGroupModalPage = new CreateGroupModalPage(page);
 
         // Test 1: Client-side validation
         await dashboardPage.openCreateGroupModal();

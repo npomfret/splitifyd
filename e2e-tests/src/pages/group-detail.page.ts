@@ -16,7 +16,7 @@ export class GroupDetailPage extends BasePage {
 
     async navigateToDashboard() {
         await this.header.navigateToDashboard();
-        const dashboardPage = new DashboardPage(this.page, this.userInfo);
+        const dashboardPage = new DashboardPage(this.page);
         await dashboardPage.waitForDashboard();
         return dashboardPage;
     }
@@ -64,7 +64,7 @@ export class GroupDetailPage extends BasePage {
         await this.clickButton(settleButton, { buttonName: 'Settle up' });
 
         // Verify modal opened
-        const settlementFormPage = new SettlementFormPage(this.page, this.userInfo);
+        const settlementFormPage = new SettlementFormPage(this.page);
         await expect(settlementFormPage.getModal()).toBeVisible();
 
         const membersCount = await this.getCurrentMemberCount();
@@ -317,7 +317,7 @@ export class GroupDetailPage extends BasePage {
         await this.clickButton(shareButton, { buttonName: 'Invite Others' });
 
         // Create and return the ShareGroupModalPage instance
-        const shareModal = new ShareGroupModalPage(this.page, this.userInfo);
+        const shareModal = new ShareGroupModalPage(this.page);
         await shareModal.waitForModalVisible();
 
         return shareModal;
@@ -518,7 +518,7 @@ export class GroupDetailPage extends BasePage {
 
         const expectedMemberCount = await this.getCurrentMemberCount();
 
-        const settlementFormPage = new SettlementFormPage(this.page, this.userInfo);
+        const settlementFormPage = new SettlementFormPage(this.page);
         await expect(settlementFormPage.getModal()).toBeVisible();
         await settlementFormPage.waitForFormReady(expectedMemberCount);
 

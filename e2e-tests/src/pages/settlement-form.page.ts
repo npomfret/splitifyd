@@ -1,5 +1,4 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { PooledTestUser } from '@splitifyd/shared';
 import { BasePage } from './base.page';
 
 interface SettlementData {
@@ -11,8 +10,8 @@ interface SettlementData {
 }
 
 export class SettlementFormPage extends BasePage {
-    constructor(page: Page, userInfo?: PooledTestUser) {
-        super(page, userInfo);
+    constructor(page: Page) {
+        super(page);
     }
 
     // Element accessors

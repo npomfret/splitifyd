@@ -31,7 +31,7 @@ simpleTest.describe('User Profile Management', () => {
 
         // Test 1: Profile viewing, updating, and real-time updates
         const [{ page, dashboardPage, user }] = await createLoggedInBrowsers(1);
-        const settingsPage = new SettingsPage(page, user);
+        const settingsPage = new SettingsPage(page);
 
         await settingsPage.navigate();
 

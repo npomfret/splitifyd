@@ -15,11 +15,9 @@ let i = 0;
  */
 export class DashboardPage extends BaseDashboardPage {
     private _header?: HeaderPage;
-    protected readonly userInfo?: PooledTestUser;
 
-    constructor(page: Page, userInfo?: PooledTestUser) {
+    constructor(page: Page) {
         super(page);
-        this.userInfo = userInfo;
     }
 
     /**
@@ -127,7 +125,7 @@ export class DashboardPage extends BaseDashboardPage {
         await super.clickCreateGroup();
 
         // Create e2e-specific modal page instance
-        const createGroupModalPage = new CreateGroupModalPage(this.page, this.userInfo);
+        const createGroupModalPage = new CreateGroupModalPage(this.page);
 
         // Wait for the modal to appear using the modal's own strict selector
         await createGroupModalPage.getModalDialog().waitFor({

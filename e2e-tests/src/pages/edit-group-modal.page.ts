@@ -181,7 +181,7 @@ export class EditGroupModalPage extends BasePage {
         await expect(confirmDialog).not.toBeVisible({ timeout: 2000 });
 
         // use should get directed to dashboard
-        const dashboardPage = new DashboardPage(this.page, this.userInfo);
+        const dashboardPage = new DashboardPage(this.page);
         await expect(this.page).toHaveURL(/\/dashboard/);
         await dashboardPage.waitForDashboard();
 

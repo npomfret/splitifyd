@@ -1,5 +1,4 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { PooledTestUser } from '@splitifyd/shared';
 import { ExpenseFormData } from '@splitifyd/test-support';
 import { FORM_LABELS } from '../constants/selectors';
 import { BasePage } from './base.page';
@@ -8,8 +7,8 @@ import { groupDetailUrlPattern } from './group-detail.page.ts';
 export class ExpenseFormPage extends BasePage {
     readonly url = '/groups/[id]/add-expense';
 
-    constructor(page: Page, userInfo?: PooledTestUser) {
-        super(page, userInfo);
+    constructor(page: Page) {
+        super(page);
     }
 
     /**

@@ -1,12 +1,11 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { PooledTestUser } from '@splitifyd/shared';
 import { SETTINGS_SELECTORS, SETTINGS_TEXTS } from '../constants/selectors';
 import { BasePage } from './base.page';
 import { DashboardPage } from './dashboard.page.ts';
 
 export class SettingsPage extends BasePage {
-    constructor(page: Page, userInfo?: PooledTestUser) {
-        super(page, userInfo);
+    constructor(page: Page) {
+        super(page);
     }
     // URL and button texts (using translation-based constants)
     readonly url = '/settings';
@@ -30,7 +29,7 @@ export class SettingsPage extends BasePage {
 
     async navigateToDashboard() {
         await this.header.navigateToDashboard();
-        return new DashboardPage(this.page, this.userInfo);
+        return new DashboardPage(this.page);
     }
 
     // Profile Information Elements (using strategic data-testid approach)

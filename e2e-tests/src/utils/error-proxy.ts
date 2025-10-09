@@ -4,7 +4,6 @@
  */
 
 import { Page } from '@playwright/test';
-import { PooledTestUser } from '@splitifyd/shared';
 import { ProxiedMethodError } from '../errors/test-errors';
 import { collectPageState } from './page-state-collector';
 
@@ -18,6 +17,14 @@ interface ProxyConfig {
     captureScreenshot?: boolean;
     /** Whether to collect page state on error */
     collectState?: boolean;
+}
+
+/**
+ * User context extracted from the page at error time
+ */
+interface UserContext {
+    displayName: string;
+    browserContextId: string;
 }
 
 /**
@@ -55,6 +62,42 @@ function shouldExcludeMethod(methodName: string, excludePatterns: string[]): boo
 }
 
 /**
+ * Extract user context from the page at error time.
+ * Attempts to extract display name from the user menu button in the header.
+ * Gracefully handles errors - returns "Unknown User" if extraction fails.
+ */
+async function getUserContextFromPage(page: Page): Promise<UserContext> {
+    let displayName = 'Unknown User';
+
+    try {
+        // Try to extract display name from user menu button
+        // This selector matches HeaderPage.getUserMenuButton() structure
+        const userMenuButton = page.locator('[data-testid="user-menu-button"]');
+        const nameElement = userMenuButton.locator('.text-sm.font-medium.text-gray-700').first();
+
+        // Use a short timeout - if user menu isn't immediately visible, skip it
+        const textContent = await nameElement.textContent({ timeout: 500 });
+        if (textContent) {
+            displayName = textContent.trim();
+        }
+    } catch {
+        // Silently fail - we don't want to break error reporting if we can't get user info
+        // This can happen if:
+        // - User is not authenticated
+        // - Page is in a bad state
+        // - Test is on a page without the header
+    }
+
+    // Get browser context ID for multi-browser debugging
+    const browserContextId = page.context().browser()?.version() || 'unknown-browser';
+
+    return {
+        displayName,
+        browserContextId,
+    };
+}
+
+/**
  * Extract meaningful context from method arguments
  */
 function extractArgumentContext(args: any[]): Record<string, any> {
@@ -75,9 +118,7 @@ function extractArgumentContext(args: any[]): Record<string, any> {
             context[`arg${index}`] = arg;
         } else if (typeof arg === 'object') {
             // Handle specific known types
-            if ('displayName' in arg || 'email' in arg) {
-                context.userInfo = { displayName: arg.displayName, email: arg.email };
-            } else if ('name' in arg || 'description' in arg) {
+            if ('name' in arg || 'description' in arg) {
                 context[`arg${index}`] = { name: arg.name, description: arg.description };
             } else {
                 // Generic object - just capture keys
@@ -96,11 +137,10 @@ function extractArgumentContext(args: any[]): Record<string, any> {
  * @param instance - The page object instance to wrap
  * @param className - The name of the page object class
  * @param page - The Playwright Page instance
- * @param userInfo - Optional user information for context
  * @param config - Optional proxy configuration
  * @returns Proxied instance with automatic error handling
  */
-export function createErrorHandlingProxy<T extends object>(instance: T, className: string, page: Page, userInfo?: PooledTestUser, config: ProxyConfig = {}): T {
+export function createErrorHandlingProxy<T extends object>(instance: T, className: string, page: Page, config: ProxyConfig = {}): T {
     const { excludeMethods = DEFAULT_EXCLUDED_METHODS, captureScreenshot = false, collectState = true } = config;
 
     return new Proxy(instance, {
@@ -138,6 +178,9 @@ export function createErrorHandlingProxy<T extends object>(instance: T, classNam
                             throw originalError;
                         }
 
+                        // Extract user context from page at error time
+                        const userContext = await getUserContextFromPage(page);
+
                         // Collect context for the error
                         const currentUrl = page.url();
                         const argumentContext = extractArgumentContext(args);
@@ -149,14 +192,9 @@ export function createErrorHandlingProxy<T extends object>(instance: T, classNam
                             currentUrl,
                             ...argumentContext,
                             timestamp: new Date().toISOString(),
+                            user: userContext.displayName,
+                            browserContext: userContext.browserContextId,
                         };
-
-                        // Add user info if available
-                        if (userInfo) {
-                            errorContext.userInfo = {
-                                email: userInfo.email,
-                            };
-                        }
 
                         // Collect page state if configured
                         if (collectState) {
