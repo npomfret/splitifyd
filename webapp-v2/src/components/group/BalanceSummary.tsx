@@ -53,12 +53,13 @@ export function BalanceSummary({ variant = 'default' }: BalanceSummaryProps) {
         }));
     }, [balances.value?.simplifiedDebts]);
 
+    const testIdPrefix = variant === 'sidebar' ? 'sidebar-' : '';
     const content = !balances.value
-        ? <p className='text-gray-600 text-sm'>{t('balanceSummary.loadingBalances')}</p>
+        ? <p className='text-gray-600 text-sm' data-testid={`${testIdPrefix}balance-loading`}>{t('balanceSummary.loadingBalances')}</p>
         : balances.value.simplifiedDebts.length === 0
-        ? <p className='text-gray-600 text-sm'>{t('balanceSummary.allSettledUp')}</p>
+        ? <p className='text-gray-600 text-sm' data-testid={`${testIdPrefix}balance-settled-up`}>{t('balanceSummary.allSettledUp')}</p>
         : (
-            <div className={variant === 'sidebar' ? 'space-y-4' : 'space-y-6'}>
+            <div className={variant === 'sidebar' ? 'space-y-4' : 'space-y-6'} data-testid={`${testIdPrefix}balance-debts-list`}>
                 {groupedDebts.map(({ currency, debts }, groupIndex) => (
                     <div key={currency} className={variant === 'sidebar' ? 'border-l-2 border-gray-200 pl-3' : `border-b border-gray-200 pb-4 last:border-0 ${groupIndex > 0 ? 'pt-4' : ''}`}>
                         {groupedDebts
@@ -111,11 +112,11 @@ export function BalanceSummary({ variant = 'default' }: BalanceSummaryProps) {
         );
 
     if (variant === 'sidebar') {
-        return <SidebarCard title={t('balanceSummary.title')}>{content}</SidebarCard>;
+        return <SidebarCard title={t('balanceSummary.title')} data-testid='balance-summary-sidebar'>{content}</SidebarCard>;
     }
 
     return (
-        <Card className='p-6'>
+        <Card className='p-6' data-testid='balance-summary-main'>
             <h2 className='text-lg font-semibold mb-4'>{t('balanceSummary.title')}</h2>
             {content}
         </Card>

@@ -61,16 +61,22 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Balance/Debts section container - found by "Balance" or "Balances" heading
+     * Balance/Debts section container - finds the VISIBLE white container with "Balances" heading
+     * Works for both sidebar (desktop) and main (mobile) balance summary displays.
+     * Uses same selector pattern as e2e tests for consistency.
+     * IMPORTANT: Finds ALL containers first, then filters to only visible ones to avoid hidden mobile versions.
      */
     getBalanceContainer(): Locator {
-        return this
+        // Find all white containers with "Balances" heading, then filter to visible
+        const allContainers = this
             .page
-            .locator('div')
+            .locator('.bg-white')
             .filter({
-                has: this.page.getByRole('heading').filter({ hasText: /balance/i }),
-            })
-            .first();
+                has: this.page.getByRole('heading', { name: 'Balances' }),
+            });
+
+        // Return only the last visible one (sidebar version on desktop)
+        return allContainers.last();
     }
 
     /**
@@ -249,18 +255,17 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Get "All settled up" message
-     * Finds visible instance (works for both mobile and desktop views)
+     * Get "All settled up" message - looks for the text within the balance container
      */
     getSettledUpMessage(): Locator {
-        return this.page.getByText(translation.balanceSummary.allSettledUp).locator('visible=true').first();
+        return this.getBalanceContainer().getByText(translation.balanceSummary.allSettledUp);
     }
 
     /**
-     * Get debt items - finds visible instances (works for both mobile and desktop views)
+     * Get debt items - scoped within main balance container
      */
     getDebtItems(): Locator {
-        return this.page.locator('[data-testid="debt-item"]').locator('visible=true');
+        return this.getBalanceContainer().locator('[data-testid="debt-item"]');
     }
 
     // ============================================================================
@@ -378,6 +383,88 @@ export class GroupDetailPage extends BasePage {
      */
     async verifyHasDebts(): Promise<void> {
         await expect(this.getDebtItems().first()).toBeVisible();
+    }
+
+    /**
+     * Verify specific debt relationship with exact amount
+     * Uses polling pattern to wait for real-time balance updates
+     * @param debtorName - Name of the person who owes money
+     * @param creditorName - Name of the person who is owed money
+     * @param expectedAmount - Expected debt amount as formatted string (e.g., "$25.00")
+     */
+    async verifyDebtRelationship(debtorName: string, creditorName: string, expectedAmount: string): Promise<void> {
+        await expect(async () => {
+            // Wait for balance container to be visible first
+            const balancesSection = this.getBalanceContainer();
+            const isVisible = await balancesSection.isVisible().catch(() => false);
+            if (!isVisible) {
+                throw new Error('Balance section not visible yet');
+            }
+
+            // Find all debt relationship spans with the expected text pattern
+            const debtRelationshipSpans = balancesSection.locator('span').filter({
+                hasText: new RegExp(`${debtorName}\\s*→\\s*${creditorName}`),
+            });
+
+            const count = await debtRelationshipSpans.count();
+            if (count === 0) {
+                // Get all debt items for better error message
+                const allDebtItems = balancesSection.locator('[data-testid="debt-item"]');
+                const debtItemsCount = await allDebtItems.count();
+
+                let foundDebts: string[] = [];
+                for (let i = 0; i < debtItemsCount; i++) {
+                    const item = allDebtItems.nth(i);
+                    const text = await item.textContent();
+                    foundDebts.push(text || '(empty)');
+                }
+
+                throw new Error(
+                    `Debt relationship not found: ${debtorName} → ${creditorName}\n`
+                        + `Check if both users are in the group and have expenses.\n`
+                        + `Found ${debtItemsCount} debt items: ${foundDebts.join(' | ')}`,
+                );
+            }
+
+            // Check each relationship to find one with the matching amount
+            let foundMatchingAmount = false;
+            let actualAmounts: string[] = [];
+
+            for (let i = 0; i < count; i++) {
+                const relationshipSpan = debtRelationshipSpans.nth(i);
+                // Find the parent container and look for the amount span
+                const parentContainer = relationshipSpan.locator('..');
+                const amountSpan = parentContainer.locator('[data-financial-amount="debt"]');
+
+                const actualAmount = await amountSpan.textContent().catch(() => null);
+                if (actualAmount) {
+                    // Normalize only the actual amount from screen - replace non-breaking spaces with regular spaces
+                    // Expected amount should use regular spaces in tests for readability
+                    const normalizedActual = actualAmount.trim().replace(/\u00A0/g, ' ');
+                    const trimmedExpected = expectedAmount.trim();
+
+                    actualAmounts.push(actualAmount);
+
+                    if (normalizedActual === trimmedExpected) {
+                        foundMatchingAmount = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!foundMatchingAmount) {
+                throw new Error(
+                    `Debt amount mismatch for ${debtorName} → ${creditorName}\n`
+                        + `Expected: "${expectedAmount}"\n`
+                        + `Found amounts: ${actualAmounts.join(', ')}`,
+                );
+            }
+
+            // If we get here, everything matches!
+        }).toPass({
+            timeout: 3000,
+            intervals: [50, 100, 200, 500],
+        });
     }
 
     /**
