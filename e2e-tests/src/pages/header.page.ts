@@ -1,7 +1,20 @@
 import { expect, Page } from '@playwright/test';
+import { createErrorHandlingProxy } from '@splitifyd/test-support';
 
 export class HeaderPage {
-    constructor(private page: Page) {}
+    constructor(private _page: Page) {
+        // Apply error handling proxy directly (can't extend BasePage due to circular dependency)
+        const className = this.constructor.name;
+        return createErrorHandlingProxy(this, className, _page, {
+            captureScreenshot: false,
+            collectState: true,
+            excludeMethods: ['page'],
+        }) as this;
+    }
+
+    get page(): Page {
+        return this._page;
+    }
 
     /**
      * User Menu Locators

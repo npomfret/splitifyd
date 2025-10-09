@@ -230,7 +230,7 @@ export const test = base.extend<ConsoleLoggingFixtures>({
 
             // Minimal output for passed tests (failures are handled by afterEach)
             if (testPassed) {
-                console.log(`✅ ${testInfo.title} (${consoleMessages.length} console messages logged)`);
+                console.log(`✅ ${testInfo.title}`);
             }
 
             // Re-throw the error if there was one

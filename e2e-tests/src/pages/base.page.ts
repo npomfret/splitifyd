@@ -1,6 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
+import { createErrorHandlingProxy } from '@splitifyd/test-support';
 import { EMULATOR_URL } from '../helpers';
-import { createErrorHandlingProxy } from '../utils/error-proxy';
 import { HeaderPage } from './header.page';
 
 export abstract class BasePage {

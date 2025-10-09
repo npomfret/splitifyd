@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test';
+import { BasePage } from './base.page';
 
-export class PolicyAcceptanceModalPage {
-    readonly page: Page;
+export class PolicyAcceptanceModalPage extends BasePage {
 
     // Main modal container
     readonly modal: Locator;
@@ -36,7 +36,7 @@ export class PolicyAcceptanceModalPage {
     readonly errorState: Locator;
 
     constructor(page: Page) {
-        this.page = page;
+        super(page);
 
         // Main modal - based on the exact classes from PolicyAcceptanceModal.tsx
         this.modal = page.locator('div.fixed.inset-0.bg-black.bg-opacity-50.flex.items-center.justify-center.p-4.z-50');

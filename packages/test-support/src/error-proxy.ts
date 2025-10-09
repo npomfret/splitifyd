@@ -4,8 +4,8 @@
  */
 
 import { Page } from '@playwright/test';
-import { ProxiedMethodError } from '../errors/test-errors';
-import { collectPageState } from './page-state-collector';
+import { ProxiedMethodError } from './errors/test-errors';
+import { collectPageState } from './utils/page-state-collector';
 
 /**
  * Configuration for the error handling proxy

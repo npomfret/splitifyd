@@ -1,5 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
+import { createErrorHandlingProxy } from '../error-proxy';
 
 /**
  * Base Page Object Model with shared utilities for Playwright tests
@@ -110,7 +111,20 @@ import { TEST_TIMEOUTS } from '../test-constants';
  * // Modal already verified open, ready to interact
  */
 export abstract class BasePage {
-    constructor(protected _page: Page) {}
+    constructor(protected _page: Page) {
+        // Apply automatic error handling proxy to all derived classes
+        // This wraps all async methods to automatically capture context on errors
+        const className = this.constructor.name;
+
+        return createErrorHandlingProxy(this, className, _page, {
+            captureScreenshot: false,
+            collectState: true,
+            excludeMethods: [
+                'page', // Getter for page property
+                'getInputIdentifier', // Private helper method
+            ],
+        }) as this;
+    }
 
     /**
      * Public getter for the page property
