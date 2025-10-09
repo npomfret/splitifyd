@@ -350,8 +350,7 @@ describe('SettlementService - Unit Tests', () => {
             await expect(settlementService.createSettlement(settlementData, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'USER_NOT_IN_GROUP',
-                    message: 'User non-member-payer is not a member of this group',
+                    code: 'MEMBER_NOT_IN_GROUP',
                 }),
             );
         });
@@ -394,8 +393,7 @@ describe('SettlementService - Unit Tests', () => {
             await expect(settlementService.createSettlement(settlementData, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'USER_NOT_IN_GROUP',
-                    message: 'User non-member-payee is not a member of this group',
+                    code: 'MEMBER_NOT_IN_GROUP',
                 }),
             );
         });

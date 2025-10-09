@@ -889,6 +889,74 @@ Lock status is NOT cached because:
 - Existing data works immediately
 - No backward compatibility concerns
 
+## Implementation Status
+
+### Completed Phases
+
+#### ✅ Phase 1: Type Definitions (COMPLETED)
+- Added `isLocked?: boolean` to ExpenseDTO
+- Added `isLocked?: boolean` to SettlementDTO
+- Added `isLocked?: boolean` to SettlementWithMembers
+- Location: `packages/shared/src/shared-types.ts`
+
+#### ✅ Phase 2: Backend - ExpenseService (COMPLETED)
+- Added `isExpenseLocked()` helper method
+- Updated `_getExpense()` to include isLocked
+- Updated `getExpenseFullDetails()` to include isLocked
+- Updated `_listGroupExpenses()` to add isLocked to each expense (optimized with single getAllGroupMemberIds call)
+- Updated `_createExpense()` to validate participants (MEMBER_NOT_IN_GROUP error)
+- Updated `_updateExpense()` to block locked expenses (EXPENSE_LOCKED error)
+- Location: `firebase/functions/src/services/ExpenseService.ts`
+
+#### ✅ Phase 3: Backend - SettlementService (COMPLETED)
+- Added `isSettlementLocked()` helper method
+- Updated `_getGroupSettlementsData()` to add isLocked to each settlement (optimized)
+- Updated `_createSettlement()` with improved error messages (MEMBER_NOT_IN_GROUP)
+- Updated `_updateSettlement()` to block locked settlements (SETTLEMENT_LOCKED error)
+- Location: `firebase/functions/src/services/SettlementService.ts`
+
+#### ✅ Phase 8: Translation Keys (COMPLETED)
+- Added `expenseActions.cannotEditTooltip`
+- Location: `webapp-v2/src/locales/en/translation.json`
+- Note: Only minimal translation keys added. Additional keys may be needed during frontend implementation.
+
+#### ✅ Phase 9: Backend Integration Tests (COMPLETED)
+- Created comprehensive integration test suite: `firebase/functions/src/__tests__/integration/departed-member-locking.test.ts`
+- **24 test cases** covering all scenarios
+- Tests cover:
+  - Expense locking read operations (isLocked flag in get, list, and full details) - 4 tests
+  - Expense locking write operations (blocking edits, allowing edits when unlocked) - 4 tests
+  - Settlement locking read operations (isLocked flag in settlements list) - 3 tests
+  - Settlement locking write operations (blocking edits for locked settlements) - 5 tests
+  - Edge cases (multiple departed members, dynamic lock computation) - 3 tests
+  - Race condition protection (creating with departed members)
+- Test patterns follow project conventions (ApiDriver, borrowTestUsers, TestGroupManager)
+- **Note:** Unit tests not needed - lock logic is simple (array membership check) and fully covered by integration tests
+- **Fixed:** Corrected API calls to use `getGroupFullDetails()` instead of non-existent `getGroupSettlements()` method
+
+### Pending Phases
+
+#### ⏳ Phase 4: Frontend - ExpenseDetailPage (PENDING)
+- Add lock warning banner
+- Disable edit button when locked
+- Update ExpenseActions component
+
+#### ⏳ Phase 5: Frontend - AddExpensePage (PENDING)
+- Add lock check in useExpenseForm hook
+- Display error if locked expense loaded
+
+#### ⏳ Phase 6: Frontend - SettlementForm (PENDING)
+- Add lock check in edit mode
+- Disable form when locked
+
+#### ⏳ Phase 7: Frontend - SettlementHistory (PENDING)
+- Disable edit button for locked settlements
+- Add tooltip for disabled state
+
+#### ⏳ Phase 10: E2E Tests (PENDING)
+- Full user workflow testing
+- Create new E2E test file: `e2e-tests/src/__tests__/integration/departed-member-locking.e2e.test.ts`
+
 ## Testing Checklist
 
 ### Backend Tests
@@ -898,19 +966,23 @@ Lock status is NOT cached because:
 - ✅ Update blocked for locked settlement
 - ✅ Create blocked if member departs mid-submission
 - ✅ Lock status computed correctly in list operations
+- ✅ Lock flag included in all read endpoints (get, list, full details)
+- ✅ Dynamic lock computation (not stale)
+- ✅ Multiple departed members handled
+- ✅ Optimized with single getAllGroupMemberIds call per operation
 
 ### Frontend Tests
-- ✅ Lock warning banner displayed
-- ✅ Edit button disabled for locked transactions
-- ✅ Edit form shows error if locked expense loaded
-- ✅ Settlement form shows error if locked settlement loaded
-- ✅ Tooltip shows explanation on disabled buttons
+- ⏳ Lock warning banner displayed
+- ⏳ Edit button disabled for locked transactions
+- ⏳ Edit form shows error if locked expense loaded
+- ⏳ Settlement form shows error if locked settlement loaded
+- ⏳ Tooltip shows explanation on disabled buttons
 
 ### E2E Tests
-- ✅ Full workflow: create → member leaves → verify locked UI
-- ✅ Attempt to edit locked expense (blocked)
-- ✅ Attempt to edit locked settlement (blocked)
-- ✅ Create new expense after member leaves (member not in list)
+- ⏳ Full workflow: create → member leaves → verify locked UI
+- ⏳ Attempt to edit locked expense (blocked)
+- ⏳ Attempt to edit locked settlement (blocked)
+- ⏳ Create new expense after member leaves (member not in list)
 
 ## Future Enhancements (Out of Scope)
 

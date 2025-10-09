@@ -86,6 +86,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 updatedAt: expect.any(String),
                 deletedAt: null,
                 deletedBy: null,
+                isLocked: expect.any(Boolean), // Lock status computed based on group membership
             });
         });
 
@@ -560,6 +561,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 updatedAt: expect.any(String),
                 deletedAt: null,
                 deletedBy: null,
+                isLocked: expect.any(Boolean), // Lock status computed based on group membership
             });
         });
 

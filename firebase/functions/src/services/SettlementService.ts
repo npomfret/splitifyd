@@ -101,6 +101,16 @@ export class SettlementService {
     }
 
     /**
+     * Check if settlement is locked due to departed members
+     * A settlement is locked if payer or payee is no longer in the group
+     */
+    private async isSettlementLocked(settlement: SettlementDTO, groupId: string): Promise<boolean> {
+        const currentMemberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
+        return !currentMemberIds.includes(settlement.payerId) ||
+               !currentMemberIds.includes(settlement.payeeId);
+    }
+
+    /**
      * List settlements for a group with pagination and filtering
      */
     async listSettlements(
@@ -189,10 +199,14 @@ export class SettlementService {
             throw Errors.FORBIDDEN();
         }
 
-        // Verify each user is a member
-        for (const uid of [userId, settlementData.payerId, settlementData.payeeId]) {
+        // Verify payer and payee are still in the group (race condition protection)
+        for (const uid of [settlementData.payerId, settlementData.payeeId]) {
             if (!memberIds.includes(uid)) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'USER_NOT_IN_GROUP', `User ${uid} is not a member of this group`);
+                throw new ApiError(
+                    HTTP_STATUS.BAD_REQUEST,
+                    'MEMBER_NOT_IN_GROUP',
+                    `Cannot create settlement - user is not in the group`
+                );
             }
         }
 
@@ -294,6 +308,16 @@ export class SettlementService {
 
         // Settlement data is already validated by FirestoreReader
         const settlement = settlementData;
+
+        // Check if settlement is locked (payer or payee has left)
+        const isLocked = await this.isSettlementLocked(settlement, settlement.groupId);
+        if (isLocked) {
+            throw new ApiError(
+                HTTP_STATUS.BAD_REQUEST,
+                'SETTLEMENT_LOCKED',
+                'Cannot edit settlement - payer or payee has left the group'
+            );
+        }
 
         await this.firestoreReader.verifyGroupMembership(settlement.groupId, userId);
 
@@ -598,12 +622,19 @@ export class SettlementService {
             includeDeleted,
         });
 
+        // Get current member IDs once for all settlements
+        const currentMemberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
+
         const settlements: SettlementWithMembers[] = await Promise.all(
             result.settlements.map(async (settlement) => {
                 const [payerData, payeeData] = await Promise.all([
                     this.fetchGroupMemberData(groupId, settlement.payerId),
                     this.fetchGroupMemberData(groupId, settlement.payeeId)
                 ]);
+
+                // Compute lock status
+                const isLocked = !currentMemberIds.includes(settlement.payerId) ||
+                                 !currentMemberIds.includes(settlement.payeeId);
 
                 return {
                     id: settlement.id,
@@ -615,6 +646,9 @@ export class SettlementService {
                     date: dateHelpers.timestampToISO(settlement.date),
                     note: settlement.note,
                     createdAt: dateHelpers.timestampToISO(settlement.createdAt),
+                    deletedAt: settlement.deletedAt,
+                    deletedBy: settlement.deletedBy,
+                    isLocked
                 } as SettlementWithMembers;
             }),
         );

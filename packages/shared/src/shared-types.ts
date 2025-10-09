@@ -575,7 +575,9 @@ interface Expense extends SoftDeletable {
  * The canonical storage format is ExpenseDocument in firebase/functions/src/schemas/expense.ts
  * which uses Firestore Timestamp objects.
  */
-export interface ExpenseDTO extends Expense, BaseDTO {}
+export interface ExpenseDTO extends Expense, BaseDTO {
+  isLocked?: boolean; // True if any participant has left the group
+}
 
 export interface CreateExpenseRequest {
     groupId: string;
@@ -618,7 +620,9 @@ interface Settlement extends SoftDeletable {
  * The canonical storage format is SettlementDocument in firebase/functions/src/schemas/settlement.ts
  * which uses Firestore Timestamp objects.
  */
-export interface SettlementDTO extends Settlement, BaseDTO {}
+export interface SettlementDTO extends Settlement, BaseDTO {
+  isLocked?: boolean; // True if payer or payee has left the group
+}
 
 export interface CreateSettlementRequest {
     groupId: string;
@@ -662,6 +666,7 @@ export interface SettlementWithMembers extends SoftDeletable {
     date: ISOString;
     note?: string;
     createdAt: ISOString;
+    isLocked?: boolean; // True if payer or payee has left the group
 }
 
 // ========================================================================

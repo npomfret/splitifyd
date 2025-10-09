@@ -1011,7 +1011,8 @@
       "deleteConfirm": "Are you sure you want to delete \"{{expenseName}}\"? This action cannot be undone and will affect group balances.",
       "deleteButton": "Delete",
       "cancel": "Cancel",
-      "deleteFailed": "Failed to delete expense"
+      "deleteFailed": "Failed to delete expense",
+      "cannotEditTooltip": "Cannot edit - participant has left the group"
     },
     "splitBreakdown": {
       "splitBetween": "Split between ",

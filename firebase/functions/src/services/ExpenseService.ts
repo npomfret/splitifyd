@@ -180,6 +180,15 @@ export class ExpenseService {
     }
 
     /**
+     * Check if expense is locked due to departed members
+     * An expense is locked if any participant is no longer in the group
+     */
+    private async isExpenseLocked(expense: ExpenseDTO): Promise<boolean> {
+        const currentMemberIds = await this.firestoreReader.getAllGroupMemberIds(expense.groupId);
+        return expense.participants.some(uid => !currentMemberIds.includes(uid));
+    }
+
+    /**
      * Get a single expense by ID
      */
     async getExpense(expenseId: string, userId: string): Promise<any> {
@@ -199,12 +208,17 @@ export class ExpenseService {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_PARTICIPANT', 'You are not a participant in this expense');
         }
 
+        const isLocked = await this.isExpenseLocked(expense);
+
         logger.info('expense-retrieved', {
             id: expenseId,
             timings: timer.getTimings(),
         });
 
-        return this.transformExpenseToResponse(expense);
+        return {
+            ...this.transformExpenseToResponse(expense),
+            isLocked
+        };
     }
 
     /**
@@ -247,9 +261,14 @@ export class ExpenseService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
         }
 
+        // Verify all participants are still in the group (race condition protection)
         for (const participantId of validatedExpenseData.participants) {
             if (!memberIds.includes(participantId)) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Participant ${participantId} is not a member of the group`);
+                throw new ApiError(
+                    HTTP_STATUS.BAD_REQUEST,
+                    'MEMBER_NOT_IN_GROUP',
+                    `Cannot create expense - participant ${participantId} is not in the group`
+                );
             }
         }
 
@@ -347,6 +366,16 @@ export class ExpenseService {
         // Fetch the existing expense
         timer.startPhase('query');
         const expense = await this.fetchExpense(expenseId);
+
+        // Check if expense is locked (any participant has left)
+        const isLocked = await this.isExpenseLocked(expense);
+        if (isLocked) {
+            throw new ApiError(
+                HTTP_STATUS.BAD_REQUEST,
+                'EXPENSE_LOCKED',
+                'Cannot edit expense - one or more participants have left the group'
+            );
+        }
 
         // Get group data and verify permissions
         const [groupData, memberIds, member] = await Promise.all([
@@ -520,13 +549,23 @@ export class ExpenseService {
 
         // Use the centralized FirestoreReader method
         const result = await this.firestoreReader.getExpensesForGroupPaginated(groupId, options);
+
+        // Get current member IDs once for all expenses
+        const currentMemberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
         timer.endPhase();
 
-        // Transform the validated expense documents to response format
-        const expenses = result.expenses.map((validatedExpense) => ({
-            id: validatedExpense.id,
-            ...this.transformExpenseToResponse(this.normalizeValidatedExpense(validatedExpense)),
-        }));
+        // Transform the validated expense documents to response format and compute lock status
+        const expenses = result.expenses.map((validatedExpense) => {
+            const isLocked = validatedExpense.participants.some(
+                uid => !currentMemberIds.includes(uid)
+            );
+
+            return {
+                id: validatedExpense.id,
+                ...this.transformExpenseToResponse(this.normalizeValidatedExpense(validatedExpense)),
+                isLocked
+            };
+        });
 
         logger.info('expenses-listed', {
             groupId,
@@ -682,6 +721,8 @@ export class ExpenseService {
         const participantData = await Promise.all(
             expense.participants.map((uid) => this.fetchParticipantData(expense.groupId, uid)),
         );
+
+        const isLocked = await this.isExpenseLocked(expense);
         timer.endPhase();
 
         // Format expense response
@@ -694,7 +735,10 @@ export class ExpenseService {
         });
 
         return {
-            expense: expenseResponse,
+            expense: {
+                ...expenseResponse,
+                isLocked
+            },
             group,
             members: { members: participantData }, // Wrap in object to match ExpenseFullDetailsDTO.members structure
         };
