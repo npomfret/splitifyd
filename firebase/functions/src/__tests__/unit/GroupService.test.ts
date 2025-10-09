@@ -39,57 +39,7 @@ describe('GroupService - Unit Tests', () => {
         groupService = applicationBuilder.buildGroupService();
     });
 
-    describe('createGroup', () => {
-        it.skip('should create group successfully', async () => {
-            const userId = 'test-user-123';
-            const createGroupRequest = new CreateGroupRequestBuilder()
-                .withName('Test Group')
-                .withDescription('Test Description')
-                .build();
-
-            const result = await groupService.createGroup(userId, createGroupRequest);
-
-            expect(result).toBeDefined();
-            expect(result.id).toBeDefined();
-            expect(result.name).toBe(createGroupRequest.name);
-            expect(result.description).toBe(createGroupRequest.description);
-        });
-    });
-
     describe('getGroupFullDetails', () => {
-        it.skip('should return group when it exists and user has access', async () => {
-            const userId = 'test-user-123';
-            const groupId = 'test-group-456';
-
-            // Set up test group using Firebase builder with Firestore Timestamps
-            const testGroup = new GroupDTOBuilder()
-                .withId(groupId)
-                .withName('Test Group')
-                .withDescription('Test Description')
-                .withCreatedBy(userId)
-                .build();
-
-            stubReader.setDocument('groups', groupId, testGroup);
-            stubWriter.setDocument('groups', groupId, testGroup);
-
-            // Set up group membership so user has access
-            const membershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(userId)
-                .withGroupId(groupId)
-                .asAdmin()
-                .asActive()
-                .build();
-            stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
-            stubWriter.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
-
-            const result = await groupService.getGroupFullDetails(groupId, userId);
-
-            expect(result).toBeDefined();
-            expect(result.group.id).toBe(groupId);
-            expect(result.group.name).toBe('Test Group');
-            expect(result.group.description).toBe('Test Description');
-        });
-
         it('should throw NOT_FOUND when group does not exist', async () => {
             const userId = 'test-user-123';
             const nonExistentGroupId = 'non-existent-group';
