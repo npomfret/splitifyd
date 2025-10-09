@@ -244,24 +244,16 @@ test.describe('Dashboard Groups Pagination', () => {
         // Unroute all previous handlers
         await page.unroute('**/api/groups*');
 
-        // Setup delayed route for page 2
-        let resolveDelayedResponse: any;
-        await page.route('**/api/groups*', async (route) => {
-            await new Promise((resolve) => {
-                resolveDelayedResponse = resolve;
-            });
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify(
-                    ListGroupsResponseBuilder.responseWithMetadata(page2Groups, 1).withHasMore(false).build(),
-                ),
-            });
-        });
+        // Setup delayed route for page 2 to test loading state
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder.responseWithMetadata(page2Groups, 1).withHasMore(false).build(),
+            { delayMs: 500 },
+        );
 
         const nextButton = page.getByTestId('pagination-next');
 
-        // Start the click but don't await it yet - response is delayed
+        // Click next button - loading state should appear during delay
         const clickPromise = nextButton.click();
 
         // Give time for the click handler to start (but not complete due to delayed response)
@@ -272,8 +264,7 @@ test.describe('Dashboard Groups Pagination', () => {
         const previousButton = page.getByTestId('pagination-previous');
         await expect(previousButton).toBeDisabled();
 
-        // Resolve the API call and wait for click to complete
-        resolveDelayedResponse();
+        // Wait for click to complete
         await clickPromise;
 
         // After loading, verify we're on page 2

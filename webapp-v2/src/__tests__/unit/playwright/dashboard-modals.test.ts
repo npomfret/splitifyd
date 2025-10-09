@@ -595,26 +595,8 @@ test.describe('Dashboard Share Group Modal', () => {
                 .build(),
         );
 
-        // Mock delayed response for share link (longer delay to ensure we catch loading state)
-        await page.route('/api/groups/share', async (route) => {
-            const request = route.request();
-            const postData = request.postDataJSON();
-
-            // Only respond if the groupId matches
-            if (postData?.groupId === 'group-123') {
-                await page.waitForTimeout(2000);
-                await route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify({
-                        linkId: 'delayed-token',
-                        shareablePath: '/join/delayed-token',
-                    }),
-                });
-            } else {
-                await route.continue();
-            }
-        });
+        // Mock delayed response for share link to test loading state
+        await mockGenerateShareLinkApi(page, 'group-123', 'delayed-token', { delayMs: 1000 });
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();

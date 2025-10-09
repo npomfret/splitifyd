@@ -7,6 +7,11 @@ interface AuthError {
     message: string;
 }
 
+interface MockApiOptions {
+    delayMs?: number;
+    status?: number;
+}
+
 interface MockFirebaseState {
     currentUser: ClientUser | null;
     loginBehavior: 'success' | 'failure' | 'delayed' | 'unconfigured';
@@ -301,10 +306,33 @@ export class MockFirebase {
 }
 
 /**
- * Mock a single API endpoint with explicit request/response mapping
+ * Get the configured API delay for mocks
+ * Can be overridden per-test or globally via PLAYWRIGHT_API_DELAY env var
  */
-export async function mockApiRoute(page: Page, url: string, response: any, status: number = 200): Promise<void> {
-    await page.route(url, (route: any) => {
+function getApiDelay(explicitDelay?: number): number {
+    if (explicitDelay !== undefined) {
+        return explicitDelay;
+    }
+    return Number(process.env.PLAYWRIGHT_API_DELAY ?? 0);
+}
+
+/**
+ * Mock a single API endpoint with explicit request/response mapping
+ * @param delayMs - Optional delay in milliseconds before responding (defaults to env PLAYWRIGHT_API_DELAY or 0)
+ */
+export async function mockApiRoute(
+    page: Page,
+    url: string,
+    response: any,
+    options: MockApiOptions = {},
+): Promise<void> {
+    const { status = 200, delayMs } = options;
+    const delay = getApiDelay(delayMs);
+
+    await page.route(url, async (route: any) => {
+        if (delay > 0) {
+            await new Promise((resolve) => setTimeout(resolve, delay));
+        }
         route.fulfill({
             status,
             contentType: 'application/json',
@@ -315,9 +343,14 @@ export async function mockApiRoute(page: Page, url: string, response: any, statu
 
 /**
  * Mock policies API endpoint
+ * @param delayMs - Optional delay in milliseconds before responding
  */
-export async function mockPoliciesApi(page: Page, response: UserPolicyStatusResponse): Promise<void> {
-    await mockApiRoute(page, '/api/user/policies/status', response);
+export async function mockPoliciesApi(
+    page: Page,
+    response: UserPolicyStatusResponse,
+    options: { delayMs?: number } = {},
+): Promise<void> {
+    await mockApiRoute(page, '/api/user/policies/status', response, options);
 }
 
 export async function mockFullyAcceptedPoliciesApi(page: Page) {
@@ -346,8 +379,15 @@ export async function mockFullyAcceptedPoliciesApi(page: Page) {
 /**
  * Mock groups API endpoint with metadata
  * Handles requests with any query parameters as long as includeMetadata=true is present
+ * @param delayMs - Optional delay in milliseconds before responding
  */
-export async function mockGroupsApi(page: Page, response: ListGroupsResponse): Promise<void> {
+export async function mockGroupsApi(
+    page: Page,
+    response: ListGroupsResponse,
+    options: { delayMs?: number } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
     await page.route(
         (routeUrl) => {
             if (routeUrl.pathname !== '/api/groups') {
@@ -357,7 +397,10 @@ export async function mockGroupsApi(page: Page, response: ListGroupsResponse): P
             const searchParams = new URL(routeUrl.href).searchParams;
             return searchParams.get('includeMetadata') === 'true';
         },
-        (route: any) => {
+        async (route: any) => {
+            if (delay > 0) {
+                await new Promise((resolve) => setTimeout(resolve, delay));
+            }
             route.fulfill({
                 status: 200,
                 contentType: 'application/json',
@@ -371,8 +414,17 @@ export async function mockGroupsApi(page: Page, response: ListGroupsResponse): P
  * Mock API failure with specific status code and error message
  * Handles requests with or without query parameters
  * @param url - Can be a path like '/api/groups' or a full URL with query params like '/api/groups?includeMetadata=true'
+ * @param delayMs - Optional delay in milliseconds before responding
  */
-export async function mockApiFailure(page: Page, url: string, status: number, error: { error: string; }): Promise<void> {
+export async function mockApiFailure(
+    page: Page,
+    url: string,
+    status: number,
+    error: { error: string },
+    options: { delayMs?: number } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
     // Parse the URL to separate path and query params
     const urlObj = new URL(url, 'http://dummy'); // Use dummy base for parsing
     const targetPath = urlObj.pathname;
@@ -394,7 +446,10 @@ export async function mockApiFailure(page: Page, url: string, status: number, er
             // If mock URL has no query params, match any request to that path
             return true;
         },
-        (route: any) => {
+        async (route: any) => {
+            if (delay > 0) {
+                await new Promise((resolve) => setTimeout(resolve, delay));
+            }
             route.fulfill({
                 status,
                 contentType: 'application/json',
@@ -407,9 +462,20 @@ export async function mockApiFailure(page: Page, url: string, status: number, er
 /**
  * Mock group detail API endpoint (full-details)
  * Handles requests with or without query parameters (e.g., ?includeDeletedSettlements=false)
+ * @param delayMs - Optional delay in milliseconds before responding
  */
-export async function mockGroupDetailApi(page: Page, groupId: string, group: any): Promise<void> {
-    await page.route(new RegExp(`/api/groups/${groupId}/full-details(\\?.*)?$`), (route: any) => {
+export async function mockGroupDetailApi(
+    page: Page,
+    groupId: string,
+    group: any,
+    options: { delayMs?: number } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await page.route(new RegExp(`/api/groups/${groupId}/full-details(\\?.*)?$`), async (route: any) => {
+        if (delay > 0) {
+            await new Promise((resolve) => setTimeout(resolve, delay));
+        }
         route.fulfill({
             status: 200,
             contentType: 'application/json',
@@ -420,30 +486,52 @@ export async function mockGroupDetailApi(page: Page, groupId: string, group: any
 
 /**
  * Mock group comments API endpoint
+ * @param delayMs - Optional delay in milliseconds before responding
  */
-export async function mockGroupCommentsApi(page: Page, groupId: string, comments: any[] = []): Promise<void> {
-    await mockApiRoute(page, `/api/groups/${groupId}/comments`, {
-        success: true,
-        data: {
-            comments,
-            count: comments.length,
-            hasMore: false,
+export async function mockGroupCommentsApi(
+    page: Page,
+    groupId: string,
+    comments: any[] = [],
+    options: { delayMs?: number } = {},
+): Promise<void> {
+    await mockApiRoute(
+        page,
+        `/api/groups/${groupId}/comments`,
+        {
+            success: true,
+            data: {
+                comments,
+                count: comments.length,
+                hasMore: false,
+            },
         },
-    });
+        options,
+    );
 }
 
 /**
  * Mock generate share link API endpoint
  * The endpoint is POST /api/groups/share with body: { groupId }
  * Response format: { linkId: string, shareablePath: string }
+ * @param delayMs - Optional delay in milliseconds before responding
  */
-export async function mockGenerateShareLinkApi(page: Page, groupId: string, shareToken: string = 'test-share-token-123'): Promise<void> {
+export async function mockGenerateShareLinkApi(
+    page: Page,
+    groupId: string,
+    shareToken: string = 'test-share-token-123',
+    options: { delayMs?: number } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
     await page.route('/api/groups/share', async (route) => {
         const request = route.request();
         const postData = request.postDataJSON();
 
         // Only respond if the groupId matches
         if (postData?.groupId === groupId) {
+            if (delay > 0) {
+                await new Promise((resolve) => setTimeout(resolve, delay));
+            }
             await route.fulfill({
                 status: 200,
                 contentType: 'application/json',
