@@ -18,7 +18,6 @@ export class GroupMemberBuilder {
             // User identification
             uid,
             displayName,
-            email: `${uid}@test.com`,
             initials: this.generateInitials(displayName),
 
             // User display properties
@@ -36,10 +35,6 @@ export class GroupMemberBuilder {
     // User identification methods
     withUid(uid: string): this {
         this.member.uid = uid;
-        // Update email to match UID if it was auto-generated
-        if (this.member.email.endsWith('@test.com')) {
-            this.member.email = `${uid}@test.com`;
-        }
         return this;
     }
 
@@ -47,11 +42,6 @@ export class GroupMemberBuilder {
         this.member.displayName = displayName;
         // Auto-update initials when display name changes
         this.member.initials = this.generateInitials(displayName);
-        return this;
-    }
-
-    withEmail(email: string): this {
-        this.member.email = email;
         return this;
     }
 
@@ -153,7 +143,6 @@ export class GroupMemberBuilder {
         return new GroupMemberBuilder()
             .withUid(uid)
             .withDisplayName(`User ${uid.slice(0, 4)}`)
-            .withEmail(`${uid}@test.com`);
     }
 
     /**

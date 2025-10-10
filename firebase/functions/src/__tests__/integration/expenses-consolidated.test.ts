@@ -536,7 +536,6 @@ describe('Expenses Management - Consolidated Tests', () => {
             // Verify departed member still has real user data
             if (departedMember) {
                 expect(departedMember.displayName).toBeDefined(); // Real name preserved
-                expect(departedMember.email).toBeDefined(); // Real email preserved
                 expect(departedMember.uid).toBe(departedTestUsers[1].uid);
 
                 // Note: memberStatus is 'active' (last known status) since MemberStatus enum doesn't have 'left'

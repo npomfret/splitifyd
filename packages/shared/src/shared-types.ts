@@ -427,7 +427,6 @@ export interface GroupMember {
     // User identification
     uid: string;
     displayName: string;
-    email: string;
     initials: string;
 
     // User display properties

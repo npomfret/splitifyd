@@ -58,7 +58,6 @@ const GroupMemberDTOSchema = z.object({
     // User identification
     uid: z.string().min(1),
     displayName: z.string().min(1),
-    email: z.string().email(),
     initials: z.string().min(1),
 
     // User display properties
@@ -107,7 +106,6 @@ describe('Cross-Service Schema Validation', () => {
 
         groupMember = new GroupMemberBuilder()
             .withUid('user-456')
-            .withEmail('test@example.com')
             .withDisplayName('Test User')
             .withInitials('TU')
             .withPhotoURL(null)

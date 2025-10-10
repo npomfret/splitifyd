@@ -295,7 +295,6 @@ export class UserService {
                 return {
                     uid: memberDoc.uid,
                     initials: '?',
-                    email: '',
                     displayName: 'Unknown User',
                     photoURL: null,
                     themeColor: memberDoc.theme,
@@ -310,7 +309,6 @@ export class UserService {
             return {
                 uid: memberDoc.uid,
                 initials: this.getInitials(profile.displayName),
-                email: profile.email,
                 displayName: profile.displayName,
                 photoURL: profile.photoURL,
                 themeColor: (typeof profile.themeColor === 'object' ? profile.themeColor : memberDoc.theme) as UserThemeColor,

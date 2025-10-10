@@ -107,7 +107,6 @@ const requireAdmin = async (req: AuthenticatedRequest, res: Response, next: Next
 
     logger.info('Admin access granted', {
         userId: req.user.uid,
-        email: req.user.email,
         correlationId,
     });
 

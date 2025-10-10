@@ -62,7 +62,6 @@ export class SettlementService {
             if (!memberData) {
                 return {
                     uid: userId,
-                    email: validatedData.email,
                     displayName: validatedData.displayName,
                     initials,
                     photoURL: userData.photoURL || null,
@@ -84,7 +83,6 @@ export class SettlementService {
             // Normal path: member is still in the group
             return {
                 uid: userId,
-                email: validatedData.email,
                 displayName: validatedData.displayName,
                 initials,
                 photoURL: userData.photoURL || null,
