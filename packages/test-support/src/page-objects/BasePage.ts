@@ -187,14 +187,14 @@ export abstract class BasePage {
     async fillPreactInput(selector: string | Locator, value: string) {
         const input = typeof selector === 'string' ? this._page.locator(selector) : selector;
         const inputIdentifier = await this.getInputIdentifier(input);
-        const maxAttempts = 10;
+        const maxAttempts = 3;
 
         await this.clearPreactInput(input);
 
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
             try {
                 await input.focus();
-                await input.pressSequentially(value, { delay: 50, timeout: TEST_TIMEOUTS.INPUT_UPDATE * 2 });
+                await input.pressSequentially(value, { delay: 25, timeout: TEST_TIMEOUTS.INPUT_UPDATE });
 
                 const currentValue = await input.inputValue();
                 if (currentValue === value) {

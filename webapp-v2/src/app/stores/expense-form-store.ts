@@ -366,6 +366,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 if (typeof value !== 'number') {
                     throw new Error(`Amount must be a number, got ${typeof value}: ${value}`);
                 }
+
+                const oldAmount = this.#amountSignal.value; // Capture before update
                 this.#amountSignal.value = value;
 
                 // Recalculate splits based on current type
@@ -381,6 +383,21 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                         }
                     });
                     this.#splitsSignal.value = currentSplits;
+                } else if (this.#splitTypeSignal.value === SplitTypes.EXACT) {
+                    // Recalculate exact splits proportionally when amount changes
+                    const currentSplits = [...this.#splitsSignal.value];
+                    const newAmount = this.#amountSignal.value;
+
+                    if (oldAmount > 0 && currentSplits.length > 0) {
+                        const ratio = newAmount / oldAmount;
+                        currentSplits.forEach((split) => {
+                            split.amount = split.amount * ratio;
+                        });
+                        this.#splitsSignal.value = currentSplits;
+                    } else {
+                        // If no previous amount or splits, initialize with equal splits
+                        this.#splitsSignal.value = calculateExactSplits(newAmount, this.#currencySignal.value, this.#participantsSignal.value);
+                    }
                 }
                 break;
             case 'currency':

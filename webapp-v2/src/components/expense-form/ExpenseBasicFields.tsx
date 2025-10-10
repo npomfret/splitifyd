@@ -27,7 +27,7 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
     const recentCurrencies = currencyService.getRecentCurrencies();
 
     return (
-        <Card>
+        <Card data-testid='expense-details-section'>
             <Stack spacing='md'>
                 <h2 className='text-lg font-semibold text-gray-900 dark:text-white'>{t('expenseBasicFields.title')}</h2>
 

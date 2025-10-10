@@ -21,7 +21,7 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
     const { t } = useTranslation();
 
     return (
-        <Card>
+        <Card data-testid='split-between-section'>
             <Stack spacing='md'>
                 <div className='flex items-center justify-between'>
                     <h2 className='text-lg font-semibold text-gray-900 dark:text-white'>

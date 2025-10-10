@@ -17,7 +17,7 @@ interface PayerSelectorProps {
 export function PayerSelector({ members, paidBy, validationErrors, updateField }: PayerSelectorProps) {
     const { t } = useTranslation();
     return (
-        <Card>
+        <Card data-testid='who-paid-section'>
             <Stack spacing='md'>
                 <h2 className='text-lg font-semibold text-gray-900 dark:text-white'>
                     {t('expenseComponents.payerSelector.label')}{' '}

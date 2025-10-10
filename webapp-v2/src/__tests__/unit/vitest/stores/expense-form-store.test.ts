@@ -440,3 +440,92 @@ describe('ExpenseFormStore - Draft Functionality', () => {
         });
     });
 });
+
+describe('ExpenseFormStore - Split Recalculation', () => {
+    beforeEach(() => {
+        expenseFormStore.reset();
+        expenseFormStore.clearError();
+    });
+
+    describe('EQUAL split recalculation', () => {
+        it('should recalculate EQUAL splits when amount changes', () => {
+            expenseFormStore.updateField('amount', 100);
+            expenseFormStore.updateField('currency', 'USD');
+            expenseFormStore.updateField('splitType', SplitTypes.EQUAL);
+            expenseFormStore.setParticipants(['user-1', 'user-2', 'user-3']);
+
+            const splitsAfterInitial = expenseFormStore.splits;
+            expect(splitsAfterInitial).toHaveLength(3);
+            expect(splitsAfterInitial[0].amount).toBeCloseTo(33.33, 2);
+            expect(splitsAfterInitial[1].amount).toBeCloseTo(33.33, 2);
+            expect(splitsAfterInitial[2].amount).toBeCloseTo(33.34, 2);
+
+            expenseFormStore.updateField('amount', 150);
+
+            const splitsAfterChange = expenseFormStore.splits;
+            expect(splitsAfterChange).toHaveLength(3);
+            expect(splitsAfterChange[0].amount).toBeCloseTo(50.0, 2);
+            expect(splitsAfterChange[1].amount).toBeCloseTo(50.0, 2);
+            expect(splitsAfterChange[2].amount).toBeCloseTo(50.0, 2);
+        });
+
+        it('should recalculate EQUAL splits when currency changes (USD to JPY)', () => {
+            expenseFormStore.updateField('amount', 100);
+            expenseFormStore.updateField('currency', 'USD');
+            expenseFormStore.updateField('splitType', SplitTypes.EQUAL);
+            expenseFormStore.setParticipants(['user-1', 'user-2']);
+
+            const splitsWithUSD = expenseFormStore.splits;
+            expect(splitsWithUSD).toHaveLength(2);
+            expect(splitsWithUSD[0].amount).toBeCloseTo(50.0, 2);
+            expect(splitsWithUSD[1].amount).toBeCloseTo(50.0, 2);
+
+            expenseFormStore.updateField('currency', 'JPY');
+
+            const splitsWithJPY = expenseFormStore.splits;
+            expect(splitsWithJPY).toHaveLength(2);
+            expect(splitsWithJPY[0].amount).toBe(50);
+            expect(splitsWithJPY[1].amount).toBe(50);
+        });
+    });
+
+    describe('EXACT split recalculation', () => {
+        it('should recalculate EXACT splits when amount changes', () => {
+            expenseFormStore.updateField('amount', 100);
+            expenseFormStore.updateField('currency', 'USD');
+            expenseFormStore.updateField('splitType', SplitTypes.EXACT);
+            expenseFormStore.setParticipants(['user-1', 'user-2']);
+
+            const splitsAfterInitial = expenseFormStore.splits;
+            expect(splitsAfterInitial).toHaveLength(2);
+            expect(splitsAfterInitial[0].amount).toBe(50);
+            expect(splitsAfterInitial[1].amount).toBe(50);
+
+            expenseFormStore.updateField('amount', 200);
+
+            const splitsAfterChange = expenseFormStore.splits;
+            expect(splitsAfterChange).toHaveLength(2);
+            expect(splitsAfterChange[0].amount).toBe(100);
+            expect(splitsAfterChange[1].amount).toBe(100);
+        });
+
+        it('should recalculate EXACT splits when currency changes (USD to JPY)', () => {
+            expenseFormStore.updateField('amount', 100);
+            expenseFormStore.updateField('currency', 'USD');
+            expenseFormStore.updateField('splitType', SplitTypes.EXACT);
+            expenseFormStore.setParticipants(['user-1', 'user-2']);
+
+            const splitsWithUSD = expenseFormStore.splits;
+            expect(splitsWithUSD).toHaveLength(2);
+            expect(splitsWithUSD[0].amount).toBeCloseTo(50.0, 2);
+            expect(splitsWithUSD[1].amount).toBeCloseTo(50.0, 2);
+
+            expenseFormStore.updateField('currency', 'JPY');
+
+            const splitsWithJPY = expenseFormStore.splits;
+            expect(splitsWithJPY).toHaveLength(2);
+            expect(splitsWithJPY[0].amount).toBe(50);
+            expect(splitsWithJPY[1].amount).toBe(50);
+        });
+    });
+});
