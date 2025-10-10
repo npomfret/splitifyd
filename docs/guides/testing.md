@@ -237,6 +237,51 @@ In-browser tests using Playwright serve two distinct purposes in this project:
 1. **Unit tests for the webapp** (`webapp-v2/src/__tests__/unit/playwright/`) - Test individual React/Preact components in isolation within a real browser environment. These are our primary unit tests for UI components.
 2. **End-to-end tests** (`e2e-tests/`) - Test complete user workflows across the entire application stack (frontend + backend + database).
 
+### ❌ NEVER Use page.setContent() or Similar Hacks
+
+**Absolutely prohibited:** Using `page.setContent()`, `page.setHTML()`, or any similar methods to inject HTML/scripts into the page.
+
+```typescript
+// ❌ NEVER DO THIS
+await page.setContent(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <script type="module">
+            import { store } from '/src/store.ts';
+            window.store = store;
+        </script>
+    </head>
+    <body>Test content</body>
+    </html>
+`);
+```
+
+**Why this is wrong:**
+- Module imports don't work without a proper dev server
+- No bundling, no HMR, no proper module resolution
+- Bypasses the actual app's build/run process
+- Tests fake behavior instead of real user experience
+- Creates maintenance nightmares
+
+**✅ What to do instead:**
+- Always navigate to real pages served by the dev server: `await page.goto('/dashboard')`
+- Use proper fixtures that authenticate and navigate to real routes
+- Test actual UI components as they exist in the running application
+- If testing a specific store, write a Vitest unit test instead
+
+```typescript
+// ✅ CORRECT: Navigate to real pages
+test('should test dashboard', async ({ authenticatedPage }) => {
+    const { page } = authenticatedPage;
+    await page.goto('/dashboard');
+
+    const dashboardPage = new DashboardPage(page);
+    await dashboardPage.waitForDashboard();
+    // Test real UI...
+});
+```
+
 ### Page Object Model (POM) - Mandatory Pattern
 
 **All browser interactions MUST go through Page Object Models.** Never use raw selectors or Playwright locators directly in test files.
