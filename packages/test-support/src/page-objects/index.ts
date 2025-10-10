@@ -2,6 +2,7 @@ export { BasePage } from './BasePage';
 export { CreateGroupModalPage } from './CreateGroupModalPage';
 export { DashboardPage } from './DashboardPage';
 export { EditGroupModalPage } from './EditGroupModalPage';
+export { ExpenseDetailPage } from './ExpenseDetailPage';
 export { ExpenseFormPage } from './ExpenseFormPage';
 export { GroupDetailPage } from './GroupDetailPage';
 export { LeaveGroupDialogPage } from './LeaveGroupDialogPage';

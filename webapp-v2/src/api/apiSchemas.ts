@@ -361,6 +361,7 @@ export const responseSchemas = {
     '/expenses': ExpenseDataSchema,
     'DELETE /expenses': MessageResponseSchema,
     '/expenses/group': ExpenseListResponseSchema,
+    '/expenses/:id/full-details': GroupFullDetailsSchema,
     '/groups/balances': GroupBalancesSchema,
     'POST /groups/share': ShareableLinkResponseSchema,
     '/groups/share': ShareableLinkResponseSchema,
