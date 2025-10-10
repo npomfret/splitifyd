@@ -229,3 +229,267 @@ const change = await pollForChange(FirestoreCollections.TRANSACTION_CHANGES, (do
 3. **Check for exact state** you expect (all required fields/values)
 4. **Set reasonable timeouts** (5-10 seconds for triggers)
 5. **Clean up properly** - remove unused listener variables and callbacks
+
+## In-Browser Testing with Playwright
+
+In-browser tests using Playwright serve two distinct purposes in this project:
+
+1. **Unit tests for the webapp** (`webapp-v2/src/__tests__/unit/playwright/`) - Test individual React/Preact components in isolation within a real browser environment. These are our primary unit tests for UI components.
+2. **End-to-end tests** (`e2e-tests/`) - Test complete user workflows across the entire application stack (frontend + backend + database).
+
+### Page Object Model (POM) - Mandatory Pattern
+
+**All browser interactions MUST go through Page Object Models.** Never use raw selectors or Playwright locators directly in test files.
+
+#### ✅ Correct: Use Page Objects
+
+```typescript
+// In test file
+const loginPage = new LoginPage(page);
+await loginPage.navigate();
+await loginPage.login(email, password);
+
+const dashboardPage = new DashboardPage(page);
+await dashboardPage.waitForDashboard();
+const groupDetailPage = await dashboardPage.createGroupAndNavigate('My Group');
+```
+
+#### ❌ Prohibited: Raw Selectors in Tests
+
+```typescript
+// DON'T: Never write selectors directly in tests
+await page.goto('/login');
+await page.getByRole('textbox', { name: 'Email' }).fill(email);
+await page.getByRole('button', { name: 'Sign in' }).click();
+```
+
+### Page Objects Are Not Just for Pages
+
+Create Page Object Models for **all UI components** that have user interactions:
+
+- **Pages**: `LoginPage`, `DashboardPage`, `GroupDetailPage`
+- **Modals/Dialogs**: `CreateGroupModalPage`, `ConfirmationDialogPage`, `ShareModalPage`
+- **Complex Components**: `ExpenseFormPage`, `SettlementFormPage`
+- **Shared Components**: `HeaderPage` (navigation, user menu)
+
+### Semantic Selectors - Find What Users See
+
+**Prefer selectors based on what users can see and interact with**, not implementation details.
+
+#### Priority Order for Selectors
+
+1. **ARIA roles and labels** - `getByRole('button', { name: 'Submit' })`
+2. **Visible text/headings** - `getByRole('heading', { name: 'Group Settings' })`
+3. **Form labels** - `getByLabel('Email address')`
+4. **Placeholder text** - `getByPlaceholder('Enter amount')`
+5. **Test IDs (last resort)** - `getByTestId('user-menu-button')` - only when semantic options don't exist
+
+#### ❌ Avoid These Selectors
+
+```typescript
+// DON'T: CSS classes (brittle, implementation detail)
+page.locator('.text-sm.font-medium.text-gray-700');
+
+// DON'T: Complex CSS selectors
+page.locator('div > ul > li:nth-child(2) > button');
+
+// DON'T: XPath expressions
+page.locator('//div[@class="container"]//button');
+```
+
+#### ✅ Use Semantic Selectors
+
+```typescript
+// DO: Find by what users see
+getGroupNameHeading(): Locator {
+    return this.page.getByRole('heading', { level: 2 });
+}
+
+getSubmitButton(): Locator {
+    return this.page.getByRole('button', { name: 'Create Group' });
+}
+
+getEmailInput(): Locator {
+    return this.page.getByLabel('Email address');
+}
+```
+
+### Modifying Components for Better Testing
+
+**It's encouraged to modify TSX components** to add semantic attributes when natural semantic selectors don't exist.
+
+#### Example: Adding Data Attributes for Testing
+
+```typescript
+// Before: No way to select user display name
+<p className='text-sm font-medium text-gray-700'>{userName}</p>
+
+// After: Added semantic test attribute
+<p className='text-sm font-medium text-gray-700' data-testid='user-menu-display-name'>
+    {userName}
+</p>
+```
+
+**Guidelines for modifying components:**
+
+- Add ARIA attributes first (`role`, `aria-label`, `aria-describedby`)
+- Use `data-testid` when ARIA isn't appropriate
+- Prefer finding containers by headings: `getByRole('heading', { name: 'Settings' })`
+- Never add test-only elements that users don't see
+
+### Fluent Methods - Action Chaining
+
+Page objects should provide fluent methods that perform actions and return the resulting page object. This creates readable, chainable test code.
+
+#### ✅ Correct: Fluent Methods with Single Path
+
+```typescript
+// In LoginPage
+async login(email: string, password: string): Promise<DashboardPage> {
+    await this.fillEmail(email);
+    await this.fillPassword(password);
+    await this.clickSubmit();
+    await expect(this.page).toHaveURL(/\/dashboard/);
+    return new DashboardPage(this.page);
+}
+
+// In DashboardPage
+async createGroupAndNavigate(name: string): Promise<GroupDetailPage> {
+    const modal = await this.openCreateGroupModal();
+    await modal.fillName(name);
+    await modal.submit();
+    await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+    return new GroupDetailPage(this.page);
+}
+
+// In test - fluent chaining
+const dashboardPage = await loginPage.login(email, password);
+const groupPage = await dashboardPage.createGroupAndNavigate('My Group');
+await groupPage.verifyGroupName('My Group');
+```
+
+#### ❌ Prohibited: Conditional Logic in Fluent Methods
+
+```typescript
+// DON'T: Methods that could return different page objects based on conditions
+async submitForm(): Promise<DashboardPage | ErrorPage> {
+    await this.clickSubmit();
+
+    if (await this.page.getByText('Error').isVisible()) {
+        return new ErrorPage(this.page);  // ❌ Ambiguous - test doesn't know what to expect
+    }
+    return new DashboardPage(this.page);
+}
+```
+
+**Why this is wrong:** Tests should have deterministic paths. The test should explicitly handle different scenarios with separate methods.
+
+#### ✅ Correct: Explicit Methods for Different Scenarios
+
+```typescript
+// DO: Separate methods for different expected outcomes
+async submitAndExpectSuccess(): Promise<DashboardPage> {
+    await this.clickSubmit();
+    await expect(this.page).toHaveURL(/\/dashboard/);
+    return new DashboardPage(this.page);
+}
+
+async submitAndExpectError(): Promise<void> {
+    await this.clickSubmit();
+    await expect(this.getErrorMessage()).toBeVisible();
+    // Stay on current page, verify error state
+}
+
+// In test - explicit intent
+if (testingValidInput) {
+    const dashboard = await loginPage.submitAndExpectSuccess();
+} else {
+    await loginPage.submitAndExpectError();
+    await expect(loginPage.getErrorMessage()).toContainText('Invalid credentials');
+}
+```
+
+### Never Use waitForTimeout
+
+**Absolutely prohibited:** `page.waitForTimeout()`, `setTimeout()`, `sleep()` and similar arbitrary delays.
+
+#### ❌ Prohibited Patterns
+
+```typescript
+// DON'T: Arbitrary waits
+await page.waitForTimeout(2000);  // ❌ Flaky, slow, unreliable
+
+// DON'T: Manual sleep
+await new Promise(resolve => setTimeout(resolve, 1000));  // ❌ Never
+```
+
+#### ✅ Use Condition-Based Waiting
+
+```typescript
+// DO: Wait for specific conditions with Playwright's built-in waiting
+await expect(this.page.getByText('Loading...')).toBeHidden();
+await expect(this.page.getByRole('button', { name: 'Submit' })).toBeEnabled();
+
+// DO: Wait for navigation
+await expect(this.page).toHaveURL(/\/dashboard/);
+
+// DO: Use expect().toPass() for polling
+await expect(async () => {
+    const count = await this.getMemberCount();
+    expect(count).toBe(expectedCount);
+}).toPass({ timeout: 5000 });
+```
+
+### Page Object Structure
+
+A well-structured Page Object follows this template:
+
+```typescript
+export class ExamplePage extends BasePage {
+    // 1. Navigation
+    readonly url = '/example';
+
+    async navigate(): Promise<void> {
+        await this.page.goto(this.url);
+        await this.waitForPageLoad();
+    }
+
+    // 2. Element getters (return Locators, not promises)
+    getSubmitButton(): Locator {
+        return this.page.getByRole('button', { name: 'Submit' });
+    }
+
+    getHeading(): Locator {
+        return this.page.getByRole('heading', { level: 1 });
+    }
+
+    // 3. Action methods (async, do things)
+    async fillForm(data: FormData): Promise<void> {
+        await this.fillPreactInput('#name', data.name);
+        await this.fillPreactInput('#email', data.email);
+    }
+
+    async submitAndExpectSuccess(): Promise<NextPage> {
+        await this.clickButton(this.getSubmitButton(), { buttonName: 'Submit' });
+        await expect(this.page).toHaveURL(/\/success/);
+        return new NextPage(this.page);
+    }
+
+    // 4. Verification methods (assertions)
+    async verifyPageLoaded(): Promise<void> {
+        await expect(this.getHeading()).toBeVisible();
+        await expect(this.getSubmitButton()).toBeEnabled();
+    }
+}
+```
+
+### Key Principles Summary
+
+1. **No raw selectors in tests** - Always use Page Object methods
+2. **Semantic selectors first** - Use what users see (roles, labels, text)
+3. **Modify components when needed** - Add semantic attributes to improve testability
+4. **Page Objects for everything** - Pages, modals, dialogs, complex components
+5. **Fluent methods return page objects** - Enable readable test chaining
+6. **No conditional logic in methods** - Each method has one deterministic outcome
+7. **Never waitForTimeout** - Always wait for specific conditions
+8. **Fail fast with context** - Provide clear error messages when assertions fail
