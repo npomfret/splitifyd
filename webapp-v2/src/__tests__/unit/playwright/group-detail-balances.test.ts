@@ -1,14 +1,6 @@
-import {
-	ExpenseDTOBuilder,
-	GroupBalancesBuilder,
-	GroupDetailPage,
-	GroupDTOBuilder,
-	GroupFullDetailsBuilder,
-	GroupMemberBuilder,
-	ThemeBuilder,
-} from '@splitifyd/test-support';
-import { expect, test } from '../../utils/console-logging-fixture';
-import { mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
+import {ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder,} from '@splitifyd/test-support';
+import {expect, test} from '../../utils/console-logging-fixture';
+import {mockGroupCommentsApi, mockGroupDetailApi} from '../../utils/mock-firebase-service';
 
 test.describe('Group Detail - Balance Display: All Settled Up', () => {
 	test('should show "All settled up" message when no debts exist', async ({ authenticatedPage }) => {
@@ -24,9 +16,8 @@ test.describe('Group Detail - Balance Display: All Settled Up', () => {
 
 		const members = [
 			new GroupMemberBuilder()
-				.withUid(user.uid)
-				.withDisplayName(user.displayName)
-				.withEmail(user.email)
+                .withUid(user.uid)
+                .withDisplayName(user.displayName)
 				.withTheme(ThemeBuilder.blue().build())
 				.build(),
 		];
@@ -59,21 +50,18 @@ test.describe('Group Detail - Balance Display: All Settled Up', () => {
 
 		const members = [
 			new GroupMemberBuilder()
-				.withUid(user.uid)
-				.withDisplayName(user.displayName)
-				.withEmail(user.email)
+                .withUid(user.uid)
+                .withDisplayName(user.displayName)
 				.withTheme(ThemeBuilder.blue().build())
 				.build(),
 			new GroupMemberBuilder()
-				.withUid('user-2')
-				.withDisplayName('Alice')
-				.withEmail('alice@example.com')
+                .withUid('user-2')
+                .withDisplayName('Alice')
 				.withTheme(ThemeBuilder.red().build())
 				.build(),
 			new GroupMemberBuilder()
-				.withUid('user-3')
-				.withDisplayName('Bob')
-				.withEmail('bob@example.com')
+                .withUid('user-3')
+                .withDisplayName('Bob')
 				.withTheme(new ThemeBuilder().withName('green').build())
 				.build(),
 		];
@@ -111,15 +99,13 @@ test.describe('Group Detail - Balance Display: With Debts', () => {
 
 		const members = [
 			new GroupMemberBuilder()
-				.withUid(user.uid)
-				.withDisplayName(user.displayName)
-				.withEmail(user.email)
+                .withUid(user.uid)
+                .withDisplayName(user.displayName)
 				.withTheme(ThemeBuilder.blue().build())
 				.build(),
 			new GroupMemberBuilder()
-				.withUid('user-2')
-				.withDisplayName('Alice')
-				.withEmail('alice@example.com')
+                .withUid('user-2')
+                .withDisplayName('Alice')
 				.withTheme(ThemeBuilder.red().build())
 				.build(),
 		];
@@ -158,15 +144,13 @@ test.describe('Group Detail - Balance Display: With Debts', () => {
 
 		const members = [
 			new GroupMemberBuilder()
-				.withUid(user.uid)
-				.withDisplayName(user.displayName)
-				.withEmail(user.email)
+                .withUid(user.uid)
+                .withDisplayName(user.displayName)
 				.withTheme(ThemeBuilder.blue().build())
 				.build(),
 			new GroupMemberBuilder()
-				.withUid('user-2')
-				.withDisplayName('Alice')
-				.withEmail('alice@example.com')
+                .withUid('user-2')
+                .withDisplayName('Alice')
 				.withTheme(ThemeBuilder.red().build())
 				.build(),
 		];
@@ -208,21 +192,18 @@ test.describe('Group Detail - Balance Display: Complex Multi-Person Debts', () =
 
 		const members = [
 			new GroupMemberBuilder()
-				.withUid(user.uid)
-				.withDisplayName(user.displayName)
-				.withEmail(user.email)
+                .withUid(user.uid)
+                .withDisplayName(user.displayName)
 				.withTheme(ThemeBuilder.blue().build())
 				.build(),
 			new GroupMemberBuilder()
-				.withUid('user-2')
-				.withDisplayName('Alice')
-				.withEmail('alice@example.com')
+                .withUid('user-2')
+                .withDisplayName('Alice')
 				.withTheme(ThemeBuilder.red().build())
 				.build(),
 			new GroupMemberBuilder()
-				.withUid('user-3')
-				.withDisplayName('Bob')
-				.withEmail('bob@example.com')
+                .withUid('user-3')
+                .withDisplayName('Bob')
 				.withTheme(new ThemeBuilder().withName('green').build())
 				.build(),
 		];
@@ -266,21 +247,18 @@ test.describe('Group Detail - Balance Display: Complex Multi-Person Debts', () =
 
 		const members = [
 			new GroupMemberBuilder()
-				.withUid(user.uid)
-				.withDisplayName(user.displayName)
-				.withEmail(user.email)
+                .withUid(user.uid)
+                .withDisplayName(user.displayName)
 				.withTheme(ThemeBuilder.blue().build())
 				.build(),
 			new GroupMemberBuilder()
-				.withUid('user-2')
-				.withDisplayName('Alice')
-				.withEmail('alice@example.com')
+                .withUid('user-2')
+                .withDisplayName('Alice')
 				.withTheme(ThemeBuilder.red().build())
 				.build(),
 			new GroupMemberBuilder()
-				.withUid('user-3')
-				.withDisplayName('Bob')
-				.withEmail('bob@example.com')
+                .withUid('user-3')
+                .withDisplayName('Bob')
 				.withTheme(new ThemeBuilder().withName('green').build())
 				.build(),
 		];
@@ -323,9 +301,8 @@ test.describe('Group Detail - Balance Display: Loading States', () => {
 
 		const members = [
 			new GroupMemberBuilder()
-				.withUid(user.uid)
-				.withDisplayName(user.displayName)
-				.withEmail(user.email)
+                .withUid(user.uid)
+                .withDisplayName(user.displayName)
 				.withTheme(ThemeBuilder.blue().build())
 				.build(),
 		];
@@ -362,15 +339,13 @@ test.describe('Group Detail - Balance Display: With Expenses', () => {
 
 		const members = [
 			new GroupMemberBuilder()
-				.withUid(user.uid)
-				.withDisplayName(user.displayName)
-				.withEmail(user.email)
+                .withUid(user.uid)
+                .withDisplayName(user.displayName)
 				.withTheme(ThemeBuilder.blue().build())
 				.build(),
 			new GroupMemberBuilder()
-				.withUid('user-2')
-				.withDisplayName('Alice')
-				.withEmail('alice@example.com')
+                .withUid('user-2')
+                .withDisplayName('Alice')
 				.withTheme(ThemeBuilder.red().build())
 				.build(),
 		];

@@ -22,7 +22,6 @@ interface RegisterUserResult {
     message: string;
     user: {
         uid: string;
-        email: string | undefined;
         displayName: string | undefined;
     };
 }
@@ -54,7 +53,6 @@ export class UserService {
     private createUserProfile(userRecord: UserRecord & { email: string; displayName: string; }, firestoreData: any): RegisteredUser {
         return {
             uid: userRecord.uid,
-            email: userRecord.email,
             displayName: userRecord.displayName,
             photoURL: userRecord.photoURL || null,
             emailVerified: userRecord.emailVerified,
@@ -389,7 +387,6 @@ export class UserService {
             // Note: uid is the document ID, not a field. emailVerified is managed by Firebase Auth.
             const now = new Date().toISOString();
             const userDoc: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified'> = {
-                email: userRegistration.email, // todo: this looks like a security issue
                 displayName: userRegistration.displayName,
                 photoURL: userRecord.photoURL,
                 role: SystemUserRoles.SYSTEM_USER, // Default role for new users
@@ -418,7 +415,6 @@ export class UserService {
 
             return {
                 uid: userRecord.uid,
-                email: userRecord.email,
                 displayName: userRecord.displayName,
             } as RegisteredUser;
         } catch (error: unknown) {

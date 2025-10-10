@@ -420,15 +420,15 @@ simpleTest.describe('Policy Acceptance', () => {
             // Verify policy acceptance elements
             await expect(policyModal.acceptanceCheckbox).toBeVisible();
             await expect(policyModal.acceptanceLabel).toBeVisible();
-            await expect(policyModal.acceptAllButton).toBeVisible();
 
             // Verify policy name is displayed (should be some policy content)
             const policyName = await policyModal.getCurrentPolicyName();
             expect(policyName).toBeTruthy();
             expect(policyName.length).toBeGreaterThan(5); // Should have some meaningful content
 
-            // Complete acceptance
-            await policyModal.acceptSinglePolicyComplete();
+            // Complete acceptance - use acceptMultiplePoliciesSequentially since there may be
+            // multiple policies pending (the test only updates one, but system shows all pending)
+            await policyModal.acceptMultiplePoliciesSequentially();
 
             // Verify we're back to dashboard
             await expect(page).toHaveURL(/\/dashboard/);

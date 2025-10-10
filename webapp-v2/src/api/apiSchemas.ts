@@ -169,7 +169,6 @@ const GroupMemberDTOSchema = z.object({
     // User identification
     uid: z.string().min(1),
     displayName: z.string().min(1),
-    email: z.string().email(),
     initials: z.string().min(1),
 
     // User display properties
@@ -239,7 +238,6 @@ const RegisterResponseSchema = z.object({
     message: z.string().min(1),
     user: z.object({
         uid: z.string().min(1),
-        email: z.string().email(),
         displayName: z.string().min(2).max(50),
     }),
 });
@@ -270,12 +268,10 @@ const SettlementListItemSchema = z.object({
     payer: z.object({
         uid: z.string().min(1),
         displayName: z.string().min(1),
-        email: z.string().email().optional(),
     }),
     payee: z.object({
         uid: z.string().min(1),
         displayName: z.string().min(1),
-        email: z.string().email().optional(),
     }),
     amount: z.number().positive(),
     currency: z.string().length(3),
@@ -322,7 +318,6 @@ const ListCommentsApiResponseSchema = z.object({
 // User profile schemas
 const UserProfileResponseSchema = z.object({
     uid: z.string().min(1),
-    email: z.string().email(),
     displayName: z.string(),
 });
 
@@ -333,7 +328,6 @@ const GroupFullDetailsSchema = z.object({
         members: z.array(
             z.object({
                 uid: z.string().min(1),
-                email: z.string().email(),
                 displayName: z.string().min(1),
                 role: z.enum(['system_admin', 'system_user']).optional(),
                 termsAcceptedAt: z.any().optional(),

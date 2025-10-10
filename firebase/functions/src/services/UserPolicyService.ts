@@ -62,14 +62,16 @@ export class UserPolicyService {
                 await this.validatePolicyAndVersion(policyId, versionHash);
             }
 
-            // Build the update object for user document
-            const updateData: any = {
-                updatedAt: new Date().toISOString(),
-            };
-
+            // Build the update object with nested structure (not dot notation)
+            const acceptedPolicies: Record<string, string> = {};
             acceptances.forEach((acceptance) => {
-                updateData[`acceptedPolicies.${acceptance.policyId}`] = acceptance.versionHash;
+                acceptedPolicies[acceptance.policyId] = acceptance.versionHash;
             });
+
+            const updateData = {
+                acceptedPolicies,  // Nested object structure
+                // updatedAt is automatically added by FirestoreWriter
+            };
 
             // Update user document with all acceptances
             await this.firestoreWriter.updateUser(userId, updateData);

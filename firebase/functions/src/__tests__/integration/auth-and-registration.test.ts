@@ -38,7 +38,6 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
 
             expect(registeredUser).toHaveProperty('user');
             expect(registeredUser.user).toHaveProperty('uid');
-            expect(registeredUser.user).toHaveProperty('email', userData.email);
         });
 
         test('should allow users to register and log in', () => {
@@ -62,8 +61,6 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
 
             expect(response).toHaveProperty('user');
             expect(response.user).toHaveProperty('uid');
-            expect(response.user).toHaveProperty('email');
-            expect(response.user.email).toBe(userData.email);
         });
     });
 
@@ -76,7 +73,6 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
                 // First registration should succeed
                 const firstResponse = await apiDriver.register(userData);
                 expect(firstResponse).toHaveProperty('user');
-                expect(firstResponse.user.email).toBe(userData.email);
 
                 // Second registration with same email should fail
                 await expect(apiDriver.register(userData)).rejects.toThrow(/409|email.*exists|already.*registered/i);
@@ -209,8 +205,6 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
                 const response1 = await apiDriver.register(user1);
                 const response2 = await apiDriver.register(user2);
 
-                expect(response1.user.email).toBe(user1.email);
-                expect(response2.user.email).toBe(user2.email);
                 expect(response1.user.uid).not.toBe(response2.user.uid);
             });
         });
@@ -227,7 +221,7 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
 
                 // Second attempt with valid data should succeed
                 const response = await apiDriver.register(userData);
-                expect(response.user.email).toBe(userData.email);
+                expect(response.user.displayName).toBe(userData.displayName);
             });
         });
     });

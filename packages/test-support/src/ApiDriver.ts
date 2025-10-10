@@ -69,7 +69,6 @@ export class ApiDriver {
         return {
             uid,
             token,
-            email: userRegistration.email,
             displayName: userRegistration.displayName,
         };
     }
@@ -304,6 +303,10 @@ export class ApiDriver {
 
     async changePassword(token: string | null, currentPassword: string, newPassword: string): Promise<MessageResponse> {
         return await this.apiRequest('/user/change-password', 'POST', { currentPassword, newPassword }, token);
+    }
+
+    async updateUserProfile(profileData: { displayName?: string }, token: string): Promise<any> {
+        return await this.apiRequest('/user/profile', 'PUT', profileData, token);
     }
 
     async createComment(id: string, type: 'group' | 'expense', text: string, token: string): Promise<CreateCommentResponse> {

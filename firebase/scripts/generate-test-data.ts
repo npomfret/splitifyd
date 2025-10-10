@@ -419,7 +419,7 @@ async function joinGroupsRandomly(users: AuthenticatedFirebaseUser[], groups: Gr
             }
 
             await Promise.all(joinPromises);
-            console.log(`${user.email} joined ${joinedCount} out of ${groups.length} groups`);
+            console.log(`${user.displayName} joined ${joinedCount} out of ${groups.length} groups`);
         }),
     );
 
@@ -900,7 +900,6 @@ export async function generateTestData(): Promise<void> {
     for (const userInfo of remainingUsers) {
         const user = await driver.createUser(userInfo);
         sequentialUsers.push(user);
-        console.log(`✓ Created user: ${user.email}`);
     }
 
     const users = [...parallelUsers, ...sequentialUsers];
@@ -921,13 +920,6 @@ export async function generateTestData(): Promise<void> {
     const groupMemberships = await joinGroupsRandomly(users, groupsWithInvites);
     console.log('✓ Users have joined groups randomly');
     logTiming('Group joining', joinGroupsStart);
-
-    // Log membership summary
-    console.log('Group membership summary:');
-    for (const [groupId, members] of groupMemberships.entries()) {
-        const group = groupsWithInvites.find((g) => g.id === groupId);
-        console.log(`  ${group?.name || groupId}: ${members.length} members`);
-    }
 
     // IMPORTANT: Refresh group data after joins to get updated member lists
     console.log('Refreshing group data to get updated member lists...');

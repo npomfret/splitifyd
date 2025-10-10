@@ -9,28 +9,24 @@
  * - Audit logging for write operations
  */
 
-import { type CommentTargetType, CommentTargetTypes } from '@splitifyd/shared';
-import type { DocumentReference, Firestore, Transaction } from 'firebase-admin/firestore';
-import { FieldValue, Timestamp } from 'firebase-admin/firestore';
-import { z } from 'zod';
-import { FIRESTORE, HTTP_STATUS } from '../../constants';
-import { logger } from '../../logger';
-import { measureDb } from '../../monitoring/measure';
-import { ApiError } from '../../utils/errors';
-import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
-
-// Import schemas for validation
-import { CommentDataSchema, ExpenseDocumentSchema, GroupBalanceDocumentSchema, GroupDocumentSchema, PolicyDocumentSchema, SettlementDocumentSchema, UserDocumentSchema } from '../../schemas';
-import { TopLevelGroupMemberSchema } from '../../schemas';
-import { validateUpdate } from '../../schemas';
-import { UserNotificationDocumentSchema } from '../../schemas/user-notifications';
-
 // Import types
-import type { CommentDTO, ExpenseDTO, GroupDTO, RegisteredUser, SettlementDTO, ShareLinkDTO } from '@splitifyd/shared';
-import { FirestoreCollections } from '../../constants';
-import type { GroupBalanceDTO } from '../../schemas';
-import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
-import type { BatchWriteResult, IFirestoreWriter, WriteResult } from './IFirestoreWriter';
+import type {CommentDTO, ExpenseDTO, GroupDTO, RegisteredUser, SettlementDTO, ShareLinkDTO} from '@splitifyd/shared';
+import {type CommentTargetType, CommentTargetTypes} from '@splitifyd/shared';
+import type {DocumentReference, Firestore, Transaction} from 'firebase-admin/firestore';
+import {FieldValue, Timestamp} from 'firebase-admin/firestore';
+import {z} from 'zod';
+import {FIRESTORE, FirestoreCollections, HTTP_STATUS} from '../../constants';
+import {logger} from '../../logger';
+import {measureDb} from '../../monitoring/measure';
+import {ApiError} from '../../utils/errors';
+import {getTopLevelMembershipDocId} from '../../utils/groupMembershipHelpers';
+
+import type {GroupBalanceDTO} from '../../schemas';
+// Import schemas for validation
+import {CommentDataSchema, ExpenseDocumentSchema, GroupBalanceDocumentSchema, GroupDocumentSchema, PolicyDocumentSchema, SettlementDocumentSchema, TopLevelGroupMemberSchema, UserDocumentSchema, validateUpdate} from '../../schemas';
+import type {CreateUserNotificationDocument} from '../../schemas/user-notifications';
+import {UserNotificationDocumentSchema} from '../../schemas/user-notifications';
+import type {BatchWriteResult, IFirestoreWriter, WriteResult} from './IFirestoreWriter';
 
 /**
  * Validation metrics for monitoring validation coverage and effectiveness
@@ -323,15 +319,27 @@ export class FirestoreWriter implements IFirestoreWriter {
             existingData = docSnapshot.data() || {};
         }
 
-        // Merge updates with existing data
+        // Remove any dot-notation keys that Firestore may have returned
+        // These occur when documents are updated with dot notation (e.g., `acceptedPolicies.policyId`)
+        // and break schema validation as they're flattened versions of nested fields
+        const cleanedExistingData: Record<string, any> = {};
+        for (const [key, value] of Object.entries(existingData)) {
+            if (!key.includes('.')) {  // Only keep non-flattened keys
+                cleanedExistingData[key] = value;
+            }
+        }
+
+        // Merge updates with cleaned existing data
         const mergedData = {
-            ...existingData,
+            ...cleanedExistingData,
             ...updates,
             id: documentId, // Ensure ID is present for validation
-            updatedAt: FieldValue.serverTimestamp(), // Will be replaced during validation
         };
 
-        return mergedData;
+        // Convert all ISO strings and Timestamp-like objects to proper Timestamps
+        // This handles cases where existingData may have Timestamp-like objects with _seconds/_nanoseconds
+        // and updates may have ISO strings that need conversion before validation
+        return this.convertISOToTimestamps(mergedData);
     }
 
     /**
@@ -339,12 +347,13 @@ export class FirestoreWriter implements IFirestoreWriter {
      */
     private validateMergedData<T>(schema: any, mergedData: Record<string, any>, schemaName: string, documentId: string, collection: string): T {
         // For validation, replace FieldValue.serverTimestamp() with current timestamp
+        // Only replace if it's actually a FieldValue (not a Timestamp that was already converted)
         const dataForValidation = { ...mergedData };
-        if (dataForValidation.updatedAt && typeof dataForValidation.updatedAt === 'object') {
-            dataForValidation.updatedAt = new Date();
+        if (dataForValidation.updatedAt && this.isFieldValue(dataForValidation.updatedAt)) {
+            dataForValidation.updatedAt = Timestamp.now();
         }
-        if (dataForValidation.createdAt && typeof dataForValidation.createdAt === 'object') {
-            dataForValidation.createdAt = new Date();
+        if (dataForValidation.createdAt && this.isFieldValue(dataForValidation.createdAt)) {
+            dataForValidation.createdAt = Timestamp.now();
         }
 
         return validateUpdate(schema, dataForValidation, schemaName, {

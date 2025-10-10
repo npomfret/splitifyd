@@ -56,7 +56,6 @@ function createTestUser(overrides: Partial<RegisteredUser> = {}): RegisteredUser
     // Create a RegisteredUser with defaults from TestUserBuilder
     const user: RegisteredUser = {
         uid: overrides.uid || `user-${Date.now()}`,
-        email: baseUser.email,
         displayName: baseUser.displayName,
         emailVerified: true,
         photoURL: null,

@@ -55,6 +55,22 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
         }
     }, [currentPolicy?.policyId]);
 
+    // Auto-advance to next policy or submit when last policy is accepted
+    useEffect(() => {
+        if (canAcceptCurrent && !loading) {
+            if (isLastPolicy && allPoliciesAccepted) {
+                // All policies accepted - submit automatically
+                submitAllPolicies();
+            } else if (!isLastPolicy) {
+                // Not the last policy - auto-advance to next
+                const timer = setTimeout(() => {
+                    setCurrentPolicyIndex((prev) => prev + 1);
+                }, 500); // Small delay for UX (show checkmark briefly)
+                return () => clearTimeout(timer);
+            }
+        }
+    }, [canAcceptCurrent, isLastPolicy, allPoliciesAccepted, loading]);
+
     const handleAcceptPolicy = (policyId: string) => {
         setAcceptedPolicies((prev) => new Set([...prev, policyId]));
     };
@@ -71,7 +87,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
         }
     };
 
-    const handleAcceptAll = async () => {
+    const submitAllPolicies = async () => {
         setLoading(true);
         setError(null);
 
@@ -216,13 +232,13 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                     </Container>
                 </div>
 
-                {/* Footer with navigation and actions */}
+                {/* Footer with navigation */}
                 <div className='flex items-center justify-between p-6 border-t border-gray-200'>
                     <div className='flex items-center gap-2'>
-                        <Button variant='secondary' onClick={handlePrevious} disabled={currentPolicyIndex === 0}>
+                        <Button variant='secondary' onClick={handlePrevious} disabled={currentPolicyIndex === 0 || loading}>
                             {t('policyComponents.policyAcceptanceModal.previous')}
                         </Button>
-                        <Button variant='secondary' onClick={handleNext} disabled={isLastPolicy || !canAcceptCurrent}>
+                        <Button variant='secondary' onClick={handleNext} disabled={isLastPolicy || !canAcceptCurrent || loading}>
                             {t('policyComponents.policyAcceptanceModal.next')}
                         </Button>
                     </div>
@@ -236,18 +252,12 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                 {t('policyComponents.policyAcceptanceModal.policiesAccepted')}
                             </span>
                         )}
-                        <Button onClick={handleAcceptAll} disabled={!allPoliciesAccepted || loading}>
-                            {loading
-                                ? (
-                                    <>
-                                        <LoadingSpinner size='sm' />
-                                        <span className='ml-2'>{t('policyComponents.policyAcceptanceModal.accepting')}</span>
-                                    </>
-                                )
-                                : (
-                                    t('policyComponents.policyAcceptanceModal.acceptAll')
-                                )}
-                        </Button>
+                        {loading && (
+                            <div className='flex items-center gap-2'>
+                                <LoadingSpinner size='sm' />
+                                <span className='text-sm text-gray-600'>{t('policyComponents.policyAcceptanceModal.accepting')}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

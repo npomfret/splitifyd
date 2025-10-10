@@ -268,11 +268,11 @@ export interface UserThemeColor {
 }
 
 export interface BaseUser {
-    email: string;
     displayName: string;
 }
 
 export interface UserRegistration extends BaseUser {
+    email: string;
     password: string;
     termsAccepted: boolean;
     cookiePolicyAccepted: boolean;
@@ -329,17 +329,30 @@ export interface RegisteredUser extends FirebaseUser {
  * Minimal user data for authentication context.
  * Used in middleware and request context where only auth fields are needed.
  */
-export type AuthenticatedUser = Pick<RegisteredUser, 'uid' | 'email' | 'displayName' | 'role'>;
+export interface AuthenticatedUser {
+    uid: string;
+    displayName: string;
+    role?: SystemUserRole;
+}
 
 /**
  * User data for client-side applications.
  * Contains all fields needed by the frontend, excluding sensitive server-only data.
  */
-export type ClientUser = Pick<RegisteredUser, 'uid' | 'email' | 'displayName' | 'emailVerified' | 'photoURL' | 'themeColor' | 'preferredLanguage'>;
+export interface ClientUser {
+    uid: string;
+    email: string;
+    displayName: string;
+    emailVerified: boolean;
+    photoURL?: string | null;
+    themeColor?: UserThemeColor;
+    preferredLanguage?: string;
+}
 
-// ========================================================================
-// Policy Types - For versioned terms and cookie policy acceptance
-// ========================================================================
+interface HasFirebaseMetadatwaFields {
+    createdAt: ISOString;
+    updatedAt: ISOString;
+}
 
 // Base interface for document types with common timestamp fields
 export interface BaseDTO {
@@ -728,7 +741,6 @@ export interface RegisterResponse {
     message: string;
     user: {
         uid: string;
-        email: string;
         displayName: string;
     };
 }

@@ -1,9 +1,9 @@
-import { ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder } from '@splitifyd/test-support';
-import { expect, test } from '../../utils/console-logging-fixture';
-import { mockApiFailure, mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
+import {ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder} from '@splitifyd/test-support';
+import {expect, test} from '../../utils/console-logging-fixture';
+import {mockApiFailure, mockGroupCommentsApi, mockGroupDetailApi} from '../../utils/mock-firebase-service';
 
 test.describe('Group Detail - Authentication and Navigation', () => {
-    test('should redirect unauthenticated user to login', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should redirect unauthenticated user to login', async ({ pageWithLogging: page }) => {
         // mockFirebase fixture starts with logged-out state
         await page.goto('/groups/test-group-id');
 
@@ -40,7 +40,6 @@ test.describe('Group Detail - Authentication and Navigation', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
-                .withEmail(testUser.email)
                 .withTheme(
                     ThemeBuilder
                         .blue()
@@ -82,7 +81,6 @@ test.describe('Group Detail - Members Display', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
-                .withEmail(testUser.email)
                 .withTheme(
                     ThemeBuilder
                         .blue()
@@ -92,7 +90,6 @@ test.describe('Group Detail - Members Display', () => {
             new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('Alice Smith')
-                .withEmail('alice@example.com')
                 .withTheme(
                     ThemeBuilder
                         .red()
@@ -102,7 +99,6 @@ test.describe('Group Detail - Members Display', () => {
             new GroupMemberBuilder()
                 .withUid('user-3')
                 .withDisplayName('Bob Jones')
-                .withEmail('bob@example.com')
                 .withTheme(
                     new ThemeBuilder()
                         .withName('green')
@@ -144,7 +140,6 @@ test.describe('Group Detail - Members Display', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
-                .withEmail(testUser.email)
                 .withTheme(
                     ThemeBuilder
                         .blue()
@@ -154,7 +149,6 @@ test.describe('Group Detail - Members Display', () => {
             new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('User 2')
-                .withEmail('user2@example.com')
                 .withTheme(
                     ThemeBuilder
                         .red()
@@ -195,7 +189,6 @@ test.describe('Group Detail - Expenses Display', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
-                .withEmail(testUser.email)
                 .withTheme(
                     ThemeBuilder
                         .blue()
@@ -250,7 +243,6 @@ test.describe('Group Detail - Expenses Display', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
-                .withEmail(testUser.email)
                 .withTheme(
                     ThemeBuilder
                         .blue()
@@ -289,7 +281,6 @@ test.describe('Group Detail - Expenses Display', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
-                .withEmail(testUser.email)
                 .withTheme(
                     ThemeBuilder
                         .blue()
@@ -343,7 +334,6 @@ test.describe('Group Detail - Balance Display', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
-                .withEmail(testUser.email)
                 .withTheme(
                     ThemeBuilder
                         .blue()
@@ -382,7 +372,6 @@ test.describe('Group Detail - Balance Display', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
-                .withEmail(testUser.email)
                 .withTheme(
                     ThemeBuilder
                         .blue()
@@ -392,7 +381,6 @@ test.describe('Group Detail - Balance Display', () => {
             new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('Alice')
-                .withEmail('alice@example.com')
                 .withTheme(
                     ThemeBuilder
                         .red()
@@ -440,7 +428,6 @@ test.describe('Group Detail - Permission Checks', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
-                .withEmail(testUser.email)
                 .withTheme(
                     ThemeBuilder
                         .blue()
@@ -450,7 +437,6 @@ test.describe('Group Detail - Permission Checks', () => {
             new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('User 2')
-                .withEmail('user2@example.com')
                 .withTheme(
                     ThemeBuilder
                         .red()
@@ -490,7 +476,6 @@ test.describe('Group Detail - Permission Checks', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
-                .withEmail(testUser.email)
                 .withTheme(
                     ThemeBuilder
                         .blue()
@@ -500,7 +485,6 @@ test.describe('Group Detail - Permission Checks', () => {
             new GroupMemberBuilder()
                 .withUid('other-user-id')
                 .withDisplayName('Other User')
-                .withEmail('other@example.com')
                 .withTheme(
                     new ThemeBuilder()
                         .withName('orange')
@@ -540,7 +524,6 @@ test.describe('Group Detail - Permission Checks', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
-                .withEmail(testUser.email)
                 .withTheme(
                     ThemeBuilder
                         .blue()
@@ -640,7 +623,6 @@ test.describe('Group Detail - Modal Interactions', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
-                .withEmail(testUser.email)
                 .withTheme(
                     ThemeBuilder
                         .blue()

@@ -21,7 +21,6 @@ import { UserService } from './UserService2';
  */
 const UserDataSchema = z
     .object({
-        email: z.string().email(),
         displayName: z.string().min(1),
         // Other fields are optional for this basic validation
     })
@@ -35,7 +34,6 @@ export class ExpenseService {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
-        private readonly userService: UserService,
         private readonly incrementalBalanceService: IncrementalBalanceService,
     ) {}
 

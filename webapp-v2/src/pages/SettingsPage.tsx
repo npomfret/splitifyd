@@ -162,7 +162,7 @@ export function SettingsPage() {
                             <div class='text-sm'>
                                 <span class='text-gray-600'>{t('settingsPage.currentDisplayName')}</span>
                                 <span data-testid='profile-display-name' class='font-medium text-gray-900'>
-                                    {user.displayName || user.email.split('@')[0]}
+                                    {user.displayName}
                                 </span>
                             </div>
 

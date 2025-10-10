@@ -12,7 +12,7 @@ export interface LogContext {
 
     // User context
     userId?: string;
-    userEmail?: string;
+    userDisplayName?: string;
     userRole?: string;
 
     // Business context
@@ -71,10 +71,10 @@ export class LoggerContext {
      * Add user context to the current logging context
      * Typically called after authentication
      */
-    static setUser(userId: string, email?: string, role?: string): void {
+    static setUser(userId: string, displayName?: string, role?: string): void {
         this.update({
             userId,
-            userEmail: email,
+            userDisplayName: displayName,
             userRole: role,
         });
     }

@@ -17,7 +17,6 @@ import { GroupMemberService } from './GroupMemberService';
  */
 const UserDataSchema = z
     .object({
-        email: z.string().email(),
         displayName: z.string().min(1),
         // Other fields are optional for this basic validation
     })

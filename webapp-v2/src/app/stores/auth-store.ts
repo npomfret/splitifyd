@@ -44,8 +44,6 @@ export function mapFirebaseUser(firebaseUser: FirebaseUser): ClientUser {
         displayName: firebaseUser.displayName!,
         emailVerified: firebaseUser.emailVerified,
         photoURL: firebaseUser.photoURL,
-        // Note: themeColor and preferredLanguage will be populated from backend API
-        // when user data is fetched from Firestore
     };
 }
 

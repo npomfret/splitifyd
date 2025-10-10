@@ -78,7 +78,7 @@ export class ApplicationBuilder {
 
     buildExpenseService(): ExpenseService {
         if (!this.expenseService) {
-            this.expenseService = new ExpenseService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildUserService(), this.buildIncrementalBalanceService());
+            this.expenseService = new ExpenseService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildIncrementalBalanceService());
         }
         return this.expenseService;
     }

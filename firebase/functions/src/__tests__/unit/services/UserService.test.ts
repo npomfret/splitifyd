@@ -55,7 +55,6 @@ describe('UserService - Consolidated Unit Tests', () => {
             expect(result.success).toBe(true);
             expect(result.message).toBe('Account created successfully');
             expect(result.user.uid).toBeDefined();
-            expect(result.user.email).toBe(registrationData.email);
             expect(result.user.displayName).toBe(registrationData.displayName);
 
             // Verify user was created in Auth stub
@@ -125,7 +124,6 @@ describe('UserService - Consolidated Unit Tests', () => {
             expect(result.success).toBe(true);
             expect(result.message).toBe('Account created successfully');
             expect(result.user.uid).toBeDefined();
-            expect(result.user.email).toBe(registrationData.email);
             expect(result.user.displayName).toBe(registrationData.displayName);
 
             // Note: The actual theme color assignment and role assignment happens in UserService.registerUser
@@ -161,7 +159,6 @@ describe('UserService - Consolidated Unit Tests', () => {
             const profile = await userService.getUser(uid);
 
             expect(profile.uid).toBe(uid);
-            expect(profile.email).toBe(email);
             expect(profile.displayName).toBe(displayName);
             expect(profile.emailVerified).toBe(true);
             expect(profile.photoURL).toBe('https://example.com/photo.jpg');
@@ -233,7 +230,6 @@ describe('UserService - Consolidated Unit Tests', () => {
                 const profile = profiles.get(user.uid);
                 expect(profile).toBeDefined();
                 expect(profile!.uid).toBe(user.uid);
-                expect(profile!.email).toBe(user.email);
                 expect(profile!.displayName).toBe(user.displayName);
             }
         });
@@ -321,7 +317,6 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             // The update should succeed and return a valid profile
             expect(updatedProfile.uid).toBe(uid);
-            expect(updatedProfile.email).toBe('test@example.com');
             expect(updatedProfile.displayName).toBe('Test User');
 
             // Note: In a real system, preferredLanguage would be updated, but our stub
@@ -443,7 +438,6 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             // Verify Auth and Firestore have consistent data
             const authUser = await stubAuth.getUser(uid);
-            expect(profile.email).toBe(authUser!.email);
             expect(profile.displayName).toBe(authUser!.displayName);
             expect(profile.photoURL).toBe(authUser!.photoURL);
         });

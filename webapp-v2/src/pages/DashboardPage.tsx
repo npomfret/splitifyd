@@ -74,7 +74,7 @@ export function DashboardPage() {
                         {/* Welcome Section - Only show for first-time users (no groups) after loading is complete */}
                         {enhancedGroupsStore.groups.length === 0 && enhancedGroupsStore.initialized && !enhancedGroupsStore.loading && (
                             <div class='mb-6'>
-                                <h2 class='text-2xl font-bold text-gray-900 mb-2'>{t('dashboard.welcomeMessage', { name: user.displayName || user.email.split('@')[0] })}</h2>
+                                <h2 class='text-2xl font-bold text-gray-900 mb-2'>{t('dashboard.welcomeMessage', { name: user.displayName })}</h2>
                                 <p class='text-gray-600'>{t('dashboard.welcomeDescription')}</p>
                             </div>
                         )}

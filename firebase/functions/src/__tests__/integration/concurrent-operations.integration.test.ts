@@ -255,182 +255,55 @@ describe('Concurrent Operations Integration Tests', () => {
             await groupShareService.joinGroupByLink(testUser2.uid, linkId);
             await groupShareService.joinGroupByLink(testUser3.uid, linkId);
 
+            // Expense configurations: [payer, amount, participants]
+            const expenseConfigs: Array<[PooledTestUser, number, string[]]> = [
+                [testUser1, 100, [testUser1.uid, testUser2.uid]],
+                [testUser2, 80, [testUser2.uid, testUser3.uid]],
+                [testUser3, 60, [testUser1.uid, testUser3.uid]],
+                [testUser1, 120, [testUser1.uid, testUser2.uid, testUser3.uid]],
+                [testUser2, 90, [testUser1.uid, testUser2.uid]],
+                [testUser3, 75, [testUser2.uid, testUser3.uid]],
+                [testUser1, 110, [testUser1.uid, testUser3.uid]],
+                [testUser2, 95, [testUser1.uid, testUser2.uid, testUser3.uid]],
+                [testUser3, 85, [testUser1.uid, testUser2.uid]],
+                [testUser1, 70, [testUser2.uid, testUser3.uid]],
+            ];
+
+            // Settlement configurations: [payer, payee, amount, payerToken]
+            const settlementConfigs: Array<[string, string, number, string]> = [
+                [testUser2.uid, testUser1.uid, 25, testUser2.token],
+                [testUser3.uid, testUser1.uid, 30, testUser3.token],
+                [testUser1.uid, testUser2.uid, 15, testUser1.token],
+                [testUser2.uid, testUser3.uid, 20, testUser2.token],
+                [testUser3.uid, testUser2.uid, 10, testUser3.token],
+            ];
+
             const operations = [
-                () =>
+                ...expenseConfigs.map(([payer, amount, participants]) => () =>
                     expenseService.createExpense(
-                        testUser1.uid,
+                        payer.uid,
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
-                            .withPaidBy(testUser1.uid)
-                            .withAmount(100)
+                            .withPaidBy(payer.uid)
+                            .withAmount(amount)
                             .withCurrency('USD')
-                            .withParticipants([testUser1.uid, testUser2.uid])
+                            .withParticipants(participants)
                             .withSplitType('equal')
                             .build(),
                     ),
-                () =>
-                    expenseService.createExpense(
-                        testUser2.uid,
-                        new CreateExpenseRequestBuilder()
-                            .withGroupId(testGroup.id)
-                            .withPaidBy(testUser2.uid)
-                            .withAmount(80)
-                            .withCurrency('USD')
-                            .withParticipants([testUser2.uid, testUser3.uid])
-                            .withSplitType('equal')
-                            .build(),
-                    ),
-                () =>
-                    expenseService.createExpense(
-                        testUser3.uid,
-                        new CreateExpenseRequestBuilder()
-                            .withGroupId(testGroup.id)
-                            .withPaidBy(testUser3.uid)
-                            .withAmount(60)
-                            .withCurrency('USD')
-                            .withParticipants([testUser1.uid, testUser3.uid])
-                            .withSplitType('equal')
-                            .build(),
-                    ),
-                () =>
-                    expenseService.createExpense(
-                        testUser1.uid,
-                        new CreateExpenseRequestBuilder()
-                            .withGroupId(testGroup.id)
-                            .withPaidBy(testUser1.uid)
-                            .withAmount(120)
-                            .withCurrency('USD')
-                            .withParticipants([testUser1.uid, testUser2.uid, testUser3.uid])
-                            .withSplitType('equal')
-                            .build(),
-                    ),
-                () =>
-                    expenseService.createExpense(
-                        testUser2.uid,
-                        new CreateExpenseRequestBuilder()
-                            .withGroupId(testGroup.id)
-                            .withPaidBy(testUser2.uid)
-                            .withAmount(90)
-                            .withCurrency('USD')
-                            .withParticipants([testUser1.uid, testUser2.uid])
-                            .withSplitType('equal')
-                            .build(),
-                    ),
-                () =>
-                    expenseService.createExpense(
-                        testUser3.uid,
-                        new CreateExpenseRequestBuilder()
-                            .withGroupId(testGroup.id)
-                            .withPaidBy(testUser3.uid)
-                            .withAmount(75)
-                            .withCurrency('USD')
-                            .withParticipants([testUser2.uid, testUser3.uid])
-                            .withSplitType('equal')
-                            .build(),
-                    ),
-                () =>
-                    expenseService.createExpense(
-                        testUser1.uid,
-                        new CreateExpenseRequestBuilder()
-                            .withGroupId(testGroup.id)
-                            .withPaidBy(testUser1.uid)
-                            .withAmount(110)
-                            .withCurrency('USD')
-                            .withParticipants([testUser1.uid, testUser3.uid])
-                            .withSplitType('equal')
-                            .build(),
-                    ),
-                () =>
-                    expenseService.createExpense(
-                        testUser2.uid,
-                        new CreateExpenseRequestBuilder()
-                            .withGroupId(testGroup.id)
-                            .withPaidBy(testUser2.uid)
-                            .withAmount(95)
-                            .withCurrency('USD')
-                            .withParticipants([testUser1.uid, testUser2.uid, testUser3.uid])
-                            .withSplitType('equal')
-                            .build(),
-                    ),
-                () =>
-                    expenseService.createExpense(
-                        testUser3.uid,
-                        new CreateExpenseRequestBuilder()
-                            .withGroupId(testGroup.id)
-                            .withPaidBy(testUser3.uid)
-                            .withAmount(85)
-                            .withCurrency('USD')
-                            .withParticipants([testUser1.uid, testUser2.uid])
-                            .withSplitType('equal')
-                            .build(),
-                    ),
-                () =>
-                    expenseService.createExpense(
-                        testUser1.uid,
-                        new CreateExpenseRequestBuilder()
-                            .withGroupId(testGroup.id)
-                            .withPaidBy(testUser1.uid)
-                            .withAmount(70)
-                            .withCurrency('USD')
-                            .withParticipants([testUser2.uid, testUser3.uid])
-                            .withSplitType('equal')
-                            .build(),
-                    ),
-                () =>
+                ),
+                ...settlementConfigs.map(([payerId, payeeId, amount, token]) => () =>
                     apiDriver.createSettlement(
                         new CreateSettlementRequestBuilder()
                             .withGroupId(testGroup.id)
-                            .withPayerId(testUser2.uid)
-                            .withPayeeId(testUser1.uid)
-                            .withAmount(25)
+                            .withPayerId(payerId)
+                            .withPayeeId(payeeId)
+                            .withAmount(amount)
                             .withCurrency('USD')
                             .build(),
-                        testUser2.token,
+                        token,
                     ),
-                () =>
-                    apiDriver.createSettlement(
-                        new CreateSettlementRequestBuilder()
-                            .withGroupId(testGroup.id)
-                            .withPayerId(testUser3.uid)
-                            .withPayeeId(testUser1.uid)
-                            .withAmount(30)
-                            .withCurrency('USD')
-                            .build(),
-                        testUser3.token,
-                    ),
-                () =>
-                    apiDriver.createSettlement(
-                        new CreateSettlementRequestBuilder()
-                            .withGroupId(testGroup.id)
-                            .withPayerId(testUser1.uid)
-                            .withPayeeId(testUser2.uid)
-                            .withAmount(15)
-                            .withCurrency('USD')
-                            .build(),
-                        testUser1.token,
-                    ),
-                () =>
-                    apiDriver.createSettlement(
-                        new CreateSettlementRequestBuilder()
-                            .withGroupId(testGroup.id)
-                            .withPayerId(testUser2.uid)
-                            .withPayeeId(testUser3.uid)
-                            .withAmount(20)
-                            .withCurrency('USD')
-                            .build(),
-                        testUser2.token,
-                    ),
-                () =>
-                    apiDriver.createSettlement(
-                        new CreateSettlementRequestBuilder()
-                            .withGroupId(testGroup.id)
-                            .withPayerId(testUser3.uid)
-                            .withPayeeId(testUser2.uid)
-                            .withAmount(10)
-                            .withCurrency('USD')
-                            .build(),
-                        testUser3.token,
-                    ),
+                ),
             ];
 
             const results = await Promise.allSettled(operations.map((op) => op()));

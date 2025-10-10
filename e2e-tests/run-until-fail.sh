@@ -18,7 +18,7 @@
 
 # edit these to pick your test cases
 TEST_FILE="src/__tests__/integration/core-features.e2e.test.ts"
-TEST_FILTER="should handle user leaving during expense operations"
+TEST_FILTER="should show member removal in real-time to all viewers"
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

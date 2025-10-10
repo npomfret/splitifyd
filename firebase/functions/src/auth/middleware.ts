@@ -51,8 +51,8 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
             throw new Error('User not found in Firebase Auth');
         }
 
-        if (!userRecord.email || !userRecord.displayName) {
-            throw new Error('User missing required fields: email and displayName are mandatory');
+        if (!userRecord.displayName) {
+            throw new Error('User missing required field: displayName is mandatory');
         }
 
         // Fetch user role from Firestore using centralized reader
@@ -63,13 +63,12 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
         // Attach user information to request
         req.user = {
             uid: userRecord.uid,
-            email: userRecord.email,
             displayName: userRecord.displayName,
             role: userRole,
         };
 
         // Add user context to logging context
-        LoggerContext.setUser(userRecord.uid, userRecord.email, userRole);
+        LoggerContext.setUser(userRecord.uid, userRecord.displayName, userRole);
 
         next();
     } catch (error) {

@@ -30,7 +30,6 @@ export class PolicyAcceptanceModalPage extends BasePage {
     // Navigation buttons
     readonly previousButton: Locator;
     readonly nextButton: Locator;
-    readonly acceptAllButton: Locator;
 
     // Error handling
     readonly errorState: Locator;
@@ -65,7 +64,6 @@ export class PolicyAcceptanceModalPage extends BasePage {
         // Navigation buttons
         this.previousButton = page.locator('button:has-text("Previous")');
         this.nextButton = page.locator('button:has-text("Next")');
-        this.acceptAllButton = page.locator('button:has-text("Accept All & Continue")');
 
         // Error handling
         this.errorState = page.locator('[data-testid="error-state"], .error-state');
@@ -75,11 +73,11 @@ export class PolicyAcceptanceModalPage extends BasePage {
         return await this.modal.isVisible();
     }
 
-    async waitForModalToAppear(timeoutMs: number = 10000): Promise<void> {
+    async waitForModalToAppear(timeoutMs: number = 2000): Promise<void> {
         await expect(this.modal).toBeVisible({ timeout: timeoutMs });
     }
 
-    async waitForModalToDisappear(timeoutMs: number = 10000): Promise<void> {
+    async waitForModalToDisappear(timeoutMs: number = 2000): Promise<void> {
         await expect(this.modal).not.toBeVisible({ timeout: timeoutMs });
     }
 
@@ -92,22 +90,19 @@ export class PolicyAcceptanceModalPage extends BasePage {
         await expect(this.acceptanceCheckbox).toBeVisible();
         await expect(this.acceptanceCheckbox).toBeEnabled();
 
-        // Check the acceptance checkbox
+        // Click the acceptance checkbox
+        // Note: Don't use check() because Preact removes the checkbox immediately after onChange
+        // causing check() to timeout waiting to verify the checked state
         await this.acceptanceCheckbox.click();
 
         // After clicking, the checkbox section disappears and the accepted badge appears
+        // Wait for the badge to confirm the acceptance was registered
         await expect(this.acceptedBadge).toBeVisible();
     }
 
     async navigateToNextPolicy(): Promise<void> {
         await expect(this.nextButton).toBeEnabled();
         await this.nextButton.click();
-    }
-
-    async acceptAllPolicies(): Promise<void> {
-        // Wait for the button to become enabled after all individual policies are accepted
-        await expect(this.acceptAllButton).toBeEnabled({ timeout: 5000 });
-        await this.acceptAllButton.click();
     }
 
     async waitForPolicyContentToLoad(): Promise<void> {
@@ -128,11 +123,9 @@ export class PolicyAcceptanceModalPage extends BasePage {
         // Accept the current policy
         await this.acceptCurrentPolicy();
 
-        // Accept all to complete the process
-        await this.acceptAllPolicies();
-
-        // Wait for modal to disappear
-        await this.waitForModalToDisappear();
+        // Modal will auto-advance or auto-submit after accepting
+        // Just wait for modal to disappear (with longer timeout for auto-advance + submission)
+        await this.waitForModalToDisappear(2000);
     }
 
     async acceptMultiplePoliciesSequentially(): Promise<void> {
@@ -148,20 +141,21 @@ export class PolicyAcceptanceModalPage extends BasePage {
             // Accept the current policy
             await this.acceptCurrentPolicy();
 
-            // Check if we can navigate to next policy
-            const nextButtonEnabled = await this.nextButton.isEnabled();
+            // Check if there are more policies (modal will auto-advance if so)
+            // Wait a bit for auto-advance to occur
+            await this.page.waitForTimeout(600);
 
-            if (nextButtonEnabled) {
-                await this.navigateToNextPolicy();
-            } else {
+            // Check if modal is still visible
+            const modalStillVisible = await this.modal.isVisible();
+            if (!modalStillVisible) {
+                // Modal closed - all policies accepted and submitted
                 hasMorePolicies = false;
+            } else {
+                // Modal still open - check if we moved to next policy
+                // If acceptance section is visible, there's another policy
+                const hasAcceptanceSection = await this.acceptanceSection.isVisible().catch(() => false);
+                hasMorePolicies = hasAcceptanceSection;
             }
         }
-
-        // Accept all to complete the process
-        await this.acceptAllPolicies();
-
-        // Wait for modal to disappear
-        await this.waitForModalToDisappear();
     }
 }
