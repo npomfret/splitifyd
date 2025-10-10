@@ -985,8 +985,79 @@ All translation keys added to `webapp-v2/src/locales/en/translation.json`:
 ### Pending Phases
 
 #### ⏳ Phase 10: E2E Tests (PENDING)
-- Full user workflow testing
-- Create new E2E test file: `e2e-tests/src/__tests__/integration/departed-member-locking.e2e.test.ts`
+
+**File:** `e2e-tests/src/__tests__/integration/departed-member-locking.e2e.test.ts` (NEW FILE)
+
+**Test Suite Structure:**
+
+##### Test 1: "should lock expense when participant leaves group"
+1. Create group with 3 authenticated users (Alice, Bob, Charlie)
+2. Alice creates an expense with all 3 participants ($90 split equally)
+3. Bob settles his debt ($30) with Alice
+4. Verify Bob can leave the group (balance cleared)
+5. Bob leaves the group
+6. **Verify lock UI on expense detail page:**
+   - Navigate to expense detail page
+   - Verify yellow warning banner is visible with lock message
+   - Verify edit button is disabled
+   - Verify tooltip shows "Cannot edit - participant has left"
+7. **Verify edit attempt is blocked:**
+   - Try to navigate to edit URL directly
+   - Verify user sees error/redirect
+
+##### Test 2: "should lock settlement when payer leaves group"
+1. Create group with 2 users (Alice, Bob)
+2. Alice creates expense ($100, both participants)
+3. Bob records settlement payment to Alice ($50)
+4. Verify settlement appears in payment history
+5. Bob settles remaining debt and leaves group
+6. **Verify settlement is locked:**
+   - Open payment history
+   - Verify edit button is disabled for the settlement
+   - Attempt to click edit (if possible)
+   - Verify error message or disabled state
+
+##### Test 3: "should lock settlement when payee leaves group"
+1. Create group with 2 users (Alice, Bob)
+2. Bob creates expense with Alice as participant
+3. Alice records settlement payment to Bob
+4. Alice settles remaining debt and leaves
+5. **Verify settlement is locked for Bob:**
+   - Verify edit button disabled
+   - Verify appropriate error message
+
+##### Test 4: "should allow creating new expense after member leaves"
+1. Create group with 3 users
+2. One member leaves
+3. **Verify remaining members can still create expenses:**
+   - Departed member not in participant dropdown
+   - Can create expense with only current members
+   - Expense created successfully
+
+**Testing Strategy:**
+- Use `simpleTest` fixture with `createLoggedInBrowsers(n)`
+- Follow existing e2e patterns from core-features.e2e.test.ts
+- Use page objects (GroupDetailPage, ExpenseDetailPage, SettlementFormPage)
+- Test each scenario incrementally using `run-until-fail.sh` script
+- Add test annotations for expected console errors (404s when removed members try to access group)
+- Wait for real-time updates rather than using page.reload()
+
+**Key Page Object Methods:**
+- `groupDetailPage.clickAddExpenseButton()` - Add expenses
+- `expenseDetailPage.getEditButton()` - Check edit button state
+- `groupDetailPage.clickSettleUpButton()` - Record settlements
+- `groupDetailPage.clickEditSettlement()` - Edit settlements
+- `groupDetailPage.clickLeaveGroupButton()` - Member leaves
+- `groupDetailPage.verifyDebtRelationship()` - Verify balances
+- `groupDetailPage.verifyAllSettledUp()` - Verify no debts
+- `groupDetailPage.waitForMemberCount()` - Wait for member changes
+
+**Iterative Development Process:**
+1. Write Test 1 first → Test with `run-until-fail.sh` → Fix issues → Commit
+2. Write Test 2 → Test with `run-until-fail.sh` → Fix issues → Commit
+3. Write Test 3 → Test with `run-until-fail.sh` → Fix issues → Commit
+4. Write Test 4 → Test with `run-until-fail.sh` → Fix issues → Commit
+5. Run full suite multiple times to ensure stability
 
 #### ⏳ Phase 11: Playwright Unit Tests (PENDING)
 - Create Playwright unit test for lock UI components
