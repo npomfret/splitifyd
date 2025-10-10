@@ -1,91 +1,90 @@
-import { expect, Locator, Page } from '@playwright/test';
-import { BasePage } from './base.page';
+import { expect, Page } from '@playwright/test';
+import { EditGroupModalPage as BaseEditGroupModalPage } from '@splitifyd/test-support';
 import { DashboardPage } from './dashboard.page.ts';
 
-export class EditGroupModalPage extends BasePage {
-    private modal: Locator;
-    private saveButton: Locator;
-    private nameInput: Locator;
-    private descriptionTextarea: Locator;
-
+/**
+ * E2E-specific EditGroupModalPage that extends the shared base class
+ * Adds defensive checks for real-time update race conditions and e2e workflows
+ */
+export class EditGroupModalPage extends BaseEditGroupModalPage {
     constructor(page: Page) {
         super(page);
-        this.modal = this.page.getByRole('dialog');
-        this.saveButton = this.modal.getByRole('button', { name: 'Save Changes' });
-        this.nameInput = this.modal.locator('input[type="text"]').first();
-        this.descriptionTextarea = this.modal.locator('textarea').first();
     }
 
-    getModal(): Locator {
-        return this.modal;
-    }
-
-    getSaveButton(): Locator {
-        return this.saveButton;
-    }
-
-    getCancelButton(): Locator {
-        return this.modal.getByRole('button', { name: 'Cancel' });
-    }
-
-    getDeleteButton(): Locator {
-        return this.modal.getByRole('button', { name: 'Delete Group' });
-    }
-
-    async waitForModalVisible(): Promise<void> {
-        await expect(this.modal).toBeVisible();
-    }
-
+    /**
+     * E2E version: Edit group name with defensive real-time update verification
+     * Overrides base class method to add stability checks
+     */
     async editGroupName(name: string): Promise<void> {
+        const nameInput = this.getGroupNameInput();
+
         // Use Preact-aware input filling
-        await this.fillPreactInput(this.nameInput, name);
+        await this.fillPreactInput(nameInput, name);
 
         // Defensive check: verify the value persisted (catches real-time update bug)
         // Use polling to ensure value has stabilized
         await expect(async () => {
-            const currentValue = await this.nameInput.inputValue();
+            const currentValue = await nameInput.inputValue();
             if (currentValue !== name) {
                 throw new Error('Form value still changing');
             }
         })
             .toPass({ timeout: 500, intervals: [50, 100] });
 
-        const currentValue = await this.nameInput.inputValue();
+        const currentValue = await nameInput.inputValue();
         if (currentValue !== name) {
             throw new Error(`Form field was reset! Expected name "${name}" but got "${currentValue}". This indicates a real-time update bug where the modal resets user input.`);
         }
     }
 
+    /**
+     * E2E-specific: Clear group name field
+     */
     async clearGroupName(): Promise<void> {
+        const nameInput = this.getGroupNameInput();
         // Clear using fillPreactInput with empty string
-        await this.fillPreactInput(this.nameInput, '');
+        await this.fillPreactInput(nameInput, '');
         // Trigger blur to ensure validation runs
-        await this.nameInput.blur();
+        await nameInput.blur();
     }
 
+    /**
+     * E2E version: Edit description with defensive real-time update verification
+     * Overrides base class method to add stability checks
+     */
     async editDescription(description: string): Promise<void> {
+        const descriptionInput = this.getGroupDescriptionInput();
+
         // Use fillPreactInput for proper Preact signal updates
-        await this.fillPreactInput(this.descriptionTextarea, description);
+        await this.fillPreactInput(descriptionInput, description);
 
         // Defensive check: verify the value persisted
         await expect(async () => {
-            const currentValue = await this.descriptionTextarea.inputValue();
+            const currentValue = await descriptionInput.inputValue();
             if (currentValue !== description) {
                 throw new Error('Form value still changing');
             }
         })
             .toPass({ timeout: 500, intervals: [50, 100] });
 
-        const currentValue = await this.descriptionTextarea.inputValue();
+        const currentValue = await descriptionInput.inputValue();
         if (currentValue !== description) {
             throw new Error(`Form field was reset! Expected description "${description}" but got "${currentValue}". This indicates a real-time update bug where the modal resets user input.`);
         }
     }
 
+    /**
+     * E2E version: Save changes with comprehensive stability verification
+     * Overrides base class method to add race condition detection
+     */
     async saveChanges(): Promise<void> {
+        const nameInput = this.getGroupNameInput();
+        const descriptionInput = this.getGroupDescriptionInput();
+        const saveButton = this.getSaveButton();
+
         // Double-check form values right before save to ensure they haven't been reset
-        const finalName = await this.nameInput.inputValue();
-        const finalDesc = await this.descriptionTextarea.inputValue();
+        const finalName = await nameInput.inputValue();
+        const finalDesc = await descriptionInput.inputValue();
 
         // Validate the form state
         if (!finalName || finalName.trim().length < 2) {
@@ -93,27 +92,28 @@ export class EditGroupModalPage extends BasePage {
         }
 
         // Wait for button to stabilize in enabled state
-        await expect(this.saveButton).toBeEnabled({ timeout: 2000 });
+        await expect(saveButton).toBeEnabled({ timeout: 2000 });
 
         // Brief stability check - ensure button remains enabled (no race condition)
         await expect(async () => {
-            const isEnabled = await this.saveButton.isEnabled();
+            const isEnabled = await saveButton.isEnabled();
             if (!isEnabled) {
                 throw new Error('Save button became disabled - race condition detected');
             }
         })
             .toPass({ timeout: 200, intervals: [25, 50] });
 
-        const isStillEnabled = await this.saveButton.isEnabled();
+        const isStillEnabled = await saveButton.isEnabled();
         if (!isStillEnabled) {
             throw new Error(`Save button became disabled after stability check. This indicates a race condition. Form values at time of failure: name="${finalName}", description="${finalDesc}"`);
         }
 
-        await this.saveButton.click();
+        await saveButton.click();
 
         // Wait for the modal to close after saving
         // Use a longer timeout as the save operation might take time
-        await expect(this.modal).not.toBeVisible({ timeout: 2000 });
+        const modal = this.getModalContainer();
+        await expect(modal).not.toBeVisible({ timeout: 2000 });
         await this.waitForDomContentLoaded();
 
         // Wait for the data refresh to complete (since no real-time websockets yet)
@@ -126,21 +126,28 @@ export class EditGroupModalPage extends BasePage {
         }
 
         // Wait for modal to close (indicates data has propagated)
-        await expect(this.modal).not.toBeVisible({ timeout: 1000 });
+        await expect(modal).not.toBeVisible({ timeout: 1000 });
     }
 
+    /**
+     * E2E-specific: Cancel editing (simple wrapper, kept for compatibility)
+     */
     async cancel(): Promise<void> {
         const cancelButton = this.getCancelButton();
         await cancelButton.click();
     }
 
+    /**
+     * E2E-specific: Click delete group button
+     */
     async clickDeleteGroup(): Promise<void> {
         const deleteButton = this.getDeleteButton();
         await deleteButton.click();
     }
 
     /**
-     * Handles the delete confirmation dialog with hard delete confirmation text input
+     * E2E-specific workflow: Handles the delete confirmation dialog with hard delete confirmation text input
+     * Returns DashboardPage for e2e navigation verification
      */
     async handleDeleteConfirmDialog(groupName: string): Promise<DashboardPage> {
         // Wait for confirmation dialog to appear
@@ -186,5 +193,21 @@ export class EditGroupModalPage extends BasePage {
         await dashboardPage.waitForDashboard();
 
         return dashboardPage;
+    }
+
+    /**
+     * E2E-specific alias for base class method
+     * For backward compatibility with existing tests
+     */
+    async waitForModalVisible(): Promise<void> {
+        await this.waitForModalToOpen();
+    }
+
+    /**
+     * E2E-specific alias: getModal() → getModalContainer()
+     * For backward compatibility with existing tests
+     */
+    getModal() {
+        return this.getModalContainer();
     }
 }
