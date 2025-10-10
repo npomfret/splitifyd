@@ -243,6 +243,14 @@ export class ShareGroupModalPage extends BasePage {
     }
 
     /**
+     * Alias for clickClose with modal close wait
+     */
+    async closeModal(): Promise<void> {
+        await this.clickClose();
+        await this.waitForModalToClose();
+    }
+
+    /**
      * Verify modal is closed
      */
     async verifyModalClosed(): Promise<void> {

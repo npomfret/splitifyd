@@ -677,7 +677,7 @@ simpleTest.describe('Share Link Access Management', () => {
 
             // Open the share modal
             const shareModalPage = await groupDetailPage.openShareGroupModal();
-            await shareModalPage.waitForModalVisible();
+            await shareModalPage.waitForModalToOpen();
 
             // Get the initial share link
             const initialShareLink = await shareModalPage.getShareLink();

@@ -324,7 +324,7 @@ export class GroupDetailPage extends BaseGroupDetailPage {
 
         // Create and return the e2e ShareGroupModalPage instance
         const shareModal = new ShareGroupModalPage(this.page);
-        await shareModal.waitForModalVisible();
+        await shareModal.waitForModalToOpen();
 
         return shareModal;
     }
