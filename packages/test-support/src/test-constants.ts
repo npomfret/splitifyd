@@ -8,7 +8,7 @@ export const TEST_TIMEOUTS = {
     NAVIGATION: 5000,
 
     /** Input field updates - form field value changes, Preact signal updates */
-    INPUT_UPDATE: 1000,
+    INPUT_UPDATE: 3000, // Increased for longer text inputs (40+ chars)
 
     /** Modal/dialog open/close animations and visibility */
     MODAL_TRANSITION: 2000,
