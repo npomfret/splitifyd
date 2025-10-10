@@ -127,8 +127,8 @@ export class DashboardPage extends BaseDashboardPage {
         // Create e2e-specific modal page instance
         const createGroupModalPage = new CreateGroupModalPage(this.page);
 
-        // Wait for the modal to appear using the modal's own strict selector
-        await createGroupModalPage.getModalDialog().waitFor({
+        // Wait for the modal to appear using the base class container selector
+        await createGroupModalPage.getModalContainer().waitFor({
             state: 'visible',
             timeout: 1000,
         });
