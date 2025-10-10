@@ -1,61 +1,58 @@
 import { expect, Locator, Page } from '@playwright/test';
-import translation from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
-import { ARIA_ROLES, BUTTON_TEXTS } from '../constants/selectors';
-import { BasePage } from './base.page';
+import { RegisterPage as BaseRegisterPage } from '@splitifyd/test-support';
+import { DashboardPage } from './dashboard.page';
 
-export class RegisterPage extends BasePage {
+/**
+ * E2E-specific RegisterPage that extends the shared base class
+ * Adds methods for handling registration timing variations and backward compatibility
+ */
+export class RegisterPage extends BaseRegisterPage {
     constructor(page: Page) {
         super(page);
     }
-    // Selectors
-    readonly url = '/register';
-    readonly fullNameInput = `input[placeholder="${translation.registerPage.fullNamePlaceholder}"]`;
-    readonly emailInput = `input[placeholder="Enter your email"]`;
-    readonly passwordInput = `input[placeholder="${translation.registerPage.passwordPlaceholder}"]`;
-    readonly confirmPasswordInput = `input[placeholder="${translation.registerPage.confirmPasswordPlaceholder}"]`;
-    readonly createAccountButton = BUTTON_TEXTS.CREATE_ACCOUNT;
 
-    async navigate() {
-        await this.navigateToRegister();
+    /**
+     * E2E version: Enhanced navigate with better error messaging
+     * Overrides base class method to add fail-fast authentication state check
+     */
+    async navigate(): Promise<void> {
+        await this.page.goto(this.url);
 
         // Fail fast if we're not on the register page
         // This ensures tests start from a known state
         try {
             await this.expectUrl(/\/register/);
         } catch (error) {
-            throw new Error('Expected to navigate to register page but was redirected. Test requires clean authentication state.');
+            throw new Error(
+                'Expected to navigate to register page but was redirected. Test requires clean authentication state.',
+            );
         }
-    }
 
-    async fillRegistrationForm(name: string, email: string, password: string) {
-        await this.fillPreactInput(this.fullNameInput, name);
-        await this.fillPreactInput(this.emailInput, email);
-        await this.fillPreactInput(this.passwordInput, password);
-        await this.fillPreactInput(this.confirmPasswordInput, password);
-        // Check both required checkboxes using page object methods
-        await this.checkTermsCheckbox();
-        await this.checkCookieCheckbox();
-    }
-
-    async submitForm() {
-        // Use standardized button click with proper error handling
-        const submitButton = this.getSubmitButton();
-        await this.clickButton(submitButton, { buttonName: this.createAccountButton });
-    }
-
-    async register(name: string, email: string, password: string) {
-        await this.fillRegistrationForm(name, email, password);
-        await this.submitForm();
-
-        // Wait for registration to complete
-        await this.waitForRegistrationCompletion();
+        await this.verifyRegisterPageLoaded();
     }
 
     /**
-     * Wait for the registration process to complete
+     * E2E-specific: Complete registration workflow and return e2e DashboardPage
+     * Alternative to base class method that returns e2e-specific page object
+     */
+    async registerAndGoToDashboard(
+        name: string,
+        email: string,
+        password: string,
+        confirmPassword: string = password,
+    ): Promise<DashboardPage> {
+        await this.fillRegistrationForm(name, email, password, confirmPassword);
+        await this.acceptAllPolicies();
+        await this.submitForm();
+        await this.waitForRegistrationCompletion();
+        return new DashboardPage(this.page);
+    }
+
+    /**
+     * E2E-specific: Wait for registration completion with timing variation handling
      * Handles both instant registration and slower processing with loading spinner
      */
-    async waitForRegistrationCompletion() {
+    async waitForRegistrationCompletion(): Promise<void> {
         const submitButton = this.getSubmitButton();
 
         // The UI shows a loading spinner in the submit button when processing
@@ -64,17 +61,15 @@ export class RegisterPage extends BasePage {
         // Wait for either:
         // 1. Button becomes disabled (indicates processing started)
         // 2. Immediate redirect to dashboard (instant registration)
-        await Promise
-            .race([
-                // Option 1: Wait for button to become disabled (processing started)
-                expect(submitButton).toBeDisabled({ timeout: 2000 }),
+        await Promise.race([
+            // Option 1: Wait for button to become disabled (processing started)
+            expect(submitButton).toBeDisabled({ timeout: 2000 }),
 
-                // Option 2: Wait for immediate redirect (so fast button never visibly disables)
-                this.page.waitForURL(/\/dashboard/, { timeout: 1000 }),
-            ])
-            .catch(() => {
-                // It's ok if neither happens immediately, we'll still wait for the final redirect
-            });
+            // Option 2: Wait for immediate redirect (so fast button never visibly disables)
+            this.page.waitForURL(/\/dashboard/, { timeout: 1000 }),
+        ]).catch(() => {
+            // It's ok if neither happens immediately, we'll still wait for the final redirect
+        });
 
         // Now wait for the final redirect to dashboard (registration success)
         // This should happen whether we saw the button disable or not
@@ -82,111 +77,31 @@ export class RegisterPage extends BasePage {
     }
 
     /**
-     * Check if the loading spinner is visible
+     * E2E-specific: Check if the loading spinner is visible
+     * Used by tests to verify UI loading state
      */
     async isLoadingSpinnerVisible(): Promise<boolean> {
         const spinner = this.page.locator('button[type="submit"] svg.animate-spin');
         return await spinner.isVisible();
     }
 
-    // Element accessors for direct interaction in tests
-    getFullNameInput() {
-        return this.page.locator(this.fullNameInput);
-    }
-
-    getEmailInput() {
-        return this.page.locator(this.emailInput);
-    }
-
-    getPasswordInput() {
-        return this.page.locator(this.passwordInput);
-    }
-
-    getConfirmPasswordInput() {
-        return this.page.locator(this.confirmPasswordInput);
-    }
-
-    getTermsCheckbox() {
-        return this.page.locator(`label:has-text("${translation.registerPage.acceptTerms} ${translation.registerPage.termsOfService}") input[type="checkbox"]`);
-    }
-
-    getCookieCheckbox() {
-        return this.page.locator(`label:has-text("${translation.registerPage.acceptTerms} ${translation.registerPage.cookiePolicy}") input[type="checkbox"]`);
-    }
-
-    getSubmitButton() {
-        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.createAccountButton });
-    }
-
-    getTermsLink() {
-        return this.page.locator('a[href="/terms"]').first();
-    }
-
-    getCookiesLink() {
-        return this.page.locator('a[href="/cookies"]').first();
-    }
-
-    getCreateAccountButton() {
-        return this.page.locator(`button:has-text("${translation.registerPage.submitButton}")`);
-    }
-
-    // Helper method to check terms checkbox
-    async checkTermsCheckbox() {
-        await this.getTermsCheckbox().check();
-    }
-
-    // Helper method to uncheck terms checkbox
-    async uncheckTermsCheckbox() {
-        await this.getTermsCheckbox().uncheck();
-    }
-
-    // Helper method to check cookie checkbox
-    async checkCookieCheckbox() {
-        await this.getCookieCheckbox().check();
-    }
-
-    // Helper method to accept all policies (convenience method)
-    async acceptAllPolicies() {
-        await this.checkTermsCheckbox();
-        await this.checkCookieCheckbox();
-    }
-
-    getEmailError() {
-        return this.page.locator('[role="alert"], [data-testid*="error"], .error-message');
-    }
-
     /**
-     * Wait for and handle API response errors during registration
+     * E2E-specific: Wait for and handle API response errors during registration
+     * Used by network error testing
      */
     async waitForRegistrationResponse(expectedStatus?: number): Promise<void> {
-        const responsePromise = this.page.waitForResponse((response) => response.url().includes('/api/register') && (expectedStatus ? response.status() === expectedStatus : response.status() >= 400));
+        const responsePromise = this.page.waitForResponse(
+            (response) =>
+                response.url().includes('/api/register') &&
+                (expectedStatus ? response.status() === expectedStatus : response.status() >= 400),
+        );
         return responsePromise.then(() => {});
     }
 
     /**
-     * Fill individual form fields using page object methods
+     * E2E-specific: Wait for form to be ready with enhanced URL validation
+     * Provides detailed error messages for debugging test setup issues
      */
-    async fillFormField(fieldType: 'name' | 'email' | 'password' | 'confirmPassword', value: string): Promise<void> {
-        const input = this.getFormField(fieldType);
-        await this.fillPreactInput(input, value);
-    }
-
-    /**
-     * Get form field by type
-     */
-    getFormField(fieldType: 'name' | 'email' | 'password' | 'confirmPassword'): Locator {
-        switch (fieldType) {
-            case 'name':
-                return this.getFullNameInput();
-            case 'email':
-                return this.getEmailInput();
-            case 'password':
-                return this.getPasswordInput();
-            case 'confirmPassword':
-                return this.getConfirmPasswordInput();
-        }
-    }
-
     async waitForFormReady(): Promise<void> {
         const currentUrl = this.page.url();
         const expectedUrlPattern = /\/register/;
@@ -199,7 +114,44 @@ export class RegisterPage extends BasePage {
         await this.waitForDomContentLoaded();
 
         await expect(this.getSubmitButton()).toBeVisible({ timeout: 5000 });
-        await expect(this.getFullNameInput()).toBeVisible({ timeout: 5000 });
+        await expect(this.getNameInput()).toBeVisible({ timeout: 5000 });
         await expect(this.getEmailInput()).toBeVisible({ timeout: 5000 });
+    }
+
+    // ============================================================================
+    // E2E-SPECIFIC CHECKBOX METHODS - Deterministic state management
+    // ============================================================================
+
+    /**
+     * E2E-specific: Check terms checkbox (deterministic)
+     * Uses .check() instead of base class .click() to ensure checkbox is always checked
+     */
+    async checkTermsCheckbox(): Promise<void> {
+        await this.getTermsCheckbox().check();
+    }
+
+    /**
+     * E2E-specific: Uncheck terms checkbox (deterministic)
+     * Base class only has toggle, this ensures checkbox is always unchecked
+     */
+    async uncheckTermsCheckbox(): Promise<void> {
+        await this.getTermsCheckbox().uncheck();
+    }
+
+    /**
+     * E2E-specific: Check cookie checkbox (deterministic)
+     * Uses .check() instead of base class .click() to ensure checkbox is always checked
+     */
+    async checkCookieCheckbox(): Promise<void> {
+        await this.getCookiesCheckbox().check();
+    }
+
+    /**
+     * E2E-specific: Accept all policies (deterministic)
+     * Overrides base class to use deterministic check() instead of toggle()
+     */
+    async acceptAllPolicies(): Promise<void> {
+        await this.checkTermsCheckbox();
+        await this.checkCookieCheckbox();
     }
 }

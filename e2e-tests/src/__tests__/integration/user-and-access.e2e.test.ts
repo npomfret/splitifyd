@@ -177,10 +177,10 @@ simpleTest.describe('User Registration & Account Management', () => {
         });
 
         // Fill form with duplicate email
-        await registerPage.fillFormField('name', displayName);
-        await registerPage.fillFormField('email', email);
-        await registerPage.fillFormField('password', password);
-        await registerPage.fillFormField('confirmPassword', password);
+        await registerPage.fillName(displayName);
+        await registerPage.fillEmail(email);
+        await registerPage.fillPassword(password);
+        await registerPage.fillConfirmPassword(password);
         await registerPage.checkTermsCheckbox();
         await registerPage.checkCookieCheckbox();
 
@@ -193,7 +193,7 @@ simpleTest.describe('User Registration & Account Management', () => {
         await registerPage.expectUrl(/\/register/);
 
         // Verify error message appears and form persistence
-        const errorElement = registerPage.getEmailError();
+        const errorElement = registerPage.getErrorContainer();
         await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
         const errorText = await errorElement.textContent();
         expect(errorText?.toLowerCase()).toMatch(/email.*already.*exists|email.*in use|account.*exists|email.*registered/);
@@ -206,14 +206,14 @@ simpleTest.describe('User Registration & Account Management', () => {
         expect(errorInConsole).toBe(true);
 
         // Test form persistence (user doesn't lose their input)
-        const nameInput = registerPage.getFormField('name');
-        const emailInput = registerPage.getFormField('email');
+        const nameInput = registerPage.getNameInput();
+        const emailInput = registerPage.getEmailInput();
         await expect(nameInput).toHaveValue(displayName);
         await expect(emailInput).toHaveValue(email);
 
         // Test 3: Recovery by changing email and additional loading state tests
         const newEmail = generateTestEmail('recovery');
-        await registerPage.fillFormField('email', newEmail);
+        await registerPage.fillEmail(newEmail);
         await registerPage.submitForm();
 
         // Should succeed with different email
@@ -275,9 +275,9 @@ simpleTest.describe('Policy Acceptance', () => {
 
             // Verify both checkboxes and links are present
             await expect(registerPage.getTermsCheckbox()).toBeVisible();
-            await expect(registerPage.getCookieCheckbox()).toBeVisible();
+            await expect(registerPage.getCookiesCheckbox()).toBeVisible();
             await expect(registerPage.getTermsLink()).toBeVisible();
-            await expect(registerPage.getCookiesLink()).toBeVisible();
+            await expect(registerPage.getCookiePolicyLink()).toBeVisible();
 
             // Fill form completely
             await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
@@ -285,7 +285,7 @@ simpleTest.describe('Policy Acceptance', () => {
             await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', DEFAULT_PASSWORD);
             await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', DEFAULT_PASSWORD);
 
-            const submitButton = registerPage.getCreateAccountButton();
+            const submitButton = registerPage.getSubmitButton();
 
             // Submit should be disabled with no checkboxes
             await expect(submitButton).toBeDisabled();
