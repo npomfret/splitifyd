@@ -243,4 +243,46 @@ export class ExpenseDetailPage extends BasePage {
         })
             .toPass({ timeout });
     }
+
+    /**
+     * Get the lock warning banner for locked expenses
+     */
+    getLockWarningBanner(): Locator {
+        return this.page.locator('.bg-yellow-50').filter({ hasText: /cannot be edited/i });
+    }
+
+    /**
+     * Verify the lock warning banner is displayed with correct messaging
+     */
+    async verifyLockWarningBanner(): Promise<void> {
+        const warningBanner = this.getLockWarningBanner();
+        await expect(warningBanner).toBeVisible();
+
+        // Verify banner contains warning emoji
+        await expect(warningBanner).toContainText('⚠️');
+
+        // Verify banner contains main message (using translation key text)
+        await expect(warningBanner).toContainText('This expense cannot be edited');
+
+        // Verify banner contains detailed explanation
+        await expect(warningBanner).toContainText('One or more participants have left the group');
+    }
+
+    /**
+     * Verify that the edit button is disabled for a locked expense
+     */
+    async verifyEditButtonDisabled(): Promise<void> {
+        const editButton = this.getEditButton();
+        await expect(editButton).toBeVisible();
+        await expect(editButton).toBeDisabled();
+    }
+
+    /**
+     * Verify the tooltip on the edit button wrapper
+     */
+    async verifyEditButtonTooltip(): Promise<void> {
+        // The tooltip is on the wrapper div, look for the title attribute
+        const tooltipWrapper = this.page.getByTitle('Cannot edit - participant has left the group');
+        await expect(tooltipWrapper).toBeVisible();
+    }
 }

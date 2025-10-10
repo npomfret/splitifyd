@@ -738,6 +738,21 @@ export class GroupDetailPage extends BaseGroupDetailPage {
             });
     }
     /**
+     * Verify that a specific debt relationship no longer exists
+     * (e.g., after a member settles their balance)
+     */
+    async verifyNoDebtRelationship(debtorName: string, creditorName: string): Promise<void> {
+        // Use polling pattern to wait for real-time balance updates
+        await expect(async () => {
+            const debtInfo = this.getDebtInfo(debtorName, creditorName);
+            const count = await debtInfo.count();
+            if (count > 0) {
+                throw new Error(`Debt relationship still exists: ${debtorName} → ${creditorName}`);
+            }
+        }).toPass({ timeout: 5000 });
+    }
+
+    /**
      * Verify that all members in the group are settled up (no outstanding balances)
      * @param groupId - The group ID for context (used for better error messages)
      */
