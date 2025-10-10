@@ -94,15 +94,13 @@ export class HeaderPage {
      * modified by other tests (e.g., user profile management tests).
      */
     async getCurrentUserDisplayName(): Promise<string> {
-        const userMenuButton = this.getUserMenuButton();
-        await expect(userMenuButton).toBeVisible();
+        const nameElement = this.page.locator('[data-testid="user-menu-display-name"]');
+        await expect(nameElement).toBeVisible();
 
-        // The user name is displayed in the menu button with specific classes
-        const nameElement = userMenuButton.locator('.text-sm.font-medium.text-gray-700').first();
         const textContent = await nameElement.textContent();
 
         if (!textContent) {
-            throw new Error('Could not extract user display name from user menu button');
+            throw new Error('Could not extract user display name from user menu');
         }
 
         return textContent.trim();

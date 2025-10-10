@@ -483,7 +483,7 @@ simpleTest.describe('Share Link Access Management', () => {
             // Create group with authenticated user
             const [groupDetailPage] = await ownerDashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder());
             const groupId = groupDetailPage.inferGroupId();
-            const groupName = await groupDetailPage.getGroupName();
+            const groupName = await groupDetailPage.getGroupNameText();
 
             // Get share link from the group
             const shareLink = await groupDetailPage.getShareLink();
@@ -503,7 +503,8 @@ simpleTest.describe('Share Link Access Management', () => {
             expect(unauthPage.url()).toContain('/join?linkId=');
 
             // Verify user can see the group details on the join page
-            await expect(unauthPage.getByRole('heading', { name: groupName, level: 2 })).toBeVisible();
+            const displayedGroupName = await joinGroupPage.getGroupName();
+            expect(displayedGroupName).toBe(groupName);
 
             // Complete the join process
             await joinGroupPage.joinGroupUsingShareLink(shareLink);

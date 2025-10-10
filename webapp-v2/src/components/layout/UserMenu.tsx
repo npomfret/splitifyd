@@ -54,7 +54,7 @@ export function UserMenu({ user }: UserMenuProps) {
                     <span class='text-sm font-medium'>{userInitial}</span>
                 </div>
                 <div class='hidden sm:block text-left'>
-                    <p class='text-sm font-medium text-gray-700'>{userName}</p>
+                    <p class='text-sm font-medium text-gray-700' data-testid='user-menu-display-name'>{userName}</p>
                     <p class='text-xs text-gray-500'>{user.email}</p>
                 </div>
                 <svg class='w-4 h-4 text-gray-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>

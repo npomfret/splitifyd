@@ -1,19 +1,48 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { BasePage } from './base.page';
+import { GroupDetailPage as BaseGroupDetailPage } from '@splitifyd/test-support';
 import { DashboardPage } from './dashboard.page.ts';
 import { EditGroupModalPage } from './edit-group-modal.page';
 import { ExpenseDetailPage } from './expense-detail.page';
 import { ExpenseFormPage } from './expense-form.page';
+import { HeaderPage } from './header.page';
 import { LeaveGroupModalPage } from './leave-group-modal.page';
 import { RemoveMemberModalPage } from './remove-member-modal.page';
 import { SettlementFormPage } from './settlement-form.page';
 import { ShareGroupModalPage } from './share-group-modal.page';
 
-export class GroupDetailPage extends BasePage {
+export class GroupDetailPage extends BaseGroupDetailPage {
+    private _header?: HeaderPage;
+
     constructor(page: Page) {
         super(page);
     }
 
+    /**
+     * Header property for e2e navigation
+     */
+    get header(): HeaderPage {
+        if (!this._header) {
+            this._header = new HeaderPage(this.page);
+        }
+        return this._header;
+    }
+
+    /**
+     * Get URL parameter (e2e utility)
+     */
+    getUrlParam(paramName: string): string | null {
+        const url = new URL(this.page.url());
+        const pathParts = url.pathname.split('/');
+        const paramIndex = pathParts.indexOf(paramName);
+        if (paramIndex !== -1 && paramIndex < pathParts.length - 1) {
+            return pathParts[paramIndex + 1];
+        }
+        return null;
+    }
+
+    /**
+     * Navigate to dashboard (e2e-specific workflow)
+     */
     async navigateToDashboard() {
         await this.header.navigateToDashboard();
         const dashboardPage = new DashboardPage(this.page);
@@ -21,39 +50,30 @@ export class GroupDetailPage extends BasePage {
         return dashboardPage;
     }
 
-    inferGroupId() {
-        return this.getUrlParam('groupId')!;
+    /**
+     * Infer group ID from URL (e2e utility)
+     */
+    inferGroupId(): string {
+        const url = new URL(this.page.url());
+        const match = url.pathname.match(/\/groups\/([a-zA-Z0-9]+)/);
+        if (!match) {
+            throw new Error(`Could not infer group ID from URL: ${url.pathname}`);
+        }
+        return match[1];
     }
 
-    // Element accessors for group information
-    getGroupTitle() {
-        // The group title is specifically an h1 element
-        return this.page.locator('h1').first();
-    }
-
-    async getGroupName(): Promise<string> {
-        // Returns the actual text content of the group title
-        const title = await this.getGroupTitle().textContent();
+    /**
+     * Get group name as text (e2e-specific, shared base has getGroupName() returning Locator)
+     */
+    async getGroupNameText(): Promise<string> {
+        const title = await this.getGroupName().textContent();
         return title?.trim() || '';
     }
 
-    getGroupDescription() {
-        // Target the paragraph element containing the group description
-        // This is rendered in GroupHeader.tsx as: <p className="text-gray-600">{group.description}</p>
-        return this.page.locator('p.text-gray-600').first();
-    }
-
-    // Element accessors for expenses
-    getAddExpenseButton() {
-        // Primary selector: use data-testid
-        // Fallback: use role and name for robustness
-        return this
-            .page
-            .locator('[data-testid="add-expense-button"]')
-            .or(this.page.getByRole('button', { name: /add expense/i }))
-            .first();
-    }
-
+    /**
+     * Click Settle Up button and open settlement form (e2e-specific workflow)
+     * This is an e2e version that returns SettlementFormPage instead of void
+     */
     async clickSettleUpButton(expectedMemberCount: number): Promise<SettlementFormPage> {
         // Assert we're on the group detail page before action
         await expect(this.page).toHaveURL(groupDetailUrlPattern());
@@ -72,10 +92,6 @@ export class GroupDetailPage extends BasePage {
 
         await settlementFormPage.waitForFormReady(expectedMemberCount);
         return settlementFormPage;
-    }
-
-    getSettleUpButton(): Locator {
-        return this.page.getByRole('button', { name: /settle up/i });
     }
 
     async clickAddExpenseButton(): Promise<ExpenseFormPage> {
@@ -122,12 +138,15 @@ export class GroupDetailPage extends BasePage {
         return expenseFormPage;
     }
 
+    /**
+     * Wait for group title to update (e2e-specific polling for real-time updates)
+     */
     async waitForGroupTitle(text: string) {
         await this.waitForDomContentLoaded();
 
         // Use polling pattern to handle async updates (since no real-time websockets yet)
         await expect(async () => {
-            const title = await this.getGroupTitle().textContent();
+            const title = await this.getGroupName().textContent();
             if (title !== text) {
                 throw new Error(`Title is still "${title}", waiting for "${text}"`);
             }
@@ -138,6 +157,9 @@ export class GroupDetailPage extends BasePage {
             });
     }
 
+    /**
+     * Wait for group description to update (e2e-specific polling for real-time updates)
+     */
     async waitForGroupDescription(text: string) {
         await this.waitForDomContentLoaded();
 
@@ -154,10 +176,6 @@ export class GroupDetailPage extends BasePage {
             });
     }
 
-    // Share functionality accessors
-    getShareButton() {
-        return this.page.getByRole('button', { name: /invite others/i }).first();
-    }
 
     /**
      * Waits for the group to have the expected number of members.
@@ -220,7 +238,7 @@ export class GroupDetailPage extends BasePage {
         }
 
         // Wait for balances section to be visible
-        const balancesSection = this.getBalancesSection();
+        const balancesSection = this.getBalanceContainer();
         await expect(balancesSection).toBeVisible({ timeout: 3000 });
 
         // Wait for any loading text to disappear if present
@@ -271,19 +289,6 @@ export class GroupDetailPage extends BasePage {
         }
     }
 
-    /**
-     * Gets the balances section using the complex locator
-     * This replaces repeated complex locator chains in tests
-     */
-    getBalancesSection() {
-        return this
-            .page
-            .locator('.bg-white')
-            .filter({
-                has: this.page.getByRole('heading', { name: 'Balances' }),
-            })
-            .first();
-    }
 
     /**
      * Clicks on an expense by its description to view details
@@ -311,12 +316,13 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Opens the share group modal and returns the ShareGroupModalPage instance.
+     * E2E-specific version that returns e2e ShareGroupModalPage
      */
     async openShareGroupModal(): Promise<ShareGroupModalPage> {
-        const shareButton = this.getShareButton();
+        const shareButton = this.getShareGroupButton();
         await this.clickButton(shareButton, { buttonName: 'Invite Others' });
 
-        // Create and return the ShareGroupModalPage instance
+        // Create and return the e2e ShareGroupModalPage instance
         const shareModal = new ShareGroupModalPage(this.page);
         await shareModal.waitForModalVisible();
 
@@ -338,26 +344,20 @@ export class GroupDetailPage extends BasePage {
      * Gets debt information from balances section
      */
     getDebtInfo(debtorName: string, creditorName: string) {
-        const balancesSection = this.getBalancesSection();
+        const balancesSection = this.getBalanceContainer();
         // UI now uses arrow notation: "User A → User B" instead of "owes"
         return balancesSection.getByText(`${debtorName} → ${creditorName}`).or(balancesSection.getByText(`${debtorName} owes ${creditorName}`));
     }
 
     /**
-     * Gets the settings button (only visible for group owner)
-     */
-    getSettingsButton() {
-        return this.page.getByRole('button', { name: /group settings/i }).first();
-    }
-
-    /**
      * Opens the edit group modal by clicking the settings button
+     * E2E-specific version that returns e2e EditGroupModalPage
      */
     async openEditGroupModal(): Promise<EditGroupModalPage> {
-        const settingsButton = this.getSettingsButton();
+        const settingsButton = this.getEditGroupButton();
         await this.clickButton(settingsButton, { buttonName: 'Group Settings' });
 
-        // Create and return the EditGroupModalPage instance
+        // Create and return the e2e EditGroupModalPage instance
         const editModal = new EditGroupModalPage(this.page);
         await editModal.waitForModalVisible();
 
@@ -424,35 +424,13 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Get the members container that contains the "Members" heading
-     */
-    private getMembersContainer(): Locator {
-        // Find the visible Members container (either sidebar div or Card)
-        // Use the specific classes from the TSX: sidebar has "border rounded-lg bg-white p-4"
-        return this.page.locator('.border.rounded-lg.bg-white, .p-6').filter({ has: this.page.getByText('Members') });
-    }
-
-    /**
-     * Get the payment history container that contains the "Payment History" heading
-     * This ensures all settlement-related selectors are properly scoped
+     * E2E-specific payment history container (for settlement features)
      */
     private getPaymentHistoryContainer(): Locator {
         // Find the SidebarCard containing "Payment History" heading
         // Based on SidebarCard structure: bg-white rounded-lg shadow-sm border border-gray-200 p-4
         return this.page.locator('.bg-white.rounded-lg.shadow-sm.border.border-gray-200.p-4').filter({
             has: this.page.locator('h3').filter({ hasText: 'Payment History' }),
-        });
-    }
-
-    /**
-     * Get the expenses container that contains the "Expenses" heading
-     * This ensures all expense-related selectors are properly scoped
-     */
-    private getExpensesContainer(): Locator {
-        // Find the main content area containing "Expenses" heading
-        // The expenses are in the main content area, not a sidebar card
-        return this.page.locator('main, .main-content, [role="main"]').filter({
-            has: this.page.getByRole('heading', { name: 'Expenses' }),
         });
     }
 
@@ -684,20 +662,10 @@ export class GroupDetailPage extends BasePage {
         }
     }
 
-    private getBalancesSectionByContext() {
-        return this
-            .page
-            .locator('.bg-white')
-            .filter({
-                has: this.page.getByRole('heading', { name: 'Balances' }),
-            })
-            .first();
-    }
-
     async verifyDebtRelationship(debtorName: string, creditorName: string, expectedAmount: string): Promise<void> {
         // Use polling pattern to wait for real-time updates
         await expect(async () => {
-            const balancesSection = this.getBalancesSectionByContext();
+            const balancesSection = this.getBalanceContainer();
 
             // Find all debt relationship spans with the expected text pattern
             const debtRelationshipSpans = balancesSection.locator('span').filter({
@@ -775,14 +743,14 @@ export class GroupDetailPage extends BasePage {
      */
     async verifyAllSettledUp(groupId: string): Promise<void> {
         // Assert we're on the correct group page
-        const currentUrl = this.page.url(); // todo: remove this
+        const currentUrl = this.page.url();
         if (!currentUrl.includes(`/groups/${groupId}`)) {
             throw new Error(`verifyAllSettledUp called but not on correct group page. Expected: /groups/${groupId}, Got: ${currentUrl}`);
         }
 
         // Wait for the "All settled up!" message to appear
         await expect(async () => {
-            const balanceSection = this.getBalancesSectionByContext();
+            const balanceSection = this.getBalanceContainer();
             const count = await balanceSection.getByText('All settled up!').count();
             if (count === 0) {
                 throw new Error('No "All settled up!" in balances section found yet');
@@ -794,7 +762,7 @@ export class GroupDetailPage extends BasePage {
             });
 
         // Double-check that there are no debt relationships visible
-        const balancesSection = this.getBalancesSection();
+        const balancesSection = this.getBalanceContainer();
         const debtElements = balancesSection.locator('[data-financial-amount="debt"]');
         await expect(debtElements).toHaveCount(0);
     }
@@ -824,15 +792,12 @@ export class GroupDetailPage extends BasePage {
         return memberItem.locator('[data-testid="remove-member-button"]');
     }
 
-    getLeaveGroupButton(): Locator {
-        // Leave button is now in the Group Actions panel
-        // There may be multiple (sidebar and mobile views)
-        // Return the first visible one with the test id
-        return this.page.getByTestId('leave-group-button').first();
-    }
-
-    // Member management actions
-    async clickLeaveGroup(): Promise<LeaveGroupModalPage> {
+    /**
+     * E2E-specific version that returns LeaveGroupModalPage
+     * The shared base has clickLeaveGroup() that returns void
+     * This version is for e2e workflows that need the page object
+     */
+    async clickLeaveGroupButton(): Promise<LeaveGroupModalPage> {
         const leaveButton = this.getLeaveGroupButton();
         await this.clickButton(leaveButton, { buttonName: 'Leave Group' });
 

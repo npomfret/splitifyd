@@ -28,7 +28,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
         await expect(groupDetailPage.getLeaveGroupButton()).not.toBeVisible();
 
         // But Settings button should be visible
-        await expect(groupDetailPage.getSettingsButton()).toBeVisible();
+        await expect(groupDetailPage.getEditGroupButton()).toBeVisible();
 
         // UI Components validation: Member count and expense split options
         await expect(groupDetailPage.getMemberCountElement()).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
@@ -59,7 +59,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
         await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
 
         // Member clicks Leave Group
-        const leaveModal = await memberGroupDetailPage.clickLeaveGroup();
+        const leaveModal = await memberGroupDetailPage.clickLeaveGroupButton();
 
         // Confirm in the dialog
         const memberDashboardPage = await leaveModal.confirmLeaveGroup();
@@ -106,7 +106,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
 
         const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), user2DashboardPage);
         const groupId = groupDetailPage.inferGroupId();
-        const groupName = await groupDetailPage.getGroupName();
+        const groupName = await groupDetailPage.getGroupNameText();
 
         await groupDetailPage2.navigateToDashboard(); // move away from the page to avoid 404 errors in console after the removal happens
 
@@ -121,7 +121,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
         await groupDetailPage.waitForMemberCount(1);
 
         // Group title should still be visible
-        await expect(groupDetailPage.getGroupTitle()).toHaveText(groupName);
+        await expect(groupDetailPage.getGroupName()).toHaveText(groupName);
     });
 });
 
@@ -159,7 +159,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
 
         // Member tries to leave group
         await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
-        const leaveModalWithBalance = await memberGroupDetailPage.clickLeaveGroup();
+        const leaveModalWithBalance = await memberGroupDetailPage.clickLeaveGroupButton();
 
         // Should see error message about outstanding balance
         await leaveModalWithBalance.verifyLeaveErrorMessage();
@@ -210,7 +210,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         await memberGroupDetailPage.verifyAllSettledUp(groupId);
 
         // Now member should be able to leave
-        const leaveModalAfterSettlement = await memberGroupDetailPage.clickLeaveGroup();
+        const leaveModalAfterSettlement = await memberGroupDetailPage.clickLeaveGroupButton();
         await leaveModalAfterSettlement.confirmLeaveGroup();
 
         // Member should be redirected to dashboard
@@ -278,7 +278,7 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
         const groupId = creatorGroupDetailPage.inferGroupId();
 
         // LeavingUser leaves
-        const leaveModal = await leavingGroupDetailPage.clickLeaveGroup();
+        const leaveModal = await leavingGroupDetailPage.clickLeaveGroupButton();
         await leaveModal.confirmLeaveGroup();
 
         // Wait for removal to propagate
@@ -327,7 +327,7 @@ simpleTest.describe('Group Settings & Management', () => {
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Verify settings button is visible for owner
-        const settingsButton = groupDetailPage.getSettingsButton();
+        const settingsButton = groupDetailPage.getEditGroupButton();
         await expect(settingsButton).toBeVisible();
 
         // === Test 1: Basic editing functionality ===
@@ -395,22 +395,22 @@ simpleTest.describe('Group Settings & Management', () => {
         // Owner creates a group with member
         const [ownerGroupDetailPage, memberGroupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), memberDashboardPage);
         const groupId = ownerGroupDetailPage.inferGroupId();
-        const groupName = await ownerGroupDetailPage.getGroupName();
+        const groupName = await ownerGroupDetailPage.getGroupNameText();
 
         await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
         await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Verify owner CAN see settings button
-        const ownerSettingsButton = ownerGroupDetailPage.getSettingsButton();
+        const ownerSettingsButton = ownerGroupDetailPage.getEditGroupButton();
         await expect(ownerSettingsButton).toBeVisible();
 
         // Verify member CANNOT see settings button
-        const memberSettingsButton = memberGroupDetailPage.getSettingsButton();
+        const memberSettingsButton = memberGroupDetailPage.getEditGroupButton();
         await expect(memberSettingsButton).not.toBeVisible();
 
         // Verify both can see the group name
-        await expect(ownerGroupDetailPage.getGroupTitle()).toHaveText(groupName);
-        await expect(memberGroupDetailPage.getGroupTitle()).toHaveText(groupName);
+        await expect(ownerGroupDetailPage.getGroupName()).toHaveText(groupName);
+        await expect(memberGroupDetailPage.getGroupName()).toHaveText(groupName);
     });
 });
 
@@ -424,7 +424,7 @@ simpleTest.describe('Group Deletion', () => {
 
         // Scenario 1: Dashboard real-time updates when group is deleted
         let [ownerGroupDetailPage, member1GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), memberDashboardPage1);
-        const groupName1 = await ownerGroupDetailPage.getGroupName();
+        const groupName1 = await ownerGroupDetailPage.getGroupNameText();
 
         // Both users navigate to dashboard to see the group
         ownerDashboardPage = await ownerGroupDetailPage.navigateToDashboard();
@@ -449,7 +449,7 @@ simpleTest.describe('Group Deletion', () => {
         // Scenario 2: Member redirect when group deleted while viewing
         let [ownerGroupDetailPage2, member2GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), memberDashboardPage2);
         const groupId2 = ownerGroupDetailPage2.inferGroupId();
-        const groupName2 = await ownerGroupDetailPage2.getGroupName();
+        const groupName2 = await ownerGroupDetailPage2.getGroupNameText();
 
         // Owner navigates to dashboard to delete the group
         ownerDashboardPage = await ownerGroupDetailPage2.navigateToDashboard();

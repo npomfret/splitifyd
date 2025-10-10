@@ -118,11 +118,12 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Group description - paragraph text near the group name
+     * Group description - paragraph text that appears directly after the group name h1
+     * within the GroupHeader component (has text-gray-600 class)
      */
     getGroupDescription(): Locator {
-        // Find description near the group name heading
-        return this.page.locator('p').filter({ hasText: /./ }).first();
+        // Find the h1 heading, go up to its parent div, then find the p.text-gray-600 sibling
+        return this.getGroupName().locator('..').locator('p.text-gray-600');
     }
 
     /**

@@ -40,6 +40,28 @@ export class JoinGroupPage extends BasePage {
         return this.page.getByRole('heading', { name: translationEn.joinGroupPage.title });
     }
 
+    /**
+     * Get the group name heading displayed in the group preview card.
+     * The group name appears as a level 2 heading.
+     */
+    getGroupNameHeading(): Locator {
+        return this.page.getByRole('heading', { level: 2 });
+    }
+
+    /**
+     * Get the text content of the group name heading.
+     * @returns Promise resolving to the group name as a string
+     */
+    async getGroupName(): Promise<string> {
+        const heading = this.getGroupNameHeading();
+        await expect(heading).toBeVisible();
+        const text = await heading.textContent();
+        if (!text) {
+            throw new Error('Group name heading is empty');
+        }
+        return text.trim();
+    }
+
     getJoinGroupButton(): Locator {
         return this.page.getByRole('button', { name: translationEn.joinGroupPage.joinGroup });
     }

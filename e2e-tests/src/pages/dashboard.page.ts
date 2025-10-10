@@ -53,7 +53,7 @@ export class DashboardPage extends BaseDashboardPage {
         await groupDetailPage.waitForPage(groupId, 1);
 
         // sanity check
-        const name = await groupDetailPage.getGroupName();
+        const name = await groupDetailPage.getGroupNameText();
         expect(groupName).toEqual(name);
 
         console.log(`New group created: "${groupName}" (id: ${groupId})`);
