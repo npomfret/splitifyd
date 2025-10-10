@@ -1,37 +1,19 @@
-import { expect, Locator, Page } from '@playwright/test';
-import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
-import { BasePage } from './base.page';
+import { expect, Page } from '@playwright/test';
+import { ShareGroupModalPage as BaseShareGroupModalPage } from '@splitifyd/test-support';
 
-export class ShareGroupModalPage extends BasePage {
+/**
+ * E2E-specific ShareGroupModalPage that extends the shared base class
+ * Adds defensive checks for share link validation and regeneration
+ */
+export class ShareGroupModalPage extends BaseShareGroupModalPage {
     constructor(page: Page) {
         super(page);
     }
 
-    // Element accessors
-    getModalDialog(): Locator {
-        return this.page.getByRole('dialog');
-    }
-
-    getShareLinkInput(): Locator {
-        return this.getModalDialog().locator('input[type="text"]');
-    }
-
-    getCloseButton(): Locator {
-        return this.getModalDialog().getByTestId('close-share-modal-button');
-    }
-
-    getLoadingSpinner(): Locator {
-        return this.getModalDialog().locator('.animate-spin');
-    }
-
-    async waitForModalVisible(): Promise<void> {
-        await expect(this.getModalDialog()).toBeVisible({ timeout: 5000 });
-
-        // Wait for modal title to ensure it's fully rendered
-        await expect(this.page.getByRole('heading', { name: translationEn.shareGroupModal.title })).toBeVisible();
-    }
-
-    // Action methods
+    /**
+     * E2E version: Wait for share link with defensive validation
+     * Overrides base class method to add link format validation
+     */
     async waitForShareLinkLoaded(): Promise<void> {
         // Wait for loading spinner to disappear if present
         const loadingSpinner = this.getLoadingSpinner();
@@ -49,10 +31,13 @@ export class ShareGroupModalPage extends BasePage {
             if (!shareLink || !shareLink.includes('/join?')) {
                 throw new Error(`Invalid share link: ${shareLink}`);
             }
-        })
-            .toPass({ timeout: 5000 });
+        }).toPass({ timeout: 5000 });
     }
 
+    /**
+     * E2E version: Get share link with validation
+     * Overrides base class method to add defensive format checking
+     */
     async getShareLink(): Promise<string> {
         await this.waitForShareLinkLoaded();
 
@@ -66,6 +51,10 @@ export class ShareGroupModalPage extends BasePage {
         return shareLink;
     }
 
+    /**
+     * E2E version: Close modal with fallback to backdrop click
+     * More defensive than base clickClose() method
+     */
     async closeModal(): Promise<void> {
         const closeButton = this.getCloseButton();
         if (await closeButton.isVisible()) {
@@ -76,15 +65,13 @@ export class ShareGroupModalPage extends BasePage {
         }
 
         // Wait for modal to close
-        await expect(this.getModalDialog()).not.toBeVisible({ timeout: 3000 });
+        await expect(this.getModalContainer()).not.toBeVisible({ timeout: 3000 });
     }
 
-    // Element accessors for regeneration functionality
-    getGenerateNewButton(): Locator {
-        return this.getModalDialog().getByTestId('generate-new-link-button');
-    }
-
-    // Action methods for regeneration
+    /**
+     * E2E version: Generate new link with defensive verification
+     * Overrides base class method to add link change polling
+     */
     async clickGenerateNewLink(): Promise<void> {
         await this.waitForShareLinkLoaded(); // Ensure initial link is loaded first
 
@@ -92,13 +79,16 @@ export class ShareGroupModalPage extends BasePage {
         const initialShareLink = await this.getShareLink();
 
         // Click the "Generate New" button
-        const generateNewButton = this.getGenerateNewButton();
+        const generateNewButton = this.getGenerateNewLinkButton();
         await this.clickButton(generateNewButton, { buttonName: 'Generate New' });
 
         // Wait for new share link to be generated
         await this.waitForNewShareLink(initialShareLink);
     }
 
+    /**
+     * E2E-specific: Wait for share link to change with validation
+     */
     async waitForNewShareLink(previousLink: string, timeout: number = 10000): Promise<void> {
         // Wait for the share link to change from the previous one
         await expect(async () => {
@@ -111,7 +101,31 @@ export class ShareGroupModalPage extends BasePage {
             if (currentLink === previousLink) {
                 throw new Error(`Share link has not changed yet. Current: ${currentLink}`);
             }
-        })
-            .toPass({ timeout });
+        }).toPass({ timeout });
+    }
+
+    // ============================================================================
+    // BACKWARD COMPATIBILITY ALIASES
+    // ============================================================================
+
+    /**
+     * E2E compatibility: Alias for waitForModalToOpen
+     */
+    async waitForModalVisible(): Promise<void> {
+        await this.waitForModalToOpen();
+    }
+
+    /**
+     * E2E compatibility: Alias for getModalContainer
+     */
+    getModalDialog() {
+        return this.getModalContainer();
+    }
+
+    /**
+     * E2E compatibility: Alias for getGenerateNewLinkButton
+     */
+    getGenerateNewButton() {
+        return this.getGenerateNewLinkButton();
     }
 }
