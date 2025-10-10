@@ -215,6 +215,23 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                 {/* Content */}
                 <div className='max-w-3xl mx-auto px-4 py-6'>
                     <Stack spacing='md'>
+                        {/* Lock Warning Banner */}
+                        {expense.value.isLocked && (
+                            <div className='bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4'>
+                                <div className='flex items-start gap-3'>
+                                    <span className='text-2xl'>⚠️</span>
+                                    <div>
+                                        <p className='font-semibold text-yellow-900 dark:text-yellow-100'>
+                                            {t('pages.expenseDetailPage.cannotEdit')}
+                                        </p>
+                                        <p className='text-sm text-yellow-800 dark:text-yellow-200 mt-1'>
+                                            {t('pages.expenseDetailPage.containsDepartedMembers')}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Consolidated Top Card - Main Info, Paid By, Actions, and Metadata */}
                         <Card>
                             <Stack spacing='lg'>
@@ -258,7 +275,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
 
                                 {/* Actions Section */}
                                 <div className='pt-4 border-t border-gray-200 dark:border-gray-700'>
-                                    <ExpenseActions expense={expense.value} onEdit={handleEdit} onDelete={handleDelete} onShare={handleShare} onCopy={handleCopy} />
+                                    <ExpenseActions expense={expense.value} onEdit={handleEdit} onDelete={handleDelete} onShare={handleShare} onCopy={handleCopy} disabled={expense.value.isLocked} />
                                 </div>
                             </Stack>
                         </Card>

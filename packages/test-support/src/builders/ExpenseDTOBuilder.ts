@@ -122,6 +122,11 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
+    withIsLocked(isLocked: boolean): this {
+        this.expense.isLocked = isLocked;
+        return this;
+    }
+
     build(): ExpenseDTO {
         return {
             ...this.expense,

@@ -934,28 +934,63 @@ Lock status is NOT cached because:
 - **Note:** Unit tests not needed - lock logic is simple (array membership check) and fully covered by integration tests
 - **Fixed:** Corrected API calls to use `getGroupFullDetails()` instead of non-existent `getGroupSettlements()` method
 
+#### ✅ Phase 4: Frontend - ExpenseDetailPage (COMPLETED)
+- Added lock warning banner with ⚠️ icon in `ExpenseDetailPage.tsx:219-233`
+- Banner displays when `expense.isLocked` is true
+- Shows "This expense cannot be edited" with explanation about departed members
+- Updated `ExpenseActions` component call to pass `disabled={expense.isLocked}` prop
+- Location: `webapp-v2/src/pages/ExpenseDetailPage.tsx`
+
+#### ✅ Phase 5: Frontend - AddExpensePage (COMPLETED)
+- Added lock check in `loadExpenseForEdit()` function in `useFormInitialization.ts:49-51`
+- Throws error if `expense.isLocked` is true
+- Error displayed: "This expense cannot be edited because one or more participants have left the group."
+- Location: `webapp-v2/src/app/hooks/useFormInitialization.ts`
+
+#### ✅ Phase 6: Frontend - SettlementForm (COMPLETED)
+- Added lock check in edit mode in `useEffect` hook at line 45-48
+- Shows validation error if `settlementToEdit.isLocked` is true
+- Disabled submit button when locked: `disabled={!isFormValid || isSubmitting || (editMode && settlementToEdit?.isLocked)}`
+- Error message: "This settlement cannot be edited because a participant has left the group."
+- Location: `webapp-v2/src/components/settlements/SettlementForm.tsx`
+
+#### ✅ Phase 7: Frontend - SettlementHistory (COMPLETED)
+- Disabled edit button for locked settlements at line 170
+- Added conditional tooltip: shows "Cannot edit - member has left the group" when locked
+- Visual feedback with disabled styling (opacity-50, cursor-not-allowed)
+- Location: `webapp-v2/src/components/settlements/SettlementHistory.tsx`
+
+#### ✅ Phase 4.3: ExpenseActions Component (COMPLETED)
+- Added `disabled?: boolean` prop to interface
+- Wrapped edit button in div with tooltip
+- Applied disabled state: `<Button disabled={disabled}>`
+- Conditional tooltip: `title={disabled ? t('expenseComponents.expenseActions.cannotEditTooltip') : undefined}`
+- Location: `webapp-v2/src/components/expense/ExpenseActions.tsx`
+
+#### ✅ Phase 8: Translation Keys - Complete Set (COMPLETED)
+All translation keys added to `webapp-v2/src/locales/en/translation.json`:
+- `pages.expenseDetailPage.cannotEdit`: "This expense cannot be edited"
+- `pages.expenseDetailPage.containsDepartedMembers`: "One or more participants have left the group. Historical records are preserved as read-only."
+- `expenseForm.errors.expenseLocked`: "This expense cannot be edited because one or more participants have left the group."
+- `settlementForm.errors.settlementLocked`: "This settlement cannot be edited because a participant has left the group."
+- `settlementHistory.cannotEditTooltip`: "Cannot edit - member has left the group"
+- `expenseComponents.expenseActions.cannotEditTooltip`: "Cannot edit - participant has left the group"
+
+#### ✅ Build Verification (COMPLETED)
+- Full project build completed successfully via `npm run build`
+- All TypeScript compilation passes with no errors
+- All workspaces built: @splitifyd/shared, functions, webapp-v2, e2e-tests, test-support
+- Vite production build successful (dist files generated)
+
 ### Pending Phases
-
-#### ⏳ Phase 4: Frontend - ExpenseDetailPage (PENDING)
-- Add lock warning banner
-- Disable edit button when locked
-- Update ExpenseActions component
-
-#### ⏳ Phase 5: Frontend - AddExpensePage (PENDING)
-- Add lock check in useExpenseForm hook
-- Display error if locked expense loaded
-
-#### ⏳ Phase 6: Frontend - SettlementForm (PENDING)
-- Add lock check in edit mode
-- Disable form when locked
-
-#### ⏳ Phase 7: Frontend - SettlementHistory (PENDING)
-- Disable edit button for locked settlements
-- Add tooltip for disabled state
 
 #### ⏳ Phase 10: E2E Tests (PENDING)
 - Full user workflow testing
 - Create new E2E test file: `e2e-tests/src/__tests__/integration/departed-member-locking.e2e.test.ts`
+
+#### ⏳ Phase 11: Playwright Unit Tests (PENDING)
+- Create Playwright unit test for lock UI components
+- Location: `webapp-v2/src/__tests__/unit/playwright/expense-detail-locked.test.tsx`
 
 ## Testing Checklist
 
@@ -972,11 +1007,12 @@ Lock status is NOT cached because:
 - ✅ Optimized with single getAllGroupMemberIds call per operation
 
 ### Frontend Tests
-- ⏳ Lock warning banner displayed
-- ⏳ Edit button disabled for locked transactions
-- ⏳ Edit form shows error if locked expense loaded
-- ⏳ Settlement form shows error if locked settlement loaded
-- ⏳ Tooltip shows explanation on disabled buttons
+- ✅ Lock warning banner displayed (implemented in ExpenseDetailPage)
+- ✅ Edit button disabled for locked transactions (implemented in ExpenseActions)
+- ✅ Edit form shows error if locked expense loaded (implemented in useFormInitialization)
+- ✅ Settlement form shows error if locked settlement loaded (implemented in SettlementForm)
+- ✅ Tooltip shows explanation on disabled buttons (implemented for both expenses and settlements)
+- ⏳ Playwright unit tests for lock UI components (to be created)
 
 ### E2E Tests
 - ⏳ Full workflow: create → member leaves → verify locked UI

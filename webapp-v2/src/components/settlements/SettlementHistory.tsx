@@ -166,9 +166,10 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                                 <div class='flex gap-1'>
                                     {onEditSettlement && (
                                         <button
-                                            onClick={() => onEditSettlement(settlement)}
-                                            class='p-1 text-gray-400 hover:text-blue-600 transition-colors'
-                                            title={t('settlementHistory.editPaymentTooltip')}
+                                            onClick={() => !settlement.isLocked && onEditSettlement(settlement)}
+                                            disabled={settlement.isLocked}
+                                            class='p-1 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-400'
+                                            title={settlement.isLocked ? t('settlementHistory.cannotEditTooltip') : t('settlementHistory.editPaymentTooltip')}
                                             data-testid='edit-settlement-button'
                                         >
                                             <PencilIcon class='h-4 w-4' />

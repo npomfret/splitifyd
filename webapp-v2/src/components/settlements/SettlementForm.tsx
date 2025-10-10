@@ -41,6 +41,13 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     useEffect(() => {
         if (isOpen) {
             if (editMode && settlementToEdit) {
+                // Check if settlement is locked
+                if (settlementToEdit.isLocked) {
+                    setValidationError(t('settlementForm.errors.settlementLocked'));
+                    setIsSubmitting(false);
+                    return;
+                }
+
                 // Pre-populate form with settlement data for editing
                 setPayerId(settlementToEdit.payer.uid);
                 setPayeeId(settlementToEdit.payee.uid);
@@ -432,7 +439,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                             <Button type='button' variant='secondary' onClick={onClose} disabled={isSubmitting} className='flex-1' data-testid='cancel-settlement-button'>
                                 {t('settlementForm.cancelButton')}
                             </Button>
-                            <Button type='submit' variant='primary' disabled={!isFormValid || isSubmitting} loading={isSubmitting} className='flex-1' data-testid='save-settlement-button'>
+                            <Button type='submit' variant='primary' disabled={!isFormValid || isSubmitting || (editMode && settlementToEdit?.isLocked)} loading={isSubmitting} className='flex-1' data-testid='save-settlement-button'>
                                 {isSubmitting
                                     ? editMode
                                         ? t('settlementForm.updatingButton')

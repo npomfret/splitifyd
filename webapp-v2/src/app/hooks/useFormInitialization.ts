@@ -45,6 +45,11 @@ export function useFormInitialization({ groupId, expenseId, isEditMode, isCopyMo
             throw new Error('Expense not found');
         }
 
+        // Check if expense is locked
+        if (expense.isLocked) {
+            throw new Error('This expense cannot be edited because one or more participants have left the group.');
+        }
+
         // Populate form with existing expense data
         expenseFormStore.updateField('description', expense.description);
         expenseFormStore.updateField('amount', expense.amount);

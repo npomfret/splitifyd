@@ -10,9 +10,10 @@ interface ExpenseActionsProps {
     onDelete: () => Promise<void>;
     onShare: () => void;
     onCopy: () => void;
+    disabled?: boolean;
 }
 
-export function ExpenseActions({ expense, onEdit, onDelete, onShare, onCopy }: ExpenseActionsProps) {
+export function ExpenseActions({ expense, onEdit, onDelete, onShare, onCopy, disabled }: ExpenseActionsProps) {
     const { t } = useTranslation();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -46,9 +47,11 @@ export function ExpenseActions({ expense, onEdit, onDelete, onShare, onCopy }: E
         <>
             {/* Action Buttons */}
             <div className='flex flex-wrap gap-3 justify-center sm:justify-start'>
-                <Button variant='primary' onClick={onEdit}>
-                    {t('expenseComponents.expenseActions.edit')}
-                </Button>
+                <div title={disabled ? t('expenseComponents.expenseActions.cannotEditTooltip') : undefined}>
+                    <Button variant='primary' onClick={onEdit} disabled={disabled}>
+                        {t('expenseComponents.expenseActions.edit')}
+                    </Button>
+                </div>
 
                 <Button variant='secondary' onClick={onCopy} ariaLabel='Copy expense'>
                     <>

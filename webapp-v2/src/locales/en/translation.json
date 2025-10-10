@@ -650,7 +650,10 @@
     "selectAll": "Select all",
     "saveExpense": "Save Expense",
     "updateExpense": "Update Expense",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "errors": {
+      "expenseLocked": "This expense cannot be edited because one or more participants have left the group."
+    }
   },
   "settlementForm": {
     "updatePayment": "Update Payment",
@@ -680,6 +683,9 @@
       "dateInFuture": "Date cannot be in the future",
       "recordPaymentFailed": "Failed to record payment"
     },
+    "errors": {
+      "settlementLocked": "This settlement cannot be edited because a participant has left the group."
+    },
     "warnings": {
       "noDebt": "{{payer}} does not owe {{payee}} any money in {{currency}}. This settlement will create a debt in the opposite direction.",
       "overpayment": "{{payer}} only owes {{payee}} {{debt}}, but you're settling {{amount}}. This will create a debt in the opposite direction."
@@ -690,6 +696,7 @@
     "today": "Today",
     "yesterday": "Yesterday",
     "editPaymentTooltip": "Edit payment",
+    "cannotEditTooltip": "Cannot edit - member has left the group",
     "deletePaymentTooltip": "Delete payment",
     "loadMore": "Load more",
     "deletePaymentTitle": "Delete Payment",
@@ -1196,6 +1203,8 @@
       "missingGroupId": "Missing group ID",
       "missingExpenseId": "Missing expense ID",
       "failedToLoad": "Failed to load expense",
+      "cannotEdit": "This expense cannot be edited",
+      "containsDepartedMembers": "One or more participants have left the group. Historical records are preserved as read-only.",
       "expenseLabel": "Expense: ",
       "checkOutExpense": "Check out this expense: ",
       "shareApiFailed": "Share API failed, falling back to clipboard",
