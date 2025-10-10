@@ -254,13 +254,83 @@ await dashboardPage.waitForDashboard();
 const groupDetailPage = await dashboardPage.createGroupAndNavigate('My Group');
 ```
 
-#### ❌ Prohibited: Raw Selectors in Tests
+#### ❌ Prohibited: ANY Direct Selector Usage in Tests
+
+**Tests must do NOTHING with selectors.** This means:
+- No `page.getByRole()`, `page.locator()`, `page.getByText()`, etc.
+- No visibility checks like `await page.getByText('X').isVisible()`
+- No enable/disable checks like `await page.getByRole('button').isDisabled()`
+- No direct assertions like `expect(page.getByText('X')).toBeVisible()`
+
+**ALL selector operations, checks, and assertions belong in Page Objects.**
 
 ```typescript
-// DON'T: Never write selectors directly in tests
+// ❌ DON'T: Never use selectors directly in tests
 await page.goto('/login');
 await page.getByRole('textbox', { name: 'Email' }).fill(email);
 await page.getByRole('button', { name: 'Sign in' }).click();
+
+// ❌ DON'T: Not even for simple visibility checks
+await expect(page.getByText('Welcome')).toBeVisible();
+await expect(page.getByRole('button', { name: 'Submit' })).toBeEnabled();
+const isVisible = await page.getByTestId('modal').isVisible();
+
+// ❌ DON'T: Not even for reading values
+const userName = await page.getByTestId('user-name').textContent();
+const count = await page.getByText(/\d+ items/).textContent();
+```
+
+#### ✅ Correct: All Checks Through Page Objects
+
+```typescript
+// ✅ DO: Page objects handle selectors and provide semantic methods
+const loginPage = new LoginPage(page);
+await loginPage.navigate();
+await loginPage.login(email, password);
+
+// ✅ DO: Page objects provide verification methods
+const dashboardPage = new DashboardPage(page);
+await dashboardPage.verifyWelcomeMessageVisible();
+await dashboardPage.verifySubmitButtonEnabled();
+
+// ✅ DO: Page objects provide value extraction methods
+const userName = await dashboardPage.getUserName();
+const itemCount = await dashboardPage.getItemCount();
+
+// ✅ DO: Even simple checks go through page objects
+await expect(dashboardPage.getWelcomeMessage()).toBeVisible();
+await expect(dashboardPage.getSubmitButton()).toBeEnabled();
+```
+
+**In Page Object:**
+```typescript
+export class DashboardPage extends BasePage {
+    // Locator getters (private selectors)
+    getWelcomeMessage(): Locator {
+        return this.page.getByText('Welcome');
+    }
+
+    getSubmitButton(): Locator {
+        return this.page.getByRole('button', { name: 'Submit' });
+    }
+
+    // High-level verification methods (preferred)
+    async verifyWelcomeMessageVisible(): Promise<void> {
+        await expect(this.getWelcomeMessage()).toBeVisible();
+    }
+
+    async verifySubmitButtonEnabled(): Promise<void> {
+        await expect(this.getSubmitButton()).toBeEnabled();
+    }
+
+    // Value extraction methods
+    async getUserName(): Promise<string> {
+        const element = this.page.getByTestId('user-name');
+        const text = await element.textContent();
+        if (!text) throw new Error('User name not found');
+        return text.trim();
+    }
+}
 ```
 
 ### Page Objects Are Not Just for Pages
