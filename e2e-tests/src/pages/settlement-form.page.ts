@@ -1,61 +1,13 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { BasePage } from './base.page';
+import { SettlementFormData, SettlementFormPage as BaseSettlementFormPage } from '@splitifyd/test-support';
 
-interface SettlementData {
-    payerName: string; // Display name of who paid
-    payeeName: string; // Display name of who received payment
-    amount: string;
-    currency: string; // Currency for the settlement
-    note: string;
-}
-
-export class SettlementFormPage extends BasePage {
+/**
+ * E2E-specific SettlementFormPage extending shared base class.
+ * Adds comprehensive member loading verification and real-time update handling.
+ */
+export class SettlementFormPage extends BaseSettlementFormPage {
     constructor(page: Page) {
         super(page);
-    }
-
-    // Element accessors
-    getModal(): Locator {
-        return this.page.getByRole('dialog');
-    }
-
-    getPayerSelect(): Locator {
-        return this.getModal().getByRole('combobox', { name: /who paid/i });
-    }
-
-    getPayeeSelect(): Locator {
-        return this.getModal().getByRole('combobox', { name: /who received the payment/i });
-    }
-
-    getAmountInput(): Locator {
-        // Amount input is now a text input with inputMode="decimal" instead of type="number"
-        return this.getModal().locator('input[inputMode="decimal"]').first();
-    }
-
-    getCurrencyButton(): Locator {
-        // Currency selector button in the CurrencyAmountInput component
-        // Look for the button that's part of the amount input (has aria-label for currency selection)
-        return this.getModal().locator('button[aria-label*="currency"], button[aria-label*="Currency"]');
-    }
-
-    getNoteInput(): Locator {
-        return this.getModal().getByRole('textbox', { name: /note/i });
-    }
-
-    getRecordPaymentButton(): Locator {
-        return this.getModal().getByRole('button', { name: /record payment/i });
-    }
-
-    getUpdatePaymentButton(): Locator {
-        return this.getModal().getByRole('button', { name: /update payment/i });
-    }
-
-    getCancelButton(): Locator {
-        return this.getModal().getByRole('button', { name: /cancel/i });
-    }
-
-    getCloseButton(): Locator {
-        return this.getModal().locator('button[aria-label="Close"]');
     }
 
     // Helper methods
@@ -140,7 +92,7 @@ export class SettlementFormPage extends BasePage {
      * Submit a settlement with all required fields
      * Note: The form should already be open and ready (use openSettlementForm() and waitForFormReady() first)
      */
-    async submitSettlement(settlement: SettlementData, expectedMemberCount: number): Promise<void> {
+    async submitSettlement(settlement: SettlementFormData, expectedMemberCount: number): Promise<void> {
         // Verify the form is open and in create mode
         const modal = this.getModal();
         await expect(modal).toBeVisible({ timeout: 1000 });
@@ -213,7 +165,8 @@ export class SettlementFormPage extends BasePage {
         await payeeSelect.selectOption(payeeValue);
 
         // Fill amount and note
-        await this.fillNumberInput(amountInput, settlement.amount);
+        await amountInput.fill(settlement.amount);
+        await amountInput.blur();
         await this.fillPreactInput(noteInput, settlement.note);
 
         // Defensive check: verify the values persisted (catches real-time update bug)
@@ -263,125 +216,7 @@ export class SettlementFormPage extends BasePage {
         await this.waitForDomContentLoaded();
     }
 
-    /**
-     * Simplified method to fill and submit settlement form
-     * Used when the form is already open and ready
-     */
-    async fillAndSubmitSettlement(amount: string, payeeName: string, currency: string): Promise<void> {
-        const modal = this.getModal();
-
-        // Set currency - MANDATORY, no defaults allowed
-        const currencyButton = this.getCurrencyButton();
-        await currencyButton.click();
-
-        // Select the target currency from dropdown
-        const currencyOption = modal.getByRole('option', { name: currency });
-        await currencyOption.click();
-
-        const amountInput = this.getAmountInput();
-        await this.fillNumberInput(amountInput, amount);
-
-        const payeeSelect = this.getPayeeSelect();
-        await payeeSelect.selectOption({ label: payeeName });
-
-        const submitButton = this.getRecordPaymentButton();
-        await this.clickButton(submitButton, { buttonName: 'Record Payment' });
-
-        // Wait for modal to close
-        await expect(modal).not.toBeVisible({ timeout: 5000 });
-    }
-
-    /**
-     * Verify the form is in update mode
-     */
-    async verifyUpdateMode(): Promise<void> {
-        const modal = this.getModal();
-        await expect(modal).toBeVisible();
-        await expect(modal.getByRole('heading', { name: 'Update Payment' })).toBeVisible();
-    }
-
-    /**
-     * Verify form values match expected
-     */
-    async verifyFormValues(expected: { amount: string; note: string; }): Promise<void> {
-        const amountInput = this.getAmountInput();
-        const noteInput = this.getNoteInput();
-
-        // For amount, compare numeric values to handle trailing zeros (100.50 vs 100.5)
-        const expectedAmount = parseFloat(expected.amount).toString();
-        await expect(amountInput).toHaveValue(expectedAmount);
-        await expect(noteInput).toHaveValue(expected.note);
-    }
-
-    /**
-     * Update a settlement (form should already be in edit mode)
-     */
-    async updateSettlement(data: { amount: string; note: string; }): Promise<void> {
-        // Assert form is in update mode before updating
-        const modal = this.getModal();
-        await expect(modal).toBeVisible();
-        await expect(modal.getByRole('heading', { name: 'Update Payment' })).toBeVisible();
-
-        const amountInput = this.getAmountInput();
-        const noteInput = this.getNoteInput();
-
-        // Update amount
-        await this.fillNumberInput(amountInput, data.amount);
-
-        // Update note
-        await this.fillPreactInput(noteInput, data.note);
-
-        // Submit update
-        const updateButton = this.getUpdatePaymentButton();
-        await expect(updateButton).toBeEnabled();
-        await this.clickButton(updateButton, { buttonName: 'Update Payment' });
-    }
-
-    /**
-     * Wait for modal to close
-     */
-    async waitForModalClosed(): Promise<void> {
-        const modal = this.getModal();
-        await expect(modal).not.toBeVisible({ timeout: 3000 });
-    }
-
-    /**
-     * Clear and fill amount field
-     */
-    async clearAndFillAmount(amount: string): Promise<void> {
-        const amountInput = this.getAmountInput();
-        await amountInput.clear();
-        await this.fillNumberInput(amountInput, amount);
-    }
-
-    /**
-     * Verify update button is disabled
-     */
-    async verifyUpdateButtonDisabled(): Promise<void> {
-        const updateButton = this.getUpdatePaymentButton();
-        await expect(updateButton).toBeDisabled();
-    }
-
-    /**
-     * Verify update button is enabled
-     */
-    async verifyUpdateButtonEnabled(): Promise<void> {
-        const updateButton = this.getUpdatePaymentButton();
-        await expect(updateButton).toBeEnabled();
-    }
-
-    /**
-     * Close the modal
-     */
-    async closeModal(): Promise<void> {
-        const closeButton = this.getCloseButton();
-        const cancelButton = this.getCancelButton();
-
-        // Try close button first, then cancel
-        if (await closeButton.isVisible()) {
-            await closeButton.click();
-        } else if (await cancelButton.isVisible()) {
-            await cancelButton.click();
-        }
-    }
+    // All other methods (fillAndSubmitSettlement, verifyUpdateMode, verifyFormValues,
+    // updateSettlement, waitForModalClosed, clearAndFillAmount, verifyUpdateButtonDisabled,
+    // verifyUpdateButtonEnabled, closeModal) are inherited from base class
 }

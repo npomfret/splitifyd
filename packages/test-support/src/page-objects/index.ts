@@ -7,4 +7,5 @@ export { GroupDetailPage } from './GroupDetailPage';
 export { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
 export { LoginPage } from './LoginPage';
 export { RegisterPage } from './RegisterPage';
+export { SettlementFormPage } from './SettlementFormPage';
 export { ShareGroupModalPage } from './ShareGroupModalPage';
