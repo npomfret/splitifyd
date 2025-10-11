@@ -19,14 +19,16 @@
 2. **Zero Breaking Changes**: All existing API consumers continue to work without modification
 3. **Type-Safe Migration Path**: New utilities enable gradual migration to strings across the codebase
 
-**Files Modified** (5 files total):
-- `packages/shared/src/split-utils.ts` - Added `parseMonetaryAmount()` and `formatMonetaryAmount()` utilities
-- `firebase/functions/src/expenses/validation.ts` - Created `createAmountSchema()` for dual-format validation
-- `firebase/functions/src/utils/amount-validation.ts` - Updated `createJoiAmountSchema()` to accept both formats
-- `firebase/functions/src/settlements/validation.ts` - (No changes - uses updated `createJoiAmountSchema()`)
-- `tasks/monetary-amounts-as-strings-refactor.md` - This document (progress tracking)
+**Files Modified** (4 files total, commit c9f3f144):
+- `packages/shared/src/split-utils.ts` - Added `parseMonetaryAmount()` and `formatMonetaryAmount()` utilities (+67 lines)
+- `firebase/functions/src/expenses/validation.ts` - Created `createAmountSchema()` for dual-format validation (+46 lines)
+- `firebase/functions/src/utils/amount-validation.ts` - Updated `createJoiAmountSchema()` to accept both formats (+63 lines modified)
+- `tasks/monetary-amounts-as-strings-refactor.md` - This document (progress tracking) (+167 lines)
+
+**Total Code Changes**: +176 lines of production code, +167 lines of documentation
 
 **Files NOT Modified** (intentionally):
+- `firebase/functions/src/settlements/validation.ts` - No changes needed, inherits dual-format support from `createJoiAmountSchema()`
 - Zod schemas (validate Firestore docs, not API DTOs)
 - FirestoreReader/Writer (lenient conversion already works)
 - Type definitions (keeping backward compatibility)
@@ -981,27 +983,36 @@ npm run test:unit
 ### ✅ Completed: Phase 1.1 - Shared Utilities (October 11, 2025)
 **Goal**: Add dual-format support utilities to enable gradual migration
 
+**Commit**: c9f3f144d9a784230f7a25cc6a89859afc07177f
+
 1. ✅ Added `parseMonetaryAmount(amount: string | number): number` to `@splitifyd/shared/src/split-utils.ts`
    - Accepts both strings and numbers for backward compatibility
    - Validates string format with regex `/^-?\d+(\.\d+)?$/`
    - Returns normalized number for internal processing
    - Throws Error for invalid formats
+   - Complete JSDoc documentation with examples
+   - Lines added: 67 (67 lines of new utility code)
 
 2. ✅ Added `formatMonetaryAmount(amount: number, currencyCode: string): string` to `@splitifyd/shared/src/split-utils.ts`
    - Formats numbers to strings with correct decimal places per currency
    - Uses `getCurrencyDecimals()` for precision
    - Ready for future API string responses
+   - Complete JSDoc documentation with examples
 
 3. ✅ Build verification: `packages/shared` compiles successfully with no errors
 
 ### ✅ Completed: Phase 1.2 - Backend Joi Validation (October 11, 2025)
 **Goal**: Accept both number and string amounts at API boundary
 
+**Commit**: c9f3f144d9a784230f7a25cc6a89859afc07177f
+
 1. ✅ Created `createAmountSchema()` helper in `firebase/functions/src/expenses/validation.ts`
    - Uses `Joi.alternatives()` to accept both `number` and `string`
    - Validates string format with pattern `/^-?\d+(\.\d+)?$/`
    - Normalizes to number using `parseMonetaryAmount()` from shared package
    - Preserves all validation error messages
+   - Complete JSDoc documentation explaining dual-format approach
+   - Lines added: 46 (38 lines of schema + 8 lines of documentation)
 
 2. ✅ Updated `expenseSplitSchema` to use `createAmountSchema()`
    - Backward compatible: existing number requests still work
@@ -1017,8 +1028,12 @@ npm run test:unit
    - Validates range (0 < amount ≤ 999,999.99)
    - Validates currency precision if `currencyField` is provided
    - Returns normalized number for internal processing
+   - Enhanced JSDoc documentation
+   - Lines modified: 63 (complete rewrite of function logic)
 
 6. ✅ Settlement schemas automatically updated (they use `createJoiAmountSchema()`)
+   - No code changes needed in `firebase/functions/src/settlements/validation.ts`
+   - Inherits dual-format support automatically
 
 7. ✅ Build verification: `firebase/functions` compiles successfully with no errors
 
