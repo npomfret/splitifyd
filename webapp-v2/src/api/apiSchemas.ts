@@ -329,7 +329,6 @@ const ListCommentsApiResponseSchema = z.object({
 
 // User profile schemas
 const UserProfileResponseSchema = z.object({
-    uid: z.string().min(1),
     displayName: z.string(),
 });
 
