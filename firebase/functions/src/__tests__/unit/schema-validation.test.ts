@@ -1,7 +1,7 @@
-import { GroupDTO, GroupMember, MemberRoles, MemberStatuses, PermissionLevels, SecurityPresets, UserThemeColor } from '@splitifyd/shared';
-import { GroupDTOBuilder, GroupMemberBuilder, ThemeBuilder } from '@splitifyd/test-support';
-import { beforeAll, describe, expect, test } from 'vitest';
-import { z } from 'zod';
+import {GroupDTO, GroupMember, MemberRoles, MemberStatuses, PermissionLevels, SecurityPresets, UserThemeColor} from '@splitifyd/shared';
+import {GroupDTOBuilder, GroupMemberBuilder, ThemeBuilder} from '@splitifyd/test-support';
+import {beforeAll, describe, expect, test} from 'vitest';
+import {z} from 'zod';
 
 // Import webapp Zod schemas for validation
 // Note: These are the actual schemas used by the frontend to validate API responses
@@ -61,7 +61,6 @@ const GroupMemberDTOSchema = z.object({
     initials: z.string().min(1),
 
     // User display properties
-    photoURL: z.string().url().nullable().optional(),
     themeColor: UserThemeColorSchema,
 
     // Group membership metadata (required for permissions)
@@ -108,7 +107,6 @@ describe('Cross-Service Schema Validation', () => {
             .withUid('user-456')
             .withDisplayName('Test User')
             .withInitials('TU')
-            .withPhotoURL(null)
             .withThemeColor(mockTheme)
             .withJoinedAt('2024-01-01T00:00:00.000Z')
             .withMemberRole(MemberRoles.MEMBER)

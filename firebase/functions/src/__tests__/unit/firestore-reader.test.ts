@@ -76,9 +76,8 @@ describe('StubFirestoreReader', () => {
     });
 
     test('static builders should create valid test objects', () => {
-        const testUser = createTestUser('user123');
-        expect(testUser.id).toBe('user123');
-        expect(testUser.email).toContain('@test.com');
+        const testUser = createTestUser('123456');
+        expect(testUser.displayName).toBe(`Test User 123456`);
 
         const testGroup = createTestGroup('group456');
         expect(testGroup.id).toBe('group456');

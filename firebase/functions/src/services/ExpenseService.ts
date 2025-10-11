@@ -140,7 +140,6 @@ export class ExpenseService {
                     uid: userId,
                     displayName: validatedData.displayName,
                     initials,
-                    photoURL: userData.photoURL || null,
                     themeColor: userData.themeColor || {
                         light: '#9CA3AF',
                         dark: '#6B7280',
@@ -161,7 +160,6 @@ export class ExpenseService {
                 uid: userId,
                 displayName: validatedData.displayName,
                 initials,
-                photoURL: userData.photoURL || null,
                 themeColor: memberData.theme,
                 memberRole: memberData.memberRole,
                 memberStatus: memberData.memberStatus,

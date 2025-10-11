@@ -297,7 +297,6 @@ export class UserService {
                     uid: memberDoc.uid,
                     initials: '?',
                     displayName: 'Unknown User',
-                    photoURL: null,
                     themeColor: memberDoc.theme,
                     // Group membership metadata
                     joinedAt: memberDoc.joinedAt, // Already ISO string from DTO
@@ -311,7 +310,6 @@ export class UserService {
                 uid: memberDoc.uid,
                 initials: this.getInitials(profile.displayName),
                 displayName: profile.displayName,
-                photoURL: profile.photoURL,
                 themeColor: (typeof profile.themeColor === 'object' ? profile.themeColor : memberDoc.theme) as UserThemeColor,
                 // Group membership metadata (required for permissions)
                 joinedAt: memberDoc.joinedAt, // Already ISO string from DTO

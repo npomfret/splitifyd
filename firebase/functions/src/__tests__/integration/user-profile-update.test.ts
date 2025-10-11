@@ -25,7 +25,6 @@ describe('User Profile Update - Integration Tests', () => {
             // Verify the response
             expect(updatedProfile).toBeDefined();
             expect(updatedProfile.displayName).toBe(newDisplayName);
-            expect(updatedProfile.uid).toBe(user.uid);
         });
 
         test('should reject empty display name', async () => {

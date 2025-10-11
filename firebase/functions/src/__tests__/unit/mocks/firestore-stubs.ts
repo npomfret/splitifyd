@@ -1299,10 +1299,8 @@ export class StubAuthService implements IAuthService {
 /**
  * Helper functions to create mock data for testing
  */
-export function createTestUser(id: string, overrides: any = {}): any {
+export function createTestUser(id: string, overrides: any = {}): RegisteredUser {
     return {
-        id,
-        email: `${id}@test.com`,
         displayName: `Test User ${id}`,
         photoURL: null,
         emailVerified: true,

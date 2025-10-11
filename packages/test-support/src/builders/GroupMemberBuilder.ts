@@ -21,7 +21,6 @@ export class GroupMemberBuilder {
             initials: this.generateInitials(displayName),
 
             // User display properties
-            photoURL: null,
             themeColor: new ThemeBuilder()
                 .build(),
 
@@ -49,13 +48,6 @@ export class GroupMemberBuilder {
         this.member.initials = initials;
         return this;
     }
-
-    // User display properties methods
-    withPhotoURL(photoURL: string | null): this {
-        this.member.photoURL = photoURL;
-        return this;
-    }
-
     withThemeColor(themeColor: UserThemeColor): this {
         this.member.themeColor = themeColor;
         return this;

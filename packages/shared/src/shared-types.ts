@@ -443,7 +443,6 @@ export interface GroupMember {
     initials: string;
 
     // User display properties
-    photoURL?: string | null;
     themeColor: UserThemeColor;
 
     // Group membership metadata (required for permissions)
