@@ -1,4 +1,4 @@
-import { getCurrency } from '@splitifyd/shared';
+import { getCurrency, parseMonetaryAmount } from '@splitifyd/shared';
 import * as Joi from 'joi';
 
 /**
@@ -50,26 +50,57 @@ export function validateAmountPrecision(amount: number, currencyCode: string): v
 }
 
 /**
- * Create a Joi schema for currency-aware amount validation
+ * Create a Joi schema for currency-aware amount validation.
+ * Accepts both numbers and strings for backward compatibility during migration.
+ *
  * @param currencyField - Optional field name that contains the currency code (for validation that depends on another field)
+ * @returns Joi alternatives schema that accepts both number and string amounts
  */
-export function createJoiAmountSchema(currencyField?: string): Joi.NumberSchema {
-    let schema = Joi.number().positive().max(999999.99);
+export function createJoiAmountSchema(currencyField?: string): Joi.AlternativesSchema {
+    const baseSchema = Joi.alternatives()
+        .try(
+            // Option 1: Accept numbers (backward compatible)
+            Joi.number().positive().max(999999.99),
+            // Option 2: Accept strings in decimal format
+            Joi.string().pattern(/^-?\d+(\.\d+)?$/, 'decimal number'),
+        )
+        .custom((value, helpers) => {
+            try {
+                // Parse to number using shared utility (handles both types)
+                const numValue = parseMonetaryAmount(value);
 
-    if (currencyField) {
-        // Add custom validation that checks precision based on the currency field
-        schema = schema.custom((value, helpers) => {
-            const currency = helpers.state.ancestors[0][currencyField];
-            if (currency) {
-                try {
-                    validateAmountPrecision(value, currency);
-                } catch (error) {
-                    return helpers.error('number.precision', { message: (error as Error).message });
+                // Validate range
+                if (numValue <= 0) {
+                    return helpers.error('number.positive');
                 }
-            }
-            return value;
-        });
-    }
+                if (numValue > 999999.99) {
+                    return helpers.error('number.max');
+                }
 
-    return schema;
+                // Validate precision if currency field is available
+                if (currencyField) {
+                    const currency = helpers.state.ancestors[0][currencyField];
+                    if (currency) {
+                        try {
+                            validateAmountPrecision(numValue, currency);
+                        } catch (error) {
+                            return helpers.error('number.precision', { message: (error as Error).message });
+                        }
+                    }
+                }
+
+                // Return normalized number for internal processing
+                return numValue;
+            } catch (error) {
+                return helpers.error('number.invalid', { message: (error as Error).message });
+            }
+        })
+        .messages({
+            'alternatives.match': 'Amount must be a positive number or numeric string',
+            'number.positive': 'Amount must be greater than zero',
+            'number.max': 'Amount cannot exceed 999,999.99',
+            'number.invalid': 'Invalid amount format',
+        });
+
+    return baseSchema;
 }

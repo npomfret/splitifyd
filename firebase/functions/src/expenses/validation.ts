@@ -2,15 +2,53 @@ import * as Joi from 'joi';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 
-import { CreateExpenseRequest, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
+import { CreateExpenseRequest, SplitTypes, UpdateExpenseRequest, parseMonetaryAmount } from '@splitifyd/shared';
 import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 import { validateAmountPrecision } from '../utils/amount-validation';
 import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
 import { sanitizeString } from '../utils/security';
 
+/**
+ * Create a dual-format amount schema that accepts both numbers and strings.
+ * This provides backward compatibility during the string migration.
+ *
+ * The schema:
+ * - Accepts both number and string inputs
+ * - Validates string format using regex
+ * - Normalizes to number for internal processing
+ * - Preserves validation error messages
+ */
+const createAmountSchema = () =>
+    Joi.alternatives()
+        .try(
+            // Option 1: Accept numbers (backward compatible)
+            Joi.number().positive(),
+            // Option 2: Accept strings in decimal format
+            Joi.string().pattern(/^-?\d+(\.\d+)?$/, 'decimal number'),
+        )
+        .custom((value, helpers) => {
+            try {
+                // Normalize to number using shared utility
+                const numValue = parseMonetaryAmount(value);
+                if (numValue <= 0) {
+                    return helpers.error('number.positive');
+                }
+                // Return as number for internal processing
+                // (Will be converted to string at API boundary later)
+                return numValue;
+            } catch (error) {
+                return helpers.error('number.invalid', { message: (error as Error).message });
+            }
+        })
+        .messages({
+            'alternatives.match': 'Amount must be a positive number or numeric string',
+            'number.positive': 'Amount must be greater than zero',
+            'number.invalid': 'Invalid amount format',
+        });
+
 const expenseSplitSchema = Joi.object({
     uid: Joi.string().required(),
-    amount: Joi.number().positive().required(),
+    amount: createAmountSchema().required(),
     percentage: Joi.number().min(0).max(100).optional(),
 });
 
@@ -59,7 +97,7 @@ const dateValidationSchema = utcDateValidationSchema;
 const createExpenseSchema = Joi.object({
     groupId: Joi.string().required(),
     paidBy: Joi.string().required(),
-    amount: Joi.number().positive().required(),
+    amount: createAmountSchema().required(),
     currency: Joi.string().length(3).uppercase().required(),
     description: Joi.string().trim().min(1).max(200).required(),
     category: Joi.string().trim().min(1).max(50).required(),
@@ -72,7 +110,7 @@ const createExpenseSchema = Joi.object({
 
 const updateExpenseSchema = Joi
     .object({
-        amount: Joi.number().positive().optional(),
+        amount: createAmountSchema().optional(),
         currency: Joi.string().length(3).uppercase().optional(),
         description: Joi.string().trim().min(1).max(200).optional(),
         category: Joi.string().trim().min(1).max(50).optional(),
