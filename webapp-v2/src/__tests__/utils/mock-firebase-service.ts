@@ -547,30 +547,6 @@ export async function mockGenerateShareLinkApi(
 }
 
 /**
- * Mock expense full-details API endpoint (for both new and existing expenses)
- * @param delayMs - Optional delay in milliseconds before responding
- */
-export async function mockExpenseDetailApi(
-    page: Page,
-    groupId: string,
-    group: any,
-    options: { delayMs?: number; } = {},
-): Promise<void> {
-    const delay = getApiDelay(options.delayMs);
-
-    await page.route(new RegExp(`/api/expenses/[^/]+/full-details(\\?.*)?$`), async (route: any) => {
-        if (delay > 0) {
-            await new Promise((resolve) => setTimeout(resolve, delay));
-        }
-        route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(group),
-        });
-    });
-}
-
-/**
  * Creates successful API mocks for authenticated user flows
  * Commonly used pattern for tests that need authenticated users with accepted policies
  */

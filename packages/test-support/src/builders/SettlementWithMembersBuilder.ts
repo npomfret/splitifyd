@@ -120,30 +120,4 @@ export class SettlementWithMembersBuilder {
             .withAmount(amount);
     }
 
-    /**
-     * Create a settlement with full member objects
-     */
-    static withMembers(payer: GroupMember, payee: GroupMember, amount: number = 100): SettlementWithMembersBuilder {
-        return new SettlementWithMembersBuilder()
-            .withPayer(payer)
-            .withPayee(payee)
-            .withAmount(amount);
-    }
-
-    /**
-     * Create multiple settlements for a group
-     */
-    static buildMany(count: number, groupId: string, customizer?: (builder: SettlementWithMembersBuilder, index: number) => void): SettlementWithMembers[] {
-        return Array.from({ length: count }, (_, i) => {
-            const builder = new SettlementWithMembersBuilder()
-                .withId(`settlement-${i + 1}`)
-                .withGroupId(groupId);
-
-            if (customizer) {
-                customizer(builder, i);
-            }
-
-            return builder.build();
-        });
-    }
 }

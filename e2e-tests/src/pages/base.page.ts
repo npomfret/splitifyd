@@ -164,65 +164,6 @@ export abstract class BasePage {
         await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
     }
 
-    /**
-     * Fill a number input field using fill() method with numeric validation.
-     * Handles the "0" default value issue for number inputs.
-     */
-    async fillNumberInput(selector: string | Locator, value: string, maxRetries = 3) {
-        const input = typeof selector === 'string' ? this._page.locator(selector) : selector;
-
-        await expect(input).toBeVisible();
-        await expect(input).toBeEnabled();
-
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                await input.click();
-                await this.waitForFocus(input);
-                await input.fill('');
-
-                // For number inputs, clearing may result in "0" instead of "", which is acceptable
-                const clearedValue = await input.inputValue();
-                if (clearedValue !== '' && clearedValue !== '0') {
-                    const fieldId = await this.getFieldIdentifier(input);
-                    throw new Error(`Failed to clear number input "${fieldId}": expected "" or "0" but got "${clearedValue}"`);
-                }
-
-                await this.waitForFocus(input);
-                await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
-
-                await input.fill(value);
-                await input.dispatchEvent('input');
-                await input.blur();
-
-                const actualValue = await input.inputValue();
-                const expectedNum = parseFloat(value);
-                const actualNum = parseFloat(actualValue);
-
-                // For number inputs, compare numerically to handle normalization (e.g., "45.50" -> "45.5")
-                if (!isNaN(expectedNum) && !isNaN(actualNum) && expectedNum === actualNum) {
-                    await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
-                    return;
-                }
-
-                if (attempt < maxRetries) {
-                    const fieldId = await this.getFieldIdentifier(input);
-                    console.warn(`Number input retry ${attempt}: expected "${value}", got "${actualValue}" for ${fieldId}`);
-                    await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
-                }
-            } catch (error) {
-                if (attempt === maxRetries) {
-                    throw error;
-                }
-                console.warn(`Attempt ${attempt} threw error, retrying:`, error instanceof Error ? error.message : String(error));
-                await this._page.waitForTimeout(500);
-            }
-        }
-
-        const fieldId = await this.getFieldIdentifier(input);
-        const actualValue = await input.inputValue();
-        throw new Error(`Failed to fill number input field "${fieldId}" after ${maxRetries} attempts. Expected: "${value}", Got: "${actualValue}"`);
-    }
-
     async waitForDomContentLoaded(timeout = 5000) {
         await this._page.waitForLoadState('domcontentloaded', { timeout });
     }
@@ -313,36 +254,10 @@ export abstract class BasePage {
     }
 
     /**
-     * Extracts a parameter from the current URL
-     */
-    getUrlParam(paramName: string): string | null {
-        const url = new URL(this._page.url());
-        const pathParts = url.pathname.split('/');
-        const paramIndex = pathParts.indexOf(paramName);
-
-        if (paramIndex !== -1 && paramIndex < pathParts.length - 1) {
-            return pathParts[paramIndex + 1];
-        }
-
-        // For group IDs, extract from /groups/{id} pattern
-        if (paramName === 'groupId') {
-            const match = url.pathname.match(/\/groups\/([a-zA-Z0-9]+)/);
-            return match ? match[1] : null;
-        }
-
-        return null;
-    }
-
-    /**
      * Navigation helper methods to replace direct page.goto() calls
      */
     async navigateToHomepage(): Promise<void> {
         await this._page.goto(EMULATOR_URL);
-        await this.waitForDomContentLoaded();
-    }
-
-    async navigateToRegister(): Promise<void> {
-        await this._page.goto(`${EMULATOR_URL}/register`);
         await this.waitForDomContentLoaded();
     }
 

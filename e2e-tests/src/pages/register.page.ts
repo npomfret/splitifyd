@@ -32,23 +32,6 @@ export class RegisterPage extends BaseRegisterPage {
     }
 
     /**
-     * E2E-specific: Complete registration workflow and return e2e DashboardPage
-     * Alternative to base class method that returns e2e-specific page object
-     */
-    async registerAndGoToDashboard(
-        name: string,
-        email: string,
-        password: string,
-        confirmPassword: string = password,
-    ): Promise<DashboardPage> {
-        await this.fillRegistrationForm(name, email, password, confirmPassword);
-        await this.acceptAllPolicies();
-        await this.submitForm();
-        await this.waitForRegistrationCompletion();
-        return new DashboardPage(this.page);
-    }
-
-    /**
      * E2E-specific: Wait for registration completion with timing variation handling
      * Handles both instant registration and slower processing with loading spinner
      */

@@ -59,7 +59,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await expect(page).toHaveURL('/dashboard');
     });
 
-    test('should reactively update submit button based on form validity', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should reactively update submit button based on form validity', async ({ pageWithLogging: page, }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -97,7 +97,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await expect(submitButton).toBeEnabled();
     });
 
-    test('should maintain form state while modal/page is open', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should maintain form state while modal/page is open', async ({ pageWithLogging: page, }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -122,7 +122,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await expect(registerPage.getEmailInput()).toHaveValue('jane@example.com');
     });
 
-    test('should handle multiple field updates correctly', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should handle multiple field updates correctly', async ({ pageWithLogging: page, }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -153,7 +153,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.verifySubmitButtonState(true);
     });
 
-    test('should handle rapid checkbox toggling', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should handle rapid checkbox toggling', async ({ pageWithLogging: page, }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -181,7 +181,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.verifySubmitButtonState(true);
     });
 
-    test('should update submit button state when password mismatch is corrected', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should update submit button state when password mismatch is corrected', async ({ pageWithLogging: page, }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -204,7 +204,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
 });
 
 test.describe('Registration Form Error Display and Recovery', () => {
-    test('should show and clear errors based on form changes', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should show and clear errors based on form changes', async ({ pageWithLogging: page, }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -227,7 +227,7 @@ test.describe('Registration Form Error Display and Recovery', () => {
         // This is expected behavior - error doesn't auto-clear on field change
     });
 
-    test('should display different error types correctly', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should display different error types correctly', async ({ pageWithLogging: page, }) => {
         const registerPage = new RegisterPage(page);
 
         // Test 1: Short password error
@@ -356,7 +356,7 @@ test.describe('Registration Form Loading States', () => {
 });
 
 test.describe('Registration Form Policy Links', () => {
-    test('should display Terms of Service link', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should display Terms of Service link', async ({ pageWithLogging: page, }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -366,7 +366,7 @@ test.describe('Registration Form Policy Links', () => {
         await expect(termsLink).toHaveAttribute('target', '_blank');
     });
 
-    test('should display Cookie Policy link', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should display Cookie Policy link', async ({ pageWithLogging: page, }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 

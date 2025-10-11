@@ -366,7 +366,7 @@ test.describe('Dashboard Groups Pagination', () => {
     });
 
     test('should handle empty state after filtering leaves no results on current page', async ({ authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
+        const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         const emptyResponse = ListGroupsResponseBuilder.responseWithMetadata([], 0).withHasMore(false).build();

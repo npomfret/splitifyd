@@ -60,34 +60,6 @@ export class LeaveGroupModalPage extends BaseLeaveGroupDialogPage {
         }
     }
 
-    // ============================================================================
-    // COMPATIBILITY METHODS - For existing e2e tests
-    // ============================================================================
-
-    /**
-     * Get dialog container (alternate naming)
-     * E2E compatibility: Alias for getDialogContainer
-     */
-    private get dialog(): Locator {
-        return this.getDialogContainer();
-    }
-
-    /**
-     * Get confirm button (alternate naming)
-     * E2E compatibility: Alias for getConfirmButton
-     */
-    private get confirmButton(): Locator {
-        return this.getConfirmButton();
-    }
-
-    /**
-     * Get cancel button (alternate naming)
-     * E2E compatibility: Alias for getCancelButton
-     */
-    private get cancelButton(): Locator {
-        return this.getCancelButton();
-    }
-
     /**
      * Wait for dialog to be visible
      * E2E compatibility: Alias for waitForDialogToOpen

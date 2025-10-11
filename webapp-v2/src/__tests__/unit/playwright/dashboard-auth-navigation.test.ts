@@ -4,7 +4,7 @@ import { mockGroupsApi } from '../../utils/mock-firebase-service';
 
 // Test for browser reuse - using fixture-based approach with proper infrastructure
 test.describe('Browser Reuse Test', () => {
-    test('test 1 - redirect check', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('test 1 - redirect check', async ({ pageWithLogging: page }) => {
         // mockFirebase fixture starts logged out automatically
         await page.goto('/dashboard', { timeout: TEST_TIMEOUTS.NAVIGATION, waitUntil: 'domcontentloaded' });
         await expect(page).toHaveURL(/\/login/);
@@ -24,7 +24,7 @@ test.describe('Browser Reuse Test', () => {
 });
 
 test.describe('Dashboard Authentication and Navigation', () => {
-    test('should redirect unauthenticated user to login', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should redirect unauthenticated user to login', async ({ pageWithLogging: page }) => {
         // mockFirebase fixture starts logged out automatically
 
         // Try to navigate to dashboard without authentication

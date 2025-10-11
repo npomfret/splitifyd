@@ -379,7 +379,6 @@ describe('Split Utils', () => {
                     expect(roundedTotal).toBe(amount);
 
                     // Verify no split has more precision than currency allows
-                    const decimals = getCurrencyDecimals(currency);
                     splits.forEach((split) => {
                         const rounded = roundToCurrencyPrecision(split.amount, currency);
                         expect(split.amount).toBe(rounded);
@@ -435,7 +434,6 @@ describe('Split Utils', () => {
                     expect(totalPercentage).toBe(100);
 
                     // Verify no split has more precision than currency allows
-                    const decimals = getCurrencyDecimals(currency);
                     splits.forEach((split) => {
                         const rounded = roundToCurrencyPrecision(split.amount, currency);
                         expect(split.amount).toBe(rounded);
@@ -764,13 +762,6 @@ describe('Split Utils', () => {
             it('documents the core problem: JavaScript numbers cannot represent all decimals', () => {
                 // JavaScript uses IEEE 754 double-precision floating-point
                 // This means only 53 bits of precision for the mantissa
-
-                // Some decimals cannot be represented exactly
-                const problematicDecimals = [
-                    { input: 0.1, expected: 0.1, actual: 0.1 }, // Looks fine, but internally imprecise
-                    { input: 0.2, expected: 0.2, actual: 0.2 },
-                    { input: 0.3, expected: 0.3, actual: 0.1 + 0.2 }, // 0.30000000000000004
-                ];
 
                 // The classic demonstration
                 expect(0.1 + 0.2).not.toBe(0.3);

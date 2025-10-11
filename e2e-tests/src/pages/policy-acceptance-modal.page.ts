@@ -99,32 +99,12 @@ export class PolicyAcceptanceModalPage extends BasePage {
         await expect(this.acceptedBadge).toBeVisible();
     }
 
-    async navigateToNextPolicy(): Promise<void> {
-        await expect(this.nextButton).toBeEnabled();
-        await this.nextButton.click();
-    }
-
     async waitForPolicyContentToLoad(): Promise<void> {
         // Wait for loading spinner to disappear and content to appear
         await expect(this.loadingSpinner).not.toBeVisible();
         await expect(this.policyContent).toBeVisible();
         // Also wait for acceptance section to be ready
         await expect(this.acceptanceSection).toBeVisible();
-    }
-
-    async acceptSinglePolicyComplete(): Promise<void> {
-        // Wait for modal to appear
-        await this.waitForModalToAppear();
-
-        // Wait for policy content to load
-        await this.waitForPolicyContentToLoad();
-
-        // Accept the current policy
-        await this.acceptCurrentPolicy();
-
-        // Modal will auto-advance or auto-submit after accepting
-        // Just wait for modal to disappear (with longer timeout for auto-advance + submission)
-        await this.waitForModalToDisappear(2000);
     }
 
     async acceptMultiplePoliciesSequentially(): Promise<void> {

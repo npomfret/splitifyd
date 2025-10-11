@@ -142,7 +142,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
     // behavior is more realistic. Unit tests with mocks don't accurately reflect
     // real browser storage mechanisms and reload behavior.
 
-    test('should disable submit button when form is empty', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should disable submit button when form is empty', async ({ pageWithLogging: page, }) => {
         const loginPage = new LoginPage(page);
         await loginPage.navigate();
 
@@ -152,7 +152,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await expect(submitButton).toBeDisabled();
     });
 
-    test('should disable submit button when only one field is filled', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should disable submit button when only one field is filled', async ({ pageWithLogging: page, }) => {
         const loginPage = new LoginPage(page);
         await loginPage.navigate();
 
@@ -164,7 +164,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await expect(submitButton).toBeDisabled();
     });
 
-    test('should enable submit button when both email and password are filled', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should enable submit button when both email and password are filled', async ({ pageWithLogging: page, }) => {
         const loginPage = new LoginPage(page);
         await loginPage.navigate();
 
@@ -178,7 +178,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await expect(submitButton).toBeEnabled();
     });
 
-    test('should reactively disable submit button when required field is cleared', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should reactively disable submit button when required field is cleared', async ({ pageWithLogging: page, }) => {
         const loginPage = new LoginPage(page);
         await loginPage.navigate();
 
@@ -249,7 +249,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await expect(page).toHaveURL('/dashboard', { timeout: TEST_TIMEOUTS.NAVIGATION });
     });
 
-    test('should navigate to register page with returnUrl preservation', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should navigate to register page with returnUrl preservation', async ({ pageWithLogging: page, }) => {
         const loginPage = new LoginPage(page);
         const returnUrl = '/groups/test-group-id';
 
@@ -263,7 +263,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await expect(page).toHaveURL(`/register?returnUrl=${encodeURIComponent(returnUrl)}`);
     });
 
-    test('should navigate to register page without returnUrl when none present', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should navigate to register page without returnUrl when none present', async ({ pageWithLogging: page, }) => {
         const loginPage = new LoginPage(page);
         await loginPage.navigate();
 
@@ -293,7 +293,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         await expect(page).toHaveURL(returnUrl);
     });
 
-    test('should show validation errors for empty fields', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should show validation errors for empty fields', async ({ pageWithLogging: page, }) => {
         const loginPage = new LoginPage(page);
         await loginPage.navigate();
 

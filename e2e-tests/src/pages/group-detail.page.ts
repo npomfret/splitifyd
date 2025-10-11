@@ -28,19 +28,6 @@ export class GroupDetailPage extends BaseGroupDetailPage {
     }
 
     /**
-     * Get URL parameter (e2e utility)
-     */
-    getUrlParam(paramName: string): string | null {
-        const url = new URL(this.page.url());
-        const pathParts = url.pathname.split('/');
-        const paramIndex = pathParts.indexOf(paramName);
-        if (paramIndex !== -1 && paramIndex < pathParts.length - 1) {
-            return pathParts[paramIndex + 1];
-        }
-        return null;
-    }
-
-    /**
      * Navigate to dashboard (e2e-specific workflow)
      */
     async navigateToDashboard() {

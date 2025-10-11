@@ -2,7 +2,7 @@ import { ClientUserBuilder, RegisterPage, TEST_TIMEOUTS } from '@splitifyd/test-
 import { expect, test } from '../../utils/console-logging-fixture';
 
 test.describe('Registration Navigation Flows', () => {
-    test('should navigate to login page when clicking sign in link', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should navigate to login page when clicking sign in link', async ({ pageWithLogging: page, }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -21,7 +21,7 @@ test.describe('Registration Navigation Flows', () => {
     // doesn't accept or forward query parameters). This would need to be implemented in the
     // application first before testing it.
 
-    test('should navigate to login when clicking sign in link', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should navigate to login when clicking sign in link', async ({ pageWithLogging: page, }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -32,7 +32,7 @@ test.describe('Registration Navigation Flows', () => {
         await expect(page).toHaveURL('/login');
     });
 
-    test('should handle direct URL navigation to register page', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should handle direct URL navigation to register page', async ({ pageWithLogging: page, }) => {
         // Navigate directly via URL
         await page.goto('/register');
 
@@ -40,7 +40,7 @@ test.describe('Registration Navigation Flows', () => {
         await registerPage.verifyRegisterPageLoaded();
     });
 
-    test('should handle register page URL with query parameters', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should handle register page URL with query parameters', async ({ pageWithLogging: page, }) => {
         const returnUrl = '/groups/abc123';
 
         // Navigate with query parameters
@@ -141,7 +141,7 @@ test.describe('Registration Success Navigation', () => {
 });
 
 test.describe('Registration Page State Persistence', () => {
-    test('should maintain form state during registration flow', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should maintain form state during registration flow', async ({ pageWithLogging: page, }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -211,7 +211,7 @@ test.describe('Registration Page State Persistence', () => {
 });
 
 test.describe('Registration Page Error Recovery', () => {
-    test('should remain on register page after validation error', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should remain on register page after validation error', async ({ pageWithLogging: page, }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -289,7 +289,7 @@ test.describe('Registration Page Error Recovery', () => {
 });
 
 test.describe('Registration Page Accessibility and Focus', () => {
-    test('should have proper tab order for form fields', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should have proper tab order for form fields', async ({ pageWithLogging: page, }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -306,7 +306,7 @@ test.describe('Registration Page Accessibility and Focus', () => {
         await expect(confirmPasswordInput).toBeVisible();
     });
 
-    test('should display page heading for screen readers', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should display page heading for screen readers', async ({ pageWithLogging: page, }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 

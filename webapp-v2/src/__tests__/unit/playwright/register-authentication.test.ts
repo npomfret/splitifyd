@@ -192,7 +192,7 @@ test.describe('Registration Form - Loading and Disabled States', () => {
         await expect(page).toHaveURL('/dashboard', { timeout: TEST_TIMEOUTS.NAVIGATION });
     });
 
-    test('should disable submit button when form is incomplete', async ({ pageWithLogging: page, mockFirebase }) => {
+    test('should disable submit button when form is incomplete', async ({ pageWithLogging: page, }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
