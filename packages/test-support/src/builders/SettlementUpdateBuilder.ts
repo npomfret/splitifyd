@@ -1,14 +1,8 @@
+import type { UpdateSettlementRequest } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomValidCurrencyAmountPair } from '../test-helpers';
 
-interface SettlementUpdate {
-    amount?: number;
-    currency?: string;
-    date?: string;
-    note?: string;
-}
-
 export class SettlementUpdateBuilder {
-    private update: SettlementUpdate;
+    private update: Partial<UpdateSettlementRequest>;
 
     constructor() {
         const { currency, amount } = randomValidCurrencyAmountPair(5, 200);
@@ -41,7 +35,7 @@ export class SettlementUpdateBuilder {
         return this;
     }
 
-    build(): SettlementUpdate {
+    build(): Partial<UpdateSettlementRequest> {
         return {
             ...(this.update.amount !== undefined && { amount: this.update.amount }),
             ...(this.update.currency !== undefined && { currency: this.update.currency }),

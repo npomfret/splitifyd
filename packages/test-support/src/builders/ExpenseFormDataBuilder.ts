@@ -1,13 +1,5 @@
+import type { ExpenseFormData } from '@splitifyd/shared';
 import { randomChoice, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-
-export interface ExpenseFormData {
-    description: string;
-    amount: number;
-    currency: string; // Required: must be explicitly provided
-    paidByDisplayName: string; // the display name (not the uid)
-    splitType: 'equal' | 'exact' | 'percentage';
-    participants: string[]; // Required: must explicitly provide participant names (not the uids)
-}
 
 /**
  * Builder for creating ExpenseFormData objects for UI tests

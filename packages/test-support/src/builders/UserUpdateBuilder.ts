@@ -1,18 +1,11 @@
+import type { UpdateUserRequest } from '@splitifyd/shared';
+
 /**
  * Builder for creating user update request objects for testing
  * Used for testing user profile update operations
  */
 export class UserUpdateBuilder {
-    private updateData: {
-        displayName?: string;
-        email?: string;
-        phoneNumber?: string | null;
-        photoURL?: string | null;
-        password?: string;
-        emailVerified?: boolean;
-        disabled?: boolean;
-        preferredLanguage?: string;
-    } = {};
+    private updateData: Partial<UpdateUserRequest> = {};
 
     withDisplayName(displayName: string): UserUpdateBuilder {
         this.updateData.displayName = displayName;
@@ -54,16 +47,7 @@ export class UserUpdateBuilder {
         return this;
     }
 
-    build(): {
-        displayName?: string;
-        email?: string;
-        phoneNumber?: string | null;
-        photoURL?: string | null;
-        password?: string;
-        emailVerified?: boolean;
-        disabled?: boolean;
-        preferredLanguage?: string;
-    } {
+    build(): Partial<UpdateUserRequest> {
         return { ...this.updateData };
     }
 }

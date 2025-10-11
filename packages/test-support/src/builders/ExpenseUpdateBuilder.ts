@@ -1,23 +1,8 @@
+import type { UpdateExpenseRequest } from '@splitifyd/shared';
 import { randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
-interface ExpenseUpdate {
-    amount?: number;
-    currency?: string;
-    description?: string;
-    category?: string;
-    date?: string;
-    participants?: string[];
-    splitType?: 'equal' | 'exact' | 'percentage';
-    splits?: Array<{
-        uid: string;
-        amount: number;
-        percentage?: number;
-    }>;
-    receiptUrl?: string;
-}
-
 export class ExpenseUpdateBuilder {
-    private update: ExpenseUpdate;
+    private update: Partial<UpdateExpenseRequest>;
 
     constructor(useDefaults: boolean = true) {
         if (useDefaults) {
@@ -88,7 +73,7 @@ export class ExpenseUpdateBuilder {
         return this;
     }
 
-    build(): ExpenseUpdate {
+    build(): Partial<UpdateExpenseRequest> {
         return {
             ...(this.update.amount !== undefined && { amount: this.update.amount }),
             ...(this.update.currency !== undefined && { currency: this.update.currency }),

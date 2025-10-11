@@ -1,6 +1,7 @@
 import { expect, Page } from '@playwright/test';
+import type { CreateGroupFormData } from '@splitifyd/shared';
 import { DashboardPage as BaseDashboardPage, JoinGroupPage } from '@splitifyd/test-support';
-import { CreateGroupFormData, CreateGroupFormDataBuilder, generateShortId, randomString } from '@splitifyd/test-support';
+import { CreateGroupFormDataBuilder, generateShortId, randomString } from '@splitifyd/test-support';
 import { CreateGroupModalPage } from './create-group-modal.page.ts';
 import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
 import { HeaderPage } from './header.page';

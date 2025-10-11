@@ -1,19 +1,13 @@
+import type { UpdateGroupRequest } from '@splitifyd/shared';
 import { generateShortId, randomChoice, randomCurrency, randomString } from '../test-helpers';
 
-interface GroupUpdate {
-    name?: string;
-    description?: string;
-    currency?: string;
-}
-
 export class GroupUpdateBuilder {
-    private update: GroupUpdate;
+    private update: Partial<UpdateGroupRequest>;
 
     constructor() {
         this.update = {
             name: `${randomChoice(['Updated', 'New', 'Modified', 'Changed'])} ${randomChoice(['Team', 'Group', 'Squad', 'Club'])} ${randomString(4)}`,
             description: `${randomChoice(['Updated', 'Modified', 'New'])} description ${generateShortId()}`,
-            currency: randomCurrency(),
         };
     }
 
@@ -27,16 +21,10 @@ export class GroupUpdateBuilder {
         return this;
     }
 
-    withCurrency(currency: string): this {
-        this.update.currency = currency;
-        return this;
-    }
-
-    build(): GroupUpdate {
+    build(): Partial<UpdateGroupRequest> {
         return {
             ...(this.update.name !== undefined && { name: this.update.name }),
             ...(this.update.description !== undefined && { description: this.update.description }),
-            ...(this.update.currency !== undefined && { currency: this.update.currency }),
         };
     }
 }

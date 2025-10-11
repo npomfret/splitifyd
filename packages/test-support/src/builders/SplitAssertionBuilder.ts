@@ -1,10 +1,5 @@
+import type { ExpenseSplit } from '@splitifyd/shared';
 import { generateShortId } from '../test-helpers';
-
-interface ExpenseSplit {
-    uid: string;
-    amount: number;
-    percentage?: number;
-}
 
 /**
  * Builder for single ExpenseSplit objects - used in split strategy test assertions

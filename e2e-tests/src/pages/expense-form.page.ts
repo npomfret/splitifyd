@@ -1,5 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { ExpenseFormData, ExpenseFormPage as BaseExpenseFormPage } from '@splitifyd/test-support';
+import type { ExpenseFormData } from '@splitifyd/shared';
+import { ExpenseFormPage as BaseExpenseFormPage } from '@splitifyd/test-support';
 import { FORM_LABELS } from '../constants/selectors';
 import { groupDetailUrlPattern } from './group-detail.page.ts';
 

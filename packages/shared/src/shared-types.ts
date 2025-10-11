@@ -927,3 +927,92 @@ export interface TestPromoteToAdminResponse {
     message: string;
     userId: string;
 }
+
+// ========================================================================
+// UI Form Data Types (for client-side forms and E2E tests)
+// ========================================================================
+
+/**
+ * Form data for creating groups in UI
+ * Used in E2E tests and client-side form submission
+ */
+export interface CreateGroupFormData {
+    name?: string;
+    description?: string;
+}
+
+/**
+ * Form data for expense creation in UI
+ * Used in E2E tests for form submission payloads
+ */
+export interface ExpenseFormData {
+    description: string;
+    amount: number;
+    currency: string;
+    paidByDisplayName: string; // Display name (not the uid)
+    splitType: 'equal' | 'exact' | 'percentage';
+    participants: string[]; // Participant names (not the uids)
+}
+
+/**
+ * Form data for settlement creation in UI
+ * Used in E2E tests for settlement form submission payloads
+ */
+export interface SettlementFormData {
+    payerName: string; // Display name of who paid
+    payeeName: string; // Display name of who received payment
+    amount: string;
+    currency: string;
+    note: string;
+}
+
+/**
+ * Draft expense stored in local storage
+ * Used by webapp to persist unsaved expense forms
+ */
+export interface ExpenseDraft {
+    description: string;
+    amount: number;
+    currency: string;
+    date: string; // YYYY-MM-DD format
+    time: string; // HH:MM format
+    paidBy: string;
+    category: string;
+    splitType: string;
+    participants: string[];
+    splits: Array<{ userId: string; amount: number; percentage?: number; }>;
+    timestamp: number;
+}
+
+/**
+ * Query parameters for comment pagination
+ * Used in comment listing endpoints
+ */
+export interface CommentQuery {
+    cursor?: string;
+    limit?: string;
+}
+
+/**
+ * User profile update request
+ * Used for updating user profile information
+ */
+export interface UpdateUserRequest {
+    displayName?: string;
+    email?: string;
+    phoneNumber?: string | null;
+    photoURL?: string | null;
+    password?: string;
+    emailVerified?: boolean;
+    disabled?: boolean;
+    preferredLanguage?: string;
+}
+
+/**
+ * Password change request
+ * Used for changing user passwords
+ */
+export interface PasswordChangeRequest {
+    currentPassword?: string;
+    newPassword?: string;
+}

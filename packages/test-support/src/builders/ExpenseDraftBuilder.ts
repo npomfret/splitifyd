@@ -1,19 +1,6 @@
+import type { ExpenseDraft } from '@splitifyd/shared';
 import { SplitTypes } from '@splitifyd/shared';
 import { generateShortId, randomCategory, randomChoice, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-
-interface ExpenseDraft {
-    description: string;
-    amount: number;
-    currency: string;
-    date: string;
-    time: string;
-    paidBy: string;
-    category: string;
-    splitType: string;
-    participants: string[];
-    splits: Array<{ userId: string; amount: number; percentage?: number; }>;
-    timestamp: number;
-}
 
 export class ExpenseDraftBuilder {
     private draft: ExpenseDraft;

@@ -1,12 +1,5 @@
+import type { SettlementFormData } from '@splitifyd/shared';
 import { randomChoice, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-
-export interface SettlementFormData {
-    payerName: string; // Display name of who paid
-    payeeName: string; // Display name of who received payment
-    amount: string;
-    currency: string; // Currency for the settlement
-    note: string;
-}
 
 /**
  * Builder for creating SettlementFormData objects for UI tests

@@ -1,16 +1,12 @@
+import type { CommentQuery } from '@splitifyd/shared';
 import { generateShortId, randomNumber } from '../test-helpers';
-
-interface CommentQuery {
-    cursor?: string;
-    limit?: string;
-}
 
 /**
  * Builder for creating comment query parameters for testing
  * Used for testing comment listing with pagination and filtering
  */
 export class CommentQueryBuilder {
-    private query: CommentQuery = {
+    private query: Partial<CommentQuery> = {
         cursor: `cursor-${generateShortId()}`,
         limit: randomNumber(1, 50).toString(),
     };
@@ -35,7 +31,7 @@ export class CommentQueryBuilder {
         return this;
     }
 
-    build(): CommentQuery {
+    build(): Partial<CommentQuery> {
         return { ...this.query };
     }
 }

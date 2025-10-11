@@ -1,12 +1,11 @@
+import type { PasswordChangeRequest } from '@splitifyd/shared';
+
 /**
  * Builder for creating password change request objects for testing
  * Used for testing password change operations
  */
 export class PasswordChangeBuilder {
-    private changeData: {
-        currentPassword?: string;
-        newPassword?: string;
-    } = {};
+    private changeData: Partial<PasswordChangeRequest> = {};
 
     withCurrentPassword(currentPassword: string): PasswordChangeBuilder {
         this.changeData.currentPassword = currentPassword;
@@ -18,10 +17,7 @@ export class PasswordChangeBuilder {
         return this;
     }
 
-    build(): {
-        currentPassword?: string;
-        newPassword?: string;
-    } {
+    build(): Partial<PasswordChangeRequest> {
         return { ...this.changeData };
     }
 }

@@ -2,6 +2,8 @@ import {
     AuthenticatedFirebaseUser,
     CreateCommentResponse,
     type CreateExpenseRequest,
+    type CreateGroupRequest,
+    type CreateSettlementRequest,
     CurrentPolicyResponse,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
@@ -19,6 +21,10 @@ import {
     type SettlementDTO,
     SettlementWithMembers,
     ShareLinkResponse,
+    type UpdateGroupRequest,
+    type UpdateSettlementRequest,
+    type UpdateUserRequest,
+    UserProfileResponse,
     UserRegistration,
     UserToken,
 } from '@splitifyd/shared';
@@ -157,12 +163,12 @@ export class ApiDriver {
         return response.expense;
     }
 
-    async createSettlement(settlementData: any, token: string): Promise<SettlementDTO> {
+    async createSettlement(settlementData: CreateSettlementRequest, token: string): Promise<SettlementDTO> {
         const response = await this.apiRequest('/settlements', 'POST', settlementData, token);
         return response.data as SettlementDTO;
     }
 
-    async updateSettlement(settlementId: string, updateData: any, token: string): Promise<SettlementWithMembers> {
+    async updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, token: string): Promise<SettlementWithMembers> {
         const response = await this.apiRequest(`/settlements/${settlementId}`, 'PUT', updateData, token);
         return response.data;
     }
@@ -211,7 +217,7 @@ export class ApiDriver {
         }
     }
 
-    async createGroup(groupData: any, token: string): Promise<GroupDTO> {
+    async createGroup(groupData: CreateGroupRequest, token: string): Promise<GroupDTO> {
         return (await this.apiRequest('/groups', 'POST', groupData, token)) as GroupDTO;
     }
 
@@ -257,7 +263,7 @@ export class ApiDriver {
         return await this.apiRequest(`/expenses/${expenseId}/full-details`, 'GET', null, token);
     }
 
-    async updateGroup(groupId: string, data: any, token: string): Promise<MessageResponse> {
+    async updateGroup(groupId: string, data: UpdateGroupRequest, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}`, 'PUT', data, token);
     }
 
@@ -305,7 +311,7 @@ export class ApiDriver {
         return await this.apiRequest('/user/change-password', 'POST', { currentPassword, newPassword }, token);
     }
 
-    async updateUserProfile(profileData: { displayName?: string; }, token: string): Promise<any> {
+    async updateUserProfile(profileData: UpdateUserRequest, token: string): Promise<UserProfileResponse> {
         return await this.apiRequest('/user/profile', 'PUT', profileData, token);
     }
 
