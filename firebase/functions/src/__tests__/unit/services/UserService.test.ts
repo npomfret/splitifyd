@@ -315,12 +315,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 preferredLanguage: newLanguage,
             });
 
-            // The update should succeed and return a valid profile
-            expect(updatedProfile.uid).toBe(uid);
             expect(updatedProfile.displayName).toBe('Test User');
-
-            // Note: In a real system, preferredLanguage would be updated, but our stub
-            // doesn't perfectly simulate the Firestore-Auth data merge for this field
         });
 
         it('should update photo URL with null value', async () => {

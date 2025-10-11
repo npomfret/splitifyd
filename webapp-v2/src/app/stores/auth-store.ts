@@ -245,7 +245,7 @@ class AuthStoreImpl implements AuthStore {
             if (this.#userSignal.value) {
                 this.#userSignal.value = {
                     ...this.#userSignal.value,
-                    displayName: updatedUser.displayName || this.#userSignal.value.displayName,
+                    displayName: updatedUser.displayName,
                 };
             }
 

@@ -754,14 +754,7 @@ export interface CurrentPolicyResponse {
 }
 
 export interface UserProfileResponse {
-    uid: string;
-    email: string;
     displayName: string;
-    updatedAt?: ISOString;
-    createdAt?: ISOString;
-    photoURL?: string | null;
-    themeColor?: UserThemeColor;
-    preferredLanguage?: string;
 }
 
 export interface AcceptMultiplePoliciesResponse {

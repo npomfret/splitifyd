@@ -1,5 +1,5 @@
 import { AuthErrors, RegisteredUser, SystemUserRoles, UserRegistration, UserThemeColor } from '@splitifyd/shared';
-import { GroupMember, GroupMembershipDTO, GroupMembersResponse } from '@splitifyd/shared/src';
+import {GroupMember, GroupMembershipDTO, GroupMembersResponse, UserProfileResponse} from '@splitifyd/shared/src';
 import { UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { validateRegisterRequest } from '../auth/validation';
 import { HTTP_STATUS } from '../constants';
@@ -169,11 +169,11 @@ export class UserService {
      * @returns The updated user profile
      * @throws ApiError if update fails
      */
-    async updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<RegisteredUser> {
+    async updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<UserProfileResponse> {
         return measureDb('UserService2.updateProfile', async () => this._updateProfile(userId, requestBody, language));
     }
 
-    private async _updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<RegisteredUser> {
+    private async _updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<UserProfileResponse> {
         LoggerContext.update({ userId, operation: 'update-profile' });
 
         // Validate the request body with localized error messages
@@ -210,7 +210,11 @@ export class UserService {
             await this.firestoreWriter.updateUser(userId, firestoreUpdate);
 
             // Return the updated profile
-            return await this.getUser(userId);
+            const registeredUser = await this.getUser(userId);
+            const resp: UserProfileResponse = {
+                displayName: registeredUser.displayName
+            };
+            return resp;
         } catch (error: unknown) {
             // Check if error is from Firebase Auth (user not found)
             if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/user-not-found') {
