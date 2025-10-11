@@ -16,7 +16,7 @@ function countDecimalPlaces(value: number): number {
  * Matches backend implementation in firebase/functions/src/utils/amount-validation.ts
  * @throws Error if precision is invalid
  */
-export function validateAmountPrecision(amount: number, currencyCode: string): void {
+function validateAmountPrecision(amount: number, currencyCode: string): void {
     const maxDecimals = getCurrencyDecimals(currencyCode);
     const actualDecimals = countDecimalPlaces(amount);
 

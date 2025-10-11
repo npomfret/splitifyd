@@ -124,18 +124,6 @@ export class UserNotificationDocumentBuilder {
         return this;
     }
 
-    addRecentChange(groupId: string, type: 'transaction' | 'balance' | 'group' | 'comment', timestamp?: Date): this {
-        if (!this.document.recentChanges) {
-            this.document.recentChanges = [];
-        }
-        this.document.recentChanges.push({
-            groupId,
-            type,
-            timestamp: timestamp || new Date(),
-        });
-        return this;
-    }
-
     private createDefaultGroupData(): UserNotificationGroupDocument {
         return {
             lastTransactionChange: null,
@@ -174,23 +162,5 @@ export class UserNotificationDocumentBuilder {
         return UserNotificationDocumentBuilder
             .withBaseline(groupId, changeVersion)
             .withGroupDetails(groupId, 2);
-    }
-
-    static withTransactionChange(groupId: string, changeVersion: number = 2): UserNotificationDocumentBuilder {
-        return UserNotificationDocumentBuilder
-            .withBaseline(groupId, changeVersion)
-            .withTransactionChange(groupId, 2);
-    }
-
-    static withBalanceChange(groupId: string, changeVersion: number = 2): UserNotificationDocumentBuilder {
-        return UserNotificationDocumentBuilder
-            .withBaseline(groupId, changeVersion)
-            .withBalanceChange(groupId, 2);
-    }
-
-    static withCommentChange(groupId: string, changeVersion: number = 2): UserNotificationDocumentBuilder {
-        return UserNotificationDocumentBuilder
-            .withBaseline(groupId, changeVersion)
-            .withCommentChange(groupId, 2);
     }
 }

@@ -1,6 +1,5 @@
 import { expect, Page } from '@playwright/test';
 import { RegisterPage as BaseRegisterPage } from '@splitifyd/test-support';
-import { DashboardPage } from './dashboard.page';
 
 /**
  * E2E-specific RegisterPage that extends the shared base class
@@ -29,36 +28,6 @@ export class RegisterPage extends BaseRegisterPage {
         }
 
         await this.verifyRegisterPageLoaded();
-    }
-
-    /**
-     * E2E-specific: Wait for registration completion with timing variation handling
-     * Handles both instant registration and slower processing with loading spinner
-     */
-    async waitForRegistrationCompletion(): Promise<void> {
-        const submitButton = this.getSubmitButton();
-
-        // The UI shows a loading spinner in the submit button when processing
-        // The button should become disabled when clicked
-
-        // Wait for either:
-        // 1. Button becomes disabled (indicates processing started)
-        // 2. Immediate redirect to dashboard (instant registration)
-        await Promise
-            .race([
-                // Option 1: Wait for button to become disabled (processing started)
-                expect(submitButton).toBeDisabled({ timeout: 2000 }),
-
-                // Option 2: Wait for immediate redirect (so fast button never visibly disables)
-                this.page.waitForURL(/\/dashboard/, { timeout: 1000 }),
-            ])
-            .catch(() => {
-                // It's ok if neither happens immediately, we'll still wait for the final redirect
-            });
-
-        // Now wait for the final redirect to dashboard (registration success)
-        // This should happen whether we saw the button disable or not
-        await expect(this.page).toHaveURL(/\/dashboard/, { timeout: 10000 });
     }
 
     /**

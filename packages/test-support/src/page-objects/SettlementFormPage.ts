@@ -1,9 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
-// Re-export SettlementFormData for convenience
-export type { SettlementFormData } from '../builders';
-
 /**
  * Shared base class for Settlement Form page object.
  * Contains common selectors and basic actions for settlement forms.

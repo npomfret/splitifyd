@@ -425,17 +425,6 @@ export class StubFirestoreReader implements IFirestoreReader {
         return members.map((m) => m.uid);
     }
 
-    async getExpensesForGroup(groupId: string, options: QueryOptions): Promise<ExpenseDTO[]> {
-        const error = this.methodErrors.get('getExpensesForGroup');
-        if (error) throw error;
-
-        return this.filterCollection<ExpenseDTO>('expenses', (doc) => doc.groupId === groupId && (doc.deletedAt == null || !!options.includeDeleted), options.orderBy, options.limit);
-    }
-
-    async getExpenseHistory(): Promise<any> {
-        return { history: [], count: 0 };
-    }
-
     async getExpensesForGroupPaginated(
         groupId: string,
         options?: { limit?: number; cursor?: string; includeDeleted?: boolean; },
@@ -812,10 +801,6 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         return { id: 'settlement', success: true, timestamp: Timestamp.now() };
     }
 
-    async deleteSettlement(): Promise<WriteResult> {
-        return { id: 'settlement', success: true, timestamp: Timestamp.now() };
-    }
-
     async addComment(targetType: CommentTargetType, targetId: string, commentData: any): Promise<WriteResult> {
         const id = `comment-${Date.now()}`;
         const result = this.getLastWriteResult() || { id, success: true, timestamp: Timestamp.now() };
@@ -850,11 +835,6 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     }
 
     public setUserNotificationsCalls: { userId: string; updates: any; merge?: boolean; }[] = [];
-
-    async setUserNotifications(userId: string, updates: any, merge?: boolean): Promise<WriteResult> {
-        this.setUserNotificationsCalls.push({ userId, updates, merge });
-        return { id: userId, success: true, timestamp: Timestamp.now() };
-    }
 
     public batchSetUserNotificationsCalls: Array<{ updates: Array<{ userId: string; data: any; merge?: boolean; }>; }> = [];
 

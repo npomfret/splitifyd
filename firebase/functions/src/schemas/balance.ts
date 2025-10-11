@@ -136,26 +136,6 @@ const CurrencyBalancesSchema = z.record(
     z.record(z.string(), UserBalanceSchema), // userId to UserBalance
 );
 
-// Schema for BalanceCalculationInput
-// This validates application-layer DTOs with ISO strings (not Firestore Documents with Timestamps)
-export const BalanceCalculationInputSchema = z.object({
-    groupId: z.string(),
-    expenses: z.array(ExpenseDTOSchema),
-    settlements: z.array(SettlementDTOSchema),
-    memberIds: z.array(z.string()),
-    groupDoc: GroupDTOSchema,
-    memberProfiles: z.record(z.string(), RegisteredUserSchema), // Changed from UserProfileSchema
-});
-
-// Schema for BalanceCalculationResult / GroupBalance
-// Note: lastUpdated is an ISO string because this validates application-layer DTOs
-export const BalanceCalculationResultSchema = z.object({
-    groupId: z.string(),
-    simplifiedDebts: z.array(SimplifiedDebtSchema),
-    lastUpdated: z.string().datetime(), // ISO string for DTOs (converted to Timestamp by FirestoreWriter)
-    balancesByCurrency: CurrencyBalancesSchema,
-});
-
 // Schema for the currency-specific balance data used in GroupService.addComputedFields
 export const CurrencyBalanceDisplaySchema = z.object({
     currency: z.string(),
@@ -171,5 +151,3 @@ export const BalanceDisplaySchema = z.object({
 
 // Export inferred types
 export type ParsedCurrencyBalances = z.infer<typeof CurrencyBalancesSchema>;
-export type ParsedBalanceCalculationInput = z.infer<typeof BalanceCalculationInputSchema>;
-export type ParsedBalanceCalculationResult = z.infer<typeof BalanceCalculationResultSchema>;

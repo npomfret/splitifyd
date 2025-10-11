@@ -140,13 +140,6 @@ export interface IFirestoreWriter {
      */
     updateSettlement(settlementId: string, updates: Partial<Omit<SettlementDTO, 'id'>>): Promise<WriteResult>;
 
-    /**
-     * Delete a settlement document
-     * @param settlementId - The settlement ID
-     * @returns Write result
-     */
-    deleteSettlement(settlementId: string): Promise<WriteResult>;
-
     // ========================================================================
     // Comment Write Operations
     // ========================================================================
@@ -265,15 +258,6 @@ export interface IFirestoreWriter {
     removeUserNotificationGroup(userId: string, groupId: string): Promise<WriteResult>;
 
     /**
-     * Set user notifications with merge option
-     * @param userId - The user ID
-     * @param data - The notification data
-     * @param merge - Whether to merge with existing data
-     * @returns Write result
-     */
-    setUserNotifications(userId: string, data: any, merge?: boolean): Promise<WriteResult>;
-
-    /**
      * Batch set user notifications using Firestore batch writes for optimal performance
      * Automatically handles batching for groups exceeding 500 users (Firestore batch limit)
      * @param updates - Array of user notification updates
@@ -322,15 +306,6 @@ export interface IFirestoreWriter {
     // ========================================================================
     // Group Balance Operations
     // ========================================================================
-
-    /**
-     * Create or replace group balance document
-     * Used when creating a new group
-     * @param groupId - The group ID
-     * @param balance - The balance DTO with ISO string dates
-     * @returns Write result
-     */
-    setGroupBalance(groupId: string, balance: GroupBalanceDTO): Promise<void>;
 
     /**
      * Set group balance within a transaction

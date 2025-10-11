@@ -610,64 +610,6 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
-    async getExpensesForGroup(groupId: string, options: QueryOptions): Promise<ExpenseDTO[]> {
-        try {
-            let query = this.db.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).where('deletedAt', '==', null);
-
-            // Apply ordering
-            if (options.orderBy) {
-                query = query.orderBy(options.orderBy.field, options.orderBy.direction);
-            } else {
-                query = query.orderBy('createdAt', 'desc');
-            }
-
-            // Apply limit (required parameter now)
-            query = query.limit(options.limit);
-
-            // Apply offset for pagination (if provided)
-            if (options.offset) {
-                query = query.offset(options.offset);
-            }
-
-            // Apply cursor for pagination (if provided)
-            if (options.cursor) {
-                try {
-                    const cursorData = JSON.parse(Buffer.from(options.cursor, 'base64').toString());
-                    query = query.startAfter(cursorData.createdAt, cursorData.id);
-                } catch (err) {
-                    logger.warn('Invalid cursor provided, ignoring');
-                }
-            }
-
-            const snapshot = await query.get();
-            const expenses: ExpenseDTO[] = [];
-
-            for (const doc of snapshot.docs) {
-                try {
-                    // Validate with Document schema (expects Timestamps)
-                    const rawData = {
-                        id: doc.id,
-                        ...doc.data(),
-                    };
-                    const expenseData = ExpenseDocumentSchema.parse(rawData);
-
-                    // Convert Timestamps to ISO strings for DTO
-                    const convertedData = this.convertTimestampsToISO(expenseData);
-
-                    expenses.push(convertedData as unknown as ExpenseDTO);
-                } catch (error) {
-                    logger.error('Invalid expense document in getExpensesForGroup', error);
-                    // Skip invalid documents rather than failing the entire query
-                }
-            }
-
-            return expenses;
-        } catch (error) {
-            logger.error('Failed to get expenses for group', error);
-            throw error;
-        }
-    }
-
     /**
      * ✅ FIXED: Efficient paginated group retrieval with hybrid strategy
      *
@@ -997,44 +939,6 @@ export class FirestoreReader implements IFirestoreReader {
     // ========================================================================
     // New Methods for Centralizing Firestore Access
     // ========================================================================
-
-    async getExpenseHistory(
-        expenseId: string,
-        limit: number = 20,
-    ): Promise<{
-        history: any[];
-        count: number;
-    }> {
-        return measureDb('FirestoreReader.getExpenseHistory', async () => {
-            try {
-                const historySnapshot = await this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId).collection('history').orderBy('modifiedAt', 'desc').limit(limit).get();
-
-                const history = historySnapshot.docs.map((doc) => {
-                    const data = doc.data();
-                    return {
-                        id: doc.id,
-                        modifiedAt: data.modifiedAt?.toDate?.()?.toISOString() || data.modifiedAt,
-                        modifiedBy: data.modifiedBy,
-                        changeType: data.changeType,
-                        changes: data.changes,
-                        previousAmount: data.amount,
-                        previousDescription: data.description,
-                        previousCategory: data.category,
-                        previousDate: data.date?.toDate?.()?.toISOString() || data.date,
-                        previousSplits: data.splits,
-                    };
-                });
-
-                return {
-                    history,
-                    count: history.length,
-                };
-            } catch (error) {
-                logger.error('Failed to get expense history', error);
-                throw error;
-            }
-        });
-    }
 
     async getGroupDeletionData(groupId: string): Promise<{
         expenses: FirebaseFirestore.QuerySnapshot;

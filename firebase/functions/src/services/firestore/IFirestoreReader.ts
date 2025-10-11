@@ -156,28 +156,6 @@ export interface IFirestoreReader {
     // ========================================================================
 
     /**
-     * Get all expenses for a specific group
-     * @param groupId - The group ID
-     * @param options - Query options for pagination and filtering (required - must specify limit)
-     * @returns Array of expense DTOs
-     */
-    getExpensesForGroup(groupId: string, options: QueryOptions): Promise<ExpenseDTO[]>;
-
-    /**
-     * Get expense history for a specific expense
-     * @param expenseId - The expense ID
-     * @param limit - Maximum number of history records to return (default: 20)
-     * @returns Object with history array and count
-     */
-    getExpenseHistory(
-        expenseId: string,
-        limit?: number,
-    ): Promise<{
-        history: any[];
-        count: number;
-    }>;
-
-    /**
      * Get all expenses for a specific group with full pagination support
      * @param groupId - The group ID
      * @param options - Query options for pagination and filtering

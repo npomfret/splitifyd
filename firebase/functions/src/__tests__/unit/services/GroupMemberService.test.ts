@@ -9,7 +9,6 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     let groupMemberService: GroupMemberService;
     let stubReader: StubFirestoreReader;
     let stubWriter: StubFirestoreWriter;
-    let stubAuth: StubAuthService;
 
     // Test data
     const testGroupId = 'test-group-id';
@@ -44,7 +43,6 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         // Create stubs with shared documents map
         stubReader = new StubFirestoreReader();
         stubWriter = new StubFirestoreWriter(stubReader.getDocuments());
-        stubAuth = new StubAuthService();
 
         // GroupMemberService uses pre-computed balances from Firestore now (no balance service needed)
         groupMemberService = new GroupMemberService(stubReader, stubWriter);

@@ -788,26 +788,6 @@ export class FirestoreWriter implements IFirestoreWriter {
     // Group Balance Operations
     // ========================================================================
 
-    async setGroupBalance(groupId: string, balance: GroupBalanceDTO): Promise<void> {
-        try {
-            const balanceRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance');
-
-            // Convert DTO to Firestore document (ISO strings → Timestamps)
-            const convertedData = this.convertISOToTimestamps(balance);
-            const docData = {
-                ...convertedData,
-                lastUpdatedAt: Timestamp.now(),
-            };
-
-            await balanceRef.set(docData);
-
-            logger.info('Group balance document created/updated', { groupId });
-        } catch (error) {
-            logger.error('Failed to set group balance', error, { groupId });
-            throw error;
-        }
-    }
-
     setGroupBalanceInTransaction(transaction: Transaction, groupId: string, balance: GroupBalanceDTO): void {
         const balanceRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance');
 
@@ -1067,29 +1047,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    async deleteSettlement(settlementId: string): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.deleteSettlement', async () => {
-            try {
-                await this.db.collection(FirestoreCollections.SETTLEMENTS).doc(settlementId).delete();
-
-                logger.info('Settlement document deleted', { settlementId });
-
-                return {
-                    id: settlementId,
-                    success: true,
-                    timestamp: new Date(),
-                };
-            } catch (error) {
-                logger.error('Failed to delete settlement document', error, { settlementId });
-                return {
-                    id: settlementId,
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
-
     // ========================================================================
     // Comment Write Operations
     // ========================================================================
@@ -1296,59 +1253,6 @@ export class FirestoreWriter implements IFirestoreWriter {
                 }
 
                 logger.error('Failed to remove user notification group', error, { userId, groupId });
-                return {
-                    id: userId,
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
-
-    /**
-     * Set user notifications with merge option
-     * @param userId - The user ID
-     * @param data - The notification data
-     * @param merge - Whether to merge with existing data
-     * @returns Write result
-     */
-    async setUserNotifications(userId: string, data: any, merge?: boolean): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.setUserNotifications', async () => {
-            try {
-                const finalData = {
-                    ...data,
-                    lastModified: FieldValue.serverTimestamp(),
-                };
-
-                // Validate the data being set (for non-merge operations or when merge=false)
-                let skipValidation = false;
-                if (!merge) {
-                    // Full document set - validate the entire document
-                    const result = this.safeValidateUpdate<CreateUserNotificationDocument>(UserNotificationDocumentSchema, finalData, 'UserNotificationDocument', userId, 'user-notifications');
-                    skipValidation = Boolean(result.skipValidation);
-                } else {
-                    // Merge operation with FieldValue - log as unvalidated but proceed
-                    logger.warn('User notification set with merge=true - validation skipped due to FieldValue operations', {
-                        userId,
-                        operation: 'setUserNotifications',
-                        merge: true,
-                        fields: Object.keys(data),
-                    });
-                    skipValidation = true;
-                }
-
-                await this.db.doc(`user-notifications/${userId}`).set(finalData, { merge: merge || false });
-
-                const logType = skipValidation ? '(merge operation)' : '(validated)';
-                logger.info(`User notifications set ${logType}`, { userId, merge, fields: Object.keys(data) });
-
-                return {
-                    id: userId,
-                    success: true,
-                    timestamp: new Date(),
-                };
-            } catch (error) {
-                logger.error('Failed to set user notifications', error, { userId });
                 return {
                     id: userId,
                     success: false,

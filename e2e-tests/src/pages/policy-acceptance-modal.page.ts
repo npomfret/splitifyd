@@ -76,10 +76,6 @@ export class PolicyAcceptanceModalPage extends BasePage {
         await expect(this.modal).toBeVisible({ timeout: timeoutMs });
     }
 
-    async waitForModalToDisappear(timeoutMs: number = 2000): Promise<void> {
-        await expect(this.modal).not.toBeVisible({ timeout: timeoutMs });
-    }
-
     async getCurrentPolicyName(): Promise<string> {
         return (await this.policyTitle.textContent()) || '';
     }

@@ -4,7 +4,7 @@ import * as Joi from 'joi';
 /**
  * Get the maximum allowed decimal places for a currency
  */
-export function getMaxDecimalPlaces(currencyCode: string): number {
+function getMaxDecimalPlaces(currencyCode: string): number {
     const currency = getCurrency(currencyCode);
     return currency.decimal_digits;
 }

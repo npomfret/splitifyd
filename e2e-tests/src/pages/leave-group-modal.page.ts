@@ -1,4 +1,4 @@
-import { expect, Locator, Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 import { LeaveGroupDialogPage as BaseLeaveGroupDialogPage } from '@splitifyd/test-support';
 import { DashboardPage } from './dashboard.page';
 

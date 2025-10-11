@@ -5,7 +5,7 @@ import { z } from 'zod';
  * Schema for the UserBalance map within GroupBalance
  * Tracks per-user balance state across all currencies
  */
-export const UserBalanceSchema = z.object({
+const UserBalanceSchema = z.object({
     uid: z.string(),
     owes: z.record(z.string(), z.number()),
     owedBy: z.record(z.string(), z.number()),
@@ -15,12 +15,12 @@ export const UserBalanceSchema = z.object({
 /**
  * Schema for CurrencyBalances - record of userId to UserBalance
  */
-export const CurrencyBalancesSchema = z.record(z.string(), UserBalanceSchema);
+const CurrencyBalancesSchema = z.record(z.string(), UserBalanceSchema);
 
 /**
  * Schema for SimplifiedDebt
  */
-export const SimplifiedDebtSchema = z.object({
+const SimplifiedDebtSchema = z.object({
     from: z.object({ uid: z.string() }),
     to: z.object({ uid: z.string() }),
     amount: z.number(),
@@ -42,9 +42,8 @@ export const GroupBalanceDocumentSchema = z.object({
 /**
  * DTO Schema for GroupBalance (ISO strings for application layer)
  */
-export const GroupBalanceDTOSchema = GroupBalanceDocumentSchema.extend({
+const GroupBalanceDTOSchema = GroupBalanceDocumentSchema.extend({
     lastUpdatedAt: z.string().datetime(),
 });
 
-export type GroupBalanceDocument = z.infer<typeof GroupBalanceDocumentSchema>;
 export type GroupBalanceDTO = z.infer<typeof GroupBalanceDTOSchema>;
