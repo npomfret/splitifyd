@@ -5,7 +5,6 @@ import { validateRegisterRequest } from '../auth/validation';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
-import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { assignThemeColor } from '../user-management/assign-theme-color';
 import { validateChangePassword, validateUpdateUserProfile } from '../user/validation';
 import { ApiError, Errors } from '../utils/errors';

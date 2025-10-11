@@ -4,7 +4,6 @@ import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
-import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { PolicyDocumentSchema } from '../schemas';
 import { ApiError } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';

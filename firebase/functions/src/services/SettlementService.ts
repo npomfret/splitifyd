@@ -10,7 +10,6 @@ import { ApiError, Errors } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
-import { GroupMemberService } from './GroupMemberService';
 
 /**
  * Zod schema for User document - ensures critical fields are present

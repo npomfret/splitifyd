@@ -1,6 +1,5 @@
 import {
     CreateGroupRequest,
-    ExpenseDTO,
     GroupDTO,
     GroupFullDetailsDTO,
     ListGroupsResponse,
@@ -8,7 +7,6 @@ import {
     MemberStatuses,
     MessageResponse,
     SecurityPresets,
-    SettlementDTO,
     UpdateGroupRequest,
 } from '@splitifyd/shared';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';

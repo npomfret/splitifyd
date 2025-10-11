@@ -1,7 +1,6 @@
 import { type GroupMembershipDTO, MemberRoles } from '@splitifyd/shared';
 import { GroupDTOBuilder, ThemeBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it, test } from 'vitest';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
 import { StubAuthService, StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';

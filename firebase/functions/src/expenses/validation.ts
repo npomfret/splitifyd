@@ -2,7 +2,7 @@ import * as Joi from 'joi';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 
-import { CreateExpenseRequest, ExpenseSplit, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
+import { CreateExpenseRequest, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
 import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 import { validateAmountPrecision } from '../utils/amount-validation';
 import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';

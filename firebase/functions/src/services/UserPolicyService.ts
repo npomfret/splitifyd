@@ -2,7 +2,6 @@ import { PolicyAcceptanceStatusDTO, UserPolicyStatusResponse } from '@splitifyd/
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
-import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { ApiError } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
 import { IFirestoreReader } from './firestore';

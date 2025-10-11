@@ -1,5 +1,5 @@
 import type { RegisteredUser, UserThemeColor } from '@splitifyd/shared';
-import { generateShortId, randomBoolean, randomChoice, randomEmail, randomString, randomUrl } from '../test-helpers';
+import { generateShortId, randomBoolean, randomChoice, randomString, randomUrl } from '../test-helpers';
 
 /**
  * Builder for creating RegisteredUser objects for testing

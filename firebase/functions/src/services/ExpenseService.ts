@@ -1,4 +1,4 @@
-import { CreateExpenseRequest, DELETED_AT_FIELD, ExpenseDTO, ExpenseFullDetailsDTO, GroupDTO, GroupMember, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
+import { CreateExpenseRequest, DELETED_AT_FIELD, ExpenseDTO, ExpenseFullDetailsDTO, GroupDTO, GroupMember, UpdateExpenseRequest } from '@splitifyd/shared';
 import { DocumentReference } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
@@ -13,8 +13,6 @@ import { ApiError, Errors } from '../utils/errors';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
-import { GroupMemberService } from './GroupMemberService';
-import { UserService } from './UserService2';
 
 /**
  * Zod schema for User document - ensures critical fields are present

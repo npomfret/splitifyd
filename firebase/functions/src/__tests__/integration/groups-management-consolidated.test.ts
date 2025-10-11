@@ -13,7 +13,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
-import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
 
 describe('Groups Management - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();

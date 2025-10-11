@@ -1,6 +1,6 @@
 import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { mockApiFailure, mockGroupsApi } from '../../utils/mock-firebase-service';
+import { mockGroupsApi } from '../../utils/mock-firebase-service';
 
 // Test for browser reuse - using fixture-based approach with proper infrastructure
 test.describe('Browser Reuse Test', () => {

@@ -1,5 +1,4 @@
 import { expect, Page } from '@playwright/test';
-import { PooledTestUser } from '@splitifyd/shared';
 import { DashboardPage as BaseDashboardPage } from '@splitifyd/test-support';
 import { CreateGroupFormData, CreateGroupFormDataBuilder, generateShortId, randomString } from '@splitifyd/test-support';
 import { CreateGroupModalPage } from './create-group-modal.page.ts';
