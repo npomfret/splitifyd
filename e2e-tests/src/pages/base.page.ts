@@ -11,7 +11,7 @@ export abstract class BasePage {
         // This wraps all async methods to automatically capture context on errors
         const className = this.constructor.name;
 
-        return createErrorHandlingProxy(this, className, _page, {// todo: we need to make this work with the new POMs
+        return createErrorHandlingProxy(this, className, _page, { // todo: we need to make this work with the new POMs
             // Configuration options
             captureScreenshot: false, // Can be enabled for debugging
             collectState: true, // Always collect page state on errors

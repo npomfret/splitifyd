@@ -462,10 +462,11 @@ export class GroupDetailPage extends BasePage {
             }
 
             // If we get here, everything matches!
-        }).toPass({
-            timeout: 3000,
-            intervals: [50, 100, 200, 500],
-        });
+        })
+            .toPass({
+                timeout: 3000,
+                intervals: [50, 100, 200, 500],
+            });
     }
 
     /**

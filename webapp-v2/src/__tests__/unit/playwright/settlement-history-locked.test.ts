@@ -1,6 +1,6 @@
-import { SettlementWithMembersBuilder, GroupDTOBuilder, GroupMemberBuilder, ThemeBuilder } from '@splitifyd/test-support';
-import { expect, test } from '../../utils/console-logging-fixture';
+import { GroupDTOBuilder, GroupMemberBuilder, SettlementWithMembersBuilder, ThemeBuilder } from '@splitifyd/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
+import { expect, test } from '../../utils/console-logging-fixture';
 
 /**
  * Helper function to mock the group full-details API endpoint with settlements
@@ -45,7 +45,8 @@ test.describe('Settlement History - Locked Settlement UI', () => {
             .withIsLocked(true) // Mark as locked
             .build();
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
             .withId(groupId)
             .withName('Test Group')
             .build();
@@ -127,7 +128,8 @@ test.describe('Settlement History - Locked Settlement UI', () => {
             // isLocked defaults to false
             .build();
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
             .withId(groupId)
             .withName('Test Group')
             .build();
@@ -209,7 +211,8 @@ test.describe('Settlement History - Locked Settlement UI', () => {
             .withIsLocked(false) // Start unlocked
             .build();
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid)
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
             .withId(groupId)
             .withName('Test Group')
             .build();

@@ -439,7 +439,14 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                             <Button type='button' variant='secondary' onClick={onClose} disabled={isSubmitting} className='flex-1' data-testid='cancel-settlement-button'>
                                 {t('settlementForm.cancelButton')}
                             </Button>
-                            <Button type='submit' variant='primary' disabled={!isFormValid || isSubmitting || (editMode && settlementToEdit?.isLocked)} loading={isSubmitting} className='flex-1' data-testid='save-settlement-button'>
+                            <Button
+                                type='submit'
+                                variant='primary'
+                                disabled={!isFormValid || isSubmitting || (editMode && settlementToEdit?.isLocked)}
+                                loading={isSubmitting}
+                                className='flex-1'
+                                data-testid='save-settlement-button'
+                            >
                                 {isSubmitting
                                     ? editMode
                                         ? t('settlementForm.updatingButton')

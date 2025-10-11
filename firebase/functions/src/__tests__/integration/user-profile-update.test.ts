@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, test } from 'vitest';
-import { ApiDriver, borrowTestUsers } from '@splitifyd/test-support';
 import type { PooledTestUser } from '@splitifyd/shared';
+import { ApiDriver, borrowTestUsers } from '@splitifyd/test-support';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 describe('User Profile Update - Integration Tests', () => {
     let apiDriver: ApiDriver;
@@ -32,7 +32,9 @@ describe('User Profile Update - Integration Tests', () => {
             // Try to update with empty display name
             await expect(
                 apiDriver.updateUserProfile({ displayName: '' }, user.token),
-            ).rejects.toThrow(/required|INVALID_INPUT/i);
+            )
+                .rejects
+                .toThrow(/required|INVALID_INPUT/i);
         });
 
         test('should reject display name that is too long', async () => {
@@ -40,14 +42,18 @@ describe('User Profile Update - Integration Tests', () => {
             const longName = 'a'.repeat(101); // Assuming max is 100
             await expect(
                 apiDriver.updateUserProfile({ displayName: longName }, user.token),
-            ).rejects.toThrow(/exceed.*100|INVALID_INPUT/i);
+            )
+                .rejects
+                .toThrow(/exceed.*100|INVALID_INPUT/i);
         });
 
         test('should require authentication', async () => {
             // Try to update profile without authentication
             await expect(
                 apiDriver.updateUserProfile({ displayName: 'New Name' }, 'invalid-token'),
-            ).rejects.toThrow(/auth|unauthorized|token/i);
+            )
+                .rejects
+                .toThrow(/auth|unauthorized|token/i);
         });
     });
 });

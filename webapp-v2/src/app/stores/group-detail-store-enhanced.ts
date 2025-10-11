@@ -251,34 +251,34 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         // Set up notification detector if not already running (prevent duplicate subscriptions!)
         if (!this.notificationUnsubscribe) {
             this.notificationUnsubscribe = this.notificationDetector.subscribe({
-            onTransactionChange: (changeGroupId) => {
-                if (changeGroupId === this.currentGroupId) {
-                    logInfo('Transaction change detected', { groupId: changeGroupId });
-                    this.refreshAll().catch((error) => logError('Failed to refresh after transaction change', error));
-                }
-            },
-            onGroupChange: (changeGroupId) => {
-                if (changeGroupId === this.currentGroupId) {
-                    logInfo('GroupDTO change detected', { groupId: changeGroupId });
-                    // Refresh all data to pick up changes like settlement lock status after member departure
-                    this.refreshAll().catch((error) => logError('Failed to refresh after group change', error));
-                }
-            },
-            onBalanceChange: (changeGroupId) => {
-                if (changeGroupId === this.currentGroupId) {
-                    logInfo('Balance change detected', { groupId: changeGroupId });
-                    this.refreshAll().catch((error) => logError('Failed to refresh after balance change', error));
-                }
-            },
-            onGroupRemoved: (changeGroupId) => {
-                if (changeGroupId === this.currentGroupId) {
-                    logInfo('GroupDTO removed - clearing state and setting removal flag', { groupId: changeGroupId });
-                    this.#clearGroupData();
-                    // Set specific error after clearing data to trigger better UX
-                    this.#errorSignal.value = 'USER_REMOVED_FROM_GROUP';
-                }
-            },
-        });
+                onTransactionChange: (changeGroupId) => {
+                    if (changeGroupId === this.currentGroupId) {
+                        logInfo('Transaction change detected', { groupId: changeGroupId });
+                        this.refreshAll().catch((error) => logError('Failed to refresh after transaction change', error));
+                    }
+                },
+                onGroupChange: (changeGroupId) => {
+                    if (changeGroupId === this.currentGroupId) {
+                        logInfo('GroupDTO change detected', { groupId: changeGroupId });
+                        // Refresh all data to pick up changes like settlement lock status after member departure
+                        this.refreshAll().catch((error) => logError('Failed to refresh after group change', error));
+                    }
+                },
+                onBalanceChange: (changeGroupId) => {
+                    if (changeGroupId === this.currentGroupId) {
+                        logInfo('Balance change detected', { groupId: changeGroupId });
+                        this.refreshAll().catch((error) => logError('Failed to refresh after balance change', error));
+                    }
+                },
+                onGroupRemoved: (changeGroupId) => {
+                    if (changeGroupId === this.currentGroupId) {
+                        logInfo('GroupDTO removed - clearing state and setting removal flag', { groupId: changeGroupId });
+                        this.#clearGroupData();
+                        // Set specific error after clearing data to trigger better UX
+                        this.#errorSignal.value = 'USER_REMOVED_FROM_GROUP';
+                    }
+                },
+            });
         }
 
         // Update permissions store

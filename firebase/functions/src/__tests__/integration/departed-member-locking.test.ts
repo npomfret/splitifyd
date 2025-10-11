@@ -2,15 +2,7 @@
 // Tests that expenses and settlements involving departed members become read-only (locked)
 
 import { calculateEqualSplits, PooledTestUser } from '@splitifyd/shared';
-import {
-    ApiDriver,
-    borrowTestUsers,
-    CreateExpenseRequestBuilder,
-    CreateSettlementRequestBuilder,
-    ExpenseUpdateBuilder,
-    NotificationDriver,
-    TestGroupManager,
-} from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder, NotificationDriver, TestGroupManager } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 
@@ -606,7 +598,9 @@ describe('Departed Member Transaction Locking', () => {
 
             await expect(
                 apiDriver.updateSettlement(settlement.id, updateData, users[1].token),
-            ).resolves.toBeDefined();
+            )
+                .resolves
+                .toBeDefined();
 
             // Verify update succeeded
             const fullDetails = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
@@ -635,7 +629,9 @@ describe('Departed Member Transaction Locking', () => {
                         .build(),
                     users[0].token,
                 ),
-            ).rejects.toThrow(/MEMBER_NOT_IN_GROUP|failed with status 400/);
+            )
+                .rejects
+                .toThrow(/MEMBER_NOT_IN_GROUP|failed with status 400/);
         });
 
         test('should prevent creating settlement with departed payee', async () => {
@@ -658,7 +654,9 @@ describe('Departed Member Transaction Locking', () => {
                         .build(),
                     users[1].token,
                 ),
-            ).rejects.toThrow(/MEMBER_NOT_IN_GROUP|failed with status 400/);
+            )
+                .rejects
+                .toThrow(/MEMBER_NOT_IN_GROUP|failed with status 400/);
         });
     });
 
@@ -726,7 +724,9 @@ describe('Departed Member Transaction Locking', () => {
                         .build(),
                     users[0].token,
                 ),
-            ).rejects.toThrow(/EXPENSE_LOCKED|failed with status 400/);
+            )
+                .rejects
+                .toThrow(/EXPENSE_LOCKED|failed with status 400/);
         });
 
         test('should compute lock status dynamically on each read', async () => {

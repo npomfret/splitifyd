@@ -142,7 +142,7 @@ export class GroupMemberBuilder {
     static minimal(uid: string): GroupMemberBuilder {
         return new GroupMemberBuilder()
             .withUid(uid)
-            .withDisplayName(`User ${uid.slice(0, 4)}`)
+            .withDisplayName(`User ${uid.slice(0, 4)}`);
     }
 
     /**

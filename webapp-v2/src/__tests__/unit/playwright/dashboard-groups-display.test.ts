@@ -1,6 +1,6 @@
-import {DashboardPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ListGroupsResponseBuilder, ThemeBuilder, UserNotificationDocumentBuilder} from '@splitifyd/test-support';
-import {expect, test} from '../../utils/console-logging-fixture';
-import {mockGroupCommentsApi, mockGroupDetailApi, mockGroupsApi} from '../../utils/mock-firebase-service';
+import { DashboardPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ListGroupsResponseBuilder, ThemeBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
+import { expect, test } from '../../utils/console-logging-fixture';
+import { mockGroupCommentsApi, mockGroupDetailApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
 test.describe('Dashboard User Interface and Responsiveness', () => {
     test('should display user menu and allow interaction', async ({ authenticatedPage }) => {

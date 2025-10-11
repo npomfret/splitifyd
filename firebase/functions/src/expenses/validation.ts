@@ -3,10 +3,10 @@ import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 
 import { CreateExpenseRequest, ExpenseSplit, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
+import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 import { validateAmountPrecision } from '../utils/amount-validation';
 import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
 import { sanitizeString } from '../utils/security';
-import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 
 const expenseSplitSchema = Joi.object({
     uid: Joi.string().required(),

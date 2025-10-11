@@ -736,7 +736,7 @@ describe('Split Utils', () => {
                 // Define types
                 type ExpenseRequest = {
                     amount: string; // ✅ String in API
-                    splits: Array<{ uid: string; amount: string }>;
+                    splits: Array<{ uid: string; amount: string; }>;
                 };
 
                 // TypeScript would catch this error at compile time:

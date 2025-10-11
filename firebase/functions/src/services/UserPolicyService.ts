@@ -69,7 +69,7 @@ export class UserPolicyService {
             });
 
             const updateData = {
-                acceptedPolicies,  // Nested object structure
+                acceptedPolicies, // Nested object structure
                 // updatedAt is automatically added by FirestoreWriter
             };
 

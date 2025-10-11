@@ -1,6 +1,6 @@
 import { ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberBuilder, ThemeBuilder } from '@splitifyd/test-support';
-import { expect, test } from '../../utils/console-logging-fixture';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
+import { expect, test } from '../../utils/console-logging-fixture';
 
 /**
  * Helper function to mock the expense full-details API endpoint

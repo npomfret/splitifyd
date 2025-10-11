@@ -8,11 +8,11 @@ test.describe('Dashboard Groups Pagination', () => {
         const dashboardPage = new DashboardPage(page);
 
         const groups = Array.from({ length: 5 }, (_, i) =>
-            GroupDTOBuilder.groupForUser(user.uid)
+            GroupDTOBuilder
+                .groupForUser(user.uid)
                 .withId(`group-${i + 1}`)
                 .withName(`Group ${i + 1}`)
-                .build(),
-        );
+                .build());
 
         await mockGroupsApi(
             page,
@@ -33,15 +33,16 @@ test.describe('Dashboard Groups Pagination', () => {
         const dashboardPage = new DashboardPage(page);
 
         const groups = Array.from({ length: 8 }, (_, i) =>
-            GroupDTOBuilder.groupForUser(user.uid)
+            GroupDTOBuilder
+                .groupForUser(user.uid)
                 .withId(`group-${i + 1}`)
                 .withName(`Group ${i + 1}`)
-                .build(),
-        );
+                .build());
 
         await mockGroupsApi(
             page,
-            ListGroupsResponseBuilder.responseWithMetadata(groups, 1)
+            ListGroupsResponseBuilder
+                .responseWithMetadata(groups, 1)
                 .withHasMore(true)
                 .withNextCursor('cursor-page-2')
                 .build(),
@@ -66,15 +67,16 @@ test.describe('Dashboard Groups Pagination', () => {
         const dashboardPage = new DashboardPage(page);
 
         const page1Groups = Array.from({ length: 8 }, (_, i) =>
-            GroupDTOBuilder.groupForUser(user.uid)
+            GroupDTOBuilder
+                .groupForUser(user.uid)
                 .withId(`group-page1-${i + 1}`)
                 .withName(`Page 1 Group ${i + 1}`)
-                .build(),
-        );
+                .build());
 
         await mockGroupsApi(
             page,
-            ListGroupsResponseBuilder.responseWithMetadata(page1Groups, 1)
+            ListGroupsResponseBuilder
+                .responseWithMetadata(page1Groups, 1)
                 .withHasMore(true)
                 .withNextCursor('cursor-page-2')
                 .build(),
@@ -85,11 +87,11 @@ test.describe('Dashboard Groups Pagination', () => {
         await dashboardPage.verifyGroupsDisplayed(8);
 
         const page2Groups = Array.from({ length: 8 }, (_, i) =>
-            GroupDTOBuilder.groupForUser(user.uid)
+            GroupDTOBuilder
+                .groupForUser(user.uid)
                 .withId(`group-page2-${i + 1}`)
                 .withName(`Page 2 Group ${i + 1}`)
-                .build(),
-        );
+                .build());
 
         // Unroute all previous handlers
         await page.unroute('**/api/groups*');
@@ -97,7 +99,8 @@ test.describe('Dashboard Groups Pagination', () => {
         // Setup new route for page 2
         await mockGroupsApi(
             page,
-            ListGroupsResponseBuilder.responseWithMetadata(page2Groups, 1)
+            ListGroupsResponseBuilder
+                .responseWithMetadata(page2Groups, 1)
                 .withHasMore(false)
                 .build(),
         );
@@ -122,15 +125,16 @@ test.describe('Dashboard Groups Pagination', () => {
         const dashboardPage = new DashboardPage(page);
 
         const page1Groups = Array.from({ length: 8 }, (_, i) =>
-            GroupDTOBuilder.groupForUser(user.uid)
+            GroupDTOBuilder
+                .groupForUser(user.uid)
                 .withId(`group-page1-${i + 1}`)
                 .withName(`Page 1 Group ${i + 1}`)
-                .build(),
-        );
+                .build());
 
         await mockGroupsApi(
             page,
-            ListGroupsResponseBuilder.responseWithMetadata(page1Groups, 1)
+            ListGroupsResponseBuilder
+                .responseWithMetadata(page1Groups, 1)
                 .withHasMore(true)
                 .withNextCursor('cursor-page-2')
                 .build(),
@@ -140,11 +144,11 @@ test.describe('Dashboard Groups Pagination', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         const page2Groups = Array.from({ length: 5 }, (_, i) =>
-            GroupDTOBuilder.groupForUser(user.uid)
+            GroupDTOBuilder
+                .groupForUser(user.uid)
                 .withId(`group-page2-${i + 1}`)
                 .withName(`Page 2 Group ${i + 1}`)
-                .build(),
-        );
+                .build());
 
         // Unroute all previous handlers
         await page.unroute('**/api/groups*');
@@ -167,7 +171,8 @@ test.describe('Dashboard Groups Pagination', () => {
         // Setup route for going back to page 1
         await mockGroupsApi(
             page,
-            ListGroupsResponseBuilder.responseWithMetadata(page1Groups, 1)
+            ListGroupsResponseBuilder
+                .responseWithMetadata(page1Groups, 1)
                 .withHasMore(true)
                 .withNextCursor('cursor-page-2')
                 .build(),
@@ -192,11 +197,11 @@ test.describe('Dashboard Groups Pagination', () => {
         const dashboardPage = new DashboardPage(page);
 
         const groups = Array.from({ length: 3 }, (_, i) =>
-            GroupDTOBuilder.groupForUser(user.uid)
+            GroupDTOBuilder
+                .groupForUser(user.uid)
                 .withId(`group-${i + 1}`)
                 .withName(`Last Page Group ${i + 1}`)
-                .build(),
-        );
+                .build());
 
         await mockGroupsApi(
             page,
@@ -217,15 +222,16 @@ test.describe('Dashboard Groups Pagination', () => {
         const dashboardPage = new DashboardPage(page);
 
         const page1Groups = Array.from({ length: 8 }, (_, i) =>
-            GroupDTOBuilder.groupForUser(user.uid)
+            GroupDTOBuilder
+                .groupForUser(user.uid)
                 .withId(`group-page1-${i + 1}`)
                 .withName(`Page 1 Group ${i + 1}`)
-                .build(),
-        );
+                .build());
 
         await mockGroupsApi(
             page,
-            ListGroupsResponseBuilder.responseWithMetadata(page1Groups, 1)
+            ListGroupsResponseBuilder
+                .responseWithMetadata(page1Groups, 1)
                 .withHasMore(true)
                 .withNextCursor('cursor-page-2')
                 .build(),
@@ -235,11 +241,11 @@ test.describe('Dashboard Groups Pagination', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         const page2Groups = Array.from({ length: 8 }, (_, i) =>
-            GroupDTOBuilder.groupForUser(user.uid)
+            GroupDTOBuilder
+                .groupForUser(user.uid)
                 .withId(`group-page2-${i + 1}`)
                 .withName(`Page 2 Group ${i + 1}`)
-                .build(),
-        );
+                .build());
 
         // Unroute all previous handlers
         await page.unroute('**/api/groups*');
@@ -276,15 +282,16 @@ test.describe('Dashboard Groups Pagination', () => {
         const dashboardPage = new DashboardPage(page);
 
         const page1Groups = Array.from({ length: 8 }, (_, i) =>
-            GroupDTOBuilder.groupForUser(user.uid)
+            GroupDTOBuilder
+                .groupForUser(user.uid)
                 .withId(`group-page1-${i + 1}`)
                 .withName(`Page 1 Group ${i + 1}`)
-                .build(),
-        );
+                .build());
 
         await mockGroupsApi(
             page,
-            ListGroupsResponseBuilder.responseWithMetadata(page1Groups, 1)
+            ListGroupsResponseBuilder
+                .responseWithMetadata(page1Groups, 1)
                 .withHasMore(true)
                 .withNextCursor('cursor-page-2')
                 .build(),
@@ -294,11 +301,11 @@ test.describe('Dashboard Groups Pagination', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         const page2Groups = Array.from({ length: 5 }, (_, i) =>
-            GroupDTOBuilder.groupForUser(user.uid)
+            GroupDTOBuilder
+                .groupForUser(user.uid)
                 .withId(`group-page2-${i + 1}`)
                 .withName(`Page 2 Group ${i + 1}`)
-                .build(),
-        );
+                .build());
 
         // Unroute all previous handlers
         await page.unroute('**/api/groups*');
@@ -323,7 +330,8 @@ test.describe('Dashboard Groups Pagination', () => {
         // Setup route for refreshed page 1 with new group
         await mockGroupsApi(
             page,
-            ListGroupsResponseBuilder.responseWithMetadata(updatedPage1Groups.slice(0, 8), 2)
+            ListGroupsResponseBuilder
+                .responseWithMetadata(updatedPage1Groups.slice(0, 8), 2)
                 .withHasMore(true)
                 .withNextCursor('cursor-page-2-updated')
                 .build(),
@@ -382,15 +390,16 @@ test.describe('Dashboard Pagination Mobile View', () => {
         await page.setViewportSize({ width: 375, height: 667 });
 
         const groups = Array.from({ length: 8 }, (_, i) =>
-            GroupDTOBuilder.groupForUser(user.uid)
+            GroupDTOBuilder
+                .groupForUser(user.uid)
                 .withId(`group-${i + 1}`)
                 .withName(`Group ${i + 1}`)
-                .build(),
-        );
+                .build());
 
         await mockGroupsApi(
             page,
-            ListGroupsResponseBuilder.responseWithMetadata(groups, 1)
+            ListGroupsResponseBuilder
+                .responseWithMetadata(groups, 1)
                 .withHasMore(true)
                 .withNextCursor('cursor-page-2')
                 .build(),

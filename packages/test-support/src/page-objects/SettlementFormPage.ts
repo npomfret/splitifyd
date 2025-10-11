@@ -199,7 +199,7 @@ export class SettlementFormPage extends BasePage {
     /**
      * Verify form values match expected
      */
-    async verifyFormValues(expected: { amount: string; note: string }): Promise<void> {
+    async verifyFormValues(expected: { amount: string; note: string; }): Promise<void> {
         const amountInput = this.getAmountInput();
         const noteInput = this.getNoteInput();
 
@@ -212,7 +212,7 @@ export class SettlementFormPage extends BasePage {
     /**
      * Update a settlement (form should already be in edit mode)
      */
-    async updateSettlement(data: { amount: string; note: string }): Promise<void> {
+    async updateSettlement(data: { amount: string; note: string; }): Promise<void> {
         // Assert form is in update mode before updating
         await this.verifyUpdateMode();
 

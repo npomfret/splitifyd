@@ -61,15 +61,17 @@ export class RegisterPage extends BaseRegisterPage {
         // Wait for either:
         // 1. Button becomes disabled (indicates processing started)
         // 2. Immediate redirect to dashboard (instant registration)
-        await Promise.race([
-            // Option 1: Wait for button to become disabled (processing started)
-            expect(submitButton).toBeDisabled({ timeout: 2000 }),
+        await Promise
+            .race([
+                // Option 1: Wait for button to become disabled (processing started)
+                expect(submitButton).toBeDisabled({ timeout: 2000 }),
 
-            // Option 2: Wait for immediate redirect (so fast button never visibly disables)
-            this.page.waitForURL(/\/dashboard/, { timeout: 1000 }),
-        ]).catch(() => {
-            // It's ok if neither happens immediately, we'll still wait for the final redirect
-        });
+                // Option 2: Wait for immediate redirect (so fast button never visibly disables)
+                this.page.waitForURL(/\/dashboard/, { timeout: 1000 }),
+            ])
+            .catch(() => {
+                // It's ok if neither happens immediately, we'll still wait for the final redirect
+            });
 
         // Now wait for the final redirect to dashboard (registration success)
         // This should happen whether we saw the button disable or not
@@ -92,8 +94,8 @@ export class RegisterPage extends BaseRegisterPage {
     async waitForRegistrationResponse(expectedStatus?: number): Promise<void> {
         const responsePromise = this.page.waitForResponse(
             (response) =>
-                response.url().includes('/api/register') &&
-                (expectedStatus ? response.status() === expectedStatus : response.status() >= 400),
+                response.url().includes('/api/register')
+                && (expectedStatus ? response.status() === expectedStatus : response.status() >= 400),
         );
         return responsePromise.then(() => {});
     }

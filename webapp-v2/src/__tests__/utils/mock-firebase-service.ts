@@ -348,7 +348,7 @@ export async function mockApiRoute(
 export async function mockPoliciesApi(
     page: Page,
     response: UserPolicyStatusResponse,
-    options: { delayMs?: number } = {},
+    options: { delayMs?: number; } = {},
 ): Promise<void> {
     await mockApiRoute(page, '/api/user/policies/status', response, options);
 }
@@ -384,7 +384,7 @@ export async function mockFullyAcceptedPoliciesApi(page: Page) {
 export async function mockGroupsApi(
     page: Page,
     response: ListGroupsResponse,
-    options: { delayMs?: number } = {},
+    options: { delayMs?: number; } = {},
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
 
@@ -420,8 +420,8 @@ export async function mockApiFailure(
     page: Page,
     url: string,
     status: number,
-    error: { error: string },
-    options: { delayMs?: number } = {},
+    error: { error: string; },
+    options: { delayMs?: number; } = {},
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
 
@@ -468,7 +468,7 @@ export async function mockGroupDetailApi(
     page: Page,
     groupId: string,
     group: any,
-    options: { delayMs?: number } = {},
+    options: { delayMs?: number; } = {},
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
 
@@ -492,7 +492,7 @@ export async function mockGroupCommentsApi(
     page: Page,
     groupId: string,
     comments: any[] = [],
-    options: { delayMs?: number } = {},
+    options: { delayMs?: number; } = {},
 ): Promise<void> {
     await mockApiRoute(
         page,
@@ -519,7 +519,7 @@ export async function mockGenerateShareLinkApi(
     page: Page,
     groupId: string,
     shareToken: string = 'test-share-token-123',
-    options: { delayMs?: number } = {},
+    options: { delayMs?: number; } = {},
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
 
@@ -554,7 +554,7 @@ export async function mockExpenseDetailApi(
     page: Page,
     groupId: string,
     group: any,
-    options: { delayMs?: number } = {},
+    options: { delayMs?: number; } = {},
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
 

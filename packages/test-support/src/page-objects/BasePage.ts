@@ -1,6 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { TEST_TIMEOUTS } from '../test-constants';
 import { createErrorHandlingProxy } from '../error-proxy';
+import { TEST_TIMEOUTS } from '../test-constants';
 
 /**
  * Base Page Object Model with shared utilities for Playwright tests

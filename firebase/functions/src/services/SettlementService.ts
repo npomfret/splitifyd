@@ -6,7 +6,7 @@ import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import * as dateHelpers from '../utils/dateHelpers';
-import {ApiError, Errors} from '../utils/errors';
+import { ApiError, Errors } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
@@ -103,8 +103,8 @@ export class SettlementService {
      */
     private async isSettlementLocked(settlement: SettlementDTO, groupId: string): Promise<boolean> {
         const currentMemberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
-        return !currentMemberIds.includes(settlement.payerId) ||
-               !currentMemberIds.includes(settlement.payeeId);
+        return !currentMemberIds.includes(settlement.payerId)
+            || !currentMemberIds.includes(settlement.payeeId);
     }
 
     /**
@@ -202,7 +202,7 @@ export class SettlementService {
                 throw new ApiError(
                     HTTP_STATUS.BAD_REQUEST,
                     'MEMBER_NOT_IN_GROUP',
-                    `Cannot create settlement - user is not in the group`
+                    `Cannot create settlement - user is not in the group`,
                 );
             }
         }
@@ -312,7 +312,7 @@ export class SettlementService {
             throw new ApiError(
                 HTTP_STATUS.BAD_REQUEST,
                 'SETTLEMENT_LOCKED',
-                'Cannot edit settlement - payer or payee has left the group'
+                'Cannot edit settlement - payer or payee has left the group',
             );
         }
 
@@ -626,12 +626,12 @@ export class SettlementService {
             result.settlements.map(async (settlement) => {
                 const [payerData, payeeData] = await Promise.all([
                     this.fetchGroupMemberData(groupId, settlement.payerId),
-                    this.fetchGroupMemberData(groupId, settlement.payeeId)
+                    this.fetchGroupMemberData(groupId, settlement.payeeId),
                 ]);
 
                 // Compute lock status
-                const isLocked = !currentMemberIds.includes(settlement.payerId) ||
-                                 !currentMemberIds.includes(settlement.payeeId);
+                const isLocked = !currentMemberIds.includes(settlement.payerId)
+                    || !currentMemberIds.includes(settlement.payeeId);
 
                 return {
                     id: settlement.id,
@@ -645,7 +645,7 @@ export class SettlementService {
                     createdAt: dateHelpers.timestampToISO(settlement.createdAt),
                     deletedAt: settlement.deletedAt,
                     deletedBy: settlement.deletedBy,
-                    isLocked
+                    isLocked,
                 } as SettlementWithMembers;
             }),
         );

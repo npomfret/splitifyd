@@ -10,23 +10,33 @@
  */
 
 // Import types
-import type {CommentDTO, ExpenseDTO, GroupDTO, RegisteredUser, SettlementDTO, ShareLinkDTO} from '@splitifyd/shared';
-import {type CommentTargetType, CommentTargetTypes} from '@splitifyd/shared';
-import type {DocumentReference, Firestore, Transaction} from 'firebase-admin/firestore';
-import {FieldValue, Timestamp} from 'firebase-admin/firestore';
-import {z} from 'zod';
-import {FIRESTORE, FirestoreCollections, HTTP_STATUS} from '../../constants';
-import {logger} from '../../logger';
-import {measureDb} from '../../monitoring/measure';
-import {ApiError} from '../../utils/errors';
-import {getTopLevelMembershipDocId} from '../../utils/groupMembershipHelpers';
+import type { CommentDTO, ExpenseDTO, GroupDTO, RegisteredUser, SettlementDTO, ShareLinkDTO } from '@splitifyd/shared';
+import { type CommentTargetType, CommentTargetTypes } from '@splitifyd/shared';
+import type { DocumentReference, Firestore, Transaction } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { z } from 'zod';
+import { FIRESTORE, FirestoreCollections, HTTP_STATUS } from '../../constants';
+import { logger } from '../../logger';
+import { measureDb } from '../../monitoring/measure';
+import { ApiError } from '../../utils/errors';
+import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 
-import type {GroupBalanceDTO} from '../../schemas';
+import type { GroupBalanceDTO } from '../../schemas';
 // Import schemas for validation
-import {CommentDataSchema, ExpenseDocumentSchema, GroupBalanceDocumentSchema, GroupDocumentSchema, PolicyDocumentSchema, SettlementDocumentSchema, TopLevelGroupMemberSchema, UserDocumentSchema, validateUpdate} from '../../schemas';
-import type {CreateUserNotificationDocument} from '../../schemas/user-notifications';
-import {UserNotificationDocumentSchema} from '../../schemas/user-notifications';
-import type {BatchWriteResult, IFirestoreWriter, WriteResult} from './IFirestoreWriter';
+import {
+    CommentDataSchema,
+    ExpenseDocumentSchema,
+    GroupBalanceDocumentSchema,
+    GroupDocumentSchema,
+    PolicyDocumentSchema,
+    SettlementDocumentSchema,
+    TopLevelGroupMemberSchema,
+    UserDocumentSchema,
+    validateUpdate,
+} from '../../schemas';
+import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
+import { UserNotificationDocumentSchema } from '../../schemas/user-notifications';
+import type { BatchWriteResult, IFirestoreWriter, WriteResult } from './IFirestoreWriter';
 
 /**
  * Validation metrics for monitoring validation coverage and effectiveness
@@ -324,7 +334,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         // and break schema validation as they're flattened versions of nested fields
         const cleanedExistingData: Record<string, any> = {};
         for (const [key, value] of Object.entries(existingData)) {
-            if (!key.includes('.')) {  // Only keep non-flattened keys
+            if (!key.includes('.')) { // Only keep non-flattened keys
                 cleanedExistingData[key] = value;
             }
         }
@@ -1735,7 +1745,9 @@ export class FirestoreWriter implements IFirestoreWriter {
                 // This ensures the membership list we read is consistent with the updates we perform
                 const result = await this.db.runTransaction(async (transaction) => {
                     // 1. Query all current group members INSIDE the transaction
-                    const membershipQuery = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                    const membershipQuery = this
+                        .db
+                        .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
                         .where('groupId', '==', groupId);
                     const membershipsSnapshot = await transaction.get(membershipQuery);
                     const allMemberIds = membershipsSnapshot.docs.map(doc => doc.data().userId);

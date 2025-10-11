@@ -176,7 +176,6 @@ export class GroupDetailPage extends BaseGroupDetailPage {
             });
     }
 
-
     /**
      * Waits for the group to have the expected number of members.
      * Relies on real-time updates to show the correct member count.
@@ -288,7 +287,6 @@ export class GroupDetailPage extends BaseGroupDetailPage {
             throw new Error(`Navigation failed. Expected URL to contain ${targetGroupUrl}, but got: ${currentUrl}`);
         }
     }
-
 
     /**
      * Clicks on an expense by its description to view details
@@ -644,7 +642,8 @@ export class GroupDetailPage extends BaseGroupDetailPage {
             if (!isDisabled) {
                 throw new Error(`Settlement edit button for "${note}" is still enabled, waiting for lock...`);
             }
-        }).toPass({ timeout: 10000 });
+        })
+            .toPass({ timeout: 10000 });
     }
 
     /**
@@ -772,7 +771,8 @@ export class GroupDetailPage extends BaseGroupDetailPage {
             if (count > 0) {
                 throw new Error(`Debt relationship still exists: ${debtorName} → ${creditorName}`);
             }
-        }).toPass({ timeout: 5000 });
+        })
+            .toPass({ timeout: 5000 });
     }
 
     /**

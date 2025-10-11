@@ -142,7 +142,8 @@ export class ExpenseDetailPage extends BasePage {
         await expect(async () => {
             const count = await this.getCommentItems().count();
             expect(count).toBe(expectedCount);
-        }).toPass({ timeout });
+        })
+            .toPass({ timeout });
     }
 
     /**
@@ -221,7 +222,8 @@ export class ExpenseDetailPage extends BasePage {
         await expect(async () => {
             const actual = await this.getCurrentExpenseDescription();
             expect(actual, `Expected description "${description}". Found: ${actual}`).toContain(description);
-        }).toPass({ timeout });
+        })
+            .toPass({ timeout });
     }
 
     /**
@@ -233,7 +235,8 @@ export class ExpenseDetailPage extends BasePage {
         await expect(async () => {
             const actual = await this.getCurrentCurrencyAmount();
             expect(actual, `Expected currency amount "${formattedAmount}". Found: ${actual}`).toContain(formattedAmount);
-        }).toPass({ timeout });
+        })
+            .toPass({ timeout });
     }
 
     /**

@@ -22,12 +22,11 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         const charlieDisplayName = await charlieDashboardPage.header.getCurrentUserDisplayName();
 
         // Alice creates group with all 3 members
-        const [aliceGroupDetailPage, bobGroupDetailPage, charlieGroupDetailPage] =
-            await aliceDashboardPage.createMultiUserGroup(
-                new CreateGroupFormDataBuilder(),
-                bobDashboardPage,
-                charlieDashboardPage,
-            );
+        const [aliceGroupDetailPage, bobGroupDetailPage, charlieGroupDetailPage] = await aliceDashboardPage.createMultiUserGroup(
+            new CreateGroupFormDataBuilder(),
+            bobDashboardPage,
+            charlieDashboardPage,
+        );
 
         const groupId = aliceGroupDetailPage.inferGroupId();
 
@@ -97,8 +96,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         });
 
         // Create group with 2 users
-        const [{ dashboardPage: aliceDashboardPage }, { dashboardPage: bobDashboardPage }] =
-            await createLoggedInBrowsers(2);
+        const [{ dashboardPage: aliceDashboardPage }, { dashboardPage: bobDashboardPage }] = await createLoggedInBrowsers(2);
 
         // Get display names
         const aliceDisplayName = await aliceDashboardPage.header.getCurrentUserDisplayName();

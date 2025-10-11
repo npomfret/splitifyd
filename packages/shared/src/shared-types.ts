@@ -588,7 +588,7 @@ interface Expense extends SoftDeletable {
  * which uses Firestore Timestamp objects.
  */
 export interface ExpenseDTO extends Expense, BaseDTO {
-  isLocked?: boolean; // True if any participant has left the group
+    isLocked?: boolean; // True if any participant has left the group
 }
 
 export interface CreateExpenseRequest {
@@ -633,7 +633,7 @@ interface Settlement extends SoftDeletable {
  * which uses Firestore Timestamp objects.
  */
 export interface SettlementDTO extends Settlement, BaseDTO {
-  isLocked?: boolean; // True if payer or payee has left the group
+    isLocked?: boolean; // True if payer or payee has left the group
 }
 
 export interface CreateSettlementRequest {

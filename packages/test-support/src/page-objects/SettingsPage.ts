@@ -101,11 +101,13 @@ export class SettingsPage extends BasePage {
     getSuccessMessage(text?: string): Locator {
         if (text) {
             // Use a more specific locator for the exact success message text
-            return this.page
+            return this
+                .page
                 .locator('[role="alert"], .bg-green-50, .text-green-600')
                 .filter({ hasText: text });
         }
-        return this.page
+        return this
+            .page
             .locator('.text-green-600, .bg-green-50, [role="alert"]')
             .filter({ hasText: /successfully|updated|changed/i });
     }

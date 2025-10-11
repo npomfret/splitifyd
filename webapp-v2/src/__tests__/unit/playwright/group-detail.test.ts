@@ -1,6 +1,6 @@
-import {ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder} from '@splitifyd/test-support';
-import {expect, test} from '../../utils/console-logging-fixture';
-import {mockApiFailure, mockGroupCommentsApi, mockGroupDetailApi} from '../../utils/mock-firebase-service';
+import { ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import { expect, test } from '../../utils/console-logging-fixture';
+import { mockApiFailure, mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
 
 test.describe('Group Detail - Authentication and Navigation', () => {
     test('should redirect unauthenticated user to login', async ({ pageWithLogging: page }) => {

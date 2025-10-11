@@ -1,4 +1,4 @@
-import {EMULATOR_URL} from '../helpers';
+import { EMULATOR_URL } from '../helpers';
 
 async function globalSetup() {
     const baseURL = EMULATOR_URL;

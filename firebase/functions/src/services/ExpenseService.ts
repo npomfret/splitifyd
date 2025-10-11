@@ -127,7 +127,8 @@ export class ExpenseService {
             const validatedData = UserDataSchema.parse(userData);
 
             // Generate initials from display name
-            const initials = validatedData.displayName
+            const initials = validatedData
+                .displayName
                 .split(' ')
                 .map((n) => n[0])
                 .join('')
@@ -213,7 +214,7 @@ export class ExpenseService {
 
         return {
             ...this.transformExpenseToResponse(expense),
-            isLocked
+            isLocked,
         };
     }
 
@@ -263,7 +264,7 @@ export class ExpenseService {
                 throw new ApiError(
                     HTTP_STATUS.BAD_REQUEST,
                     'MEMBER_NOT_IN_GROUP',
-                    `Cannot create expense - participant ${participantId} is not in the group`
+                    `Cannot create expense - participant ${participantId} is not in the group`,
                 );
             }
         }
@@ -369,7 +370,7 @@ export class ExpenseService {
             throw new ApiError(
                 HTTP_STATUS.BAD_REQUEST,
                 'EXPENSE_LOCKED',
-                'Cannot edit expense - one or more participants have left the group'
+                'Cannot edit expense - one or more participants have left the group',
             );
         }
 
@@ -553,13 +554,13 @@ export class ExpenseService {
         // Transform the validated expense documents to response format and compute lock status
         const expenses = result.expenses.map((validatedExpense) => {
             const isLocked = validatedExpense.participants.some(
-                uid => !currentMemberIds.includes(uid)
+                uid => !currentMemberIds.includes(uid),
             );
 
             return {
                 id: validatedExpense.id,
                 ...this.transformExpenseToResponse(this.normalizeValidatedExpense(validatedExpense)),
-                isLocked
+                isLocked,
             };
         });
 
@@ -733,7 +734,7 @@ export class ExpenseService {
         return {
             expense: {
                 ...expenseResponse,
-                isLocked
+                isLocked,
             },
             group,
             members: { members: participantData }, // Wrap in object to match ExpenseFullDetailsDTO.members structure

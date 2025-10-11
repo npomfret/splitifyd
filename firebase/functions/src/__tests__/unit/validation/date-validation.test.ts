@@ -175,7 +175,8 @@ describe('Date Validation Unit Tests', () => {
             const validDate = new Date();
             validDate.setMonth(validDate.getMonth() - 1); // 1 month ago
 
-            const updateData = ExpenseUpdateBuilder.minimal()
+            const updateData = ExpenseUpdateBuilder
+                .minimal()
                 .withDate(validDate.toISOString())
                 .build();
 

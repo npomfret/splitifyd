@@ -290,7 +290,7 @@ describe('Concurrent Operations Integration Tests', () => {
                             .withParticipants(participants)
                             .withSplitType('equal')
                             .build(),
-                    ),
+                    )
                 ),
                 ...settlementConfigs.map(([payerId, payeeId, amount, token]) => () =>
                     apiDriver.createSettlement(
@@ -302,7 +302,7 @@ describe('Concurrent Operations Integration Tests', () => {
                             .withCurrency('USD')
                             .build(),
                         token,
-                    ),
+                    )
                 ),
             ];
 

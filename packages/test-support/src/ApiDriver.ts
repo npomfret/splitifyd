@@ -305,7 +305,7 @@ export class ApiDriver {
         return await this.apiRequest('/user/change-password', 'POST', { currentPassword, newPassword }, token);
     }
 
-    async updateUserProfile(profileData: { displayName?: string }, token: string): Promise<any> {
+    async updateUserProfile(profileData: { displayName?: string; }, token: string): Promise<any> {
         return await this.apiRequest('/user/profile', 'PUT', profileData, token);
     }
 

@@ -365,7 +365,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
                 // User 1 leaves the group
                 await apiDriver.leaveGroup(group.id, testUsers[1].token);
-                
+
                 const fullDetails = await apiDriver.getGroupFullDetails(group.id, testUsers[0].token);
 
                 // Assertions: Should successfully fetch group details with settlements

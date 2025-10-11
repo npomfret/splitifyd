@@ -167,7 +167,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             const response = await apiClient.getGroups({
                 includeMetadata: true,
                 limit: pageSize,
-                cursor
+                cursor,
             });
 
             // Track REST refresh metrics
