@@ -1731,41 +1731,82 @@ export class FirestoreWriter implements IFirestoreWriter {
     async leaveGroupAtomic(groupId: string, userId: string): Promise<BatchWriteResult> {
         return measureDb('FirestoreWriter.leaveGroupAtomic', async () => {
             try {
-                // Generate membership document ID using helper function
-                const membershipDocId = getTopLevelMembershipDocId(userId, groupId);
+                // Use a transaction for transactional correctness
+                // This ensures the membership list we read is consistent with the updates we perform
+                const result = await this.db.runTransaction(async (transaction) => {
+                    // 1. Query all current group members INSIDE the transaction
+                    const membershipQuery = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                        .where('groupId', '==', groupId);
+                    const membershipsSnapshot = await transaction.get(membershipQuery);
+                    const allMemberIds = membershipsSnapshot.docs.map(doc => doc.data().userId);
 
-                const batch = this.db.batch();
+                    // Filter out the leaving member to get remaining members
+                    const remainingMemberIds = allMemberIds.filter(id => id !== userId);
 
-                // Update group timestamp (triggers group change notifications for remaining members)
-                await this.touchGroup(groupId, batch);
+                    // Generate membership document ID using helper function
+                    const membershipDocId = getTopLevelMembershipDocId(userId, groupId);
 
-                // Delete membership document
-                const membershipRef = this.db.doc(`${FirestoreCollections.GROUP_MEMBERSHIPS}/${membershipDocId}`);
-                batch.delete(membershipRef);
+                    // 2. Update group timestamp
+                    const groupRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
+                    transaction.update(groupRef, {
+                        updatedAt: FieldValue.serverTimestamp(),
+                    });
 
-                // Clean up user's notification document in the same transaction
-                const userNotificationRef = this.db.doc(`user-notifications/${userId}`);
-                batch.update(userNotificationRef, {
-                    [`groups.${groupId}`]: FieldValue.delete(),
-                    changeVersion: FieldValue.increment(1),
-                    lastModified: FieldValue.serverTimestamp(),
+                    // 3. Delete membership document
+                    const membershipRef = this.db.doc(`${FirestoreCollections.GROUP_MEMBERSHIPS}/${membershipDocId}`);
+                    transaction.delete(membershipRef);
+
+                    // 4. Clean up leaving user's notification document
+                    const userNotificationRef = this.db.doc(`user-notifications/${userId}`);
+                    transaction.update(userNotificationRef, {
+                        [`groups.${groupId}`]: FieldValue.delete(),
+                        changeVersion: FieldValue.increment(1),
+                        lastModified: FieldValue.serverTimestamp(),
+                    });
+
+                    // 5. Notify remaining members about group change (member left)
+                    // This ensures remaining members see the updated member list without navigation
+                    const now = new Date().toISOString();
+                    for (const remainingMemberId of remainingMemberIds) {
+                        const remainingMemberNotificationRef = this.db.doc(`user-notifications/${remainingMemberId}`);
+                        transaction.set(remainingMemberNotificationRef, {
+                            changeVersion: FieldValue.increment(1),
+                            lastModified: FieldValue.serverTimestamp(),
+                            groups: {
+                                [groupId]: {
+                                    lastGroupDetailsChange: now,
+                                    groupDetailsChangeCount: FieldValue.increment(1),
+                                },
+                            },
+                        }, { merge: true });
+                    }
+
+                    return {
+                        membershipDocId,
+                        remainingMemberCount: remainingMemberIds.length,
+                        remainingMemberIds,
+                    };
                 });
 
-                await batch.commit();
-
-                logger.info('User left group atomically - group updated, membership deleted, notifications cleaned up', {
+                logger.info('User left group atomically - group updated, membership deleted, notifications updated', {
                     userId,
                     groupId,
-                    membershipDocId,
+                    membershipDocId: result.membershipDocId,
+                    remainingMembers: result.remainingMemberCount,
                 });
 
                 return {
-                    successCount: 3, // group update + membership deletion + notification removal
+                    successCount: 3 + result.remainingMemberCount,
                     failureCount: 0,
                     results: [
                         { id: groupId, success: true, timestamp: new Date() },
-                        { id: membershipDocId, success: true, timestamp: new Date() },
+                        { id: result.membershipDocId, success: true, timestamp: new Date() },
                         { id: `user-notification-${userId}-${groupId}`, success: true, timestamp: new Date() },
+                        ...result.remainingMemberIds.map(id => ({
+                            id: `user-notification-${id}-${groupId}`,
+                            success: true,
+                            timestamp: new Date(),
+                        })),
                     ],
                 };
             } catch (error) {

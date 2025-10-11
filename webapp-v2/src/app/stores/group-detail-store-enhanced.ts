@@ -6,20 +6,20 @@ import { ExpenseDTO, GroupBalances, GroupDTO, GroupMember, SettlementWithMembers
 import { apiClient } from '../apiClient';
 
 interface EnhancedGroupDetailStore {
-    // State
-    group: GroupDTO | null;
-    members: GroupMember[];
-    expenses: ExpenseDTO[];
-    balances: GroupBalances | null;
-    settlements: SettlementWithMembers[];
-    loading: boolean;
-    loadingMembers: boolean;
-    loadingExpenses: boolean;
-    loadingSettlements: boolean;
-    error: string | null;
-    hasMoreExpenses: boolean;
-    hasMoreSettlements: boolean;
-    showDeletedSettlements: boolean;
+    // State accessors (wrap these in useComputed() in components)
+    readonly group: GroupDTO | null;
+    readonly members: GroupMember[];
+    readonly expenses: ExpenseDTO[];
+    readonly balances: GroupBalances | null;
+    readonly settlements: SettlementWithMembers[];
+    readonly loading: boolean;
+    readonly loadingMembers: boolean;
+    readonly loadingExpenses: boolean;
+    readonly loadingSettlements: boolean;
+    readonly error: string | null;
+    readonly hasMoreExpenses: boolean;
+    readonly hasMoreSettlements: boolean;
+    readonly showDeletedSettlements: boolean;
 
     // Methods
     loadGroup(id: string): Promise<void>;
@@ -248,8 +248,9 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         // Load the group data
         await this.loadGroup(groupId);
 
-        // Set up notification detector if not already running
-        this.notificationUnsubscribe = this.notificationDetector.subscribe({
+        // Set up notification detector if not already running (prevent duplicate subscriptions!)
+        if (!this.notificationUnsubscribe) {
+            this.notificationUnsubscribe = this.notificationDetector.subscribe({
             onTransactionChange: (changeGroupId) => {
                 if (changeGroupId === this.currentGroupId) {
                     logInfo('Transaction change detected', { groupId: changeGroupId });
@@ -259,6 +260,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             onGroupChange: (changeGroupId) => {
                 if (changeGroupId === this.currentGroupId) {
                     logInfo('GroupDTO change detected', { groupId: changeGroupId });
+                    // Refresh all data to pick up changes like settlement lock status after member departure
                     this.refreshAll().catch((error) => logError('Failed to refresh after group change', error));
                 }
             },
@@ -277,6 +279,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 }
             },
         });
+        }
 
         // Update permissions store
         permissionsStore.registerComponent(groupId, userId);
@@ -322,7 +325,26 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 
     async fetchSettlements(cursor?: string, userId?: string): Promise<void> {
-        // Not implemented in minimal version
+        if (!this.currentGroupId) return;
+
+        this.#loadingSettlementsSignal.value = true;
+
+        try {
+            const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
+                includeDeletedSettlements: this.#showDeletedSettlementsSignal.value,
+            });
+
+            // Update only settlements (not the whole store)
+            batch(() => {
+                this.#settlementsSignal.value = fullDetails.settlements.settlements;
+                this.#hasMoreSettlementsSignal.value = fullDetails.settlements.hasMore;
+                this.#loadingSettlementsSignal.value = false;
+            });
+        } catch (error: any) {
+            logError('fetchSettlements failed', { error, groupId: this.currentGroupId });
+            this.#loadingSettlementsSignal.value = false;
+            throw error;
+        }
     }
 
     /**

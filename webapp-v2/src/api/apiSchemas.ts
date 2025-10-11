@@ -262,23 +262,35 @@ const SettlementSchema = z.object({
     updatedAt: z.string(),
 });
 
+// Minimal member schema for settlements - only includes fields needed for display
+// Does not require group membership metadata like joinedAt, memberRole, etc.
+const SettlementMemberSchema = z.object({
+    uid: z.string().min(1),
+    displayName: z.string().min(1),
+    initials: z.string().min(1),
+    photoURL: z.string().url().nullable().optional(),
+    themeColor: UserThemeColorSchema,
+    // Optional membership fields that may or may not be present
+    memberRole: z.enum(['admin', 'member', 'viewer']).optional(),
+    memberStatus: z.enum(['active', 'pending']).optional(),
+    joinedAt: z.union([z.string().datetime(), z.literal('')]).optional(), // Allow empty string or datetime - may be empty for departed members
+    invitedBy: z.string().optional(),
+});
+
 const SettlementListItemSchema = z.object({
     id: z.string().min(1),
     groupId: z.string().min(1),
-    payer: z.object({
-        uid: z.string().min(1),
-        displayName: z.string().min(1),
-    }),
-    payee: z.object({
-        uid: z.string().min(1),
-        displayName: z.string().min(1),
-    }),
+    payer: SettlementMemberSchema, // Minimal member object for display
+    payee: SettlementMemberSchema, // Minimal member object for display
     amount: z.number().positive(),
     currency: z.string().length(3),
     date: z.string(),
     note: z.string().optional(),
     createdBy: z.string().min(1).optional(),
     createdAt: z.string(),
+    deletedAt: z.string().nullable().optional(), // Soft delete timestamp
+    deletedBy: z.string().nullable().optional(), // User who deleted the settlement
+    isLocked: z.boolean().optional(), // True if payer or payee has left the group
 });
 
 const ListSettlementsResponseSchema = z.object({

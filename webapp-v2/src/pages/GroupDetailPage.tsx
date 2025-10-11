@@ -80,7 +80,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         return () => {
             enhancedGroupDetailStore.deregisterComponent(groupId);
         };
-    }, [groupId, currentUser.value]);
+    }, [groupId]); // Only depend on groupId to prevent subscription churn
 
     // Handle loading state
     if (loading.value && !isInitialized.value) {

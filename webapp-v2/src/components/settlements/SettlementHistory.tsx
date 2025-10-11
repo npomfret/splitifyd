@@ -4,6 +4,7 @@ import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanc
 import { formatCurrency } from '@/utils/currency';
 import { formatDistanceToNow } from '@/utils/dateUtils.ts';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { useComputed } from '@preact/signals';
 import type { SettlementWithMembers } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -24,15 +25,15 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
     const [settlementToDelete, setSettlementToDelete] = useState<SettlementWithMembers | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    // Use store state
-    const settlements = enhancedGroupDetailStore.settlements;
-    const isLoading = enhancedGroupDetailStore.loadingSettlements;
-    const hasMore = enhancedGroupDetailStore.hasMoreSettlements;
-    const group = enhancedGroupDetailStore.group;
-    const members = enhancedGroupDetailStore.members;
+    // Use useComputed to reactively track store changes
+    const settlements = useComputed(() => enhancedGroupDetailStore.settlements);
+    const isLoading = useComputed(() => enhancedGroupDetailStore.loadingSettlements);
+    const hasMore = useComputed(() => enhancedGroupDetailStore.hasMoreSettlements);
+    const group = useComputed(() => enhancedGroupDetailStore.group);
+    const members = useComputed(() => enhancedGroupDetailStore.members);
 
     // Check if current user is group owner
-    const isGroupOwner = currentUser && group && group.createdBy === currentUser.uid;
+    const isGroupOwner = currentUser && group.value && group.value.createdBy === currentUser.uid;
 
     useEffect(() => {
         // Always load settlements when component mounts or parameters change
@@ -84,7 +85,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
         setSettlementToDelete(null);
     };
 
-    if (isLoading && settlements.length === 0) {
+    if (isLoading.value && settlements.value.length === 0) {
         return (
             <div class='flex justify-center items-center py-8'>
                 <LoadingSpinner />
@@ -94,7 +95,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
 
     // Remove error handling - the store manages errors now
 
-    if (settlements.length === 0) {
+    if (settlements.value.length === 0) {
         return (
             <div class='text-center py-8'>
                 <svg class='mx-auto h-12 w-12 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -127,11 +128,11 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                 </div>
             )}
 
-            {settlements.map((settlement) => {
+            {settlements.value.map((settlement) => {
                 const isCurrentUserPayer = settlement.payer.uid === currentUser?.uid;
                 const isCurrentUserPayee = settlement.payee.uid === currentUser?.uid;
                 const isDeleted = settlement.deletedAt !== null && settlement.deletedAt !== undefined;
-                const deletedByUser = settlement.deletedBy ? members.find((m) => m.uid === settlement.deletedBy) : null;
+                const deletedByUser = settlement.deletedBy ? members.value.find((m) => m.uid === settlement.deletedBy) : null;
 
                 return (
                     <div key={settlement.id} class='p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow' data-testid='settlement-item'>
@@ -190,14 +191,14 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                 );
             })}
 
-            {hasMore && (
+            {hasMore.value && (
                 <div class='text-center pt-4'>
                     <button
                         onClick={() => enhancedGroupDetailStore.loadMoreSettlements()}
-                        disabled={isLoading}
+                        disabled={isLoading.value}
                         class='px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50'
                     >
-                        {isLoading ? t('common.loading') : t('settlementHistory.loadMore')}
+                        {isLoading.value ? t('common.loading') : t('settlementHistory.loadMore')}
                     </button>
                 </div>
             )}

@@ -133,7 +133,7 @@ export class SettlementFormPage extends BasePage {
      * Simplified method to fill and submit settlement form
      * Used when the form is already open and ready
      */
-    async fillAndSubmitSettlement(amount: string, payeeName: string, currency: string): Promise<void> {
+    async fillAndSubmitSettlement(payeeName: string, amount: string, currency: string, note?: string): Promise<void> {
         // Set currency - MANDATORY, no defaults allowed
         await this.selectCurrency(currency);
 
@@ -142,6 +142,11 @@ export class SettlementFormPage extends BasePage {
 
         // Select payee by label
         await this.selectPayee(payeeName);
+
+        // Fill note if provided
+        if (note) {
+            await this.fillNote(note);
+        }
 
         // Submit
         const submitButton = this.getRecordPaymentButton();

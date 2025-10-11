@@ -500,6 +500,83 @@ describe('Notifications Management - Consolidated Tests', () => {
             // User2 should not receive any events for this group (they were removed)
             user2Listener.assertEventCount(dynamicGroup.id, 0, 'transaction');
         });
+
+        test('should notify remaining members when a member leaves group', async () => {
+            // Set up listeners for all users before any operations
+            const [user1Listener, user2Listener, user3Listener] = await notificationDriver.setupListeners([user1.uid, user2.uid, user3.uid]);
+
+            // ACTION: Create group with user1 as creator
+            const leaveGroup = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName(`Leave Notification Test ${uuidv4()}`)
+                    .build(),
+                user1.token,
+            );
+
+            // WAIT: Wait for group creation notification
+            await user1Listener.waitForGroupEvent(leaveGroup.id, 1);
+
+            // ASSERT: Only creator should receive notification
+            user1Listener.assertEventCount(leaveGroup.id, 1, 'group');
+            user2Listener.assertEventCount(leaveGroup.id, 0, 'group');
+            user3Listener.assertEventCount(leaveGroup.id, 0, 'group');
+
+            // CLEAR: Clear events to isolate next operation
+            notificationDriver.clearEvents();
+
+            // ACTION: Add user2 and user3 to the group
+            const shareLink = await apiDriver.generateShareLink(leaveGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
+
+            // WAIT: Wait for user2 join notifications
+            await user1Listener.waitForEventCount(leaveGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(leaveGroup.id, 'group', 1);
+
+            // CLEAR: Clear events before adding user3
+            notificationDriver.clearEvents();
+
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, user3.token);
+
+            // WAIT: Wait for user3 join notifications
+            await user1Listener.waitForEventCount(leaveGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(leaveGroup.id, 'group', 1);
+            await user3Listener.waitForEventCount(leaveGroup.id, 'group', 1);
+
+            // ASSERT: All users should receive notifications about member addition
+            user1Listener.assertEventCount(leaveGroup.id, 1, 'group');
+            user2Listener.assertEventCount(leaveGroup.id, 1, 'group');
+            user3Listener.assertEventCount(leaveGroup.id, 1, 'group');
+
+            // CLEAR: Clear events to isolate member removal
+            notificationDriver.clearEvents();
+
+            // ACTION: User3 leaves the group (self-removal)
+            await apiDriver.leaveGroup(leaveGroup.id, user3.token);
+
+            // WAIT: Remaining members (user1 and user2) should receive group change notifications
+            // This verifies the new behavior in leaveGroupAtomic() that explicitly notifies remaining members
+            await user1Listener.waitForEventCount(leaveGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(leaveGroup.id, 'group', 1);
+
+            // ASSERT: Remaining members should receive group change notification
+            user1Listener.assertEventCount(leaveGroup.id, 1, 'group');
+            user2Listener.assertEventCount(leaveGroup.id, 1, 'group');
+
+            // The leaving member (user3) should NOT receive a group notification
+            // (their notification document is cleaned up when they leave)
+            user3Listener.assertEventCount(leaveGroup.id, 0, 'group');
+
+            // ASSERT: Verify the group event contains the updated member list information
+            const user1GroupEvents = user1Listener.getGroupEvents(leaveGroup.id).filter((e) => e.type === 'group');
+            const user2GroupEvents = user2Listener.getGroupEvents(leaveGroup.id).filter((e) => e.type === 'group');
+
+            expect(user1GroupEvents.length).toBe(1);
+            expect(user2GroupEvents.length).toBe(1);
+
+            // Verify groupDetailsChangeCount was incremented (member departure changes group details)
+            expect(user1GroupEvents[0].groupState?.groupDetailsChangeCount).toBeGreaterThan(0);
+            expect(user2GroupEvents[0].groupState?.groupDetailsChangeCount).toBeGreaterThan(0);
+        });
     });
 
     describe('Permission-Based Notification Access Control', () => {

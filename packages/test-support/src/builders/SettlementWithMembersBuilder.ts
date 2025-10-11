@@ -36,6 +36,7 @@ export class SettlementWithMembersBuilder {
             createdAt: new Date().toISOString(),
             deletedAt: null,
             deletedBy: null,
+            isLocked: false, // Default to unlocked
         };
     }
 
@@ -97,6 +98,11 @@ export class SettlementWithMembersBuilder {
 
     withCreatedAt(createdAt: string | Date): this {
         this.settlement.createdAt = typeof createdAt === 'string' ? createdAt : createdAt.toISOString();
+        return this;
+    }
+
+    withIsLocked(isLocked: boolean): this {
+        this.settlement.isLocked = isLocked;
         return this;
     }
 

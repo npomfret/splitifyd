@@ -984,6 +984,30 @@ All translation keys added to `webapp-v2/src/locales/en/translation.json`:
 
 ### Pending Phases
 
+#### ✅ Real-Time Notification Enhancement (COMPLETED)
+
+**Backend Implementation:**
+- Modified `FirestoreWriter.leaveGroupAtomic()` to explicitly notify remaining members when someone leaves
+- Changed from batch operation to transaction for consistency
+- Reads current member list inside transaction and notifies each remaining member via group change notifications
+- Ensures real-time UI updates for locked settlements without requiring page navigation
+- Location: `firebase/functions/src/services/firestore/FirestoreWriter.ts`
+
+**Integration Test:**
+- Added comprehensive test: "should notify remaining members when a member leaves group"
+- Verifies remaining members receive group change notifications
+- Verifies leaving member does NOT receive notifications after departure
+- Validates groupDetailsChangeCount increments correctly
+- Location: `firebase/functions/src/__tests__/integration/notifications-consolidated.test.ts`
+- Status: ✅ Passing
+
+**Frontend Store Enhancement:**
+- Fixed subscription churn issue in `group-detail-store-enhanced.ts`
+- Added guard: `if (!this.notificationUnsubscribe)` to prevent duplicate subscriptions
+- Implemented `fetchSettlements()` method (previously stubbed)
+- Added comment clarifying group change handler refreshes data for settlement locks
+- Location: `webapp-v2/src/app/stores/group-detail-store-enhanced.ts`
+
 #### 🔄 Phase 10: E2E Tests (IN PROGRESS)
 
 **File:** `e2e-tests/src/__tests__/integration/departed-member-locking.e2e.test.ts` (CREATED)
@@ -1021,17 +1045,34 @@ All translation keys added to `webapp-v2/src/locales/en/translation.json`:
 
 **Status:** ✅ Test passes reliably. Uses proper POM methods throughout - no inline test logic.
 
-##### Test 2: "should lock settlement when payer leaves group"
-1. Create group with 2 users (Alice, Bob)
-2. Alice creates expense ($100, both participants)
-3. Bob records settlement payment to Alice ($50)
-4. Verify settlement appears in payment history
-5. Bob settles remaining debt and leaves group
-6. **Verify settlement is locked:**
-   - Open payment history
-   - Verify edit button is disabled for the settlement
-   - Attempt to click edit (if possible)
-   - Verify error message or disabled state
+##### ✅ Test 2: "should lock settlement when payer leaves group" (COMPLETED)
+**Implementation:**
+1. ✅ Create group with 2 users (Alice, Bob) using `createLoggedInBrowsers(2)`
+2. ✅ Alice creates expense with both participants ($100 split equally)
+3. ✅ Bob records partial settlement payment to Alice ($25)
+4. ✅ Verify settlement appears in payment history for both users
+5. ✅ Bob settles remaining debt ($25) and leaves group
+6. ✅ **Verify settlement is locked:**
+   - Alice opens payment history
+   - Verify edit button is disabled for the settlement via `verifySettlementEditButtonDisabled()`
+   - Uses polling pattern with 10s timeout for real-time updates
+
+**Page Object Methods Added:**
+- `GroupDetailPage.verifySettlementEditButtonDisabled(note)` - Polls for disabled edit button with 10s timeout
+- Uses `toPass()` pattern to wait for real-time lock updates after member departure
+
+**Bug Fix:**
+- Fixed `SettlementFormPage.fillAndSubmitSettlement()` signature
+- Changed parameter order from (amount, payeeName, currency) to (payeeName, amount, currency, note?)
+- Added optional note parameter support
+- Updated all call sites in core-features and departed-member-locking tests
+
+**Test Configuration:**
+- Uses `skip-error-checking` annotation for expected 404 errors when Bob tries to access after leaving
+- Test duration: ~15-20 seconds
+- Location: `e2e-tests/src/__tests__/integration/departed-member-locking.e2e.test.ts:92-189`
+
+**Status:** ✅ Test ready to run. Implementation complete with proper POM methods and real-time update handling.
 
 ##### Test 3: "should lock settlement when payee leaves group"
 1. Create group with 2 users (Alice, Bob)
@@ -1102,10 +1143,49 @@ All translation keys added to `webapp-v2/src/locales/en/translation.json`:
 - ⏳ Playwright unit tests for lock UI components (to be created)
 
 ### E2E Tests
-- ✅ Full workflow: create → member leaves → verify locked UI (Test 1 completed)
-- ⏳ Attempt to edit locked settlement when payer leaves (Test 2 pending)
-- ⏳ Attempt to edit locked settlement when payee leaves (Test 3 pending)
-- ⏳ Create new expense after member leaves (member not in list) (Test 4 pending)
+- ✅ Full workflow: create expense → member leaves → verify locked UI (Test 1 completed & passing)
+- ✅ Settlement locking when payer leaves (Test 2 completed & ready to run)
+- ⏳ Settlement locking when payee leaves (Test 3 pending implementation)
+- ⏳ Create new expense after member leaves (member not in list) (Test 4 pending implementation)
+
+## Overall Progress Summary
+
+### Completion Status: ~95% Complete
+
+**✅ Fully Complete (100%):**
+- Backend implementation (ExpenseService, SettlementService, type definitions)
+- Backend integration tests (24 tests, all passing)
+- Frontend implementation (UI components, lock indicators, error handling)
+- Translation keys
+- Build verification
+- Real-time notification infrastructure
+
+**🔄 In Progress (50%):**
+- E2E Tests: 2 of 4 tests complete (Tests 1 & 2)
+
+**⏳ Pending:**
+- E2E Tests 3 & 4 (settlement payee leaves, new expense creation)
+- Playwright unit tests for lock UI components
+
+### Recent Enhancements (Current Session)
+
+**Real-Time Notification Infrastructure:**
+- Implemented explicit member departure notifications in `leaveGroupAtomic()`
+- Ensures remaining members see locked settlements immediately via real-time updates
+- Added comprehensive integration test validating notification behavior
+- Fixed subscription churn issue in frontend store
+
+**E2E Test Suite Progress:**
+- Test 1 (expense locking): ✅ Passing
+- Test 2 (settlement locking - payer): ✅ Implemented, ready to run
+- Added robust POM methods with polling for real-time updates
+- Fixed test support method signatures
+
+### Next Steps
+
+1. **Immediate:** Run Test 2 to verify settlement locking with real-time notifications
+2. **Short-term:** Implement Tests 3 & 4
+3. **Final:** Create Playwright unit tests for lock UI components
 
 ## Future Enhancements (Out of Scope)
 

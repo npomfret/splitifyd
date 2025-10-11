@@ -203,7 +203,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         const settlementFormPage = await memberGroupDetailPage.clickSettleUpButton(2);
 
         // Fill and submit settlement for the full owed amount (¥30 JPY in this case)
-        await settlementFormPage.fillAndSubmitSettlement('30', ownerDisplayName, 'JPY');
+        await settlementFormPage.fillAndSubmitSettlement(ownerDisplayName, '30', 'JPY');
 
         // Wait for settlement to process and balances to update
         await groupDetailPage.verifyAllSettledUp(groupId);

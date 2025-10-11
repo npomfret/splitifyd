@@ -625,6 +625,29 @@ export class GroupDetailPage extends BaseGroupDetailPage {
     }
 
     /**
+     * Verify settlement edit button is disabled (for locked settlements)
+     * Uses polling to wait for real-time updates to propagate after member departure
+     */
+    async verifySettlementEditButtonDisabled(note: string): Promise<void> {
+        await this.openHistoryIfClosed();
+
+        const editButton = this.getSettlementEditButton(note);
+        await expect(editButton).toBeVisible();
+
+        // Poll for button to become disabled (real-time update after member leaves)
+        // Increased timeout to 10s to allow time for:
+        // 1. Group change notification to be detected
+        // 2. API request to fetch updated settlement data with isLocked=true
+        // 3. Frontend to re-render with disabled button
+        await expect(async () => {
+            const isDisabled = await editButton.isDisabled();
+            if (!isDisabled) {
+                throw new Error(`Settlement edit button for "${note}" is still enabled, waiting for lock...`);
+            }
+        }).toPass({ timeout: 10000 });
+    }
+
+    /**
      * Delete a settlement
      */
     async deleteSettlement(note: string, confirm: boolean): Promise<void> {
