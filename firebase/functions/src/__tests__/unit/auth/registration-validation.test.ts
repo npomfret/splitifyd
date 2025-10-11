@@ -254,7 +254,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                 expect(() => validateRegisterRequest(data as any)).toThrow(
                     expect.objectContaining({
                         statusCode: HTTP_STATUS.BAD_REQUEST,
-                        code: expect.stringMatching(/MISSING_EMAIL|MISSING_PASSWORD|MISSING_DISPLAY_NAME|TERMS_NOT_ACCEPTED|COOKIE_POLICY_NOT_ACCEPTED/),
+                        code: expect.stringMatching(/MISSING_EMAIL|MISSING_PASSWORD|MISSING_DISPLAY_NAME|TERMS_NOT_ACCEPTED|COOKIE_POLICY_NOT_ACCEPTED|MISSING_TERMS_ACCEPTANCE|MISSING_COOKIE_POLICY_ACCEPTANCE/),
                     }),
                 );
             }

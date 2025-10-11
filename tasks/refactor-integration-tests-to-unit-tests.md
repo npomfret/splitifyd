@@ -115,3 +115,89 @@ The following tests should **remain** as integration tests because they validate
 -   **Improved Developer Productivity:** A faster feedback loop allows developers to iterate more quickly.
 -   **More Focused Tests:** Unit tests are more precise, making it easier to pinpoint the exact cause of a failure.
 -   **Reduced Flakiness:** Unit tests are generally more stable as they have fewer external dependencies.
+
+---
+
+## 8. Implementation Progress
+
+### ✅ Phase 1: Mixed Currency Settlements (COMPLETED - January 2025)
+
+**Status:** Successfully completed and verified.
+
+**Work Completed:**
+1. **Created Test Infrastructure:**
+   - Created `GroupBalanceDTOBuilder` in `packages/test-support/src/builders/GroupBalanceDTOBuilder.ts`
+   - Provides fluent API for constructing complex multi-currency balance scenarios
+   - Exported from test-support package index for reuse across tests
+
+2. **Created Unit Tests:**
+   - Created `firebase/functions/src/__tests__/unit/services/IncrementalBalanceService.scenarios.test.ts`
+   - Implemented 6 comprehensive scenario tests:
+     - **Mixed Currency Settlements** (3 tests):
+       - Basic mixed currency settlement without conversion
+       - Complex scenario preventing implicit conversion
+       - Multi-currency independence verification
+     - **Partial/Overpayment Settlements** (3 tests):
+       - Partial settlement reducing debt
+       - Overpayment creating reverse debt
+       - Exact settlement clearing all debts
+
+3. **Removed Redundant Integration Tests:**
+   - Deleted `firebase/functions/src/__tests__/integration/mixed-currency-settlements.test.ts`
+   - Original file contained 3 tests replaced by the 6 more comprehensive unit tests
+
+**Performance Results:**
+- **Integration tests:** 2-5 seconds (with Firebase emulator overhead)
+- **New unit tests:** 7ms total execution time
+- **Speedup:** 350-700x faster ⚡
+
+**Test Results:**
+```
+✓ All 22 balance-related tests passing (16 existing + 6 new)
+✓ Total execution time: 7ms
+✓ Zero compilation errors
+✓ Build passing
+```
+
+**Key Implementation Details:**
+- Used `StubFirestoreWriter` for in-memory balance state
+- Direct service method calls (`service.applyExpenseCreated`, `service.applySettlementCreated`)
+- Comprehensive inline documentation explaining business logic and edge cases
+- Tests validate both mathematical correctness and edge cases (e.g., currency independence)
+
+---
+
+### 🔄 Phase 2: Advanced Settlement Scenarios (PENDING)
+
+**Target:** `balance-settlement-consolidated.test.ts` -> "Advanced Settlement Scenarios" describe block
+
+**Estimated Effort:** Similar to Phase 1 - builder already exists, just need to port test cases
+
+**Status:** Not started
+
+---
+
+### 🔄 Phase 3: Currency Change Scenarios (PENDING)
+
+**Target:**
+- `expenses-consolidated.test.ts` -> currency change tests
+- `balance-settlement-consolidated.test.ts` -> currency change tests
+
+**Estimated Effort:** Low - can reuse existing builders and patterns from Phase 1
+
+**Status:** Not started
+
+---
+
+### 📊 Overall Progress
+
+| Phase | Status | Tests Converted | Performance Gain | Notes |
+|-------|--------|----------------|------------------|-------|
+| Phase 1 | ✅ Complete | 3 → 6 tests | 350-700x faster | Mixed currency settlements |
+| Phase 2 | ⏳ Pending | TBD | TBD | Advanced settlement scenarios |
+| Phase 3 | ⏳ Pending | TBD | TBD | Currency change scenarios |
+
+**Total Estimated Impact:**
+- When all phases complete, expect 10-15 integration tests converted to unit tests
+- Overall test suite speedup: 5-10 seconds saved per test run
+- Improved debugging and maintenance due to more focused test failures

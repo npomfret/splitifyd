@@ -90,7 +90,7 @@ export const updatePolicy = async (req: AuthenticatedRequest, res: Response): Pr
 
     // Validate request body using Zod
     const validatedData = validateUpdatePolicy(req.body);
-    const { content: text, version, publish = false } = validatedData;
+    const { text, publish = false } = validatedData;
 
     try {
         const result = await policyService.updatePolicy(id, text, publish);
@@ -159,7 +159,7 @@ export const publishPolicy = async (req: AuthenticatedRequest, res: Response): P
 export const createPolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     // Validate request body using Zod
     const validatedData = validateCreatePolicy(req.body);
-    const { type: policyName, content: text } = validatedData;
+    const { policyName, text } = validatedData;
 
     try {
         const result = await policyService.createPolicy(policyName, text);

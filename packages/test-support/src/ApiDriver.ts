@@ -472,7 +472,7 @@ export class ApiDriver {
             const baseContent = `${policyName} base version reset at ${timestamp}.`;
 
             try {
-                await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', { content: baseContent, publish: true }, adminToken);
+                await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', { text: baseContent, publish: true }, adminToken);
                 console.log(`✓ Reset policy ${policyId} to base content`);
             } catch (error) {
                 console.warn(`Failed to reset policy ${policyId}:`, error);
@@ -512,8 +512,7 @@ export class ApiDriver {
         // Try with the adminToken first, then fall back to regular token
         const token = adminToken;
         return await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', {
-            content: text,
-            version: `${Date.now()}`,
+            text,
             publish
         }, token);
     }
@@ -522,9 +521,8 @@ export class ApiDriver {
         // Try with the adminToken first, then fall back to regular token
         const token = adminToken;
         return await this.apiRequest('/admin/policies', 'POST', {
-            type: policyName,
-            content: text,
-            version: `${Date.now()}`
+            policyName,
+            text
         }, token);
     }
 
