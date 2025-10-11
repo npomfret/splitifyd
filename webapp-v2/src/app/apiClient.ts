@@ -591,15 +591,17 @@ class ApiClient {
 
     async leaveGroup(groupId: string): Promise<LeaveGroupResponse> {
         return this.request({
-            endpoint: `/groups/${groupId}/leave`,
+            endpoint: '/groups/:id/leave',
             method: 'POST',
+            params: { id: groupId },
         });
     }
 
     async removeGroupMember(groupId: string, memberId: string): Promise<RemoveGroupMemberResponse> {
         return this.request({
-            endpoint: `/groups/${groupId}/members/${memberId}`,
+            endpoint: '/groups/:id/members/:memberId',
             method: 'DELETE',
+            params: { id: groupId, memberId },
         });
     }
 

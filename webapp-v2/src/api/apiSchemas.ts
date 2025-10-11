@@ -409,4 +409,7 @@ export const responseSchemas = {
     'PUT /user/profile': UserProfileResponseSchema,
     'POST /user/change-password': MessageResponseSchema,
     'POST /user/reset-password': MessageResponseSchema,
+    // Group member endpoints
+    'POST /groups/:id/leave': MessageResponseSchema,
+    'DELETE /groups/:id/members/:memberId': MessageResponseSchema,
 } as const;
