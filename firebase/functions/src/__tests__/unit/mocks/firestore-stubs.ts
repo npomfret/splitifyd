@@ -910,10 +910,6 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         this.documents.set(documentPath, updatedDoc);
     });
 
-    async deleteInTransaction(): Promise<WriteResult> {
-        return { id: 'doc', success: true, timestamp: Timestamp.now() };
-    }
-
     generateDocumentId(): string {
         return 'generated-id';
     }

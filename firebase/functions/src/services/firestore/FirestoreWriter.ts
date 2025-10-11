@@ -1161,11 +1161,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         transaction.update(docRef, finalUpdates);
     }
 
-    deleteInTransaction(transaction: Transaction, documentPath: string): void {
-        const docRef = this.db.doc(documentPath);
-        transaction.delete(docRef);
-    }
-
     // ========================================================================
     // Utility Operations
     // ========================================================================

@@ -219,13 +219,6 @@ export interface IFirestoreWriter {
      */
     updateInTransaction(transaction: Transaction, documentPath: string, updates: any): void;
 
-    /**
-     * Delete a document within a transaction
-     * @param transaction - The transaction object
-     * @param documentPath - The full document path
-     */
-    deleteInTransaction(transaction: Transaction, documentPath: string): void;
-
     // ========================================================================
     // Utility Operations
     // ========================================================================
