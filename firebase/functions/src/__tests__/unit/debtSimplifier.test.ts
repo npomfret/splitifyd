@@ -1,4 +1,4 @@
-import { DebtScenarios } from '@splitifyd/test-support';
+import { DebtScenarios, SimplifiedDebtBuilder } from '@splitifyd/test-support';
 import { describe, expect, it } from 'vitest';
 import { simplifyDebts } from '../../utils/debtSimplifier';
 
@@ -20,12 +20,14 @@ describe('simplifyDebts', () => {
         const result = simplifyDebts(balances, 'USD');
 
         expect(result).toHaveLength(1);
-        expect(result[0]).toEqual({
-            from: { uid: 'user1' },
-            to: { uid: 'user2' },
-            amount: 50,
-            currency: 'USD',
-        });
+        expect(result[0]).toEqual(
+            new SimplifiedDebtBuilder()
+                .from('user1')
+                .to('user2')
+                .withAmount(50)
+                .withCurrency('USD')
+                .build(),
+        );
     });
 
     it('should cancel out reciprocal debts', () => {
@@ -34,12 +36,14 @@ describe('simplifyDebts', () => {
         const result = simplifyDebts(balances, 'USD');
 
         expect(result).toHaveLength(1);
-        expect(result[0]).toEqual({
-            from: { uid: 'user1' },
-            to: { uid: 'user2' },
-            amount: 20,
-            currency: 'USD',
-        });
+        expect(result[0]).toEqual(
+            new SimplifiedDebtBuilder()
+                .from('user1')
+                .to('user2')
+                .withAmount(20)
+                .withCurrency('USD')
+                .build(),
+        );
     });
 
     it('should simplify triangular debt cycle', () => {

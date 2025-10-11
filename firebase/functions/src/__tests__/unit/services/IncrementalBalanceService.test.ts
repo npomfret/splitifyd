@@ -1,5 +1,5 @@
 import type { SettlementDTO } from '@splitifyd/shared';
-import { ExpenseDTOBuilder } from '@splitifyd/test-support';
+import { ExpenseDTOBuilder, SimplifiedDebtBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { GroupBalanceDTO } from '../../../schemas';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
@@ -48,12 +48,12 @@ describe('IncrementalBalanceService - Unit Tests', () => {
             },
         },
         simplifiedDebts: [
-            {
-                from: { uid: userId2 },
-                to: { uid: userId1 },
-                amount: 50,
-                currency: 'USD',
-            },
+            new SimplifiedDebtBuilder()
+                .from(userId2)
+                .to(userId1)
+                .withAmount(50)
+                .withCurrency('USD')
+                .build(),
         ],
         lastUpdatedAt: new Date().toISOString(),
         version: 1,

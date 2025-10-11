@@ -5,9 +5,11 @@ import {
     CreateExpenseRequestBuilder,
     CreateGroupRequestBuilder,
     CreateSettlementRequestBuilder,
+    ExpenseUpdateBuilder,
     generateShortId,
     GroupUpdateBuilder,
     NotificationDriver,
+    SettlementUpdateBuilder,
 } from '@splitifyd/test-support';
 import { v4 as uuidv4 } from 'uuid';
 import { beforeEach, describe, expect, test } from 'vitest';
@@ -441,8 +443,26 @@ describe('Groups Management - Consolidated Tests', () => {
             // Try concurrent expense updates
             const concurrentParticipants = [users[0].uid, users[1].uid];
             const updatePromises = [
-                apiDriver.updateExpense(expense.id, { amount: 200, participants: concurrentParticipants, splits: calculateEqualSplits(200, 'USD', concurrentParticipants) }, users[0].token),
-                apiDriver.updateExpense(expense.id, { amount: 300, participants: concurrentParticipants, splits: calculateEqualSplits(300, 'USD', concurrentParticipants) }, users[0].token),
+                apiDriver.updateExpense(
+                    expense.id,
+                    new ExpenseUpdateBuilder()
+                        .withAmount(200)
+                        .withCurrency('USD')
+                        .withParticipants(concurrentParticipants)
+                        .withSplits(calculateEqualSplits(200, 'USD', concurrentParticipants))
+                        .build(),
+                    users[0].token,
+                ),
+                apiDriver.updateExpense(
+                    expense.id,
+                    new ExpenseUpdateBuilder()
+                        .withAmount(300)
+                        .withCurrency('USD')
+                        .withParticipants(concurrentParticipants)
+                        .withSplits(calculateEqualSplits(300, 'USD', concurrentParticipants))
+                        .build(),
+                    users[0].token,
+                ),
             ];
 
             const results = await Promise.allSettled(updatePromises);
@@ -486,7 +506,16 @@ describe('Groups Management - Consolidated Tests', () => {
             const deleteUpdateParticipants = [users[0].uid, users[1].uid];
             const promises = [
                 apiDriver.deleteExpense(expense.id, users[0].token),
-                apiDriver.updateExpense(expense.id, { amount: 75, participants: deleteUpdateParticipants, splits: calculateEqualSplits(75, 'USD', deleteUpdateParticipants) }, users[0].token),
+                apiDriver.updateExpense(
+                    expense.id,
+                    new ExpenseUpdateBuilder()
+                        .withAmount(75)
+                        .withCurrency('USD')
+                        .withParticipants(deleteUpdateParticipants)
+                        .withSplits(calculateEqualSplits(75, 'USD', deleteUpdateParticipants))
+                        .build(),
+                    users[0].token,
+                ),
             ];
 
             const results = await Promise.allSettled(promises);
@@ -529,7 +558,18 @@ describe('Groups Management - Consolidated Tests', () => {
             );
 
             // Try concurrent settlement updates
-            const updatePromises = [apiDriver.updateSettlement(settlement.id, { amount: 75 }, users[0].token), apiDriver.updateSettlement(settlement.id, { amount: 100 }, users[0].token)];
+            const updatePromises = [
+                apiDriver.updateSettlement(
+                    settlement.id,
+                    new SettlementUpdateBuilder().withAmount(75).withCurrency('USD').build(),
+                    users[0].token,
+                ),
+                apiDriver.updateSettlement(
+                    settlement.id,
+                    new SettlementUpdateBuilder().withAmount(100).withCurrency('USD').build(),
+                    users[0].token,
+                ),
+            ];
 
             const results = await Promise.allSettled(updatePromises);
             const successes = results.filter((r) => r.status === 'fulfilled');
@@ -1245,12 +1285,13 @@ describe('Groups Management - Consolidated Tests', () => {
             const updateParticipants = [users[0].uid, users[1].uid];
             await apiDriver.updateExpense(
                 createdExpense.id,
-                {
-                    amount: 80,
-                    description: 'Updated Test Expense',
-                    participants: updateParticipants,
-                    splits: calculateEqualSplits(80, 'USD', updateParticipants),
-                },
+                new ExpenseUpdateBuilder()
+                    .withAmount(80)
+                    .withCurrency('USD')
+                    .withDescription('Updated Test Expense')
+                    .withParticipants(updateParticipants)
+                    .withSplits(calculateEqualSplits(80, 'USD', updateParticipants))
+                    .build(),
                 users[0].token,
             );
 

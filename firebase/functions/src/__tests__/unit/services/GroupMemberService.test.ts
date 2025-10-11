@@ -1,5 +1,5 @@
 import { type GroupMembershipDTO, MemberRoles } from '@splitifyd/shared';
-import { GroupDTOBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import { GroupBalanceDTOBuilder, GroupDTOBuilder, ThemeBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it, test } from 'vitest';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
@@ -183,22 +183,17 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .build();
 
             // Set up balance document with outstanding balance
-            await stubWriter.setGroupBalance(testGroupId, {
-                groupId: testGroupId,
-                balancesByCurrency: {
-                    USD: {
-                        [memberUserId]: {
-                            uid: memberUserId,
-                            owes: {},
-                            owedBy: {},
-                            netBalance: -50.0, // Member owes $50
-                        },
-                    },
-                },
-                simplifiedDebts: [],
-                lastUpdatedAt: new Date().toISOString(),
-                version: 1,
-            });
+            await stubWriter.setGroupBalance(
+                testGroupId,
+                new GroupBalanceDTOBuilder(testGroupId)
+                    .withUserBalance(
+                        'USD',
+                        memberUserId,
+                        new UserBalanceBuilder().withUserId(memberUserId).withNetBalance(-50.0).build(), // Member owes $50
+                    )
+                    .withVersion(1)
+                    .build(),
+            );
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${memberUserId}`, memberDoc);
@@ -220,22 +215,17 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .build();
 
             // Set up balance document with zero balance
-            await stubWriter.setGroupBalance(testGroupId, {
-                groupId: testGroupId,
-                balancesByCurrency: {
-                    USD: {
-                        [memberUserId]: {
-                            uid: memberUserId,
-                            owes: {},
-                            owedBy: {},
-                            netBalance: 0.0, // Member has settled balance
-                        },
-                    },
-                },
-                simplifiedDebts: [],
-                lastUpdatedAt: new Date().toISOString(),
-                version: 1,
-            });
+            await stubWriter.setGroupBalance(
+                testGroupId,
+                new GroupBalanceDTOBuilder(testGroupId)
+                    .withUserBalance(
+                        'USD',
+                        memberUserId,
+                        new UserBalanceBuilder().withUserId(memberUserId).withNetBalance(0.0).build(), // Member has settled balance
+                    )
+                    .withVersion(1)
+                    .build(),
+            );
 
             // Add another member so the group has multiple members (needed for leave validation)
             const otherMemberDoc = new GroupMemberDocumentBuilder()
@@ -340,22 +330,17 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .build();
 
             // Set up balance document with outstanding balance
-            await stubWriter.setGroupBalance(testGroupId, {
-                groupId: testGroupId,
-                balancesByCurrency: {
-                    USD: {
-                        [memberUserId]: {
-                            uid: memberUserId,
-                            owes: {},
-                            owedBy: {},
-                            netBalance: 25.0, // Member is owed $25
-                        },
-                    },
-                },
-                simplifiedDebts: [],
-                lastUpdatedAt: new Date().toISOString(),
-                version: 1,
-            });
+            await stubWriter.setGroupBalance(
+                testGroupId,
+                new GroupBalanceDTOBuilder(testGroupId)
+                    .withUserBalance(
+                        'USD',
+                        memberUserId,
+                        new UserBalanceBuilder().withUserId(memberUserId).withNetBalance(25.0).build(), // Member is owed $25
+                    )
+                    .withVersion(1)
+                    .build(),
+            );
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${memberUserId}`, memberDoc);
@@ -377,22 +362,17 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .build();
 
             // Set up balance document with zero balance
-            await stubWriter.setGroupBalance(testGroupId, {
-                groupId: testGroupId,
-                balancesByCurrency: {
-                    USD: {
-                        [memberUserId]: {
-                            uid: memberUserId,
-                            owes: {},
-                            owedBy: {},
-                            netBalance: 0.0, // Member has settled balance
-                        },
-                    },
-                },
-                simplifiedDebts: [],
-                lastUpdatedAt: new Date().toISOString(),
-                version: 1,
-            });
+            await stubWriter.setGroupBalance(
+                testGroupId,
+                new GroupBalanceDTOBuilder(testGroupId)
+                    .withUserBalance(
+                        'USD',
+                        memberUserId,
+                        new UserBalanceBuilder().withUserId(memberUserId).withNetBalance(0.0).build(), // Member has settled balance
+                    )
+                    .withVersion(1)
+                    .build(),
+            );
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${memberUserId}`, memberDoc);

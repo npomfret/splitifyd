@@ -2,7 +2,7 @@
 // Combines tests from expenses-api.test.ts, ExpenseService.integration.test.ts, and expenses-full-details.test.ts
 
 import { calculateEqualSplits, PooledTestUser } from '@splitifyd/shared';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, ExpenseUpdateBuilder, generateShortId, NotificationDriver, TestGroupManager } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder, generateShortId, NotificationDriver, TestGroupManager } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 
@@ -145,11 +145,12 @@ describe('Expenses Management - Consolidated Tests', () => {
 
             // Test API update with participant recalculation
             const participants2 = [users[0].uid, users[1].uid, users[2].uid];
-            const secondUpdateData = {
-                amount: 200,
-                participants: participants2,
-                splits: calculateEqualSplits(200, 'USD', participants2),
-            };
+            const secondUpdateData = new ExpenseUpdateBuilder()
+                .withAmount(200)
+                .withCurrency('USD')
+                .withParticipants(participants2)
+                .withSplits(calculateEqualSplits(200, 'USD', participants2))
+                .build();
             await apiDriver.updateExpense(createdExpense.id, secondUpdateData, users[0].token);
 
             const finalUpdatedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
@@ -459,14 +460,14 @@ describe('Expenses Management - Consolidated Tests', () => {
             // User 1 settles their debt with user 0 so they can leave
             // User 1 owes $30 to user 0 (90 / 3 = 30)
             await apiDriver.createSettlement(
-                {
-                    groupId: departedTestGroup.id,
-                    payerId: departedTestUsers[1].uid,
-                    payeeId: departedTestUsers[0].uid,
-                    amount: 30,
-                    currency: 'USD',
-                    note: 'Settling up before leaving',
-                },
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(departedTestGroup.id)
+                    .withPayerId(departedTestUsers[1].uid)
+                    .withPayeeId(departedTestUsers[0].uid)
+                    .withAmount(30)
+                    .withCurrency('USD')
+                    .withNote('Settling up before leaving')
+                    .build(),
                 departedTestUsers[1].token,
             );
 

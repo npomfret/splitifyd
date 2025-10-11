@@ -76,13 +76,13 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // Step 4: Record partial settlement and verify balance update
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
         await settlementForm.submitSettlement(
-            {
-                payerName: user2DisplayName,
-                payeeName: user1DisplayName,
-                amount: '50.25',
-                currency: 'EUR',
-                note: 'Partial settlement test',
-            },
+            new SettlementFormDataBuilder()
+                .withPayerName(user2DisplayName)
+                .withPayeeName(user1DisplayName)
+                .withAmount('50.25')
+                .withCurrency('EUR')
+                .withNote('Partial settlement test')
+                .build(),
             2,
         );
 

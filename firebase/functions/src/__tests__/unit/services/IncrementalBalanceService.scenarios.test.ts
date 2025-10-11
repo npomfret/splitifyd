@@ -1,4 +1,4 @@
-import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder } from '@splitifyd/test-support';
+import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
 import { StubFirestore, StubFirestoreWriter} from '../mocks/firestore-stubs';
@@ -189,42 +189,42 @@ describe('IncrementalBalanceService - Scenarios', () => {
             // === SETUP ===
             // Start with existing debts in USD and GBP
             const initialBalance = new GroupBalanceDTOBuilder(groupId)
-                .withUserBalance('USD', user1, {
-                    uid: user1,
-                    owes: {},
-                    owedBy: { [user2]: 50 },
-                    netBalance: 50,
-                })
-                .withUserBalance('USD', user2, {
-                    uid: user2,
-                    owes: { [user1]: 50 },
-                    owedBy: {},
-                    netBalance: -50,
-                })
-                .withUserBalance('GBP', user1, {
-                    uid: user1,
-                    owes: { [user2]: 30 },
-                    owedBy: {},
-                    netBalance: -30,
-                })
-                .withUserBalance('GBP', user2, {
-                    uid: user2,
-                    owes: {},
-                    owedBy: { [user1]: 30 },
-                    netBalance: 30,
-                })
-                .withSimplifiedDebt({
-                    from: { uid: user2 },
-                    to: { uid: user1 },
-                    amount: 50,
-                    currency: 'USD',
-                })
-                .withSimplifiedDebt({
-                    from: { uid: user1 },
-                    to: { uid: user2 },
-                    amount: 30,
-                    currency: 'GBP',
-                })
+                .withUserBalance(
+                    'USD',
+                    user1,
+                    new UserBalanceBuilder().withUserId(user1).owedByUser(user2, 50).withNetBalance(50).build(),
+                )
+                .withUserBalance(
+                    'USD',
+                    user2,
+                    new UserBalanceBuilder().withUserId(user2).owesUser(user1, 50).withNetBalance(-50).build(),
+                )
+                .withUserBalance(
+                    'GBP',
+                    user1,
+                    new UserBalanceBuilder().withUserId(user1).owesUser(user2, 30).withNetBalance(-30).build(),
+                )
+                .withUserBalance(
+                    'GBP',
+                    user2,
+                    new UserBalanceBuilder().withUserId(user2).owedByUser(user1, 30).withNetBalance(30).build(),
+                )
+                .withSimplifiedDebt(
+                    new SimplifiedDebtBuilder()
+                        .from(user2)
+                        .to(user1)
+                        .withAmount(50)
+                        .withCurrency('USD')
+                        .build(),
+                )
+                .withSimplifiedDebt(
+                    new SimplifiedDebtBuilder()
+                        .from(user1)
+                        .to(user2)
+                        .withAmount(30)
+                        .withCurrency('GBP')
+                        .build(),
+                )
                 .withVersion(5)
                 .build();
 
@@ -302,24 +302,24 @@ describe('IncrementalBalanceService - Scenarios', () => {
             // === SETUP ===
             // User2 owes User1 €100
             const initialBalance = new GroupBalanceDTOBuilder(groupId)
-                .withUserBalance('EUR', user1, {
-                    uid: user1,
-                    owes: {},
-                    owedBy: { [user2]: 100 },
-                    netBalance: 100,
-                })
-                .withUserBalance('EUR', user2, {
-                    uid: user2,
-                    owes: { [user1]: 100 },
-                    owedBy: {},
-                    netBalance: -100,
-                })
-                .withSimplifiedDebt({
-                    from: { uid: user2 },
-                    to: { uid: user1 },
-                    amount: 100,
-                    currency: 'EUR',
-                })
+                .withUserBalance(
+                    'EUR',
+                    user1,
+                    new UserBalanceBuilder().withUserId(user1).owedByUser(user2, 100).withNetBalance(100).build(),
+                )
+                .withUserBalance(
+                    'EUR',
+                    user2,
+                    new UserBalanceBuilder().withUserId(user2).owesUser(user1, 100).withNetBalance(-100).build(),
+                )
+                .withSimplifiedDebt(
+                    new SimplifiedDebtBuilder()
+                        .from(user2)
+                        .to(user1)
+                        .withAmount(100)
+                        .withCurrency('EUR')
+                        .build(),
+                )
                 .build();
 
             await stubWriter.setGroupBalance(groupId, initialBalance);
@@ -477,42 +477,42 @@ describe('IncrementalBalanceService - Scenarios', () => {
             // - User2 owes User1 $100 USD
             // - User1 owes User2 €75 EUR
             const initialBalance = new GroupBalanceDTOBuilder(groupId)
-                .withUserBalance('USD', user1, {
-                    uid: user1,
-                    owes: {},
-                    owedBy: { [user2]: 100 },
-                    netBalance: 100,
-                })
-                .withUserBalance('USD', user2, {
-                    uid: user2,
-                    owes: { [user1]: 100 },
-                    owedBy: {},
-                    netBalance: -100,
-                })
-                .withUserBalance('EUR', user1, {
-                    uid: user1,
-                    owes: { [user2]: 75 },
-                    owedBy: {},
-                    netBalance: -75,
-                })
-                .withUserBalance('EUR', user2, {
-                    uid: user2,
-                    owes: {},
-                    owedBy: { [user1]: 75 },
-                    netBalance: 75,
-                })
-                .withSimplifiedDebt({
-                    from: { uid: user2 },
-                    to: { uid: user1 },
-                    amount: 100,
-                    currency: 'USD',
-                })
-                .withSimplifiedDebt({
-                    from: { uid: user1 },
-                    to: { uid: user2 },
-                    amount: 75,
-                    currency: 'EUR',
-                })
+                .withUserBalance(
+                    'USD',
+                    user1,
+                    new UserBalanceBuilder().withUserId(user1).owedByUser(user2, 100).withNetBalance(100).build(),
+                )
+                .withUserBalance(
+                    'USD',
+                    user2,
+                    new UserBalanceBuilder().withUserId(user2).owesUser(user1, 100).withNetBalance(-100).build(),
+                )
+                .withUserBalance(
+                    'EUR',
+                    user1,
+                    new UserBalanceBuilder().withUserId(user1).owesUser(user2, 75).withNetBalance(-75).build(),
+                )
+                .withUserBalance(
+                    'EUR',
+                    user2,
+                    new UserBalanceBuilder().withUserId(user2).owedByUser(user1, 75).withNetBalance(75).build(),
+                )
+                .withSimplifiedDebt(
+                    new SimplifiedDebtBuilder()
+                        .from(user2)
+                        .to(user1)
+                        .withAmount(100)
+                        .withCurrency('USD')
+                        .build(),
+                )
+                .withSimplifiedDebt(
+                    new SimplifiedDebtBuilder()
+                        .from(user1)
+                        .to(user2)
+                        .withAmount(75)
+                        .withCurrency('EUR')
+                        .build(),
+                )
                 .build();
 
             await stubWriter.setGroupBalance(groupId, initialBalance);

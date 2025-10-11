@@ -2,7 +2,7 @@
 // Tests that expenses and settlements involving departed members become read-only (locked)
 
 import { calculateEqualSplits, PooledTestUser } from '@splitifyd/shared';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder, NotificationDriver, TestGroupManager } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder, NotificationDriver, SettlementUpdateBuilder, TestGroupManager } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 
@@ -504,10 +504,10 @@ describe('Departed Member Transaction Locking', () => {
             await apiDriver.leaveGroup(testGroup.id, users[1].token);
 
             // Attempt to update settlement - should fail
-            const updateData = {
-                amount: 40,
-                note: 'Attempted update',
-            };
+            const updateData = new SettlementUpdateBuilder()
+                .withAmount(40)
+                .withNote('Attempted update')
+                .build();
 
             await expect(apiDriver.updateSettlement(settlement.id, updateData, users[0].token)).rejects.toThrow(
                 /SETTLEMENT_LOCKED|failed with status 400/,
@@ -550,10 +550,10 @@ describe('Departed Member Transaction Locking', () => {
             await apiDriver.leaveGroup(testGroup.id, users[3].token);
 
             // Attempt to update settlement - should fail
-            const updateData = {
-                amount: 40,
-                note: 'Attempted update',
-            };
+            const updateData = new SettlementUpdateBuilder()
+                .withAmount(40)
+                .withNote('Attempted update')
+                .build();
 
             await expect(apiDriver.updateSettlement(settlement.id, updateData, users[1].token)).rejects.toThrow(
                 /SETTLEMENT_LOCKED|failed with status 400/,
@@ -591,10 +591,10 @@ describe('Departed Member Transaction Locking', () => {
             );
 
             // Update should succeed (no one has left) - update as creator (user 1)
-            const updateData = {
-                amount: 40,
-                note: 'Updated payment amount',
-            };
+            const updateData = new SettlementUpdateBuilder()
+                .withAmount(40)
+                .withNote('Updated payment amount')
+                .build();
 
             await expect(
                 apiDriver.updateSettlement(settlement.id, updateData, users[1].token),

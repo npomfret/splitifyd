@@ -358,14 +358,14 @@ describe('SettlementService - Unit Tests', () => {
             // Arrange
             const userId = 'creator-user';
             const groupId = 'test-group';
-            const settlementData: CreateSettlementRequest = {
-                groupId,
-                payerId: 'payer-user',
-                payeeId: 'non-member-payee',
-                amount: 100,
-                currency: 'USD',
-                date: new Date().toISOString(),
-            };
+            const settlementData = new CreateSettlementRequestBuilder()
+                .withGroupId(groupId)
+                .withPayerId('payer-user')
+                .withPayeeId('non-member-payee')
+                .withAmount(100)
+                .withCurrency('USD')
+                .withDate(new Date().toISOString())
+                .build();
 
             // Mock group data
             setGroupData(groupId, { id: groupId, name: 'Test Group' });

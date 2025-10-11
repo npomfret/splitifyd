@@ -157,7 +157,13 @@ describe('Security and Permissions - Consolidated Tests', () => {
             await expect(apiDriver.getGroupExpenses(edgeTestGroup.id, users[3].token)).rejects.toThrow(/failed with status (403|404)/);
 
             // Non-member cannot update group settings
-            await expect(apiDriver.updateGroup(edgeTestGroup.id, { name: 'Hacked Name' }, users[3].token)).rejects.toThrow(/failed with status (403|404)/);
+            await expect(
+                apiDriver.updateGroup(
+                    edgeTestGroup.id,
+                    new GroupUpdateBuilder().withName('Hacked Name').build(),
+                    users[3].token,
+                ),
+            ).rejects.toThrow(/failed with status (403|404)/);
         });
     });
 
@@ -173,13 +179,23 @@ describe('Security and Permissions - Consolidated Tests', () => {
 
         test('should enforce authorization for group updates', async () => {
             // Admin can update group
-            await apiDriver.updateGroup(roleTestGroup.id, { name: 'Updated by Admin' }, adminUser.token);
+            await apiDriver.updateGroup(
+                roleTestGroup.id,
+                new GroupUpdateBuilder().withName('Updated by Admin').build(),
+                adminUser.token,
+            );
 
             const { group: updatedGroup } = await apiDriver.getGroupFullDetails(roleTestGroup.id, adminUser.token);
             expect(updatedGroup.name).toBe('Updated by Admin');
 
             // Member cannot update group settings (depends on group permissions)
-            await expect(apiDriver.updateGroup(roleTestGroup.id, { name: 'Hacked by Member' }, memberUser.token)).rejects.toThrow(/failed with status (403|404)/);
+            await expect(
+                apiDriver.updateGroup(
+                    roleTestGroup.id,
+                    new GroupUpdateBuilder().withName('Hacked by Member').build(),
+                    memberUser.token,
+                ),
+            ).rejects.toThrow(/failed with status (403|404)/);
         });
     });
 

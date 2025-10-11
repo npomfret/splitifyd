@@ -1,5 +1,5 @@
 import type { CreateExpenseRequest } from '@splitifyd/shared';
-import { ExpenseDTOBuilder } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, ExpenseDTOBuilder } from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -312,19 +312,18 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Validation Logic - Business Logic', () => {
         it('should require positive expense amount', async () => {
             // Arrange
-
-            const mockExpenseRequest: CreateExpenseRequest = {
-                groupId: 'test-group',
-                description: 'Negative amount test',
-                amount: -50, // Invalid negative amount
-                currency: 'USD',
-                category: 'Food',
-                paidBy: 'user1',
-                participants: ['user1'],
-                splitType: 'equal',
-                splits: [{ uid: 'user1', amount: -50 }],
-                date: new Date().toISOString(),
-            };
+            const mockExpenseRequest = new CreateExpenseRequestBuilder()
+                .withGroupId('test-group')
+                .withDescription('Negative amount test')
+                .withAmount(-50) // Invalid negative amount
+                .withCurrency('USD')
+                .withCategory('Food')
+                .withPaidBy('user1')
+                .withParticipants(['user1'])
+                .withSplitType('equal')
+                .withSplits([{ uid: 'user1', amount: -50 }])
+                .withDate(new Date().toISOString())
+                .build();
 
             // Act & Assert - Real validation should reject negative amounts
             await expect(expenseService.createExpense('user1', mockExpenseRequest)).rejects.toThrow(
@@ -336,19 +335,18 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         it('should validate currency format', async () => {
             // Arrange
-
-            const mockExpenseRequest: CreateExpenseRequest = {
-                groupId: 'test-group',
-                description: 'Invalid currency test',
-                amount: 100,
-                currency: 'INVALID_CURRENCY', // Invalid currency code
-                category: 'Food',
-                paidBy: 'user1',
-                participants: ['user1'],
-                splitType: 'equal',
-                splits: [{ uid: 'user1', amount: 100 }],
-                date: new Date().toISOString(),
-            };
+            const mockExpenseRequest = new CreateExpenseRequestBuilder()
+                .withGroupId('test-group')
+                .withDescription('Invalid currency test')
+                .withAmount(100)
+                .withCurrency('INVALID_CURRENCY') // Invalid currency code
+                .withCategory('Food')
+                .withPaidBy('user1')
+                .withParticipants(['user1'])
+                .withSplitType('equal')
+                .withSplits([{ uid: 'user1', amount: 100 }])
+                .withDate(new Date().toISOString())
+                .build();
 
             // Act & Assert - Real validation should reject invalid currency
             await expect(expenseService.createExpense('user1', mockExpenseRequest)).rejects.toThrow(
