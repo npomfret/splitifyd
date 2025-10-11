@@ -298,6 +298,106 @@ describe('IncrementalBalanceService - Scenarios', () => {
             expect(finalBalance.simplifiedDebts[0].amount).toBe(40);
         });
 
+        it('should handle multiple sequential partial settlements correctly', async () => {
+            // === SETUP ===
+            // User2 owes User1 €100
+            const initialBalance = new GroupBalanceDTOBuilder(groupId)
+                .withUserBalance('EUR', user1, {
+                    uid: user1,
+                    owes: {},
+                    owedBy: { [user2]: 100 },
+                    netBalance: 100,
+                })
+                .withUserBalance('EUR', user2, {
+                    uid: user2,
+                    owes: { [user1]: 100 },
+                    owedBy: {},
+                    netBalance: -100,
+                })
+                .withSimplifiedDebt({
+                    from: { uid: user2 },
+                    to: { uid: user1 },
+                    amount: 100,
+                    currency: 'EUR',
+                })
+                .build();
+
+            await stubWriter.setGroupBalance(groupId, initialBalance);
+
+            // === ACTION 1 ===
+            // First partial settlement: User2 pays €40 (40% of debt)
+            const settlement1 = new SettlementDTOBuilder()
+                .withId('settlement-1')
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(40)
+                .withCurrency('EUR')
+                .withNote('Partial payment 1 of 3')
+                .build();
+
+            service.applySettlementCreated(mockTransaction, groupId, initialBalance, settlement1, [user1, user2]);
+            let currentBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+
+            // === ASSERT AFTER FIRST SETTLEMENT ===
+            // Debt should be reduced to €60
+            expect(currentBalance.balancesByCurrency.EUR[user2].netBalance).toBe(-60);
+            expect(currentBalance.balancesByCurrency.EUR[user2].owes[user1]).toBe(60);
+            expect(currentBalance.balancesByCurrency.EUR[user1].netBalance).toBe(60);
+            expect(currentBalance.balancesByCurrency.EUR[user1].owedBy[user2]).toBe(60);
+            expect(currentBalance.simplifiedDebts).toHaveLength(1);
+            expect(currentBalance.simplifiedDebts[0].amount).toBe(60);
+
+            // === ACTION 2 ===
+            // Second partial settlement: User2 pays €35
+            const settlement2 = new SettlementDTOBuilder()
+                .withId('settlement-2')
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(35)
+                .withCurrency('EUR')
+                .withNote('Partial payment 2 of 3')
+                .build();
+
+            service.applySettlementCreated(mockTransaction, groupId, currentBalance, settlement2, [user1, user2]);
+            currentBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+
+            // === ASSERT AFTER SECOND SETTLEMENT ===
+            // Debt should be reduced to €25
+            expect(currentBalance.balancesByCurrency.EUR[user2].netBalance).toBe(-25);
+            expect(currentBalance.balancesByCurrency.EUR[user2].owes[user1]).toBe(25);
+            expect(currentBalance.balancesByCurrency.EUR[user1].netBalance).toBe(25);
+            expect(currentBalance.balancesByCurrency.EUR[user1].owedBy[user2]).toBe(25);
+            expect(currentBalance.simplifiedDebts).toHaveLength(1);
+            expect(currentBalance.simplifiedDebts[0].amount).toBe(25);
+
+            // === ACTION 3 ===
+            // Final settlement: User2 pays remaining €25
+            const settlement3 = new SettlementDTOBuilder()
+                .withId('settlement-3')
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(25)
+                .withCurrency('EUR')
+                .withNote('Final settlement payment')
+                .build();
+
+            service.applySettlementCreated(mockTransaction, groupId, currentBalance, settlement3, [user1, user2]);
+            const finalBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+
+            // === ASSERT AFTER FINAL SETTLEMENT ===
+            // All debts should be cleared (fully settled)
+            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe(0);
+            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe(0);
+            expect(Object.keys(finalBalance.balancesByCurrency.EUR[user1].owes)).toHaveLength(0);
+            expect(Object.keys(finalBalance.balancesByCurrency.EUR[user1].owedBy)).toHaveLength(0);
+            expect(Object.keys(finalBalance.balancesByCurrency.EUR[user2].owes)).toHaveLength(0);
+            expect(Object.keys(finalBalance.balancesByCurrency.EUR[user2].owedBy)).toHaveLength(0);
+            expect(finalBalance.simplifiedDebts).toHaveLength(0);
+        });
+
         it('should handle overpayment settlement creating reverse debt', async () => {
             // === SETUP ===
             const initialBalance = new GroupBalanceDTOBuilder(groupId)
@@ -369,6 +469,125 @@ describe('IncrementalBalanceService - Scenarios', () => {
             expect(Object.keys(finalBalance.balancesByCurrency.USD[user2].owedBy)).toHaveLength(0);
 
             expect(finalBalance.simplifiedDebts).toHaveLength(0);
+        });
+
+        it('should handle partial settlements across multiple currencies independently', async () => {
+            // === SETUP ===
+            // Create complex multi-currency scenario:
+            // - User2 owes User1 $100 USD
+            // - User1 owes User2 €75 EUR
+            const initialBalance = new GroupBalanceDTOBuilder(groupId)
+                .withUserBalance('USD', user1, {
+                    uid: user1,
+                    owes: {},
+                    owedBy: { [user2]: 100 },
+                    netBalance: 100,
+                })
+                .withUserBalance('USD', user2, {
+                    uid: user2,
+                    owes: { [user1]: 100 },
+                    owedBy: {},
+                    netBalance: -100,
+                })
+                .withUserBalance('EUR', user1, {
+                    uid: user1,
+                    owes: { [user2]: 75 },
+                    owedBy: {},
+                    netBalance: -75,
+                })
+                .withUserBalance('EUR', user2, {
+                    uid: user2,
+                    owes: {},
+                    owedBy: { [user1]: 75 },
+                    netBalance: 75,
+                })
+                .withSimplifiedDebt({
+                    from: { uid: user2 },
+                    to: { uid: user1 },
+                    amount: 100,
+                    currency: 'USD',
+                })
+                .withSimplifiedDebt({
+                    from: { uid: user1 },
+                    to: { uid: user2 },
+                    amount: 75,
+                    currency: 'EUR',
+                })
+                .build();
+
+            await stubWriter.setGroupBalance(groupId, initialBalance);
+
+            // === ACTION 1 ===
+            // Partial USD settlement: User2 pays User1 $60 USD
+            const usdSettlement = new SettlementDTOBuilder()
+                .withId('settlement-usd')
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(60)
+                .withCurrency('USD')
+                .withNote('Partial USD settlement')
+                .build();
+
+            service.applySettlementCreated(mockTransaction, groupId, initialBalance, usdSettlement, [user1, user2]);
+            let currentBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+
+            // === ASSERT AFTER USD SETTLEMENT ===
+            // USD debt reduced to $40, EUR debt unchanged at €75
+            expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe(-40);
+            expect(currentBalance.balancesByCurrency.USD[user2].owes[user1]).toBe(40);
+            expect(currentBalance.balancesByCurrency.USD[user1].netBalance).toBe(40);
+            expect(currentBalance.balancesByCurrency.USD[user1].owedBy[user2]).toBe(40);
+
+            // EUR debt should be completely unchanged
+            expect(currentBalance.balancesByCurrency.EUR[user1].netBalance).toBe(-75);
+            expect(currentBalance.balancesByCurrency.EUR[user1].owes[user2]).toBe(75);
+            expect(currentBalance.balancesByCurrency.EUR[user2].netBalance).toBe(75);
+            expect(currentBalance.balancesByCurrency.EUR[user2].owedBy[user1]).toBe(75);
+
+            expect(currentBalance.simplifiedDebts).toHaveLength(2);
+
+            // === ACTION 2 ===
+            // Partial EUR settlement: User1 pays User2 €50 EUR
+            const eurSettlement = new SettlementDTOBuilder()
+                .withId('settlement-eur')
+                .withGroupId(groupId)
+                .withPayerId(user1)
+                .withPayeeId(user2)
+                .withAmount(50)
+                .withCurrency('EUR')
+                .withNote('Partial EUR settlement')
+                .build();
+
+            service.applySettlementCreated(mockTransaction, groupId, currentBalance, eurSettlement, [user1, user2]);
+            const finalBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+
+            // === ASSERT AFTER EUR SETTLEMENT ===
+            // USD debt unchanged at $40, EUR debt reduced to €25
+            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe(-40);
+            expect(finalBalance.balancesByCurrency.USD[user2].owes[user1]).toBe(40);
+            expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe(40);
+            expect(finalBalance.balancesByCurrency.USD[user1].owedBy[user2]).toBe(40);
+
+            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe(-25);
+            expect(finalBalance.balancesByCurrency.EUR[user1].owes[user2]).toBe(25);
+            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe(25);
+            expect(finalBalance.balancesByCurrency.EUR[user2].owedBy[user1]).toBe(25);
+
+            // Should still have 2 separate currency debts
+            expect(finalBalance.simplifiedDebts).toHaveLength(2);
+
+            const finalUsdDebt = finalBalance.simplifiedDebts.find((d) => d.currency === 'USD');
+            expect(finalUsdDebt).toBeDefined();
+            expect(finalUsdDebt?.from.uid).toBe(user2);
+            expect(finalUsdDebt?.to.uid).toBe(user1);
+            expect(finalUsdDebt?.amount).toBe(40);
+
+            const finalEurDebt = finalBalance.simplifiedDebts.find((d) => d.currency === 'EUR');
+            expect(finalEurDebt).toBeDefined();
+            expect(finalEurDebt?.from.uid).toBe(user1);
+            expect(finalEurDebt?.to.uid).toBe(user2);
+            expect(finalEurDebt?.amount).toBe(25);
         });
     });
 });
