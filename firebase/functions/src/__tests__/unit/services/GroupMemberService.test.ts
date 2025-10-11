@@ -3,12 +3,12 @@ import { GroupDTOBuilder, ThemeBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it, test } from 'vitest';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { StubFirestore, StubFirestoreReader} from '../mocks/firestore-stubs';
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {
     let groupMemberService: GroupMemberService;
-    let stubReader: StubFirestoreReader;
-    let stubWriter: StubFirestoreWriter;
+    let stubReader: StubFirestore;
+    let stubWriter: StubFirestore;
 
     // Test data
     const testGroupId = 'test-group-id';
@@ -40,9 +40,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     };
 
     beforeEach(async () => {
-        // Create stubs with shared documents map
-        stubReader = new StubFirestoreReader();
-        stubWriter = new StubFirestoreWriter(stubReader.getDocuments());
+        // Create unified stub (reader and writer share the same storage automatically)
+        const stub = new StubFirestoreReader();
+        stubReader = stub;
+        stubWriter = stub;
 
         // GroupMemberService uses pre-computed balances from Firestore now (no balance service needed)
         groupMemberService = new GroupMemberService(stubReader, stubWriter);

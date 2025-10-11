@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { PolicyService } from '../../../services/PolicyService';
-import { createMockPolicyDocument, StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { createMockPolicyDocument, StubFirestore, StubFirestoreReader} from '../mocks/firestore-stubs';
 
 /**
  * Consolidated PolicyService Unit Tests
@@ -26,12 +26,13 @@ import { createMockPolicyDocument, StubFirestoreReader, StubFirestoreWriter } fr
  */
 describe('PolicyService - Consolidated Unit Tests', () => {
     let policyService: PolicyService;
-    let stubReader: StubFirestoreReader;
-    let stubWriter: StubFirestoreWriter;
+    let stubReader: StubFirestore;
+    let stubWriter: StubFirestore;
 
     beforeEach(() => {
-        stubReader = new StubFirestoreReader();
-        stubWriter = new StubFirestoreWriter(undefined, stubReader); // Pass stubReader so it can update rawDocuments
+        const stub = new StubFirestoreReader();
+        stubReader = stub;
+        stubWriter = stub;
         policyService = new PolicyService(stubReader, stubWriter);
     });
 

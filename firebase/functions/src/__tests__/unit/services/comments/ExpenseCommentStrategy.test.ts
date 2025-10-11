@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../../constants';
 import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCommentStrategy';
 import { ApiError } from '../../../../utils/errors';
-import { StubFirestoreReader } from '../../mocks/firestore-stubs';
+import { StubFirestore, StubFirestoreReader } from '../../mocks/firestore-stubs';
 
 const createStubGroupMemberService = () => ({
     isGroupMemberAsync: vi.fn(),
@@ -14,7 +14,7 @@ const createStubGroupMemberService = () => ({
 
 describe('ExpenseCommentStrategy', () => {
     let strategy: ExpenseCommentStrategy;
-    let stubFirestoreReader: StubFirestoreReader;
+    let stubFirestoreReader: StubFirestore;
     let stubGroupMemberService: ReturnType<typeof createStubGroupMemberService>;
 
     beforeEach(() => {

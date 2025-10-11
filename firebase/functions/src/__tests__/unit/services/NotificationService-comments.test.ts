@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { type ChangeType, NotificationService } from '../../../services/notification-service';
-import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { StubFirestore, StubFirestoreReader} from '../mocks/firestore-stubs';
 
 // Mock logger
 vi.mock('firebase-functions', () => ({
@@ -17,12 +17,11 @@ vi.mock('../../../monitoring/measure', () => ({
 
 describe('NotificationService - Comments', () => {
     let notificationService: NotificationService;
-    let stubReader: StubFirestoreReader;
-    let stubWriter: StubFirestoreWriter;
+    let stubReader: StubFirestore;
+    let stubWriter: StubFirestore;
 
     beforeEach(() => {
-        stubReader = new StubFirestoreReader();
-        stubWriter = new StubFirestoreWriter();
+        const stub = new StubFirestoreReader(); stubReader = stub; stubWriter = stub;
         notificationService = new NotificationService(stubReader, stubWriter);
         vi.clearAllMocks();
     });

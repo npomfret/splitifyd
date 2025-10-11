@@ -3,11 +3,11 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { ApiError } from '../../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { StubFirestore, StubFirestoreReader, StubFirestoreWriter} from '../mocks/firestore-stubs';
 
 describe('Service-Level Error Handling - Subcollection Queries', () => {
-    let stubFirestoreReader: StubFirestoreReader;
-    let stubFirestoreWriter: StubFirestoreWriter;
+    let stubFirestoreReader: StubFirestore;
+    let stubFirestoreWriter: StubFirestore;
     let groupMemberService: GroupMemberService;
 
     beforeEach(() => {

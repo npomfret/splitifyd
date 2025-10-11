@@ -3,11 +3,11 @@ import { ExpenseDTOBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { GroupBalanceDTO } from '../../../schemas';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
-import { StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { StubFirestore, StubFirestoreWriter} from '../mocks/firestore-stubs';
 
 describe('IncrementalBalanceService - Unit Tests', () => {
     let service: IncrementalBalanceService;
-    let stubWriter: StubFirestoreWriter;
+    let stubWriter: StubFirestore;
     let mockTransaction: any;
 
     const groupId = 'test-group-id';

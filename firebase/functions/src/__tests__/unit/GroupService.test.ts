@@ -7,12 +7,12 @@ import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { GroupService } from '../../services/GroupService';
 import { ApiError } from '../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
-import { StubAuthService, StubFirestoreReader, StubFirestoreWriter } from './mocks/firestore-stubs';
+import { StubAuthService, StubFirestore, StubFirestoreReader} from './mocks/firestore-stubs';
 
 describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;
-    let stubReader: StubFirestoreReader;
-    let stubWriter: StubFirestoreWriter;
+    let stubReader: StubFirestore;
+    let stubWriter: StubFirestore;
     let stubAuth: StubAuthService;
     let applicationBuilder: ApplicationBuilder;
 
@@ -29,9 +29,10 @@ describe('GroupService - Unit Tests', () => {
     };
 
     beforeEach(() => {
-        // Create stubs
-        stubReader = new StubFirestoreReader();
-        stubWriter = new StubFirestoreWriter(stubReader.getDocuments()); // Share document storage
+        // Create unified stub (reader and writer share the same storage automatically)
+        const stub = new StubFirestoreReader();
+        stubReader = stub;
+        stubWriter = stub;
         stubAuth = new StubAuthService();
 
         // Create ApplicationBuilder and build GroupService

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CommentStrategyFactory } from '../../../../services/comments/CommentStrategyFactory';
 import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCommentStrategy';
 import { GroupCommentStrategy } from '../../../../services/comments/GroupCommentStrategy';
-import { StubFirestoreReader } from '../../mocks/firestore-stubs';
+import { StubFirestore, StubFirestoreReader } from '../../mocks/firestore-stubs';
 
 const createStubGroupMemberService = () => ({
     isGroupMemberAsync: vi.fn(),
@@ -13,7 +13,7 @@ const createStubGroupMemberService = () => ({
 
 describe('CommentStrategyFactory', () => {
     let factory: CommentStrategyFactory;
-    let stubFirestoreReader: StubFirestoreReader;
+    let stubFirestoreReader: StubFirestore;
     let stubGroupMemberService: ReturnType<typeof createStubGroupMemberService>;
 
     beforeEach(() => {

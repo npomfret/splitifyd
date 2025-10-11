@@ -1,5 +1,5 @@
 import type { UpdateGroupRequest } from '@splitifyd/shared';
-import { generateShortId, randomChoice, randomCurrency, randomString } from '../test-helpers';
+import { generateShortId, randomChoice, randomString } from '../test-helpers';
 
 export class GroupUpdateBuilder {
     private update: Partial<UpdateGroupRequest>;

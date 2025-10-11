@@ -12,20 +12,36 @@ import type { IFirestoreReader, QueryOptions } from '../../../services/firestore
 import type { BatchWriteResult, IFirestoreWriter, WriteResult } from '../../../services/firestore/IFirestoreWriter';
 import { ApiError } from '../../../utils/errors';
 
-// Shared storage for comments between reader and writer
+// Shared storage for comments across reader and writer operations
 const sharedCommentStorage = new Map<string, any[]>();
 
 /**
- * In-memory stub implementation of IFirestoreReader for unit testing
- * Only implements methods actually used by services being tested
+ * Unified in-memory stub implementation of both IFirestoreReader and IFirestoreWriter for unit testing.
+ * This single class provides both read and write operations with shared document storage,
+ * making it easy to test services that use both interfaces without needing to coordinate
+ * between separate reader/writer stubs.
+ *
+ * Document storage is automatically shared within the instance, so writes are immediately
+ * visible to reads without any special coordination.
  */
-export class StubFirestoreReader implements IFirestoreReader {
+export class StubFirestore implements IFirestoreReader, IFirestoreWriter {
     private documents = new Map<string, any>();
     private rawDocuments = new Map<string, any>();
     private userGroups = new Map<string, any>(); // userId -> pagination result or groups[]
     private paginationBehavior = new Map<string, { groups: any[]; pageSize: number; }>(); // userId -> pagination config
     private methodErrors = new Map<string, Error>(); // methodName -> error to throw
     private notFoundDocuments = new Set<string>(); // Track which docs should return null
+    private writeResults: WriteResult[] = [];
+
+    // Track method calls for test assertions
+    public setUserNotificationsCalls: { userId: string; updates: any; merge?: boolean; }[] = [];
+    public batchSetUserNotificationsCalls: Array<{ updates: Array<{ userId: string; data: any; merge?: boolean; }>; }> = [];
+    public updateInTransaction = vi.fn().mockImplementation((transaction: any, documentPath: string, updates: any): void => {
+        // Update the document in storage so subsequent reads see the changes
+        const existingDoc = this.documents.get(documentPath) || {};
+        const updatedDoc = { ...existingDoc, ...updates };
+        this.documents.set(documentPath, updatedDoc);
+    });
 
     /**
      * @deprecated Use collection-specific methods instead (e.g., setUser, setGroup, setExpense)
@@ -34,7 +50,7 @@ export class StubFirestoreReader implements IFirestoreReader {
         this.documents.set(`${collection}/${id}`, data);
     }
 
-    // Get the documents Map for sharing with writer
+    // Get the documents Map for sharing with other stubs
     getDocuments(): Map<string, any> {
         return this.documents;
     }
@@ -84,7 +100,7 @@ export class StubFirestoreReader implements IFirestoreReader {
         this.notFoundDocuments.add(`users/${userId}`);
     }
 
-    // Helper methods for pagination testing (similar to MockFirestoreReader)
+    // Helper methods for pagination testing
     mockGroupsForUser(userId: string, groups: any[], hasMore: boolean = false, nextCursor?: string) {
         this.userGroups.set(userId, {
             data: groups,
@@ -153,6 +169,9 @@ export class StubFirestoreReader implements IFirestoreReader {
         this.rawDocuments.clear();
         this.methodErrors.clear();
         this.notFoundDocuments.clear();
+        this.writeResults = [];
+        this.setUserNotificationsCalls = [];
+        this.batchSetUserNotificationsCalls = [];
         sharedCommentStorage.clear();
     }
 
@@ -304,7 +323,8 @@ export class StubFirestoreReader implements IFirestoreReader {
         }
     }
 
-    // Document Read Operations
+    // ===== IFirestoreReader Implementation =====
+
     async getUser(userId: string): Promise<RegisteredUser | null> {
         const error = this.methodErrors.get('getUser');
         if (error) throw error;
@@ -623,119 +643,8 @@ export class StubFirestoreReader implements IFirestoreReader {
         }
         return this.documents.get(key) || null;
     }
-}
 
-/**
- * In-memory stub implementation of IFirestoreWriter for unit testing
- * Only implements methods actually used by services being tested
- */
-export class StubFirestoreWriter implements IFirestoreWriter {
-    private documents = new Map<string, any>();
-    private writeResults: WriteResult[] = [];
-
-    constructor(
-        private sharedDocuments?: Map<string, any>,
-        private stubReader?: StubFirestoreReader,
-    ) {
-        // If shared documents are provided, use those instead of our own
-        if (sharedDocuments) {
-            this.documents = sharedDocuments;
-        }
-    }
-
-    /**
-     * Convert ISO strings to Firestore Timestamps
-     * Mirrors the real FirestoreWriter's conversion logic
-     */
-    private convertISOToTimestamps<T>(obj: T): T {
-        if (!obj || typeof obj !== 'object') {
-            return obj;
-        }
-
-        const result: any = Array.isArray(obj) ? [...obj] : { ...obj };
-
-        // Known date field names across all document types
-        const dateFields = new Set([
-            'createdAt',
-            'updatedAt',
-            'deletedAt',
-            'date',
-            'joinedAt',
-            'presetAppliedAt',
-            'lastModified',
-            'lastTransactionChange',
-            'lastBalanceChange',
-            'lastGroupDetailsChange',
-            'lastCommentChange',
-            'timestamp',
-            'expiresAt',
-            'deletionStartedAt',
-            'groupUpdatedAt',
-            'assignedAt', // For theme.assignedAt
-        ]);
-
-        if (Array.isArray(result)) {
-            // Process arrays
-            return result.map((item) => (item && typeof item === 'object' && !(item instanceof Timestamp) ? this.convertISOToTimestamps(item) : item)) as T;
-        }
-
-        // Process object properties
-        for (const [key, value] of Object.entries(result)) {
-            if (dateFields.has(key) && value !== null && value !== undefined) {
-                // Convert known date fields from ISO string to Timestamp
-                if (typeof value === 'string') {
-                    result[key] = Timestamp.fromDate(new Date(value));
-                }
-            } else if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Timestamp)) {
-                // Recursively process nested objects (e.g., theme object)
-                result[key] = this.convertISOToTimestamps(value);
-            } else if (Array.isArray(value)) {
-                // Recursively process arrays of objects
-                result[key] = value.map((item) => (item && typeof item === 'object' && !(item instanceof Timestamp) ? this.convertISOToTimestamps(item) : item));
-            }
-        }
-
-        return result;
-    }
-
-    private timestampToISO(value: any): string {
-        if (!value) return value; // null/undefined pass through
-        if (value instanceof Timestamp) {
-            return value.toDate().toISOString();
-        }
-        if (value instanceof Date) {
-            return value.toISOString();
-        }
-        if (typeof value === 'string') {
-            // Already ISO string
-            return value;
-        }
-        // Lenient: if it has a toDate() method (Timestamp-like), use it
-        if (typeof value === 'object' && typeof value.toDate === 'function') {
-            return value.toDate().toISOString();
-        }
-        // Lenient: if it has seconds/nanoseconds (Timestamp-like object), convert
-        if (typeof value === 'object' && typeof value.seconds === 'number') {
-            return new Date(value.seconds * 1000).toISOString();
-        }
-        return value;
-    }
-
-    private convertTimestampsToISO<T extends Record<string, any>>(obj: T): T {
-        const result: any = { ...obj };
-
-        for (const [key, value] of Object.entries(result)) {
-            if (value instanceof Timestamp) {
-                result[key] = this.timestampToISO(value);
-            } else if (value && typeof value === 'object' && !Array.isArray(value)) {
-                result[key] = this.convertTimestampsToISO(value);
-            } else if (Array.isArray(value)) {
-                result[key] = value.map((item) => (item && typeof item === 'object' ? this.convertTimestampsToISO(item) : item));
-            }
-        }
-
-        return result;
-    }
+    // ===== IFirestoreWriter Implementation =====
 
     // Helper methods to configure behavior
     setWriteResult(id: string, success: boolean, error?: string) {
@@ -749,11 +658,6 @@ export class StubFirestoreWriter implements IFirestoreWriter {
 
     getLastWriteResult(): WriteResult | undefined {
         return this.writeResults[this.writeResults.length - 1];
-    }
-
-    // Helper method to set documents for testing
-    setDocument(collection: string, id: string, data: any) {
-        this.documents.set(`${collection}/${id}`, data);
     }
 
     // Policy operations (used by PolicyService)
@@ -771,10 +675,8 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         // Convert ISO strings to Timestamps before storing (mirrors production FirestoreWriter)
         const convertedData = this.convertISOToTimestamps(policyData);
         this.documents.set(`policies/${policyId}`, convertedData);
-        // Also update rawDocuments so getRawPolicyDocument works (if stubReader is available)
-        if (this.stubReader) {
-            this.stubReader.setRawDocument(policyId, convertedData);
-        }
+        // Also update rawDocuments so getRawPolicyDocument works
+        this.setRawDocument(policyId, convertedData);
         return result;
     }
 
@@ -785,10 +687,8 @@ export class StubFirestoreWriter implements IFirestoreWriter {
             const convertedUpdates = this.convertISOToTimestamps(updates);
             const merged = { ...existing, ...convertedUpdates };
             this.documents.set(`policies/${policyId}`, merged);
-            // Also update rawDocuments so getRawPolicyDocument works (if stubReader is available)
-            if (this.stubReader) {
-                this.stubReader.setRawDocument(policyId, merged);
-            }
+            // Also update rawDocuments so getRawPolicyDocument works
+            this.setRawDocument(policyId, merged);
         }
         const result = this.getLastWriteResult() || {
             id: policyId,
@@ -883,10 +783,6 @@ export class StubFirestoreWriter implements IFirestoreWriter {
     async removeUserNotificationGroup(userId: string, groupId: string): Promise<WriteResult> {
         return { id: userId, success: true, timestamp: Timestamp.now() };
     }
-
-    public setUserNotificationsCalls: { userId: string; updates: any; merge?: boolean; }[] = [];
-
-    public batchSetUserNotificationsCalls: Array<{ updates: Array<{ userId: string; data: any; merge?: boolean; }>; }> = [];
 
     async batchSetUserNotifications(updates: Array<{ userId: string; data: any; merge?: boolean; }>): Promise<BatchWriteResult> {
         this.batchSetUserNotificationsCalls.push({ updates });
@@ -1002,13 +898,6 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         const id = documentId || this.generateDocumentId();
         return { id, path: `${collection}/${id}` };
     }
-
-    updateInTransaction = vi.fn().mockImplementation((transaction: any, documentPath: string, updates: any): void => {
-        // Update the document in the writer's storage so subsequent reads see the changes
-        const existingDoc = this.documents.get(documentPath) || {};
-        const updatedDoc = { ...existingDoc, ...updates };
-        this.documents.set(documentPath, updatedDoc);
-    });
 
     generateDocumentId(): string {
         return 'generated-id';
@@ -1161,6 +1050,18 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         }
     }
 }
+
+/**
+ * Convenience alias for StubFirestore when only reader interface is needed.
+ * Uses the same unified implementation.
+ */
+export const StubFirestoreReader = StubFirestore;
+
+/**
+ * Convenience alias for StubFirestore when only writer interface is needed.
+ * Uses the same unified implementation.
+ */
+export const StubFirestoreWriter = StubFirestore;
 
 /**
  * In-memory stub implementation of IAuthService for unit testing
@@ -1451,7 +1352,7 @@ export class StubAuthService implements IAuthService {
 
 /**
  * Helper functions to create mock data for testing
- * @deprecated Use StubFirestoreReader.setUser() instead for better type safety and consistency
+ * @deprecated Use StubFirestore.setUser() instead for better type safety and consistency
  */
 export function createTestUser(id: string, overrides: Partial<RegisteredUser> = {}): RegisteredUser {
     return {

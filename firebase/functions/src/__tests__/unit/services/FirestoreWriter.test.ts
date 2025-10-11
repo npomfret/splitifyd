@@ -5,18 +5,19 @@ import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import type { IFirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubAuthService, StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { StubAuthService, StubFirestore, StubFirestoreReader} from '../mocks/firestore-stubs';
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     let firestoreWriter: IFirestoreWriter;
-    let stubReader: StubFirestoreReader;
-    let stubWriter: StubFirestoreWriter;
+    let stubReader: StubFirestore;
+    let stubWriter: StubFirestore;
     let stubAuth: StubAuthService;
 
     beforeEach(() => {
-        // Create stubs with shared documents map
-        stubReader = new StubFirestoreReader();
-        stubWriter = new StubFirestoreWriter(stubReader.getDocuments());
+        // Create unified stub (reader and writer share the same storage automatically)
+        const stub = new StubFirestoreReader();
+        stubReader = stub;
+        stubWriter = stub;
         stubAuth = new StubAuthService();
 
         // Create ApplicationBuilder and build FirestoreWriter

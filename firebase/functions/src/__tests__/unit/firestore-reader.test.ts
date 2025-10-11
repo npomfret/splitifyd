@@ -10,7 +10,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreReader } from '../../services/firestore';
-import { createTestExpense, createTestGroup, createTestUser, StubFirestoreReader } from './mocks/firestore-stubs';
+import { createTestExpense, createTestGroup, createTestUser, StubFirestore, StubFirestoreReader } from './mocks/firestore-stubs';
 
 describe('FirestoreReader', () => {
     const firestore = getFirestore();
@@ -46,7 +46,7 @@ describe('FirestoreReader', () => {
 });
 
 describe('StubFirestoreReader', () => {
-    let stubReader: StubFirestoreReader;
+    let stubReader: StubFirestore;
 
     beforeEach(() => {
         stubReader = new StubFirestoreReader();
@@ -103,7 +103,7 @@ describe('StubFirestoreReader', () => {
  * but can be tested more efficiently as unit tests.
  */
 describe('Data Validation and Sanitization - Unit Tests', () => {
-    let stubReader: StubFirestoreReader;
+    let stubReader: StubFirestore;
 
     beforeEach(() => {
         stubReader = new StubFirestoreReader();

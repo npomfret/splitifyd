@@ -9,17 +9,16 @@ import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { CommentService } from '../../../services/CommentService';
 import { ApiError } from '../../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { clearSharedStorage, StubAuthService, StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { clearSharedStorage, StubAuthService, StubFirestore, StubFirestoreReader} from '../mocks/firestore-stubs';
 
 describe('CommentService - Consolidated Tests', () => {
     let commentService: CommentService;
-    let stubReader: StubFirestoreReader;
-    let stubWriter: StubFirestoreWriter;
+    let stubReader: StubFirestore;
+    let stubWriter: StubFirestore;
     let stubAuth: StubAuthService;
 
     beforeEach(() => {
-        stubReader = new StubFirestoreReader();
-        stubWriter = new StubFirestoreWriter();
+        const stub = new StubFirestoreReader(); stubReader = stub; stubWriter = stub;
         stubAuth = new StubAuthService();
 
         const applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);

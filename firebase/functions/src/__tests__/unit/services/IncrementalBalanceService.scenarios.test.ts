@@ -1,7 +1,7 @@
 import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
-import { StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { StubFirestore, StubFirestoreWriter} from '../mocks/firestore-stubs';
 
 /**
  * IncrementalBalanceService - Scenario Tests
@@ -14,7 +14,7 @@ import { StubFirestoreWriter } from '../mocks/firestore-stubs';
  */
 describe('IncrementalBalanceService - Scenarios', () => {
     let service: IncrementalBalanceService;
-    let stubWriter: StubFirestoreWriter;
+    let stubWriter: StubFirestore;
     let mockTransaction: any;
 
     const groupId = 'test-group-id';

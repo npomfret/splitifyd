@@ -7,12 +7,12 @@ import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { UserService } from '../../../services/UserService2';
 import { ApiError } from '../../../utils/errors';
 import { initializeI18n } from '../../../utils/i18n';
-import { StubAuthService, StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { StubAuthService, StubFirestore, StubFirestoreReader} from '../mocks/firestore-stubs';
 
 describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;
-    let stubReader: StubFirestoreReader;
-    let stubWriter: StubFirestoreWriter;
+    let stubReader: StubFirestore;
+    let stubWriter: StubFirestore;
     let stubAuth: StubAuthService;
 
     // Helper to create a valid UserThemeColor
@@ -31,8 +31,7 @@ describe('UserService - Consolidated Unit Tests', () => {
     });
 
     beforeEach(() => {
-        stubReader = new StubFirestoreReader();
-        stubWriter = new StubFirestoreWriter();
+        const stub = new StubFirestoreReader(); stubReader = stub; stubWriter = stub;
         stubAuth = new StubAuthService();
 
         userService = new ApplicationBuilder(stubReader, stubWriter, stubAuth).buildUserService();

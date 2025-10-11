@@ -1,16 +1,15 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { UserNotificationDocument } from '../../../schemas/user-notifications';
 import { type ChangeType, NotificationService } from '../../../services/notification-service';
-import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { StubFirestore, StubFirestoreReader} from '../mocks/firestore-stubs';
 
 describe('NotificationService - Comprehensive Unit Tests', () => {
     let notificationService: NotificationService;
-    let stubReader: StubFirestoreReader;
-    let stubWriter: StubFirestoreWriter;
+    let stubReader: StubFirestore;
+    let stubWriter: StubFirestore;
 
     beforeEach(() => {
-        stubReader = new StubFirestoreReader();
-        stubWriter = new StubFirestoreWriter();
+        const stub = new StubFirestoreReader(); stubReader = stub; stubWriter = stub;
         notificationService = new NotificationService(stubReader, stubWriter);
     });
 

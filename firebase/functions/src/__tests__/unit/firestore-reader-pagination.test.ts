@@ -9,10 +9,10 @@
 import type { GroupDTO } from '@splitifyd/shared';
 import { GroupDTOBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { StubFirestoreReader } from './mocks/firestore-stubs';
+import { StubFirestore, StubFirestoreReader } from './mocks/firestore-stubs';
 
 describe('FirestoreReader Pagination Performance', () => {
-    let stubReader: StubFirestoreReader;
+    let stubReader: StubFirestore;
 
     beforeEach(() => {
         stubReader = new StubFirestoreReader();
@@ -265,7 +265,7 @@ describe('FirestoreReader Pagination Performance', () => {
 });
 
 describe('StubFirestoreReader Pagination Support', () => {
-    let stubReader: StubFirestoreReader;
+    let stubReader: StubFirestore;
 
     beforeEach(() => {
         stubReader = new StubFirestoreReader();
