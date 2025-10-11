@@ -573,11 +573,16 @@ describe('Groups Management - Consolidated Tests', () => {
 
             const results = await Promise.allSettled(updatePromises);
             const successes = results.filter((r) => r.status === 'fulfilled');
-            const conflicts = results.filter((r) => r.status === 'rejected' && r.reason?.response?.data?.error?.code === 'CONCURRENT_UPDATE');
+            const failures = results.filter((r) => r.status === 'rejected');
+            const conflicts = failures.filter(
+                (r) =>
+                    r.status === 'rejected'
+                    && (r.reason?.message?.includes('CONCURRENT_UPDATE') || r.reason?.message?.includes('409')),
+            );
 
             expect(successes.length).toBeGreaterThan(0);
 
-            if (results.length - successes.length > 0) {
+            if (failures.length > 0) {
                 expect(conflicts.length).toBeGreaterThan(0);
             }
 

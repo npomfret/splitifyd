@@ -321,9 +321,7 @@ export class SettlementService {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_SETTLEMENT_CREATOR', 'Only the creator can update this settlement');
         }
 
-        const updates: any = {
-            updatedAt: new Date().toISOString(), // ISO string
-        };
+        const updates: any = {};
 
         if (updateData.amount !== undefined) {
             updates.amount = updateData.amount;
@@ -356,6 +354,11 @@ export class SettlementService {
             const currentSettlement = await this.firestoreReader.getSettlementInTransaction(transaction, settlementId);
             if (!currentSettlement) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
+            }
+
+            // Check for concurrent updates
+            if (settlement.updatedAt !== currentSettlement.updatedAt) {
+                throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified concurrently');
             }
 
             // Read current balance BEFORE any writes (Firestore transaction rule)
