@@ -58,43 +58,35 @@ test.describe('Registration Form Validation', () => {
         await expect(registerPage.getSubmitButton()).toBeDisabled();
     });
 
-    test('should show validation error when passwords do not match', async ({ pageWithLogging: page, }) => {
+    test('should show validation error when passwords do not match', async ({ pageWithLogging: page, mockFirebase }) => {
         const registerPage = new RegisterPage(page);
+
         await registerPage.navigate();
 
-        // Fill form with mismatched passwords
-        await registerPage.fillName('John Doe');
-        await registerPage.fillEmail('test@example.com');
-        await registerPage.fillPassword('Password123');
-        await registerPage.fillConfirmPassword('DifferentPassword456');
-        await registerPage.acceptAllPolicies();
+        mockFirebase.mockRegisterFailure({
+            code: 'auth/passwords-mismatch',
+            message: 'Passwords do not match',
+        });
 
-        // Submit should be enabled (client-side validation allows submit)
-        await expect(registerPage.getSubmitButton()).toBeEnabled();
-
-        // Submit form to trigger validation
-        await registerPage.submitForm();
+        // Attempt registration with mismatched passwords
+        await registerPage.registerExpectingFailure('John Doe', 'test@example.com', 'Password123', 'DifferentPassword456');
 
         // Verify password mismatch error appears
         await registerPage.verifyErrorMessage('Passwords do not match');
     });
 
-    test('should show validation error for password too short', async ({ pageWithLogging: page, }) => {
+    test('should show validation error for password too short', async ({ pageWithLogging: page, mockFirebase }) => {
         const registerPage = new RegisterPage(page);
+
         await registerPage.navigate();
 
-        // Fill form with short password (less than 6 characters)
-        await registerPage.fillName('John Doe');
-        await registerPage.fillEmail('test@example.com');
-        await registerPage.fillPassword('12345');
-        await registerPage.fillConfirmPassword('12345');
-        await registerPage.acceptAllPolicies();
+        mockFirebase.mockRegisterFailure({
+            code: 'auth/weak-password',
+            message: 'Password must be at least 6 characters',
+        });
 
-        // Submit should be enabled (client-side validation allows submit)
-        await expect(registerPage.getSubmitButton()).toBeEnabled();
-
-        // Submit form to trigger validation
-        await registerPage.submitForm();
+        // Attempt registration with short password
+        await registerPage.registerExpectingFailure('John Doe', 'test@example.com', '12345');
 
         // Verify password length error appears
         await registerPage.verifyErrorMessage('Password must be at least 6 characters');

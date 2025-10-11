@@ -1,4 +1,4 @@
-import { COLOR_PATTERNS, ColorPattern, GroupMembershipDTO, MemberRoles, MemberStatuses, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
+import { ColorPattern, GroupMembershipDTO, MemberRoles, MemberStatuses, UserThemeColor } from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';
 
 /**
@@ -80,26 +80,6 @@ export class GroupMemberDocumentBuilder {
 
     withColorIndex(colorIndex: number): this {
         this.memberDoc.theme.colorIndex = colorIndex;
-        return this;
-    }
-
-    /**
-     * Apply theme colors using the same logic as getThemeColorForMember
-     */
-    withThemeIndex(memberIndex: number): this {
-        const colorIndex = memberIndex % USER_COLORS.length;
-        const patternIndex = Math.floor(memberIndex / USER_COLORS.length) % COLOR_PATTERNS.length;
-        const color = USER_COLORS[colorIndex];
-        const pattern = COLOR_PATTERNS[patternIndex];
-
-        this.memberDoc.theme = {
-            light: color.light,
-            dark: color.dark,
-            name: color.name,
-            pattern,
-            assignedAt: new Date().toISOString(),
-            colorIndex,
-        };
         return this;
     }
 

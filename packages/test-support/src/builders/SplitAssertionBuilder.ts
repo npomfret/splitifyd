@@ -45,14 +45,6 @@ export class SplitAssertionBuilder {
     }
 
     /**
-     * Remove the percentage field (for splits that don't include percentages)
-     */
-    withoutPercentage(): this {
-        delete this.split.percentage;
-        return this;
-    }
-
-    /**
      * Static convenience method to create a split with user ID and amount
      */
     static split(uid: string, amount: number, percentage?: number): ExpenseSplit {
@@ -65,17 +57,6 @@ export class SplitAssertionBuilder {
         }
 
         return builder.build();
-    }
-
-    /**
-     * Static convenience method to create a split with user ID, amount, and percentage
-     */
-    static splitWithPercentage(uid: string, amount: number, percentage: number): ExpenseSplit {
-        return new SplitAssertionBuilder()
-            .forUser(uid)
-            .withAmount(amount)
-            .withPercentage(percentage)
-            .build();
     }
 
     build(): ExpenseSplit {

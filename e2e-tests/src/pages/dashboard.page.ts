@@ -1,10 +1,9 @@
 import { expect, Page } from '@playwright/test';
-import { DashboardPage as BaseDashboardPage } from '@splitifyd/test-support';
+import { DashboardPage as BaseDashboardPage, JoinGroupPage } from '@splitifyd/test-support';
 import { CreateGroupFormData, CreateGroupFormDataBuilder, generateShortId, randomString } from '@splitifyd/test-support';
 import { CreateGroupModalPage } from './create-group-modal.page.ts';
 import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
 import { HeaderPage } from './header.page';
-import { JoinGroupPage } from './join-group.page.ts';
 
 let i = 0;
 
@@ -63,7 +62,13 @@ export class DashboardPage extends BaseDashboardPage {
             const shareLink = await groupDetailPage.getShareLink();
 
             for (const dashboardPage of dashboardPages) {
-                const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(dashboardPage.page, shareLink, groupId);
+                // Join using new POM from test-support
+                const joinGroupPage = new JoinGroupPage(dashboardPage.page);
+                await joinGroupPage.joinGroupUsingShareLink(shareLink);
+                await expect(dashboardPage.page).toHaveURL(groupDetailUrlPattern(groupId));
+
+                // Create e2e GroupDetailPage instance (has waitForPage method)
+                const memberGroupDetailPage = new GroupDetailPage(dashboardPage.page);
                 groupDetailPages.push(memberGroupDetailPage);
                 const displayName = await dashboardPage.header.getCurrentUserDisplayName();
                 console.log(`User "${displayName}" has joined group "${groupName}" (id: ${groupId})`);

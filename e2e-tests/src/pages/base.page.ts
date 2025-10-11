@@ -247,13 +247,6 @@ export abstract class BasePage {
     }
 
     /**
-     * Expects the page to match a URL pattern
-     */
-    async expectUrl(pattern: string | RegExp): Promise<void> {
-        await expect(this._page).toHaveURL(pattern);
-    }
-
-    /**
      * Navigation helper methods to replace direct page.goto() calls
      */
     async navigateToHomepage(): Promise<void> {

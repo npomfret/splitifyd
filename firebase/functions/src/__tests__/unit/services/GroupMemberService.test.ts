@@ -3,7 +3,7 @@ import { GroupDTOBuilder, ThemeBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it, test } from 'vitest';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubAuthService, StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { StubFirestoreReader, StubFirestoreWriter } from '../mocks/firestore-stubs';
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {
     let groupMemberService: GroupMemberService;

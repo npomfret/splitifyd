@@ -1,43 +1,51 @@
 import { expect, Locator, Page } from '@playwright/test';
-import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
-import { BasePage } from './base.page';
-import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
+import { TEST_TIMEOUTS } from '../test-constants';
+import { BasePage } from './BasePage';
+import { HeaderPage } from './HeaderPage';
+import { loadTranslation } from './translation-loader';
+
+const translation = loadTranslation();
 
 /**
- * Page object for join group functionality via share links.
+ * Page Object Model for join group functionality via share links.
  * Handles different authentication states and provides robust join operations.
+ * Reusable across unit tests and e2e tests.
  */
 export class JoinGroupPage extends BasePage {
+    private _header?: HeaderPage;
+
     constructor(page: Page) {
         super(page);
     }
 
-    static async joinGroupViaShareLink(page: Page, shareLink: string, groupId?: string) {
-        const joinGroupPage = new JoinGroupPage(page);
-        await joinGroupPage.joinGroupUsingShareLink(shareLink);
-        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
-        return new GroupDetailPage(page);
-    }
-
-    static async attemptToJoinWithInvalidShareLink(page: Page, invalidShareLink: string): Promise<void> {
-        const joinGroupPage = new JoinGroupPage(page);
-
-        // Navigate to invalid share link
-        await joinGroupPage.navigateToShareLink(invalidShareLink);
-
-        // Should show error page OR join page without join button (both are valid error states)
-        const pageState = await joinGroupPage.getPageState();
-        const isErrorPage = await joinGroupPage.isErrorPage();
-        const joinButtonVisible = pageState.joinButtonVisible;
-
-        if (!isErrorPage && joinButtonVisible) {
-            // If no error message and join button is visible, that's unexpected
-            throw new Error(`Expected error page or disabled join but found active join page. Page state: ${JSON.stringify(pageState, null, 2)}`);
+    private get header(): HeaderPage {
+        if (!this._header) {
+            this._header = new HeaderPage(this.page);
         }
+        return this._header;
     }
+
+    // ============================================================================
+    // STATIC UTILITY METHODS
+    // ============================================================================
+
+    /**
+     * Helper to build a group detail URL pattern
+     * Use for URL matching in tests and navigation verification
+     */
+    static groupDetailUrlPattern(groupId?: string): RegExp {
+        if (groupId) {
+            return new RegExp(`/groups/${groupId}$`);
+        }
+        return /\/groups\/[a-zA-Z0-9]+/;
+    }
+
+    // ============================================================================
+    // ELEMENT SELECTORS - Scoped to join group page
+    // ============================================================================
 
     getJoinGroupHeading(): Locator {
-        return this.page.getByRole('heading', { name: translationEn.joinGroupPage.title });
+        return this.page.getByRole('heading', { name: translation.joinGroupPage.title });
     }
 
     /**
@@ -48,26 +56,12 @@ export class JoinGroupPage extends BasePage {
         return this.page.getByRole('heading', { level: 2 });
     }
 
-    /**
-     * Get the text content of the group name heading.
-     * @returns Promise resolving to the group name as a string
-     */
-    async getGroupName(): Promise<string> {
-        const heading = this.getGroupNameHeading();
-        await expect(heading).toBeVisible();
-        const text = await heading.textContent();
-        if (!text) {
-            throw new Error('Group name heading is empty');
-        }
-        return text.trim();
-    }
-
     getJoinGroupButton(): Locator {
-        return this.page.getByRole('button', { name: translationEn.joinGroupPage.joinGroup });
+        return this.page.getByRole('button', { name: translation.joinGroupPage.joinGroup });
     }
 
     getAlreadyMemberMessage(): Locator {
-        return this.page.getByText(translationEn.joinGroupPage.alreadyMember);
+        return this.page.getByText(translation.joinGroupPage.alreadyMember);
     }
 
     getLoginButton(): Locator {
@@ -86,7 +80,31 @@ export class JoinGroupPage extends BasePage {
         return this.page.getByRole('button', { name: /Go to dashboard/i });
     }
 
-    // Authentication state detection
+    getOkButton(): Locator {
+        return this.page.getByRole('button', { name: translation.joinGroupPage.goToGroup });
+    }
+
+    // ============================================================================
+    // STATE VERIFICATION METHODS
+    // ============================================================================
+
+    /**
+     * Get the text content of the group name heading.
+     * @returns Promise resolving to the group name as a string
+     */
+    async getGroupName(): Promise<string> {
+        const heading = this.getGroupNameHeading();
+        await expect(heading).toBeVisible();
+        const text = await heading.textContent();
+        if (!text) {
+            throw new Error('Group name heading is empty');
+        }
+        return text.trim();
+    }
+
+    /**
+     * Check if user is logged in by examining page elements
+     */
     async isUserLoggedIn(): Promise<boolean> {
         try {
             // First check: If we're on the login page, definitely not logged in
@@ -96,8 +114,7 @@ export class JoinGroupPage extends BasePage {
             }
 
             // Second check: Look for authentication loading states
-            const checkingAuth = await this
-                .page
+            const checkingAuth = await this.page
                 .getByText('Checking authentication...')
                 .isVisible({ timeout: 500 })
                 .catch(() => false);
@@ -111,16 +128,9 @@ export class JoinGroupPage extends BasePage {
             }
 
             // FIRST: Special case for join group page - if we can see join elements, user is authenticated
-            const joinButtonVisible = await this
-                .getJoinGroupButton()
-                .isVisible({ timeout: 1000 })
-                .catch(() => false);
-            const joinGroupHeadingVisible = await this
-                .getJoinGroupHeading()
-                .isVisible({ timeout: 1000 })
-                .catch(() => false);
-            const groupInviteMessage = await this
-                .page
+            const joinButtonVisible = await this.getJoinGroupButton().isVisible({ timeout: 1000 }).catch(() => false);
+            const joinGroupHeadingVisible = await this.getJoinGroupHeading().isVisible({ timeout: 1000 }).catch(() => false);
+            const groupInviteMessage = await this.page
                 .getByText(/you've been invited|invited to join/i)
                 .isVisible({ timeout: 1000 })
                 .catch(() => false);
@@ -130,14 +140,8 @@ export class JoinGroupPage extends BasePage {
             }
 
             // Then check: Look for login/register UI elements (reliable indicator for other pages)
-            const loginVisible = await this
-                .getLoginButton()
-                .isVisible({ timeout: 1000 })
-                .catch(() => false);
-            const registerVisible = await this
-                .getRegisterButton()
-                .isVisible({ timeout: 1000 })
-                .catch(() => false);
+            const loginVisible = await this.getLoginButton().isVisible({ timeout: 1000 }).catch(() => false);
+            const registerVisible = await this.getRegisterButton().isVisible({ timeout: 1000 }).catch(() => false);
 
             // If we see login/register buttons, user is definitely not logged in
             if (loginVisible || registerVisible) {
@@ -145,11 +149,7 @@ export class JoinGroupPage extends BasePage {
             }
 
             // Look for user-specific UI elements that indicate login
-            const userMenuVisible = await this
-                .header
-                .getUserMenuButton()
-                .isVisible({ timeout: 1000 })
-                .catch(() => false);
+            const userMenuVisible = await this.header.getUserMenuButton().isVisible({ timeout: 1000 }).catch(() => false);
 
             // If we see user menu, definitely logged in
             if (userMenuVisible) {
@@ -157,8 +157,7 @@ export class JoinGroupPage extends BasePage {
             }
 
             // Final check: Look for other authenticated UI patterns
-            const dashboardContent = await this
-                .page
+            const dashboardContent = await this.page
                 .getByText(/create group|your groups|my groups/i)
                 .isVisible({ timeout: 1000 })
                 .catch(() => false);
@@ -200,6 +199,14 @@ export class JoinGroupPage extends BasePage {
         }
     }
 
+    // ============================================================================
+    // ACTION METHODS - Non-fluent versions (action only)
+    // ============================================================================
+
+    /**
+     * Navigate to a share link
+     * Non-fluent version - navigates without verification
+     */
     async navigateToShareLink(shareLink: string): Promise<void> {
         await this.page.goto(shareLink);
         await this.waitForDomContentLoaded();
@@ -208,8 +215,9 @@ export class JoinGroupPage extends BasePage {
     }
 
     /**
-     * Simply clicks the join group button. Nothing more.
-     * All navigation and state checking should be done by the caller.
+     * Click the join group button
+     * Non-fluent version - clicks without verification
+     * Private method - use public methods for reliable join flows
      */
     private async clickJoinGroup(): Promise<void> {
         const joinButton = this.getJoinGroupButton();
@@ -230,8 +238,22 @@ export class JoinGroupPage extends BasePage {
     }
 
     /**
-     * Comprehensive join flow that handles all authentication states.
-     * Throws specific error types based on the failure reason.
+     * Click the OK/Go to Group button after successful join
+     * Non-fluent version - clicks without navigation verification
+     */
+    async clickOkButton(): Promise<void> {
+        const okButton = this.getOkButton();
+        await this.clickButton(okButton, { buttonName: 'OK/Go to Group' });
+    }
+
+    // ============================================================================
+    // ACTION METHODS - Fluent versions (action + verification)
+    // ============================================================================
+
+    /**
+     * Join group using share link
+     * Fluent version - complete join flow with verification
+     * Throws specific error types based on the failure reason
      * @param shareLink - The share link to join
      */
     async joinGroupUsingShareLink(shareLink: string): Promise<void> {
@@ -251,41 +273,19 @@ export class JoinGroupPage extends BasePage {
         await this.clickJoinGroupAndWaitForJoin();
     }
 
-    async assertJoinGroupButtonIsMissing() {
-        const joinButton = this.getJoinGroupButton();
-        await expect(joinButton).not.toBeVisible();
-    }
-
-    async assertAlreadyMemberTextIsVisible() {
-        const alreadyMemberMessage = this.getAlreadyMemberMessage();
-        await expect(alreadyMemberMessage).toBeVisible();
-    }
-
-    getOkButton(): Locator {
-        return this.page.getByRole('button', { name: translationEn.joinGroupPage.goToGroup });
-    }
-
-    async clickOkButton(): Promise<void> {
-        const okButton = this.getOkButton();
-        await this.clickButton(okButton, { buttonName: 'OK/Go to Group' });
-    }
-
-    async clickJoinGroupAndWaitForJoin() {
+    /**
+     * Click join button and wait for join to complete
+     * Fluent version - verifies navigation to group page or success screen
+     */
+    async clickJoinGroupAndWaitForJoin(): Promise<void> {
         await this.clickJoinGroup();
 
         // Wait for join to complete using single polling loop
         await expect(async () => {
             const currentUrl = this.page.url();
-            const isOnGroupPage = currentUrl.match(groupDetailUrlPattern());
-            const hasError = await this
-                .getErrorMessage()
-                .isVisible()
-                .catch(() => false);
-            const hasSuccessScreen = await this
-                .page
-                .locator('[data-join-success="true"]')
-                .isVisible()
-                .catch(() => false);
+            const isOnGroupPage = currentUrl.match(JoinGroupPage.groupDetailUrlPattern());
+            const hasError = await this.getErrorMessage().isVisible().catch(() => false);
+            const hasSuccessScreen = await this.page.locator('[data-join-success="true"]').isVisible().catch(() => false);
 
             if (isOnGroupPage) {
                 return; // Success - direct navigation
@@ -298,38 +298,32 @@ export class JoinGroupPage extends BasePage {
 
             if (hasSuccessScreen) {
                 await this.clickOkButton();
-                await expect(this.page).toHaveURL(groupDetailUrlPattern());
+                await expect(this.page).toHaveURL(JoinGroupPage.groupDetailUrlPattern(), { timeout: TEST_TIMEOUTS.NAVIGATION });
                 return; // Success - via success screen
             }
 
             // Still joining - keep polling
             throw new Error('Still joining...');
-        })
-            .toPass({ timeout: 5000 });
+        }).toPass({ timeout: 5000 });
     }
 
-    // Helper for debugging failed joins
-    async getPageState(): Promise<{
-        url: string;
-        title: string;
-        isLoggedIn: boolean;
-        isAlreadyMember: boolean;
-        isErrorPage: boolean;
-        isJoinPageVisible: boolean;
-        joinButtonVisible: boolean;
-        joinButtonEnabled: boolean;
-    }> {
-        const joinButton = this.getJoinGroupButton();
+    // ============================================================================
+    // VERIFICATION METHODS - For test verification
+    // ============================================================================
 
-        return {
-            url: this.page.url(),
-            title: await this.page.title(),
-            isLoggedIn: await this.isUserLoggedIn(),
-            isAlreadyMember: await this.isUserAlreadyMember(),
-            isErrorPage: await this.isErrorPage(),
-            isJoinPageVisible: await this.isJoinPageVisible(),
-            joinButtonVisible: await joinButton.isVisible().catch(() => false),
-            joinButtonEnabled: await joinButton.isEnabled().catch(() => false),
-        };
+    /**
+     * Verify join button is not visible (user already a member)
+     */
+    async verifyJoinGroupButtonNotVisible(): Promise<void> {
+        const joinButton = this.getJoinGroupButton();
+        await expect(joinButton).not.toBeVisible();
+    }
+
+    /**
+     * Verify "already a member" message is displayed
+     */
+    async verifyAlreadyMemberMessageVisible(): Promise<void> {
+        const alreadyMemberMessage = this.getAlreadyMemberMessage();
+        await expect(alreadyMemberMessage).toBeVisible();
     }
 }

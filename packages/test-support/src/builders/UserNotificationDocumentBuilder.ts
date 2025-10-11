@@ -67,36 +67,6 @@ export class UserNotificationDocumentBuilder {
         return this;
     }
 
-    withTransactionChange(groupId: string, changeCount: number = 1): this {
-        const existing = this.document.groups[groupId] || this.createDefaultGroupData();
-        this.document.groups[groupId] = {
-            ...existing,
-            transactionChangeCount: changeCount,
-            lastTransactionChange: new Date(),
-        };
-        return this;
-    }
-
-    withBalanceChange(groupId: string, changeCount: number = 1): this {
-        const existing = this.document.groups[groupId] || this.createDefaultGroupData();
-        this.document.groups[groupId] = {
-            ...existing,
-            balanceChangeCount: changeCount,
-            lastBalanceChange: new Date(),
-        };
-        return this;
-    }
-
-    withCommentChange(groupId: string, changeCount: number = 1): this {
-        const existing = this.document.groups[groupId] || this.createDefaultGroupData();
-        this.document.groups[groupId] = {
-            ...existing,
-            commentChangeCount: changeCount,
-            lastCommentChange: new Date(),
-        };
-        return this;
-    }
-
     withGroupChangeCounts(
         groupId: string,
         counts: {

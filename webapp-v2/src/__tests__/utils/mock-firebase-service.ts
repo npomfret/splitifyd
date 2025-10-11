@@ -72,6 +72,22 @@ export class MockFirebase {
     }
 
     private async createBrowserGlobals(initialUser: ClientUser | null): Promise<void> {
+        // Mock Firebase config endpoint to prevent "Failed to fetch config" errors
+        await this.page.route('**/__/firebase/init.json*', (route) => {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    apiKey: 'mock-api-key',
+                    authDomain: 'mock-project.firebaseapp.com',
+                    projectId: 'mock-project',
+                    storageBucket: 'mock-project.appspot.com',
+                    messagingSenderId: '123456789',
+                    appId: '1:123456789:web:abcdef',
+                }),
+            });
+        });
+
         await this.page.addInitScript((initialUser: any) => {
             const mockService: FirebaseService = {
                 connect: () => Promise.resolve(),
@@ -539,6 +555,128 @@ export async function mockGenerateShareLinkApi(
                     linkId: shareToken,
                     shareablePath: `/join/${shareToken}`,
                 }),
+            });
+        } else {
+            await route.continue();
+        }
+    });
+}
+
+/**
+ * Mock group preview API endpoint (for join group flow)
+ * The endpoint is POST /api/groups/preview with body: { linkId }
+ * Response format: PreviewGroupResponse
+ * @param delayMs - Optional delay in milliseconds before responding
+ */
+export async function mockGroupPreviewApi(
+    page: Page,
+    response: any,
+    options: { delayMs?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await page.route('/api/groups/preview', async (route) => {
+        const request = route.request();
+        if (request.method() === 'POST') {
+            if (delay > 0) {
+                await new Promise((resolve) => setTimeout(resolve, delay));
+            }
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(response),
+            });
+        } else {
+            await route.continue();
+        }
+    });
+}
+
+/**
+ * Mock join group API endpoint
+ * The endpoint is POST /api/groups/join with body: { linkId }
+ * Response format: JoinGroupResponse
+ * @param delayMs - Optional delay in milliseconds before responding
+ */
+export async function mockJoinGroupApi(
+    page: Page,
+    response: any,
+    options: { delayMs?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await page.route('/api/groups/join', async (route) => {
+        const request = route.request();
+        if (request.method() === 'POST') {
+            if (delay > 0) {
+                await new Promise((resolve) => setTimeout(resolve, delay));
+            }
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(response),
+            });
+        } else {
+            await route.continue();
+        }
+    });
+}
+
+/**
+ * Mock group preview API failure
+ * @param status - HTTP status code for the failure
+ * @param error - Error object to return
+ * @param delayMs - Optional delay in milliseconds before responding
+ */
+export async function mockGroupPreviewFailure(
+    page: Page,
+    status: number,
+    error: { error: string; },
+    options: { delayMs?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await page.route('/api/groups/preview', async (route) => {
+        const request = route.request();
+        if (request.method() === 'POST') {
+            if (delay > 0) {
+                await new Promise((resolve) => setTimeout(resolve, delay));
+            }
+            await route.fulfill({
+                status,
+                contentType: 'application/json',
+                body: JSON.stringify(error),
+            });
+        } else {
+            await route.continue();
+        }
+    });
+}
+
+/**
+ * Mock join group API failure
+ * @param status - HTTP status code for the failure
+ * @param error - Error object to return
+ * @param delayMs - Optional delay in milliseconds before responding
+ */
+export async function mockJoinGroupFailure(
+    page: Page,
+    status: number,
+    error: { error: string; },
+    options: { delayMs?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await page.route('/api/groups/join', async (route) => {
+        const request = route.request();
+        if (request.method() === 'POST') {
+            if (delay > 0) {
+                await new Promise((resolve) => setTimeout(resolve, delay));
+            }
+            await route.fulfill({
+                status,
+                contentType: 'application/json',
+                body: JSON.stringify(error),
             });
         } else {
             await route.continue();

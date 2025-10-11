@@ -204,18 +204,17 @@ test.describe('Registration Form Reactivity and UI States', () => {
 });
 
 test.describe('Registration Form Error Display and Recovery', () => {
-    test('should show and clear errors based on form changes', async ({ pageWithLogging: page, }) => {
+    test('should show and clear errors based on form changes', async ({ pageWithLogging: page, mockFirebase }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
-        // Attempt registration with mismatched passwords
-        await registerPage.fillName('John Doe');
-        await registerPage.fillEmail('john@example.com');
-        await registerPage.fillPassword('Password123');
-        await registerPage.fillConfirmPassword('WrongPassword');
-        await registerPage.acceptAllPolicies();
+        mockFirebase.mockRegisterFailure({
+            code: 'auth/passwords-mismatch',
+            message: 'Passwords do not match',
+        });
 
-        await registerPage.submitForm();
+        // Attempt registration with mismatched passwords
+        await registerPage.registerExpectingFailure('John Doe', 'john@example.com', 'Password123', 'WrongPassword');
 
         // Verify password mismatch error
         await registerPage.verifyErrorMessage('Passwords do not match');
@@ -227,17 +226,18 @@ test.describe('Registration Form Error Display and Recovery', () => {
         // This is expected behavior - error doesn't auto-clear on field change
     });
 
-    test('should display different error types correctly', async ({ pageWithLogging: page, }) => {
+    test('should display different error types correctly', async ({ pageWithLogging: page, mockFirebase }) => {
         const registerPage = new RegisterPage(page);
 
         // Test 1: Short password error
         await registerPage.navigate();
-        await registerPage.fillName('John Doe');
-        await registerPage.fillEmail('john@example.com');
-        await registerPage.fillPassword('12345');
-        await registerPage.fillConfirmPassword('12345');
-        await registerPage.acceptAllPolicies();
-        await registerPage.submitForm();
+
+        mockFirebase.mockRegisterFailure({
+            code: 'auth/weak-password',
+            message: 'Password must be at least 6 characters',
+        });
+
+        await registerPage.registerExpectingFailure('John Doe', 'john@example.com', '12345');
         await registerPage.verifyErrorMessage('Password must be at least 6 characters');
 
         // Test 2: Navigate away and back to clear state

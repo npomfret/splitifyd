@@ -44,28 +44,6 @@ export class PermissionSetBuilder {
         return this;
     }
 
-    asOpenPermissions(): this {
-        this.permissions = {
-            expenseEditing: 'anyone',
-            expenseDeletion: 'anyone',
-            memberInvitation: 'anyone',
-            memberApproval: 'automatic',
-            settingsManagement: 'anyone',
-        };
-        return this;
-    }
-
-    asManagedPermissions(): this {
-        this.permissions = {
-            expenseEditing: 'owner-and-admin',
-            expenseDeletion: 'owner-and-admin',
-            memberInvitation: 'admin-only',
-            memberApproval: 'admin-required',
-            settingsManagement: 'admin-only',
-        };
-        return this;
-    }
-
     build(): GroupPermissions {
         return { ...this.permissions };
     }

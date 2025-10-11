@@ -211,18 +211,17 @@ test.describe('Registration Page State Persistence', () => {
 });
 
 test.describe('Registration Page Error Recovery', () => {
-    test('should remain on register page after validation error', async ({ pageWithLogging: page, }) => {
+    test('should remain on register page after validation error', async ({ pageWithLogging: page, mockFirebase }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
-        // Submit with mismatched passwords
-        await registerPage.fillName('John Doe');
-        await registerPage.fillEmail('john@example.com');
-        await registerPage.fillPassword('Password123');
-        await registerPage.fillConfirmPassword('DifferentPassword');
-        await registerPage.acceptAllPolicies();
+        mockFirebase.mockRegisterFailure({
+            code: 'auth/passwords-mismatch',
+            message: 'Passwords do not match',
+        });
 
-        await registerPage.submitForm();
+        // Attempt registration with mismatched passwords
+        await registerPage.registerExpectingFailure('John Doe', 'john@example.com', 'Password123', 'DifferentPassword');
 
         // Should remain on register page
         await expect(page).toHaveURL(/\/register/);

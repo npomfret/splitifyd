@@ -155,20 +155,4 @@ export class GroupMemberBuilder {
             .asAdmin();
     }
 
-    /**
-     * Create multiple members with sequential IDs
-     */
-    static buildMany(count: number, customizer?: (builder: GroupMemberBuilder, index: number) => void): GroupMember[] {
-        return Array.from({ length: count }, (_, i) => {
-            const builder = new GroupMemberBuilder()
-                .withUid(`user-${i + 1}`)
-                .withDisplayName(`User ${i + 1}`);
-
-            if (customizer) {
-                customizer(builder, i);
-            }
-
-            return builder.build();
-        });
-    }
 }

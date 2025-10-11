@@ -6,6 +6,7 @@ export { ExpenseDetailPage } from './ExpenseDetailPage';
 export { ExpenseFormPage } from './ExpenseFormPage';
 export { GroupDetailPage } from './GroupDetailPage';
 export { HeaderPage } from './HeaderPage';
+export { JoinGroupPage } from './JoinGroupPage';
 export { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
 export { LoginPage } from './LoginPage';
 export { RegisterPage } from './RegisterPage';

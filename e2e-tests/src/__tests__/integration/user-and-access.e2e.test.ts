@@ -1,11 +1,11 @@
 import { expect } from '@playwright/test';
 import { CreateGroupFormDataBuilder, DEFAULT_PASSWORD, generateTestEmail, generateTestGroupName, generateTestUserName, TestUserBuilder } from '@splitifyd/test-support';
 import { ApiDriver } from '@splitifyd/test-support';
+import { JoinGroupPage } from '@splitifyd/test-support';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { simpleTest } from '../../fixtures';
 import { getUserPool } from '../../fixtures/user-pool.fixture';
-import { DashboardPage, GroupDetailPage, HomepagePage, JoinGroupPage, LoginPage, RegisterPage, SettingsPage } from '../../pages';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page';
+import { DashboardPage, GroupDetailPage, HomepagePage, LoginPage, RegisterPage, SettingsPage } from '../../pages';
 import { PolicyAcceptanceModalPage } from '../../pages/policy-acceptance-modal.page';
 
 /**
@@ -455,8 +455,11 @@ simpleTest.describe('Share Link Access Management', () => {
             const shareLink = await groupDetailPage.getShareLink();
 
             // User2 joins first time
-            const user2GroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(page2, shareLink, groupId);
-            await expect(page2).toHaveURL(groupDetailUrlPattern(groupId));
+            const joinGroupPage2 = new JoinGroupPage(page2);
+            await joinGroupPage2.joinGroupUsingShareLink(shareLink);
+            await expect(page2).toHaveURL(JoinGroupPage.groupDetailUrlPattern(groupId));
+
+            const user2GroupDetailPage = new GroupDetailPage(page2);
             await user2GroupDetailPage.waitForPage(groupId, 2);
             const user2Dashboard = await user2GroupDetailPage.navigateToDashboard();
             await user2Dashboard.waitForDashboard();
@@ -465,10 +468,10 @@ simpleTest.describe('Share Link Access Management', () => {
             // User2 tries to join again - join group button should be missing and OK button should be present
             const joinGroupPage = new JoinGroupPage(page2);
             await joinGroupPage.navigateToShareLink(shareLink);
-            await joinGroupPage.assertJoinGroupButtonIsMissing();
-            await joinGroupPage.assertAlreadyMemberTextIsVisible();
+            await joinGroupPage.verifyJoinGroupButtonNotVisible();
+            await joinGroupPage.verifyAlreadyMemberMessageVisible();
             await joinGroupPage.clickOkButton();
-            await expect(page2).toHaveURL(groupDetailUrlPattern(groupId));
+            await expect(page2).toHaveURL(JoinGroupPage.groupDetailUrlPattern(groupId));
         });
     });
 
@@ -510,7 +513,7 @@ simpleTest.describe('Share Link Access Management', () => {
             await joinGroupPage.joinGroupUsingShareLink(shareLink);
 
             // Verify user successfully joined and is now on the group detail page
-            await expect(unauthPage).toHaveURL(new RegExp(`/groups/${groupId}`));
+            await expect(unauthPage).toHaveURL(JoinGroupPage.groupDetailUrlPattern(groupId));
 
             // Clean up the claimed user
             await getUserPool().releaseUser(secondUser);
@@ -558,7 +561,7 @@ simpleTest.describe('Share Link Access Management', () => {
             await joinPage.clickJoinGroupAndWaitForJoin();
 
             // Should be redirected to the group
-            await expect(unauthPage).toHaveURL(groupDetailUrlPattern(groupId));
+            await expect(unauthPage).toHaveURL(JoinGroupPage.groupDetailUrlPattern(groupId));
 
             // Verify user is now in the group
             const newUserGroupDetailPage = new GroupDetailPage(unauthPage);
@@ -606,7 +609,7 @@ simpleTest.describe('Share Link Access Management', () => {
             await joinPage.clickJoinGroupAndWaitForJoin();
 
             // Should be redirected to the group detail page
-            await expect(unauthPage).toHaveURL(groupDetailUrlPattern(groupId));
+            await expect(unauthPage).toHaveURL(JoinGroupPage.groupDetailUrlPattern(groupId));
 
             // Verify user is now in the group
             const secondUserGroupDetailPage = new GroupDetailPage(unauthPage);
@@ -627,7 +630,18 @@ simpleTest.describe('Share Link Access Management', () => {
             const baseUrl = dashboardPage.getBaseUrl();
             const invalidShareLink = `${baseUrl}/join?linkId=invalid-group-id-12345`;
 
-            await JoinGroupPage.attemptToJoinWithInvalidShareLink(page, invalidShareLink);
+            // Attempt to join with invalid share link - should show error
+            const joinGroupPage = new JoinGroupPage(page);
+            await joinGroupPage.navigateToShareLink(invalidShareLink);
+
+            // Should show error page OR join page without join button (both are valid error states)
+            const isErrorPage = await joinGroupPage.isErrorPage();
+            const joinButtonVisible = await joinGroupPage.getJoinGroupButton().isVisible().catch(() => false);
+
+            if (!isErrorPage && joinButtonVisible) {
+                // If no error message and join button is visible, that's unexpected
+                throw new Error(`Expected error page or disabled join but found active join page.`);
+            }
         });
 
         simpleTest('should handle malformed share links', { annotation: { type: 'skip-error-checking' } }, async ({ createLoggedInBrowsers }) => {
