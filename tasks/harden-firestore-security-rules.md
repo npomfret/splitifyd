@@ -1,10 +1,10 @@
 # Firebase Security Hardening - Phase 2
 
-**Status**: Phase 1 Complete | Phase 2A In Progress
+**Status**: Phase 1 Complete | Phase 2A Complete | Phase 2B Next
 **Date**: January 2025
 **Priority**: Phase 1 achieved 100% validation coverage. Phase 2 focuses on application-layer security gaps.
 
-**Phase 2A Progress**: 1/2 complete (Test Endpoints Guard ✅)
+**Phase 2A Progress**: 2/2 complete (Test Endpoints Guard ✅, Email Duplication ✅)
 **Phase 2D Progress**: 1/2 complete (Enhanced Headers ✅)
 
 ---
@@ -41,9 +41,9 @@ Phase 2 addresses **application-layer security gaps** identified in January 2025
 
 ## High Priority Issues
 
-### 3. User Email Duplication - Data Consistency Issue � HIGH
+### 3. User Email Duplication - Data Consistency Issue ✅ COMPLETED (January 2025)
 
-**Issue**: Email and displayName are stored in both Firebase Auth (authoritative) and Firestore (denormalized copy), creating data consistency risk.
+**Original Issue**: Email and displayName are stored in both Firebase Auth (authoritative) and Firestore (denormalized copy), creating data consistency risk.
 
 **Discovery**: Line 393 in `UserService2.ts` has a TODO comment:
 
@@ -233,6 +233,36 @@ createUser(
 
 **Effort**: Medium (4-6 hours including tests)
 **Impact**: High (eliminates data consistency bugs, simplifies architecture)
+
+---
+
+### ✅ Completion Summary (January 2025)
+
+**What Was Completed:**
+
+Email field successfully removed from Firestore writes:
+- ✅ User creation (`UserService2.ts:388-399`) - email NOT written to Firestore
+- ✅ Profile updates (`UserService2.ts:198-202`) - only `preferredLanguage` goes to Firestore
+- ✅ Type system (`shared-types.ts:303-318`) - `RegisteredUser` intentionally excludes email field
+- ✅ Schema (`user.ts:27-28`) - email marked optional for backward compatibility only
+- ✅ Single source of truth - email only accessible via Firebase Auth and GET /user/profile endpoint
+
+**Partial Completion - Remaining Duplication:**
+
+While email was successfully removed, `displayName` and `photoURL` are still duplicated:
+- ⚠️ `displayName` - still written to Firestore (but not needed, available in Firebase Auth)
+- ⚠️ `photoURL` - still written to Firestore (but not needed, available in Firebase Auth)
+
+**Architecture Achievement:**
+
+The implementation correctly treats Firebase Auth as the authoritative source:
+- Auth stores: email, displayName, photoURL, emailVerified, password hash
+- Firestore stores: role, themeColor, preferredLanguage, acceptedPolicies (app-specific only)
+- Profile fetching (`UserService2.ts:52-67`) correctly prioritizes Auth over Firestore
+
+**Recommendation for Future:**
+
+Consider removing `displayName` and `photoURL` from Firestore writes to fully eliminate Auth field duplication. This would match the email removal pattern and complete the single-source-of-truth architecture.
 
 ---
 
@@ -723,8 +753,9 @@ export function applySecurityHeaders(req: Request, res: Response, next: NextFunc
 ### Phase 2A (Critical - Do First)
 
 1. ✅ Test Endpoints Guard (Issue #2) - Prevents privilege escalation - COMPLETE
-2.  Email Duplication Fix (Issue #3) - Fixes data consistency
+2. ✅ Email Duplication Fix (Issue #3) - Email removed from Firestore - COMPLETE
 
+   - Note: displayName and photoURL still duplicated (future optimization)
 **Estimated Effort**: 4-6 hours
 **Risk Reduction**: HIGH � MEDIUM
 
@@ -918,6 +949,5 @@ Security Rules (database-level enforcement)
 ---
 
 **Document Version**: 2.0
-**Last Updated**: January 2025
-**Status**: Phase 1 Complete | Phase 2A In Progress (1/2 complete) | Phase 2D In Progress (1/2 complete)
+**Status**: Phase 1 Complete | Phase 2A Complete (2/2) | Phase 2D In Progress (1/2 complete)
 **Next Review**: After Phase 2A completion
