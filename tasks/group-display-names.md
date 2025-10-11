@@ -1,5 +1,55 @@
 # Task: Implement Group-Specific Display Names
 
+## Plan Completeness Review ✅
+
+**Status**: Plan is now complete and ready for implementation.
+
+**Critical additions made to original plan:**
+
+1. **Firebase Security Rules** (Section added after "Handle Join Conflicts")
+   - Defines rules to prevent unauthorized display name updates
+   - Ensures only members can update their own `groupDisplayName`
+   - Critical for security and data integrity
+
+2. **API Response Types** (Section added in "Data Model Changes")
+   - `JoinGroupResponse` interface with `displayNameConflict` flag
+   - `MessageResponse` for standard API responses
+   - Must be defined in `@splitifyd/shared` per project standards
+
+3. **Real-Time Update Handling** (Section added before "Display Name Settings Component")
+   - Explains how display name changes propagate automatically via existing Firebase listeners
+   - No additional code needed - existing `onSnapshot` handles it
+   - Includes testing considerations
+
+4. **Conflict Modal Cancel Behavior** (Section added in "Handle Join Conflict Flow")
+   - Specifies what happens when user cancels: they remain in group with `undefined` groupDisplayName
+   - UI falls back to global `displayName` (creates temporary duplicate)
+   - User can fix later via settings - acceptable UX compromise
+
+5. **Integration Location Decision** (Section added before "Update UI to Use Group Display Names")
+   - Provides options for where to add `GroupDisplayNameSettings` component
+   - Recommends inline in group detail page for simplicity
+   - Can be moved to dedicated settings page later if needed
+
+6. **Validation & Schemas** (New major section before "Accessibility")
+   - Zod schemas for request validation in shared package
+   - Response validation schemas in API client
+   - Follows project pattern of runtime validation
+
+7. **Accessibility & Semantic Attributes** (New major section before "Testing Requirements")
+   - Error messages with `role="alert"` and `data-testid`
+   - Modal accessibility (ARIA labels, focus trap, keyboard navigation)
+   - Follows project's semantic styling guidelines
+
+8. **Multi-User Real-Time Testing** (Added to E2E tests section)
+   - Test for real-time display name propagation between users
+   - Verifies no page refresh needed to see changes
+   - Critical for confirming real-time feature works correctly
+
+**Updated sections:**
+- Implementation Order: Now includes all new tasks (security rules, schemas, accessibility)
+- Success Criteria: Reorganized into categories with specific acceptance criteria
+
 ## Overview
 
 Allow users to have custom display names within each group that default to their global display name but can be changed to avoid conflicts or personalize their identity per group.
@@ -49,6 +99,25 @@ export const GroupMemberDocumentSchema = z.object({
     joinedAt: Timestamp,
     role: z.enum(['admin', 'member']),
 });
+```
+
+#### API Response Types
+
+**Location**: `packages/shared/src/shared-types.ts`
+
+Add response types for API endpoints:
+
+```typescript
+// Join group response with conflict detection
+export interface JoinGroupResponse {
+    groupId: string;
+    displayNameConflict: boolean;
+}
+
+// Standard success response
+export interface MessageResponse {
+    message: string;
+}
 ```
 
 ### Server-Side Implementation
@@ -223,6 +292,61 @@ res.json({
 });
 ```
 
+#### 5. Firebase Security Rules
+
+**Location**: `firebase/firestore.rules`
+
+Update security rules to allow members to update their own display name:
+
+```javascript
+match /groups/{groupId} {
+    // Allow members to read groups they belong to
+    allow read: if isMemberOfGroup(groupId);
+
+    // Allow members to update their own groupDisplayName only
+    allow update: if isMemberOfGroup(groupId) &&
+                     onlyUpdatingOwnDisplayName(groupId);
+
+    // Helper functions
+    function isMemberOfGroup(groupId) {
+        return exists(/databases/$(database)/documents/groups/$(groupId)) &&
+               request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members.map(m => m.userId);
+    }
+
+    function onlyUpdatingOwnDisplayName(groupId) {
+        let before = resource.data.members;
+        let after = request.resource.data.members;
+
+        // Members array must have same length (no adding/removing)
+        return before.size() == after.size() &&
+               // Only the requesting user's member object can change
+               before.diff(after).affectedKeys().hasOnly([getUserMemberIndex(groupId)]) &&
+               // Only groupDisplayName field can change in that member object
+               onlyDisplayNameFieldChanged(groupId);
+    }
+
+    function getUserMemberIndex(groupId) {
+        let members = get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+        return members.map((m, i) => m.userId == request.auth.uid ? i : -1).max();
+    }
+
+    function onlyDisplayNameFieldChanged(groupId) {
+        let oldMember = resource.data.members[getUserMemberIndex(groupId)];
+        let newMember = request.resource.data.members[getUserMemberIndex(groupId)];
+
+        return oldMember.userId == newMember.userId &&
+               oldMember.email == newMember.email &&
+               oldMember.displayName == newMember.displayName &&
+               oldMember.joinedAt == newMember.joinedAt &&
+               oldMember.role == newMember.role &&
+               // Only groupDisplayName can differ
+               oldMember.keys().diff(newMember.keys()).hasOnly(['groupDisplayName']);
+    }
+}
+```
+
+**Note**: The above rules are complex due to Firestore's denormalized structure. In practice, the API endpoint enforces uniqueness via transactions, and these rules primarily prevent direct Firestore writes bypassing the API.
+
 ### Client-Side Implementation
 
 #### 1. Add API Client Method
@@ -371,9 +495,44 @@ const handleDisplayNameSubmit = async (newName: string) => {
     setShowConflictModal(false);
     route(`/groups/${joinedGroupId}`);
 };
+
+const handleConflictModalCancel = () => {
+    // User cancels - they remain in group with undefined groupDisplayName
+    // They can set it later via settings, or it will show their global displayName as fallback
+    setShowConflictModal(false);
+    route(`/groups/${joinedGroupId}`);
+};
 ```
 
-#### 4. Display Name Settings Component
+**Important**: When a user cancels the conflict modal, they remain in the group with `groupDisplayName: undefined`. The UI helper `getGroupDisplayName()` will fall back to their global `displayName`, which creates a temporary duplicate name situation. The user can fix this later via group settings. This is acceptable because:
+- Server-side uniqueness validation prevents actual data conflicts
+- The fallback ensures the UI always displays *something*
+- Users can resolve the conflict at their convenience
+
+#### 4. Real-Time Update Handling
+
+**Location**: `webapp-v2/src/stores/groupsStore.ts` (or equivalent)
+
+Display name changes automatically propagate to all users viewing the group via Firebase real-time listeners:
+
+```typescript
+// Existing onSnapshot listener already handles this
+onSnapshot(groupRef, (snapshot) => {
+    const groupData = snapshot.data();
+    // members array contains updated groupDisplayName
+    // UI automatically re-renders with new display names
+});
+```
+
+**No additional code needed** - the existing group document listener handles display name updates automatically. When any member updates their `groupDisplayName`, all users viewing that group will see the change in real-time because:
+
+1. The `updateGroupMemberDisplayName` transaction updates the group document's `members` array
+2. The group document's `onSnapshot` listener fires for all subscribers
+3. UI components using `getGroupDisplayName()` automatically show the updated name
+
+**Testing consideration**: E2E tests should verify multi-user real-time propagation (see testing section).
+
+#### 5. Display Name Settings Component
 
 **Location**: `webapp-v2/src/components/GroupDisplayNameSettings.tsx`
 
@@ -474,7 +633,25 @@ export function GroupDisplayNameSettings({
 }
 ```
 
-#### 5. Update UI to Use Group Display Names
+#### 6. Integration with Group Settings
+
+**Location**: To be determined during implementation
+
+The `GroupDisplayNameSettings` component needs to be integrated into a group settings interface. Options:
+
+1. **Create new Group Settings Page** (if none exists):
+   - Route: `/groups/:groupId/settings`
+   - Include display name settings along with other group member preferences
+   - Accessible from group detail page menu
+
+2. **Add to existing Group Detail Page** (simpler):
+   - Add a "My Display Name" section to the group detail page
+   - Shows current name and edit button
+   - Inline editing without separate page
+
+**Recommendation**: Add inline to group detail page initially for simplicity. Can move to dedicated settings page if more member-specific settings are added later.
+
+#### 7. Update UI to Use Group Display Names
 
 **Locations**: All components displaying member names
 
@@ -506,6 +683,110 @@ Example:
 import { getGroupDisplayName } from '../utils/displayName';
 <span>{getGroupDisplayName(member)}</span>
 ```
+
+## Validation & Schemas
+
+### Request Validation Schema
+
+**Location**: `packages/shared/src/shared-types.ts`
+
+Define Zod schema for request validation:
+
+```typescript
+import { z } from 'zod';
+
+export const UpdateDisplayNameRequestSchema = z.object({
+    displayName: z
+        .string()
+        .min(1, 'Display name is required')
+        .max(50, 'Display name must be 50 characters or less')
+        .trim(),
+});
+
+export type UpdateDisplayNameRequest = z.infer<typeof UpdateDisplayNameRequestSchema>;
+```
+
+**Usage in handler**:
+
+```typescript
+const validation = UpdateDisplayNameRequestSchema.safeParse({ displayName });
+if (!validation.success) {
+    throw new ApiError(400, 'INVALID_REQUEST', validation.error.errors[0].message);
+}
+```
+
+### API Client Schema Validation
+
+**Location**: `webapp-v2/src/api/apiSchemas.ts`
+
+Add Zod schema for response validation:
+
+```typescript
+export const JoinGroupResponseSchema = z.object({
+    groupId: z.string(),
+    displayNameConflict: z.boolean(),
+});
+
+export const MessageResponseSchema = z.object({
+    message: z.string(),
+});
+```
+
+## Accessibility & Semantic Attributes
+
+Following the project's semantic styling guidelines (see `docs/guides/webapp-and-style-guide.md`):
+
+### Error Messages
+
+All error displays must include proper semantic attributes:
+
+```tsx
+// Validation errors in forms
+{error && (
+    <p
+        className="text-sm text-red-600 mt-2"
+        role="alert"
+        data-testid="display-name-error"
+    >
+        {error}
+    </p>
+)}
+
+// Input error states
+<input
+    aria-invalid={!!error}
+    aria-describedby={error ? `${id}-error` : undefined}
+    // ... other props
+/>
+```
+
+### Modal Accessibility
+
+```tsx
+<Modal
+    isOpen={isOpen}
+    onClose={onCancel}
+    title="Choose Display Name"
+    role="dialog"
+    aria-labelledby="conflict-modal-title"
+    aria-describedby="conflict-modal-description"
+>
+    <h2 id="conflict-modal-title" className="sr-only">
+        Choose Display Name
+    </h2>
+    <p id="conflict-modal-description" className="text-sm text-gray-600">
+        The name "{conflictingName}" is already taken...
+    </p>
+    {/* Form content */}
+</Modal>
+```
+
+### Keyboard Navigation
+
+- Modal should trap focus
+- ESC key closes modal (calls onCancel)
+- Enter key in input submits form
+- Tab navigation cycles through modal elements
 
 ## Testing Requirements
 
@@ -650,6 +931,31 @@ multiUserTest(
         // Other gets conflict error
     }
 );
+
+multiUserTest(
+    'should propagate display name changes in real-time',
+    async ({ authenticatedPage, secondUser }) => {
+        const { page: alicePage, user: alice } = authenticatedPage;
+        const { page: bobPage, user: bob } = secondUser;
+
+        // Alice creates group
+        const groupId = await alicePage.dashboardPage.createGroupAndNavigate('Test Group');
+
+        // Bob joins group
+        const inviteCode = await alicePage.groupDetailPage.getInviteCode();
+        await bobPage.goto(`/join?code=${inviteCode}`);
+        await bobPage.joinGroupPage.joinGroup(inviteCode);
+
+        // Alice changes her display name
+        await alicePage.groupDetailPage.updateDisplayName('Alice Updated');
+
+        // Bob should see Alice's new name in real-time (no page refresh)
+        await expect(bobPage.getByText('Alice Updated')).toBeVisible({ timeout: 3000 });
+
+        // Verify old name is no longer visible
+        await expect(bobPage.getByText(alice.displayName)).not.toBeVisible();
+    }
+);
 ```
 
 ## Validation Rules
@@ -671,36 +977,55 @@ multiUserTest(
 ## Implementation Order
 
 1. **Backend Foundation** (Day 1)
-   - [ ] Update shared types (`GroupMemberDTO`)
-   - [ ] Update Firestore schema
+   - [ ] Update shared types (`GroupMemberDTO`, `JoinGroupResponse`, `UpdateDisplayNameRequest`)
+   - [ ] Add validation schemas to shared package (`UpdateDisplayNameRequestSchema`)
+   - [ ] Update Firestore schema (`GroupMemberDocumentSchema`)
    - [ ] Implement `updateGroupMemberDisplayName` in `FirestoreWriter`
-   - [ ] Add API endpoint and route
-   - [ ] Write unit tests
+   - [ ] Add API endpoint handler in `groups/handlers.ts`
+   - [ ] Add API route in `index.ts`
+   - [ ] Update Firebase Security Rules
+   - [ ] Write unit tests for FirestoreWriter
+   - [ ] Write unit tests for API handler
 
-2. **Join Flow Conflict Detection** (Day 1)
+2. **Join Flow Conflict Detection** (Day 1-2)
    - [ ] Update `joinGroup` handler to detect conflicts
-   - [ ] Update join response type
-   - [ ] Write integration tests
+   - [ ] Update join response to include `displayNameConflict` flag
+   - [ ] Write integration tests for join flow
+   - [ ] Test conflict detection logic
 
 3. **Client API Integration** (Day 2)
-   - [ ] Add `updateGroupMemberDisplayName` to `apiClient`
-   - [ ] Create `DisplayNameConflictModal` component
+   - [ ] Add response schemas to `apiSchemas.ts` (`JoinGroupResponseSchema`, `MessageResponseSchema`)
+   - [ ] Add `updateGroupMemberDisplayName` method to `apiClient`
+   - [ ] Create `DisplayNameConflictModal` component with accessibility attributes
    - [ ] Update `JoinGroupPage` with conflict handling
+   - [ ] Implement cancel behavior (allow navigation with undefined groupDisplayName)
+   - [ ] Write Playwright unit tests for modal
 
-4. **Settings UI** (Day 2)
-   - [ ] Create `GroupDisplayNameSettings` component
-   - [ ] Add to group settings page
-   - [ ] Wire up update flow
+4. **Settings UI** (Day 2-3)
+   - [ ] Create `GroupDisplayNameSettings` component with accessibility
+   - [ ] Decide on integration location (inline vs. separate settings page)
+   - [ ] Add to group detail page or create settings page
+   - [ ] Wire up update flow with proper error handling
+   - [ ] Add loading states
 
 5. **UI Updates** (Day 3)
-   - [ ] Create `getGroupDisplayName` helper
-   - [ ] Update all components to use group display names
-   - [ ] Test visual consistency
+   - [ ] Create `getGroupDisplayName` helper in `utils/displayName.ts`
+   - [ ] Update `GroupDetailPage.tsx` - member list
+   - [ ] Update `ExpenseForm.tsx` - payer/split selection
+   - [ ] Update `ExpenseCard.tsx` - expense display
+   - [ ] Update `SettlementCard.tsx` - settlement display
+   - [ ] Update `BalanceSummary.tsx` - balance display
+   - [ ] Update `CommentsList.tsx` - comment authors
+   - [ ] Test visual consistency across all pages
 
-6. **Testing & Polish** (Day 3)
-   - [ ] Write E2E tests
-   - [ ] Test multi-user scenarios
-   - [ ] Test race conditions
+6. **Testing & Polish** (Day 3-4)
+   - [ ] Write E2E tests for join conflict flow
+   - [ ] Write E2E tests for settings update flow
+   - [ ] Write E2E test for real-time propagation (multi-user)
+   - [ ] Write E2E test for race condition prevention
+   - [ ] Test keyboard navigation in modals
+   - [ ] Test error states and validation
+   - [ ] Verify accessibility attributes with screen reader
    - [ ] Final QA pass
 
 ## Migration Notes
@@ -728,11 +1053,34 @@ multiUserTest(
 
 ## Success Criteria
 
+### Core Functionality
 - [ ] Users can set group-specific display names
-- [ ] Display names are unique within each group (enforced server-side)
+- [ ] Display names are unique within each group (enforced server-side with transactions)
 - [ ] Conflicts detected and handled gracefully during join flow
-- [ ] All UI contexts show group display names correctly
+- [ ] Cancel behavior allows users to defer naming (fallback to global displayName)
+- [ ] All UI contexts show group display names correctly via `getGroupDisplayName()` helper
+
+### Security & Validation
+- [ ] Firebase Security Rules prevent unauthorized display name updates
+- [ ] Request validation using Zod schemas from shared package
+- [ ] Response validation in API client
 - [ ] Race conditions prevented via transactions
-- [ ] Comprehensive test coverage (unit, integration, E2E)
+
+### Real-Time & UX
+- [ ] Display name changes propagate in real-time to all group members
+- [ ] Loading states shown during updates
+- [ ] Error messages use proper semantic attributes (`role="alert"`)
+- [ ] Modals meet accessibility standards (ARIA labels, keyboard navigation)
+
+### Testing
+- [ ] Unit tests for FirestoreWriter transaction logic
+- [ ] Unit tests for API endpoint validation
+- [ ] Integration tests for conflict detection and race conditions
+- [ ] E2E tests for join flow, settings flow, and multi-user real-time propagation
+- [ ] Accessibility testing with keyboard navigation
+
+### Technical Quality
 - [ ] Zero data migration required
-- [ ] Performance impact negligible
+- [ ] Performance impact negligible (transactions acceptable for infrequent operation)
+- [ ] No breaking changes to existing functionality
+- [ ] Code follows project patterns (DTOs, shared types, semantic styling)
