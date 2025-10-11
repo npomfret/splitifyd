@@ -505,4 +505,22 @@ export class ExpenseFormPage extends BaseExpenseFormPage {
         const today = new Date().toISOString().split('T')[0];
         await expect(dateInput).toHaveValue(today);
     }
+
+    /**
+     * E2E-specific: Verify that a specific member is NOT in the participant dropdown
+     * Used after a member leaves to ensure they cannot be selected for expenses
+     */
+    async verifyMemberNotInParticipantDropdown(memberName: string): Promise<void> {
+        // Wait for form to be ready
+        const splitBetweenSection = this.getSplitBetweenHeading();
+        await expect(splitBetweenSection).toBeVisible();
+
+        // Verify member checkbox does not exist in "Split between" section
+        const memberCheckbox = this.page.getByRole('checkbox', { name: memberName });
+        await expect(memberCheckbox).not.toBeVisible();
+
+        // Also verify member is not in "Who paid?" section
+        const memberRadio = this.page.getByRole('radio', { name: memberName });
+        await expect(memberRadio).not.toBeVisible();
+    }
 }
