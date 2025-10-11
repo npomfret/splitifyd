@@ -590,4 +590,181 @@ describe('IncrementalBalanceService - Scenarios', () => {
             expect(finalEurDebt?.amount).toBe(25);
         });
     });
+
+    describe('Currency Change Scenarios', () => {
+        /**
+         * SCENARIO: Expense Currency Change
+         *
+         * When an expense's currency is changed, the system must:
+         * 1. Reverse the original transaction (remove old currency debt)
+         * 2. Apply the new transaction (create new currency debt)
+         * 3. Keep original currency balance at zero if no other transactions exist
+         * 4. Create correct balance in the new currency
+         */
+        it('should update balances correctly when expense currency is changed', async () => {
+            // === SETUP ===
+            // Create initial expense in USD
+            const initialBalance = new GroupBalanceDTOBuilder(groupId).withVersion(0).build();
+            await stubWriter.setGroupBalance(groupId, initialBalance);
+
+            // User1 pays $200 USD expense → User2 owes User1 $100 USD
+            const originalExpense = new ExpenseDTOBuilder()
+                .withId('expense-1')
+                .withGroupId(groupId)
+                .withAmount(200)
+                .withCurrency('USD')
+                .withPaidBy(user1)
+                .withParticipants([user1, user2])
+                .withSplits([
+                    { uid: user1, amount: 100 },
+                    { uid: user2, amount: 100 },
+                ])
+                .build();
+
+            service.applyExpenseCreated(mockTransaction, groupId, initialBalance, originalExpense, [user1, user2]);
+            let currentBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+
+            // Verify initial USD debt
+            expect(currentBalance.balancesByCurrency.USD).toBeDefined();
+            expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe(-100);
+            expect(currentBalance.balancesByCurrency.USD[user1].netBalance).toBe(100);
+            expect(currentBalance.balancesByCurrency.EUR).toBeUndefined();
+            expect(currentBalance.simplifiedDebts).toHaveLength(1);
+            expect(currentBalance.simplifiedDebts[0].currency).toBe('USD');
+            expect(currentBalance.simplifiedDebts[0].amount).toBe(100);
+
+            // === ACTION ===
+            // Change expense currency from USD to EUR (keep same amount)
+            const updatedExpense = new ExpenseDTOBuilder()
+                .withId('expense-1')
+                .withGroupId(groupId)
+                .withAmount(200)
+                .withCurrency('EUR') // Changed from USD to EUR
+                .withPaidBy(user1)
+                .withParticipants([user1, user2])
+                .withSplits([
+                    { uid: user1, amount: 100 },
+                    { uid: user2, amount: 100 },
+                ])
+                .build();
+
+            service.applyExpenseUpdated(mockTransaction, groupId, currentBalance, originalExpense, updatedExpense, [user1, user2]);
+            const finalBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+
+            // === ASSERT ===
+            // USD debt should be removed (or zero if key still exists)
+            const usdDebtAfter = finalBalance.simplifiedDebts.find((d) => d.currency === 'USD');
+            expect(usdDebtAfter).toBeUndefined();
+
+            if (finalBalance.balancesByCurrency.USD) {
+                expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe(0);
+                expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe(0);
+            }
+
+            // EUR debt should now exist with correct amounts
+            expect(finalBalance.balancesByCurrency.EUR).toBeDefined();
+            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe(100);
+            expect(finalBalance.balancesByCurrency.EUR[user1].owedBy[user2]).toBe(100);
+            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe(-100);
+            expect(finalBalance.balancesByCurrency.EUR[user2].owes[user1]).toBe(100);
+
+            const eurDebtAfter = finalBalance.simplifiedDebts.find((d) => d.currency === 'EUR');
+            expect(eurDebtAfter).toBeDefined();
+            expect(eurDebtAfter?.amount).toBe(100);
+            expect(eurDebtAfter?.from.uid).toBe(user2);
+            expect(eurDebtAfter?.to.uid).toBe(user1);
+        });
+
+        /**
+         * SCENARIO: Settlement Currency Change
+         *
+         * When a settlement's currency is changed, the system must:
+         * 1. Reverse the original settlement (restore old currency debt)
+         * 2. Apply the new settlement (create new currency debt/adjustment)
+         * 3. Handle complex scenarios where changing currency affects different debts
+         */
+        it('should update balances correctly when settlement currency is changed', async () => {
+            // === SETUP ===
+            // Create initial expense in USD: User1 pays $300, User2 owes $150
+            const initialBalance = new GroupBalanceDTOBuilder(groupId).withVersion(0).build();
+            await stubWriter.setGroupBalance(groupId, initialBalance);
+
+            const expense = new ExpenseDTOBuilder()
+                .withId('expense-1')
+                .withGroupId(groupId)
+                .withAmount(300)
+                .withCurrency('USD')
+                .withPaidBy(user1)
+                .withParticipants([user1, user2])
+                .withSplits([
+                    { uid: user1, amount: 150 },
+                    { uid: user2, amount: 150 },
+                ])
+                .build();
+
+            service.applyExpenseCreated(mockTransaction, groupId, initialBalance, expense, [user1, user2]);
+            let currentBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+
+            // Verify initial debt: User2 owes User1 $150 USD
+            expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe(-150);
+            expect(currentBalance.simplifiedDebts[0].amount).toBe(150);
+            expect(currentBalance.simplifiedDebts[0].currency).toBe('USD');
+
+            // Create settlement in USD: User2 pays User1 $50
+            const originalSettlement = new SettlementDTOBuilder()
+                .withId('settlement-1')
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(50)
+                .withCurrency('USD')
+                .withNote('Original USD settlement')
+                .build();
+
+            service.applySettlementCreated(mockTransaction, groupId, currentBalance, originalSettlement, [user1, user2]);
+            currentBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+
+            // Verify after settlement: User2 owes User1 $100 USD
+            expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe(-100);
+            expect(currentBalance.simplifiedDebts[0].amount).toBe(100);
+            expect(currentBalance.balancesByCurrency.EUR).toBeUndefined();
+
+            // === ACTION ===
+            // Change settlement currency from USD to EUR (keep same amount)
+            const updatedSettlement = new SettlementDTOBuilder()
+                .withId('settlement-1')
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(50)
+                .withCurrency('EUR') // Changed from USD to EUR
+                .withNote('Changed to EUR')
+                .build();
+
+            service.applySettlementUpdated(mockTransaction, groupId, currentBalance, originalSettlement, updatedSettlement, [user1, user2]);
+            const finalBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+
+            // === ASSERT ===
+            // USD debt should be restored to $150 (original $150 - $0 since settlement was removed)
+            const updatedUsdDebt = finalBalance.simplifiedDebts.find((d) => d.currency === 'USD');
+            expect(updatedUsdDebt).toBeDefined();
+            expect(updatedUsdDebt?.amount).toBe(150);
+            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe(-150);
+            expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe(150);
+
+            // EUR debt should now exist (User1 owes User2 €50 from the settlement)
+            const eurDebtAfter = finalBalance.simplifiedDebts.find((d) => d.currency === 'EUR');
+            expect(eurDebtAfter).toBeDefined();
+            expect(eurDebtAfter?.amount).toBe(50);
+            expect(eurDebtAfter?.from.uid).toBe(user1); // User1 owes User2
+            expect(eurDebtAfter?.to.uid).toBe(user2);
+
+            expect(finalBalance.balancesByCurrency.EUR).toBeDefined();
+            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe(-50);
+            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe(50);
+
+            // Should have 2 separate currency debts
+            expect(finalBalance.simplifiedDebts).toHaveLength(2);
+        });
+    });
 });

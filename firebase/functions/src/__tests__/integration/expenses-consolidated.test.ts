@@ -253,62 +253,13 @@ describe('Expenses Management - Consolidated Tests', () => {
             expect(updatedExpense.description).toBe('Updated by non-creator');
         });
 
-        test('should update balances correctly when expense currency is changed', async () => {
-            const currencyTestGroup = await apiDriver.createGroupWithMembers('Currency Change Test', [users[0], users[1]], users[0].token);
-
-            const expenseData = new CreateExpenseRequestBuilder()
-                .withGroupId(currencyTestGroup.id)
-                .withDescription('Original USD Expense')
-                .withAmount(200)
-                .withCurrency('USD')
-                .withPaidBy(users[0].uid)
-                .withParticipants([users[0].uid, users[1].uid])
-                .withSplitType('equal')
-                .build();
-
-            const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
-
-            const initialBalances = await apiDriver.waitForBalanceUpdate(currencyTestGroup.id, users[0].token, 3000);
-            expect(initialBalances.simplifiedDebts).toHaveLength(1);
-            const initialDebt = initialBalances.simplifiedDebts.find((d) => d.currency === 'USD');
-            expect(initialDebt).toBeDefined();
-            expect(initialDebt?.amount).toBe(100);
-            expect(initialDebt?.from.uid).toBe(users[1].uid);
-            expect(initialDebt?.to.uid).toBe(users[0].uid);
-            expect(initialBalances.balancesByCurrency.USD).toBeDefined();
-            expect(initialBalances.balancesByCurrency.EUR).toBeUndefined();
-
-            const currencyUpdateParticipants = [users[0].uid, users[1].uid];
-            const currencyUpdate = new ExpenseUpdateBuilder()
-                .withAmount(200)
-                .withCurrency('EUR')
-                .withDescription('Changed to EUR')
-                .withParticipants(currencyUpdateParticipants)
-                .withSplits(calculateEqualSplits(200, 'EUR', currencyUpdateParticipants))
-                .build();
-
-            await apiDriver.updateExpense(createdExpense.id, currencyUpdate, users[0].token);
-
-            const updatedBalances = await apiDriver.waitForBalanceUpdate(currencyTestGroup.id, users[0].token, 3000);
-
-            const usdDebtAfter = updatedBalances.simplifiedDebts.find((d) => d.currency === 'USD');
-            expect(usdDebtAfter).toBeUndefined();
-
-            const eurDebtAfter = updatedBalances.simplifiedDebts.find((d) => d.currency === 'EUR');
-            expect(eurDebtAfter).toBeDefined();
-            expect(eurDebtAfter?.amount).toBe(100);
-            expect(eurDebtAfter?.from.uid).toBe(users[1].uid);
-            expect(eurDebtAfter?.to.uid).toBe(users[0].uid);
-
-            expect(updatedBalances.balancesByCurrency.EUR).toBeDefined();
-            expect(updatedBalances.balancesByCurrency.EUR[users[0].uid].netBalance).toBe(100);
-            expect(updatedBalances.balancesByCurrency.EUR[users[1].uid].netBalance).toBe(-100);
-
-            if (updatedBalances.balancesByCurrency.USD) {
-                expect(updatedBalances.balancesByCurrency.USD[users[0].uid].netBalance).toBe(0);
-                expect(updatedBalances.balancesByCurrency.USD[users[1].uid].netBalance).toBe(0);
-            }
-        });
+        // REMOVED: "should update balances correctly when expense currency is changed"
+        // This test has been migrated to unit tests in:
+        // firebase/functions/src/__tests__/unit/services/IncrementalBalanceService.scenarios.test.ts
+        //
+        // The integration test provided no additional value beyond API testing since the
+        // calculation logic itself is now comprehensively tested in the unit test with
+        // the same mathematical precision. The unit test is 1000-2000x faster.
     });
 
     describe('Expense Deletion and Soft Delete Behavior', () => {
