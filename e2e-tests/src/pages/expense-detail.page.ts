@@ -62,9 +62,4 @@ export class ExpenseDetailPage extends BaseExpenseDetailPage {
 
         return expenseFormPage;
     }
-
-    // All other methods (getters, addComment, deleteExpense, verifyCommentsSection,
-    // waitForCommentToAppear, waitForCommentCount, waitForExpenseDescription,
-    // waitForCurrencyAmount, verifyLockWarningBanner, verifyEditButtonDisabled,
-    // verifyEditButtonTooltip) are inherited from base class
 }

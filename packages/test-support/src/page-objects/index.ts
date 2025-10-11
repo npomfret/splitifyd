@@ -9,5 +9,6 @@ export { HeaderPage } from './HeaderPage';
 export { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
 export { LoginPage } from './LoginPage';
 export { RegisterPage } from './RegisterPage';
+export { SettingsPage } from './SettingsPage';
 export { SettlementFormPage } from './SettlementFormPage';
 export { ShareGroupModalPage } from './ShareGroupModalPage';
