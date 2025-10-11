@@ -145,13 +145,9 @@ describe('GroupShareService', () => {
             stubReader.setGroupMembers(groupId, existingMembers);
 
             // Set up the new user's profile so joinGroupByLink can read their displayName
-            const newUserProfile = {
+            stubReader.setUser(newUserId, {
                 displayName: 'New User',
-                photoURL: null,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            };
-            stubReader.setDocument('users', newUserId, newUserProfile);
+            });
 
             // Should succeed - we're at 49 members, adding 1 more = 50 (at cap, but still allowed)
             const result = await groupShareService.joinGroupByLink(newUserId, linkId);
@@ -245,13 +241,9 @@ describe('GroupShareService', () => {
             stubReader.setGroupMembers(groupId, [existingMember]);
 
             // Set up new user with unique display name
-            const newUserProfile = {
+            stubReader.setUser(newUserId, {
                 displayName: 'New User',
-                photoURL: null,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            };
-            stubReader.setDocument('users', newUserId, newUserProfile);
+            });
 
             const result = await groupShareService.joinGroupByLink(newUserId, linkId);
 
@@ -270,13 +262,9 @@ describe('GroupShareService', () => {
             stubReader.setGroupMembers(groupId, [existingMember]);
 
             // Set up new user with same display name
-            const newUserProfile = {
+            stubReader.setUser(newUserId, {
                 displayName: 'Test User', // Same as existing member
-                photoURL: null,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            };
-            stubReader.setDocument('users', newUserId, newUserProfile);
+            });
 
             const result = await groupShareService.joinGroupByLink(newUserId, linkId);
 
@@ -295,13 +283,9 @@ describe('GroupShareService', () => {
             stubReader.setGroupMembers(groupId, [existingMember]);
 
             // Set up new user with "Test User" (different case)
-            const newUserProfile = {
+            stubReader.setUser(newUserId, {
                 displayName: 'Test User',
-                photoURL: null,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            };
-            stubReader.setDocument('users', newUserId, newUserProfile);
+            });
 
             const result = await groupShareService.joinGroupByLink(newUserId, linkId);
 

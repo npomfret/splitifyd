@@ -1,6 +1,6 @@
 import { type UserThemeColor } from '@splitifyd/shared';
 import { USER_COLORS } from '@splitifyd/shared';
-import { PasswordChangeBuilder, UserDocumentBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
+import { PasswordChangeBuilder, RegisteredUserBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
@@ -44,7 +44,6 @@ describe('UserService - Consolidated Unit Tests', () => {
     describe('registerUser', () => {
         it('should register a new user with Firebase Auth and Firestore', async () => {
             const registrationData = new UserRegistrationBuilder()
-                .withEmail('newuser@example.com')
                 .withPassword('SecurePass123!')
                 .withDisplayName('New User')
                 .build();
@@ -75,7 +74,7 @@ describe('UserService - Consolidated Unit Tests', () => {
             });
 
             const duplicateData = new UserRegistrationBuilder()
-                .withEmail(email)
+                .withEmail(email) // Use the same email as the existing user
                 .withPassword('DifferentPass123!')
                 .withDisplayName('Different Name')
                 .build();
@@ -90,7 +89,6 @@ describe('UserService - Consolidated Unit Tests', () => {
 
         it('should validate policy acceptance flags', async () => {
             const userData = new UserRegistrationBuilder()
-                .withEmail('testuser@example.com')
                 .withPassword('SecurePass123!')
                 .withDisplayName('Test User')
                 .withTermsAccepted(false)
@@ -101,7 +99,6 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             // Test cookie policy validation
             const userData2 = new UserRegistrationBuilder()
-                .withEmail('testuser@example.com')
                 .withPassword('SecurePass123!')
                 .withDisplayName('Test User')
                 .withTermsAccepted(true)
@@ -113,7 +110,6 @@ describe('UserService - Consolidated Unit Tests', () => {
 
         it('should assign theme color and role during registration', async () => {
             const registrationData = new UserRegistrationBuilder()
-                .withEmail('themed@example.com')
                 .withPassword('SecurePass123!')
                 .withDisplayName('Themed User')
                 .build();
@@ -148,13 +144,12 @@ describe('UserService - Consolidated Unit Tests', () => {
             });
 
             // Set up Firestore user document
-            const userDoc = new UserDocumentBuilder(uid)
-                .withEmail(email)
+            const userDoc = new RegisteredUserBuilder().withUid(uid)
                 .withDisplayName(displayName)
                 .withThemeColor(createTestThemeColor())
                 .withPreferredLanguage('en')
                 .build();
-            stubReader.setDocument('users', uid, userDoc);
+            stubReader.setUser(uid, userDoc);
 
             const profile = await userService.getUser(uid);
 
@@ -214,12 +209,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 stubAuth.setUser(user.uid, user);
 
                 // Set up corresponding Firestore documents using builder
-                const userDoc = new UserDocumentBuilder(user.uid)
-                    .withEmail(user.email)
+                const userDoc = new RegisteredUserBuilder().withUid(user.uid)
                     .withDisplayName(user.displayName)
                     .withThemeColor(createTestThemeColor())
                     .build();
-                stubReader.setDocument('users', user.uid, userDoc);
+                stubReader.setUser(user.uid, userDoc);
             });
 
             const uids = users.map((u) => u.uid);
@@ -247,12 +241,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: 'Existing User',
             });
 
-            const userDoc = new UserDocumentBuilder('existing-user')
-                .withEmail('existing@example.com')
+            const userDoc = new RegisteredUserBuilder().withUid('existing-user')
                 .withDisplayName('Existing User')
                 .withThemeColor(createTestThemeColor())
                 .build();
-            stubReader.setDocument('users', 'existing-user', userDoc);
+            stubReader.setUser('existing-user', userDoc);
 
             const profiles = await userService.getUsers(['existing-user', 'non-existent-user']);
 
@@ -275,12 +268,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: originalDisplayName,
             });
 
-            const userDoc = new UserDocumentBuilder(uid)
-                .withEmail('test@example.com')
+            const userDoc = new RegisteredUserBuilder().withUid(uid)
                 .withDisplayName(originalDisplayName)
                 .withThemeColor(createTestThemeColor())
                 .build();
-            stubReader.setDocument('users', uid, userDoc);
+            stubReader.setUser(uid, userDoc);
 
             const updatedProfile = await userService.updateProfile(uid, {
                 displayName: newDisplayName,
@@ -304,12 +296,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: 'Test User',
             });
 
-            const userDoc = new UserDocumentBuilder(uid)
-                .withEmail('test@example.com')
+            const userDoc = new RegisteredUserBuilder().withUid(uid)
                 .withDisplayName('Test User')
                 .withThemeColor(createTestThemeColor())
                 .build();
-            stubReader.setDocument('users', uid, userDoc);
+            stubReader.setUser(uid, userDoc);
 
             const updatedProfile = await userService.updateProfile(uid, {
                 preferredLanguage: newLanguage,
@@ -329,12 +320,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 photoURL: 'https://example.com/old-photo.jpg',
             });
 
-            const userDoc = new UserDocumentBuilder(uid)
-                .withEmail('test@example.com')
+            const userDoc = new RegisteredUserBuilder().withUid(uid)
                 .withDisplayName('Test User')
                 .withThemeColor(createTestThemeColor())
                 .build();
-            stubReader.setDocument('users', uid, userDoc);
+            stubReader.setUser(uid, userDoc);
 
             await userService.updateProfile(uid, {
                 photoURL: null,
@@ -375,12 +365,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: 'Test User',
             });
 
-            const userDoc = new UserDocumentBuilder(uid)
-                .withEmail('test@example.com')
+            const userDoc = new RegisteredUserBuilder().withUid(uid)
                 .withDisplayName('Test User')
                 .withThemeColor(createTestThemeColor())
                 .build();
-            stubReader.setDocument('users', uid, userDoc);
+            stubReader.setUser(uid, userDoc);
 
             const result = await userService.changePassword(uid, {
                 currentPassword,
@@ -422,12 +411,11 @@ describe('UserService - Consolidated Unit Tests', () => {
                 photoURL: 'https://example.com/photo.jpg',
             });
 
-            const userDoc = new UserDocumentBuilder(uid)
-                .withEmail(email)
+            const userDoc = new RegisteredUserBuilder().withUid(uid)
                 .withDisplayName(displayName)
                 .withThemeColor(createTestThemeColor())
                 .build();
-            stubReader.setDocument('users', uid, userDoc);
+            stubReader.setUser(uid, userDoc);
 
             const profile = await userService.getUser(uid);
 

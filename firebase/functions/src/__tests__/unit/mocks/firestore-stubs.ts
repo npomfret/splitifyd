@@ -27,7 +27,9 @@ export class StubFirestoreReader implements IFirestoreReader {
     private methodErrors = new Map<string, Error>(); // methodName -> error to throw
     private notFoundDocuments = new Set<string>(); // Track which docs should return null
 
-    // Helper methods to set up test data
+    /**
+     * @deprecated Use collection-specific methods instead (e.g., setUser, setGroup, setExpense)
+     */
     setDocument(collection: string, id: string, data: any) {
         this.documents.set(`${collection}/${id}`, data);
     }
@@ -35,6 +37,51 @@ export class StubFirestoreReader implements IFirestoreReader {
     // Get the documents Map for sharing with writer
     getDocuments(): Map<string, any> {
         return this.documents;
+    }
+
+    // ===== Users Collection Methods =====
+
+    /**
+     * Set a user document in the mock Firestore
+     *
+     * @param userId - The user ID (will be set as both id and uid fields)
+     * @param userData - Partial user data matching RegisteredUser DTO structure (from @splitifyd/shared).
+     *                   Uses ISO string dates (createdAt, updatedAt) which are automatically converted to Timestamps.
+     *                   Common fields: displayName, email, photoURL, role, themeColor, preferredLanguage, etc.
+     *
+     * Note: This method accepts RegisteredUser (DTO) data with ISO strings and converts them to
+     * Firestore Timestamps internally, matching production Firestore storage behavior.
+     */
+    setUser(userId: string, userData: Partial<RegisteredUser> = {}): void {
+        const defaultUser: Partial<RegisteredUser> & { id: string } = {
+            id: userId,
+            uid: userId,
+            displayName: `Test User ${userId}`,
+            photoURL: null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            ...userData,
+        };
+
+        // Convert ISO strings to Timestamps (mirrors production Firestore storage)
+        const convertedUser = this.convertISOToTimestamps(defaultUser);
+        this.documents.set(`users/${userId}`, convertedUser);
+    }
+
+    /**
+     * Remove a user document from the mock Firestore
+     * @param userId - The user ID to remove
+     */
+    removeUser(userId: string): void {
+        this.documents.delete(`users/${userId}`);
+    }
+
+    /**
+     * Mark a user document as "not found" (getUser will return null)
+     * @param userId - The user ID
+     */
+    setUserNotFound(userId: string): void {
+        this.notFoundDocuments.add(`users/${userId}`);
     }
 
     // Helper methods for pagination testing (similar to MockFirestoreReader)
@@ -56,16 +103,19 @@ export class StubFirestoreReader implements IFirestoreReader {
         this.resetAllMocks();
     }
 
-    mockUserExists(userId: string, existsOrUserDoc: boolean | any = true) {
+    /**
+     * @deprecated Use setUser() or removeUser() instead for better type safety
+     */
+    mockUserExists(userId: string, existsOrUserDoc: boolean | Partial<RegisteredUser> = true) {
         if (typeof existsOrUserDoc === 'boolean') {
             if (existsOrUserDoc) {
-                this.setDocument('users', userId, createTestUser(userId));
+                this.setUser(userId, {});
             } else {
-                this.documents.delete(`users/${userId}`);
+                this.removeUser(userId);
             }
         } else {
-            // Second parameter is a user document
-            this.setDocument('users', userId, existsOrUserDoc);
+            // Second parameter is RegisteredUser DTO data
+            this.setUser(userId, existsOrUserDoc);
         }
     }
 
@@ -1401,14 +1451,16 @@ export class StubAuthService implements IAuthService {
 
 /**
  * Helper functions to create mock data for testing
+ * @deprecated Use StubFirestoreReader.setUser() instead for better type safety and consistency
  */
-export function createTestUser(id: string, overrides: any = {}): RegisteredUser {
+export function createTestUser(id: string, overrides: Partial<RegisteredUser> = {}): RegisteredUser {
     return {
+        uid: id,
         displayName: `Test User ${id}`,
         photoURL: null,
         emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         ...overrides,
     };
 }

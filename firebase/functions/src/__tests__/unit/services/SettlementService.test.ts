@@ -15,8 +15,8 @@ describe('SettlementService - Unit Tests', () => {
     let applicationBuilder: ApplicationBuilder;
 
     // Helper to set user data in stub
-    const setUserData = (userId: string, userData: any) => {
-        stubReader.setDocument('users', userId, userData);
+    const setUserData = (userId: string, userData: Record<string, any> = {}) => {
+        stubReader.setUser(userId, userData);
     };
 
     // Helper to set group data in stub
