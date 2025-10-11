@@ -303,6 +303,7 @@ export class UserService {
                     memberRole: memberDoc.memberRole,
                     invitedBy: memberDoc.invitedBy,
                     memberStatus: memberDoc.memberStatus,
+                    groupDisplayName: memberDoc.groupDisplayName,
                 };
             }
 
@@ -316,6 +317,7 @@ export class UserService {
                 memberRole: memberDoc.memberRole,
                 invitedBy: memberDoc.invitedBy,
                 memberStatus: memberDoc.memberStatus,
+                groupDisplayName: memberDoc.groupDisplayName,
             };
         });
 

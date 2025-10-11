@@ -19,6 +19,7 @@ export class GroupMemberDocumentBuilder {
             memberStatus: MemberStatuses.ACTIVE,
             joinedAt: Timestamp.now(),
             invitedBy: 'default-inviter',
+            groupDisplayName: 'Default User', // Custom display name for this group
             theme: {
                 light: '#1f5582',
                 dark: '#4a9eff',
@@ -63,6 +64,11 @@ export class GroupMemberDocumentBuilder {
 
     withInvitedBy(invitedBy: string): this {
         this.memberDoc.invitedBy = invitedBy;
+        return this;
+    }
+
+    withGroupDisplayName(groupDisplayName: string): this {
+        this.memberDoc.groupDisplayName = groupDisplayName;
         return this;
     }
 
@@ -118,6 +124,7 @@ export class GroupMemberDocumentBuilder {
         return {
             ...this.memberDoc,
             joinedAt: this.memberDoc.joinedAt.toDate().toISOString(),
+            groupDisplayName: this.memberDoc.groupDisplayName,
             theme: { ...this.memberDoc.theme },
         };
     }

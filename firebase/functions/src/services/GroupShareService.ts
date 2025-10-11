@@ -1,5 +1,5 @@
 import { COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
-import type { GroupMembershipDTO } from '@splitifyd/shared';
+import type { GroupMembershipDTO, JoinGroupResponse } from '@splitifyd/shared';
 import { randomBytes } from 'crypto';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
@@ -181,11 +181,11 @@ export class GroupShareService {
         };
     }
 
-    async joinGroupByLink(userId: string, linkId: string): Promise<{ groupId: string; groupName: string; message: string; success: boolean; }> {
+    async joinGroupByLink(userId: string, linkId: string): Promise<JoinGroupResponse> {
         return measure.measureDb('GroupShareService.joinGroupByLink', async () => this._joinGroupByLink(userId, linkId));
     }
 
-    private async _joinGroupByLink(userId: string, linkId: string): Promise<{ groupId: string; groupName: string; message: string; success: boolean; }> {
+    private async _joinGroupByLink(userId: string, linkId: string): Promise<JoinGroupResponse> {
         const timer = new PerformanceTimer();
 
         if (!linkId) {
@@ -222,6 +222,18 @@ export class GroupShareService {
 
         const memberIndex = existingMembersIds.length;
 
+        // Get user's display name to set as initial groupDisplayName
+        const userData = await this.firestoreReader.getUser(userId);
+        if (!userData || !userData.displayName) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User profile not found');
+        }
+
+        // Check for display name conflicts with existing members
+        const existingMembers = await this.firestoreReader.getAllGroupMembers(groupId);
+        const displayNameConflict = existingMembers.some(
+            (member) => member.groupDisplayName.toLowerCase() === userData.displayName.toLowerCase(),
+        );
+
         const themeColor = this.getThemeColorForMember(memberIndex);
         const memberDoc: GroupMembershipDTO = {
             uid: userId,
@@ -231,6 +243,7 @@ export class GroupShareService {
             joinedAt: joinedAt,
             memberStatus: MemberStatuses.ACTIVE,
             invitedBy: shareLink.createdBy,
+            groupDisplayName: userData.displayName, // Default to user's account display name
         };
 
         const now = new Date().toISOString();
@@ -274,14 +287,15 @@ export class GroupShareService {
             userId,
             linkId: linkId.substring(0, 4) + '...',
             invitedBy: result.invitedBy,
+            displayNameConflict,
             timings: timer.getTimings(),
         });
 
         return {
             groupId,
             groupName: result.groupName,
-            message: 'Successfully joined group',
             success: true,
+            displayNameConflict,
         };
     }
 }

@@ -296,6 +296,12 @@ export class GroupService {
 
         // Note: Validation happens in FirestoreWriter after ISO → Timestamp conversion
 
+        // Get user's display name to set as initial groupDisplayName
+        const userData = await this.firestoreReader.getUser(userId);
+        if (!userData || !userData.displayName) {
+            throw Errors.NOT_FOUND('User profile');
+        }
+
         // Pre-calculate member data outside transaction for speed (using ISO strings - DTOs)
         const themeColor = this.groupShareService.getThemeColorForMember(0);
         const memberDoc = {
@@ -305,6 +311,7 @@ export class GroupService {
             theme: themeColor, // ISO string assignedAt
             joinedAt: nowISO,
             memberStatus: MemberStatuses.ACTIVE,
+            groupDisplayName: userData.displayName, // Default to user's account display name
         };
 
         // Initialize empty group balance (no expenses/settlements yet)

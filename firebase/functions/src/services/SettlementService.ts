@@ -74,6 +74,7 @@ export class SettlementService {
                     memberStatus: 'active', // Last known status (can't use 'left' - not in enum)
                     joinedAt: '', // Historical data unavailable
                     invitedBy: undefined,
+                    groupDisplayName: validatedData.displayName, // Use global displayName for departed members
                 };
             }
 
@@ -87,6 +88,7 @@ export class SettlementService {
                 memberStatus: memberData.memberStatus,
                 joinedAt: memberData.joinedAt, // Already ISO string from DTO
                 invitedBy: memberData.invitedBy,
+                groupDisplayName: memberData.groupDisplayName,
             };
         } catch (error) {
             logger.error('User document validation failed', error, { userId });

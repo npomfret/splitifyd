@@ -855,19 +855,69 @@ export class StubFirestoreWriter implements IFirestoreWriter {
 
     async runTransaction(transactionFn: (transaction: any) => Promise<any>): Promise<any> {
         const mockTransaction = {
-            get: vi.fn().mockImplementation((docRef: any) => {
-                // Extract collection and document ID from docRef path
-                let path = docRef.path || docRef.id || '';
+            get: vi.fn().mockImplementation((refOrQuery: any) => {
+                // Check if this is a Query (has _query property or where method) vs a DocumentReference
+                const isQuery = refOrQuery._query || typeof refOrQuery.where === 'function' || refOrQuery.type === 'query';
+
+                if (isQuery) {
+                    // Handle collection query
+                    // Extract collection path and where clauses
+                    const collectionPath = refOrQuery._query?.path?.segments?.join('/') ||
+                                          refOrQuery.path ||
+                                          refOrQuery._path?.segments?.join('/') ||
+                                          'group-members'; // Fallback for our specific use case
+
+                    // For simplicity, extract filters from the query object
+                    // In real Firestore, this would be more complex
+                    let filters: any = {};
+                    if (refOrQuery._query?.filters) {
+                        filters = refOrQuery._query.filters;
+                    } else if (refOrQuery.where) {
+                        // Store filter info if it exists
+                        filters = refOrQuery._whereFilters || {};
+                    }
+
+                    // Query documents from storage
+                    const docs: any[] = [];
+                    for (const [path, data] of this.documents.entries()) {
+                        if (path.startsWith(`${collectionPath}/`)) {
+                            // Apply where filter if present (simplified - only handles groupId == value)
+                            let matches = true;
+                            if (filters.groupId !== undefined) {
+                                matches = data.groupId === filters.groupId;
+                            }
+
+                            if (matches) {
+                                const docId = path.substring(collectionPath.length + 1);
+                                docs.push({
+                                    id: docId,
+                                    exists: true,
+                                    data: () => data,
+                                    ref: { id: docId, path },
+                                });
+                            }
+                        }
+                    }
+
+                    return Promise.resolve({
+                        empty: docs.length === 0,
+                        size: docs.length,
+                        docs,
+                    });
+                }
+
+                // Handle document reference (original behavior)
+                let path = refOrQuery.path || refOrQuery.id || '';
 
                 // Try alternative path formats if not found
-                if (!this.documents.has(path) && docRef._path && docRef._path.segments) {
-                    path = docRef._path.segments.join('/');
+                if (!this.documents.has(path) && refOrQuery._path && refOrQuery._path.segments) {
+                    path = refOrQuery._path.segments.join('/');
                 }
-                if (!this.documents.has(path) && docRef.parent && docRef.id) {
-                    path = `${docRef.parent.id}/${docRef.id}`;
+                if (!this.documents.has(path) && refOrQuery.parent && refOrQuery.id) {
+                    path = `${refOrQuery.parent.id}/${refOrQuery.id}`;
                 }
-                if (!this.documents.has(path) && docRef.collection && docRef.id) {
-                    path = `${docRef.collection.id}/${docRef.id}`;
+                if (!this.documents.has(path) && refOrQuery.collection && refOrQuery.id) {
+                    path = `${refOrQuery.collection.id}/${refOrQuery.id}`;
                 }
 
                 const documentData = this.documents.get(path);
@@ -875,7 +925,7 @@ export class StubFirestoreWriter implements IFirestoreWriter {
                 return Promise.resolve({
                     exists: !!documentData,
                     data: () => documentData || {},
-                    ref: docRef,
+                    ref: refOrQuery,
                 });
             }),
             update: vi.fn().mockImplementation((docRef: any, data: any) => {
@@ -1006,6 +1056,59 @@ export class StubFirestoreWriter implements IFirestoreWriter {
         };
 
         this.documents.set(balancePath, docData);
+    }
+
+    async updateGroupMemberDisplayName(groupId: string, userId: string, newDisplayName: string): Promise<void> {
+        // Validate display name
+        if (!newDisplayName || newDisplayName.trim().length === 0) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_INPUT', 'Display name cannot be empty');
+        }
+
+        // Query all members of the group to check for name conflicts
+        const members: any[] = [];
+        for (const [path, data] of this.documents.entries()) {
+            if (path.startsWith('group-members/') && data.groupId === groupId) {
+                members.push(data);
+            }
+        }
+
+        if (members.length === 0) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+        }
+
+        // Check if display name is already taken by another user
+        // Check both groupDisplayName and fallback displayName for conflicts
+        // Note: member documents use 'uid' field, not 'userId'
+        const nameTaken = members.some((m) => m.uid !== userId && (m.groupDisplayName || m.displayName) === newDisplayName);
+
+        if (nameTaken) {
+            throw new ApiError(HTTP_STATUS.CONFLICT, 'DISPLAY_NAME_TAKEN', `Display name "${newDisplayName}" is already in use in this group`);
+        }
+
+        // Check if member exists
+        const memberPath = `group-members/${groupId}_${userId}`;
+        const existing = this.documents.get(memberPath);
+
+        if (!existing) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_MEMBER_NOT_FOUND', 'User is not a member of this group');
+        }
+
+        // Update the member document
+        this.documents.set(memberPath, {
+            ...existing,
+            groupDisplayName: newDisplayName,
+            updatedAt: Timestamp.now(),
+        });
+
+        // Touch the group to update its timestamp
+        const groupPath = `groups/${groupId}`;
+        const groupDoc = this.documents.get(groupPath);
+        if (groupDoc) {
+            this.documents.set(groupPath, {
+                ...groupDoc,
+                updatedAt: Timestamp.now(),
+            });
+        }
     }
 }
 

@@ -144,8 +144,19 @@ describe('GroupShareService', () => {
 
             stubReader.setGroupMembers(groupId, existingMembers);
 
+            // Set up the new user's profile so joinGroupByLink can read their displayName
+            const newUserProfile = {
+                displayName: 'New User',
+                photoURL: null,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
+            stubReader.setDocument('users', newUserId, newUserProfile);
+
             // Should succeed - we're at 49 members, adding 1 more = 50 (at cap, but still allowed)
-            await expect(groupShareService.joinGroupByLink(newUserId, linkId)).resolves.toBeDefined();
+            const result = await groupShareService.joinGroupByLink(newUserId, linkId);
+            expect(result).toBeDefined();
+            expect(result.displayNameConflict).toBe(false);
         });
 
         it(`should fail when group already has ${MAX_GROUP_MEMBERS} members`, async () => {
@@ -195,6 +206,109 @@ describe('GroupShareService', () => {
             expect(caughtError?.statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
             expect(caughtError?.code).toBe('GROUP_TOO_LARGE');
             expect(caughtError?.message).toContain('exceeds maximum size');
+        });
+    });
+
+    describe('display name conflict detection', () => {
+        const groupId = 'test-group';
+        const linkId = 'test-link-123';
+        const newUserId = 'new-user-id';
+
+        beforeEach(async () => {
+            // Set up test group
+            const testGroup = new GroupDTOBuilder()
+                .withId(groupId)
+                .withCreatedBy('owner-id')
+                .build();
+            stubReader.setDocument('groups', groupId, testGroup);
+            await initializeGroupBalance(groupId);
+
+            // Set up share link
+            const shareLink = {
+                id: linkId,
+                token: linkId,
+                createdBy: 'owner-id',
+                isActive: true,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
+            stubReader.setShareLink(groupId, linkId, shareLink);
+        });
+
+        it('should return displayNameConflict: false when display name is unique', async () => {
+            // Create existing member with different display name
+            const existingMember = new GroupMemberDocumentBuilder()
+                .withUserId('existing-user')
+                .withGroupId(groupId)
+                .withGroupDisplayName('Existing User')
+                .build();
+            stubReader.setGroupMembers(groupId, [existingMember]);
+
+            // Set up new user with unique display name
+            const newUserProfile = {
+                displayName: 'New User',
+                photoURL: null,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
+            stubReader.setDocument('users', newUserId, newUserProfile);
+
+            const result = await groupShareService.joinGroupByLink(newUserId, linkId);
+
+            expect(result.displayNameConflict).toBe(false);
+            expect(result.groupId).toBe(groupId);
+            expect(result.success).toBe(true);
+        });
+
+        it('should return displayNameConflict: true when display name matches existing member', async () => {
+            // Create existing member with display name "Test User"
+            const existingMember = new GroupMemberDocumentBuilder()
+                .withUserId('existing-user')
+                .withGroupId(groupId)
+                .withGroupDisplayName('Test User')
+                .build();
+            stubReader.setGroupMembers(groupId, [existingMember]);
+
+            // Set up new user with same display name
+            const newUserProfile = {
+                displayName: 'Test User', // Same as existing member
+                photoURL: null,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
+            stubReader.setDocument('users', newUserId, newUserProfile);
+
+            const result = await groupShareService.joinGroupByLink(newUserId, linkId);
+
+            expect(result.displayNameConflict).toBe(true);
+            expect(result.groupId).toBe(groupId);
+            expect(result.success).toBe(true);
+        });
+
+        it('should detect case-insensitive display name conflicts', async () => {
+            // Create existing member with display name "test user" (lowercase)
+            const existingMember = new GroupMemberDocumentBuilder()
+                .withUserId('existing-user')
+                .withGroupId(groupId)
+                .withGroupDisplayName('test user')
+                .build();
+            stubReader.setGroupMembers(groupId, [existingMember]);
+
+            // Set up new user with "Test User" (different case)
+            const newUserProfile = {
+                displayName: 'Test User',
+                photoURL: null,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
+            stubReader.setDocument('users', newUserId, newUserProfile);
+
+            const result = await groupShareService.joinGroupByLink(newUserId, linkId);
+
+            // Should detect conflict (case-insensitive comparison)
+            expect(result.displayNameConflict).toBe(true);
+            expect(result.groupId).toBe(groupId);
+            expect(result.success).toBe(true);
         });
     });
 });

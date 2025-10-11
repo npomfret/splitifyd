@@ -10,7 +10,7 @@ import { createComment, listExpenseComments, listGroupComments } from './comment
 import { HTTP_STATUS, SYSTEM } from './constants';
 import { createExpense, deleteExpense, getExpenseFullDetails, updateExpense } from './expenses/handlers';
 import { getAuth, getFirestore } from './firebase';
-import { createGroup, deleteGroup, getGroupFullDetails, listGroups, updateGroup } from './groups/handlers';
+import { createGroup, deleteGroup, getGroupFullDetails, listGroups, updateGroup, updateGroupMemberDisplayName } from './groups/handlers';
 import { leaveGroup, removeGroupMember } from './groups/memberHandlers';
 import { generateShareableLink, joinGroupByLink, previewGroupByLink } from './groups/shareHandlers';
 import { logger } from './logger';
@@ -363,6 +363,7 @@ function setupRoutes(app: express.Application): void {
     app.put(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(updateGroup));
     app.delete(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(deleteGroup));
     app.post(`/${FirestoreCollections.GROUPS}/:id/leave`, authenticate, asyncHandler(leaveGroup));
+    app.put(`/${FirestoreCollections.GROUPS}/:id/members/display-name`, authenticate, asyncHandler(updateGroupMemberDisplayName));
     app.delete(`/${FirestoreCollections.GROUPS}/:id/members/:memberId`, authenticate, asyncHandler(removeGroupMember));
 
     // Settlement endpoints (requires auth)

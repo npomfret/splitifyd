@@ -9,6 +9,7 @@ export class JoinGroupResponseBuilder {
         groupId: `group-${generateShortId()}`,
         groupName: 'Test Group',
         success: true,
+        displayNameConflict: false,
     };
 
     withGroupId(groupId: string): this {
@@ -23,6 +24,11 @@ export class JoinGroupResponseBuilder {
 
     withSuccess(success: boolean): this {
         this.fields.success = success;
+        return this;
+    }
+
+    withDisplayNameConflict(conflict: boolean): this {
+        this.fields.displayNameConflict = conflict;
         return this;
     }
 

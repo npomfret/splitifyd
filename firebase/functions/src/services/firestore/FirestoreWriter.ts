@@ -784,6 +784,62 @@ export class FirestoreWriter implements IFirestoreWriter {
         }
     }
 
+    async updateGroupMemberDisplayName(groupId: string, userId: string, newDisplayName: string): Promise<void> {
+        return measureDb('FirestoreWriter.updateGroupMemberDisplayName', async () => {
+            // Validate display name before transaction
+            if (!newDisplayName || newDisplayName.trim().length === 0) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_INPUT', 'Display name cannot be empty');
+            }
+
+            await this.db.runTransaction(async (transaction) => {
+                // PHASE 1: ALL READS FIRST
+                // Query all current group members to check for name conflicts
+                const membershipQuery = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('groupId', '==', groupId);
+                const membershipsSnapshot = await transaction.get(membershipQuery);
+
+                if (membershipsSnapshot.empty) {
+                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+                }
+
+                // Check if display name is already taken by another user
+                // Check both groupDisplayName and fallback displayName for conflicts
+                // Note: member documents use 'uid' field to store the user ID
+                const members = membershipsSnapshot.docs.map((doc) => doc.data());
+                const nameTaken = members.some((m) => m.uid !== userId && (m.groupDisplayName || m.displayName) === newDisplayName);
+
+                if (nameTaken) {
+                    throw new ApiError(HTTP_STATUS.CONFLICT, 'DISPLAY_NAME_TAKEN', `Display name "${newDisplayName}" is already in use in this group`);
+                }
+
+                // Find the target member's document
+                const memberDoc = membershipsSnapshot.docs.find((doc) => doc.data().uid === userId);
+                if (!memberDoc) {
+                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_MEMBER_NOT_FOUND', 'User is not a member of this group');
+                }
+
+                // PHASE 2: ALL WRITES AFTER ALL READS
+                // Update the member's groupDisplayName
+                const memberRef = this.db.doc(`${FirestoreCollections.GROUP_MEMBERSHIPS}/${memberDoc.id}`);
+                transaction.update(memberRef, {
+                    groupDisplayName: newDisplayName,
+                    updatedAt: FieldValue.serverTimestamp(),
+                });
+
+                // Touch the group to update its timestamp
+                const groupRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
+                transaction.update(groupRef, {
+                    updatedAt: FieldValue.serverTimestamp(),
+                });
+
+                logger.info('Group member display name updated', {
+                    groupId,
+                    userId,
+                    newDisplayName,
+                });
+            });
+        });
+    }
+
     // ========================================================================
     // Group Balance Operations
     // ========================================================================

@@ -1,6 +1,7 @@
 // Single shared type file for webapp
 // This file contains all type definitions used by the webapp client
 import type { ColorPattern } from './user-colors';
+import { z } from 'zod';
 
 // ========================================================================
 // Type aliases for Firebase types (browser-safe)
@@ -410,6 +411,7 @@ export interface GroupMembership {
     joinedAt: ISOString;
     invitedBy?: string; // UID of the user who created the share link that was used to join
     theme: UserThemeColor;
+    groupDisplayName: string; // Custom display name for this group (set on join, can be changed later)
 }
 
 /**
@@ -444,6 +446,9 @@ export interface GroupMember {
 
     // User display properties
     themeColor: UserThemeColor;
+
+    // Group-specific customization
+    groupDisplayName: string; // Custom display name for this group (set on join, can be changed later)
 
     // Group membership metadata (required for permissions)
     memberRole: MemberRole;
@@ -523,6 +528,33 @@ export interface UpdateGroupRequest {
     name?: string;
     description?: string;
 }
+
+export interface UpdateDisplayNameRequest {
+    displayName: string;
+}
+
+// Validation schemas
+export const CreateGroupRequestSchema = z.object({
+    name: z.string().trim().min(1, 'Group name is required').max(100, 'Group name must be less than 100 characters'),
+    description: z.string().trim().max(500).optional(),
+});
+
+export const UpdateGroupRequestSchema = z
+    .object({
+        name: z.string().trim().min(1).max(100).optional(),
+        description: z.string().trim().max(500).optional(),
+    })
+    .refine((data) => data.name !== undefined || data.description !== undefined, {
+        message: 'At least one field (name or description) must be provided',
+    });
+
+export const UpdateDisplayNameRequestSchema = z.object({
+    displayName: z
+        .string()
+        .min(1, 'Display name is required')
+        .max(50, 'Display name must be 50 characters or less')
+        .trim(),
+});
 
 // Metadata for real-time change tracking
 export interface ChangeMetadata {
@@ -733,6 +765,7 @@ export interface JoinGroupResponse {
     groupId: string;
     groupName: string;
     success: boolean;
+    displayNameConflict: boolean; // True if user's display name conflicts with existing member
 }
 
 export interface RegisterResponse {

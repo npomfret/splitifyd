@@ -95,6 +95,17 @@ export interface IFirestoreWriter {
      */
     touchGroup(groupId: string, transactionOrBatch?: Transaction | FirebaseFirestore.WriteBatch): Promise<void>;
 
+    /**
+     * Update a member's group-specific display name with uniqueness validation
+     * Uses a transaction to ensure atomic read-check-write and prevent race conditions
+     * @param groupId - The group ID
+     * @param userId - The user ID (member's UID)
+     * @param newDisplayName - The new group-specific display name
+     * @throws ApiError with code 'GROUP_NOT_FOUND' if group doesn't exist
+     * @throws ApiError with code 'DISPLAY_NAME_TAKEN' if name is already in use by another member
+     */
+    updateGroupMemberDisplayName(groupId: string, userId: string, newDisplayName: string): Promise<void>;
+
     // ========================================================================
     // Expense Write Operations
     // ========================================================================

@@ -28,6 +28,7 @@ export class GroupMemberBuilder {
             memberRole: MemberRoles.MEMBER,
             memberStatus: MemberStatuses.ACTIVE,
             joinedAt: new Date().toISOString(),
+            groupDisplayName: displayName, // Defaults to user's display name (set on join)
         };
     }
 
@@ -83,6 +84,11 @@ export class GroupMemberBuilder {
 
     withInvitedBy(invitedBy: string): this {
         this.member.invitedBy = invitedBy;
+        return this;
+    }
+
+    withGroupDisplayName(groupDisplayName: string): this {
+        this.member.groupDisplayName = groupDisplayName;
         return this;
     }
 

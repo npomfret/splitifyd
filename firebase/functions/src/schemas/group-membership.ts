@@ -27,6 +27,7 @@ export const TopLevelGroupMemberSchema = z.object({
     joinedAt: FirestoreTimestampSchema,
     theme: UserThemeColorSchema,
     invitedBy: UserIdSchema.optional(),
+    groupDisplayName: z.string(), // Group-specific display name (set on join)
     groupUpdatedAt: FirestoreTimestampSchema, // Essential denormalized field
     createdAt: FirestoreTimestampSchema,
     updatedAt: FirestoreTimestampSchema,

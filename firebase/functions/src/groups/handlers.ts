@@ -5,7 +5,7 @@ import { DOCUMENT_CONFIG, HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { Errors } from '../utils/errors';
-import { sanitizeGroupData, validateCreateGroup, validateGroupId, validateUpdateGroup } from './validation';
+import { sanitizeGroupData, validateCreateGroup, validateGroupId, validateUpdateDisplayName, validateUpdateGroup } from './validation';
 
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
@@ -124,4 +124,24 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
     });
 
     res.json(result);
+};
+
+/**
+ * Update a member's group-specific display name
+ */
+export const updateGroupMemberDisplayName = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    const userId = req.user?.uid;
+    if (!userId) {
+        throw Errors.UNAUTHORIZED();
+    }
+    const groupId = validateGroupId(req.params.id);
+
+    // Validate request body
+    const { displayName } = validateUpdateDisplayName(req.body);
+
+    // Update the display name using FirestoreWriter directly
+    const firestoreWriter = applicationBuilder.buildFirestoreWriter();
+    await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, displayName);
+
+    res.json({ success: true, message: 'Display name updated successfully' });
 };
