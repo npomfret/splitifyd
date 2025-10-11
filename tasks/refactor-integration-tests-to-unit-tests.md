@@ -1,0 +1,117 @@
+# Refactor Integration Tests to Unit Tests
+
+## 1. Overview
+
+The project has a comprehensive test suite with a clear distinction between fast unit tests and slower, more encompassing integration tests. However, a detailed analysis reveals that several integration tests are currently testing business logic through API endpoints. This approach, while thorough, introduces unnecessary overhead and significantly slows down the testing cycle.
+
+## 2. The Problem: Slow Feedback Loop
+
+- **Slow Execution:** Integration tests that validate pure business logic (e.g., balance calculations) are orders of magnitude slower than unit tests because they involve the overhead of HTTP requests, API routing, and database emulation.
+- **Reduced Focus:** These tests are less focused. A failure could be in the API layer, the service layer, or the calculation logic, making debugging more difficult.
+- **Redundancy:** The core calculation logic is often already unit-tested in services like `IncrementalBalanceService`. The integration tests provide redundant coverage at a much higher performance cost.
+
+## 3. Recommendation: Convert Logic-Based Integration Tests to Unit Tests
+
+To improve test suite performance and maintainability, I recommend converting specific integration tests that focus on business logic into focused, fast unit tests. This can be done without losing any test coverage by targeting the service layer directly and using the existing stub implementations (`StubFirestoreReader`, `StubFirestoreWriter`).
+
+---
+
+## 4. Analysis of Conversion Candidates
+
+The following integration tests are prime candidates for refactoring into unit tests.
+
+### 4.1. `mixed-currency-settlements.test.ts`
+
+-   **Current Purpose:** Verifies that making a settlement in one currency (e.g., EUR) does not incorrectly affect a debt in another currency (e.g., USD).
+-   **Analysis:** This is a test of pure calculation logic. It does not depend on any Firebase-specific feature like security rules or triggers. The entire scenario can be replicated by calling the `IncrementalBalanceService` directly.
+-   **Recommendation:** **High Priority.** Convert this entire file into a new unit test suite, `firebase/functions/src/__tests__/unit/services/IncrementalBalanceService.scenarios.test.ts`.
+
+### 4.2. `balance-settlement-consolidated.test.ts` -> "Advanced Settlement Scenarios"
+
+-   **Current Purpose:** The `describe` block for "Advanced Settlement Scenarios" tests how balances are calculated during partial settlements and overpayments.
+-   **Analysis:** Like the mixed-currency test, this is pure business logic. It validates the mathematical correctness of the `IncrementalBalanceService`.
+-   **Recommendation:** **High Priority.** Move these test cases into the new `IncrementalBalanceService.scenarios.test.ts` unit test file.
+
+### 4.3. `expenses-consolidated.test.ts` & `balance-settlement-consolidated.test.ts` -> "Currency Change Scenarios"
+
+-   **Current Purpose:** The tests named `should update balances correctly when expense/settlement currency is changed` verify that updating a transaction's currency correctly reverses the old transaction and applies the new one.
+-   **Analysis:** This is a core data transformation function handled by the `IncrementalBalanceService`. It can be tested more efficiently at the unit level.
+-   **Recommendation:** **Medium Priority.** Move these test cases into the `IncrementalBalanceService.scenarios.test.ts` unit test file.
+
+---
+
+## 5. Implementation Plan
+
+The refactoring process for each candidate is similar:
+
+1.  **Create/Identify Unit Test File:** For the candidates above, a new file `firebase/functions/src/__tests__/unit/services/IncrementalBalanceService.scenarios.test.ts` should be created.
+2.  **Replicate Scenario:** Write a `test` block that mirrors the scenario from the integration test.
+3.  **Use Stubs:**
+    -   Instantiate `StubFirestoreReader` and `StubFirestoreWriter`.
+    -   Use the `stubWriter.setGroupBalance()` method to set up the initial balance state for the test.
+    -   Instantiate the `IncrementalBalanceService` with the stub writer.
+4.  **Call Service Directly:** Instead of using the `ApiDriver` to make an HTTP request, call the relevant service method directly (e.g., `service.applySettlementCreated(...)`, `service.applyExpenseUpdated(...)`).
+5.  **Assert Final State:** Use the `stubWriter.getGroupBalanceInTransaction()` method to retrieve the final state of the balance document and assert that the calculations are correct.
+6.  **Remove Old Test:** Once the new unit test is written and passing, delete the corresponding `test` block or entire file from the `integration` directory.
+
+### Example Refactoring (`mixed-currency-settlements.test.ts`)
+
+```typescript
+// In: firebase/functions/src/__tests__/unit/services/IncrementalBalanceService.scenarios.test.ts
+
+describe('IncrementalBalanceService - Scenarios', () => {
+    let service: IncrementalBalanceService;
+    let stubWriter: StubFirestoreWriter;
+
+    beforeEach(() => {
+        stubWriter = new StubFirestoreWriter();
+        service = new IncrementalBalanceService(stubWriter);
+    });
+
+    test('should handle mixed currency settlements without currency conversion', async () => {
+        // 1. Setup: Create initial balance where User2 owes User1 $100 USD
+        const initialBalance = createBalanceWithUSD(100); // Helper to create balance object
+        await stubWriter.setGroupBalance('group-1', initialBalance);
+
+        // 2. Action: Create a settlement where User2 pays User1 €75 EUR
+        const settlement = new SettlementDTOBuilder()
+            .withCurrency('EUR')
+            .withAmount(75)
+            .withPayerId('user2')
+            .withPayeeId('user1')
+            .build();
+
+        service.applySettlementCreated({}, 'group-1', initialBalance, settlement, ['user1', 'user2']);
+
+        // 3. Assert: Check the final balance state from the stub writer
+        const finalBalance = await stubWriter.getGroupBalanceInTransaction({}, 'group-1');
+
+        // Assert that the USD debt is unchanged
+        expect(finalBalance.balancesByCurrency.USD['user2'].netBalance).toBe(-100);
+
+        // Assert that a new EUR credit/debt was created
+        expect(finalBalance.balancesByCurrency.EUR['user1'].netBalance).toBe(-75); // User1 now owes User2
+        expect(finalBalance.balancesByCurrency.EUR['user2'].netBalance).toBe(75);
+    });
+});
+```
+
+---
+
+## 6. Justification for Keeping Other Integration Tests
+
+The following tests should **remain** as integration tests because they validate Firebase-specific functionality that cannot be reliably mocked:
+
+-   **`concurrent-operations.integration.test.ts`**: Tests for race conditions require a real, concurrent environment.
+-   **`notifications-consolidated.test.ts`**: Tests the behavior of real-time `onSnapshot` listeners, which is a core Firebase feature.
+-   **`security-rules.test.ts`**: Directly tests the `firestore.rules` file using the official Firebase testing library.
+-   **`auth-and-registration.test.ts`**: Verifies the behavior of the Firebase Auth emulator, especially for concurrent registrations.
+-   **`departed-member-locking.test.ts`**: Relies on complex, cross-collection queries that are best verified against the actual database emulator.
+-   **API Contract Tests**: Any test whose primary purpose is to validate the request/response shape, status codes, and middleware (auth, error handling) of an API endpoint provides value as an integration test.
+
+## 7. Expected Benefits
+
+-   **Faster CI/CD:** Reducing the number of slow integration tests will significantly speed up the overall test suite.
+-   **Improved Developer Productivity:** A faster feedback loop allows developers to iterate more quickly.
+-   **More Focused Tests:** Unit tests are more precise, making it easier to pinpoint the exact cause of a failure.
+-   **Reduced Flakiness:** Unit tests are generally more stable as they have fewer external dependencies.
