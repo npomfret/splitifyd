@@ -1,14 +1,5 @@
 import { afterEach } from 'vitest';
 
-// Mock firebase-functions logger to use console in tests
-// vi.mock('firebase-functions', () => ({
-//     logger: {
-//         info: console.log,
-//         warn: console.log,
-//         error: console.log,
-//     }
-// }));
-
 // Global registry for test users that need cleanup
 interface TestUserEntry {
     users: any[]; // User type from test-support

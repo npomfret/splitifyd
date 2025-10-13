@@ -2,7 +2,7 @@ import { CommentTargetTypes } from '@splitifyd/shared';
 import type { CommentTargetType, CreateCommentRequest } from '@splitifyd/shared';
 import { AuthUserRecordBuilder, CommentBuilder, CommentRequestBuilder, ExpenseDTOBuilder, GroupDTOBuilder } from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { validateCommentId, validateCreateComment, validateListCommentsQuery, validateTargetId } from '../../../comments/validation';
 import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
@@ -41,7 +41,6 @@ describe('CommentService - Consolidated Tests', () => {
         // Reset mocks
         stubAuth.clear();
         clearSharedStorage();
-        vi.clearAllMocks();
     });
 
     describe('verifyCommentAccess for GROUP comments', () => {
@@ -135,10 +134,10 @@ describe('CommentService - Consolidated Tests', () => {
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
             // Mock the getCommentsForTarget method since it's complex
-            stubReader.getCommentsForTarget = vi.fn().mockResolvedValue({
+            stubReader.getCommentsForTarget = async () => ({
                 comments: mockComments,
                 hasMore: false,
-                nextCursor: null,
+                nextCursor: undefined,
             });
 
             const result = await commentService.listComments(CommentTargetTypes.GROUP, 'test-group', 'user-id', { limit: 10 });
@@ -171,7 +170,7 @@ describe('CommentService - Consolidated Tests', () => {
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
             // Mock the getCommentsForTarget method
-            stubReader.getCommentsForTarget = vi.fn().mockResolvedValue({
+            stubReader.getCommentsForTarget = async () => ({
                 comments: [],
                 hasMore: true,
                 nextCursor: 'next-cursor',
@@ -227,11 +226,11 @@ describe('CommentService - Consolidated Tests', () => {
             );
 
             // Mock writer and reader methods
-            stubWriter.addComment = vi.fn().mockResolvedValue({
+            stubWriter.addComment = async () => ({
                 id: 'new-comment-id',
                 success: true,
             });
-            stubReader.getComment = vi.fn().mockResolvedValue(createdComment);
+            stubReader.getComment = async () => createdComment;
 
             const result = await commentService.createComment(
                 CommentTargetTypes.GROUP,
@@ -262,11 +261,11 @@ describe('CommentService - Consolidated Tests', () => {
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
             // Mock writer and reader to simulate creation failure
-            stubWriter.addComment = vi.fn().mockResolvedValue({
+            stubWriter.addComment = async () => ({
                 id: 'new-comment-id',
                 success: true,
             });
-            stubReader.getComment = vi.fn().mockResolvedValue(null); // Simulate creation failure
+            stubReader.getComment = async () => null; // Simulate creation failure
 
             await expect(
                 commentService.createComment(CommentTargetTypes.GROUP, 'test-group', { text: 'Test comment', targetType: CommentTargetTypes.GROUP, targetId: 'test-group' }, 'user-id'),
@@ -328,10 +327,10 @@ describe('CommentService - Consolidated Tests', () => {
             stubReader.setDocument('group-members', 'test-group_user-id', membershipDoc);
 
             // Mock the getCommentsForTarget method to avoid further complexity
-            stubReader.getCommentsForTarget = vi.fn().mockResolvedValue({
+            stubReader.getCommentsForTarget = async () => ({
                 comments: [],
                 hasMore: false,
-                nextCursor: null,
+                nextCursor: undefined,
             });
 
             // Test should now pass since all dependencies are set up

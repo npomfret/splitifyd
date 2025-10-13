@@ -1,25 +1,5 @@
 import { formatCurrency, type FormatOptions } from '@/utils/currency/currencyFormatter.ts';
-import { describe, expect, it, vi } from 'vitest';
-
-// Mock the getCurrency function from shared package
-vi.mock('@splitifyd/shared', () => ({
-    getCurrency: vi.fn((code: string) => {
-        const upperCode = code.toUpperCase();
-        const currencies = {
-            USD: { symbol: '$', decimal_digits: 2, code: 'USD' },
-            EUR: { symbol: '€', decimal_digits: 2, code: 'EUR' },
-            JPY: { symbol: '¥', decimal_digits: 0, code: 'JPY' },
-            GBP: { symbol: '£', decimal_digits: 2, code: 'GBP' },
-            BHD: { symbol: 'BD', decimal_digits: 3, code: 'BHD' }, // Bahraini Dinar has 3 decimal places
-        };
-
-        const currency = currencies[upperCode as keyof typeof currencies];
-        if (!currency) {
-            throw new Error(`Invalid currency code: ${code}`);
-        }
-        return currency;
-    }),
-}));
+import { describe, expect, it } from 'vitest';
 
 describe('formatCurrency', () => {
     describe('basic formatting', () => {
