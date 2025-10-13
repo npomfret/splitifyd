@@ -1359,3 +1359,6 @@ export function createMockPolicyDocument(overrides: Partial<PolicyDTO> = {}): Po
 export function clearSharedStorage() {
     sharedCommentStorage.clear();
 }
+
+// Export the new stub implementation
+export { StubFirestoreDatabase } from './StubFirestoreDatabase';
