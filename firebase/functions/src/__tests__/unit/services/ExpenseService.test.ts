@@ -1,4 +1,3 @@
-import type { CreateExpenseRequest } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, ExpenseDTOBuilder } from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it } from 'vitest';

@@ -1,4 +1,3 @@
-import type { CreateSettlementRequest } from '@splitifyd/shared';
 import { CreateSettlementRequestBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
