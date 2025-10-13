@@ -13,7 +13,7 @@
  * - Follows the same patterns as IFirestoreReader/Writer
  */
 
-import type { CreateRequest, DecodedIdToken, DeleteUsersResult, GetUsersResult, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
+import type { CreateRequest, DecodedIdToken, GetUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 
 export interface IAuthService {
     // ========================================================================
@@ -83,82 +83,8 @@ export interface IAuthService {
     createCustomToken(uid: string, additionalClaims?: object): Promise<string>;
 
     // ========================================================================
-    // User Lookup Operations
-    // ========================================================================
-
-    /**
-     * Get user by email address
-     * @param email - User email address
-     * @returns UserRecord or null if not found
-     * @throws ApiError if operation fails
-     */
-    getUserByEmail(email: string): Promise<UserRecord | null>;
-
-    /**
-     * Get user by phone number
-     * @param phoneNumber - User phone number
-     * @returns UserRecord or null if not found
-     * @throws ApiError if operation fails
-     */
-    getUserByPhoneNumber(phoneNumber: string): Promise<UserRecord | null>;
-
-    // ========================================================================
-    // Administrative Operations
-    // ========================================================================
-
-    /**
-     * List users with pagination (for admin operations)
-     * @param maxResults - Maximum number of users to return (default: 1000)
-     * @param pageToken - Token for pagination
-     * @returns ListUsersResult with users and pagination info
-     * @throws ApiError if operation fails
-     */
-    listUsers(maxResults?: number, pageToken?: string): Promise<ListUsersResult>;
-
-    /**
-     * Delete multiple users in batch
-     * @param uids - Array of user UIDs to delete (max 1000)
-     * @returns DeleteUsersResult with success/failure counts
-     * @throws ApiError if operation fails
-     */
-    deleteUsers(uids: string[]): Promise<DeleteUsersResult>;
-
-    // ========================================================================
     // Utility Operations
     // ========================================================================
-
-    /**
-     * Generate a password reset link for a user
-     * @param email - User email address
-     * @returns Password reset link
-     * @throws ApiError if operation fails
-     */
-    generatePasswordResetLink(email: string): Promise<string>;
-
-    /**
-     * Generate an email verification link for a user
-     * @param email - User email address
-     * @returns Email verification link
-     * @throws ApiError if operation fails
-     */
-    generateEmailVerificationLink(email: string): Promise<string>;
-
-    /**
-     * Set custom user claims (for role-based access)
-     * @param uid - Firebase user UID
-     * @param customClaims - Custom claims object
-     * @returns Success confirmation
-     * @throws ApiError if operation fails
-     */
-    setCustomUserClaims(uid: string, customClaims: object): Promise<void>;
-
-    /**
-     * Revoke all refresh tokens for a user (force sign out)
-     * @param uid - Firebase user UID
-     * @returns Success confirmation
-     * @throws ApiError if operation fails
-     */
-    revokeRefreshTokens(uid: string): Promise<void>;
 
     /**
      * Verify a user's password

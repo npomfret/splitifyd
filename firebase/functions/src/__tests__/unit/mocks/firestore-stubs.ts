@@ -1,7 +1,7 @@
 import { CommentTargetType } from '@splitifyd/shared';
 import type { GroupMembershipDTO } from '@splitifyd/shared';
 import type { CommentDTO, ExpenseDTO, GroupDTO, PolicyDTO, RegisteredUser, SettlementDTO } from '@splitifyd/shared/src';
-import type { CreateRequest, DecodedIdToken, DeleteUsersResult, GetUsersResult, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
+import type { CreateRequest, DecodedIdToken, GetUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { Timestamp } from 'firebase-admin/firestore';
 import { vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -1069,11 +1069,8 @@ export const StubFirestoreWriter = StubFirestore;
  */
 export class StubAuthService implements IAuthService {
     private users = new Map<string, UserRecord>();
-    private usersByEmail = new Map<string, UserRecord>();
-    private usersByPhone = new Map<string, UserRecord>();
     private customTokens = new Map<string, string>();
     private decodedTokens = new Map<string, DecodedIdToken>();
-    private customClaims = new Map<string, object>();
     private deletedUsers = new Set<string>();
 
     // Helper methods to set up test data
@@ -1100,12 +1097,6 @@ export class StubAuthService implements IAuthService {
         };
 
         this.users.set(uid, fullUser);
-        if (fullUser.email) {
-            this.usersByEmail.set(fullUser.email, fullUser);
-        }
-        if (fullUser.phoneNumber) {
-            this.usersByPhone.set(fullUser.phoneNumber, fullUser);
-        }
     }
 
     setDecodedToken(token: string, decoded: DecodedIdToken) {
@@ -1120,11 +1111,8 @@ export class StubAuthService implements IAuthService {
     // Clear all test data
     clear() {
         this.users.clear();
-        this.usersByEmail.clear();
-        this.usersByPhone.clear();
         this.customTokens.clear();
         this.decodedTokens.clear();
-        this.customClaims.clear();
         this.deletedUsers.clear();
     }
 
@@ -1133,8 +1121,11 @@ export class StubAuthService implements IAuthService {
         const uid = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
         // Check for duplicate email
-        if (userData.email && this.usersByEmail.has(userData.email)) {
-            throw new ApiError(HTTP_STATUS.CONFLICT, 'EMAIL_ALREADY_EXISTS', 'An account with this email already exists');
+        if (userData.email) {
+            const existingUser = Array.from(this.users.values()).find((u) => u.email === userData.email);
+            if (existingUser && !this.deletedUsers.has(existingUser.uid)) {
+                throw new ApiError(HTTP_STATUS.CONFLICT, 'EMAIL_ALREADY_EXISTS', 'An account with this email already exists');
+            }
         }
 
         const user: UserRecord = {
@@ -1192,8 +1183,11 @@ export class StubAuthService implements IAuthService {
         }
 
         // Check for email conflicts if updating email
-        if (updates.email && updates.email !== existingUser.email && this.usersByEmail.has(updates.email)) {
-            throw new ApiError(HTTP_STATUS.CONFLICT, 'EMAIL_ALREADY_EXISTS', 'An account with this email already exists');
+        if (updates.email && updates.email !== existingUser.email) {
+            const conflictingUser = Array.from(this.users.values()).find((u) => u.email === updates.email);
+            if (conflictingUser && !this.deletedUsers.has(conflictingUser.uid)) {
+                throw new ApiError(HTTP_STATUS.CONFLICT, 'EMAIL_ALREADY_EXISTS', 'An account with this email already exists');
+            }
         }
 
         const updatedUser: UserRecord = {
@@ -1241,106 +1235,12 @@ export class StubAuthService implements IAuthService {
         const token = `custom-token-${uid}-${Date.now()}`;
         this.customTokens.set(uid, token);
 
-        if (additionalClaims) {
-            this.customClaims.set(uid, additionalClaims);
-        }
-
         return token;
     }
 
-    async getUserByEmail(email: string): Promise<UserRecord | null> {
-        const user = this.usersByEmail.get(email);
-        if (user && this.deletedUsers.has(user.uid)) {
-            return null;
-        }
-        return user || null;
-    }
-
-    async getUserByPhoneNumber(phoneNumber: string): Promise<UserRecord | null> {
-        const user = this.usersByPhone.get(phoneNumber);
-        if (user && this.deletedUsers.has(user.uid)) {
-            return null;
-        }
-        return user || null;
-    }
-
-    async listUsers(maxResults?: number, pageToken?: string): Promise<ListUsersResult> {
-        const allUsers = Array.from(this.users.values()).filter((user) => !this.deletedUsers.has(user.uid));
-        const limit = maxResults || 1000;
-        const start = pageToken ? parseInt(pageToken, 10) : 0;
-        const users = allUsers.slice(start, start + limit);
-
-        return {
-            users,
-            pageToken: start + limit < allUsers.length ? (start + limit).toString() : undefined,
-        };
-    }
-
-    async deleteUsers(uids: string[]): Promise<DeleteUsersResult> {
-        let successCount = 0;
-        const errors: any[] = [];
-
-        for (const uid of uids) {
-            try {
-                await this.deleteUser(uid);
-                successCount++;
-            } catch (error) {
-                errors.push({ index: uids.indexOf(uid), error });
-            }
-        }
-
-        return {
-            successCount,
-            failureCount: errors.length,
-            errors,
-        };
-    }
-
-    async generatePasswordResetLink(email: string): Promise<string> {
-        const user = this.usersByEmail.get(email);
-        if (!user || this.deletedUsers.has(user.uid)) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User with email ${email} not found`);
-        }
-        return `https://example.com/reset-password?token=reset-${user.uid}-${Date.now()}`;
-    }
-
-    async generateEmailVerificationLink(email: string): Promise<string> {
-        const user = this.usersByEmail.get(email);
-        if (!user || this.deletedUsers.has(user.uid)) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User with email ${email} not found`);
-        }
-        return `https://example.com/verify-email?token=verify-${user.uid}-${Date.now()}`;
-    }
-
-    async setCustomUserClaims(uid: string, customClaims: object): Promise<void> {
-        const user = this.users.get(uid);
-        if (!user || this.deletedUsers.has(uid)) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${uid} not found`);
-        }
-        this.customClaims.set(uid, customClaims);
-
-        // Update the user record with custom claims
-        const updatedUser = { ...user, customClaims, toJSON: () => ({}) };
-        this.users.set(uid, updatedUser);
-    }
-
-    async revokeRefreshTokens(uid: string): Promise<void> {
-        const user = this.users.get(uid);
-        if (!user || this.deletedUsers.has(uid)) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${uid} not found`);
-        }
-
-        // Update tokens valid after time
-        const updatedUser = {
-            ...user,
-            tokensValidAfterTime: new Date().toISOString(),
-            toJSON: () => ({}),
-        };
-        this.users.set(uid, updatedUser);
-    }
-
     async verifyPassword(email: string, password: string): Promise<boolean> {
-        const user = this.usersByEmail.get(email);
+        // Find user by email
+        const user = Array.from(this.users.values()).find((u) => u.email === email);
         if (!user || this.deletedUsers.has(user.uid)) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User with email ${email} not found`);
         }

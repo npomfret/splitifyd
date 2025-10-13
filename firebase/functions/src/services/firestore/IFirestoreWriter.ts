@@ -53,39 +53,9 @@ export interface IFirestoreWriter {
      */
     updateUser(userId: string, updates: Partial<Omit<RegisteredUser, 'id'>>): Promise<WriteResult>;
 
-    /**
-     * Delete a user document
-     * @param userId - The user ID
-     * @returns Write result
-     * @deprecated This method is not used in production code. User deletion logic exists in UserService2 using direct auth service calls.
-     */
-    deleteUser(userId: string): Promise<WriteResult>;
-
     // ========================================================================
     // Group Write Operations
     // ========================================================================
-
-    /**
-     * Create a new group document
-     * @param groupData - The group data to write (DTO with ISO strings)
-     * @returns Write result with generated document ID
-     */
-    createGroup(groupData: Omit<GroupDTO, 'id'>): Promise<WriteResult>;
-
-    /**
-     * Update an existing group document
-     * @param groupId - The group ID
-     * @param updates - Partial group data to update (DTO with ISO strings)
-     * @returns Write result
-     */
-    updateGroup(groupId: string, updates: Partial<Omit<GroupDTO, 'id'>>): Promise<WriteResult>;
-
-    /**
-     * Delete a group and all its subcollections
-     * @param groupId - The group ID
-     * @returns Write result
-     */
-    deleteGroup(groupId: string): Promise<WriteResult>;
 
     /**
      * Update a group's updatedAt timestamp to mark activity
@@ -109,47 +79,6 @@ export interface IFirestoreWriter {
     // ========================================================================
     // Expense Write Operations
     // ========================================================================
-
-    /**
-     * Create a new expense document
-     * @param expenseData - The expense data to write (DTO with ISO strings)
-     * @returns Write result with generated document ID
-     */
-    createExpense(expenseData: Omit<ExpenseDTO, 'id'>): Promise<WriteResult>;
-
-    /**
-     * Update an existing expense document
-     * @param expenseId - The expense ID
-     * @param updates - Partial expense data to update (DTO with ISO strings)
-     * @returns Write result
-     */
-    updateExpense(expenseId: string, updates: Partial<Omit<ExpenseDTO, 'id'>>): Promise<WriteResult>;
-
-    /**
-     * Delete an expense document
-     * @param expenseId - The expense ID
-     * @returns Write result
-     */
-    deleteExpense(expenseId: string): Promise<WriteResult>;
-
-    // ========================================================================
-    // Settlement Write Operations
-    // ========================================================================
-
-    /**
-     * Create a new settlement document
-     * @param settlementData - The settlement data to write (DTO with ISO strings)
-     * @returns Write result with generated document ID
-     */
-    createSettlement(settlementData: Omit<SettlementDTO, 'id'>): Promise<WriteResult>;
-
-    /**
-     * Update an existing settlement document
-     * @param settlementId - The settlement ID
-     * @param updates - Partial settlement data to update (DTO with ISO strings)
-     * @returns Write result
-     */
-    updateSettlement(settlementId: string, updates: Partial<Omit<SettlementDTO, 'id'>>): Promise<WriteResult>;
 
     // ========================================================================
     // Comment Write Operations

@@ -94,28 +94,6 @@ const userIdSchema = Joi
     });
 
 /**
- * Email validation schema
- */
-const emailSchema = Joi.string().pattern(EMAIL_REGEX).required().messages({
-    'string.pattern.base': 'Invalid email format',
-    'string.empty': 'Email is required',
-    'any.required': 'Email is required',
-});
-
-/**
- * Phone number validation schema
- */
-const phoneNumberSchema = Joi
-    .string()
-    .pattern(/^\+[1-9]\d{1,14}$/)
-    .required()
-    .messages({
-        'string.pattern.base': 'Phone number must be in E.164 format (e.g., +1234567890)',
-        'string.empty': 'Phone number is required',
-        'any.required': 'Phone number is required',
-    });
-
-/**
  * ID token validation schema
  */
 const idTokenSchema = Joi.string().min(1).required().messages({
@@ -129,21 +107,6 @@ const idTokenSchema = Joi.string().min(1).required().messages({
  */
 const customClaimsSchema = Joi.object().pattern(Joi.string(), Joi.any()).optional().messages({
     'object.base': 'Custom claims must be an object',
-});
-
-/**
- * List users options validation schema
- */
-const listUsersOptionsSchema = Joi.object({
-    maxResults: Joi.number().integer().min(1).max(1000).optional().default(1000).messages({
-        'number.base': 'Max results must be a number',
-        'number.integer': 'Max results must be an integer',
-        'number.min': 'Max results must be at least 1',
-        'number.max': 'Max results must be at most 1000',
-    }),
-    pageToken: Joi.string().optional().messages({
-        'string.base': 'Page token must be a string',
-    }),
 });
 
 /**
@@ -226,32 +189,6 @@ export function validateUserId(uid: unknown): string {
 }
 
 /**
- * Validate email
- */
-export function validateEmail(email: unknown): string {
-    const { error, value } = emailSchema.validate(email);
-
-    if (error) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, AuthErrorCode.INVALID_EMAIL, error.message);
-    }
-
-    return value;
-}
-
-/**
- * Validate phone number
- */
-export function validatePhoneNumber(phoneNumber: unknown): string {
-    const { error, value } = phoneNumberSchema.validate(phoneNumber);
-
-    if (error) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, AuthErrorCode.INVALID_PHONE_NUMBER, error.message);
-    }
-
-    return value;
-}
-
-/**
  * Validate ID token
  */
 export function validateIdToken(token: unknown): string {
@@ -275,19 +212,6 @@ export function validateCustomClaims(claims: unknown): object {
     }
 
     return value || {};
-}
-
-/**
- * Validate list users options
- */
-export function validateListUsersOptions(options: unknown): any {
-    const { error, value } = listUsersOptionsSchema.validate(options);
-
-    if (error) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_LIST_OPTIONS', error.message);
-    }
-
-    return value;
 }
 
 /**
