@@ -12,12 +12,13 @@ export class GroupMemberDocumentBuilder {
 
     constructor() {
         // Default member document with sensible defaults
+        const now = Timestamp.now();
         this.memberDoc = {
             uid: 'default-user-id',
             groupId: 'default-group-id',
             memberRole: MemberRoles.MEMBER,
             memberStatus: MemberStatuses.ACTIVE,
-            joinedAt: Timestamp.now(),
+            joinedAt: now,
             invitedBy: 'default-inviter',
             groupDisplayName: 'Default User', // Custom display name for this group
             theme: {
@@ -25,9 +26,13 @@ export class GroupMemberDocumentBuilder {
                 dark: '#4a9eff',
                 name: 'Ocean Blue',
                 pattern: 'solid',
-                assignedAt: new Date().toISOString(),
+                assignedAt: now,
                 colorIndex: 0,
             },
+            // Required audit fields per TopLevelGroupMemberSchema
+            groupUpdatedAt: now,
+            createdAt: now,
+            updatedAt: now,
         };
     }
 
@@ -120,12 +125,18 @@ export class GroupMemberDocumentBuilder {
     }
 
     build(): GroupMembershipDTO {
-        // Convert Timestamp to ISO string for DTO
+        // Convert all Timestamp fields to ISO strings for DTO
         return {
             ...this.memberDoc,
             joinedAt: this.memberDoc.joinedAt.toDate().toISOString(),
             groupDisplayName: this.memberDoc.groupDisplayName,
-            theme: { ...this.memberDoc.theme },
+            theme: {
+                ...this.memberDoc.theme,
+                assignedAt: this.memberDoc.theme.assignedAt.toDate().toISOString(),
+            },
+            groupUpdatedAt: this.memberDoc.groupUpdatedAt.toDate().toISOString(),
+            createdAt: this.memberDoc.createdAt.toDate().toISOString(),
+            updatedAt: this.memberDoc.updatedAt.toDate().toISOString(),
         };
     }
 

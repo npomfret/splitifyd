@@ -183,6 +183,23 @@ export class GroupDTOBuilder {
         return result;
     }
 
+    /**
+     * Build Firestore-format Group document for database storage
+     * Excludes client-only fields like balance and lastActivity
+     */
+    buildDocument(): Omit<GroupDTO, 'balance' | 'lastActivity'> {
+        const result = {
+            ...this.auditFields,
+            ...this.businessFields,
+            // Convert audit timestamps to ISO strings
+            createdAt: timestampToISOString(this.auditFields.createdAt),
+            updatedAt: timestampToISOString(this.auditFields.updatedAt),
+            // Convert business field timestamps to ISO strings
+            presetAppliedAt: timestampToISOString(this.businessFields.presetAppliedAt),
+        };
+        return result;
+    }
+
     static groupForUser(userId: string): GroupDTOBuilder {
         return new GroupDTOBuilder()
             .withCreatedBy(userId)

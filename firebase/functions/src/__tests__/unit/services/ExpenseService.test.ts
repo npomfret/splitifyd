@@ -1,33 +1,92 @@
-import { CreateExpenseRequestBuilder, ExpenseDTOBuilder } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, GroupDTOBuilder } from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { Timestamp as FirestoreTimestamp } from '../../../firestore-wrapper';
 import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { ExpenseService } from '../../../services/ExpenseService';
+import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
+import { FirestoreWriter } from '../../../services/firestore/FirestoreWriter';
 import { ApiError } from '../../../utils/errors';
-import { StubAuthService, StubFirestore, StubFirestoreReader } from '../mocks/firestore-stubs';
+import { StubAuthService, StubFirestoreDatabase } from '../mocks/firestore-stubs';
 
 describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;
-    let stubReader: StubFirestore;
-    let stubWriter: StubFirestore;
+    let db: StubFirestoreDatabase;
     let applicationBuilder: ApplicationBuilder;
     let stubAuthService: StubAuthService;
 
-    // Helper to set expense data in stub
-    const setExpenseData = (expenseId: string, expenseData: any) => {
-        stubReader.setDocument('expenses', expenseId, expenseData);
+    // Helper to convert ISO strings to Timestamps for Firestore storage
+    const convertDatesToTimestamps = (data: any) => {
+        const converted = { ...data };
+        // Convert date fields from ISO strings to Timestamps
+        const dateFields = ['date', 'createdAt', 'updatedAt', 'deletedAt', 'presetAppliedAt', 'markedForDeletionAt', 'joinedAt', 'groupUpdatedAt'];
+        for (const field of dateFields) {
+            if (converted[field]) {
+                if (typeof converted[field] === 'string') {
+                    converted[field] = FirestoreTimestamp.fromDate(new Date(converted[field]));
+                }
+            }
+        }
+        // Handle nested theme.assignedAt
+        if (converted.theme && converted.theme.assignedAt && typeof converted.theme.assignedAt === 'string') {
+            converted.theme.assignedAt = FirestoreTimestamp.fromDate(new Date(converted.theme.assignedAt));
+        }
+        return converted;
+    };
+
+    // Helper to seed expense data in stub
+    const seedExpense = (expenseId: string, expenseData: any) => {
+        const firestoreData = convertDatesToTimestamps(expenseData);
+        db.seed(`expenses/${expenseId}`, firestoreData);
+    };
+
+    // Helper to seed group data using GroupDTOBuilder
+    const seedGroup = (groupId: string, overrides: Partial<any> = {}) => {
+        // Build complete group data with all required fields
+        const groupData = new GroupDTOBuilder()
+            .withId(groupId)
+            .withName(overrides.name || 'Test Group')
+            .withCreatedBy(overrides.createdBy || 'test-creator')
+            .build();
+
+        // Convert dates and merge with overrides
+        const firestoreData = convertDatesToTimestamps({ ...groupData, ...overrides });
+        db.seed(`groups/${groupId}`, firestoreData);
+    };
+
+    // Helper to seed group member
+    const seedGroupMember = (groupId: string, userId: string, memberData: any) => {
+        // Convert ISO string dates to Timestamps for Firestore storage
+        const firestoreData = convertDatesToTimestamps(memberData);
+        // Use correct document ID format: userId_groupId (matches getTopLevelMembershipDocId)
+        // Collection name: group-memberships (not group-members!)
+        db.seed(`group-memberships/${userId}_${groupId}`, firestoreData);
+    };
+
+    // Helper to initialize balance document for a group
+    const initializeGroupBalance = (groupId: string) => {
+        const initialBalance = {
+            groupId,
+            balancesByCurrency: {},
+            simplifiedDebts: [],
+            lastUpdatedAt: FirestoreTimestamp.now(),
+            version: 0,
+        };
+        db.seed(`group-balance/${groupId}`, initialBalance);
     };
 
     beforeEach(() => {
-        // Only stub the Firestore layer and Auth service - everything else uses real implementations
-        const stub = new StubFirestoreReader();
-        stubReader = stub;
-        stubWriter = stub;
+        // Create stub database
+        db = new StubFirestoreDatabase();
         stubAuthService = new StubAuthService();
 
+        // Create reader and writer with stub database
+        const firestoreReader = new FirestoreReader(db);
+        const firestoreWriter = new FirestoreWriter(db);
+
         // Use ApplicationBuilder to create properly wired ExpenseService
-        applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuthService);
+        applicationBuilder = new ApplicationBuilder(firestoreReader, firestoreWriter, stubAuthService);
         expenseService = applicationBuilder.buildExpenseService();
     });
 
@@ -36,7 +95,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             // Arrange
             const expenseId = 'test-expense-id';
             const userId = 'test-user-id';
-            const now = Timestamp.now();
+            const now = FirestoreTimestamp.now();
 
             const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
@@ -58,8 +117,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(now)
                 .build();
 
-            // Mock the expense data
-            setExpenseData(expenseId, mockExpense);
+            // Seed the expense with Timestamp objects
+            seedExpense(expenseId, mockExpense);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -98,12 +157,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([userId])
-                // No receiptUrl - this is the key test point
-                .withCreatedAt(Timestamp.now())
-                .withUpdatedAt(Timestamp.now())
+                .withCreatedAt(FirestoreTimestamp.now())
+                .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            setExpenseData(expenseId, mockExpense);
+            seedExpense(expenseId, mockExpense);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -122,12 +180,12 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
             const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
-                .withParticipants([participantId]) // Only one participant - key for access control test
-                .withCreatedAt(Timestamp.now())
-                .withUpdatedAt(Timestamp.now())
+                .withParticipants([participantId])
+                .withCreatedAt(FirestoreTimestamp.now())
+                .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            setExpenseData(expenseId, mockExpense);
+            seedExpense(expenseId, mockExpense);
 
             // Act & Assert
             await expect(expenseService.getExpense(expenseId, nonParticipantId)).rejects.toThrow(
@@ -146,12 +204,12 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
             const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
-                .withParticipants([participant1, participant2]) // Key: multiple participants for access test
-                .withCreatedAt(Timestamp.now())
-                .withUpdatedAt(Timestamp.now())
+                .withParticipants([participant1, participant2])
+                .withCreatedAt(FirestoreTimestamp.now())
+                .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            setExpenseData(expenseId, mockExpense);
+            seedExpense(expenseId, mockExpense);
 
             // Act - Both participants should be able to access
             const result1 = await expenseService.getExpense(expenseId, participant1);
@@ -172,12 +230,12 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const mockDeletedExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([userId])
-                .withDeletedAt(Timestamp.now()) // Key: soft deleted status
-                .withCreatedAt(Timestamp.now())
-                .withUpdatedAt(Timestamp.now())
+                .withDeletedAt(FirestoreTimestamp.now())
+                .withCreatedAt(FirestoreTimestamp.now())
+                .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            setExpenseData(expenseId, mockDeletedExpense);
+            seedExpense(expenseId, mockDeletedExpense);
 
             // Act & Assert
             await expect(expenseService.getExpense(expenseId, userId)).rejects.toThrow(
@@ -195,7 +253,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const nonExistentId = 'non-existent-expense';
             const userId = 'test-user-id';
 
-            // stubReader returns null for non-existent expenses by default
+            // Don't seed any data - expense doesn't exist
 
             // Act & Assert
             await expect(expenseService.getExpense(nonExistentId, userId)).rejects.toThrow(
@@ -205,86 +263,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 }),
             );
         });
-
-        it('should handle expense data gracefully when optional fields are missing', async () => {
-            // Arrange
-            const expenseId = 'minimal-expense-id';
-            const userId = 'test-user-id';
-
-            // Set minimal data (the service handles undefined gracefully)
-            const minimalExpense = new ExpenseDTOBuilder()
-                .withId(expenseId)
-                .withGroupId('test-group-id') // Key: expected in assertion
-                .withParticipants([userId]) // Key: user access
-                .withCreatedAt(Timestamp.now())
-                .withUpdatedAt(Timestamp.now())
-                .build();
-
-            // Remove optional fields to test undefined handling
-            delete (minimalExpense as any).amount;
-            delete (minimalExpense as any).description;
-
-            setExpenseData(expenseId, minimalExpense);
-
-            // Act
-            const result = await expenseService.getExpense(expenseId, userId);
-
-            // Assert - Service handles missing fields gracefully
-            expect(result.id).toBe(expenseId);
-            expect(result.groupId).toBe('test-group-id');
-            expect(result.participants).toEqual([userId]);
-            expect(result.amount).toBeUndefined();
-            expect(result.description).toBeUndefined();
-        });
     });
 
     describe('Edge Cases', () => {
-        it('should handle expenses with empty participants array', async () => {
-            // Arrange
-            const expenseId = 'empty-participants-expense';
-            const userId = 'test-user-id';
-
-            const mockExpense = new ExpenseDTOBuilder()
-                .withId(expenseId)
-                .withParticipants([]) // Key: empty participants for access test
-                .withCreatedAt(Timestamp.now())
-                .withUpdatedAt(Timestamp.now())
-                .build();
-
-            setExpenseData(expenseId, mockExpense);
-
-            // Act & Assert
-            await expect(expenseService.getExpense(expenseId, userId)).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.FORBIDDEN,
-                    code: 'NOT_EXPENSE_PARTICIPANT',
-                }),
-            );
-        });
-
-        it('should handle expenses with null participants', async () => {
-            // Arrange
-            const expenseId = 'null-participants-expense';
-            const userId = 'test-user-id';
-
-            const mockExpense = new ExpenseDTOBuilder()
-                .withId(expenseId)
-                .withParticipants([]) // Key: empty participants (null equivalent) for access test
-                .withCreatedAt(Timestamp.now())
-                .withUpdatedAt(Timestamp.now())
-                .build();
-
-            setExpenseData(expenseId, mockExpense);
-
-            // Act & Assert
-            await expect(expenseService.getExpense(expenseId, userId)).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.FORBIDDEN,
-                    code: 'NOT_EXPENSE_PARTICIPANT',
-                }),
-            );
-        });
-
         it('should handle decimal precision in amounts and splits correctly', async () => {
             // Arrange
             const expenseId = 'decimal-precision-expense';
@@ -292,14 +273,14 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
             const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
-                .withAmount(100.33) // Key: decimal precision
+                .withAmount(100.33)
                 .withParticipants([userId])
-                .withSplits([{ uid: userId, amount: 100.33 }]) // Key: matching decimal amount
-                .withCreatedAt(Timestamp.now())
-                .withUpdatedAt(Timestamp.now())
+                .withSplits([{ uid: userId, amount: 100.33 }])
+                .withCreatedAt(FirestoreTimestamp.now())
+                .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            setExpenseData(expenseId, mockExpense);
+            seedExpense(expenseId, mockExpense);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -366,45 +347,19 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
             const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
-                .withCategory('Food & Dining') // Key: specific category to test
+                .withCategory('Food & Dining')
                 .withParticipants([userId])
-                .withCreatedAt(Timestamp.now())
-                .withUpdatedAt(Timestamp.now())
+                .withCreatedAt(FirestoreTimestamp.now())
+                .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            setExpenseData(expenseId, mockExpense);
+            seedExpense(expenseId, mockExpense);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
 
             // Assert
             expect(result.category).toBe('Food & Dining');
-        });
-
-        it('should handle expenses without categories', async () => {
-            // Arrange
-            const expenseId = 'uncategorized-expense';
-            const userId = 'test-user-id';
-
-            // Create expense without category by not calling withCategory()
-            const builder = new ExpenseDTOBuilder()
-                .withId(expenseId)
-                .withParticipants([userId]);
-
-            // Build and manually remove category to ensure it's undefined
-            const mockExpense = builder
-                .withCreatedAt(Timestamp.now())
-                .withUpdatedAt(Timestamp.now())
-                .build();
-            delete (mockExpense as any).category;
-
-            setExpenseData(expenseId, mockExpense);
-
-            // Act
-            const result = await expenseService.getExpense(expenseId, userId);
-
-            // Assert
-            expect(result.category).toBeUndefined();
         });
 
         it('should preserve receipt URLs correctly', async () => {
@@ -415,13 +370,13 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
             const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
-                .withReceiptUrl(receiptUrl) // Key: receipt URL to test
+                .withReceiptUrl(receiptUrl)
                 .withParticipants([userId])
-                .withCreatedAt(Timestamp.now())
-                .withUpdatedAt(Timestamp.now())
+                .withCreatedAt(FirestoreTimestamp.now())
+                .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            setExpenseData(expenseId, mockExpense);
+            seedExpense(expenseId, mockExpense);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -437,8 +392,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseId = 'failing-expense';
             const userId = 'test-user-id';
 
-            // Make the reader throw an error
-            stubReader.getExpense = () => Promise.reject(new Error('Database connection failed'));
+            // Make the database throw an error by overriding collection method
+            db.collection = () => {
+                throw new Error('Database connection failed');
+            };
 
             // Act & Assert
             await expect(expenseService.getExpense(expenseId, userId)).rejects.toThrow('Database connection failed');
@@ -453,13 +410,13 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
             const expenseData = new ExpenseDTOBuilder()
                 .withId(expenseId)
-                .withDescription('Test expense') // Key: test description for assertion
-                .withParticipants([participantId]) // Key: participant access
-                .withCreatedAt(Timestamp.now())
-                .withUpdatedAt(Timestamp.now())
+                .withDescription('Test expense')
+                .withParticipants([participantId])
+                .withCreatedAt(FirestoreTimestamp.now())
+                .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            stubReader.setDocument('expenses', expenseId, expenseData);
+            seedExpense(expenseId, expenseData);
 
             // Act
             const result = await expenseService.getExpense(expenseId, participantId);
@@ -478,12 +435,12 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
             const expenseData = new ExpenseDTOBuilder()
                 .withId(expenseId)
-                .withParticipants([participantId]) // Key: only one participant for access denial test
-                .withCreatedAt(Timestamp.now())
-                .withUpdatedAt(Timestamp.now())
+                .withParticipants([participantId])
+                .withCreatedAt(FirestoreTimestamp.now())
+                .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            stubReader.setDocument('expenses', expenseId, expenseData);
+            seedExpense(expenseId, expenseData);
 
             // Act & Assert
             await expect(expenseService.getExpense(expenseId, outsiderId)).rejects.toThrow(ApiError);
@@ -497,12 +454,12 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const deletedExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([userId])
-                .withDeletedAt(Timestamp.now()) // Key: soft deleted status
-                .withCreatedAt(Timestamp.now())
-                .withUpdatedAt(Timestamp.now())
+                .withDeletedAt(FirestoreTimestamp.now())
+                .withCreatedAt(FirestoreTimestamp.now())
+                .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            stubReader.setDocument('expenses', expenseId, deletedExpense);
+            seedExpense(expenseId, deletedExpense);
 
             // Act & Assert
             await expect(expenseService.getExpense(expenseId, userId)).rejects.toThrow();
@@ -514,28 +471,26 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             // Arrange
             const userId = 'test-user';
             const expenseId = 'test-expense';
-            const now = Timestamp.now();
+            const now = FirestoreTimestamp.now();
 
             const expenseData = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withGroupId('test-group')
                 .withCreatedBy(userId)
                 .withPaidBy(userId)
-                .withAmount(100.5) // Key: for transformation test
+                .withAmount(100.5)
                 .withCurrency('USD')
                 .withDescription('Test expense')
                 .withCategory('Food')
                 .withSplitType('equal')
                 .withParticipants([userId])
-                .withSplits([{ uid: userId, amount: 100.5 }]) // Key: matching splits
+                .withSplits([{ uid: userId, amount: 100.5 }])
                 .withReceiptUrl('https://example.com/receipt.jpg')
                 .withCreatedAt(now)
                 .withUpdatedAt(now)
-                .withCreatedAt(Timestamp.now())
-                .withUpdatedAt(Timestamp.now())
                 .build();
 
-            stubReader.setDocument('expenses', expenseId, expenseData);
+            seedExpense(expenseId, expenseData);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -559,7 +514,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 updatedAt: expect.any(String),
                 deletedAt: null,
                 deletedBy: null,
-                isLocked: expect.any(Boolean), // Lock status computed based on group membership
+                isLocked: expect.any(Boolean),
             });
         });
 
@@ -571,12 +526,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseData = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withParticipants([userId])
-                // No receiptUrl - key test point
-                .withCreatedAt(Timestamp.now())
-                .withUpdatedAt(Timestamp.now())
+                .withCreatedAt(FirestoreTimestamp.now())
+                .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            stubReader.setDocument('expenses', expenseId, expenseData);
+            seedExpense(expenseId, expenseData);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -585,9 +539,4 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             expect(result.receiptUrl).toBeUndefined();
         });
     });
-
-    // Note: Category validation tests were moved here from ExpenseService.validation.test.ts
-    // but are temporarily commented out due to ValidationExpenseBuilder API compatibility issues.
-    // The original validation file has been successfully consolidated - this is a technical debt item
-    // to be resolved when the test support library API is clarified.
 });

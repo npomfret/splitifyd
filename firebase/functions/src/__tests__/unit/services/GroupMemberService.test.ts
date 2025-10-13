@@ -111,7 +111,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .withUserId(testUserId1)
                 .withGroupId(testGroupId)
                 .withTheme(defaultTheme)
-                .build();
+                .buildDocument();
 
             stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, testMember);
 
@@ -161,7 +161,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .withUserId(creatorUserId)
                 .withGroupId(testGroupId)
                 .withRole(MemberRoles.ADMIN)
-                .build();
+                .buildDocument();
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${creatorUserId}`, creatorMember);
@@ -180,7 +180,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const memberDoc = new GroupMemberDocumentBuilder()
                 .withUserId(memberUserId)
                 .withGroupId(testGroupId)
-                .build();
+                .buildDocument();
 
             // Set up balance document with outstanding balance
             await stubWriter.setGroupBalance(
@@ -212,7 +212,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const memberDoc = new GroupMemberDocumentBuilder()
                 .withUserId(memberUserId)
                 .withGroupId(testGroupId)
-                .build();
+                .buildDocument();
 
             // Set up balance document with zero balance
             await stubWriter.setGroupBalance(
@@ -231,7 +231,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const otherMemberDoc = new GroupMemberDocumentBuilder()
                 .withUserId(otherMemberUserId)
                 .withGroupId(testGroupId)
-                .build();
+                .buildDocument();
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${memberUserId}`, memberDoc);
@@ -288,7 +288,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const targetMemberDoc = new GroupMemberDocumentBuilder()
                 .withUserId(otherMemberUserId)
                 .withGroupId(testGroupId)
-                .build();
+                .buildDocument();
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${otherMemberUserId}`, targetMemberDoc);
@@ -308,7 +308,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .withUserId(creatorUserId)
                 .withGroupId(testGroupId)
                 .withRole(MemberRoles.ADMIN)
-                .build();
+                .buildDocument();
 
             stubReader.setDocument('groups', testGroupId, testGroup);
             stubReader.setDocument('group-members', `${testGroupId}_${creatorUserId}`, creatorMemberDoc);
@@ -327,7 +327,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const memberDoc = new GroupMemberDocumentBuilder()
                 .withUserId(memberUserId)
                 .withGroupId(testGroupId)
-                .build();
+                .buildDocument();
 
             // Set up balance document with outstanding balance
             await stubWriter.setGroupBalance(
@@ -359,7 +359,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const memberDoc = new GroupMemberDocumentBuilder()
                 .withUserId(memberUserId)
                 .withGroupId(testGroupId)
-                .build();
+                .buildDocument();
 
             // Set up balance document with zero balance
             await stubWriter.setGroupBalance(

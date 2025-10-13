@@ -1,42 +1,93 @@
 import { CreateGroupRequest } from '@splitifyd/shared';
 import { CreateGroupRequestBuilder, GroupDTOBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { Timestamp } from '../../firestore-wrapper';
 import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
 import { validateCreateGroup, validateGroupId, validateUpdateGroup } from '../../groups/validation';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
+import { FirestoreReader } from '../../services/firestore/FirestoreReader';
+import { FirestoreWriter } from '../../services/firestore/FirestoreWriter';
 import { GroupService } from '../../services/GroupService';
 import { ApiError } from '../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
-import { StubAuthService, StubFirestore, StubFirestoreReader } from './mocks/firestore-stubs';
+import { StubAuthService, StubFirestoreDatabase } from './mocks/firestore-stubs';
 
 describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;
-    let stubReader: StubFirestore;
-    let stubWriter: StubFirestore;
+    let db: StubFirestoreDatabase;
     let stubAuth: StubAuthService;
     let applicationBuilder: ApplicationBuilder;
 
+    // Helper to convert ISO strings to Timestamps for Firestore storage
+    const convertDatesToTimestamps = (data: any) => {
+        const converted = { ...data };
+        // Convert date fields from ISO strings to Timestamps
+        const dateFields = ['createdAt', 'updatedAt', 'deletedAt', 'markedForDeletionAt', 'presetAppliedAt', 'joinedAt', 'groupUpdatedAt'];
+        for (const field of dateFields) {
+            if (converted[field]) {
+                if (typeof converted[field] === 'string') {
+                    converted[field] = Timestamp.fromDate(new Date(converted[field]));
+                }
+            }
+        }
+        // Handle nested theme.assignedAt
+        if (converted.theme && converted.theme.assignedAt && typeof converted.theme.assignedAt === 'string') {
+            converted.theme.assignedAt = Timestamp.fromDate(new Date(converted.theme.assignedAt));
+        }
+        return converted;
+    };
+
+    // Helper to seed group data using GroupDTOBuilder
+    const seedGroup = (groupId: string, groupData: any) => {
+        // If groupData is already a complete DTO from GroupDTOBuilder, use it directly
+        // Otherwise, build a complete group with defaults
+        const completeGroupData = groupData.createdBy
+            ? groupData
+            : new GroupDTOBuilder()
+                  .withId(groupId)
+                  .withName(groupData.name || 'Test Group')
+                  .withCreatedBy(groupData.createdBy || 'test-creator')
+                  .buildDocument();
+
+        const firestoreData = convertDatesToTimestamps(completeGroupData);
+        db.seed(`groups/${groupId}`, {
+            id: groupId,
+            ...firestoreData,
+        });
+    };
+
+    // Helper to seed group member
+    const seedGroupMember = (groupId: string, userId: string, memberData: any) => {
+        // Convert ISO string dates to Timestamps for Firestore storage
+        const firestoreData = convertDatesToTimestamps(memberData);
+        // Use correct document ID format: userId_groupId (matches getTopLevelMembershipDocId)
+        // Collection name: group-memberships (not group-members!)
+        db.seed(`group-memberships/${userId}_${groupId}`, firestoreData);
+    };
+
     // Helper to initialize balance document for a group
-    const initializeGroupBalance = async (groupId: string) => {
+    const initializeGroupBalance = (groupId: string) => {
         const initialBalance = {
             groupId,
             balancesByCurrency: {},
             simplifiedDebts: [],
-            lastUpdatedAt: new Date().toISOString(),
+            lastUpdatedAt: Timestamp.now(),
             version: 0,
         };
-        await stubWriter.setGroupBalance(groupId, initialBalance);
+        db.seed(`groups/${groupId}/metadata/balance`, initialBalance);
     };
 
     beforeEach(() => {
-        // Create unified stub (reader and writer share the same storage automatically)
-        const stub = new StubFirestoreReader();
-        stubReader = stub;
-        stubWriter = stub;
+        // Create stub database
+        db = new StubFirestoreDatabase();
         stubAuth = new StubAuthService();
 
+        // Create reader and writer with stub database
+        const firestoreReader = new FirestoreReader(db);
+        const firestoreWriter = new FirestoreWriter(db);
+
         // Create ApplicationBuilder and build GroupService
-        applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
+        applicationBuilder = new ApplicationBuilder(firestoreReader, firestoreWriter, stubAuth);
         groupService = applicationBuilder.buildGroupService();
     });
 
@@ -54,16 +105,16 @@ describe('GroupService - Unit Tests', () => {
             const userId = 'test-user-123';
             const groupId = 'test-group-456';
 
-            // Set up existing group with Firestore Timestamps
+            // Set up existing group
             const existingGroup = new GroupDTOBuilder()
                 .withId(groupId)
                 .withName('Original Name')
                 .withDescription('Original Description')
                 .withCreatedBy(userId)
-                .build();
+                .buildDocument();
 
-            stubReader.setDocument('groups', groupId, existingGroup);
-            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
+            seedGroup(groupId, existingGroup);
+            initializeGroupBalance(groupId);
 
             // Set up group membership so user has access (as owner)
             const membershipDoc = new GroupMemberDocumentBuilder()
@@ -71,13 +122,10 @@ describe('GroupService - Unit Tests', () => {
                 .withGroupId(groupId)
                 .asAdmin()
                 .asActive()
-                .build();
-            stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
+                .buildDocument();
+            seedGroupMember(groupId, userId, membershipDoc);
 
-            const updateRequest = new GroupUpdateBuilder()
-                .withName('Updated Name')
-                .withDescription('Updated Description')
-                .build();
+            const updateRequest = new GroupUpdateBuilder().withName('Updated Name').withDescription('Updated Description').build();
 
             const result = await groupService.updateGroup(groupId, userId, updateRequest);
 
@@ -96,11 +144,10 @@ describe('GroupService - Unit Tests', () => {
                 .withId(groupId)
                 .withName('Test Group')
                 .withCreatedBy(userId)
-                .build();
+                .buildDocument();
 
-            stubReader.setDocument('groups', groupId, existingGroup);
-            stubWriter.setDocument('groups', groupId, existingGroup);
-            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
+            seedGroup(groupId, existingGroup);
+            initializeGroupBalance(groupId);
 
             // Set up group membership so user has access (as owner)
             const membershipDoc = new GroupMemberDocumentBuilder()
@@ -108,8 +155,8 @@ describe('GroupService - Unit Tests', () => {
                 .withGroupId(groupId)
                 .asAdmin()
                 .asActive()
-                .build();
-            stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
+                .buildDocument();
+            seedGroupMember(groupId, userId, membershipDoc);
 
             const result = await groupService.deleteGroup(groupId, userId);
 
@@ -122,14 +169,14 @@ describe('GroupService - Unit Tests', () => {
         it('should return user groups successfully', async () => {
             const userId = 'test-user-123';
 
-            // Set up test groups using Firebase builder with Firestore Timestamps
+            // Set up test group
             const group1 = new GroupDTOBuilder()
                 .withId('group-1')
                 .withName('Group 1')
                 .withCreatedBy(userId)
-                .build();
+                .buildDocument();
 
-            stubReader.setDocument('groups', 'group-1', group1);
+            seedGroup('group-1', group1);
 
             const result = await groupService.listGroups(userId);
 
