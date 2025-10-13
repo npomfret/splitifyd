@@ -1,5 +1,6 @@
 import * as admin from 'firebase-admin';
 import type { Firestore } from 'firebase-admin/firestore';
+import { createFirestoreDatabase, type IFirestoreDatabase } from '../firestore-wrapper';
 import { IAuthService } from './auth';
 import { FirebaseAuthService } from './auth';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
@@ -38,8 +39,11 @@ export class ApplicationBuilder {
     ) {}
 
     static createApplicationBuilder(firestore: Firestore, auth: admin.auth.Auth) {
-        const firestoreReader = new FirestoreReader(firestore);
-        const firestoreWriter = new FirestoreWriter(firestore);
+        // Wrap the Firestore instance with our abstraction layer
+        const wrappedDb = createFirestoreDatabase(firestore);
+
+        const firestoreReader = new FirestoreReader(wrappedDb);
+        const firestoreWriter = new FirestoreWriter(wrappedDb);
         const firebaseAuthService = new FirebaseAuthService(
             auth,
             true, // enableValidation

@@ -1,5 +1,5 @@
 import type { ExpenseDTO, SettlementDTO, UserBalance } from '@splitifyd/shared';
-import type { Transaction } from 'firebase-admin/firestore';
+import type { ITransaction } from '../../firestore-wrapper';
 import { logger } from '../../logger';
 import type { GroupBalanceDTO, ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
 import type { IFirestoreWriter } from '../firestore';
@@ -18,7 +18,7 @@ export class IncrementalBalanceService {
         this.debtSimplificationService = new DebtSimplificationService();
     }
 
-    applyExpenseCreated(transaction: Transaction, groupId: string, currentBalance: GroupBalanceDTO, expense: ExpenseDTO, memberIds: string[]): void {
+    applyExpenseCreated(transaction: ITransaction, groupId: string, currentBalance: GroupBalanceDTO, expense: ExpenseDTO, memberIds: string[]): void {
         logger.info('Applying expense creation to balance', { groupId, expenseId: expense.id });
 
         this.firestoreWriter.updateGroupBalanceInTransaction(transaction, groupId, currentBalance, (currentBalance) => {
@@ -35,7 +35,7 @@ export class IncrementalBalanceService {
         });
     }
 
-    applyExpenseDeleted(transaction: Transaction, groupId: string, currentBalance: GroupBalanceDTO, expense: ExpenseDTO, memberIds: string[]): void {
+    applyExpenseDeleted(transaction: ITransaction, groupId: string, currentBalance: GroupBalanceDTO, expense: ExpenseDTO, memberIds: string[]): void {
         logger.info('Applying expense deletion to balance', { groupId, expenseId: expense.id });
 
         this.firestoreWriter.updateGroupBalanceInTransaction(transaction, groupId, currentBalance, (currentBalance) => {
@@ -53,7 +53,7 @@ export class IncrementalBalanceService {
         });
     }
 
-    applyExpenseUpdated(transaction: Transaction, groupId: string, currentBalance: GroupBalanceDTO, oldExpense: ExpenseDTO, newExpense: ExpenseDTO, memberIds: string[]): void {
+    applyExpenseUpdated(transaction: ITransaction, groupId: string, currentBalance: GroupBalanceDTO, oldExpense: ExpenseDTO, newExpense: ExpenseDTO, memberIds: string[]): void {
         logger.info('Applying expense update to balance', { groupId, expenseId: newExpense.id });
 
         this.firestoreWriter.updateGroupBalanceInTransaction(transaction, groupId, currentBalance, (currentBalance) => {
@@ -76,7 +76,7 @@ export class IncrementalBalanceService {
         });
     }
 
-    applySettlementCreated(transaction: Transaction, groupId: string, currentBalance: GroupBalanceDTO, settlement: SettlementDTO, memberIds: string[]): void {
+    applySettlementCreated(transaction: ITransaction, groupId: string, currentBalance: GroupBalanceDTO, settlement: SettlementDTO, memberIds: string[]): void {
         logger.info('Applying settlement creation to balance', { groupId, settlementId: settlement.id });
 
         this.firestoreWriter.updateGroupBalanceInTransaction(transaction, groupId, currentBalance, (currentBalance) => {
@@ -96,7 +96,7 @@ export class IncrementalBalanceService {
         });
     }
 
-    applySettlementDeleted(transaction: Transaction, groupId: string, currentBalance: GroupBalanceDTO, settlement: SettlementDTO, memberIds: string[]): void {
+    applySettlementDeleted(transaction: ITransaction, groupId: string, currentBalance: GroupBalanceDTO, settlement: SettlementDTO, memberIds: string[]): void {
         logger.info('Applying settlement deletion to balance', { groupId, settlementId: settlement.id });
 
         this.firestoreWriter.updateGroupBalanceInTransaction(transaction, groupId, currentBalance, (currentBalance) => {
@@ -121,7 +121,7 @@ export class IncrementalBalanceService {
         });
     }
 
-    applySettlementUpdated(transaction: Transaction, groupId: string, currentBalance: GroupBalanceDTO, oldSettlement: SettlementDTO, newSettlement: SettlementDTO, memberIds: string[]): void {
+    applySettlementUpdated(transaction: ITransaction, groupId: string, currentBalance: GroupBalanceDTO, oldSettlement: SettlementDTO, newSettlement: SettlementDTO, memberIds: string[]): void {
         logger.info('Applying settlement update to balance', { groupId, settlementId: newSettlement.id });
 
         this.firestoreWriter.updateGroupBalanceInTransaction(transaction, groupId, currentBalance, (currentBalance) => {

@@ -2,6 +2,7 @@ import { getFirestore } from '../firebase';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreWriter } from '../services/firestore';
 import { UserService } from '../services/UserService2';
+import { Timestamp, createFirestoreDatabase, type IFirestoreDatabase } from '../firestore-wrapper';
 
 interface PoolUser {
     token: string;
@@ -21,7 +22,7 @@ const POOL_COLLECTION = 'test-user-pool';
 
 export class TestUserPoolService {
     private static instance: TestUserPoolService;
-    private readonly db = getFirestore();
+    private readonly db: IFirestoreDatabase = createFirestoreDatabase(getFirestore());
 
     constructor(
         private readonly firestoreWriter: IFirestoreWriter,

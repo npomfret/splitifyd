@@ -12,8 +12,7 @@
 // Import types
 import type { CommentDTO, ExpenseDTO, GroupDTO, RegisteredUser, SettlementDTO, ShareLinkDTO } from '@splitifyd/shared';
 import { type CommentTargetType, CommentTargetTypes } from '@splitifyd/shared';
-import type { DocumentReference, Firestore, Transaction } from 'firebase-admin/firestore';
-import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import {FieldValue, Timestamp, type IFirestoreDatabase, type IDocumentReference, type ITransaction, type IWriteBatch} from '../../firestore-wrapper';
 import { z } from 'zod';
 import { FIRESTORE, FirestoreCollections, HTTP_STATUS } from '../../constants';
 import { logger } from '../../logger';
@@ -54,7 +53,7 @@ interface ValidationMetrics {
 }
 
 export class FirestoreWriter implements IFirestoreWriter {
-    constructor(private readonly db: Firestore) {}
+    constructor(private readonly db: IFirestoreDatabase) {}
 
     // ========================================================================
     // Private Timestamp Conversion Utilities (Phase 3: ISO → Timestamp)
@@ -635,7 +634,120 @@ export class FirestoreWriter implements IFirestoreWriter {
     // Group Write Operations
     // ========================================================================
 
-    async touchGroup(groupId: string, transactionOrBatch?: Transaction | FirebaseFirestore.WriteBatch): Promise<void> {
+    async createGroup(groupData: Omit<GroupDTO, 'id'>): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.createGroup', async () => {
+            try {
+                // Create document reference to get ID
+                const groupRef = this.db.collection(FirestoreCollections.GROUPS).doc();
+
+                // LENIENT: Convert ISO strings to Timestamps before validation
+                const convertedData = this.convertISOToTimestamps(groupData);
+
+                // Validate data with generated ID (expects Timestamps after conversion)
+                const validatedData = GroupDocumentSchema.parse({
+                    id: groupRef.id,
+                    ...convertedData,
+                });
+
+                // Remove id from data to write
+                const { id, ...dataToWrite } = validatedData;
+
+                // Add server timestamps
+                const finalData = {
+                    ...dataToWrite,
+                    createdAt: FieldValue.serverTimestamp(),
+                    updatedAt: FieldValue.serverTimestamp(),
+                };
+
+                await groupRef.set(finalData);
+
+                logger.info('Group document created', { groupId: groupRef.id });
+
+                return {
+                    id: groupRef.id,
+                    success: true,
+                    timestamp: new Date(),
+                };
+            } catch (error) {
+                logger.error('Failed to create group document', error);
+                return {
+                    id: '',
+                    success: false,
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                };
+            }
+        });
+    }
+
+    async updateGroup(groupId: string, updates: Partial<Omit<GroupDTO, 'id'>>): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.updateGroup', async () => {
+            try {
+                // LENIENT: Convert ISO strings to Timestamps in the updates
+                const convertedUpdates = this.convertISOToTimestamps(updates);
+
+                // Add updated timestamp
+                const finalUpdates = {
+                    ...convertedUpdates,
+                    updatedAt: FieldValue.serverTimestamp(),
+                };
+
+                // Always try validation first, handle FieldValue operations gracefully
+                const documentPath = `${FirestoreCollections.GROUPS}/${groupId}`;
+                const mergedData = await this.fetchAndMergeForValidation(documentPath, finalUpdates, groupId);
+
+                // Validate with graceful FieldValue handling (expects Timestamps after conversion)
+                const validationResult = this.safeValidateUpdate<any>(GroupDocumentSchema, mergedData, 'GroupDocument', groupId, FirestoreCollections.GROUPS);
+
+                // Perform the update
+                await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).update(finalUpdates);
+
+                const logType = validationResult.skipValidation ? '(FieldValue operations)' : '(validated)';
+                logger.info(`Group document updated ${logType}`, { groupId, fields: Object.keys(updates) });
+
+                return {
+                    id: groupId,
+                    success: true,
+                    timestamp: new Date(),
+                };
+            } catch (error) {
+                logger.error('Failed to update group document', error, { groupId, updates: Object.keys(updates) });
+                return {
+                    id: groupId,
+                    success: false,
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                };
+            }
+        });
+    }
+
+    async deleteGroup(groupId: string): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.deleteGroup', async () => {
+            try {
+                // Note: This only deletes the group document
+                // Subcollections (members, etc.) should be deleted separately
+                // Consider using a transaction or batch delete for complete cleanup
+
+                await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).delete();
+
+                logger.info('Group document deleted', { groupId });
+
+                return {
+                    id: groupId,
+                    success: true,
+                    timestamp: new Date(),
+                };
+            } catch (error) {
+                logger.error('Failed to delete group document', error, { groupId });
+                return {
+                    id: groupId,
+                    success: false,
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                };
+            }
+        });
+    }
+
+    async touchGroup(groupId: string, transactionOrBatch?: ITransaction | IWriteBatch): Promise<void> {
         const now = Timestamp.now();
         const groupRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
 
@@ -708,7 +820,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     // Group Balance Operations
     // ========================================================================
 
-    setGroupBalanceInTransaction(transaction: Transaction, groupId: string, balance: GroupBalanceDTO): void {
+    setGroupBalanceInTransaction(transaction: ITransaction, groupId: string, balance: GroupBalanceDTO): void {
         const balanceRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance');
 
         // Convert DTO to Firestore document (ISO strings → Timestamps)
@@ -722,7 +834,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         logger.info('Group balance document created/updated in transaction', { groupId });
     }
 
-    async getGroupBalanceInTransaction(transaction: Transaction, groupId: string): Promise<GroupBalanceDTO> {
+    async getGroupBalanceInTransaction(transaction: ITransaction, groupId: string) {
         const balanceRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance');
 
         const doc = await transaction.get(balanceRef);
@@ -741,7 +853,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         return this.convertTimestampsToISO(validated) as any as GroupBalanceDTO;
     }
 
-    updateGroupBalanceInTransaction(transaction: Transaction, groupId: string, currentBalance: GroupBalanceDTO, updater: (current: GroupBalanceDTO) => GroupBalanceDTO): void {
+    updateGroupBalanceInTransaction(transaction: ITransaction, groupId: string, currentBalance: GroupBalanceDTO, updater: (current: GroupBalanceDTO) => GroupBalanceDTO): void {
         const balanceRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance');
 
         // Apply update function
@@ -821,11 +933,11 @@ export class FirestoreWriter implements IFirestoreWriter {
      * Tests confirmed that removing application retries has no impact on success rates - all
      * transaction conflicts are resolved by Firestore's internal retry mechanism.
      */
-    async runTransaction<T>(updateFunction: (transaction: Transaction) => Promise<T>): Promise<T> {
+    async runTransaction<T>(updateFunction: (transaction: ITransaction) => Promise<T>): Promise<T> {
         return this.db.runTransaction(updateFunction);
     }
 
-    createInTransaction(transaction: Transaction, collection: string, documentId: string | null, data: any): DocumentReference {
+    createInTransaction(transaction: ITransaction, collection: string, documentId: string | null, data: any) {
         const docRef = documentId ? this.db.collection(collection).doc(documentId) : this.db.collection(collection).doc();
 
         // Remove undefined values (Firestore doesn't accept them)
@@ -845,7 +957,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         return docRef;
     }
 
-    updateInTransaction(transaction: Transaction, documentPath: string, updates: any): void {
+    updateInTransaction(transaction: ITransaction, documentPath: string, updates: any): void {
         const docRef = this.db.doc(documentPath);
 
         // Remove undefined values (Firestore doesn't accept them)
@@ -1045,7 +1157,7 @@ export class FirestoreWriter implements IFirestoreWriter {
      * @param shareLinkData - The share link data
      * @returns Document reference
      */
-    createShareLinkInTransaction(transaction: Transaction, groupId: string, shareLinkData: Omit<ShareLinkDTO, 'id'>): DocumentReference {
+    createShareLinkInTransaction(transaction: ITransaction, groupId: string, shareLinkData: Omit<ShareLinkDTO, 'id'>) {
         const shareLinksCollection = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks');
 
         const shareLinkRef = shareLinksCollection.doc();
@@ -1272,7 +1384,7 @@ export class FirestoreWriter implements IFirestoreWriter {
      * @param documentPaths - Array of document paths to delete
      * @throws Error if any deletion fails (transaction will be aborted)
      */
-    bulkDeleteInTransaction(transaction: Transaction, documentPaths: string[]): void {
+    bulkDeleteInTransaction(transaction: ITransaction, documentPaths: string[]): void {
         if (!Array.isArray(documentPaths)) {
             throw new Error('documentPaths must be an array');
         }
@@ -1340,7 +1452,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     /**
      * Get a document reference within a transaction for complex operations
      */
-    getDocumentReferenceInTransaction(transaction: Transaction, collection: string, documentId: string): FirebaseFirestore.DocumentReference {
+    getDocumentReferenceInTransaction(transaction: ITransaction, collection: string, documentId: string) {
         return this.db.collection(collection).doc(documentId);
     }
 

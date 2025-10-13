@@ -14,7 +14,7 @@
  */
 
 import type { ISOString } from '@splitifyd/shared';
-import type { Transaction } from 'firebase-admin/firestore';
+import type { ITransaction, IQuerySnapshot, IDocumentSnapshot } from '../../firestore-wrapper';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 
 /**
@@ -273,11 +273,11 @@ export interface IFirestoreReader {
      * @returns Object containing all related collections data
      */
     getGroupDeletionData(groupId: string): Promise<{
-        expenses: FirebaseFirestore.QuerySnapshot;
-        settlements: FirebaseFirestore.QuerySnapshot;
-        shareLinks: FirebaseFirestore.QuerySnapshot;
-        groupComments: FirebaseFirestore.QuerySnapshot;
-        expenseComments: FirebaseFirestore.QuerySnapshot[];
+        expenses: IQuerySnapshot;
+        settlements: IQuerySnapshot;
+        shareLinks: IQuerySnapshot;
+        groupComments: IQuerySnapshot;
+        expenseComments: IQuerySnapshot[];
     }>;
 
     // ========================================================================
@@ -325,7 +325,7 @@ export interface IFirestoreReader {
      * @param policyId - The policy ID
      * @returns Raw document snapshot or null if not found
      */
-    getRawPolicyDocument(policyId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
+    getRawPolicyDocument(policyId: string): Promise<IDocumentSnapshot | null>;
 
     /**
      * Get group DTO in a transaction with Timestamp → ISO conversion
@@ -334,7 +334,7 @@ export interface IFirestoreReader {
      * @param groupId - The group ID
      * @returns Group DTO with ISO string dates or null if not found
      */
-    getGroupInTransaction(transaction: Transaction, groupId: string): Promise<GroupDTO | null>;
+    getGroupInTransaction(transaction: ITransaction, groupId: string): Promise<GroupDTO | null>;
 
     /**
      * Get expense DTO in a transaction with Timestamp → ISO conversion
@@ -343,7 +343,7 @@ export interface IFirestoreReader {
      * @param expenseId - The expense ID
      * @returns Expense DTO with ISO string dates or null if not found
      */
-    getExpenseInTransaction(transaction: Transaction, expenseId: string): Promise<ExpenseDTO | null>;
+    getExpenseInTransaction(transaction: ITransaction, expenseId: string): Promise<ExpenseDTO | null>;
 
     /**
      * Get settlement DTO in a transaction with Timestamp → ISO conversion
@@ -352,7 +352,7 @@ export interface IFirestoreReader {
      * @param settlementId - The settlement ID
      * @returns Settlement DTO with ISO string dates or null if not found
      */
-    getSettlementInTransaction(transaction: Transaction, settlementId: string): Promise<SettlementDTO | null>;
+    getSettlementInTransaction(transaction: ITransaction, settlementId: string): Promise<SettlementDTO | null>;
 
     /**
      * @deprecated Use getGroupInTransaction instead - returns DTO with ISO strings
@@ -361,7 +361,7 @@ export interface IFirestoreReader {
      * @param groupId - The group ID
      * @returns Raw document snapshot or null if not found
      */
-    getRawGroupDocumentInTransaction(transaction: Transaction, groupId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
+    getRawGroupDocumentInTransaction(transaction: ITransaction, groupId: string): Promise<IDocumentSnapshot | null>;
 
     /**
      * Get group membership documents in a transaction
@@ -369,5 +369,5 @@ export interface IFirestoreReader {
      * @param groupId - The group ID to query memberships for
      * @returns Array of raw document snapshots
      */
-    getGroupMembershipsInTransaction(transaction: Transaction, groupId: string): Promise<FirebaseFirestore.QuerySnapshot>;
+    getGroupMembershipsInTransaction(transaction: ITransaction, groupId: string): Promise<IQuerySnapshot>;
 }

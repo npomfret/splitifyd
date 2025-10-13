@@ -8,6 +8,7 @@ import { SecurityPresets } from '@splitifyd/shared';
 import { GroupDTOBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore } from '../../firebase';
+import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreReader } from '../../services/firestore';
 import { createTestExpense, createTestGroup, createTestUser, StubFirestore, StubFirestoreReader } from './mocks/firestore-stubs';
@@ -18,7 +19,7 @@ describe('FirestoreReader', () => {
     const firestoreReader = applicationBuilder.buildFirestoreReader();
 
     test('should be instantiable', () => {
-        const reader = new FirestoreReader(firestore);
+        const reader = new FirestoreReader(createFirestoreDatabase(firestore));
         expect(reader).toBeDefined();
         expect(typeof reader.getUser).toBe('function');
         expect(typeof reader.getGroup).toBe('function');
@@ -31,7 +32,7 @@ describe('FirestoreReader', () => {
     });
 
     test('should have all required interface methods', () => {
-        const reader = new FirestoreReader(firestore);
+        const reader = new FirestoreReader(createFirestoreDatabase(firestore));
 
         // Document operations
         expect(typeof reader.getUser).toBe('function');

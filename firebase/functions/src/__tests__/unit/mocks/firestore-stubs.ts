@@ -5,6 +5,7 @@ import type { CreateRequest, DecodedIdToken, GetUsersResult, UpdateRequest, User
 import { Timestamp } from 'firebase-admin/firestore';
 import { vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
+import type { IDocumentSnapshot, IQuerySnapshot, ITransaction } from '../../../firestore-wrapper';
 import type { GroupBalanceDTO } from '../../../schemas';
 import type { UserNotificationDocument } from '../../../schemas/user-notifications';
 import type { IAuthService } from '../../../services/auth';
@@ -401,7 +402,7 @@ export class StubFirestore implements IFirestoreReader, IFirestoreWriter {
     }
 
     // Raw document operations (used by PolicyService)
-    async getRawPolicyDocument(policyId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
+    async getRawPolicyDocument(policyId: string): Promise<IDocumentSnapshot | null> {
         return this.rawDocuments.get(policyId) || null;
     }
 
@@ -584,12 +585,24 @@ export class StubFirestore implements IFirestoreReader, IFirestoreWriter {
         return comments.find((c) => c.id === commentId) || null;
     }
 
-    async getGroupDeletionData(): Promise<any> {
+    async getGroupDeletionData(): Promise<{
+        expenses: IQuerySnapshot;
+        settlements: IQuerySnapshot;
+        shareLinks: IQuerySnapshot;
+        groupComments: IQuerySnapshot;
+        expenseComments: IQuerySnapshot[];
+    }> {
+        const emptySnapshot: IQuerySnapshot = {
+            size: 0,
+            docs: [],
+            empty: true,
+            forEach: () => {},
+        };
         return {
-            expenses: { size: 0, docs: [] },
-            settlements: { size: 0, docs: [] },
-            shareLinks: { size: 0, docs: [] },
-            groupComments: { size: 0, docs: [] },
+            expenses: emptySnapshot,
+            settlements: emptySnapshot,
+            shareLinks: emptySnapshot,
+            groupComments: emptySnapshot,
             expenseComments: [],
         };
     }
@@ -599,11 +612,11 @@ export class StubFirestore implements IFirestoreReader, IFirestoreWriter {
         return false;
     }
 
-    async getGroupMembershipsInTransaction(): Promise<any> {
-        return { docs: [], size: 0, empty: true };
+    async getGroupMembershipsInTransaction(): Promise<IQuerySnapshot> {
+        return { docs: [], size: 0, empty: true, forEach: () => {} };
     }
 
-    async getRawGroupDocumentInTransaction(transaction: any, groupId: string): Promise<any | null> {
+    async getRawGroupDocumentInTransaction(transaction: ITransaction, groupId: string): Promise<IDocumentSnapshot | null> {
         const groupData = this.documents.get(`groups/${groupId}`);
         if (!groupData) {
             return null;
@@ -612,12 +625,24 @@ export class StubFirestore implements IFirestoreReader, IFirestoreWriter {
             id: groupId,
             exists: true,
             data: () => groupData,
-            get: (field: string) => groupData?.[field],
-            ref: { id: groupId, path: `groups/${groupId}` },
+            ref: {
+                id: groupId,
+                path: `groups/${groupId}`,
+                get: async (): Promise<IDocumentSnapshot> => {
+                    const doc = await this.getRawGroupDocumentInTransaction(transaction, groupId);
+                    if (!doc) throw new Error(`Group ${groupId} not found`);
+                    return doc;
+                },
+                set: async () => {},
+                update: async () => {},
+                delete: async () => {},
+                collection: () => ({ doc: () => ({} as any) }) as any,
+                parent: null,
+            },
         };
     }
 
-    async getGroupInTransaction(transaction: FirebaseFirestore.Transaction, groupId: string): Promise<GroupDTO | null> {
+    async getGroupInTransaction(transaction: ITransaction, groupId: string): Promise<GroupDTO | null> {
         // In stub, transaction reads work the same as non-transaction reads
         const key = `groups/${groupId}`;
         if (this.notFoundDocuments.has(key)) {
@@ -626,7 +651,7 @@ export class StubFirestore implements IFirestoreReader, IFirestoreWriter {
         return this.documents.get(key) || null;
     }
 
-    async getExpenseInTransaction(transaction: FirebaseFirestore.Transaction, expenseId: string): Promise<ExpenseDTO | null> {
+    async getExpenseInTransaction(transaction: ITransaction, expenseId: string): Promise<ExpenseDTO | null> {
         // In stub, transaction reads work the same as non-transaction reads
         const key = `expenses/${expenseId}`;
         if (this.notFoundDocuments.has(key)) {
@@ -635,7 +660,7 @@ export class StubFirestore implements IFirestoreReader, IFirestoreWriter {
         return this.documents.get(key) || null;
     }
 
-    async getSettlementInTransaction(transaction: FirebaseFirestore.Transaction, settlementId: string): Promise<SettlementDTO | null> {
+    async getSettlementInTransaction(transaction: ITransaction, settlementId: string): Promise<SettlementDTO | null> {
         // In stub, transaction reads work the same as non-transaction reads
         const key = `settlements/${settlementId}`;
         if (this.notFoundDocuments.has(key)) {

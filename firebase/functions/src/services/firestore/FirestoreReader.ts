@@ -23,8 +23,7 @@ import {
     SecurityPresets,
     type SettlementDTO,
 } from '@splitifyd/shared';
-import type { Firestore } from 'firebase-admin/firestore';
-import { FieldPath, Filter, Timestamp } from 'firebase-admin/firestore';
+import { FieldPath, Filter, Timestamp, type IFirestoreDatabase, type IQuerySnapshot, type IDocumentSnapshot, type ITransaction, type IQuery } from '../../firestore-wrapper';
 import { HTTP_STATUS } from '../../constants';
 import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
@@ -56,7 +55,7 @@ import type { FirestoreOrderField, IFirestoreReader } from './IFirestoreReader';
 import type { BatchGroupFetchOptions, GroupsPaginationCursor, OrderBy, PaginatedResult, QueryOptions } from './IFirestoreReader';
 
 export class FirestoreReader implements IFirestoreReader {
-    constructor(private readonly db: Firestore) {}
+    constructor(private readonly db: IFirestoreDatabase) {}
 
     // ========================================================================
     // Timestamp Conversion Utilities
@@ -655,7 +654,7 @@ export class FirestoreReader implements IFirestoreReader {
      * Builds base query for settlements filtering out soft-deleted items
      * @private
      */
-    private buildBaseSettlementQuery(groupId: string, includeDeleted: boolean = false): FirebaseFirestore.Query {
+    private buildBaseSettlementQuery(groupId: string, includeDeleted: boolean = false): IQuery {
         let query = this.db.collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId);
 
         if (!includeDeleted) {
@@ -669,7 +668,7 @@ export class FirestoreReader implements IFirestoreReader {
      * Executes settlement query and converts documents to DTOs
      * @private
      */
-    private async executeSettlementQuery(query: FirebaseFirestore.Query): Promise<SettlementDTO[]> {
+    private async executeSettlementQuery(query: IQuery): Promise<SettlementDTO[]> {
         const snapshot = await query.get();
         const settlements: SettlementDTO[] = [];
 
@@ -817,7 +816,14 @@ export class FirestoreReader implements IFirestoreReader {
             }
 
             const shareLinkDoc = snapshot.docs[0];
-            const groupId = shareLinkDoc.ref.parent.parent!.id;
+
+            // Extract group ID from document path: groups/{groupId}/shareLinks/{shareLinkId}
+            // shareLinkDoc.ref.parent = shareLinks collection
+            // shareLinkDoc.ref.parent.parent = groups/{groupId} document
+            if (!shareLinkDoc.ref.parent?.parent) {
+                throw new Error('Invalid share link document structure - cannot determine group ID');
+            }
+            const groupId = shareLinkDoc.ref.parent.parent.id;
 
             const rawData = shareLinkDoc.data();
             if (!rawData) {
@@ -941,11 +947,11 @@ export class FirestoreReader implements IFirestoreReader {
     // ========================================================================
 
     async getGroupDeletionData(groupId: string): Promise<{
-        expenses: FirebaseFirestore.QuerySnapshot;
-        settlements: FirebaseFirestore.QuerySnapshot;
-        shareLinks: FirebaseFirestore.QuerySnapshot;
-        groupComments: FirebaseFirestore.QuerySnapshot;
-        expenseComments: FirebaseFirestore.QuerySnapshot[];
+        expenses: IQuerySnapshot;
+        settlements: IQuerySnapshot;
+        shareLinks: IQuerySnapshot;
+        groupComments: IQuerySnapshot;
+        expenseComments: IQuerySnapshot[];
     }> {
         return measureDb('FirestoreReader.getGroupDeletionData', async () => {
             try {
@@ -1083,7 +1089,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getRawPolicyDocument(policyId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
+    async getRawPolicyDocument(policyId: string): Promise<IDocumentSnapshot | null> {
         try {
             const doc = await this.db.collection(FirestoreCollections.POLICIES).doc(policyId).get();
             return doc.exists ? doc : null;
@@ -1097,7 +1103,7 @@ export class FirestoreReader implements IFirestoreReader {
      * Get a group DTO in a transaction (with Timestamp → ISO conversion)
      * Use this for optimistic locking instead of getRawGroupDocumentInTransaction
      */
-    async getGroupInTransaction(transaction: FirebaseFirestore.Transaction, groupId: string): Promise<GroupDTO | null> {
+    async getGroupInTransaction(transaction: ITransaction, groupId: string): Promise<GroupDTO | null> {
         try {
             const docRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
             const doc = await transaction.get(docRef);
@@ -1127,7 +1133,7 @@ export class FirestoreReader implements IFirestoreReader {
      * @deprecated Use getGroupInTransaction instead - returns DTO with ISO strings
      * Raw methods leak Firestore Timestamps into application layer
      */
-    async getRawGroupDocumentInTransaction(transaction: FirebaseFirestore.Transaction, groupId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
+    async getRawGroupDocumentInTransaction(transaction: ITransaction, groupId: string): Promise<IDocumentSnapshot | null> {
         try {
             const docRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
             const doc = await transaction.get(docRef);
@@ -1142,7 +1148,7 @@ export class FirestoreReader implements IFirestoreReader {
      * Get an expense DTO in a transaction (with Timestamp → ISO conversion)
      * Use this for optimistic locking instead of getRawExpenseDocumentInTransaction
      */
-    async getExpenseInTransaction(transaction: FirebaseFirestore.Transaction, expenseId: string): Promise<ExpenseDTO | null> {
+    async getExpenseInTransaction(transaction: ITransaction, expenseId: string): Promise<ExpenseDTO | null> {
         try {
             const docRef = this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId);
             const doc = await transaction.get(docRef);
@@ -1172,7 +1178,7 @@ export class FirestoreReader implements IFirestoreReader {
      * Get a settlement DTO in a transaction (with Timestamp → ISO conversion)
      * Use this for optimistic locking instead of getRawSettlementDocumentInTransaction
      */
-    async getSettlementInTransaction(transaction: FirebaseFirestore.Transaction, settlementId: string): Promise<SettlementDTO | null> {
+    async getSettlementInTransaction(transaction: ITransaction, settlementId: string): Promise<SettlementDTO | null> {
         try {
             const docRef = this.db.collection(FirestoreCollections.SETTLEMENTS).doc(settlementId);
             const doc = await transaction.get(docRef);
@@ -1204,7 +1210,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getGroupMembershipsInTransaction(transaction: FirebaseFirestore.Transaction, groupId: string): Promise<FirebaseFirestore.QuerySnapshot> {
+    async getGroupMembershipsInTransaction(transaction: ITransaction, groupId: string): Promise<IQuerySnapshot> {
         try {
             const query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('groupId', '==', groupId);
             return await transaction.get(query);

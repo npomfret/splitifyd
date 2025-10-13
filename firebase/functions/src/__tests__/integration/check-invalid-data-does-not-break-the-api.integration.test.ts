@@ -17,6 +17,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { FirestoreCollections } from '../../constants';
 import { getFirestore } from '../../firebase';
+import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { FirestoreReader } from '../../services/firestore';
 import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
@@ -160,7 +161,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             await corruptedGroupRef.set(corruptedGroup);
             testGroupIds.push(corruptedGroupRef.id);
 
-            const firestoreReader = new FirestoreReader(getFirestore());
+            const firestoreReader = new FirestoreReader(createFirestoreDatabase(getFirestore()));
 
             // Should handle corrupted data without crashing
             const result = await firestoreReader.getGroupsForUserV2(testUser.uid);

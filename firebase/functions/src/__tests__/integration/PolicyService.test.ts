@@ -1,6 +1,7 @@
 import { generateShortId, NotificationDriver } from '@splitifyd/test-support';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getFirestore } from '../../firebase';
+import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { FirestoreReader } from '../../services/firestore';
 import { FirestoreWriter } from '../../services/firestore';
 import { PolicyService } from '../../services/PolicyService';
@@ -27,8 +28,9 @@ describe('PolicyService - Integration Tests (Essential Firebase Operations Only)
     beforeEach(async () => {
         // Initialize real Firestore instances for integration testing
         firestore = getFirestore();
-        firestoreReader = new FirestoreReader(firestore);
-        firestoreWriter = new FirestoreWriter(firestore);
+        const wrappedDb = createFirestoreDatabase(firestore);
+        firestoreReader = new FirestoreReader(wrappedDb);
+        firestoreWriter = new FirestoreWriter(wrappedDb);
 
         // Create service with real dependencies
         policyService = new PolicyService(firestoreReader, firestoreWriter);

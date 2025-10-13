@@ -1,5 +1,5 @@
 import { CreateExpenseRequest, DELETED_AT_FIELD, ExpenseDTO, ExpenseFullDetailsDTO, GroupDTO, GroupMember, UpdateExpenseRequest } from '@splitifyd/shared';
-import { DocumentReference } from 'firebase-admin/firestore';
+import type { IDocumentReference } from '../firestore-wrapper';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { FirestoreCollections } from '../constants';
@@ -302,7 +302,7 @@ export class ExpenseService {
         }
 
         // Use transaction to create expense atomically and update balance
-        let createdExpenseRef: DocumentReference | undefined;
+        let createdExpenseRef: IDocumentReference | undefined;
         timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
             // Re-verify group exists within transaction - using DTO method

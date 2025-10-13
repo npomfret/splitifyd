@@ -10,11 +10,12 @@
 import { ApiDriver, CreateGroupRequestBuilder, NotificationDriver, UserRegistrationBuilder } from '@splitifyd/test-support';
 import { afterEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
+import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { FirestoreReader } from '../../services/firestore';
 
 describe('FirestoreReader Integration Tests', () => {
     const apiDriver = new ApiDriver();
-    const firestoreReader = new FirestoreReader(getFirestore());
+    const firestoreReader = new FirestoreReader(createFirestoreDatabase(getFirestore()));
     const notificationDriver = new NotificationDriver(getFirestore());
 
     afterEach(async () => {

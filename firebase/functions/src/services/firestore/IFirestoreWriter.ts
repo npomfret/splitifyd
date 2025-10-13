@@ -15,7 +15,8 @@
  */
 
 import type { CommentDTO, CommentTargetType, ExpenseDTO, GroupDTO, RegisteredUser, SettlementDTO, ShareLinkDTO } from '@splitifyd/shared';
-import type { DocumentReference, Timestamp, Transaction } from 'firebase-admin/firestore';
+import type { IDocumentReference, ITransaction, IWriteBatch } from '../../firestore-wrapper';
+import type { Timestamp } from 'firebase-admin/firestore';
 import type { GroupBalanceDTO } from '../../schemas';
 import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
 
@@ -63,7 +64,7 @@ export interface IFirestoreWriter {
      * @param groupId - The group ID
      * @param transactionOrBatch - Optional transaction or batch to perform update within
      */
-    touchGroup(groupId: string, transactionOrBatch?: Transaction | FirebaseFirestore.WriteBatch): Promise<void>;
+    touchGroup(groupId: string, transactionOrBatch?: ITransaction | IWriteBatch): Promise<void>;
 
     /**
      * Update a member's group-specific display name with uniqueness validation
@@ -104,7 +105,7 @@ export interface IFirestoreWriter {
      * @param shareLinkData - The share link data
      * @returns Document reference
      */
-    createShareLinkInTransaction(transaction: Transaction, groupId: string, shareLinkData: Omit<ShareLinkDTO, 'id'>): DocumentReference;
+    createShareLinkInTransaction(transaction: ITransaction, groupId: string, shareLinkData: Omit<ShareLinkDTO, 'id'>): IDocumentReference;
 
     // ========================================================================
     // Policy Operations
@@ -139,7 +140,7 @@ export interface IFirestoreWriter {
      * @param updateFunction - Function that performs transactional operations
      * @returns Transaction result
      */
-    runTransaction<T>(updateFunction: (transaction: Transaction) => Promise<T>): Promise<T>;
+    runTransaction<T>(updateFunction: (transaction: ITransaction) => Promise<T>): Promise<T>;
 
     /**
      * Create a document within a transaction
@@ -149,7 +150,7 @@ export interface IFirestoreWriter {
      * @param data - The document data
      * @returns Document reference
      */
-    createInTransaction(transaction: Transaction, collection: string, documentId: string | null, data: any): DocumentReference;
+    createInTransaction(transaction: ITransaction, collection: string, documentId: string | null, data: any): IDocumentReference;
 
     /**
      * Update a document within a transaction
@@ -157,7 +158,7 @@ export interface IFirestoreWriter {
      * @param documentPath - The full document path
      * @param updates - The update data
      */
-    updateInTransaction(transaction: Transaction, documentPath: string, updates: any): void;
+    updateInTransaction(transaction: ITransaction, documentPath: string, updates: any): void;
 
     // ========================================================================
     // Utility Operations
@@ -247,7 +248,7 @@ export interface IFirestoreWriter {
      * @param groupId - The group ID
      * @param balance - The balance data to set
      */
-    setGroupBalanceInTransaction(transaction: Transaction, groupId: string, balance: GroupBalanceDTO): void;
+    setGroupBalanceInTransaction(transaction: ITransaction, groupId: string, balance: GroupBalanceDTO): void;
 
     /**
      * Get group balance within a transaction (must be called before any writes)
@@ -256,7 +257,7 @@ export interface IFirestoreWriter {
      * @returns The current group balance
      * @throws ApiError if balance not found
      */
-    getGroupBalanceInTransaction(transaction: Transaction, groupId: string): Promise<GroupBalanceDTO>;
+    getGroupBalanceInTransaction(transaction: ITransaction, groupId: string): Promise<GroupBalanceDTO>;
 
     /**
      * Update group balance within a transaction (requires balance to be read first)
@@ -266,7 +267,7 @@ export interface IFirestoreWriter {
      * @param currentBalance - The current balance (already read in transaction)
      * @param updater - Function that takes current balance and returns updated balance
      */
-    updateGroupBalanceInTransaction(transaction: Transaction, groupId: string, currentBalance: GroupBalanceDTO, updater: (current: GroupBalanceDTO) => GroupBalanceDTO): void;
+    updateGroupBalanceInTransaction(transaction: ITransaction, groupId: string, currentBalance: GroupBalanceDTO, updater: (current: GroupBalanceDTO) => GroupBalanceDTO): void;
 
     // ========================================================================
     // Transaction Helper Methods (Phase 1 - Transaction Foundation)
@@ -278,7 +279,7 @@ export interface IFirestoreWriter {
      * @param documentPaths - Array of document paths to delete
      * @throws Error if any deletion fails (transaction will be aborted)
      */
-    bulkDeleteInTransaction(transaction: Transaction, documentPaths: string[]): void;
+    bulkDeleteInTransaction(transaction: ITransaction, documentPaths: string[]): void;
 
     // ========================================================================
     // Group Deletion and Recovery Operations
@@ -291,7 +292,7 @@ export interface IFirestoreWriter {
      * @param documentId - The document ID
      * @returns Document reference for transaction operations
      */
-    getDocumentReferenceInTransaction(transaction: Transaction, collection: string, documentId: string): FirebaseFirestore.DocumentReference;
+    getDocumentReferenceInTransaction(transaction: ITransaction, collection: string, documentId: string): IDocumentReference;
 
     /**
      * Atomically update group timestamp, delete membership, and remove from notifications
