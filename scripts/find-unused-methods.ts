@@ -108,7 +108,7 @@ function analyzeInterfaceMethods(interfaceDecl: InterfaceDeclaration, project: P
         const isDeprecated = jsDocs.some((doc) => doc.getTags().some((tag) => tag.getTagName() === 'deprecated'));
 
         const implementations = countImplementations(interfaceName, methodName, project);
-        const { total, test, production } = countInvocations(methodName, project);
+        const { total, test, production } = countInvocationsForInterface(interfaceName, methodName, project);
 
         console.log(`  - ${methodName}: ${implementations} impl, ${production} prod calls, ${test} test calls${isDeprecated ? ' (DEPRECATED)' : ''}`);
 
@@ -133,6 +133,14 @@ function analyzeClassMethods(classDecl: ClassDeclaration, project: Project): Met
     const className = classDecl.getName() || '';
     const sourceFile = classDecl.getSourceFile();
 
+    // Get all interfaces this class implements
+    const implementedInterfaces: string[] = [];
+    const implementsClauses = classDecl.getImplements();
+    for (const clause of implementsClauses) {
+        const interfaceName = clause.getText();
+        implementedInterfaces.push(interfaceName);
+    }
+
     const classMethods = classDecl.getMethods();
 
     for (const method of classMethods) {
@@ -147,7 +155,7 @@ function analyzeClassMethods(classDecl: ClassDeclaration, project: Project): Met
         const jsDocs = method.getJsDocs();
         const isDeprecated = jsDocs.some((doc) => doc.getTags().some((tag) => tag.getTagName() === 'deprecated'));
 
-        const { total, test, production } = countInvocations(methodName, project);
+        const { total, test, production } = countInvocationsForClass(className, methodName, implementedInterfaces, project);
 
         console.log(`  - ${methodName}: ${production} prod calls, ${test} test calls${isDeprecated ? ' (DEPRECATED)' : ''}`);
 
@@ -193,7 +201,43 @@ function countImplementations(interfaceName: string, methodName: string, project
     return count;
 }
 
-function countInvocations(methodName: string, project: Project): { total: number; test: number; production: number; } {
+/**
+ * Check if a type matches or implements the target interface/class
+ */
+function typeMatchesTarget(type: any, targetName: string): boolean {
+    try {
+        const typeText = type.getText();
+
+        // Direct match
+        if (typeText === targetName) {
+            return true;
+        }
+
+        // Check if type symbol matches target name
+        const symbol = type.getSymbol();
+        if (symbol && symbol.getName() === targetName) {
+            return true;
+        }
+
+        // Check for interface implementation
+        const baseTypes = type.getBaseTypes();
+        for (const baseType of baseTypes) {
+            if (typeMatchesTarget(baseType, targetName)) {
+                return true;
+            }
+        }
+
+        return false;
+    } catch (e) {
+        // If type analysis fails, we can't determine the match
+        return false;
+    }
+}
+
+/**
+ * Count invocations of a method on a specific interface
+ */
+function countInvocationsForInterface(interfaceName: string, methodName: string, project: Project): { total: number; test: number; production: number; } {
     let testCount = 0;
     let productionCount = 0;
 
@@ -215,14 +259,49 @@ function countInvocations(methodName: string, project: Project): { total: number
                 const name = propAccess.getName();
 
                 if (name === methodName) {
-                    if (isTest) {
-                        testCount++;
-                    } else {
-                        productionCount++;
+                    // Get the type of the object being accessed
+                    const objectExpression = propAccess.getExpression();
+                    const objectType = objectExpression.getType();
+
+                    // Check if this is actually calling the interface's method
+                    if (typeMatchesTarget(objectType, interfaceName)) {
+                        if (isTest) {
+                            testCount++;
+                        } else {
+                            productionCount++;
+                        }
                     }
                 }
             }
         }
+    }
+
+    return {
+        total: testCount + productionCount,
+        test: testCount,
+        production: productionCount,
+    };
+}
+
+/**
+ * Count invocations of a method on a specific class
+ * For classes, we check both the class name AND any interfaces it implements
+ * since variables are usually typed as the interface, not the concrete class
+ */
+function countInvocationsForClass(className: string, methodName: string, implementedInterfaces: string[], project: Project): { total: number; test: number; production: number; } {
+    let testCount = 0;
+    let productionCount = 0;
+
+    // Check for calls on the class itself
+    const classResult = countInvocationsForInterface(className, methodName, project);
+    testCount += classResult.test;
+    productionCount += classResult.production;
+
+    // Also check for calls on any interfaces this class implements
+    for (const interfaceName of implementedInterfaces) {
+        const interfaceResult = countInvocationsForInterface(interfaceName, methodName, project);
+        testCount += interfaceResult.test;
+        productionCount += interfaceResult.production;
     }
 
     return {
