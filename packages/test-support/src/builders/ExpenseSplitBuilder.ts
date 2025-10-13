@@ -13,7 +13,6 @@ export class ExpenseSplitBuilder {
 
     constructor() {}
 
-
     /**
      * Create an exact split for the given participants with specified amounts
      */

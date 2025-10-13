@@ -3,7 +3,7 @@ import { ExpenseDTOBuilder, SimplifiedDebtBuilder } from '@splitifyd/test-suppor
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { GroupBalanceDTO } from '../../../schemas';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
-import { StubFirestore, StubFirestoreWriter} from '../mocks/firestore-stubs';
+import { StubFirestore, StubFirestoreWriter } from '../mocks/firestore-stubs';
 
 describe('IncrementalBalanceService - Unit Tests', () => {
     let service: IncrementalBalanceService;

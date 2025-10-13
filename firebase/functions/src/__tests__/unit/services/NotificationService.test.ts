@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { UserNotificationDocument } from '../../../schemas/user-notifications';
 import { type ChangeType, NotificationService } from '../../../services/notification-service';
-import { StubFirestore, StubFirestoreReader} from '../mocks/firestore-stubs';
+import { StubFirestore, StubFirestoreReader } from '../mocks/firestore-stubs';
 
 describe('NotificationService - Comprehensive Unit Tests', () => {
     let notificationService: NotificationService;
@@ -9,7 +9,9 @@ describe('NotificationService - Comprehensive Unit Tests', () => {
     let stubWriter: StubFirestore;
 
     beforeEach(() => {
-        const stub = new StubFirestoreReader(); stubReader = stub; stubWriter = stub;
+        const stub = new StubFirestoreReader();
+        stubReader = stub;
+        stubWriter = stub;
         notificationService = new NotificationService(stubReader, stubWriter);
     });
 

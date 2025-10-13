@@ -6,7 +6,7 @@ import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { GroupShareService } from '../../../services/GroupShareService';
 import { ApiError } from '../../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubAuthService, StubFirestore, StubFirestoreReader} from '../mocks/firestore-stubs';
+import { StubAuthService, StubFirestore, StubFirestoreReader } from '../mocks/firestore-stubs';
 
 describe('GroupShareService', () => {
     let groupShareService: GroupShareService;

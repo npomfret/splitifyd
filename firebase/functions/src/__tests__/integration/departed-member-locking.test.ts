@@ -2,7 +2,16 @@
 // Tests that expenses and settlements involving departed members become read-only (locked)
 
 import { calculateEqualSplits, PooledTestUser } from '@splitifyd/shared';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder, NotificationDriver, SettlementUpdateBuilder, TestGroupManager } from '@splitifyd/test-support';
+import {
+    ApiDriver,
+    borrowTestUsers,
+    CreateExpenseRequestBuilder,
+    CreateSettlementRequestBuilder,
+    ExpenseUpdateBuilder,
+    NotificationDriver,
+    SettlementUpdateBuilder,
+    TestGroupManager,
+} from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 

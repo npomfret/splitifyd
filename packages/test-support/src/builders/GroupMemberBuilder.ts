@@ -152,5 +152,4 @@ export class GroupMemberBuilder {
             .withDisplayName('Admin User')
             .asAdmin();
     }
-
 }

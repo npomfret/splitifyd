@@ -519,7 +519,7 @@ export class ApiDriver {
         const token = adminToken;
         return await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', {
             text,
-            publish
+            publish,
         }, token);
     }
 
@@ -528,7 +528,7 @@ export class ApiDriver {
         const token = adminToken;
         return await this.apiRequest('/admin/policies', 'POST', {
             policyName,
-            text
+            text,
         }, token);
     }
 

@@ -2,7 +2,16 @@
 // Combines tests from expenses-api.test.ts, ExpenseService.integration.test.ts, and expenses-full-details.test.ts
 
 import { calculateEqualSplits, PooledTestUser } from '@splitifyd/shared';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder, generateShortId, NotificationDriver, TestGroupManager } from '@splitifyd/test-support';
+import {
+    ApiDriver,
+    borrowTestUsers,
+    CreateExpenseRequestBuilder,
+    CreateSettlementRequestBuilder,
+    ExpenseUpdateBuilder,
+    generateShortId,
+    NotificationDriver,
+    TestGroupManager,
+} from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 

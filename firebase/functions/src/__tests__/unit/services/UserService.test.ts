@@ -7,7 +7,7 @@ import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { UserService } from '../../../services/UserService2';
 import { ApiError } from '../../../utils/errors';
 import { initializeI18n } from '../../../utils/i18n';
-import { StubAuthService, StubFirestore, StubFirestoreReader} from '../mocks/firestore-stubs';
+import { StubAuthService, StubFirestore, StubFirestoreReader } from '../mocks/firestore-stubs';
 
 describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;
@@ -31,7 +31,9 @@ describe('UserService - Consolidated Unit Tests', () => {
     });
 
     beforeEach(() => {
-        const stub = new StubFirestoreReader(); stubReader = stub; stubWriter = stub;
+        const stub = new StubFirestoreReader();
+        stubReader = stub;
+        stubWriter = stub;
         stubAuth = new StubAuthService();
 
         userService = new ApplicationBuilder(stubReader, stubWriter, stubAuth).buildUserService();
@@ -143,7 +145,8 @@ describe('UserService - Consolidated Unit Tests', () => {
             });
 
             // Set up Firestore user document
-            const userDoc = new RegisteredUserBuilder().withUid(uid)
+            const userDoc = new RegisteredUserBuilder()
+                .withUid(uid)
                 .withDisplayName(displayName)
                 .withThemeColor(createTestThemeColor())
                 .withPreferredLanguage('en')
@@ -208,7 +211,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                 stubAuth.setUser(user.uid, user);
 
                 // Set up corresponding Firestore documents using builder
-                const userDoc = new RegisteredUserBuilder().withUid(user.uid)
+                const userDoc = new RegisteredUserBuilder()
+                    .withUid(user.uid)
                     .withDisplayName(user.displayName)
                     .withThemeColor(createTestThemeColor())
                     .build();
@@ -240,7 +244,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: 'Existing User',
             });
 
-            const userDoc = new RegisteredUserBuilder().withUid('existing-user')
+            const userDoc = new RegisteredUserBuilder()
+                .withUid('existing-user')
                 .withDisplayName('Existing User')
                 .withThemeColor(createTestThemeColor())
                 .build();
@@ -267,7 +272,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: originalDisplayName,
             });
 
-            const userDoc = new RegisteredUserBuilder().withUid(uid)
+            const userDoc = new RegisteredUserBuilder()
+                .withUid(uid)
                 .withDisplayName(originalDisplayName)
                 .withThemeColor(createTestThemeColor())
                 .build();
@@ -295,7 +301,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: 'Test User',
             });
 
-            const userDoc = new RegisteredUserBuilder().withUid(uid)
+            const userDoc = new RegisteredUserBuilder()
+                .withUid(uid)
                 .withDisplayName('Test User')
                 .withThemeColor(createTestThemeColor())
                 .build();
@@ -319,7 +326,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                 photoURL: 'https://example.com/old-photo.jpg',
             });
 
-            const userDoc = new RegisteredUserBuilder().withUid(uid)
+            const userDoc = new RegisteredUserBuilder()
+                .withUid(uid)
                 .withDisplayName('Test User')
                 .withThemeColor(createTestThemeColor())
                 .build();
@@ -364,7 +372,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: 'Test User',
             });
 
-            const userDoc = new RegisteredUserBuilder().withUid(uid)
+            const userDoc = new RegisteredUserBuilder()
+                .withUid(uid)
                 .withDisplayName('Test User')
                 .withThemeColor(createTestThemeColor())
                 .build();
@@ -410,7 +419,8 @@ describe('UserService - Consolidated Unit Tests', () => {
                 photoURL: 'https://example.com/photo.jpg',
             });
 
-            const userDoc = new RegisteredUserBuilder().withUid(uid)
+            const userDoc = new RegisteredUserBuilder()
+                .withUid(uid)
                 .withDisplayName(displayName)
                 .withThemeColor(createTestThemeColor())
                 .build();

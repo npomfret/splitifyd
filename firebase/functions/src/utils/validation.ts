@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { ApiError } from './errors';
 import { HTTP_STATUS } from '../constants';
+import { ApiError } from './errors';
 
 /**
  * Error mapping interface for custom error codes and messages
@@ -25,7 +25,7 @@ export interface ValidationErrorMapping {
 export function parseWithApiError<T>(
     schema: z.ZodSchema<T>,
     data: unknown,
-    errorMapping?: ValidationErrorMapping
+    errorMapping?: ValidationErrorMapping,
 ): T {
     try {
         return schema.parse(data);
@@ -78,7 +78,7 @@ export function parseWithApiError<T>(
                     HTTP_STATUS.BAD_REQUEST,
                     customMapping.code,
                     message,
-                    details
+                    details,
                 );
             }
 
@@ -132,7 +132,7 @@ export function validateAndSanitizeString(
     value: string,
     minLength: number = 1,
     maxLength: number = 200,
-    fieldName: string = 'field'
+    fieldName: string = 'field',
 ): string {
     const trimmed = value.trim();
 
@@ -140,7 +140,7 @@ export function validateAndSanitizeString(
         throw new ApiError(
             HTTP_STATUS.BAD_REQUEST,
             'INVALID_INPUT',
-            `${fieldName} must be at least ${minLength} character${minLength === 1 ? '' : 's'}`
+            `${fieldName} must be at least ${minLength} character${minLength === 1 ? '' : 's'}`,
         );
     }
 
@@ -148,7 +148,7 @@ export function validateAndSanitizeString(
         throw new ApiError(
             HTTP_STATUS.BAD_REQUEST,
             'INVALID_INPUT',
-            `${fieldName} must be no more than ${maxLength} characters`
+            `${fieldName} must be no more than ${maxLength} characters`,
         );
     }
 
@@ -163,7 +163,7 @@ export function validateId(id: unknown, resourceName: string = 'resource'): stri
         throw new ApiError(
             HTTP_STATUS.BAD_REQUEST,
             'INVALID_INPUT',
-            `Invalid ${resourceName} ID`
+            `Invalid ${resourceName} ID`,
         );
     }
 

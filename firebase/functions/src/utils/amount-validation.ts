@@ -57,7 +57,8 @@ export function validateAmountPrecision(amount: number, currencyCode: string): v
  * @returns Joi alternatives schema that accepts both number and string amounts
  */
 export function createJoiAmountSchema(currencyField?: string): Joi.AlternativesSchema {
-    const baseSchema = Joi.alternatives()
+    const baseSchema = Joi
+        .alternatives()
         .try(
             // Option 1: Accept numbers (backward compatible)
             Joi.number().positive().max(999999.99),

@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { PolicyService } from '../../../services/PolicyService';
-import { createMockPolicyDocument, StubFirestore, StubFirestoreReader} from '../mocks/firestore-stubs';
+import { createMockPolicyDocument, StubFirestore, StubFirestoreReader } from '../mocks/firestore-stubs';
 
 /**
  * Consolidated PolicyService Unit Tests

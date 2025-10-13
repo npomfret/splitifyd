@@ -5,7 +5,7 @@ import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import type { IFirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubAuthService, StubFirestore, StubFirestoreReader} from '../mocks/firestore-stubs';
+import { StubAuthService, StubFirestore, StubFirestoreReader } from '../mocks/firestore-stubs';
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     let firestoreWriter: IFirestoreWriter;
@@ -118,7 +118,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
         });
 
         it('should handle display names with special characters', async () => {
-            const specialName = "O'Brien-Smith (Admin)";
+            const specialName = 'O\'Brien-Smith (Admin)';
 
             // Act
             await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, specialName);

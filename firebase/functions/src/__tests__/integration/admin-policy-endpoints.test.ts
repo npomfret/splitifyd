@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { generateShortId, ApiDriver } from '@splitifyd/test-support';
+import { ApiDriver, generateShortId } from '@splitifyd/test-support';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 /**
  * Integration tests for admin policy HTTP endpoints

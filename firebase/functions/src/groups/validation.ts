@@ -1,15 +1,8 @@
-import {
-    CreateGroupRequest,
-    CreateGroupRequestSchema,
-    UpdateDisplayNameRequest,
-    UpdateDisplayNameRequestSchema,
-    UpdateGroupRequest,
-    UpdateGroupRequestSchema,
-} from '@splitifyd/shared';
+import { CreateGroupRequest, CreateGroupRequestSchema, UpdateDisplayNameRequest, UpdateDisplayNameRequestSchema, UpdateGroupRequest, UpdateGroupRequestSchema } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
-import { parseWithApiError } from '../utils/validation';
 import { sanitizeString } from '../utils/security';
+import { parseWithApiError } from '../utils/validation';
 
 /**
  * Validate create group request

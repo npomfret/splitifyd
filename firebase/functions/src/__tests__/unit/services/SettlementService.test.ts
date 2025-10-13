@@ -5,7 +5,7 @@ import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { SettlementService } from '../../../services/SettlementService';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubAuthService, StubFirestore, StubFirestoreReader} from '../mocks/firestore-stubs';
+import { StubAuthService, StubFirestore, StubFirestoreReader } from '../mocks/firestore-stubs';
 
 describe('SettlementService - Unit Tests', () => {
     let settlementService: SettlementService;
@@ -38,7 +38,9 @@ describe('SettlementService - Unit Tests', () => {
 
     beforeEach(() => {
         // Create stubs
-        const stub = new StubFirestoreReader(); stubReader = stub; stubWriter = stub;
+        const stub = new StubFirestoreReader();
+        stubReader = stub;
+        stubWriter = stub;
         stubAuth = new StubAuthService();
 
         applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);

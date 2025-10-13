@@ -2,7 +2,7 @@ import { RegisterPage } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 
 test.describe('Registration Form Validation', () => {
-    test('should show validation error for empty name field', async ({ pageWithLogging: page, }) => {
+    test('should show validation error for empty name field', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -16,7 +16,7 @@ test.describe('Registration Form Validation', () => {
         await expect(registerPage.getSubmitButton()).toBeDisabled();
     });
 
-    test('should show validation error for empty email field', async ({ pageWithLogging: page, }) => {
+    test('should show validation error for empty email field', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -30,7 +30,7 @@ test.describe('Registration Form Validation', () => {
         await expect(registerPage.getSubmitButton()).toBeDisabled();
     });
 
-    test('should show validation error for empty password field', async ({ pageWithLogging: page, }) => {
+    test('should show validation error for empty password field', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -44,7 +44,7 @@ test.describe('Registration Form Validation', () => {
         await expect(registerPage.getSubmitButton()).toBeDisabled();
     });
 
-    test('should show validation error for empty confirm password field', async ({ pageWithLogging: page, }) => {
+    test('should show validation error for empty confirm password field', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -92,7 +92,7 @@ test.describe('Registration Form Validation', () => {
         await registerPage.verifyErrorMessage('Password must be at least 6 characters');
     });
 
-    test('should require Terms of Service checkbox to be checked', async ({ pageWithLogging: page, }) => {
+    test('should require Terms of Service checkbox to be checked', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -110,7 +110,7 @@ test.describe('Registration Form Validation', () => {
         await registerPage.verifyCheckboxStates(false, true);
     });
 
-    test('should require Cookie Policy checkbox to be checked', async ({ pageWithLogging: page, }) => {
+    test('should require Cookie Policy checkbox to be checked', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -128,7 +128,7 @@ test.describe('Registration Form Validation', () => {
         await registerPage.verifyCheckboxStates(true, false);
     });
 
-    test('should require both policy checkboxes to be checked', async ({ pageWithLogging: page, }) => {
+    test('should require both policy checkboxes to be checked', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -145,7 +145,7 @@ test.describe('Registration Form Validation', () => {
         await registerPage.verifyCheckboxStates(false, false);
     });
 
-    test('should accept valid minimum length password (6 characters)', async ({ pageWithLogging: page, }) => {
+    test('should accept valid minimum length password (6 characters)', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -160,7 +160,7 @@ test.describe('Registration Form Validation', () => {
         await expect(registerPage.getSubmitButton()).toBeEnabled();
     });
 
-    test('should enable submit when all validation requirements are met', async ({ pageWithLogging: page, }) => {
+    test('should enable submit when all validation requirements are met', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -194,7 +194,7 @@ test.describe('Registration Form Validation', () => {
         await expect(submitButton).toBeEnabled();
     });
 
-    test('should disable submit when required field is cleared', async ({ pageWithLogging: page, }) => {
+    test('should disable submit when required field is cleared', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -221,7 +221,7 @@ test.describe('Registration Form Validation', () => {
         await expect(submitButton).toBeDisabled();
     });
 
-    test('should disable submit when checkbox is unchecked', async ({ pageWithLogging: page, }) => {
+    test('should disable submit when checkbox is unchecked', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -248,7 +248,7 @@ test.describe('Registration Form Validation', () => {
         await expect(submitButton).toBeDisabled();
     });
 
-    test('should validate whitespace-only name as invalid', async ({ pageWithLogging: page, }) => {
+    test('should validate whitespace-only name as invalid', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -269,7 +269,7 @@ test.describe('Registration Form Validation', () => {
 });
 
 test.describe('Registration Form Field Interactions', () => {
-    test('should allow typing in all fields', async ({ pageWithLogging: page, }) => {
+    test('should allow typing in all fields', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -287,7 +287,7 @@ test.describe('Registration Form Field Interactions', () => {
         await expect(registerPage.getConfirmPasswordInput()).toHaveValue('SecurePass123');
     });
 
-    test('should allow changing field values', async ({ pageWithLogging: page, }) => {
+    test('should allow changing field values', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -303,7 +303,7 @@ test.describe('Registration Form Field Interactions', () => {
         await expect(registerPage.getEmailInput()).toHaveValue('jane@example.com');
     });
 
-    test('should allow toggling checkboxes multiple times', async ({ pageWithLogging: page, }) => {
+    test('should allow toggling checkboxes multiple times', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 

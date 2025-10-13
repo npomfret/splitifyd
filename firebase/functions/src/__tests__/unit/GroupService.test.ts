@@ -7,7 +7,7 @@ import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { GroupService } from '../../services/GroupService';
 import { ApiError } from '../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
-import { StubAuthService, StubFirestore, StubFirestoreReader} from './mocks/firestore-stubs';
+import { StubAuthService, StubFirestore, StubFirestoreReader } from './mocks/firestore-stubs';
 
 describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;

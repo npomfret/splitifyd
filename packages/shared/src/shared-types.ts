@@ -1,7 +1,7 @@
 // Single shared type file for webapp
 // This file contains all type definitions used by the webapp client
-import type { ColorPattern } from './user-colors';
 import { z } from 'zod';
+import type { ColorPattern } from './user-colors';
 
 // ========================================================================
 // Type aliases for Firebase types (browser-safe)

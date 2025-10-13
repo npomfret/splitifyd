@@ -3,7 +3,7 @@ import { GroupBalanceDTOBuilder, GroupDTOBuilder, ThemeBuilder, UserBalanceBuild
 import { beforeEach, describe, expect, it, test } from 'vitest';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubFirestore, StubFirestoreReader} from '../mocks/firestore-stubs';
+import { StubFirestore, StubFirestoreReader } from '../mocks/firestore-stubs';
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {
     let groupMemberService: GroupMemberService;

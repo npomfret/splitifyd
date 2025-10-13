@@ -2,7 +2,7 @@ import * as Joi from 'joi';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 
-import { CreateExpenseRequest, SplitTypes, UpdateExpenseRequest, parseMonetaryAmount } from '@splitifyd/shared';
+import { CreateExpenseRequest, parseMonetaryAmount, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
 import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 import { validateAmountPrecision } from '../utils/amount-validation';
 import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
@@ -19,7 +19,8 @@ import { sanitizeString } from '../utils/security';
  * - Preserves validation error messages
  */
 const createAmountSchema = () =>
-    Joi.alternatives()
+    Joi
+        .alternatives()
         .try(
             // Option 1: Accept numbers (backward compatible)
             Joi.number().positive(),

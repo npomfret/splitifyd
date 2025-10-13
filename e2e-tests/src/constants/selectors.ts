@@ -32,7 +32,6 @@ export const SELECTORS = {
     MODAL_OVERLAY: '.fixed.inset-0',
 } as const;
 
-
 export const FORM_LABELS = {
     DESCRIPTION: translation.expenseBasicFields.descriptionLabel,
     AMOUNT: translation.expenseBasicFields.amountLabel,

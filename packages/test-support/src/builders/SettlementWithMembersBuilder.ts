@@ -119,5 +119,4 @@ export class SettlementWithMembersBuilder {
             .withPayeeId(payeeId)
             .withAmount(amount);
     }
-
 }

@@ -61,7 +61,8 @@ test.describe('Join Group Page - Already a Member', () => {
 
         await setupSuccessfulApiMocks(page);
 
-        const previewResponse = PreviewGroupResponseBuilder.alreadyMember()
+        const previewResponse = PreviewGroupResponseBuilder
+            .alreadyMember()
             .withGroupName('Existing Group')
             .build();
         await mockGroupPreviewApi(page, previewResponse);
@@ -82,7 +83,8 @@ test.describe('Join Group Page - Successful Join', () => {
 
         await setupSuccessfulApiMocks(page);
 
-        const previewResponse = PreviewGroupResponseBuilder.newMember()
+        const previewResponse = PreviewGroupResponseBuilder
+            .newMember()
             .withGroupName('New Group')
             .build();
         await mockGroupPreviewApi(page, previewResponse);

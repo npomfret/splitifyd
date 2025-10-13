@@ -1,7 +1,7 @@
 import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
-import { StubFirestore, StubFirestoreWriter} from '../mocks/firestore-stubs';
+import { StubFirestore, StubFirestoreWriter } from '../mocks/firestore-stubs';
 
 /**
  * IncrementalBalanceService - Scenario Tests

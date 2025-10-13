@@ -163,7 +163,9 @@ describe('Security and Permissions - Consolidated Tests', () => {
                     new GroupUpdateBuilder().withName('Hacked Name').build(),
                     users[3].token,
                 ),
-            ).rejects.toThrow(/failed with status (403|404)/);
+            )
+                .rejects
+                .toThrow(/failed with status (403|404)/);
         });
     });
 
@@ -195,7 +197,9 @@ describe('Security and Permissions - Consolidated Tests', () => {
                     new GroupUpdateBuilder().withName('Hacked by Member').build(),
                     memberUser.token,
                 ),
-            ).rejects.toThrow(/failed with status (403|404)/);
+            )
+                .rejects
+                .toThrow(/failed with status (403|404)/);
         });
     });
 

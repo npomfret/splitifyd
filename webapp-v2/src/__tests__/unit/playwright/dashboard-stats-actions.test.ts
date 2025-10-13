@@ -4,7 +4,7 @@ import { mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-fireba
 
 test.describe('Dashboard Stats Display', () => {
     test('should display loading skeleton while groups are loading', async ({ authenticatedPage }) => {
-        const { page, } = authenticatedPage;
+        const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
         // Mock delayed API response to see loading state - use function-based routing to match all variants

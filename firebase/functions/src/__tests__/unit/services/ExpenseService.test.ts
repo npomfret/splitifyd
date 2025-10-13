@@ -6,7 +6,7 @@ import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { ExpenseService } from '../../../services/ExpenseService';
 import { ApiError } from '../../../utils/errors';
-import { StubAuthService, StubFirestore, StubFirestoreReader} from '../mocks/firestore-stubs';
+import { StubAuthService, StubFirestore, StubFirestoreReader } from '../mocks/firestore-stubs';
 
 describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;
@@ -22,7 +22,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
     beforeEach(() => {
         // Only stub the Firestore layer and Auth service - everything else uses real implementations
-        const stub = new StubFirestoreReader(); stubReader = stub; stubWriter = stub;
+        const stub = new StubFirestoreReader();
+        stubReader = stub;
+        stubWriter = stub;
         stubAuthService = new StubAuthService();
 
         // Use ApplicationBuilder to create properly wired ExpenseService

@@ -69,7 +69,7 @@ export class StubFirestore implements IFirestoreReader, IFirestoreWriter {
      * Firestore Timestamps internally, matching production Firestore storage behavior.
      */
     setUser(userId: string, userData: Partial<RegisteredUser> = {}): void {
-        const defaultUser: Partial<RegisteredUser> & { id: string } = {
+        const defaultUser: Partial<RegisteredUser> & { id: string; } = {
             id: userId,
             uid: userId,
             displayName: `Test User ${userId}`,
@@ -808,10 +808,10 @@ export class StubFirestore implements IFirestoreReader, IFirestoreWriter {
                 if (isQuery) {
                     // Handle collection query
                     // Extract collection path and where clauses
-                    const collectionPath = refOrQuery._query?.path?.segments?.join('/') ||
-                                          refOrQuery.path ||
-                                          refOrQuery._path?.segments?.join('/') ||
-                                          'group-members'; // Fallback for our specific use case
+                    const collectionPath = refOrQuery._query?.path?.segments?.join('/')
+                        || refOrQuery.path
+                        || refOrQuery._path?.segments?.join('/')
+                        || 'group-members'; // Fallback for our specific use case
 
                     // For simplicity, extract filters from the query object
                     // In real Firestore, this would be more complex

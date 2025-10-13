@@ -114,7 +114,8 @@ export class JoinGroupPage extends BasePage {
             }
 
             // Second check: Look for authentication loading states
-            const checkingAuth = await this.page
+            const checkingAuth = await this
+                .page
                 .getByText('Checking authentication...')
                 .isVisible({ timeout: 500 })
                 .catch(() => false);
@@ -130,7 +131,8 @@ export class JoinGroupPage extends BasePage {
             // FIRST: Special case for join group page - if we can see join elements, user is authenticated
             const joinButtonVisible = await this.getJoinGroupButton().isVisible({ timeout: 1000 }).catch(() => false);
             const joinGroupHeadingVisible = await this.getJoinGroupHeading().isVisible({ timeout: 1000 }).catch(() => false);
-            const groupInviteMessage = await this.page
+            const groupInviteMessage = await this
+                .page
                 .getByText(/you've been invited|invited to join/i)
                 .isVisible({ timeout: 1000 })
                 .catch(() => false);
@@ -157,7 +159,8 @@ export class JoinGroupPage extends BasePage {
             }
 
             // Final check: Look for other authenticated UI patterns
-            const dashboardContent = await this.page
+            const dashboardContent = await this
+                .page
                 .getByText(/create group|your groups|my groups/i)
                 .isVisible({ timeout: 1000 })
                 .catch(() => false);
@@ -304,7 +307,8 @@ export class JoinGroupPage extends BasePage {
 
             // Still joining - keep polling
             throw new Error('Still joining...');
-        }).toPass({ timeout: 5000 });
+        })
+            .toPass({ timeout: 5000 });
     }
 
     // ============================================================================
