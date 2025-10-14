@@ -5,7 +5,7 @@
 @docs/guides/end-to-end_testing.md
 @docs/guides/firebase.md
 @docs/guides/general.md
-@docs/guides/testnig.md
+@docs/guides/testing.md
 @docs/guides/types.md
 @docs/guides/webapp-and-style-guide.md
 
