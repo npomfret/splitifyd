@@ -31,7 +31,7 @@ export class ExpenseSplitBuilder {
     /**
      * Create a percentage split for the given participants with specified percentages
      */
-    static percentageSplit(totalAmount: number, userPercentages: Array<{ uid: string; percentage: number; }>): ExpenseSplitBuilder {
+    static percentageSplit(totalAmount: Amount, userPercentages: Array<{ uid: string; percentage: number; }>): ExpenseSplitBuilder {
         const builder = new ExpenseSplitBuilder();
 
         for (const { uid, percentage } of userPercentages) {

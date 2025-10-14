@@ -1,8 +1,9 @@
 import { SimplifiedDebt, UserBalance } from '@splitifyd/shared';
+import {Amount} from "@splitifyd/shared";
 
 interface NetBalance {
     uid: string;
-    netAmount: number;
+    netAmount: Amount;
 }
 
 /**

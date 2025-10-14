@@ -112,7 +112,7 @@ export function roundToCurrencyPrecision(amount: Amount, currencyCode: string): 
  * // USD 100 split 3 ways: [33.33, 33.33, 33.34]
  * calculateEqualSplits(100, 'USD', ['user1', 'user2', 'user3'])
  */
-export function calculateEqualSplits(totalAmount: number, currencyCode: string, participantIds: string[]): ExpenseSplit[] {
+export function calculateEqualSplits(totalAmount: Amount, currencyCode: string, participantIds: string[]): ExpenseSplit[] {
     if (participantIds.length === 0) {
         return [];
     }
@@ -154,7 +154,7 @@ export function calculateEqualSplits(totalAmount: number, currencyCode: string, 
  * @param participantIds - Array of participant user IDs
  * @returns Array of ExpenseSplit objects with equal amounts as starting point
  */
-export function calculateExactSplits(totalAmount: number, currencyCode: string, participantIds: string[]): ExpenseSplit[] {
+export function calculateExactSplits(totalAmount: Amount, currencyCode: string, participantIds: string[]): ExpenseSplit[] {
     // For exact splits, use same logic as equal splits as a starting point
     // User will then manually adjust amounts
     return calculateEqualSplits(totalAmount, currencyCode, participantIds);
@@ -173,7 +173,7 @@ export function calculateExactSplits(totalAmount: number, currencyCode: string, 
  * // 100% split 3 ways: [33.33%, 33.33%, 33.34%]
  * calculatePercentageSplits(100, 'USD', ['user1', 'user2', 'user3'])
  */
-export function calculatePercentageSplits(totalAmount: number, currencyCode: string, participantIds: string[]): ExpenseSplit[] {
+export function calculatePercentageSplits(totalAmount: Amount, currencyCode: string, participantIds: string[]): ExpenseSplit[] {
     if (participantIds.length === 0) {
         return [];
     }
