@@ -1,7 +1,8 @@
-import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
+import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, StubFirestoreDatabase, UserBalanceBuilder } from '@splitifyd/test-support';
+import type { SimplifiedDebt } from '@splitifyd/shared';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
-import { StubFirestore, StubFirestoreWriter } from '../mocks/firestore-stubs';
+import { FirestoreWriter } from '../../../services/firestore/FirestoreWriter';
 
 /**
  * IncrementalBalanceService - Scenario Tests
@@ -14,17 +15,17 @@ import { StubFirestore, StubFirestoreWriter } from '../mocks/firestore-stubs';
  */
 describe('IncrementalBalanceService - Scenarios', () => {
     let service: IncrementalBalanceService;
-    let stubWriter: StubFirestore;
-    let mockTransaction: any;
+    let stubDb: StubFirestoreDatabase;
+    let writer: FirestoreWriter;
 
     const groupId = 'test-group-id';
     const user1 = 'user-1';
     const user2 = 'user-2';
 
     beforeEach(() => {
-        stubWriter = new StubFirestoreWriter();
-        service = new IncrementalBalanceService(stubWriter);
-        mockTransaction = {}; // Simple mock transaction object
+        stubDb = new StubFirestoreDatabase();
+        writer = new FirestoreWriter(stubDb);
+        service = new IncrementalBalanceService(writer);
     });
 
     describe('Mixed Currency Settlements', () => {
@@ -46,7 +47,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             // === SETUP ===
             // Start with empty balance and create USD expense
             const initialBalance = new GroupBalanceDTOBuilder(groupId).withVersion(0).build();
-            await stubWriter.setGroupBalance(groupId, initialBalance);
+            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
             // User1 pays $200 expense → User2 owes User1 $100
             const usdExpense = new ExpenseDTOBuilder()
@@ -63,8 +64,15 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 ])
                 .build();
 
-            service.applyExpenseCreated(mockTransaction, groupId, initialBalance, usdExpense, [user1, user2]);
-            let currentBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applyExpenseCreated(transaction, groupId, initialBalance, usdExpense, [user1, user2]);
+            });
+
+            let currentBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // Verify expense was applied correctly
             expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe(-100);
@@ -81,10 +89,16 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withNote('EUR Settlement for USD Debt')
                 .build();
 
-            service.applySettlementCreated(mockTransaction, groupId, currentBalance, eurSettlement, [user1, user2]);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applySettlementCreated(transaction, groupId, currentBalance, eurSettlement, [user1, user2]);
+            });
 
             // === ASSERT ===
-            const finalBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            const finalBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // USD debt should be UNCHANGED (no currency conversion)
             expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe(-100);
@@ -102,13 +116,13 @@ describe('IncrementalBalanceService - Scenarios', () => {
             // Should have TWO separate simplified debts (one per currency)
             expect(finalBalance.simplifiedDebts).toHaveLength(2);
 
-            const usdDebt = finalBalance.simplifiedDebts.find((debt) => debt.currency === 'USD');
+            const usdDebt = finalBalance.simplifiedDebts.find((debt: SimplifiedDebt) => debt.currency === 'USD');
             expect(usdDebt).toBeDefined();
             expect(usdDebt?.from.uid).toBe(user2);
             expect(usdDebt?.to.uid).toBe(user1);
             expect(usdDebt?.amount).toBe(100);
 
-            const eurDebt = finalBalance.simplifiedDebts.find((debt) => debt.currency === 'EUR');
+            const eurDebt = finalBalance.simplifiedDebts.find((debt: SimplifiedDebt) => debt.currency === 'EUR');
             expect(eurDebt).toBeDefined();
             expect(eurDebt?.from.uid).toBe(user1);
             expect(eurDebt?.to.uid).toBe(user2);
@@ -119,7 +133,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             // === SETUP ===
             // Complex scenario: Multiple expenses creating USD debt
             const initialBalance = new GroupBalanceDTOBuilder(groupId).withVersion(0).build();
-            await stubWriter.setGroupBalance(groupId, initialBalance);
+            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
             // Expense 1: User1 pays $150, User2 owes $75
             const expense1 = new ExpenseDTOBuilder()
@@ -135,8 +149,15 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 ])
                 .build();
 
-            service.applyExpenseCreated(mockTransaction, groupId, initialBalance, expense1, [user1, user2]);
-            let currentBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applyExpenseCreated(transaction, groupId, initialBalance, expense1, [user1, user2]);
+            });
+
+            let currentBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // Expense 2: User1 pays $50, User2 owes additional $25
             const expense2 = new ExpenseDTOBuilder()
@@ -152,8 +173,15 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 ])
                 .build();
 
-            service.applyExpenseCreated(mockTransaction, groupId, currentBalance, expense2, [user1, user2]);
-            currentBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applyExpenseCreated(transaction, groupId, currentBalance, expense2, [user1, user2]);
+            });
+
+            currentBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // User2 now owes User1 exactly $100 USD
             expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe(-100);
@@ -170,10 +198,16 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withNote('Testing Currency Conversion Bug')
                 .build();
 
-            service.applySettlementCreated(mockTransaction, groupId, currentBalance, eurSettlement, [user1, user2]);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applySettlementCreated(transaction, groupId, currentBalance, eurSettlement, [user1, user2]);
+            });
 
             // === ASSERT ===
-            const finalBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            const finalBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // CRITICAL ASSERTION: USD debt must still be $100
             // If this fails with $25 remaining, currency conversion occurred (BUG)
@@ -228,7 +262,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withVersion(5)
                 .build();
 
-            await stubWriter.setGroupBalance(groupId, initialBalance);
+            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
             // === ACTION ===
             // User2 makes EUR settlement
@@ -241,10 +275,16 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withCurrency('EUR')
                 .build();
 
-            service.applySettlementCreated(mockTransaction, groupId, initialBalance, eurSettlement, [user1, user2]);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applySettlementCreated(transaction, groupId, initialBalance, eurSettlement, [user1, user2]);
+            });
 
             // === ASSERT ===
-            const finalBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            const finalBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // USD and GBP debts should be completely unchanged
             expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe(-50);
@@ -256,9 +296,9 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // Should have 3 separate currency debts
             expect(finalBalance.simplifiedDebts).toHaveLength(3);
-            expect(finalBalance.simplifiedDebts.filter((d) => d.currency === 'USD')).toHaveLength(1);
-            expect(finalBalance.simplifiedDebts.filter((d) => d.currency === 'GBP')).toHaveLength(1);
-            expect(finalBalance.simplifiedDebts.filter((d) => d.currency === 'EUR')).toHaveLength(1);
+            expect(finalBalance.simplifiedDebts.filter((d: SimplifiedDebt) => d.currency === 'USD')).toHaveLength(1);
+            expect(finalBalance.simplifiedDebts.filter((d: SimplifiedDebt) => d.currency === 'GBP')).toHaveLength(1);
+            expect(finalBalance.simplifiedDebts.filter((d: SimplifiedDebt) => d.currency === 'EUR')).toHaveLength(1);
         });
     });
 
@@ -269,7 +309,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withSimpleUSDDebt(user1, user2, 100)
                 .build();
 
-            await stubWriter.setGroupBalance(groupId, initialBalance);
+            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
             // === ACTION ===
             // User2 pays partial amount
@@ -283,10 +323,16 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withNote('Partial payment')
                 .build();
 
-            service.applySettlementCreated(mockTransaction, groupId, initialBalance, partialSettlement, [user1, user2]);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applySettlementCreated(transaction, groupId, initialBalance, partialSettlement, [user1, user2]);
+            });
 
             // === ASSERT ===
-            const finalBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            const finalBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // Debt reduced by settlement amount
             expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe(-40);
@@ -322,7 +368,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 )
                 .build();
 
-            await stubWriter.setGroupBalance(groupId, initialBalance);
+            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
             // === ACTION 1 ===
             // First partial settlement: User2 pays €40 (40% of debt)
@@ -336,8 +382,15 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withNote('Partial payment 1 of 3')
                 .build();
 
-            service.applySettlementCreated(mockTransaction, groupId, initialBalance, settlement1, [user1, user2]);
-            let currentBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applySettlementCreated(transaction, groupId, initialBalance, settlement1, [user1, user2]);
+            });
+
+            let currentBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // === ASSERT AFTER FIRST SETTLEMENT ===
             // Debt should be reduced to €60
@@ -360,8 +413,15 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withNote('Partial payment 2 of 3')
                 .build();
 
-            service.applySettlementCreated(mockTransaction, groupId, currentBalance, settlement2, [user1, user2]);
-            currentBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applySettlementCreated(transaction, groupId, currentBalance, settlement2, [user1, user2]);
+            });
+
+            currentBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // === ASSERT AFTER SECOND SETTLEMENT ===
             // Debt should be reduced to €25
@@ -384,8 +444,15 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withNote('Final settlement payment')
                 .build();
 
-            service.applySettlementCreated(mockTransaction, groupId, currentBalance, settlement3, [user1, user2]);
-            const finalBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applySettlementCreated(transaction, groupId, currentBalance, settlement3, [user1, user2]);
+            });
+
+            const finalBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // === ASSERT AFTER FINAL SETTLEMENT ===
             // All debts should be cleared (fully settled)
@@ -404,7 +471,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withSimpleUSDDebt(user1, user2, 100)
                 .build();
 
-            await stubWriter.setGroupBalance(groupId, initialBalance);
+            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
             // === ACTION ===
             // User2 overpays
@@ -418,10 +485,16 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withNote('Overpayment')
                 .build();
 
-            service.applySettlementCreated(mockTransaction, groupId, initialBalance, overpaymentSettlement, [user1, user2]);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applySettlementCreated(transaction, groupId, initialBalance, overpaymentSettlement, [user1, user2]);
+            });
 
             // === ASSERT ===
-            const finalBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            const finalBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // Debt reversed: User1 now owes User2 $50
             expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe(-50);
@@ -441,7 +514,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withSimpleUSDDebt(user1, user2, 100)
                 .build();
 
-            await stubWriter.setGroupBalance(groupId, initialBalance);
+            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
             // === ACTION ===
             // User2 pays exact amount owed
@@ -455,10 +528,16 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withNote('Full settlement')
                 .build();
 
-            service.applySettlementCreated(mockTransaction, groupId, initialBalance, exactSettlement, [user1, user2]);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applySettlementCreated(transaction, groupId, initialBalance, exactSettlement, [user1, user2]);
+            });
 
             // === ASSERT ===
-            const finalBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            const finalBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // All debts cleared
             expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe(0);
@@ -515,7 +594,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 )
                 .build();
 
-            await stubWriter.setGroupBalance(groupId, initialBalance);
+            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
             // === ACTION 1 ===
             // Partial USD settlement: User2 pays User1 $60 USD
@@ -529,8 +608,15 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withNote('Partial USD settlement')
                 .build();
 
-            service.applySettlementCreated(mockTransaction, groupId, initialBalance, usdSettlement, [user1, user2]);
-            let currentBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applySettlementCreated(transaction, groupId, initialBalance, usdSettlement, [user1, user2]);
+            });
+
+            let currentBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // === ASSERT AFTER USD SETTLEMENT ===
             // USD debt reduced to $40, EUR debt unchanged at €75
@@ -559,8 +645,15 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withNote('Partial EUR settlement')
                 .build();
 
-            service.applySettlementCreated(mockTransaction, groupId, currentBalance, eurSettlement, [user1, user2]);
-            const finalBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applySettlementCreated(transaction, groupId, currentBalance, eurSettlement, [user1, user2]);
+            });
+
+            const finalBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // === ASSERT AFTER EUR SETTLEMENT ===
             // USD debt unchanged at $40, EUR debt reduced to €25
@@ -577,13 +670,13 @@ describe('IncrementalBalanceService - Scenarios', () => {
             // Should still have 2 separate currency debts
             expect(finalBalance.simplifiedDebts).toHaveLength(2);
 
-            const finalUsdDebt = finalBalance.simplifiedDebts.find((d) => d.currency === 'USD');
+            const finalUsdDebt = finalBalance.simplifiedDebts.find((d: SimplifiedDebt) => d.currency === 'USD');
             expect(finalUsdDebt).toBeDefined();
             expect(finalUsdDebt?.from.uid).toBe(user2);
             expect(finalUsdDebt?.to.uid).toBe(user1);
             expect(finalUsdDebt?.amount).toBe(40);
 
-            const finalEurDebt = finalBalance.simplifiedDebts.find((d) => d.currency === 'EUR');
+            const finalEurDebt = finalBalance.simplifiedDebts.find((d: SimplifiedDebt) => d.currency === 'EUR');
             expect(finalEurDebt).toBeDefined();
             expect(finalEurDebt?.from.uid).toBe(user1);
             expect(finalEurDebt?.to.uid).toBe(user2);
@@ -605,7 +698,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             // === SETUP ===
             // Create initial expense in USD
             const initialBalance = new GroupBalanceDTOBuilder(groupId).withVersion(0).build();
-            await stubWriter.setGroupBalance(groupId, initialBalance);
+            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
             // User1 pays $200 USD expense → User2 owes User1 $100 USD
             const originalExpense = new ExpenseDTOBuilder()
@@ -621,8 +714,15 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 ])
                 .build();
 
-            service.applyExpenseCreated(mockTransaction, groupId, initialBalance, originalExpense, [user1, user2]);
-            let currentBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applyExpenseCreated(transaction, groupId, initialBalance, originalExpense, [user1, user2]);
+            });
+
+            let currentBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // Verify initial USD debt
             expect(currentBalance.balancesByCurrency.USD).toBeDefined();
@@ -648,12 +748,19 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 ])
                 .build();
 
-            service.applyExpenseUpdated(mockTransaction, groupId, currentBalance, originalExpense, updatedExpense, [user1, user2]);
-            const finalBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applyExpenseUpdated(transaction, groupId, currentBalance, originalExpense, updatedExpense, [user1, user2]);
+            });
+
+            const finalBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // === ASSERT ===
             // USD debt should be removed (or zero if key still exists)
-            const usdDebtAfter = finalBalance.simplifiedDebts.find((d) => d.currency === 'USD');
+            const usdDebtAfter = finalBalance.simplifiedDebts.find((d: SimplifiedDebt) => d.currency === 'USD');
             expect(usdDebtAfter).toBeUndefined();
 
             if (finalBalance.balancesByCurrency.USD) {
@@ -668,7 +775,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe(-100);
             expect(finalBalance.balancesByCurrency.EUR[user2].owes[user1]).toBe(100);
 
-            const eurDebtAfter = finalBalance.simplifiedDebts.find((d) => d.currency === 'EUR');
+            const eurDebtAfter = finalBalance.simplifiedDebts.find((d: SimplifiedDebt) => d.currency === 'EUR');
             expect(eurDebtAfter).toBeDefined();
             expect(eurDebtAfter?.amount).toBe(100);
             expect(eurDebtAfter?.from.uid).toBe(user2);
@@ -687,7 +794,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             // === SETUP ===
             // Create initial expense in USD: User1 pays $300, User2 owes $150
             const initialBalance = new GroupBalanceDTOBuilder(groupId).withVersion(0).build();
-            await stubWriter.setGroupBalance(groupId, initialBalance);
+            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
             const expense = new ExpenseDTOBuilder()
                 .withId('expense-1')
@@ -702,8 +809,15 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 ])
                 .build();
 
-            service.applyExpenseCreated(mockTransaction, groupId, initialBalance, expense, [user1, user2]);
-            let currentBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applyExpenseCreated(transaction, groupId, initialBalance, expense, [user1, user2]);
+            });
+
+            let currentBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // Verify initial debt: User2 owes User1 $150 USD
             expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe(-150);
@@ -721,8 +835,15 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withNote('Original USD settlement')
                 .build();
 
-            service.applySettlementCreated(mockTransaction, groupId, currentBalance, originalSettlement, [user1, user2]);
-            currentBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applySettlementCreated(transaction, groupId, currentBalance, originalSettlement, [user1, user2]);
+            });
+
+            currentBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // Verify after settlement: User2 owes User1 $100 USD
             expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe(-100);
@@ -741,19 +862,26 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withNote('Changed to EUR')
                 .build();
 
-            service.applySettlementUpdated(mockTransaction, groupId, currentBalance, originalSettlement, updatedSettlement, [user1, user2]);
-            const finalBalance = await stubWriter.getGroupBalanceInTransaction(mockTransaction, groupId);
+            await stubDb.runTransaction(async (transaction) => {
+                service.applySettlementUpdated(transaction, groupId, currentBalance, originalSettlement, updatedSettlement, [user1, user2]);
+            });
+
+            const finalBalance = await stubDb.runTransaction(async (transaction) => {
+                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceSnap = await transaction.get(balanceRef);
+                return balanceSnap.data();
+            });
 
             // === ASSERT ===
             // USD debt should be restored to $150 (original $150 - $0 since settlement was removed)
-            const updatedUsdDebt = finalBalance.simplifiedDebts.find((d) => d.currency === 'USD');
+            const updatedUsdDebt = finalBalance.simplifiedDebts.find((d: SimplifiedDebt) => d.currency === 'USD');
             expect(updatedUsdDebt).toBeDefined();
             expect(updatedUsdDebt?.amount).toBe(150);
             expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe(-150);
             expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe(150);
 
             // EUR debt should now exist (User1 owes User2 €50 from the settlement)
-            const eurDebtAfter = finalBalance.simplifiedDebts.find((d) => d.currency === 'EUR');
+            const eurDebtAfter = finalBalance.simplifiedDebts.find((d: SimplifiedDebt) => d.currency === 'EUR');
             expect(eurDebtAfter).toBeDefined();
             expect(eurDebtAfter?.amount).toBe(50);
             expect(eurDebtAfter?.from.uid).toBe(user1); // User1 owes User2
