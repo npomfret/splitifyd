@@ -211,3 +211,46 @@ export function calculatePercentageSplits(totalAmount: Amount, currencyCode: str
 
     return splits;
 }
+
+/**
+ * Parses a string monetary amount into its smallest currency unit (e.g., cents) as an integer.
+ * This is the recommended way to convert amounts for calculation to avoid floating-point errors.
+ * @param amountStr The amount as a string (e.g., "50.25").
+ * @param currencyCode The 3-letter ISO currency code.
+ * @returns The amount in the smallest integer unit (e.g., 5025 for "50.25" USD).
+ */
+export function amountToSmallestUnit(amountStr: string, currencyCode: string): number {
+    // Use existing parser for basic validation (is it a number-like string?)
+    parseMonetaryAmount(amountStr);
+
+    const allowedDecimals = getCurrencyDecimals(currencyCode);
+
+    if (amountStr.includes('.')) {
+        const fractionalPart = amountStr.split('.')[1];
+        if (fractionalPart.length > allowedDecimals) {
+            throw new Error(`Amount "${amountStr}" has too many decimal places for currency ${currencyCode}. Maximum allowed is ${allowedDecimals}.`);
+        }
+    }
+
+    // If validation passes, proceed with the conversion.
+    const asNumber = parseMonetaryAmount(amountStr);
+    const multiplier = Math.pow(10, allowedDecimals);
+    // Final Math.round is a safeguard against floating point representation issues (e.g., 123.45 * 100 = 12344.999...)
+    return Math.round(asNumber * multiplier);
+}
+
+/**
+ * Converts an amount from its smallest currency unit (e.g., cents) back to a standard string representation.
+ * @param amountInSmallestUnit The amount as an integer (e.g., 5025 for USD).
+ * @param currencyCode The 3-letter ISO currency code.
+ * @returns A string representation of the amount, formatted to the currency's decimal places (e.g., "50.25").
+ */
+export function smallestUnitToAmountString(amountInSmallestUnit: number, currencyCode: string): string {
+    const decimals = getCurrencyDecimals(currencyCode);
+    if (decimals === 0) {
+        return String(amountInSmallestUnit);
+    }
+    const divisor = Math.pow(10, decimals);
+    const amount = amountInSmallestUnit / divisor;
+    return amount.toFixed(decimals);
+}

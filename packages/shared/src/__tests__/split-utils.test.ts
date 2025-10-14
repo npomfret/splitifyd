@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, getCurrencyDecimals, roundToCurrencyPrecision } from '../split-utils';
+import { amountToSmallestUnit, calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, getCurrencyDecimals, roundToCurrencyPrecision, smallestUnitToAmountString } from '../split-utils';
 
 describe('Split Utils', () => {
     describe('getCurrencyDecimals', () => {
