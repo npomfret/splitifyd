@@ -1083,12 +1083,6 @@ export class StubFirestore implements IFirestoreReader, IFirestoreWriter {
 export const StubFirestoreReader = StubFirestore;
 
 /**
- * Convenience alias for StubFirestore when only writer interface is needed.
- * Uses the same unified implementation.
- */
-export const StubFirestoreWriter = StubFirestore;
-
-/**
  * In-memory stub implementation of IAuthService for unit testing
  * Provides predictable behavior for testing user authentication operations
  */
