@@ -1,15 +1,8 @@
+import type { UserRegistration } from '@splitifyd/shared';
 import { randomBoolean, randomChoice, randomEmail, randomString } from '../test-helpers';
 
-interface RegisterRequest {
-    email: string;
-    password: string;
-    displayName: string;
-    termsAccepted: boolean;
-    cookiePolicyAccepted: boolean;
-}
-
 export class RegisterRequestBuilder {
-    private request: RegisterRequest = {
+    private request: UserRegistration = {
         email: randomEmail(),
         password: `Pass123!ABC`,
         displayName: `${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(6)}`,
@@ -17,47 +10,47 @@ export class RegisterRequestBuilder {
         cookiePolicyAccepted: randomBoolean(),
     };
 
-    withEmail(email: string): RegisterRequestBuilder {
+    withEmail(email: string): this {
         this.request.email = email;
         return this;
     }
 
-    withPassword(password: string): RegisterRequestBuilder {
+    withPassword(password: string): this {
         this.request.password = password;
         return this;
     }
 
-    withDisplayName(displayName: string): RegisterRequestBuilder {
+    withDisplayName(displayName: string): this {
         this.request.displayName = displayName;
         return this;
     }
 
-    withoutDisplayName(): RegisterRequestBuilder {
+    withoutDisplayName(): this {
         delete (this.request as any).displayName;
         return this;
     }
 
-    withTermsAccepted(accepted: boolean): RegisterRequestBuilder {
+    withTermsAccepted(accepted: boolean): this {
         this.request.termsAccepted = accepted;
         return this;
     }
 
-    withoutTermsAccepted(): RegisterRequestBuilder {
+    withoutTermsAccepted(): this {
         delete (this.request as any).termsAccepted;
         return this;
     }
 
-    withCookiePolicyAccepted(accepted: boolean): RegisterRequestBuilder {
+    withCookiePolicyAccepted(accepted: boolean): this {
         this.request.cookiePolicyAccepted = accepted;
         return this;
     }
 
-    withoutCookiePolicyAccepted(): RegisterRequestBuilder {
+    withoutCookiePolicyAccepted(): this {
         delete (this.request as any).cookiePolicyAccepted;
         return this;
     }
 
-    build(): RegisterRequest {
+    build(): UserRegistration {
         return { ...this.request };
     }
 }

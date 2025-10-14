@@ -1,10 +1,4 @@
-import {Amount} from "@splitifyd/shared";
-
-export interface ExpenseSplit {
-    uid: string;
-    amount: Amount;
-    percentage?: number;
-}
+import { Amount, ExpenseSplit } from "@splitifyd/shared";
 
 /**
  * Builder for ExpenseSplit arrays - used in split strategy tests

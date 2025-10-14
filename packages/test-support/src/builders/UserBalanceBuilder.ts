@@ -1,12 +1,4 @@
-// UserBalance interface from firebase functions
-import {Amount} from "@splitifyd/shared";
-
-interface UserBalance {
-    uid: string;
-    owes: Record<string, number>;
-    owedBy: Record<string, number>;
-    netBalance: number;
-}
+import type { UserBalance, Amount } from '@splitifyd/shared';
 
 /**
  * Builder for creating UserBalance objects for debt simplification tests
