@@ -368,6 +368,19 @@ class StubQuery implements IQuery {
         const pathParts = docPath.split('/');
         const collectionParts = this.collectionPath.split('/');
 
+        // For collection group queries (single segment like 'shareLinks'),
+        // check if the document's parent collection matches
+        if (collectionParts.length === 1) {
+            // Document path must have at least 2 segments (collection/doc)
+            if (pathParts.length < 2) {
+                return false;
+            }
+            // Check if the parent collection (second-to-last segment) matches
+            const parentCollectionIndex = pathParts.length - 2;
+            return pathParts[parentCollectionIndex] === collectionParts[0];
+        }
+
+        // For regular collection queries, check exact path match
         if (pathParts.length !== collectionParts.length + 1) {
             return false;
         }

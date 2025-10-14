@@ -1,42 +1,32 @@
 import { MAX_GROUP_MEMBERS } from '@splitifyd/shared';
-import { GroupDTOBuilder } from '@splitifyd/test-support';
+import { GroupDTOBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { GroupShareService } from '../../../services/GroupShareService';
+import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
+import { FirestoreWriter } from '../../../services/firestore/FirestoreWriter';
+import { GroupMemberService } from '../../../services/GroupMemberService';
 import { ApiError } from '../../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubAuthService, StubFirestore, StubFirestoreReader } from '../mocks/firestore-stubs';
 
 describe('GroupShareService', () => {
     let groupShareService: GroupShareService;
-    let stubReader: StubFirestore;
-    let stubWriter: StubFirestore;
-    let stubAuth: StubAuthService;
-    let applicationBuilder: ApplicationBuilder;
-
-    // Helper to initialize balance document for a group
-    const initializeGroupBalance = async (groupId: string) => {
-        const initialBalance = {
-            groupId,
-            balancesByCurrency: {},
-            simplifiedDebts: [],
-            lastUpdatedAt: new Date().toISOString(),
-            version: 0,
-        };
-        await stubWriter.setGroupBalance(groupId, initialBalance);
-    };
+    let db: StubFirestoreDatabase;
+    let firestoreReader: FirestoreReader;
+    let firestoreWriter: FirestoreWriter;
+    let groupMemberService: GroupMemberService;
 
     beforeEach(() => {
-        // Create unified stub (reader and writer share the same storage automatically)
-        const stub = new StubFirestoreReader();
-        stubReader = stub;
-        stubWriter = stub;
-        stubAuth = new StubAuthService();
+        // Create stub database
+        db = new StubFirestoreDatabase();
 
-        // Create ApplicationBuilder and build GroupShareService
-        applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
-        groupShareService = applicationBuilder.buildGroupShareService();
+        // Create real services using stub database
+        firestoreReader = new FirestoreReader(db);
+        firestoreWriter = new FirestoreWriter(db);
+        groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter);
+
+        // Create service with real services
+        groupShareService = new GroupShareService(firestoreReader, firestoreWriter, groupMemberService);
     });
 
     describe('previewGroupByLink', () => {
@@ -82,16 +72,16 @@ describe('GroupShareService', () => {
                 .withCreatedBy(userId)
                 .build();
 
-            stubReader.setDocument('groups', groupId, testGroup);
-            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
+            db.seedGroup(groupId, testGroup);
+            db.initializeGroupBalance(groupId); // Initialize balance for incremental updates
 
             // Set up group membership so user has access (as owner)
             const membershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId(userId)
                 .withGroupId(groupId)
                 .asAdmin()
-                .build();
-            stubReader.setDocument('group-members', `${groupId}_${userId}`, membershipDoc);
+                .buildDocument();
+            db.seedGroupMember(groupId, userId, membershipDoc);
 
             const result = await groupShareService.generateShareableLink(userId, groupId);
 
@@ -114,14 +104,14 @@ describe('GroupShareService', () => {
         const linkId = 'test-link-123';
         const newUserId = 'new-user-id';
 
-        beforeEach(async () => {
+        beforeEach(() => {
             // Set up test group
             const testGroup = new GroupDTOBuilder()
                 .withId(groupId)
                 .withCreatedBy('owner-id')
                 .build();
-            stubReader.setDocument('groups', groupId, testGroup);
-            await initializeGroupBalance(groupId); // Initialize balance for incremental updates
+            db.seedGroup(groupId, testGroup);
+            db.initializeGroupBalance(groupId); // Initialize balance for incremental updates
 
             // Set up share link
             const shareLink = {
@@ -132,7 +122,7 @@ describe('GroupShareService', () => {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
             };
-            stubReader.setShareLink(groupId, linkId, shareLink);
+            db.seed(`groups/${groupId}/shareLinks/${linkId}`, shareLink);
         });
 
         it(`should succeed when group has ${MAX_GROUP_MEMBERS - 1} members`, async () => {
@@ -141,12 +131,15 @@ describe('GroupShareService', () => {
                 new GroupMemberDocumentBuilder()
                     .withUserId(`user-${i}`)
                     .withGroupId(groupId)
-                    .build());
+                    .buildDocument());
 
-            stubReader.setGroupMembers(groupId, existingMembers);
+            // Seed each member individually
+            existingMembers.forEach((member) => {
+                db.seedGroupMember(groupId, member.uid, member);
+            });
 
             // Set up the new user's profile so joinGroupByLink can read their displayName
-            stubReader.setUser(newUserId, {
+            db.seedUser(newUserId, {
                 displayName: 'New User',
             });
 
@@ -162,9 +155,12 @@ describe('GroupShareService', () => {
                 new GroupMemberDocumentBuilder()
                     .withUserId(`user-${i}`)
                     .withGroupId(groupId)
-                    .build());
+                    .buildDocument());
 
-            stubReader.setGroupMembers(groupId, existingMembers);
+            // Seed each member individually
+            existingMembers.forEach((member) => {
+                db.seedGroupMember(groupId, member.uid, member);
+            });
 
             // Should fail with GROUP_AT_CAPACITY
             let caughtError: ApiError | undefined;
@@ -187,14 +183,17 @@ describe('GroupShareService', () => {
                 new GroupMemberDocumentBuilder()
                     .withUserId(`user-${i}`)
                     .withGroupId(groupId)
-                    .build());
+                    .buildDocument());
 
-            stubReader.setGroupMembers(groupId, tooManyMembers);
+            // Seed each member individually
+            tooManyMembers.forEach((member) => {
+                db.seedGroupMember(groupId, member.uid, member);
+            });
 
             // Calling getAllGroupMembers directly should detect overflow
             let caughtError: ApiError | undefined;
             try {
-                await stubReader.getAllGroupMembers(groupId);
+                await firestoreReader.getAllGroupMembers(groupId);
             } catch (error) {
                 caughtError = error as ApiError;
             }
@@ -211,14 +210,14 @@ describe('GroupShareService', () => {
         const linkId = 'test-link-123';
         const newUserId = 'new-user-id';
 
-        beforeEach(async () => {
+        beforeEach(() => {
             // Set up test group
             const testGroup = new GroupDTOBuilder()
                 .withId(groupId)
                 .withCreatedBy('owner-id')
                 .build();
-            stubReader.setDocument('groups', groupId, testGroup);
-            await initializeGroupBalance(groupId);
+            db.seedGroup(groupId, testGroup);
+            db.initializeGroupBalance(groupId);
 
             // Set up share link
             const shareLink = {
@@ -229,7 +228,7 @@ describe('GroupShareService', () => {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
             };
-            stubReader.setShareLink(groupId, linkId, shareLink);
+            db.seed(`groups/${groupId}/shareLinks/${linkId}`, shareLink);
         });
 
         it('should return displayNameConflict: false when display name is unique', async () => {
@@ -238,11 +237,11 @@ describe('GroupShareService', () => {
                 .withUserId('existing-user')
                 .withGroupId(groupId)
                 .withGroupDisplayName('Existing User')
-                .build();
-            stubReader.setGroupMembers(groupId, [existingMember]);
+                .buildDocument();
+            db.seedGroupMember(groupId, existingMember.uid, existingMember);
 
             // Set up new user with unique display name
-            stubReader.setUser(newUserId, {
+            db.seedUser(newUserId, {
                 displayName: 'New User',
             });
 
@@ -259,11 +258,11 @@ describe('GroupShareService', () => {
                 .withUserId('existing-user')
                 .withGroupId(groupId)
                 .withGroupDisplayName('Test User')
-                .build();
-            stubReader.setGroupMembers(groupId, [existingMember]);
+                .buildDocument();
+            db.seedGroupMember(groupId, existingMember.uid, existingMember);
 
             // Set up new user with same display name
-            stubReader.setUser(newUserId, {
+            db.seedUser(newUserId, {
                 displayName: 'Test User', // Same as existing member
             });
 
@@ -280,11 +279,11 @@ describe('GroupShareService', () => {
                 .withUserId('existing-user')
                 .withGroupId(groupId)
                 .withGroupDisplayName('test user')
-                .build();
-            stubReader.setGroupMembers(groupId, [existingMember]);
+                .buildDocument();
+            db.seedGroupMember(groupId, existingMember.uid, existingMember);
 
             // Set up new user with "Test User" (different case)
-            stubReader.setUser(newUserId, {
+            db.seedUser(newUserId, {
                 displayName: 'Test User',
             });
 
