@@ -86,7 +86,7 @@ export interface IAggregateQuerySnapshot {
      * Get the aggregate data (e.g., count)
      * @returns Object with count property
      */
-    data(): { count: number };
+    data(): { count: number; };
 }
 
 /**

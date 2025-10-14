@@ -1,5 +1,5 @@
-import { getAppBuilder } from "../ApplicationBuilderSingleton";
-import {UserHandlers} from "./UserHandlers";
+import { getAppBuilder } from '../ApplicationBuilderSingleton';
+import { UserHandlers } from './UserHandlers';
 
 const userHandlers = UserHandlers.createUserHandlers(getAppBuilder());
 

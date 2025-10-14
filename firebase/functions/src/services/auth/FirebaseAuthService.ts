@@ -60,14 +60,7 @@ import { measureDb } from '../../monitoring/measure';
 import { ApiError, Errors } from '../../utils/errors';
 import { LoggerContext } from '../../utils/logger-context';
 import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
-import {
-    validateBatchUserIds,
-    validateCreateUser,
-    validateCustomClaims,
-    validateIdToken,
-    validateUpdateUser,
-    validateUserId,
-} from './auth-validation';
+import { validateBatchUserIds, validateCreateUser, validateCustomClaims, validateIdToken, validateUpdateUser, validateUserId } from './auth-validation';
 
 export class FirebaseAuthService implements IAuthService {
     constructor(

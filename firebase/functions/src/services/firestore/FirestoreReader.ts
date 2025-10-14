@@ -23,8 +23,8 @@ import {
     SecurityPresets,
     type SettlementDTO,
 } from '@splitifyd/shared';
-import { FieldPath, Filter, Timestamp, type IFirestoreDatabase, type IQuerySnapshot, type IDocumentSnapshot, type ITransaction, type IQuery } from '../../firestore-wrapper';
 import { HTTP_STATUS } from '../../constants';
+import { FieldPath, Filter, type IDocumentSnapshot, type IFirestoreDatabase, type IQuery, type IQuerySnapshot, type ITransaction, Timestamp } from '../../firestore-wrapper';
 import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
 import { assertTimestamp, safeParseISOToTimestamp } from '../../utils/dateHelpers';
@@ -443,7 +443,9 @@ export class FirestoreReader implements IFirestoreReader {
 
             // Build query with database-level ordering by groupUpdatedAt
             const orderDirection = options?.orderBy?.direction || 'desc';
-            let query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+            let query = this
+                .db
+                .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
                 .where('uid', '==', userId)
                 .orderBy('groupUpdatedAt', orderDirection);
 
@@ -468,7 +470,7 @@ export class FirestoreReader implements IFirestoreReader {
             // Execute data query and count query in parallel
             const [snapshot, countSnapshot] = await Promise.all([
                 query.get(),
-                countQuery.count().get()
+                countQuery.count().get(),
             ]);
 
             const hasMore = snapshot.docs.length > limit;

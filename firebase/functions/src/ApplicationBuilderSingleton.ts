@@ -1,6 +1,6 @@
 // Initialize ApplicationBuilder
-import { ApplicationBuilder } from './services/ApplicationBuilder';
 import { getAuth, getFirestore } from './firebase';
+import { ApplicationBuilder } from './services/ApplicationBuilder';
 
 // Lazy initialization
 let appBuilder: ApplicationBuilder | null = null;

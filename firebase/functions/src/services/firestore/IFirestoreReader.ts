@@ -14,7 +14,7 @@
  */
 
 import type { ISOString } from '@splitifyd/shared';
-import type { ITransaction, IQuerySnapshot, IDocumentSnapshot } from '../../firestore-wrapper';
+import type { IDocumentSnapshot, IQuerySnapshot, ITransaction } from '../../firestore-wrapper';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 
 /**

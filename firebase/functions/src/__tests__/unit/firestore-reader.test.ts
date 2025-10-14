@@ -7,8 +7,8 @@
 import { SecurityPresets } from '@splitifyd/shared';
 import { GroupDTOBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
-import { Timestamp } from '../../firestore-wrapper';
 import { getAuth, getFirestore } from '../../firebase';
+import { Timestamp } from '../../firestore-wrapper';
 import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreReader } from '../../services/firestore';

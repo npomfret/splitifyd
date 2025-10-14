@@ -1,5 +1,5 @@
 import type { SettlementDTO } from '@splitifyd/shared';
-import { timestampToISOString, generateShortId, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair, timestampToISOString } from '../test-helpers';
 
 /**
  * Builder for creating Settlement objects for tests

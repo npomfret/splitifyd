@@ -1,24 +1,24 @@
-import {GroupService} from "../services/GroupService";
-import {IFirestoreWriter} from "../services/firestore";
-import {getAuth, getFirestore} from "../firebase";
-import {ApplicationBuilder} from "../services/ApplicationBuilder";
-import {AuthenticatedRequest} from "../auth/middleware";
-import {Response} from "express";
-import {Errors} from "../utils/errors";
-import {sanitizeGroupData, validateCreateGroup, validateGroupId, validateUpdateDisplayName, validateUpdateGroup} from "./validation";
-import {HTTP_STATUS, DOCUMENT_CONFIG} from "../constants";
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../auth/middleware';
+import { DOCUMENT_CONFIG, HTTP_STATUS } from '../constants';
+import { getAuth, getFirestore } from '../firebase';
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { IFirestoreWriter } from '../services/firestore';
+import { GroupService } from '../services/GroupService';
+import { Errors } from '../utils/errors';
+import { sanitizeGroupData, validateCreateGroup, validateGroupId, validateUpdateDisplayName, validateUpdateGroup } from './validation';
 
 export class GroupHandlers {
     constructor(
         private readonly groupService: GroupService,
-        private readonly firestoreWriter: IFirestoreWriter
+        private readonly firestoreWriter: IFirestoreWriter,
     ) {
     }
 
     static createGroupHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth())) {
         const groupService = applicationBuilder.buildGroupService();
         const firestoreWriter = applicationBuilder.buildFirestoreWriter();
-        return new GroupHandlers(groupService, firestoreWriter)
+        return new GroupHandlers(groupService, firestoreWriter);
     }
 
     /**
@@ -40,7 +40,7 @@ export class GroupHandlers {
         const group = await this.groupService.createGroup(userId, sanitizedData);
 
         res.status(HTTP_STATUS.CREATED).json(group);
-    }
+    };
 
     /**
      * Update an existing group
@@ -62,7 +62,7 @@ export class GroupHandlers {
         const response = await this.groupService.updateGroup(groupId, userId, sanitizedUpdates);
 
         res.json(response);
-    }
+    };
 
     /**
      * Delete a group
@@ -78,7 +78,7 @@ export class GroupHandlers {
         const response = await this.groupService.deleteGroup(groupId, userId);
 
         res.json(response);
-    }
+    };
 
     /**
      * List all groups for the authenticated user
@@ -104,7 +104,7 @@ export class GroupHandlers {
         });
 
         res.json(response);
-    }
+    };
 
     /**
      * Get consolidated group details (group + members + expenses + balances + settlements)
@@ -134,7 +134,7 @@ export class GroupHandlers {
         });
 
         res.json(result);
-    }
+    };
 
     /**
      * Update a member's group-specific display name
@@ -147,11 +147,11 @@ export class GroupHandlers {
         const groupId = validateGroupId(req.params.id);
 
         // Validate request body
-        const {displayName} = validateUpdateDisplayName(req.body);
+        const { displayName } = validateUpdateDisplayName(req.body);
 
         // Update the display name using FirestoreWriter directly
         await this.firestoreWriter.updateGroupMemberDisplayName(groupId, userId, displayName);
 
-        res.json({success: true, message: 'Display name updated successfully'});
-    }
+        res.json({ success: true, message: 'Display name updated successfully' });
+    };
 }

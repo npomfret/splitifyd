@@ -321,6 +321,5 @@ describe('Config Endpoint Integration Tests', () => {
             // Should respond in under 1 second
             expect(endTime - startTime).toBeLessThan(1000);
         });
-
     });
 });

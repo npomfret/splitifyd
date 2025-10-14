@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
+import { getAppBuilder } from '../ApplicationBuilderSingleton';
 import { HTTP_STATUS } from '../constants';
-import { getAppBuilder } from "../ApplicationBuilderSingleton";
 
 export const register = async (req: Request, res: Response): Promise<void> => {
     const userService = getAppBuilder().buildUserService();

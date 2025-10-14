@@ -73,9 +73,9 @@ export class QuerySnapshotWrapper implements IQuerySnapshot {
  * Wrapper for Firestore AggregateQuerySnapshot
  */
 export class AggregateQuerySnapshotWrapper implements IAggregateQuerySnapshot {
-    constructor(private readonly snapshot: FirebaseAdmin.AggregateQuerySnapshot<{ count: FirebaseAdmin.AggregateField<number> }>) {}
+    constructor(private readonly snapshot: FirebaseAdmin.AggregateQuerySnapshot<{ count: FirebaseAdmin.AggregateField<number>; }>) {}
 
-    data(): { count: number } {
+    data(): { count: number; } {
         return { count: this.snapshot.data().count };
     }
 }
@@ -84,7 +84,7 @@ export class AggregateQuerySnapshotWrapper implements IAggregateQuerySnapshot {
  * Wrapper for Firestore AggregateQuery
  */
 export class AggregateQueryWrapper implements IAggregateQuery {
-    constructor(private readonly aggregateQuery: FirebaseAdmin.AggregateQuery<{ count: FirebaseAdmin.AggregateField<number> }>) {}
+    constructor(private readonly aggregateQuery: FirebaseAdmin.AggregateQuery<{ count: FirebaseAdmin.AggregateField<number>; }>) {}
 
     async get(): Promise<IAggregateQuerySnapshot> {
         const snapshot = await this.aggregateQuery.get();

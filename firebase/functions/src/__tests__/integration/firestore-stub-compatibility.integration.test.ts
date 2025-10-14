@@ -5,8 +5,8 @@
  * It runs the same operations against both implementations and compares results.
  */
 
-import { describe, expect, it, beforeEach, afterEach } from 'vitest';
-import { StubFirestoreDatabase, type IFirestoreDatabase } from '@splitifyd/test-support';
+import { type IFirestoreDatabase, StubFirestoreDatabase } from '@splitifyd/test-support';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getFirestore } from '../../firebase';
 import { createFirestoreDatabase, Timestamp } from '../../firestore-wrapper';
 

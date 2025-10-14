@@ -2,7 +2,7 @@
  * Example tests demonstrating StubFirestoreDatabase usage
  */
 
-import { describe, expect, it, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { StubFirestoreDatabase } from './StubFirestoreDatabase';
 
 describe('StubFirestoreDatabase - Example Usage', () => {

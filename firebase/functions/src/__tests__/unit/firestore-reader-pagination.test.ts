@@ -7,8 +7,8 @@
  */
 
 import type { GroupDTO } from '@splitifyd/shared';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { StubFirestoreDatabase } from '@splitifyd/test-support';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreReader } from '../../services/firestore';

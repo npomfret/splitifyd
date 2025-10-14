@@ -30,15 +30,14 @@ import { ApiError, sendHealthCheckResponse } from './utils/errors';
 import { applyStandardMiddleware } from './utils/middleware';
 import { APP_VERSION } from './utils/version';
 
-
 // Firebase instances are now accessed through ApplicationBuilder for better encapsulation
 
 // Import triggers and scheduled functions
+import { getAppBuilder } from './ApplicationBuilderSingleton';
 import { FirestoreCollections } from './constants';
 import { logMetrics } from './scheduled/metrics-logger';
 import { trackExpenseChanges, trackGroupChanges, trackSettlementChanges } from './triggers/change-tracker';
 import { trackExpenseCommentChanges, trackGroupCommentChanges } from './triggers/comment-tracker';
-import { getAppBuilder } from "./ApplicationBuilderSingleton";
 
 // Removed emulator connection test at module level to prevent connection creation
 // The emulator connection will be tested lazily when first needed

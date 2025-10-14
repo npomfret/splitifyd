@@ -1,5 +1,5 @@
-import { getAppBuilder } from "../ApplicationBuilderSingleton";
-import {PolicyHandlers} from "./PolicyHandlers";
+import { getAppBuilder } from '../ApplicationBuilderSingleton';
+import { PolicyHandlers } from './PolicyHandlers';
 
 const policyHandlers = PolicyHandlers.createPolicyHandlers(getAppBuilder());
 

@@ -1,5 +1,5 @@
-import { getAppBuilder } from "../ApplicationBuilderSingleton";
-import {CommentHandlers} from "./CommentHandlers";
+import { getAppBuilder } from '../ApplicationBuilderSingleton';
+import { CommentHandlers } from './CommentHandlers';
 
 const commentHandlers = CommentHandlers.createCommentHandlers(getAppBuilder());
 

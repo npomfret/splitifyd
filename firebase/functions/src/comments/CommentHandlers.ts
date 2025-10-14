@@ -1,14 +1,14 @@
-import {CommentService} from "../services/CommentService";
-import {AuthenticatedRequest} from "../auth/middleware";
-import {Response} from "express";
-import {validateUserAuth} from "../auth/utils";
-import {CommentTargetType, CommentTargetTypes, CreateCommentResponse, ListCommentsResponse} from "@splitifyd/shared";
-import {ApiError} from "../utils/errors";
-import {HTTP_STATUS} from "../constants";
-import {validateCreateComment} from "./validation";
-import {logger} from "../logger";
-import {ApplicationBuilder} from "../services/ApplicationBuilder";
-import {getAuth, getFirestore} from "../firebase";
+import { CommentTargetType, CommentTargetTypes, CreateCommentResponse, ListCommentsResponse } from '@splitifyd/shared';
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../auth/middleware';
+import { validateUserAuth } from '../auth/utils';
+import { HTTP_STATUS } from '../constants';
+import { getAuth, getFirestore } from '../firebase';
+import { logger } from '../logger';
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { CommentService } from '../services/CommentService';
+import { ApiError } from '../utils/errors';
+import { validateCreateComment } from './validation';
 
 export class CommentHandlers {
     constructor(private readonly commentService: CommentService) {
@@ -16,7 +16,7 @@ export class CommentHandlers {
 
     static createCommentHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth())) {
         const commentService = applicationBuilder.buildCommentService();
-        return new CommentHandlers(commentService)
+        return new CommentHandlers(commentService);
     }
 
     /**
@@ -64,7 +64,7 @@ export class CommentHandlers {
             });
             throw error;
         }
-    }
+    };
 
     /**
      * List comments for a group
@@ -78,7 +78,7 @@ export class CommentHandlers {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_GROUP_ID', 'Group ID is required');
             }
 
-            const {cursor, limit = 20} = req.query;
+            const { cursor, limit = 20 } = req.query;
 
             const responseData = await this.commentService.listComments(
                 CommentTargetTypes.GROUP,
@@ -87,7 +87,7 @@ export class CommentHandlers {
                 {
                     cursor: cursor as string,
                     limit: parseInt(limit as string, 10) || 20,
-                }
+                },
             );
 
             const response: { success: boolean; data: ListCommentsResponse; } = {
@@ -111,7 +111,7 @@ export class CommentHandlers {
             });
             throw error;
         }
-    }
+    };
 
     /**
      * List comments for an expense
@@ -125,7 +125,7 @@ export class CommentHandlers {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPENSE_ID', 'Expense ID is required');
             }
 
-            const {cursor, limit = 20} = req.query;
+            const { cursor, limit = 20 } = req.query;
 
             const responseData = await this.commentService.listComments(
                 CommentTargetTypes.EXPENSE,
@@ -134,7 +134,7 @@ export class CommentHandlers {
                 {
                     cursor: cursor as string,
                     limit: parseInt(limit as string, 10) || 20,
-                }
+                },
             );
 
             const response: { success: boolean; data: ListCommentsResponse; } = {
@@ -158,5 +158,5 @@ export class CommentHandlers {
             });
             throw error;
         }
-    }
+    };
 }

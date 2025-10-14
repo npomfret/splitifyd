@@ -1,11 +1,11 @@
 import { CreateSettlementRequestBuilder, GroupDTOBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { Timestamp } from '../../../firestore-wrapper';
 import { HTTP_STATUS } from '../../../constants';
+import { Timestamp } from '../../../firestore-wrapper';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { SettlementService } from '../../../services/SettlementService';
 import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
 import { FirestoreWriter } from '../../../services/firestore/FirestoreWriter';
+import { SettlementService } from '../../../services/SettlementService';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
 import { StubAuthService, StubFirestoreDatabase } from '../mocks/firestore-stubs';
 
@@ -68,9 +68,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
-            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
             // Act
             const result = await settlementService.createSettlement(validSettlementData, userId);
@@ -121,9 +121,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
-            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
             // Act
             const result = await settlementService.createSettlement(settlementDataWithoutNote, userId);
@@ -181,9 +181,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
-            db.seedGroupMember(groupId,'valid-payer', payerMembershipDoc);
-            db.seedGroupMember(groupId,'valid-payee', payeeMembershipDoc);
+            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, 'valid-payer', payerMembershipDoc);
+            db.seedGroupMember(groupId, 'valid-payee', payeeMembershipDoc);
 
             // Act & Assert - Should not throw
             await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
@@ -225,9 +225,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
-            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
             // Act & Assert - Should succeed
             await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
@@ -271,9 +271,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
-            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
             // Act & Assert - Should succeed
             await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
@@ -306,8 +306,8 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
-            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
             // Act & Assert
             await expect(settlementService.createSettlement(settlementData, userId)).rejects.toThrow(
@@ -348,8 +348,8 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
-            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
 
             // Act & Assert
             await expect(settlementService.createSettlement(settlementData, userId)).rejects.toThrow(
@@ -422,9 +422,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
-            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
             // Act
             const result = await settlementService.createSettlement(settlementData, userId);
@@ -471,9 +471,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
-            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
             // Act & Assert - Should succeed
             await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
@@ -517,9 +517,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
-            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
             // Act & Assert - Should succeed
             await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
@@ -563,9 +563,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
-            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
             // Act
             const result = await settlementService.createSettlement(settlementData, userId);
@@ -623,9 +623,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId,creatorId, creatorMembershipDoc);
-            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId, creatorId, creatorMembershipDoc);
+            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
             // Act & Assert - Should succeed without throwing
             await expect(settlementService.softDeleteSettlement(settlementId, creatorId)).resolves.toBeUndefined();
@@ -663,7 +663,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId,creatorId, creatorMembershipDoc);
+            db.seedGroupMember(groupId, creatorId, creatorMembershipDoc);
 
             // Act & Assert
             // Soft-deleted settlements are filtered out by FirestoreReader, so we get NOT_FOUND
@@ -720,9 +720,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId,creatorId, creatorMembershipDoc);
-            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId, creatorId, creatorMembershipDoc);
+            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
             // Act & Assert - Should succeed
             await expect(settlementService.softDeleteSettlement(settlementId, creatorId)).resolves.not.toThrow();
@@ -781,10 +781,10 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId,adminId, adminMembershipDoc);
-            db.seedGroupMember(groupId,creatorId, creatorMembershipDoc);
-            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId, adminId, adminMembershipDoc);
+            db.seedGroupMember(groupId, creatorId, creatorMembershipDoc);
+            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
 
             // Act & Assert - Should succeed for admin
             await expect(settlementService.softDeleteSettlement(settlementId, adminId)).resolves.not.toThrow();
@@ -821,7 +821,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member') // Regular member, not creator or admin
                 .withStatus('active')
                 .buildDocument();
-            db.seedGroupMember(groupId,otherId, otherMembershipDoc);
+            db.seedGroupMember(groupId, otherId, otherMembershipDoc);
 
             // Act & Assert
             await expect(settlementService.softDeleteSettlement(settlementId, otherId)).rejects.toThrow(

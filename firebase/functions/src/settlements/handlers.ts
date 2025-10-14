@@ -1,5 +1,5 @@
-import { getAppBuilder } from "../ApplicationBuilderSingleton";
-import {SettlementHandlers} from "./SettlementHandlers";
+import { getAppBuilder } from '../ApplicationBuilderSingleton';
+import { SettlementHandlers } from './SettlementHandlers';
 
 const settlentHandlers = SettlementHandlers.createSettlementHandlers(getAppBuilder());
 

@@ -1,12 +1,12 @@
-import {PolicyService} from "../services/PolicyService";
-import {getAuth, getFirestore} from "../firebase";
-import {ApplicationBuilder} from "../services/ApplicationBuilder";
-import {AuthenticatedRequest} from "../auth/middleware";
-import {Response} from "express";
-import {HTTP_STATUS} from "../constants";
-import {logger} from "../logger";
-import {validateCreatePolicy, validatePublishPolicy, validateUpdatePolicy} from "./validation";
-import {CreatePolicyResponse, DeletePolicyVersionResponse, PublishPolicyResponse, UpdatePolicyResponse} from "@splitifyd/shared";
+import { CreatePolicyResponse, DeletePolicyVersionResponse, PublishPolicyResponse, UpdatePolicyResponse } from '@splitifyd/shared';
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../auth/middleware';
+import { HTTP_STATUS } from '../constants';
+import { getAuth, getFirestore } from '../firebase';
+import { logger } from '../logger';
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { PolicyService } from '../services/PolicyService';
+import { validateCreatePolicy, validatePublishPolicy, validateUpdatePolicy } from './validation';
 
 export class PolicyHandlers {
     constructor(private readonly policyService: PolicyService) {
@@ -14,7 +14,7 @@ export class PolicyHandlers {
 
     static createPolicyHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth())) {
         const policyService = applicationBuilder.buildPolicyService();
-        return new PolicyHandlers(policyService)
+        return new PolicyHandlers(policyService);
     }
 
     /**
@@ -36,13 +36,13 @@ export class PolicyHandlers {
             });
             throw error;
         }
-    }
+    };
 
     /**
      * GET /admin/policies/:id - Get policy details and version history
      */
     getPolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const {id} = req.params;
+        const { id } = req.params;
 
         try {
             const policy = await this.policyService.getPolicy(id);
@@ -60,13 +60,13 @@ export class PolicyHandlers {
             });
             throw error;
         }
-    }
+    };
 
     /**
      * GET /admin/policies/:id/versions/:hash - Get specific version content
      */
     getPolicyVersion = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const {id, hash} = req.params;
+        const { id, hash } = req.params;
 
         try {
             const version = await this.policyService.getPolicyVersion(id, hash);
@@ -86,17 +86,17 @@ export class PolicyHandlers {
             });
             throw error;
         }
-    }
+    };
 
     /**
      * PUT /admin/policies/:id - Create new draft version (not published)
      */
     updatePolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const {id} = req.params;
+        const { id } = req.params;
 
         // Validate request body using Zod
         const validatedData = validateUpdatePolicy(req.body);
-        const {text, publish = false} = validatedData;
+        const { text, publish = false } = validatedData;
 
         try {
             const result = await this.policyService.updatePolicy(id, text, publish);
@@ -123,16 +123,16 @@ export class PolicyHandlers {
             });
             throw error;
         }
-    }
+    };
 
     /**
      * POST /admin/policies/:id/publish - Publish draft as current version
      */
     publishPolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const {id} = req.params;
+        const { id } = req.params;
 
         // Validate request body using Joi
-        const {versionHash} = validatePublishPolicy(req.body);
+        const { versionHash } = validatePublishPolicy(req.body);
 
         try {
             const result = await this.policyService.publishPolicy(id, versionHash);
@@ -157,7 +157,7 @@ export class PolicyHandlers {
             });
             throw error;
         }
-    }
+    };
 
     /**
      * POST /admin/policies - Create new policy
@@ -165,7 +165,7 @@ export class PolicyHandlers {
     createPolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         // Validate request body using Zod
         const validatedData = validateCreatePolicy(req.body);
-        const {policyName, text} = validatedData;
+        const { policyName, text } = validatedData;
 
         try {
             const result = await this.policyService.createPolicy(policyName, text);
@@ -191,13 +191,13 @@ export class PolicyHandlers {
             });
             throw error;
         }
-    }
+    };
 
     /**
      * DELETE /admin/policies/:id/versions/:hash - Remove old version (with safeguards)
      */
     deletePolicyVersion = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const {id, hash} = req.params;
+        const { id, hash } = req.params;
 
         try {
             await this.policyService.deletePolicyVersion(id, hash);
@@ -221,5 +221,5 @@ export class PolicyHandlers {
             });
             throw error;
         }
-    }
+    };
 }

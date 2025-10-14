@@ -6,6 +6,8 @@
  * over data and behavior.
  */
 
+import { Timestamp } from 'firebase-admin/firestore';
+import { GroupDTOBuilder } from '../builders/GroupDTOBuilder';
 import type {
     IAggregateQuery,
     IAggregateQuerySnapshot,
@@ -21,8 +23,6 @@ import type {
     SetOptions,
     WhereFilterOp,
 } from './firestore-types';
-import { Timestamp } from 'firebase-admin/firestore';
-import { GroupDTOBuilder } from '../builders/GroupDTOBuilder';
 
 /**
  * In-memory document storage
@@ -89,7 +89,7 @@ class StubQuerySnapshot implements IQuerySnapshot {
 class StubAggregateQuerySnapshot implements IAggregateQuerySnapshot {
     constructor(private readonly countValue: number) {}
 
-    data(): { count: number } {
+    data(): { count: number; } {
         return { count: this.countValue };
     }
 }
@@ -239,7 +239,7 @@ class StubQuery implements IQuery {
             // Handle FieldPath objects (e.g., FieldPath.documentId())
             // FieldPath.documentId() is represented as a special marker
             const fieldPathStr = fieldPath.toString?.() === '__name__' || fieldPath._segments?.[0] === '__name__'
-                ? '__name__'  // Document ID field
+                ? '__name__' // Document ID field
                 : fieldPath.toString?.() || String(fieldPath);
 
             if (opStr !== undefined && value !== undefined) {
@@ -531,7 +531,7 @@ class StubCollectionReference extends StubQuery implements ICollectionReference 
  */
 class StubTransaction implements ITransaction {
     private reads = new Map<string, StoredDocument | null>();
-    private writes: Array<{ type: 'set' | 'update' | 'delete' | 'create'; ref: IDocumentReference; data?: any; options?: SetOptions }> = [];
+    private writes: Array<{ type: 'set' | 'update' | 'delete' | 'create'; ref: IDocumentReference; data?: any; options?: SetOptions; }> = [];
 
     constructor(private readonly storage: Map<string, StoredDocument>) {}
 
@@ -759,7 +759,6 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
     seedUser(userId: string, userData: Record<string, any> = {}): void {
         const defaultUser = {
             id: userId,
-            uid: userId,
             email: userData.email || `${userId}@test.com`,
             displayName: userData.displayName || `User ${userId}`,
             createdAt: Timestamp.now(),

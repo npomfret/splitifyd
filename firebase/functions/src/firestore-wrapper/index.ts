@@ -29,7 +29,17 @@ export type {
 } from './types';
 
 // Export wrapper implementations
-export { CollectionReferenceWrapper, DocumentReferenceWrapper, DocumentSnapshotWrapper, FirestoreDatabase, QuerySnapshotWrapper, QueryWrapper, TransactionWrapper, WriteBatchWrapper, createFirestoreDatabase } from './FirestoreDatabase';
+export {
+    CollectionReferenceWrapper,
+    createFirestoreDatabase,
+    DocumentReferenceWrapper,
+    DocumentSnapshotWrapper,
+    FirestoreDatabase,
+    QuerySnapshotWrapper,
+    QueryWrapper,
+    TransactionWrapper,
+    WriteBatchWrapper,
+} from './FirestoreDatabase';
 
 // Re-export static utilities from firebase-admin/firestore
 // These don't need wrapping as they're pure functions/constants

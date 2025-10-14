@@ -1,5 +1,5 @@
-import { getAppBuilder } from "../ApplicationBuilderSingleton";
-import {ExpenseHandlers} from "./ExpenseHandlers";
+import { getAppBuilder } from '../ApplicationBuilderSingleton';
+import { ExpenseHandlers } from './ExpenseHandlers';
 
 const expenseHandlers = ExpenseHandlers.createExpenseHandlers(getAppBuilder());
 

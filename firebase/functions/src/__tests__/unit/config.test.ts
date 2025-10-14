@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { validateAppConfiguration } from '../../middleware/config-validation';
 
 describe('Configuration Response Functions', () => {
-
     describe('Configuration Validation', () => {
         it('should validate a complete configuration', () => {
             const validConfig = {

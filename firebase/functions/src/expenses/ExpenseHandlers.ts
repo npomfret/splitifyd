@@ -1,13 +1,13 @@
-import {ExpenseService} from "../services/ExpenseService";
-import {getAuth, getFirestore} from "../firebase";
-import {ApplicationBuilder} from "../services/ApplicationBuilder";
-import {AuthenticatedRequest} from "../auth/middleware";
-import {Response} from "express";
-import {validateUserAuth} from "../auth/utils";
-import {validateCreateExpense, validateExpenseId, validateUpdateExpense} from "./validation";
-import {HTTP_STATUS} from "../constants";
-import {logger} from "../logger";
-import {MessageResponse} from "@splitifyd/shared";
+import { MessageResponse } from '@splitifyd/shared';
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../auth/middleware';
+import { validateUserAuth } from '../auth/utils';
+import { HTTP_STATUS } from '../constants';
+import { getAuth, getFirestore } from '../firebase';
+import { logger } from '../logger';
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { ExpenseService } from '../services/ExpenseService';
+import { validateCreateExpense, validateExpenseId, validateUpdateExpense } from './validation';
 
 export class ExpenseHandlers {
     constructor(private readonly expenseService: ExpenseService) {
@@ -15,7 +15,7 @@ export class ExpenseHandlers {
 
     static createExpenseHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth())) {
         const expenseService = applicationBuilder.buildExpenseService();
-        return new ExpenseHandlers(expenseService)
+        return new ExpenseHandlers(expenseService);
     }
 
     createExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
@@ -32,7 +32,7 @@ export class ExpenseHandlers {
             });
             throw error;
         }
-    }
+    };
 
     updateExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = validateUserAuth(req);
@@ -50,7 +50,7 @@ export class ExpenseHandlers {
             });
             throw error;
         }
-    }
+    };
 
     deleteExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = validateUserAuth(req);
@@ -62,7 +62,7 @@ export class ExpenseHandlers {
             message: 'Expense deleted successfully',
         };
         res.json(response);
-    }
+    };
 
     /**
      * Get consolidated expense details (expense + group + members)
@@ -82,5 +82,5 @@ export class ExpenseHandlers {
             });
             throw error;
         }
-    }
+    };
 }

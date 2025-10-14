@@ -1,5 +1,5 @@
-import { getAppBuilder } from "../ApplicationBuilderSingleton";
-import {GroupHandlers} from "./GroupHandlers";
+import { getAppBuilder } from '../ApplicationBuilderSingleton';
+import { GroupHandlers } from './GroupHandlers';
 
 const groupHandlers = GroupHandlers.createGroupHandlers(getAppBuilder());
 

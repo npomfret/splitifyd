@@ -15,8 +15,8 @@
  */
 
 import type { CommentDTO, CommentTargetType, ExpenseDTO, GroupDTO, RegisteredUser, SettlementDTO, ShareLinkDTO } from '@splitifyd/shared';
-import type { IDocumentReference, ITransaction, IWriteBatch } from '../../firestore-wrapper';
 import type { Timestamp } from 'firebase-admin/firestore';
+import type { IDocumentReference, ITransaction, IWriteBatch } from '../../firestore-wrapper';
 import type { GroupBalanceDTO } from '../../schemas';
 import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
 

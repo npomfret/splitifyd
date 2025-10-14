@@ -1,8 +1,8 @@
 import { CreateGroupRequest } from '@splitifyd/shared';
 import { CreateGroupRequestBuilder, GroupDTOBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { Timestamp } from '../../firestore-wrapper';
 import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
+import { Timestamp } from '../../firestore-wrapper';
 import { validateCreateGroup, validateGroupId, validateUpdateGroup } from '../../groups/validation';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreReader } from '../../services/firestore/FirestoreReader';

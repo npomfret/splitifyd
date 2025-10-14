@@ -1,8 +1,8 @@
 import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, GroupDTOBuilder } from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { Timestamp as FirestoreTimestamp } from '../../../firestore-wrapper';
 import { HTTP_STATUS } from '../../../constants';
+import { Timestamp as FirestoreTimestamp } from '../../../firestore-wrapper';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { ExpenseService } from '../../../services/ExpenseService';
 import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
@@ -175,7 +175,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            db.seedExpense(expenseId,mockDeletedExpense);
+            db.seedExpense(expenseId, mockDeletedExpense);
 
             // Act & Assert
             await expect(expenseService.getExpense(expenseId, userId)).rejects.toThrow(
@@ -356,7 +356,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            db.seedExpense(expenseId,expenseData);
+            db.seedExpense(expenseId, expenseData);
 
             // Act
             const result = await expenseService.getExpense(expenseId, participantId);
@@ -380,7 +380,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            db.seedExpense(expenseId,expenseData);
+            db.seedExpense(expenseId, expenseData);
 
             // Act & Assert
             await expect(expenseService.getExpense(expenseId, outsiderId)).rejects.toThrow(ApiError);
@@ -399,7 +399,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            db.seedExpense(expenseId,deletedExpense);
+            db.seedExpense(expenseId, deletedExpense);
 
             // Act & Assert
             await expect(expenseService.getExpense(expenseId, userId)).rejects.toThrow();
@@ -430,7 +430,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(now)
                 .build();
 
-            db.seedExpense(expenseId,expenseData);
+            db.seedExpense(expenseId, expenseData);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -470,7 +470,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            db.seedExpense(expenseId,expenseData);
+            db.seedExpense(expenseId, expenseData);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
