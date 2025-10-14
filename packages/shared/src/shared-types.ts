@@ -619,7 +619,7 @@ export interface GroupMembersResponse {
 
 export interface ExpenseSplit {
     uid: string;
-    amount: number;
+    amount: Amount;
     percentage?: number;
 }
 
@@ -630,7 +630,7 @@ interface Expense extends SoftDeletable {
     groupId: string;
     createdBy: string;
     paidBy: string;
-    amount: number;
+    amount: Amount;
     currency: string;
     description: string;
     category: string;
@@ -655,7 +655,7 @@ export interface ExpenseDTO extends Expense, BaseDTO {
 export interface CreateExpenseRequest {
     groupId: string;
     description: string;
-    amount: number;
+    amount: Amount;
     currency: string;
     paidBy: string;
     category: string;
@@ -679,7 +679,7 @@ interface Settlement extends SoftDeletable {
     groupId: string;
     payerId: string;
     payeeId: string;
-    amount: number;
+    amount: Amount;
     currency: string;
     date: ISOString;
     note?: string;
@@ -701,7 +701,7 @@ export interface CreateSettlementRequest {
     groupId: string;
     payerId: string;
     payeeId: string;
-    amount: number;
+    amount: Amount;
     currency: string;
     date?: ISOString;
     note?: string;
@@ -734,7 +734,7 @@ export interface SettlementWithMembers extends SoftDeletable {
     groupId: string;
     payer: GroupMember;
     payee: GroupMember;
-    amount: number;
+    amount: Amount;
     currency: string;
     date: ISOString;
     note?: string;
@@ -874,7 +874,7 @@ export interface SimplifiedDebt {
     to: {
         uid: string;
     };
-    amount: number;
+    amount: Amount;
     currency: string;
 }
 
@@ -1010,7 +1010,7 @@ export interface CreateGroupFormData {
  */
 export interface ExpenseFormData {
     description: string;
-    amount: number;
+    amount: Amount;
     currency: string;
     paidByDisplayName: string; // Display name (not the uid)
     splitType: 'equal' | 'exact' | 'percentage';
@@ -1035,7 +1035,7 @@ export interface SettlementFormData {
  */
 export interface ExpenseDraft {
     description: string;
-    amount: number;
+    amount: Amount;
     currency: string;
     date: string; // YYYY-MM-DD format
     time: string; // HH:MM format
@@ -1043,7 +1043,7 @@ export interface ExpenseDraft {
     category: string;
     splitType: string;
     participants: string[];
-    splits: Array<{ userId: string; amount: number; percentage?: number; }>;
+    splits: Array<{ userId: string; amount: Amount; percentage?: number; }>;
     timestamp: number;
 }
 

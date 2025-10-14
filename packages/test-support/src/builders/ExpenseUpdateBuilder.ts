@@ -1,5 +1,6 @@
 import type { UpdateExpenseRequest } from '@splitifyd/shared';
 import { randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import {Amount} from "@splitifyd/shared";
 
 export class ExpenseUpdateBuilder {
     private update: Partial<UpdateExpenseRequest>;
@@ -28,7 +29,7 @@ export class ExpenseUpdateBuilder {
         return new ExpenseUpdateBuilder(false);
     }
 
-    withAmount(amount: number): this {
+    withAmount(amount: Amount): this {
         this.update.amount = amount;
         return this;
     }
@@ -63,7 +64,7 @@ export class ExpenseUpdateBuilder {
         return this;
     }
 
-    withSplits(splits: Array<{ uid: string; amount: number; percentage?: number; }>): this {
+    withSplits(splits: Array<{ uid: string; amount: Amount; percentage?: number; }>): this {
         this.update.splits = [...splits];
         return this;
     }

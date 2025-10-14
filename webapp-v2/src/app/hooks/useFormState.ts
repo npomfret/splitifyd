@@ -1,5 +1,6 @@
 import { useComputed } from '@preact/signals';
 import { expenseFormStore } from '../stores/expense-form-store';
+import {Amount} from "@splitifyd/shared";
 
 /**
  * Hook that provides access to form state and validation
@@ -66,7 +67,7 @@ export function useFormState() {
         updateField,
         handleAmountChange,
         handleParticipantToggle,
-        updateSplitAmount: (userId: string, amount: number) => expenseFormStore.updateSplitAmount(userId, amount),
+        updateSplitAmount: (userId: string, amount: Amount) => expenseFormStore.updateSplitAmount(userId, amount),
         updateSplitPercentage: (userId: string, percentage: number) => expenseFormStore.updateSplitPercentage(userId, percentage),
     };
 }

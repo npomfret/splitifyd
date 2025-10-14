@@ -1,5 +1,6 @@
 import { getCurrency, parseMonetaryAmount } from '@splitifyd/shared';
 import * as Joi from 'joi';
+import {Amount} from "@splitifyd/shared/src";
 
 /**
  * Get the maximum allowed decimal places for a currency
@@ -35,7 +36,7 @@ function countDecimalPlaces(value: number): number {
  * Validate that an amount has the correct precision for the currency
  * @throws Error if precision is invalid
  */
-export function validateAmountPrecision(amount: number, currencyCode: string): void {
+export function validateAmountPrecision(amount: Amount, currencyCode: string): void {
     const maxDecimals = getMaxDecimalPlaces(currencyCode);
     const actualDecimals = countDecimalPlaces(amount);
 

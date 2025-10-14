@@ -1,5 +1,6 @@
 import type { SimplifiedDebt, UserBalance } from '@splitifyd/shared';
 import { generateShortId } from '../test-helpers';
+import {Amount} from "@splitifyd/shared";
 
 /**
  * Group balance DTO structure for testing
@@ -93,7 +94,7 @@ export class GroupBalanceDTOBuilder {
      * Convenience method: Create simple two-user USD debt
      * User2 owes User1 the specified amount
      */
-    withSimpleUSDDebt(user1: string, user2: string, amount: number): this {
+    withSimpleUSDDebt(user1: string, user2: string, amount: Amount): this {
         this.withUserBalance('USD', user1, {
             uid: user1,
             owes: {},

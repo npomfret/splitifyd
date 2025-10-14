@@ -12,7 +12,7 @@ const driver = new ApiDriver();
 // Simple expense template for test data generation
 interface TestExpenseTemplate {
     description: string;
-    amount: number;
+    amount: Amount;
     category: string;
 }
 
@@ -592,8 +592,8 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
         if (!currencyBalances) continue;
 
         // Find who owes and who is owed
-        const debtors: { user: AuthenticatedFirebaseUser; amount: number; }[] = [];
-        const creditors: { user: AuthenticatedFirebaseUser; amount: number; }[] = [];
+        const debtors: { user: AuthenticatedFirebaseUser; amount: Amount; }[] = [];
+        const creditors: { user: AuthenticatedFirebaseUser; amount: Amount; }[] = [];
 
         for (const member of groupMembers) {
             const balance = currencyBalances[member.uid];

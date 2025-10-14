@@ -1,5 +1,6 @@
 import { calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, CreateExpenseRequest } from '@splitifyd/shared';
 import { generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import {Amount} from "@splitifyd/shared";
 
 export class CreateExpenseRequestBuilder {
     private expense: CreateExpenseRequest;
@@ -45,7 +46,7 @@ export class CreateExpenseRequestBuilder {
         return this;
     }
 
-    withAmount(amount: number): this {
+    withAmount(amount: Amount): this {
         this.expense.amount = amount;
         return this;
     }
@@ -65,7 +66,7 @@ export class CreateExpenseRequestBuilder {
         return this;
     }
 
-    withSplits(splits: Array<{ uid: string; amount: number; percentage?: number; }>): this {
+    withSplits(splits: Array<{ uid: string; amount: Amount; percentage?: number; }>): this {
         this.expense.splits = [...splits];
         this.splitsExplicitlySet = true;
         return this;

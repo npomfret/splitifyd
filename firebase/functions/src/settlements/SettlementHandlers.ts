@@ -1,4 +1,4 @@
-import { CreateSettlementRequest, CreateSettlementResponse, DeleteSettlementResponse, UpdateSettlementRequest, UpdateSettlementResponse } from '@splitifyd/shared/src';
+import { CreateSettlementRequest, CreateSettlementResponse, DeleteSettlementResponse, UpdateSettlementRequest, UpdateSettlementResponse } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';

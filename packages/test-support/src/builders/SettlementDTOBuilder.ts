@@ -1,5 +1,6 @@
 import type { SettlementDTO } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair, timestampToISOString } from '../test-helpers';
+import {Amount} from "@splitifyd/shared";
 
 /**
  * Builder for creating Settlement objects for tests
@@ -10,7 +11,7 @@ export class SettlementDTOBuilder {
     private groupId: string;
     private payerId: string;
     private payeeId: string;
-    private amount: number;
+    private amount: Amount;
     private currency: string;
     private date: string;
     private note?: string;
@@ -63,7 +64,7 @@ export class SettlementDTOBuilder {
         return this;
     }
 
-    withAmount(amount: number): SettlementDTOBuilder {
+    withAmount(amount: Amount): SettlementDTOBuilder {
         this.amount = amount;
         return this;
     }

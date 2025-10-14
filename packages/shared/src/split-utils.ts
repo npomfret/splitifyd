@@ -1,5 +1,5 @@
 import { getCurrency } from './currencies';
-import { ExpenseSplit } from './shared-types';
+import {Amount, ExpenseSplit} from './shared-types';
 
 /**
  * Get the decimal precision for a currency
@@ -73,7 +73,7 @@ export function parseMonetaryAmount(amount: string | number): number {
  * formatMonetaryAmount(123.456, 'JPY') // "123" (0 decimals)
  * formatMonetaryAmount(123.456, 'BHD') // "123.456" (3 decimals)
  */
-export function formatMonetaryAmount(amount: number, currencyCode: string): string {
+export function formatMonetaryAmount(amount: Amount, currencyCode: string): string {
     const decimals = getCurrencyDecimals(currencyCode);
     return amount.toFixed(decimals);
 }
@@ -89,7 +89,7 @@ export function formatMonetaryAmount(amount: number, currencyCode: string): stri
  * roundToCurrencyPrecision(33.333333, 'USD') // 33.33 (2 decimals)
  * roundToCurrencyPrecision(33.333333, 'BHD') // 33.333 (3 decimals)
  */
-export function roundToCurrencyPrecision(amount: number, currencyCode: string): number {
+export function roundToCurrencyPrecision(amount: Amount, currencyCode: string): number {
     const decimals = getCurrencyDecimals(currencyCode);
     const multiplier = Math.pow(10, decimals);
     return Math.round(amount * multiplier) / multiplier;

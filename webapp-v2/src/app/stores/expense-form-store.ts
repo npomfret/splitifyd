@@ -7,11 +7,12 @@ import { calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, 
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
+import {Amount} from "@splitifyd/shared";
 
 interface ExpenseFormStore {
     // Form fields
     description: string;
-    amount: number;
+    amount: Amount;
     currency: string;
     date: string;
     time: string; // Time in HH:mm format (24-hour)
@@ -48,7 +49,7 @@ interface ExpenseFormStore {
     setParticipants(participants: string[]): void;
     toggleParticipant(uid: string): void;
     calculateEqualSplits(): void;
-    updateSplitAmount(uid: string, amount: number): void;
+    updateSplitAmount(uid: string, amount: Amount): void;
     updateSplitPercentage(uid: string, percentage: number): void;
     validateForm(): boolean;
     saveExpense(groupId: string): Promise<ExpenseDTO>;
@@ -68,7 +69,7 @@ interface ExpenseFormStore {
 // Type for form data fields
 interface ExpenseFormData {
     description: string;
-    amount: number;
+    amount: Amount;
     currency: string;
     date: string;
     time: string; // Time in HH:mm format (24-hour)
@@ -141,7 +142,7 @@ class ExpenseStorageManager {
         }
     }
 
-    addRecentAmount(amount: number): void {
+    addRecentAmount(amount: Amount): void {
         if (!this.storage) return;
 
         try {
@@ -530,7 +531,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         this.#splitsSignal.value = calculateEqualSplits(amount, currency, participants);
     }
 
-    updateSplitAmount(uid: string, amount: number): void {
+    updateSplitAmount(uid: string, amount: Amount): void {
         const currentSplits = [...this.#splitsSignal.value];
         const splitIndex = currentSplits.findIndex((s) => s.uid === uid);
 

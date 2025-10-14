@@ -1,4 +1,6 @@
 // UserBalance interface from firebase functions
+import {Amount} from "@splitifyd/shared";
+
 interface UserBalance {
     uid: string;
     owes: Record<string, number>;
@@ -23,12 +25,12 @@ export class UserBalanceBuilder {
         return this;
     }
 
-    owesUser(userId: string, amount: number): UserBalanceBuilder {
+    owesUser(userId: string, amount: Amount): UserBalanceBuilder {
         this.userBalance.owes[userId] = amount;
         return this;
     }
 
-    owedByUser(userId: string, amount: number): UserBalanceBuilder {
+    owedByUser(userId: string, amount: Amount): UserBalanceBuilder {
         this.userBalance.owedBy[userId] = amount;
         return this;
     }

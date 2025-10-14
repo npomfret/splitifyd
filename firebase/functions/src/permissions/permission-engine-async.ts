@@ -1,5 +1,5 @@
 import { ExpenseDTO, GroupDTO, GroupPermissions, MemberRoles, MemberStatuses, PermissionLevels } from '@splitifyd/shared';
-import { GroupMembership } from '@splitifyd/shared/src';
+import { GroupMembership } from '@splitifyd/shared';
 
 interface PermissionCheckOptions {
     expense?: ExpenseDTO;

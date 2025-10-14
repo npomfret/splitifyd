@@ -71,7 +71,7 @@ export interface GetGroupsForUserOptions extends Pick<PaginationOptions, 'limit'
 
 // Import parsed types from schemas
 import { CommentTargetType } from '@splitifyd/shared';
-import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, RegisteredUser, SettlementDTO } from '@splitifyd/shared/src';
+import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, RegisteredUser, SettlementDTO } from '@splitifyd/shared';
 import type { GroupBalanceDTO, ParsedShareLink } from '../../schemas';
 
 export interface IFirestoreReader {

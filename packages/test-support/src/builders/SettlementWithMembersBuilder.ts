@@ -1,6 +1,7 @@
 import type { GroupMember, SettlementWithMembers } from '@splitifyd/shared';
 import { generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
 import { GroupMemberBuilder } from './GroupMemberBuilder';
+import {Amount} from "@splitifyd/shared";
 
 /**
  * Builder for creating SettlementWithMembers objects for tests
@@ -76,7 +77,7 @@ export class SettlementWithMembersBuilder {
         return this;
     }
 
-    withAmount(amount: number): this {
+    withAmount(amount: Amount): this {
         this.settlement.amount = amount;
         return this;
     }
@@ -113,7 +114,7 @@ export class SettlementWithMembersBuilder {
     /**
      * Create a settlement between two specific users
      */
-    static between(payerId: string, payeeId: string, amount: number = 100): SettlementWithMembersBuilder {
+    static between(payerId: string, payeeId: string, amount: Amount = 100): SettlementWithMembersBuilder {
         return new SettlementWithMembersBuilder()
             .withPayerId(payerId)
             .withPayeeId(payeeId)

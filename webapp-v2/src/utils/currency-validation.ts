@@ -1,4 +1,5 @@
 import { getCurrency, getCurrencyDecimals } from '@splitifyd/shared';
+import {Amount} from "@splitifyd/shared";
 
 /**
  * Count decimal places in a number
@@ -16,7 +17,7 @@ function countDecimalPlaces(value: number): number {
  * Matches backend implementation in firebase/functions/src/utils/amount-validation.ts
  * @throws Error if precision is invalid
  */
-function validateAmountPrecision(amount: number, currencyCode: string): void {
+function validateAmountPrecision(amount: Amount, currencyCode: string): void {
     const maxDecimals = getCurrencyDecimals(currencyCode);
     const actualDecimals = countDecimalPlaces(amount);
 
@@ -34,7 +35,7 @@ function validateAmountPrecision(amount: number, currencyCode: string): void {
  * Validate amount precision and return formatted error message
  * Returns null if valid, error message if invalid
  */
-export function getAmountPrecisionError(amount: number, currencyCode: string): string | null {
+export function getAmountPrecisionError(amount: Amount, currencyCode: string): string | null {
     try {
         validateAmountPrecision(amount, currencyCode);
         return null;

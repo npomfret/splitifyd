@@ -1,6 +1,7 @@
 import type { ExpenseDraft } from '@splitifyd/shared';
 import { SplitTypes } from '@splitifyd/shared';
 import { generateShortId, randomCategory, randomChoice, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import {Amount} from "@splitifyd/shared";
 
 export class ExpenseDraftBuilder {
     private draft: ExpenseDraft;
@@ -30,7 +31,7 @@ export class ExpenseDraftBuilder {
         return this;
     }
 
-    withAmount(amount: number): this {
+    withAmount(amount: Amount): this {
         this.draft.amount = amount;
         return this;
     }
@@ -70,7 +71,7 @@ export class ExpenseDraftBuilder {
         return this;
     }
 
-    withSplits(splits: Array<{ userId: string; amount: number; percentage?: number; }>): this {
+    withSplits(splits: Array<{ userId: string; amount: Amount; percentage?: number; }>): this {
         this.draft.splits = [...splits];
         return this;
     }

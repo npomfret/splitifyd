@@ -1,10 +1,11 @@
 import { getCurrency } from './currencyList';
+import {Amount} from "@splitifyd/shared";
 
 export interface FormatOptions {
     locale?: string;
 }
 
-export const formatCurrency = (amount: number, currencyCode: string, options: FormatOptions = {}): string => {
+export const formatCurrency = (amount: Amount, currencyCode: string, options: FormatOptions = {}): string => {
     const { locale = 'en-US' } = options;
 
     if (!currencyCode || currencyCode.trim() === '') {

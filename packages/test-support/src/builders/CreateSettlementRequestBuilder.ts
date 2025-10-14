@@ -1,5 +1,6 @@
 import type { CreateSettlementRequest } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import {Amount} from "@splitifyd/shared";
 
 export class CreateSettlementRequestBuilder {
     private settlement: CreateSettlementRequest;
@@ -32,7 +33,7 @@ export class CreateSettlementRequestBuilder {
         return this;
     }
 
-    withAmount(amount: number): this {
+    withAmount(amount: Amount): this {
         this.settlement.amount = amount;
         return this;
     }

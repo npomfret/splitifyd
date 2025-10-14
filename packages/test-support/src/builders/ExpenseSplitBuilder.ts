@@ -1,6 +1,8 @@
+import {Amount} from "@splitifyd/shared";
+
 export interface ExpenseSplit {
     uid: string;
-    amount: number;
+    amount: Amount;
     percentage?: number;
 }
 
@@ -16,7 +18,7 @@ export class ExpenseSplitBuilder {
     /**
      * Create an exact split for the given participants with specified amounts
      */
-    static exactSplit(userAmounts: Array<{ uid: string; amount: number; percentage?: number; }>): ExpenseSplitBuilder {
+    static exactSplit(userAmounts: Array<{ uid: string; amount: Amount; percentage?: number; }>): ExpenseSplitBuilder {
         const builder = new ExpenseSplitBuilder();
         builder.splits = [...userAmounts];
         return builder;
@@ -39,7 +41,7 @@ export class ExpenseSplitBuilder {
     /**
      * Add a single split entry
      */
-    withSplit(uid: string, amount: number, percentage?: number): this {
+    withSplit(uid: string, amount: Amount, percentage?: number): this {
         this.splits.push({ uid, amount, percentage });
         return this;
     }

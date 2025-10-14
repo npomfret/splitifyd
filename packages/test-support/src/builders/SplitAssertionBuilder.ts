@@ -1,5 +1,6 @@
 import type { ExpenseSplit } from '@splitifyd/shared';
 import { generateShortId } from '../test-helpers';
+import {Amount} from "@splitifyd/shared";
 
 /**
  * Builder for single ExpenseSplit objects - used in split strategy test assertions
@@ -26,7 +27,7 @@ export class SplitAssertionBuilder {
     /**
      * Set the amount for this split
      */
-    withAmount(amount: number): this {
+    withAmount(amount: Amount): this {
         this.split.amount = amount;
         return this;
     }
@@ -42,7 +43,7 @@ export class SplitAssertionBuilder {
     /**
      * Static convenience method to create a split with user ID and amount
      */
-    static split(uid: string, amount: number, percentage?: number): ExpenseSplit {
+    static split(uid: string, amount: Amount, percentage?: number): ExpenseSplit {
         const builder = new SplitAssertionBuilder()
             .forUser(uid)
             .withAmount(amount);

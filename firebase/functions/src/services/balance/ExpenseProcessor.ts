@@ -1,5 +1,6 @@
 import { ExpenseDTO, UserBalance } from '@splitifyd/shared';
 import type { ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
+import {Amount} from "@splitifyd/shared/src";
 
 export class ExpenseProcessor {
     processExpenses(expenses: ExpenseDTO[], memberIds: string[]): CurrencyBalances {
@@ -74,7 +75,7 @@ export class ExpenseProcessor {
         }
     }
 
-    private updateUserBalance(userBalance: UserBalance, otherUserId: string, amount: number, type: 'owes' | 'owedBy'): void {
+    private updateUserBalance(userBalance: UserBalance, otherUserId: string, amount: Amount, type: 'owes' | 'owedBy'): void {
         const balanceMap = userBalance[type];
         balanceMap[otherUserId] = (balanceMap[otherUserId] || 0) + amount;
     }

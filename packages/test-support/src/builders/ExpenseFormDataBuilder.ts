@@ -1,5 +1,6 @@
 import type { ExpenseFormData } from '@splitifyd/shared';
 import { randomChoice, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import {Amount} from "@splitifyd/shared";
 
 /**
  * Builder for creating ExpenseFormData objects for UI tests
@@ -26,7 +27,7 @@ export class ExpenseFormDataBuilder {
         return this;
     }
 
-    withAmount(amount: number): this {
+    withAmount(amount: Amount): this {
         this.expense.amount = amount;
         return this;
     }

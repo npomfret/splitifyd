@@ -1,5 +1,5 @@
 import { AuthErrors, RegisteredUser, SystemUserRoles, UserRegistration, UserThemeColor } from '@splitifyd/shared';
-import { GroupMember, GroupMembershipDTO, GroupMembersResponse, UserProfileResponse } from '@splitifyd/shared/src';
+import { GroupMember, GroupMembershipDTO, GroupMembersResponse, UserProfileResponse } from '@splitifyd/shared';
 import { UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { validateRegisterRequest } from '../auth/validation';
 import { HTTP_STATUS } from '../constants';
