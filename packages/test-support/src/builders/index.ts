@@ -21,7 +21,7 @@ export { GroupMemberBuilder } from './GroupMemberBuilder';
 export { GroupUpdateBuilder } from './GroupUpdateBuilder';
 export { JoinGroupResponseBuilder } from './JoinGroupResponseBuilder';
 export { ListGroupsResponseBuilder } from './ListGroupsResponseBuilder';
-export { PasswordChangeBuilder } from './PasswordChangeBuilder';
+export { PasswordChangeRequestBuilder } from './PasswordChangeRequestBuilder';
 export { PermissionSetBuilder } from './PermissionSetBuilder';
 export { PolicyDocumentBuilder } from './PolicyDocumentBuilder';
 export { PreviewGroupResponseBuilder } from './PreviewGroupResponseBuilder';

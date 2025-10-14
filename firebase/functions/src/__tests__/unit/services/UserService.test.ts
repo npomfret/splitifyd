@@ -1,4 +1,4 @@
-import {PasswordChangeBuilder, StubFirestoreDatabase, ThemeBuilder, UserRegistrationBuilder, UserUpdateBuilder} from '@splitifyd/test-support';
+import {PasswordChangeRequestBuilder, StubFirestoreDatabase, ThemeBuilder, UserRegistrationBuilder, UserUpdateBuilder} from '@splitifyd/test-support';
 import {beforeAll, beforeEach, describe, expect, it} from 'vitest';
 import {HTTP_STATUS} from '../../../constants';
 import {ApplicationBuilder} from '../../../services/ApplicationBuilder';
@@ -499,7 +499,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
         describe('changePassword validation', () => {
             it('should validate password strength - minimum length', async () => {
-                const changeData = new PasswordChangeBuilder()
+                const changeData = new PasswordChangeRequestBuilder()
                     .withCurrentPassword('ValidCurrentPassword123!')
                     .withNewPassword('123') // Too short
                     .build();
@@ -508,7 +508,7 @@ describe('UserService - Consolidated Unit Tests', () => {
             });
 
             it('should validate password strength - requires uppercase', async () => {
-                const changeData = new PasswordChangeBuilder()
+                const changeData = new PasswordChangeRequestBuilder()
                     .withCurrentPassword('ValidCurrentPassword123!')
                     .withNewPassword('newpassword123!') // No uppercase
                     .build();
