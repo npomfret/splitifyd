@@ -1,0 +1,162 @@
+import {CommentService} from "../services/CommentService";
+import {AuthenticatedRequest} from "../auth/middleware";
+import {Response} from "express";
+import {validateUserAuth} from "../auth/utils";
+import {CommentTargetType, CommentTargetTypes, CreateCommentResponse, ListCommentsResponse} from "@splitifyd/shared";
+import {ApiError} from "../utils/errors";
+import {HTTP_STATUS} from "../constants";
+import {validateCreateComment} from "./validation";
+import {logger} from "../logger";
+import {ApplicationBuilder} from "../services/ApplicationBuilder";
+import {getAuth, getFirestore} from "../firebase";
+
+export class CommentHandlers {
+    constructor(private readonly commentService: CommentService) {
+    }
+
+    static createCommentHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth())) {
+        const commentService = applicationBuilder.buildCommentService();
+        return new CommentHandlers(commentService)
+    }
+
+    /**
+     * Create a new comment
+     */
+    createComment = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+        try {
+            const userId = validateUserAuth(req);
+
+            // Extract target type and ID from route parameters
+            const targetType: CommentTargetType = req.path.includes('/groups/') ? CommentTargetTypes.GROUP : CommentTargetTypes.EXPENSE;
+            const targetId = targetType === CommentTargetTypes.GROUP ? req.params.groupId : req.params.expenseId;
+
+            if (!targetId) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_TARGET_ID', 'Target ID is required');
+            }
+
+            // Validate request body
+            const validatedRequest = validateCreateComment({
+                ...req.body,
+                targetType,
+                targetId,
+            });
+
+            const responseData = await this.commentService.createComment(targetType, targetId, validatedRequest, userId);
+
+            const response: CreateCommentResponse = {
+                success: true,
+                data: responseData,
+            };
+
+            logger.info('Comment created successfully', {
+                commentId: responseData.id,
+                targetType,
+                targetId,
+                authorId: userId,
+            });
+
+            res.json(response);
+        } catch (error) {
+            logger.error('Failed to create comment', error, {
+                userId: req.user?.uid,
+                path: req.path,
+                body: req.body,
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * List comments for a group
+     */
+    listGroupComments = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+        try {
+            const userId = validateUserAuth(req);
+            const groupId = req.params.groupId;
+
+            if (!groupId) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_GROUP_ID', 'Group ID is required');
+            }
+
+            const {cursor, limit = 20} = req.query;
+
+            const responseData = await this.commentService.listComments(
+                CommentTargetTypes.GROUP,
+                groupId,
+                userId,
+                {
+                    cursor: cursor as string,
+                    limit: parseInt(limit as string, 10) || 20,
+                }
+            );
+
+            const response: { success: boolean; data: ListCommentsResponse; } = {
+                success: true,
+                data: responseData,
+            };
+
+            logger.info('Group comments retrieved successfully', {
+                groupId,
+                userId,
+                commentCount: responseData.comments.length,
+                hasMore: responseData.hasMore,
+            });
+
+            res.json(response);
+        } catch (error) {
+            logger.error('Failed to list group comments', error, {
+                userId: req.user?.uid,
+                groupId: req.params.groupId,
+                query: req.query,
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * List comments for an expense
+     */
+    listExpenseComments = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+        try {
+            const userId = validateUserAuth(req);
+            const expenseId = req.params.expenseId;
+
+            if (!expenseId) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPENSE_ID', 'Expense ID is required');
+            }
+
+            const {cursor, limit = 20} = req.query;
+
+            const responseData = await this.commentService.listComments(
+                CommentTargetTypes.EXPENSE,
+                expenseId,
+                userId,
+                {
+                    cursor: cursor as string,
+                    limit: parseInt(limit as string, 10) || 20,
+                }
+            );
+
+            const response: { success: boolean; data: ListCommentsResponse; } = {
+                success: true,
+                data: responseData,
+            };
+
+            logger.info('Expense comments retrieved successfully', {
+                expenseId,
+                userId,
+                commentCount: responseData.comments.length,
+                hasMore: responseData.hasMore,
+            });
+
+            res.json(response);
+        } catch (error) {
+            logger.error('Failed to list expense comments', error, {
+                userId: req.user?.uid,
+                expenseId: req.params.expenseId,
+                query: req.query,
+            });
+            throw error;
+        }
+    }
+}

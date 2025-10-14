@@ -10,7 +10,7 @@
  */
 
 // Import types
-import type { CommentDTO, ExpenseDTO, GroupDTO, RegisteredUser, SettlementDTO, ShareLinkDTO } from '@splitifyd/shared';
+import type { CommentDTO, RegisteredUser, ShareLinkDTO } from '@splitifyd/shared';
 import { type CommentTargetType, CommentTargetTypes } from '@splitifyd/shared';
 import {FieldValue, Timestamp, type IFirestoreDatabase, type IDocumentReference, type ITransaction, type IWriteBatch} from '../../firestore-wrapper';
 import { z } from 'zod';

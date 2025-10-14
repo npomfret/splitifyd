@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { validateAppConfiguration } from '../../middleware/config-validation';
-import { getEnhancedConfigResponse } from '../../utils/config-response';
 
 describe('Configuration Response Functions', () => {
 

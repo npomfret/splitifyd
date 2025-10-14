@@ -1,79 +1,9 @@
-import { MessageResponse } from '@splitifyd/shared';
-import { Response } from 'express';
-import { AuthenticatedRequest } from '../auth/middleware';
-import { validateUserAuth } from '../auth/utils';
-import { HTTP_STATUS } from '../constants';
-import { getAuth, getFirestore } from '../firebase';
-import { logger } from '../logger';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
-import { validateCreateExpense, validateExpenseId, validateUpdateExpense } from './validation';
+import { getAppBuilder } from "../ApplicationBuilderSingleton";
+import {ExpenseHandlers} from "./ExpenseHandlers";
 
-const firestore = getFirestore();
-const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
-const expenseService = applicationBuilder.buildExpenseService();
+const expenseHandlers = ExpenseHandlers.createExpenseHandlers(getAppBuilder());
 
-export const createExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = validateUserAuth(req);
-    const expenseData = validateCreateExpense(req.body);
-
-    try {
-        const expense = await expenseService.createExpense(userId, expenseData);
-        res.status(HTTP_STATUS.CREATED).json(expense);
-    } catch (error) {
-        logger.error('Failed to create expense', error, {
-            userId,
-            groupId: expenseData.groupId,
-        });
-        throw error;
-    }
-};
-
-export const updateExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = validateUserAuth(req);
-    const expenseId = validateExpenseId(req.query.id);
-    const updateData = validateUpdateExpense(req.body);
-
-    try {
-        const updatedExpense = await expenseService.updateExpense(expenseId, userId, updateData);
-        res.json(updatedExpense);
-    } catch (error) {
-        logger.error('Failed to update expense', error, {
-            expenseId,
-            userId,
-            updates: Object.keys(updateData),
-        });
-        throw error;
-    }
-};
-
-export const deleteExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = validateUserAuth(req);
-    const expenseId = validateExpenseId(req.query.id);
-
-    await expenseService.deleteExpense(expenseId, userId);
-
-    const response: MessageResponse = {
-        message: 'Expense deleted successfully',
-    };
-    res.json(response);
-};
-
-/**
- * Get consolidated expense details (expense + group + members)
- * Eliminates race conditions by providing all needed data in one request
- */
-export const getExpenseFullDetails = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = validateUserAuth(req);
-    const expenseId = validateExpenseId(req.params.id);
-
-    try {
-        const result = await expenseService.getExpenseFullDetails(expenseId, userId);
-        res.json(result);
-    } catch (error) {
-        logger.error('Error in getExpenseFullDetails', error, {
-            expenseId,
-            userId,
-        });
-        throw error;
-    }
-};
+export const createExpense = expenseHandlers.createExpense;
+export const updateExpense = expenseHandlers.updateExpense;
+export const deleteExpense = expenseHandlers.deleteExpense;
+export const getExpenseFullDetails = expenseHandlers.getExpenseFullDetails;

@@ -1,6 +1,5 @@
 import { ApiDriver } from '@splitifyd/test-support';
 import { afterEach, describe, expect, test } from 'vitest';
-import { validateAppConfiguration } from '../../middleware/config-validation';
 
 describe('Config Endpoint Integration Tests', () => {
     const apiDriver = new ApiDriver();
