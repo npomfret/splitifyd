@@ -292,4 +292,313 @@ describe('StubFirestoreDatabase - Example Usage', () => {
             expect(querySnapshot.docs.map((d) => d.data().createdBy)).toEqual(['user-1', 'user-2']);
         });
     });
+
+    describe('FieldValue operations', () => {
+        it('should handle FieldValue.increment() with update', async () => {
+            const docRef = db.collection('counters').doc('counter-1');
+
+            await docRef.set({ count: 5, name: 'Test Counter' });
+
+            const FieldValue = (await import('firebase-admin/firestore')).FieldValue;
+            await docRef.update({ count: FieldValue.increment(3) });
+
+            const snapshot = await docRef.get();
+            expect(snapshot.data()).toEqual({
+                count: 8,
+                name: 'Test Counter',
+            });
+        });
+
+        it('should handle FieldValue.increment() with set merge', async () => {
+            const docRef = db.collection('counters').doc('counter-1');
+
+            await docRef.set({ count: 10, name: 'Test' });
+
+            const FieldValue = (await import('firebase-admin/firestore')).FieldValue;
+            await docRef.set({ count: FieldValue.increment(5) }, { merge: true });
+
+            const snapshot = await docRef.get();
+            expect(snapshot.data()).toEqual({
+                count: 15,
+                name: 'Test',
+            });
+        });
+
+        it('should handle FieldValue.increment() on non-existent field', async () => {
+            const docRef = db.collection('counters').doc('counter-1');
+
+            await docRef.set({ name: 'Test' });
+
+            const FieldValue = (await import('firebase-admin/firestore')).FieldValue;
+            await docRef.update({ count: FieldValue.increment(7) });
+
+            const snapshot = await docRef.get();
+            expect(snapshot.data()).toEqual({
+                name: 'Test',
+                count: 7,
+            });
+        });
+
+        it('should handle FieldValue.increment() with negative values', async () => {
+            const docRef = db.collection('counters').doc('counter-1');
+
+            await docRef.set({ count: 20 });
+
+            const FieldValue = (await import('firebase-admin/firestore')).FieldValue;
+            await docRef.update({ count: FieldValue.increment(-5) });
+
+            const snapshot = await docRef.get();
+            expect(snapshot.data()?.count).toBe(15);
+        });
+
+        it('should handle FieldValue.increment() with dot notation', async () => {
+            const docRef = db.collection('analytics').doc('stats-1');
+
+            await docRef.set({ stats: { views: 10, likes: 5 } });
+
+            const FieldValue = (await import('firebase-admin/firestore')).FieldValue;
+            await docRef.update({ 'stats.views': FieldValue.increment(3) });
+
+            const snapshot = await docRef.get();
+            expect(snapshot.data()).toEqual({
+                stats: {
+                    views: 13,
+                    likes: 5,
+                },
+            });
+        });
+
+        it('should handle multiple FieldValue.increment() in single operation', async () => {
+            const docRef = db.collection('counters').doc('counter-1');
+
+            await docRef.set({ count1: 5, count2: 10, count3: 15 });
+
+            const FieldValue = (await import('firebase-admin/firestore')).FieldValue;
+            await docRef.update({
+                count1: FieldValue.increment(2),
+                count2: FieldValue.increment(-3),
+                count3: FieldValue.increment(5),
+            });
+
+            const snapshot = await docRef.get();
+            expect(snapshot.data()).toEqual({
+                count1: 7,
+                count2: 7,
+                count3: 20,
+            });
+        });
+
+        it('should handle FieldValue.increment() in batch operations', async () => {
+            const batch = db.batch();
+
+            const doc1 = db.collection('counters').doc('counter-1');
+            const doc2 = db.collection('counters').doc('counter-2');
+
+            await doc1.set({ count: 5 });
+            await doc2.set({ count: 10 });
+
+            const FieldValue = (await import('firebase-admin/firestore')).FieldValue;
+            batch.update(doc1, { count: FieldValue.increment(3) });
+            batch.update(doc2, { count: FieldValue.increment(-2) });
+
+            await batch.commit();
+
+            const snapshot1 = await doc1.get();
+            const snapshot2 = await doc2.get();
+
+            expect(snapshot1.data()?.count).toBe(8);
+            expect(snapshot2.data()?.count).toBe(8);
+        });
+
+        it('should handle FieldValue.increment() in transactions', async () => {
+            const docRef = db.collection('counters').doc('counter-1');
+
+            await docRef.set({ count: 100 });
+
+            const FieldValue = (await import('firebase-admin/firestore')).FieldValue;
+
+            await db.runTransaction(async (transaction) => {
+                const snapshot = await transaction.get(docRef);
+                const data = snapshot.data();
+
+                if (data) {
+                    transaction.update(docRef, { count: FieldValue.increment(50) });
+                }
+            });
+
+            const snapshot = await docRef.get();
+            expect(snapshot.data()?.count).toBe(150);
+        });
+
+        it('should handle FieldValue.serverTimestamp() with update', async () => {
+            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
+            const docRef = db.collection('documents').doc('doc-1');
+
+            await docRef.set({ title: 'Test Document', createdAt: Timestamp.now() });
+
+            await docRef.update({ updatedAt: FieldValue.serverTimestamp() });
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.title).toBe('Test Document');
+            expect(data?.createdAt).toBeInstanceOf(Timestamp);
+            expect(data?.updatedAt).toBeInstanceOf(Timestamp);
+        });
+
+        it('should handle FieldValue.serverTimestamp() with set merge', async () => {
+            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
+            const docRef = db.collection('documents').doc('doc-1');
+
+            await docRef.set({ title: 'Test Document' });
+
+            await docRef.set({ updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.title).toBe('Test Document');
+            expect(data?.updatedAt).toBeInstanceOf(Timestamp);
+        });
+
+        it('should handle FieldValue.serverTimestamp() in initial set', async () => {
+            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
+            const docRef = db.collection('documents').doc('doc-1');
+
+            await docRef.set({
+                title: 'Test Document',
+                createdAt: FieldValue.serverTimestamp(),
+            });
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.title).toBe('Test Document');
+            expect(data?.createdAt).toBeInstanceOf(Timestamp);
+        });
+
+        it('should handle FieldValue.serverTimestamp() with dot notation', async () => {
+            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
+            const docRef = db.collection('documents').doc('doc-1');
+
+            await docRef.set({ metadata: { title: 'Test' } });
+
+            await docRef.update({ 'metadata.lastModified': FieldValue.serverTimestamp() });
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.metadata?.title).toBe('Test');
+            expect(data?.metadata?.lastModified).toBeInstanceOf(Timestamp);
+        });
+
+        it('should handle mixed FieldValue operations (increment + serverTimestamp)', async () => {
+            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
+            const docRef = db.collection('documents').doc('doc-1');
+
+            await docRef.set({ title: 'Test', viewCount: 10 });
+
+            await docRef.update({
+                viewCount: FieldValue.increment(5),
+                lastViewed: FieldValue.serverTimestamp(),
+            });
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.title).toBe('Test');
+            expect(data?.viewCount).toBe(15);
+            expect(data?.lastViewed).toBeInstanceOf(Timestamp);
+        });
+
+        it('should handle FieldValue.serverTimestamp() in batch operations', async () => {
+            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
+            const batch = db.batch();
+
+            const doc1 = db.collection('documents').doc('doc-1');
+            const doc2 = db.collection('documents').doc('doc-2');
+
+            await doc1.set({ title: 'Doc 1' });
+            await doc2.set({ title: 'Doc 2' });
+
+            batch.update(doc1, { updatedAt: FieldValue.serverTimestamp() });
+            batch.update(doc2, { updatedAt: FieldValue.serverTimestamp() });
+
+            await batch.commit();
+
+            const snapshot1 = await doc1.get();
+            const snapshot2 = await doc2.get();
+
+            expect(snapshot1.data()?.updatedAt).toBeInstanceOf(Timestamp);
+            expect(snapshot2.data()?.updatedAt).toBeInstanceOf(Timestamp);
+        });
+
+        it('should handle FieldValue.serverTimestamp() in transactions', async () => {
+            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
+            const docRef = db.collection('documents').doc('doc-1');
+
+            await docRef.set({ title: 'Test Document' });
+
+            await db.runTransaction(async (transaction) => {
+                const snapshot = await transaction.get(docRef);
+                const data = snapshot.data();
+
+                if (data) {
+                    transaction.update(docRef, { updatedAt: FieldValue.serverTimestamp() });
+                }
+            });
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.updatedAt).toBeInstanceOf(Timestamp);
+        });
+
+        it('should handle multiple serverTimestamp fields in single operation', async () => {
+            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
+            const docRef = db.collection('documents').doc('doc-1');
+
+            await docRef.set({
+                title: 'Test',
+                createdAt: FieldValue.serverTimestamp(),
+                updatedAt: FieldValue.serverTimestamp(),
+            });
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.title).toBe('Test');
+            expect(data?.createdAt).toBeInstanceOf(Timestamp);
+            expect(data?.updatedAt).toBeInstanceOf(Timestamp);
+        });
+
+        it('should handle complex mixed FieldValue operations', async () => {
+            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
+            const docRef = db.collection('analytics').doc('stats-1');
+
+            await docRef.set({
+                pageViews: 100,
+                uniqueVisitors: 50,
+                metadata: {
+                    title: 'Analytics Dashboard',
+                },
+            });
+
+            await docRef.update({
+                pageViews: FieldValue.increment(10),
+                uniqueVisitors: FieldValue.increment(3),
+                'metadata.lastUpdated': FieldValue.serverTimestamp(),
+                lastModified: FieldValue.serverTimestamp(),
+            });
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.pageViews).toBe(110);
+            expect(data?.uniqueVisitors).toBe(53);
+            expect(data?.metadata?.title).toBe('Analytics Dashboard');
+            expect(data?.metadata?.lastUpdated).toBeInstanceOf(Timestamp);
+            expect(data?.lastModified).toBeInstanceOf(Timestamp);
+        });
+    });
 });

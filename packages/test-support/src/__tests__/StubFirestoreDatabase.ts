@@ -6,7 +6,7 @@
  * over data and behavior.
  */
 
-import { Timestamp } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { GroupDTOBuilder } from '../builders';
 import type {
     IAggregateQuery,
@@ -143,11 +143,90 @@ class StubDocumentReference implements IDocumentReference {
         return new StubDocumentSnapshot(doc ?? null, this);
     }
 
+    /**
+     * Process FieldValue operations (increment, arrayUnion, etc.) by applying them to existing data
+     * @param data - The data containing potential FieldValue sentinels
+     * @param existingData - The existing document data to apply operations against
+     * @returns Processed data with FieldValue operations resolved
+     */
+    private processFieldValues(data: any, existingData: any = {}): any {
+        if (!data || typeof data !== 'object') {
+            return data;
+        }
+
+        const result: any = Array.isArray(data) ? [...data] : { ...data };
+
+        for (const key in result) {
+            const value = result[key];
+
+            // Check if this is a FieldValue.serverTimestamp() sentinel
+            if (value && typeof value === 'object' && value.constructor.name === 'ServerTimestampTransform') {
+                result[key] = Timestamp.now();
+            }
+            // Check if this is a FieldValue.increment() sentinel
+            else if (value && typeof value === 'object' && value.constructor.name === 'NumericIncrementTransform') {
+                // Extract the increment operand from the FieldValue.increment() sentinel
+                const incrementBy = (value as any).operand || 0;
+                const currentValue = existingData[key] || 0;
+                result[key] = currentValue + incrementBy;
+            }
+            // Recursively process nested objects that might contain FieldValue operations
+            // Note: In Firestore, nested objects replace the entire field, so we process
+            // FieldValues within them but don't merge with existing nested data
+            // Skip any FieldValue sentinels (constructor names ending with "Transform")
+            else if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Timestamp) && !(value instanceof Date) && !value.constructor.name.endsWith('Transform')) {
+                // Process the nested object for FieldValues, but without merging with existing data
+                // because Firestore replaces the entire nested object in an update
+                result[key] = this.processFieldValuesInNestedObject(value, existingData[key]);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Process FieldValue operations in a nested object
+     * This handles nested FieldValue.increment() operations differently:
+     * - We process increments against the existing nested structure
+     * - But the entire nested object replaces what was there before
+     */
+    private processFieldValuesInNestedObject(nestedData: any, existingNestedData: any = {}): any {
+        if (!nestedData || typeof nestedData !== 'object') {
+            return nestedData;
+        }
+
+        const result: any = Array.isArray(nestedData) ? [...nestedData] : { ...nestedData };
+
+        for (const key in result) {
+            const value = result[key];
+
+            // Check if this is a FieldValue.serverTimestamp() sentinel
+            if (value && typeof value === 'object' && value.constructor.name === 'ServerTimestampTransform') {
+                result[key] = Timestamp.now();
+            }
+            // Check if this is a FieldValue.increment() sentinel
+            else if (value && typeof value === 'object' && value.constructor.name === 'NumericIncrementTransform') {
+                const incrementBy = (value as any).operand || 0;
+                const currentValue = existingNestedData?.[key] || 0;
+                result[key] = currentValue + incrementBy;
+            }
+            // Recursively process deeper nesting, but skip FieldValue sentinels
+            else if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Timestamp) && !(value instanceof Date) && !value.constructor.name.endsWith('Transform')) {
+                // Recursively process deeper nesting
+                result[key] = this.processFieldValuesInNestedObject(value, existingNestedData?.[key]);
+            }
+        }
+
+        return result;
+    }
+
     async set(data: any, options?: SetOptions): Promise<void> {
         const existingDoc = this.storage.get(this.documentPath);
 
         if (options?.merge && existingDoc) {
-            const mergedData = { ...existingDoc.data, ...data };
+            // Process FieldValue operations with existing data
+            const processedData = this.processFieldValues(data, existingDoc.data);
+            const mergedData = { ...existingDoc.data, ...processedData };
             this.storage.set(this.documentPath, {
                 id: this.id,
                 path: this.documentPath,
@@ -158,7 +237,10 @@ class StubDocumentReference implements IDocumentReference {
             const mergedData = { ...existingDoc.data };
             for (const field of options.mergeFields) {
                 if (field in data) {
-                    mergedData[field] = data[field];
+                    // Process FieldValue operations for this field
+                    const fieldData = { [field]: data[field] };
+                    const processed = this.processFieldValues(fieldData, existingDoc.data);
+                    mergedData[field] = processed[field];
                 }
             }
             this.storage.set(this.documentPath, {
@@ -168,13 +250,61 @@ class StubDocumentReference implements IDocumentReference {
                 exists: true,
             });
         } else {
+            // No existing data, so just copy (FieldValue.increment would start from 0)
+            const processedData = this.processFieldValues(data, {});
             this.storage.set(this.documentPath, {
                 id: this.id,
                 path: this.documentPath,
-                data: { ...data },
+                data: { ...processedData },
                 exists: true,
             });
         }
+    }
+
+    /**
+     * Apply updates with dot notation support (e.g., 'stats.views')
+     * @param existingData - The existing document data
+     * @param updates - The updates to apply (may contain dot notation keys)
+     * @returns Updated data
+     */
+    private applyDotNotationUpdates(existingData: any, updates: any): any {
+        const result = { ...existingData };
+
+        for (const [key, value] of Object.entries(updates)) {
+            if (key.includes('.')) {
+                // Handle dot notation path
+                const parts = key.split('.');
+                let current = result;
+
+                // Navigate to the parent of the target field
+                for (let i = 0; i < parts.length - 1; i++) {
+                    if (!(parts[i] in current) || typeof current[parts[i]] !== 'object') {
+                        current[parts[i]] = {};
+                    } else {
+                        // Create a copy to avoid mutating existing nested objects
+                        current[parts[i]] = { ...current[parts[i]] };
+                    }
+                    current = current[parts[i]];
+                }
+
+                // Apply the value at the target field
+                const lastPart = parts[parts.length - 1];
+                if (value && typeof value === 'object' && value.constructor.name === 'ServerTimestampTransform') {
+                    current[lastPart] = Timestamp.now();
+                } else if (value && typeof value === 'object' && value.constructor.name === 'NumericIncrementTransform') {
+                    const incrementBy = (value as any).operand || 0;
+                    const currentValue = current[lastPart] || 0;
+                    current[lastPart] = currentValue + incrementBy;
+                } else {
+                    current[lastPart] = value;
+                }
+            } else {
+                // No dot notation, apply directly
+                result[key] = value;
+            }
+        }
+
+        return result;
     }
 
     async update(data: any): Promise<void> {
@@ -183,10 +313,16 @@ class StubDocumentReference implements IDocumentReference {
             throw new Error(`Document ${this.documentPath} does not exist`);
         }
 
+        // Apply dot notation updates and process FieldValue operations
+        const updatedData = this.applyDotNotationUpdates(existingDoc.data, data);
+
+        // For non-dot-notation fields, process FieldValue operations
+        const processedData = this.processFieldValues(updatedData, existingDoc.data);
+
         this.storage.set(this.documentPath, {
             id: this.id,
             path: this.documentPath,
-            data: { ...existingDoc.data, ...data },
+            data: processedData,
             exists: true,
         });
     }

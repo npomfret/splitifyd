@@ -748,6 +748,324 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
         });
     });
 
+    describe('FieldValue Operations', () => {
+        it('should handle FieldValue.increment() with update identically', async () => {
+            await testBothImplementations('FieldValue.increment update', async (db, isStub) => {
+                const docRef = db.collection(testCollectionPrefix).doc('counter-1');
+
+                // Create initial document with counter
+                await docRef.set({ count: 5, name: 'Test Counter' });
+
+                // Use FieldValue.increment to increment the counter
+                const { FieldValue } = await import('firebase-admin/firestore');
+                await docRef.update({ count: FieldValue.increment(3) });
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                expect(data?.count, `Incremented count (${isStub ? 'stub' : 'real'})`).toBe(8);
+                expect(data?.name, `Other fields preserved (${isStub ? 'stub' : 'real'})`).toBe('Test Counter');
+            });
+        });
+
+        it('should handle FieldValue.increment() with set merge identically', async () => {
+            await testBothImplementations('FieldValue.increment set merge', async (db, isStub) => {
+                const docRef = db.collection(testCollectionPrefix).doc('counter-2');
+
+                // Create initial document
+                await docRef.set({ count: 10, name: 'Test' });
+
+                // Use set with merge and FieldValue.increment
+                const { FieldValue } = await import('firebase-admin/firestore');
+                await docRef.set({ count: FieldValue.increment(5) }, { merge: true });
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                expect(data?.count, `Incremented count (${isStub ? 'stub' : 'real'})`).toBe(15);
+                expect(data?.name, `Other fields preserved during merge (${isStub ? 'stub' : 'real'})`).toBe('Test');
+            });
+        });
+
+        it('should handle FieldValue.increment() on non-existent field identically', async () => {
+            await testBothImplementations('FieldValue.increment new field', async (db, isStub) => {
+                const docRef = db.collection(testCollectionPrefix).doc('counter-3');
+
+                // Create document without counter field
+                await docRef.set({ name: 'Test' });
+
+                // Increment a field that doesn't exist (should start from 0)
+                const { FieldValue } = await import('firebase-admin/firestore');
+                await docRef.update({ count: FieldValue.increment(7) });
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                expect(data?.count, `New counter starts at increment value (${isStub ? 'stub' : 'real'})`).toBe(7);
+            });
+        });
+
+        it('should handle FieldValue.increment() with negative values identically', async () => {
+            await testBothImplementations('FieldValue.increment negative', async (db, isStub) => {
+                const docRef = db.collection(testCollectionPrefix).doc('counter-4');
+
+                await docRef.set({ count: 20 });
+
+                const { FieldValue } = await import('firebase-admin/firestore');
+                await docRef.update({ count: FieldValue.increment(-8) });
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                expect(data?.count, `Decremented count (${isStub ? 'stub' : 'real'})`).toBe(12);
+            });
+        });
+
+        it('should handle nested FieldValue.increment() identically', async () => {
+            await testBothImplementations('nested FieldValue.increment', async (db, isStub) => {
+                const docRef = db.collection(testCollectionPrefix).doc('counter-5');
+
+                // Create document with nested structure
+                await docRef.set({
+                    stats: {
+                        views: 10,
+                        likes: 5
+                    },
+                    name: 'Test'
+                });
+
+                // Increment nested fields using dot notation (Firestore's proper way)
+                const { FieldValue } = await import('firebase-admin/firestore');
+                await docRef.update({
+                    'stats.views': FieldValue.increment(3),
+                    'stats.likes': FieldValue.increment(2)
+                });
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                expect(data?.stats?.views, `Nested views incremented (${isStub ? 'stub' : 'real'})`).toBe(13);
+                expect(data?.stats?.likes, `Nested likes incremented (${isStub ? 'stub' : 'real'})`).toBe(7);
+                expect(data?.name, `Other fields preserved (${isStub ? 'stub' : 'real'})`).toBe('Test');
+            });
+        });
+
+        it('should handle multiple FieldValue.increment() in single operation identically', async () => {
+            await testBothImplementations('multiple FieldValue.increment', async (db, isStub) => {
+                const docRef = db.collection(testCollectionPrefix).doc('counter-6');
+
+                await docRef.set({ count1: 10, count2: 20, count3: 30 });
+
+                const { FieldValue } = await import('firebase-admin/firestore');
+                await docRef.update({
+                    count1: FieldValue.increment(1),
+                    count2: FieldValue.increment(2),
+                    count3: FieldValue.increment(3)
+                });
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                expect(data?.count1, `First counter (${isStub ? 'stub' : 'real'})`).toBe(11);
+                expect(data?.count2, `Second counter (${isStub ? 'stub' : 'real'})`).toBe(22);
+                expect(data?.count3, `Third counter (${isStub ? 'stub' : 'real'})`).toBe(33);
+            });
+        });
+
+        it('should handle FieldValue.increment() in batch operations identically', async () => {
+            await testBothImplementations('FieldValue.increment in batch', async (db, isStub) => {
+                const doc1 = db.collection(testCollectionPrefix).doc('batch-counter-1');
+                const doc2 = db.collection(testCollectionPrefix).doc('batch-counter-2');
+
+                // Create initial documents
+                await doc1.set({ count: 5 });
+                await doc2.set({ count: 10 });
+
+                // Use batch to increment both
+                const { FieldValue } = await import('firebase-admin/firestore');
+                const batch = db.batch();
+                batch.update(doc1, { count: FieldValue.increment(3) });
+                batch.update(doc2, { count: FieldValue.increment(7) });
+                await batch.commit();
+
+                const snap1 = await doc1.get();
+                const snap2 = await doc2.get();
+
+                expect(snap1.data()?.count, `First batch counter (${isStub ? 'stub' : 'real'})`).toBe(8);
+                expect(snap2.data()?.count, `Second batch counter (${isStub ? 'stub' : 'real'})`).toBe(17);
+            });
+        });
+
+        it('should handle FieldValue.serverTimestamp() with update identically', async () => {
+            await testBothImplementations('FieldValue.serverTimestamp update', async (db, isStub) => {
+                const { FieldValue } = await import('firebase-admin/firestore');
+                const docRef = db.collection(testCollectionPrefix).doc('timestamp-1');
+
+                await docRef.set({ title: 'Test Document', createdAt: Timestamp.now() });
+
+                await docRef.update({ updatedAt: FieldValue.serverTimestamp() });
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                expect(data?.title, `Title preserved (${isStub ? 'stub' : 'real'})`).toBe('Test Document');
+                expect(data?.createdAt, `CreatedAt is Timestamp (${isStub ? 'stub' : 'real'})`).toBeInstanceOf(Timestamp);
+                expect(data?.updatedAt, `UpdatedAt is Timestamp (${isStub ? 'stub' : 'real'})`).toBeInstanceOf(Timestamp);
+            });
+        });
+
+        it('should handle FieldValue.serverTimestamp() with set merge identically', async () => {
+            await testBothImplementations('FieldValue.serverTimestamp set merge', async (db, isStub) => {
+                const { FieldValue } = await import('firebase-admin/firestore');
+                const docRef = db.collection(testCollectionPrefix).doc('timestamp-2');
+
+                await docRef.set({ title: 'Test Document' });
+
+                await docRef.set({ updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                expect(data?.title, `Title preserved (${isStub ? 'stub' : 'real'})`).toBe('Test Document');
+                expect(data?.updatedAt, `UpdatedAt is Timestamp (${isStub ? 'stub' : 'real'})`).toBeInstanceOf(Timestamp);
+            });
+        });
+
+        it('should handle FieldValue.serverTimestamp() in initial set identically', async () => {
+            await testBothImplementations('FieldValue.serverTimestamp initial set', async (db, isStub) => {
+                const { FieldValue } = await import('firebase-admin/firestore');
+                const docRef = db.collection(testCollectionPrefix).doc('timestamp-3');
+
+                await docRef.set({
+                    title: 'Test Document',
+                    createdAt: FieldValue.serverTimestamp(),
+                });
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                expect(data?.title, `Title set (${isStub ? 'stub' : 'real'})`).toBe('Test Document');
+                expect(data?.createdAt, `CreatedAt is Timestamp (${isStub ? 'stub' : 'real'})`).toBeInstanceOf(Timestamp);
+            });
+        });
+
+        it('should handle FieldValue.serverTimestamp() with dot notation identically', async () => {
+            await testBothImplementations('FieldValue.serverTimestamp dot notation', async (db, isStub) => {
+                const { FieldValue } = await import('firebase-admin/firestore');
+                const docRef = db.collection(testCollectionPrefix).doc('timestamp-4');
+
+                await docRef.set({ metadata: { title: 'Test' } });
+
+                await docRef.update({ 'metadata.lastModified': FieldValue.serverTimestamp() });
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                expect(data?.metadata?.title, `Nested title preserved (${isStub ? 'stub' : 'real'})`).toBe('Test');
+                expect(data?.metadata?.lastModified, `Nested timestamp is Timestamp (${isStub ? 'stub' : 'real'})`).toBeInstanceOf(Timestamp);
+            });
+        });
+
+        it('should handle mixed FieldValue operations (increment + serverTimestamp) identically', async () => {
+            await testBothImplementations('mixed FieldValue operations', async (db, isStub) => {
+                const { FieldValue } = await import('firebase-admin/firestore');
+                const docRef = db.collection(testCollectionPrefix).doc('mixed-1');
+
+                await docRef.set({ title: 'Test', viewCount: 10 });
+
+                await docRef.update({
+                    viewCount: FieldValue.increment(5),
+                    lastViewed: FieldValue.serverTimestamp(),
+                });
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                expect(data?.title, `Title preserved (${isStub ? 'stub' : 'real'})`).toBe('Test');
+                expect(data?.viewCount, `View count incremented (${isStub ? 'stub' : 'real'})`).toBe(15);
+                expect(data?.lastViewed, `LastViewed is Timestamp (${isStub ? 'stub' : 'real'})`).toBeInstanceOf(Timestamp);
+            });
+        });
+
+        it('should handle FieldValue.serverTimestamp() in batch operations identically', async () => {
+            await testBothImplementations('FieldValue.serverTimestamp in batch', async (db, isStub) => {
+                const { FieldValue } = await import('firebase-admin/firestore');
+                const batch = db.batch();
+
+                const doc1 = db.collection(testCollectionPrefix).doc('batch-timestamp-1');
+                const doc2 = db.collection(testCollectionPrefix).doc('batch-timestamp-2');
+
+                await doc1.set({ title: 'Doc 1' });
+                await doc2.set({ title: 'Doc 2' });
+
+                batch.update(doc1, { updatedAt: FieldValue.serverTimestamp() });
+                batch.update(doc2, { updatedAt: FieldValue.serverTimestamp() });
+
+                await batch.commit();
+
+                const snapshot1 = await doc1.get();
+                const snapshot2 = await doc2.get();
+
+                expect(snapshot1.data()?.updatedAt, `Doc1 updatedAt is Timestamp (${isStub ? 'stub' : 'real'})`).toBeInstanceOf(Timestamp);
+                expect(snapshot2.data()?.updatedAt, `Doc2 updatedAt is Timestamp (${isStub ? 'stub' : 'real'})`).toBeInstanceOf(Timestamp);
+            });
+        });
+
+        it('should handle FieldValue.serverTimestamp() in transactions identically', async () => {
+            await testBothImplementations('FieldValue.serverTimestamp in transaction', async (db, isStub) => {
+                const { FieldValue } = await import('firebase-admin/firestore');
+                const docRef = db.collection(testCollectionPrefix).doc('transaction-timestamp-1');
+
+                await docRef.set({ title: 'Test Document' });
+
+                await db.runTransaction(async (transaction) => {
+                    const snapshot = await transaction.get(docRef);
+                    const data = snapshot.data();
+
+                    if (data) {
+                        transaction.update(docRef, { updatedAt: FieldValue.serverTimestamp() });
+                    }
+                });
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                expect(data?.updatedAt, `UpdatedAt is Timestamp (${isStub ? 'stub' : 'real'})`).toBeInstanceOf(Timestamp);
+            });
+        });
+
+        it('should handle complex mixed FieldValue operations identically', async () => {
+            await testBothImplementations('complex mixed FieldValue', async (db, isStub) => {
+                const { FieldValue } = await import('firebase-admin/firestore');
+                const docRef = db.collection(testCollectionPrefix).doc('complex-mixed-1');
+
+                await docRef.set({
+                    pageViews: 100,
+                    uniqueVisitors: 50,
+                    metadata: {
+                        title: 'Analytics Dashboard',
+                    },
+                });
+
+                await docRef.update({
+                    pageViews: FieldValue.increment(10),
+                    uniqueVisitors: FieldValue.increment(3),
+                    'metadata.lastUpdated': FieldValue.serverTimestamp(),
+                    lastModified: FieldValue.serverTimestamp(),
+                });
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                expect(data?.pageViews, `Page views incremented (${isStub ? 'stub' : 'real'})`).toBe(110);
+                expect(data?.uniqueVisitors, `Unique visitors incremented (${isStub ? 'stub' : 'real'})`).toBe(53);
+                expect(data?.metadata?.title, `Metadata title preserved (${isStub ? 'stub' : 'real'})`).toBe('Analytics Dashboard');
+                expect(data?.metadata?.lastUpdated, `Nested timestamp is Timestamp (${isStub ? 'stub' : 'real'})`).toBeInstanceOf(Timestamp);
+                expect(data?.lastModified, `Last modified is Timestamp (${isStub ? 'stub' : 'real'})`).toBeInstanceOf(Timestamp);
+            });
+        });
+    });
+
     describe('Performance Comparison', () => {
         it('should document performance characteristics', async () => {
             const iterations = 100;
