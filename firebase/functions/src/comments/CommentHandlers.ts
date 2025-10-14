@@ -55,7 +55,7 @@ export class CommentHandlers {
                 authorId: userId,
             });
 
-            res.json(response);
+            res.status(HTTP_STATUS.OK).json(response);
         } catch (error) {
             logger.error('Failed to create comment', error, {
                 userId: req.user?.uid,
@@ -102,7 +102,7 @@ export class CommentHandlers {
                 hasMore: responseData.hasMore,
             });
 
-            res.json(response);
+            res.status(HTTP_STATUS.OK).json(response);
         } catch (error) {
             logger.error('Failed to list group comments', error, {
                 userId: req.user?.uid,
@@ -149,7 +149,7 @@ export class CommentHandlers {
                 hasMore: responseData.hasMore,
             });
 
-            res.json(response);
+            res.status(HTTP_STATUS.OK).json(response);
         } catch (error) {
             logger.error('Failed to list expense comments', error, {
                 userId: req.user?.uid,
