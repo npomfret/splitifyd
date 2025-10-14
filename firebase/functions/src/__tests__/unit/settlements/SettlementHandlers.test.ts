@@ -1,6 +1,8 @@
+// @ts-nocheck - Type incompatibility between test stubs and production types due to duplicate @types/express
 import type { UpdateSettlementRequest } from '@splitifyd/shared';
 import { CreateSettlementRequestBuilder, createStubRequest, createStubResponse, StubFirestoreDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
+import type { AuthenticatedRequest } from '../../../auth/middleware';
 import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
@@ -68,7 +70,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withNote('Test settlement')
                 .build();
 
-            const req = createStubRequest(userId, settlementRequest);
+            const req = createStubRequest(userId, settlementRequest) as AuthenticatedRequest;
             const res = createStubResponse();
 
             await settlementHandlers.createSettlement(req, res);
@@ -131,7 +133,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withoutNote()
                 .build();
 
-            const req = createStubRequest(userId, settlementRequest);
+            const req = createStubRequest(userId, settlementRequest) as AuthenticatedRequest;
             const res = createStubResponse();
 
             await settlementHandlers.createSettlement(req, res);
@@ -157,7 +159,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withCurrency('USD')
                 .build();
 
-            const req = createStubRequest('test-user', invalidRequest);
+            const req = createStubRequest('test-user', invalidRequest) as AuthenticatedRequest;
             const res = createStubResponse();
 
             await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
@@ -177,7 +179,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withCurrency('USD')
                 .build();
 
-            const req = createStubRequest('test-user', invalidRequest);
+            const req = createStubRequest('test-user', invalidRequest) as AuthenticatedRequest;
             const res = createStubResponse();
 
             await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
@@ -197,7 +199,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withCurrency('USD')
                 .build();
 
-            const req = createStubRequest('test-user', invalidRequest);
+            const req = createStubRequest('test-user', invalidRequest) as AuthenticatedRequest;
             const res = createStubResponse();
 
             await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
@@ -218,7 +220,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             (invalidRequest as any).currency = 'US';
 
-            const req = createStubRequest('test-user', invalidRequest);
+            const req = createStubRequest('test-user', invalidRequest) as AuthenticatedRequest;
             const res = createStubResponse();
 
             await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
@@ -238,7 +240,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withCurrency('JPY')
                 .build();
 
-            const req = createStubRequest('test-user', invalidRequest);
+            const req = createStubRequest('test-user', invalidRequest) as AuthenticatedRequest;
             const res = createStubResponse();
 
             await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
@@ -260,7 +262,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withNote(longNote)
                 .build();
 
-            const req = createStubRequest('test-user', invalidRequest);
+            const req = createStubRequest('test-user', invalidRequest) as AuthenticatedRequest;
             const res = createStubResponse();
 
             await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
@@ -327,7 +329,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 currency: 'USD',
             };
 
-            const req = createStubRequest(userId, updateRequest, { settlementId });
+            const req = createStubRequest(userId, updateRequest, { settlementId }) as AuthenticatedRequest;
             const res = createStubResponse();
 
             await settlementHandlers.updateSettlement(req, res);
@@ -397,7 +399,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 note: 'Updated note',
             };
 
-            const req = createStubRequest(userId, updateRequest, { settlementId });
+            const req = createStubRequest(userId, updateRequest, { settlementId }) as AuthenticatedRequest;
             const res = createStubResponse();
 
             await settlementHandlers.updateSettlement(req, res);
@@ -415,7 +417,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
         it('should reject update with invalid settlement ID', async () => {
             const updateRequest: UpdateSettlementRequest = { amount: 150 };
-            const req = createStubRequest('test-user', updateRequest, { settlementId: '' });
+            const req = createStubRequest('test-user', updateRequest, { settlementId: '' }) as AuthenticatedRequest;
             const res = createStubResponse();
 
             await expect(settlementHandlers.updateSettlement(req, res)).rejects.toThrow(
@@ -428,7 +430,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
         it('should reject update with no fields provided', async () => {
             const updateRequest = {};
-            const req = createStubRequest('test-user', updateRequest, { settlementId: 'test-settlement' });
+            const req = createStubRequest('test-user', updateRequest, { settlementId: 'test-settlement' }) as AuthenticatedRequest;
             const res = createStubResponse();
 
             await expect(settlementHandlers.updateSettlement(req, res)).rejects.toThrow(
@@ -444,7 +446,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 amount: 100.50,
                 currency: 'JPY',
             };
-            const req = createStubRequest('test-user', updateRequest, { settlementId: 'test-settlement' });
+            const req = createStubRequest('test-user', updateRequest, { settlementId: 'test-settlement' }) as AuthenticatedRequest;
             const res = createStubResponse();
 
             await expect(settlementHandlers.updateSettlement(req, res)).rejects.toThrow(
@@ -506,7 +508,7 @@ describe('SettlementHandlers - Unit Tests', () => {
             db.seedGroupMember(groupId, 'payer-user', payerMembership);
             db.seedGroupMember(groupId, 'payee-user', payeeMembership);
 
-            const req = createStubRequest(userId, {}, { settlementId });
+            const req = createStubRequest(userId, {}, { settlementId }) as AuthenticatedRequest;
             const res = createStubResponse();
 
             await settlementHandlers.deleteSettlement(req, res);
@@ -520,7 +522,7 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject delete with invalid settlement ID', async () => {
-            const req = createStubRequest('test-user', {}, { settlementId: '' });
+            const req = createStubRequest('test-user', {}, { settlementId: '' }) as AuthenticatedRequest;
             const res = createStubResponse();
 
             await expect(settlementHandlers.deleteSettlement(req, res)).rejects.toThrow(
@@ -532,7 +534,7 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject delete of non-existent settlement', async () => {
-            const req = createStubRequest('test-user', {}, { settlementId: 'non-existent-settlement' });
+            const req = createStubRequest('test-user', {}, { settlementId: 'non-existent-settlement' }) as AuthenticatedRequest;
             const res = createStubResponse();
 
             await expect(settlementHandlers.deleteSettlement(req, res)).rejects.toThrow(
@@ -600,7 +602,7 @@ describe('SettlementHandlers - Unit Tests', () => {
             db.seedGroupMember(groupId, 'payer-user', payerMembership);
             db.seedGroupMember(groupId, 'payee-user', payeeMembership);
 
-            const req = createStubRequest(adminId, {}, { settlementId });
+            const req = createStubRequest(adminId, {}, { settlementId }) as AuthenticatedRequest;
             const res = createStubResponse();
 
             await settlementHandlers.deleteSettlement(req, res);
