@@ -1,29 +1,18 @@
-import { type UserThemeColor } from '@splitifyd/shared';
-import { USER_COLORS } from '@splitifyd/shared';
-import { PasswordChangeBuilder, RegisteredUserBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { HTTP_STATUS } from '../../../constants';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { UserService } from '../../../services/UserService2';
-import { ApiError } from '../../../utils/errors';
-import { initializeI18n } from '../../../utils/i18n';
-import { StubAuthService, StubFirestore, StubFirestoreReader } from '../mocks/firestore-stubs';
+import {PasswordChangeBuilder, StubFirestoreDatabase, ThemeBuilder, UserRegistrationBuilder, UserUpdateBuilder} from '@splitifyd/test-support';
+import {beforeAll, beforeEach, describe, expect, it} from 'vitest';
+import {HTTP_STATUS} from '../../../constants';
+import {ApplicationBuilder} from '../../../services/ApplicationBuilder';
+import {FirestoreReader} from '../../../services/firestore/FirestoreReader';
+import {FirestoreWriter} from '../../../services/firestore/FirestoreWriter';
+import {UserService} from '../../../services/UserService2';
+import {ApiError} from '../../../utils/errors';
+import {initializeI18n} from '../../../utils/i18n';
+import {StubAuthService} from '../mocks/firestore-stubs';
 
 describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;
-    let stubReader: StubFirestore;
-    let stubWriter: StubFirestore;
+    let db: StubFirestoreDatabase;
     let stubAuth: StubAuthService;
-
-    // Helper to create a valid UserThemeColor
-    const createTestThemeColor = (): UserThemeColor => ({
-        light: USER_COLORS[0].light,
-        dark: USER_COLORS[0].dark,
-        name: USER_COLORS[0].name,
-        pattern: 'solid',
-        assignedAt: new Date().toISOString(),
-        colorIndex: 0,
-    });
 
     beforeAll(async () => {
         // Initialize i18n for validation error translations
@@ -31,15 +20,18 @@ describe('UserService - Consolidated Unit Tests', () => {
     });
 
     beforeEach(() => {
-        const stub = new StubFirestoreReader();
-        stubReader = stub;
-        stubWriter = stub;
+        // Create stub database
+        db = new StubFirestoreDatabase();
+
+        // Create real services using stub database
         stubAuth = new StubAuthService();
 
-        userService = new ApplicationBuilder(stubReader, stubWriter, stubAuth).buildUserService();
+        // Create UserService via ApplicationBuilder
+        userService = new ApplicationBuilder(new FirestoreReader(db), new FirestoreWriter(db), stubAuth).buildUserService();
 
         // Clear all stub data
         stubAuth.clear();
+        db.clear();
     });
 
     describe('registerUser', () => {
@@ -144,14 +136,12 @@ describe('UserService - Consolidated Unit Tests', () => {
                 photoURL: 'https://example.com/photo.jpg',
             });
 
-            // Set up Firestore user document
-            const userDoc = new RegisteredUserBuilder()
-                .withUid(uid)
-                .withDisplayName(displayName)
-                .withThemeColor(createTestThemeColor())
-                .withPreferredLanguage('en')
-                .build();
-            stubReader.setUser(uid, userDoc);
+            // Set up Firestore user document using seedUser
+            db.seedUser(uid, {
+                displayName,
+                themeColor: new ThemeBuilder().build(),
+                preferredLanguage: 'en',
+            });
 
             const profile = await userService.getUser(uid);
 
@@ -206,17 +196,13 @@ describe('UserService - Consolidated Unit Tests', () => {
                 { uid: 'user3', email: 'user3@example.com', displayName: 'User Three' },
             ];
 
-            // Set up Auth users
+            // Set up Auth users and Firestore documents
             users.forEach((user) => {
                 stubAuth.setUser(user.uid, user);
-
-                // Set up corresponding Firestore documents using builder
-                const userDoc = new RegisteredUserBuilder()
-                    .withUid(user.uid)
-                    .withDisplayName(user.displayName)
-                    .withThemeColor(createTestThemeColor())
-                    .build();
-                stubReader.setUser(user.uid, userDoc);
+                db.seedUser(user.uid, {
+                    displayName: user.displayName,
+                    themeColor: new ThemeBuilder().build(),
+                });
             });
 
             const uids = users.map((u) => u.uid);
@@ -244,12 +230,10 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: 'Existing User',
             });
 
-            const userDoc = new RegisteredUserBuilder()
-                .withUid('existing-user')
-                .withDisplayName('Existing User')
-                .withThemeColor(createTestThemeColor())
-                .build();
-            stubReader.setUser('existing-user', userDoc);
+            db.seedUser('existing-user', {
+                displayName: 'Existing User',
+                themeColor: new ThemeBuilder().build(),
+            });
 
             const profiles = await userService.getUsers(['existing-user', 'non-existent-user']);
 
@@ -272,12 +256,10 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: originalDisplayName,
             });
 
-            const userDoc = new RegisteredUserBuilder()
-                .withUid(uid)
-                .withDisplayName(originalDisplayName)
-                .withThemeColor(createTestThemeColor())
-                .build();
-            stubReader.setUser(uid, userDoc);
+            db.seedUser(uid, {
+                displayName: originalDisplayName,
+                themeColor: new ThemeBuilder().build(),
+            });
 
             const updatedProfile = await userService.updateProfile(uid, {
                 displayName: newDisplayName,
@@ -301,12 +283,10 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: 'Test User',
             });
 
-            const userDoc = new RegisteredUserBuilder()
-                .withUid(uid)
-                .withDisplayName('Test User')
-                .withThemeColor(createTestThemeColor())
-                .build();
-            stubReader.setUser(uid, userDoc);
+            db.seedUser(uid, {
+                displayName: 'Test User',
+                themeColor: new ThemeBuilder().build(),
+            });
 
             const updatedProfile = await userService.updateProfile(uid, {
                 preferredLanguage: newLanguage,
@@ -326,12 +306,10 @@ describe('UserService - Consolidated Unit Tests', () => {
                 photoURL: 'https://example.com/old-photo.jpg',
             });
 
-            const userDoc = new RegisteredUserBuilder()
-                .withUid(uid)
-                .withDisplayName('Test User')
-                .withThemeColor(createTestThemeColor())
-                .build();
-            stubReader.setUser(uid, userDoc);
+            db.seedUser(uid, {
+                displayName: 'Test User',
+                themeColor: new ThemeBuilder().build(),
+            });
 
             await userService.updateProfile(uid, {
                 photoURL: null,
@@ -372,12 +350,10 @@ describe('UserService - Consolidated Unit Tests', () => {
                 displayName: 'Test User',
             });
 
-            const userDoc = new RegisteredUserBuilder()
-                .withUid(uid)
-                .withDisplayName('Test User')
-                .withThemeColor(createTestThemeColor())
-                .build();
-            stubReader.setUser(uid, userDoc);
+            db.seedUser(uid, {
+                displayName: 'Test User',
+                themeColor: new ThemeBuilder().build(),
+            });
 
             const result = await userService.changePassword(uid, {
                 currentPassword,
@@ -419,12 +395,10 @@ describe('UserService - Consolidated Unit Tests', () => {
                 photoURL: 'https://example.com/photo.jpg',
             });
 
-            const userDoc = new RegisteredUserBuilder()
-                .withUid(uid)
-                .withDisplayName(displayName)
-                .withThemeColor(createTestThemeColor())
-                .build();
-            stubReader.setUser(uid, userDoc);
+            db.seedUser(uid, {
+                displayName,
+                themeColor: new ThemeBuilder().build(),
+            });
 
             const profile = await userService.getUser(uid);
 
@@ -454,7 +428,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         const testUserId = 'test-user-id';
 
         beforeEach(() => {
-            validationUserService = new ApplicationBuilder(stubReader, stubWriter, stubAuth).buildUserService();
+            validationUserService = new ApplicationBuilder(new FirestoreReader(db), new FirestoreWriter(db), stubAuth).buildUserService();
         });
 
         describe('updateProfile validation', () => {
