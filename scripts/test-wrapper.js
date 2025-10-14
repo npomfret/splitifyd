@@ -54,8 +54,8 @@ function getTestCommand(scriptType, packageName) {
         },
         '@splitifyd/test-support': {
             test: 'npm run test:unit && npm run test:integration',
-            'test:unit': 'npm run build && echo \'There are no unit tests in test-support\'',
-            'test:integration': 'npm run build && echo \'There are no integration tests in test-support\'',
+            'test:unit': 'vitest run src/__tests__/',
+            'test:integration': 'echo \'No integration tests for test-support package\'',
         },
         backend: {
             test: 'cd functions && npm test',
