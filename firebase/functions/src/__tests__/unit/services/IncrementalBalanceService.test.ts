@@ -3,7 +3,7 @@ import { ExpenseDTOBuilder, SimplifiedDebtBuilder, StubFirestoreDatabase } from 
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { GroupBalanceDTO } from '../../../schemas';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
-import { FirestoreWriter } from '../../../services/firestore/FirestoreWriter';
+import { FirestoreWriter } from '../../../services/firestore';
 
 describe('IncrementalBalanceService - Unit Tests', () => {
     let service: IncrementalBalanceService;

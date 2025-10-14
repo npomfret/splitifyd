@@ -1,12 +1,11 @@
 import { CreateGroupRequest } from '@splitifyd/shared';
-import { CreateGroupRequestBuilder, GroupDTOBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
-import { Timestamp } from '../../firestore-wrapper';
 import { validateCreateGroup, validateGroupId, validateUpdateGroup } from '../../groups/validation';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
-import { FirestoreReader } from '../../services/firestore/FirestoreReader';
-import { FirestoreWriter } from '../../services/firestore/FirestoreWriter';
+import { FirestoreReader } from '../../services/firestore';
+import { FirestoreWriter } from '../../services/firestore';
 import { GroupService } from '../../services/GroupService';
 import { ApiError } from '../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';

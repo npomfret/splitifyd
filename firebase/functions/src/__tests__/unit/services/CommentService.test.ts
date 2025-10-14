@@ -6,8 +6,8 @@ import { validateCommentId, validateCreateComment, validateListCommentsQuery, va
 import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { CommentService } from '../../../services/CommentService';
-import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
-import { FirestoreWriter } from '../../../services/firestore/FirestoreWriter';
+import { FirestoreReader } from '../../../services/firestore';
+import { FirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
 import { StubAuthService, StubFirestoreDatabase } from '../mocks/firestore-stubs';

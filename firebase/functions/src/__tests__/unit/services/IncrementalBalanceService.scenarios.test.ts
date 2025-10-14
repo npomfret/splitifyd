@@ -2,7 +2,7 @@ import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, Simpli
 import type { SimplifiedDebt } from '@splitifyd/shared';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
-import { FirestoreWriter } from '../../../services/firestore/FirestoreWriter';
+import { FirestoreWriter } from '../../../services/firestore';
 
 /**
  * IncrementalBalanceService - Scenario Tests

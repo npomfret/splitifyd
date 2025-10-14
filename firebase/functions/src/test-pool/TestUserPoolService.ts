@@ -1,5 +1,5 @@
 import { getFirestore } from '../firebase';
-import { createFirestoreDatabase, type IFirestoreDatabase, Timestamp } from '../firestore-wrapper';
+import { createFirestoreDatabase, type IFirestoreDatabase } from '../firestore-wrapper';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreWriter } from '../services/firestore';
 import { UserService } from '../services/UserService2';

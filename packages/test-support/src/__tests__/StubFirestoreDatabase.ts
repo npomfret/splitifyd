@@ -7,7 +7,7 @@
  */
 
 import { Timestamp } from 'firebase-admin/firestore';
-import { GroupDTOBuilder } from '../builders/GroupDTOBuilder';
+import { GroupDTOBuilder } from '../builders';
 import type {
     IAggregateQuery,
     IAggregateQuerySnapshot,

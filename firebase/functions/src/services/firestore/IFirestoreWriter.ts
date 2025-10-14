@@ -14,7 +14,7 @@
  * - Performance monitoring with sampling
  */
 
-import type { CommentDTO, CommentTargetType, ExpenseDTO, GroupDTO, RegisteredUser, SettlementDTO, ShareLinkDTO } from '@splitifyd/shared';
+import type { CommentDTO, CommentTargetType, RegisteredUser, ShareLinkDTO } from '@splitifyd/shared';
 import type { Timestamp } from 'firebase-admin/firestore';
 import type { IDocumentReference, ITransaction, IWriteBatch } from '../../firestore-wrapper';
 import type { GroupBalanceDTO } from '../../schemas';

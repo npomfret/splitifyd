@@ -1,12 +1,11 @@
-import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, GroupDTOBuilder } from '@splitifyd/test-support';
-import { Timestamp } from 'firebase-admin/firestore';
+import { CreateExpenseRequestBuilder, ExpenseDTOBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { Timestamp as FirestoreTimestamp } from '../../../firestore-wrapper';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { ExpenseService } from '../../../services/ExpenseService';
-import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
-import { FirestoreWriter } from '../../../services/firestore/FirestoreWriter';
+import { FirestoreReader } from '../../../services/firestore';
+import { FirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
 import { StubAuthService, StubFirestoreDatabase } from '../mocks/firestore-stubs';
 

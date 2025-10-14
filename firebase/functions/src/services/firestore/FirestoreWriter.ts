@@ -14,7 +14,7 @@ import type { CommentDTO, RegisteredUser, ShareLinkDTO } from '@splitifyd/shared
 import { type CommentTargetType, CommentTargetTypes } from '@splitifyd/shared';
 import { z } from 'zod';
 import { FIRESTORE, FirestoreCollections, HTTP_STATUS } from '../../constants';
-import { FieldValue, type IDocumentReference, type IFirestoreDatabase, type ITransaction, type IWriteBatch, Timestamp } from '../../firestore-wrapper';
+import { FieldValue, type IFirestoreDatabase, type ITransaction, type IWriteBatch, Timestamp } from '../../firestore-wrapper';
 import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
 import { ApiError } from '../../utils/errors';

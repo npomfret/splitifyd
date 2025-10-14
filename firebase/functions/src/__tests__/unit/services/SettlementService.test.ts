@@ -1,10 +1,10 @@
-import { CreateSettlementRequestBuilder, GroupDTOBuilder } from '@splitifyd/test-support';
+import { CreateSettlementRequestBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { Timestamp } from '../../../firestore-wrapper';
+import { Timestamp } from '@google-cloud/firestore';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
-import { FirestoreWriter } from '../../../services/firestore/FirestoreWriter';
+import { FirestoreReader } from '../../../services/firestore';
+import { FirestoreWriter } from '../../../services/firestore';
 import { SettlementService } from '../../../services/SettlementService';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
 import { StubAuthService, StubFirestoreDatabase } from '../mocks/firestore-stubs';

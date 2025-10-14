@@ -3,8 +3,8 @@ import {PolicyDocumentBuilder, StubFirestoreDatabase} from '@splitifyd/test-supp
 import {beforeEach, describe, expect, it} from 'vitest';
 import {HTTP_STATUS} from '../../../constants';
 import {PolicyService} from '../../../services/PolicyService';
-import {FirestoreReader} from '../../../services/firestore/FirestoreReader';
-import {FirestoreWriter} from '../../../services/firestore/FirestoreWriter';
+import {FirestoreReader} from '../../../services/firestore';
+import {FirestoreWriter} from '../../../services/firestore';
 
 /**
  * Consolidated PolicyService Unit Tests

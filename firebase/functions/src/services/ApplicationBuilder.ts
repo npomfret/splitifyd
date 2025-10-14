@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin';
 import type { Firestore } from 'firebase-admin/firestore';
-import { createFirestoreDatabase, type IFirestoreDatabase } from '../firestore-wrapper';
+import { createFirestoreDatabase } from '../firestore-wrapper';
 import { IAuthService } from './auth';
 import { FirebaseAuthService } from './auth';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
