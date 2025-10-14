@@ -818,6 +818,11 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
         this.seed(`settlements/${settlementId}`, firestoreData);
     }
 
+    seedPolicy(policyId: string, policyData: Record<string, any>): void {
+        const firestoreData = this.convertDatesToTimestamps(policyData);
+        this.seed(`policies/${policyId}`, firestoreData);
+    }
+
     initializeGroupBalance(groupId: string): void {
         const initialBalance = {
             groupId,
