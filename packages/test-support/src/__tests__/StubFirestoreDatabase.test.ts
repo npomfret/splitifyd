@@ -220,4 +220,76 @@ describe('StubFirestoreDatabase - Example Usage', () => {
             expect(membersSnapshot.size).toBe(2);
         });
     });
+
+    describe('Collection group queries', () => {
+        beforeEach(async () => {
+            // Set up share links in multiple groups
+            await db.collection('groups').doc('group-1').collection('shareLinks').doc('link-1').set({
+                token: 'token-1',
+                isActive: true,
+                createdBy: 'user-1',
+            });
+
+            await db.collection('groups').doc('group-1').collection('shareLinks').doc('link-2').set({
+                token: 'token-2',
+                isActive: false,
+                createdBy: 'user-1',
+            });
+
+            await db.collection('groups').doc('group-2').collection('shareLinks').doc('link-3').set({
+                token: 'token-3',
+                isActive: true,
+                createdBy: 'user-2',
+            });
+
+            await db.collection('groups').doc('group-3').collection('shareLinks').doc('link-4').set({
+                token: 'token-4',
+                isActive: true,
+                createdBy: 'user-3',
+            });
+        });
+
+        it('should query across all subcollections with the same name', async () => {
+            const querySnapshot = await db.collectionGroup('shareLinks').get();
+
+            expect(querySnapshot.size).toBe(4);
+            expect(querySnapshot.docs.map((d) => d.id)).toEqual(['link-1', 'link-2', 'link-3', 'link-4']);
+        });
+
+        it('should filter collection group queries', async () => {
+            const querySnapshot = await db.collectionGroup('shareLinks').where('isActive', '==', true).get();
+
+            expect(querySnapshot.size).toBe(3);
+            expect(querySnapshot.docs.map((d) => d.id)).toEqual(['link-1', 'link-3', 'link-4']);
+        });
+
+        it('should find specific document in collection group by token', async () => {
+            const querySnapshot = await db.collectionGroup('shareLinks').where('token', '==', 'token-3').limit(1).get();
+
+            expect(querySnapshot.size).toBe(1);
+            expect(querySnapshot.docs[0].id).toBe('link-3');
+            expect(querySnapshot.docs[0].data().createdBy).toBe('user-2');
+        });
+
+        it('should combine where clauses in collection group query', async () => {
+            const querySnapshot = await db.collectionGroup('shareLinks').where('isActive', '==', true).where('createdBy', '==', 'user-1').get();
+
+            expect(querySnapshot.size).toBe(1);
+            expect(querySnapshot.docs[0].id).toBe('link-1');
+        });
+
+        it('should return empty result when no documents match in collection group', async () => {
+            const querySnapshot = await db.collectionGroup('shareLinks').where('token', '==', 'nonexistent-token').get();
+
+            expect(querySnapshot.empty).toBe(true);
+            expect(querySnapshot.size).toBe(0);
+        });
+
+        it('should handle collection group with ordering and limit', async () => {
+            const querySnapshot = await db.collectionGroup('shareLinks').where('isActive', '==', true).orderBy('createdBy').limit(2).get();
+
+            expect(querySnapshot.size).toBe(2);
+            expect(querySnapshot.docs.map((d) => d.data().createdBy)).toEqual(['user-1', 'user-2']);
+        });
+    });
 });

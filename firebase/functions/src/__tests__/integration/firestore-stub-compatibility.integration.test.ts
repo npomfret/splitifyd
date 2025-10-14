@@ -22,11 +22,34 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
     });
 
     afterEach(async () => {
-        // Clean up real Firestore test data
+        // Clean up real Firestore test data (including subcollections)
         const snapshot = await realDb.collection(testCollectionPrefix).get();
+
+        // Delete all subcollections first (e.g., shareLinks, members)
+        for (const doc of snapshot.docs) {
+            // Delete shareLinks subcollection
+            const shareLinksSnapshot = await doc.ref.collection('shareLinks').get();
+            const shareLinksBatch = realDb.batch();
+            shareLinksSnapshot.docs.forEach((linkDoc) => shareLinksBatch.delete(linkDoc.ref));
+            if (shareLinksSnapshot.docs.length > 0) {
+                await shareLinksBatch.commit();
+            }
+
+            // Delete members subcollection
+            const membersSnapshot = await doc.ref.collection('members').get();
+            const membersBatch = realDb.batch();
+            membersSnapshot.docs.forEach((memberDoc) => membersBatch.delete(memberDoc.ref));
+            if (membersSnapshot.docs.length > 0) {
+                await membersBatch.commit();
+            }
+        }
+
+        // Now delete the parent documents
         const batch = realDb.batch();
         snapshot.docs.forEach((doc) => batch.delete(doc.ref));
-        await batch.commit();
+        if (snapshot.docs.length > 0) {
+            await batch.commit();
+        }
 
         // Clean up stub
         stubDb.clear();
@@ -298,6 +321,116 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
                     const parentSnapshot = await parentRef.get();
                     expect(parentSnapshot.data()?.name, `Parent data accessible (${isStub ? 'stub' : 'real'})`).toBe('Parent Group');
                 }
+            });
+        });
+    });
+
+    describe('Collection Group Queries', () => {
+        beforeEach(async () => {
+            // Set up share links in multiple groups (mirrors real production use case)
+            // Add testRunId to filter collection group queries to only this test run
+            const groups = [
+                { groupId: 'group-1', links: [
+                    { id: 'link-1', token: 'token-1', isActive: true, createdBy: 'user-1', testRunId: testCollectionPrefix },
+                    { id: 'link-2', token: 'token-2', isActive: false, createdBy: 'user-1', testRunId: testCollectionPrefix },
+                ]},
+                { groupId: 'group-2', links: [
+                    { id: 'link-3', token: 'token-3', isActive: true, createdBy: 'user-2', testRunId: testCollectionPrefix },
+                ]},
+                { groupId: 'group-3', links: [
+                    { id: 'link-4', token: 'token-4', isActive: true, createdBy: 'user-3', testRunId: testCollectionPrefix },
+                ]},
+            ];
+
+            for (const group of groups) {
+                for (const link of group.links) {
+                    await realDb.collection(testCollectionPrefix).doc(group.groupId).collection('shareLinks').doc(link.id).set(link);
+                    await stubDb.collection(testCollectionPrefix).doc(group.groupId).collection('shareLinks').doc(link.id).set(link);
+                }
+            }
+        });
+
+        it('should query across all subcollections identically', async () => {
+            await testBothImplementations('collection group all', async (db, isStub) => {
+                const snapshot = await db.collectionGroup('shareLinks').where('testRunId', '==', testCollectionPrefix).get();
+
+                expect(snapshot.size, `Collection group size (${isStub ? 'stub' : 'real'})`).toBe(4);
+
+                const tokens = snapshot.docs.map((doc) => doc.data().token).sort();
+                expect(tokens, `Collection group tokens (${isStub ? 'stub' : 'real'})`).toEqual(['token-1', 'token-2', 'token-3', 'token-4']);
+            });
+        });
+
+        it('should filter collection group queries identically', async () => {
+            await testBothImplementations('collection group filter', async (db, isStub) => {
+                const snapshot = await db.collectionGroup('shareLinks').where('testRunId', '==', testCollectionPrefix).where('isActive', '==', true).get();
+
+                expect(snapshot.size, `Filtered collection group (${isStub ? 'stub' : 'real'})`).toBe(3);
+
+                const tokens = snapshot.docs.map((doc) => doc.data().token).sort();
+                expect(tokens, `Active link tokens (${isStub ? 'stub' : 'real'})`).toEqual(['token-1', 'token-3', 'token-4']);
+            });
+        });
+
+        it('should find specific document in collection group identically', async () => {
+            await testBothImplementations('collection group find', async (db, isStub) => {
+                const snapshot = await db.collectionGroup('shareLinks').where('testRunId', '==', testCollectionPrefix).where('token', '==', 'token-3').limit(1).get();
+
+                expect(snapshot.size, `Find in collection group (${isStub ? 'stub' : 'real'})`).toBe(1);
+                expect(snapshot.docs[0].id, `Found document ID (${isStub ? 'stub' : 'real'})`).toBe('link-3');
+                expect(snapshot.docs[0].data().createdBy, `Found document data (${isStub ? 'stub' : 'real'})`).toBe('user-2');
+            });
+        });
+
+        it('should combine multiple filters in collection group identically', async () => {
+            await testBothImplementations('collection group multiple filters', async (db, isStub) => {
+                const snapshot = await db.collectionGroup('shareLinks')
+                    .where('testRunId', '==', testCollectionPrefix)
+                    .where('isActive', '==', true)
+                    .where('createdBy', '==', 'user-1')
+                    .get();
+
+                expect(snapshot.size, `Multi-filter collection group (${isStub ? 'stub' : 'real'})`).toBe(1);
+                expect(snapshot.docs[0].id, `Filtered document ID (${isStub ? 'stub' : 'real'})`).toBe('link-1');
+            });
+        });
+
+        it('should handle empty collection group results identically', async () => {
+            await testBothImplementations('collection group empty', async (db, isStub) => {
+                const snapshot = await db.collectionGroup('shareLinks').where('testRunId', '==', testCollectionPrefix).where('token', '==', 'nonexistent-token').get();
+
+                expect(snapshot.empty, `Empty collection group (${isStub ? 'stub' : 'real'})`).toBe(true);
+                expect(snapshot.size, `Empty collection group size (${isStub ? 'stub' : 'real'})`).toBe(0);
+            });
+        });
+
+        it('should order and limit collection group queries identically', async () => {
+            await testBothImplementations('collection group order and limit', async (db, isStub) => {
+                const snapshot = await db.collectionGroup('shareLinks')
+                    .where('testRunId', '==', testCollectionPrefix)
+                    .where('isActive', '==', true)
+                    .orderBy('createdBy')
+                    .limit(2)
+                    .get();
+
+                expect(snapshot.size, `Limited collection group (${isStub ? 'stub' : 'real'})`).toBe(2);
+
+                const creators = snapshot.docs.map((doc) => doc.data().createdBy);
+                expect(creators, `Ordered creators (${isStub ? 'stub' : 'real'})`).toEqual(['user-1', 'user-2']);
+            });
+        });
+
+        it('should navigate parent from collection group document identically', async () => {
+            await testBothImplementations('collection group parent', async (db, isStub) => {
+                const snapshot = await db.collectionGroup('shareLinks').where('testRunId', '==', testCollectionPrefix).where('token', '==', 'token-3').limit(1).get();
+
+                expect(snapshot.size, `Found document (${isStub ? 'stub' : 'real'})`).toBe(1);
+
+                const doc = snapshot.docs[0];
+                const parentRef = doc.ref.parent?.parent;
+
+                expect(parentRef, `Parent exists (${isStub ? 'stub' : 'real'})`).toBeDefined();
+                expect(parentRef?.id, `Parent group ID (${isStub ? 'stub' : 'real'})`).toBe('group-2');
             });
         });
     });
