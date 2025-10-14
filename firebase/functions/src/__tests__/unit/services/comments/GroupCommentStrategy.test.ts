@@ -1,66 +1,88 @@
-import { GroupDTOBuilder } from '@splitifyd/test-support';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../../constants';
 import { GroupCommentStrategy } from '../../../../services/comments/GroupCommentStrategy';
-import { ApiError } from '../../../../utils/errors';
-import { StubFirestore, StubFirestoreReader } from '../../mocks/firestore-stubs';
-
-const createStubGroupMemberService = () => ({
-    isGroupMemberAsync: vi.fn(),
-    getGroupMember: vi.fn(),
-    getAllGroupMembers: vi.fn(),
-});
+import { FirestoreReader } from '../../../../services/firestore/FirestoreReader';
+import { FirestoreWriter } from '../../../../services/firestore/FirestoreWriter';
+import { GroupMemberService } from '../../../../services/GroupMemberService';
+import { GroupMemberDocumentBuilder } from '../../../support/GroupMemberDocumentBuilder';
+import { StubFirestoreDatabase } from '../../mocks/firestore-stubs';
 
 describe('GroupCommentStrategy', () => {
     let strategy: GroupCommentStrategy;
-    let stubFirestoreReader: StubFirestore;
-    let stubGroupMemberService: ReturnType<typeof createStubGroupMemberService>;
+    let db: StubFirestoreDatabase;
+    let firestoreReader: FirestoreReader;
+    let groupMemberService: GroupMemberService;
 
     beforeEach(() => {
-        stubFirestoreReader = new StubFirestoreReader();
-        stubGroupMemberService = createStubGroupMemberService();
-        strategy = new GroupCommentStrategy(stubFirestoreReader, stubGroupMemberService as any);
+        // Create stub database
+        db = new StubFirestoreDatabase();
+
+        // Create real services using stub database
+        firestoreReader = new FirestoreReader(db);
+        const firestoreWriter = new FirestoreWriter(db);
+        groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter);
+
+        // Create strategy with real services
+        strategy = new GroupCommentStrategy(firestoreReader, groupMemberService);
     });
 
     describe('verifyAccess', () => {
         it('should allow access when group exists and user is member', async () => {
-            const testGroup = new GroupDTOBuilder()
-                .withId('test-group')
-                .build();
+            // Arrange
+            const groupId = 'test-group';
+            const userId = 'test-user';
 
-            // Simple stub data setup
-            stubFirestoreReader.setDocument('groups', 'test-group', testGroup);
-            stubGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
+            // Seed group data
+            db.seedGroup(groupId, { name: 'Test Group' });
 
-            await expect(strategy.verifyAccess('test-group', 'user-id')).resolves.not.toThrow();
+            // Seed user and group membership
+            db.seedUser(userId, { email: 'test@example.com', displayName: 'Test User' });
+            const membershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId(userId)
+                .withGroupId(groupId)
+                .withRole('member')
+                .withStatus('active')
+                .buildDocument();
+            db.seedGroupMember(groupId, userId, membershipDoc);
+
+            // Act & Assert
+            await expect(strategy.verifyAccess(groupId, userId)).resolves.not.toThrow();
         });
 
         it('should throw NOT_FOUND when group does not exist', async () => {
-            // No need to set up anything - stub returns null by default for non-existent documents
+            // Arrange
+            const nonexistentGroupId = 'nonexistent-group';
+            const userId = 'test-user';
 
-            await expect(strategy.verifyAccess('nonexistent-group', 'user-id')).rejects.toThrow(ApiError);
+            // No group data seeded - simulating non-existent group
 
-            const error = (await strategy.verifyAccess('nonexistent-group', 'user-id').catch((e: ApiError) => e)) as ApiError;
-
-            expect(error.statusCode).toBe(HTTP_STATUS.NOT_FOUND);
-            expect(error.code).toBe('GROUP_NOT_FOUND');
+            // Act & Assert
+            await expect(strategy.verifyAccess(nonexistentGroupId, userId)).rejects.toThrow(
+                expect.objectContaining({
+                    statusCode: HTTP_STATUS.NOT_FOUND,
+                    code: 'GROUP_NOT_FOUND',
+                }),
+            );
         });
 
         it('should throw FORBIDDEN when user is not a group member', async () => {
-            const testGroup = new GroupDTOBuilder()
-                .withId('test-group')
-                .build();
+            // Arrange
+            const groupId = 'test-group';
+            const userId = 'unauthorized-user';
 
-            // Set up group but user is not a member
-            stubFirestoreReader.setDocument('groups', 'test-group', testGroup);
-            stubGroupMemberService.isGroupMemberAsync.mockResolvedValue(false);
+            // Seed group but not user membership
+            db.seedGroup(groupId, { name: 'Test Group' });
+            db.seedUser(userId, { email: 'unauthorized@example.com', displayName: 'Unauthorized User' });
 
-            await expect(strategy.verifyAccess('test-group', 'unauthorized-user')).rejects.toThrow(ApiError);
+            // No group membership seeded for this user
 
-            const error = (await strategy.verifyAccess('test-group', 'unauthorized-user').catch((e: ApiError) => e)) as ApiError;
-
-            expect(error.statusCode).toBe(HTTP_STATUS.FORBIDDEN);
-            expect(error.code).toBe('ACCESS_DENIED');
+            // Act & Assert
+            await expect(strategy.verifyAccess(groupId, userId)).rejects.toThrow(
+                expect.objectContaining({
+                    statusCode: HTTP_STATUS.FORBIDDEN,
+                    code: 'ACCESS_DENIED',
+                }),
+            );
         });
     });
 });
