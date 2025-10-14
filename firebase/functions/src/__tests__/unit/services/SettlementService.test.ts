@@ -15,80 +15,6 @@ describe('SettlementService - Unit Tests', () => {
     let stubAuth: StubAuthService;
     let applicationBuilder: ApplicationBuilder;
 
-    // Helper to convert ISO strings to Timestamps for Firestore storage
-    const convertDatesToTimestamps = (data: any) => {
-        const converted = { ...data };
-        // Convert date fields from ISO strings to Timestamps
-        const dateFields = ['date', 'createdAt', 'updatedAt', 'deletedAt', 'presetAppliedAt', 'markedForDeletionAt', 'joinedAt', 'groupUpdatedAt'];
-        for (const field of dateFields) {
-            if (converted[field]) {
-                if (typeof converted[field] === 'string') {
-                    converted[field] = Timestamp.fromDate(new Date(converted[field]));
-                }
-            }
-        }
-        // Handle nested theme.assignedAt
-        if (converted.theme && converted.theme.assignedAt && typeof converted.theme.assignedAt === 'string') {
-            converted.theme.assignedAt = Timestamp.fromDate(new Date(converted.theme.assignedAt));
-        }
-        return converted;
-    };
-
-    // Helper to seed user data
-    // Note: No builder used here because User schema is intentionally flexible with optional fields
-    // RegisteredUserBuilder creates DTO objects, not Firestore documents
-    const seedUser = (userId: string, userData: Record<string, any>) => {
-        db.seed(`users/${userId}`, {
-            id: userId,
-            email: userData.email || `${userId}@test.com`,
-            displayName: userData.displayName || `User ${userId}`,
-            createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now(),
-            ...userData,
-        });
-    };
-
-    // Helper to seed group data using GroupDTOBuilder
-    const seedGroup = (groupId: string, overrides: Partial<any> = {}) => {
-        // Build complete group data with all required fields
-        const groupData = new GroupDTOBuilder()
-            .withId(groupId)
-            .withName(overrides.name || 'Test Group')
-            .withCreatedBy(overrides.createdBy || 'test-creator')
-            .buildDocument();
-
-        // Convert dates and merge with overrides
-        const firestoreData = convertDatesToTimestamps({ ...groupData, ...overrides });
-        db.seed(`groups/${groupId}`, firestoreData);
-    };
-
-    // Helper to seed group member
-    const seedGroupMember = (groupId: string, userId: string, memberData: any) => {
-        // Convert ISO string dates to Timestamps for Firestore storage
-        const firestoreData = convertDatesToTimestamps(memberData);
-        // Use correct document ID format: userId_groupId (matches getTopLevelMembershipDocId)
-        // Collection name: group-memberships (not group-members!)
-        db.seed(`group-memberships/${userId}_${groupId}`, firestoreData);
-    };
-
-    // Helper to initialize balance document for a group
-    const initializeGroupBalance = (groupId: string) => {
-        const initialBalance = {
-            groupId,
-            balancesByCurrency: {},
-            simplifiedDebts: [],
-            lastUpdatedAt: Timestamp.now(),
-            version: 0,
-        };
-        db.seed(`groups/${groupId}/metadata/balance`, initialBalance);
-    };
-
-    // Helper to seed settlement
-    const seedSettlement = (settlementId: string, settlementData: any) => {
-        const firestoreData = convertDatesToTimestamps(settlementData);
-        db.seed(`settlements/${settlementId}`, firestoreData);
-    };
-
     beforeEach(() => {
         // Create stub database
         db = new StubFirestoreDatabase();
@@ -117,11 +43,11 @@ describe('SettlementService - Unit Tests', () => {
                 .build();
 
             // Seed required data
-            seedGroup(groupId, { id: groupId, name: 'Test Group' });
-            initializeGroupBalance(groupId);
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            db.seedGroup(groupId, { name: 'Test Group' });
+            db.initializeGroupBalance(groupId);
+            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships for all users (creator, payer, payee)
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -142,9 +68,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
-            seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
 
             // Act
             const result = await settlementService.createSettlement(validSettlementData, userId);
@@ -170,11 +96,11 @@ describe('SettlementService - Unit Tests', () => {
                 .build();
 
             // Seed required data
-            seedGroup(groupId, { id: groupId, name: 'Test Group' });
-            initializeGroupBalance(groupId);
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            db.seedGroup(groupId, { name: 'Test Group' });
+            db.initializeGroupBalance(groupId);
+            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -195,9 +121,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
-            seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
 
             // Act
             const result = await settlementService.createSettlement(settlementDataWithoutNote, userId);
@@ -221,20 +147,20 @@ describe('SettlementService - Unit Tests', () => {
                 .build();
 
             // Seed valid user data
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('valid-payer', {
+            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            db.seedUser('valid-payer', {
                 email: 'payer@example.com',
                 displayName: 'Valid Payer',
                 otherField: 'should be preserved',
             });
-            seedUser('valid-payee', {
+            db.seedUser('valid-payee', {
                 email: 'payee@example.com',
                 displayName: 'Valid Payee',
             });
 
             // Seed other dependencies
-            seedGroup(groupId, { id: groupId, name: 'Test Group' });
-            initializeGroupBalance(groupId);
+            db.seedGroup(groupId, { name: 'Test Group' });
+            db.initializeGroupBalance(groupId);
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -255,9 +181,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
-            seedGroupMember(groupId, 'valid-payer', payerMembershipDoc);
-            seedGroupMember(groupId, 'valid-payee', payeeMembershipDoc);
+            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId,'valid-payer', payerMembershipDoc);
+            db.seedGroupMember(groupId,'valid-payee', payeeMembershipDoc);
 
             // Act & Assert - Should not throw
             await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
@@ -274,11 +200,11 @@ describe('SettlementService - Unit Tests', () => {
                 .build();
 
             // Seed basic setup
-            seedGroup(groupId, { id: groupId, name: 'Test Group' });
-            initializeGroupBalance(groupId);
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            db.seedGroup(groupId, { name: 'Test Group' });
+            db.initializeGroupBalance(groupId);
+            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -299,9 +225,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
-            seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
 
             // Act & Assert - Should succeed
             await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
@@ -320,11 +246,11 @@ describe('SettlementService - Unit Tests', () => {
                 .build();
 
             // Seed valid data
-            seedGroup(groupId, { id: groupId, name: 'Test Group' });
-            initializeGroupBalance(groupId);
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            db.seedGroup(groupId, { name: 'Test Group' });
+            db.initializeGroupBalance(groupId);
+            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships for all users
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -345,9 +271,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
-            seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
 
             // Act & Assert - Should succeed
             await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
@@ -364,8 +290,8 @@ describe('SettlementService - Unit Tests', () => {
                 .build();
 
             // Seed group data
-            seedGroup(groupId, { id: groupId, name: 'Test Group' });
-            initializeGroupBalance(groupId);
+            db.seedGroup(groupId, { name: 'Test Group' });
+            db.initializeGroupBalance(groupId);
 
             // Set up group memberships - creator and payee are members, payer is not
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -380,8 +306,8 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
-            seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
 
             // Act & Assert
             await expect(settlementService.createSettlement(settlementData, userId)).rejects.toThrow(
@@ -406,8 +332,8 @@ describe('SettlementService - Unit Tests', () => {
                 .build();
 
             // Seed group data
-            seedGroup(groupId, { id: groupId, name: 'Test Group' });
-            initializeGroupBalance(groupId);
+            db.seedGroup(groupId, { name: 'Test Group' });
+            db.initializeGroupBalance(groupId);
 
             // Set up group memberships - creator and payer are members, payee is not
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -422,8 +348,8 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
-            seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
 
             // Act & Assert
             await expect(settlementService.createSettlement(settlementData, userId)).rejects.toThrow(
@@ -471,11 +397,11 @@ describe('SettlementService - Unit Tests', () => {
                 .build();
 
             // Seed required data
-            seedGroup(groupId, { id: groupId, name: 'Test Group' });
-            initializeGroupBalance(groupId);
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            db.seedGroup(groupId, { name: 'Test Group' });
+            db.initializeGroupBalance(groupId);
+            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -496,9 +422,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
-            seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
 
             // Act
             const result = await settlementService.createSettlement(settlementData, userId);
@@ -520,11 +446,11 @@ describe('SettlementService - Unit Tests', () => {
                 .build();
 
             // Seed required data
-            seedGroup(groupId, { id: groupId, name: 'Test Group' });
-            initializeGroupBalance(groupId);
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            db.seedGroup(groupId, { name: 'Test Group' });
+            db.initializeGroupBalance(groupId);
+            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -545,9 +471,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
-            seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
 
             // Act & Assert - Should succeed
             await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
@@ -566,11 +492,11 @@ describe('SettlementService - Unit Tests', () => {
                 .build();
 
             // Seed required data
-            seedGroup(groupId, { id: groupId, name: 'Test Group' });
-            initializeGroupBalance(groupId);
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            db.seedGroup(groupId, { name: 'Test Group' });
+            db.initializeGroupBalance(groupId);
+            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -591,9 +517,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
-            seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
 
             // Act & Assert - Should succeed
             await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
@@ -612,11 +538,11 @@ describe('SettlementService - Unit Tests', () => {
                 .build();
 
             // Seed required data
-            seedGroup(groupId, { id: groupId, name: 'Test Group' });
-            initializeGroupBalance(groupId);
-            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            db.seedGroup(groupId, { name: 'Test Group' });
+            db.initializeGroupBalance(groupId);
+            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -637,9 +563,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            seedGroupMember(groupId, 'creator-user', creatorMembershipDoc);
-            seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId,'creator-user', creatorMembershipDoc);
+            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
 
             // Act
             const result = await settlementService.createSettlement(settlementData, userId);
@@ -671,14 +597,14 @@ describe('SettlementService - Unit Tests', () => {
                 deletedAt: null,
                 deletedBy: null,
             };
-            seedSettlement(settlementId, settlementData);
+            db.seedSettlement(settlementId, settlementData);
 
             // Set up group and membership
-            seedGroup(groupId, { id: groupId, name: 'Test Group' });
-            initializeGroupBalance(groupId);
-            seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            db.seedGroup(groupId, { name: 'Test Group' });
+            db.initializeGroupBalance(groupId);
+            db.seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
+            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId(creatorId)
                 .withGroupId(groupId)
@@ -697,9 +623,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            seedGroupMember(groupId, creatorId, creatorMembershipDoc);
-            seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId,creatorId, creatorMembershipDoc);
+            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
 
             // Act & Assert - Should succeed without throwing
             await expect(settlementService.softDeleteSettlement(settlementId, creatorId)).resolves.toBeUndefined();
@@ -726,18 +652,18 @@ describe('SettlementService - Unit Tests', () => {
                 deletedAt: Timestamp.now(), // Already deleted
                 deletedBy: creatorId,
             };
-            seedSettlement(settlementId, deletedSettlementData);
+            db.seedSettlement(settlementId, deletedSettlementData);
 
             // Set up group and membership
-            seedGroup(groupId, { id: groupId, name: 'Test Group' });
-            seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
+            db.seedGroup(groupId, { name: 'Test Group' });
+            db.seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId(creatorId)
                 .withGroupId(groupId)
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            seedGroupMember(groupId, creatorId, creatorMembershipDoc);
+            db.seedGroupMember(groupId,creatorId, creatorMembershipDoc);
 
             // Act & Assert
             // Soft-deleted settlements are filtered out by FirestoreReader, so we get NOT_FOUND
@@ -769,13 +695,13 @@ describe('SettlementService - Unit Tests', () => {
                 deletedAt: null,
                 deletedBy: null,
             };
-            seedSettlement(settlementId, settlementData);
+            db.seedSettlement(settlementId, settlementData);
 
-            seedGroup(groupId, { id: groupId, name: 'Test Group' });
-            initializeGroupBalance(groupId);
-            seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            db.seedGroup(groupId, { name: 'Test Group' });
+            db.initializeGroupBalance(groupId);
+            db.seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
+            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId(creatorId)
                 .withGroupId(groupId)
@@ -794,9 +720,9 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            seedGroupMember(groupId, creatorId, creatorMembershipDoc);
-            seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId,creatorId, creatorMembershipDoc);
+            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
 
             // Act & Assert - Should succeed
             await expect(settlementService.softDeleteSettlement(settlementId, creatorId)).resolves.not.toThrow();
@@ -823,14 +749,14 @@ describe('SettlementService - Unit Tests', () => {
                 deletedAt: null,
                 deletedBy: null,
             };
-            seedSettlement(settlementId, settlementData);
+            db.seedSettlement(settlementId, settlementData);
 
-            seedGroup(groupId, { id: groupId, name: 'Test Group' });
-            initializeGroupBalance(groupId);
-            seedUser(adminId, { email: `${adminId}@test.com`, displayName: 'Admin User' });
-            seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            db.seedGroup(groupId, { name: 'Test Group' });
+            db.initializeGroupBalance(groupId);
+            db.seedUser(adminId, { email: `${adminId}@test.com`, displayName: 'Admin User' });
+            db.seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
+            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
             const adminMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId(adminId)
                 .withGroupId(groupId)
@@ -855,10 +781,10 @@ describe('SettlementService - Unit Tests', () => {
                 .withRole('member')
                 .withStatus('active')
                 .buildDocument();
-            seedGroupMember(groupId, adminId, adminMembershipDoc);
-            seedGroupMember(groupId, creatorId, creatorMembershipDoc);
-            seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
+            db.seedGroupMember(groupId,adminId, adminMembershipDoc);
+            db.seedGroupMember(groupId,creatorId, creatorMembershipDoc);
+            db.seedGroupMember(groupId,'payer-user', payerMembershipDoc);
+            db.seedGroupMember(groupId,'payee-user', payeeMembershipDoc);
 
             // Act & Assert - Should succeed for admin
             await expect(settlementService.softDeleteSettlement(settlementId, adminId)).resolves.not.toThrow();
@@ -885,17 +811,17 @@ describe('SettlementService - Unit Tests', () => {
                 deletedAt: null,
                 deletedBy: null,
             };
-            seedSettlement(settlementId, settlementData);
+            db.seedSettlement(settlementId, settlementData);
 
-            seedGroup(groupId, { id: groupId, name: 'Test Group' });
-            initializeGroupBalance(groupId);
+            db.seedGroup(groupId, { name: 'Test Group' });
+            db.initializeGroupBalance(groupId);
             const otherMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId(otherId)
                 .withGroupId(groupId)
                 .withRole('member') // Regular member, not creator or admin
                 .withStatus('active')
                 .buildDocument();
-            seedGroupMember(groupId, otherId, otherMembershipDoc);
+            db.seedGroupMember(groupId,otherId, otherMembershipDoc);
 
             // Act & Assert
             await expect(settlementService.softDeleteSettlement(settlementId, otherId)).rejects.toThrow(
@@ -942,9 +868,9 @@ describe('SettlementService - Unit Tests', () => {
                 deletedAt: null,
                 deletedBy: null,
             };
-            seedSettlement(settlementId, settlementData);
+            db.seedSettlement(settlementId, settlementData);
 
-            seedGroup(groupId, { id: groupId, name: 'Test Group' });
+            db.seedGroup(groupId, { name: 'Test Group' });
 
             // Don't add nonMemberId to group memberships
 

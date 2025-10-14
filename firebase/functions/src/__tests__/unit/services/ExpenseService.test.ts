@@ -16,66 +16,6 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     let applicationBuilder: ApplicationBuilder;
     let stubAuthService: StubAuthService;
 
-    // Helper to convert ISO strings to Timestamps for Firestore storage
-    const convertDatesToTimestamps = (data: any) => {
-        const converted = { ...data };
-        // Convert date fields from ISO strings to Timestamps
-        const dateFields = ['date', 'createdAt', 'updatedAt', 'deletedAt', 'presetAppliedAt', 'markedForDeletionAt', 'joinedAt', 'groupUpdatedAt'];
-        for (const field of dateFields) {
-            if (converted[field]) {
-                if (typeof converted[field] === 'string') {
-                    converted[field] = FirestoreTimestamp.fromDate(new Date(converted[field]));
-                }
-            }
-        }
-        // Handle nested theme.assignedAt
-        if (converted.theme && converted.theme.assignedAt && typeof converted.theme.assignedAt === 'string') {
-            converted.theme.assignedAt = FirestoreTimestamp.fromDate(new Date(converted.theme.assignedAt));
-        }
-        return converted;
-    };
-
-    // Helper to seed expense data in stub
-    const seedExpense = (expenseId: string, expenseData: any) => {
-        const firestoreData = convertDatesToTimestamps(expenseData);
-        db.seed(`expenses/${expenseId}`, firestoreData);
-    };
-
-    // Helper to seed group data using GroupDTOBuilder
-    const seedGroup = (groupId: string, overrides: Partial<any> = {}) => {
-        // Build complete group data with all required fields
-        const groupData = new GroupDTOBuilder()
-            .withId(groupId)
-            .withName(overrides.name || 'Test Group')
-            .withCreatedBy(overrides.createdBy || 'test-creator')
-            .build();
-
-        // Convert dates and merge with overrides
-        const firestoreData = convertDatesToTimestamps({ ...groupData, ...overrides });
-        db.seed(`groups/${groupId}`, firestoreData);
-    };
-
-    // Helper to seed group member
-    const seedGroupMember = (groupId: string, userId: string, memberData: any) => {
-        // Convert ISO string dates to Timestamps for Firestore storage
-        const firestoreData = convertDatesToTimestamps(memberData);
-        // Use correct document ID format: userId_groupId (matches getTopLevelMembershipDocId)
-        // Collection name: group-memberships (not group-members!)
-        db.seed(`group-memberships/${userId}_${groupId}`, firestoreData);
-    };
-
-    // Helper to initialize balance document for a group
-    const initializeGroupBalance = (groupId: string) => {
-        const initialBalance = {
-            groupId,
-            balancesByCurrency: {},
-            simplifiedDebts: [],
-            lastUpdatedAt: FirestoreTimestamp.now(),
-            version: 0,
-        };
-        db.seed(`group-balance/${groupId}`, initialBalance);
-    };
-
     beforeEach(() => {
         // Create stub database
         db = new StubFirestoreDatabase();
@@ -118,7 +58,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .build();
 
             // Seed the expense with Timestamp objects
-            seedExpense(expenseId, mockExpense);
+            db.seedExpense(expenseId, mockExpense);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -161,7 +101,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            seedExpense(expenseId, mockExpense);
+            db.seedExpense(expenseId, mockExpense);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -185,7 +125,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            seedExpense(expenseId, mockExpense);
+            db.seedExpense(expenseId, mockExpense);
 
             // Act & Assert
             await expect(expenseService.getExpense(expenseId, nonParticipantId)).rejects.toThrow(
@@ -209,7 +149,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            seedExpense(expenseId, mockExpense);
+            db.seedExpense(expenseId, mockExpense);
 
             // Act - Both participants should be able to access
             const result1 = await expenseService.getExpense(expenseId, participant1);
@@ -235,7 +175,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            seedExpense(expenseId, mockDeletedExpense);
+            db.seedExpense(expenseId,mockDeletedExpense);
 
             // Act & Assert
             await expect(expenseService.getExpense(expenseId, userId)).rejects.toThrow(
@@ -280,7 +220,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            seedExpense(expenseId, mockExpense);
+            db.seedExpense(expenseId, mockExpense);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -353,7 +293,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            seedExpense(expenseId, mockExpense);
+            db.seedExpense(expenseId, mockExpense);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -376,7 +316,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            seedExpense(expenseId, mockExpense);
+            db.seedExpense(expenseId, mockExpense);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -416,7 +356,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            seedExpense(expenseId, expenseData);
+            db.seedExpense(expenseId,expenseData);
 
             // Act
             const result = await expenseService.getExpense(expenseId, participantId);
@@ -440,7 +380,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            seedExpense(expenseId, expenseData);
+            db.seedExpense(expenseId,expenseData);
 
             // Act & Assert
             await expect(expenseService.getExpense(expenseId, outsiderId)).rejects.toThrow(ApiError);
@@ -459,7 +399,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            seedExpense(expenseId, deletedExpense);
+            db.seedExpense(expenseId,deletedExpense);
 
             // Act & Assert
             await expect(expenseService.getExpense(expenseId, userId)).rejects.toThrow();
@@ -490,7 +430,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(now)
                 .build();
 
-            seedExpense(expenseId, expenseData);
+            db.seedExpense(expenseId,expenseData);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -530,7 +470,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
 
-            seedExpense(expenseId, expenseData);
+            db.seedExpense(expenseId,expenseData);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);

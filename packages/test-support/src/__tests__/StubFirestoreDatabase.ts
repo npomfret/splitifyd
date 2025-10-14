@@ -772,14 +772,15 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
     seedGroup(groupId: string, overrides: Record<string, any> = {}): void {
         const now = Timestamp.now();
 
-        const groupDTO = new GroupDTOBuilder()
+        // Use buildDocument() to get Firestore format without client-side fields
+        const groupDocument = new GroupDTOBuilder()
             .withName(overrides.name || 'Test Group')
             .withDescription(overrides.description || 'A test group')
             .withCreatedBy(overrides.createdBy || 'test-creator')
-            .build();
+            .buildDocument();
 
         const groupData = {
-            ...groupDTO,
+            ...groupDocument,
             id: groupId,
             createdAt: now,
             updatedAt: now,
