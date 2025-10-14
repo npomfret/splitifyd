@@ -6,7 +6,7 @@ import { FirestoreReader } from '../../../services/firestore';
 import { FirestoreWriter } from '../../../services/firestore';
 import { SettlementHandlers } from '../../../settlements/SettlementHandlers';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubAuthService } from '../mocks/firestore-stubs';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('SettlementHandlers - Unit Tests', () => {
     let settlementHandlers: SettlementHandlers;

@@ -7,7 +7,7 @@ import { ExpenseService } from '../../../services/ExpenseService';
 import { FirestoreReader } from '../../../services/firestore';
 import { FirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
-import { StubAuthService, StubFirestoreDatabase } from '../mocks/firestore-stubs';
+import { StubAuthService, StubFirestoreDatabase } from '../mocks/StubAuthService';
 
 describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;

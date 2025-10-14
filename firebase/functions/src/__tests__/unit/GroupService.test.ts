@@ -9,7 +9,7 @@ import { FirestoreWriter } from '../../services/firestore';
 import { GroupService } from '../../services/GroupService';
 import { ApiError } from '../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
-import { StubAuthService, StubFirestoreDatabase } from './mocks/firestore-stubs';
+import { StubAuthService, StubFirestoreDatabase } from './mocks/StubAuthService';
 
 describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;

@@ -10,7 +10,7 @@ import { FirestoreReader } from '../../../services/firestore';
 import { FirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubAuthService, StubFirestoreDatabase } from '../mocks/firestore-stubs';
+import { StubAuthService, StubFirestoreDatabase } from '../mocks/StubAuthService';
 
 describe('CommentService - Consolidated Tests', () => {
     let commentService: CommentService;

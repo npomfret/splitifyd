@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from 'vitest';
-import { StubAuthService } from '../mocks/firestore-stubs';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 /**
  * Unit tests for security validation logic converted from integration tests

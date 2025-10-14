@@ -12,7 +12,7 @@ import { Timestamp } from '../../firestore-wrapper';
 import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreReader } from '../../services/firestore';
-import { StubFirestoreDatabase } from './mocks/firestore-stubs';
+import { StubFirestoreDatabase } from './mocks/StubAuthService';
 
 describe('FirestoreReader', () => {
     const firestore = getFirestore();

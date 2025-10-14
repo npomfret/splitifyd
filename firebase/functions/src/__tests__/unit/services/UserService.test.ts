@@ -7,7 +7,7 @@ import {FirestoreWriter} from '../../../services/firestore';
 import {UserService} from '../../../services/UserService2';
 import {ApiError} from '../../../utils/errors';
 import {initializeI18n} from '../../../utils/i18n';
-import {StubAuthService} from '../mocks/firestore-stubs';
+import {StubAuthService} from '../mocks/StubAuthService';
 
 describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;

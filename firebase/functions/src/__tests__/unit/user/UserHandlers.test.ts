@@ -13,7 +13,7 @@ import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
 import { UserHandlers } from '../../../user/UserHandlers';
 import { initializeI18n } from '../../../utils/i18n';
-import { StubAuthService } from '../mocks/firestore-stubs';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('UserHandlers - Unit Tests', () => {
     let userHandlers: UserHandlers;

@@ -6,7 +6,7 @@ import { ExpenseHandlers } from '../../../expenses/ExpenseHandlers';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubAuthService } from '../mocks/firestore-stubs';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('ExpenseHandlers - Unit Tests', () => {
     let expenseHandlers: ExpenseHandlers;

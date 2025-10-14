@@ -6,7 +6,7 @@ import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubAuthService } from '../mocks/firestore-stubs';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('CommentHandlers - Unit Tests', () => {
     let commentHandlers: CommentHandlers;

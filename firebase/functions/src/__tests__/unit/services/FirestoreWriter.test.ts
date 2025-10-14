@@ -6,7 +6,7 @@ import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
 import type { IFirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubAuthService } from '../mocks/firestore-stubs';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     let db: StubFirestoreDatabase;

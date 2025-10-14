@@ -5,7 +5,7 @@ import { PolicyHandlers } from '../../../policies/PolicyHandlers';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { FirestoreReader } from '../../../services/firestore';
 import { FirestoreWriter } from '../../../services/firestore';
-import { StubAuthService } from '../mocks/firestore-stubs';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('PolicyHandlers', () => {
     let db: StubFirestoreDatabase;
