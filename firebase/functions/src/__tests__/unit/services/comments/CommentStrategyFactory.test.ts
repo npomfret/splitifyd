@@ -1,25 +1,29 @@
 import { CommentTargetTypes } from '@splitifyd/shared';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { CommentStrategyFactory } from '../../../../services/comments/CommentStrategyFactory';
 import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCommentStrategy';
 import { GroupCommentStrategy } from '../../../../services/comments/GroupCommentStrategy';
-import { StubFirestore, StubFirestoreReader } from '../../mocks/firestore-stubs';
-
-const createStubGroupMemberService = () => ({
-    isGroupMemberAsync: vi.fn(),
-    getGroupMember: vi.fn(),
-    getAllGroupMembers: vi.fn(),
-});
+import { FirestoreReader } from '../../../../services/firestore/FirestoreReader';
+import { FirestoreWriter } from '../../../../services/firestore/FirestoreWriter';
+import { GroupMemberService } from '../../../../services/GroupMemberService';
+import { StubFirestoreDatabase } from '../../mocks/firestore-stubs';
 
 describe('CommentStrategyFactory', () => {
     let factory: CommentStrategyFactory;
-    let stubFirestoreReader: StubFirestore;
-    let stubGroupMemberService: ReturnType<typeof createStubGroupMemberService>;
+    let db: StubFirestoreDatabase;
+    let groupMemberService: GroupMemberService;
 
     beforeEach(() => {
-        stubFirestoreReader = new StubFirestoreReader();
-        stubGroupMemberService = createStubGroupMemberService();
-        factory = new CommentStrategyFactory(stubFirestoreReader, stubGroupMemberService as any);
+        // Create stub database
+        db = new StubFirestoreDatabase();
+
+        // Create real services using stub database
+        const firestoreReader = new FirestoreReader(db);
+        const firestoreWriter = new FirestoreWriter(db);
+        groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter);
+
+        // Create factory with real services
+        factory = new CommentStrategyFactory(firestoreReader, groupMemberService);
     });
 
     describe('getStrategy', () => {
