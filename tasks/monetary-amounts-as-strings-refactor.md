@@ -10,6 +10,27 @@
 
 ---
 
+## Where Monetary Math Occurs
+
+A deep-dive analysis of the codebase reveals that arithmetic on monetary amounts is not isolated to split calculations. It is widespread and complex, occurring in two main areas:
+
+### 1. Balance Processing (`IncrementalBalanceService.ts`, `ExpenseProcessor.ts`, `SettlementProcessor.ts`)
+This is the system's real-time ledger, which constantly performs math to keep balances accurate.
+- **Addition**: Aggregating debts from expense splits and merging balance deltas.
+- **Subtraction**: Calculating a user's final `netBalance` (`totalOwed - totalOwing`) and applying settlement payments to debts.
+- **Negation**: Reversing a transaction's financial impact when it is deleted or updated.
+- **`Math.abs`**: Used as a safety check to clean up and ignore tiny balances that result from floating-point inaccuracies.
+
+### 2. Debt Simplification (`utils/debtSimplifier.ts`)
+This utility uses a greedy algorithm to find the simplest way for users to pay each other back. This is the most calculation-intensive part of the system.
+- **Addition & Subtraction**: To calculate each user's final net position across all their debts and credits.
+- **Negation**: To correctly handle debtor balances in the algorithm.
+- **`Math.min`**: To determine the optimal transaction amount between a creditor and a debtor.
+- **Repeated Subtraction**: To reduce the balances of creditors and debtors as transactions are created until all debts are settled.
+
+The widespread and complex nature of these calculations makes the move to string-based monetary amounts a critical step for ensuring financial integrity.
+
+
 ## 🎯 Phase 1 Complete - Summary (October 11, 2025)
 
 **Status**: ✅ **COMPLETE AND DEPLOYED**
@@ -352,7 +373,6 @@ async createExpense(expenseData: Omit<ExpenseDTO, 'id' | 'createdAt' | 'updatedA
 - `services/balance/IncrementalBalanceService.ts` - Parse amounts for balance calculations
 - `services/balance/ExpenseProcessor.ts` - Parse amounts when processing expenses
 - `services/balance/SettlementProcessor.ts` - Parse amounts when processing settlements
-- `services/balance/BalanceCalculationService.ts` - Parse amounts in calculations
 
 **Important**: Firestore storage remains UNCHANGED (stores numbers). Only API boundary uses strings.
 
