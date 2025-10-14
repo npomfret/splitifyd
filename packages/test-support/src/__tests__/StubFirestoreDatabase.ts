@@ -220,13 +220,67 @@ class StubDocumentReference implements IDocumentReference {
         return result;
     }
 
+    /**
+     * Deep merge two objects, matching Firestore's merge behavior:
+     * - Recursively merges nested objects
+     * - Arrays replace rather than merge
+     * - null overwrites existing values
+     * - Primitives replace existing values
+     * - FieldValue operations must be already processed before calling this
+     *
+     * @param existing - The existing data
+     * @param updates - The new data to merge in (with FieldValue operations already processed)
+     * @returns Deep merged result
+     */
+    private deepMerge(existing: any, updates: any): any {
+        // If updates is not an object or is null, it replaces existing entirely
+        if (!updates || typeof updates !== 'object' || Array.isArray(updates) || updates instanceof Timestamp || updates instanceof Date) {
+            return updates;
+        }
+
+        // If existing is not an object, updates replaces it
+        if (!existing || typeof existing !== 'object' || Array.isArray(existing) || existing instanceof Timestamp || existing instanceof Date) {
+            return updates;
+        }
+
+        // Both are objects - deep merge them
+        const result: any = { ...existing };
+
+        for (const key in updates) {
+            const updateValue = updates[key];
+            const existingValue = result[key];
+
+            // If update value is an object (not array, not Timestamp, not Date), deep merge
+            if (
+                updateValue &&
+                typeof updateValue === 'object' &&
+                !Array.isArray(updateValue) &&
+                !(updateValue instanceof Timestamp) &&
+                !(updateValue instanceof Date) &&
+                existingValue &&
+                typeof existingValue === 'object' &&
+                !Array.isArray(existingValue) &&
+                !(existingValue instanceof Timestamp) &&
+                !(existingValue instanceof Date)
+            ) {
+                // Both are objects - recursively deep merge
+                result[key] = this.deepMerge(existingValue, updateValue);
+            } else {
+                // Primitive, array, Timestamp, Date, or null - replace
+                result[key] = updateValue;
+            }
+        }
+
+        return result;
+    }
+
     async set(data: any, options?: SetOptions): Promise<void> {
         const existingDoc = this.storage.get(this.documentPath);
 
         if (options?.merge && existingDoc) {
             // Process FieldValue operations with existing data
             const processedData = this.processFieldValues(data, existingDoc.data);
-            const mergedData = { ...existingDoc.data, ...processedData };
+            const mergedData = this.deepMerge(existingDoc.data, processedData);
             this.storage.set(this.documentPath, {
                 id: this.id,
                 path: this.documentPath,
@@ -276,6 +330,27 @@ class StubDocumentReference implements IDocumentReference {
                 const parts = key.split('.');
                 let current = result;
 
+                // Check if this is a delete operation on a non-existent path
+                const isDeleteOperation = value && typeof value === 'object' && value.constructor.name === 'DeleteTransform';
+
+                // If deleting, check if the path exists before creating intermediate objects
+                if (isDeleteOperation) {
+                    let pathExists = true;
+                    let temp = result;
+                    for (let i = 0; i < parts.length - 1; i++) {
+                        if (!(parts[i] in temp) || typeof temp[parts[i]] !== 'object') {
+                            pathExists = false;
+                            break;
+                        }
+                        temp = temp[parts[i]];
+                    }
+
+                    // If path doesn't exist, skip this delete operation entirely
+                    if (!pathExists) {
+                        continue;
+                    }
+                }
+
                 // Navigate to the parent of the target field
                 for (let i = 0; i < parts.length - 1; i++) {
                     if (!(parts[i] in current) || typeof current[parts[i]] !== 'object') {
@@ -295,12 +370,21 @@ class StubDocumentReference implements IDocumentReference {
                     const incrementBy = (value as any).operand || 0;
                     const currentValue = current[lastPart] || 0;
                     current[lastPart] = currentValue + incrementBy;
+                } else if (isDeleteOperation) {
+                    // Delete the field
+                    delete current[lastPart];
                 } else {
                     current[lastPart] = value;
                 }
             } else {
-                // No dot notation, apply directly
-                result[key] = value;
+                // No dot notation - check for FieldValue operations
+                if (value && typeof value === 'object' && value.constructor.name === 'DeleteTransform') {
+                    // Delete the field
+                    delete result[key];
+                } else {
+                    // Apply directly
+                    result[key] = value;
+                }
             }
         }
 

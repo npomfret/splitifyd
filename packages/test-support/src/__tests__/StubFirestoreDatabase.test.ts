@@ -601,4 +601,478 @@ describe('StubFirestoreDatabase - Example Usage', () => {
             expect(data?.lastModified).toBeInstanceOf(Timestamp);
         });
     });
+
+    describe('Deep merge operations', () => {
+        it('should deep merge nested objects with set merge', async () => {
+            const docRef = db.collection('settings').doc('user-settings');
+
+            // Initial data with nested structure
+            await docRef.set({
+                preferences: {
+                    theme: 'dark',
+                    notifications: {
+                        email: true,
+                        push: false,
+                    },
+                },
+                profile: {
+                    name: 'John',
+                },
+            });
+
+            // Merge update that only changes one nested field
+            await docRef.set(
+                {
+                    preferences: {
+                        notifications: {
+                            push: true,
+                        },
+                    },
+                },
+                { merge: true },
+            );
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            // Deep merge should preserve theme and email, only update push
+            expect(data?.preferences?.theme).toBe('dark');
+            expect(data?.preferences?.notifications?.email).toBe(true);
+            expect(data?.preferences?.notifications?.push).toBe(true);
+            expect(data?.profile?.name).toBe('John');
+        });
+
+        it('should deep merge preserving sibling nested objects', async () => {
+            const docRef = db.collection('notifications').doc('user-1');
+
+            // Initial data with multiple groups
+            await docRef.set({
+                changeVersion: 0,
+                groups: {
+                    'group-1': {
+                        lastTransactionChange: '2024-01-01T00:00:00.000Z',
+                        transactionChangeCount: 5,
+                    },
+                    'group-2': {
+                        lastBalanceChange: '2024-01-02T00:00:00.000Z',
+                        balanceChangeCount: 10,
+                    },
+                },
+            });
+
+            // Merge update for only group-1
+            await docRef.set(
+                {
+                    groups: {
+                        'group-1': {
+                            lastTransactionChange: '2024-01-03T00:00:00.000Z',
+                            transactionChangeCount: 6,
+                        },
+                    },
+                },
+                { merge: true },
+            );
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            // group-2 should be completely preserved
+            expect(data?.groups?.['group-2']?.lastBalanceChange).toBe('2024-01-02T00:00:00.000Z');
+            expect(data?.groups?.['group-2']?.balanceChangeCount).toBe(10);
+
+            // group-1 should be updated
+            expect(data?.groups?.['group-1']?.lastTransactionChange).toBe('2024-01-03T00:00:00.000Z');
+            expect(data?.groups?.['group-1']?.transactionChangeCount).toBe(6);
+        });
+
+        it('should deep merge with FieldValue.increment() in nested objects', async () => {
+            const { FieldValue } = await import('firebase-admin/firestore');
+            const docRef = db.collection('notifications').doc('user-1');
+
+            await docRef.set({
+                changeVersion: 0,
+                groups: {
+                    'group-1': {
+                        lastTransactionChange: '2024-01-01T00:00:00.000Z',
+                        transactionChangeCount: 5,
+                        balanceChangeCount: 3,
+                    },
+                },
+            });
+
+            // Merge update with increment
+            await docRef.set(
+                {
+                    changeVersion: FieldValue.increment(1),
+                    groups: {
+                        'group-1': {
+                            lastTransactionChange: '2024-01-03T00:00:00.000Z',
+                            transactionChangeCount: FieldValue.increment(1),
+                        },
+                    },
+                },
+                { merge: true },
+            );
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.changeVersion).toBe(1);
+            expect(data?.groups?.['group-1']?.transactionChangeCount).toBe(6);
+            expect(data?.groups?.['group-1']?.balanceChangeCount).toBe(3); // Preserved
+            expect(data?.groups?.['group-1']?.lastTransactionChange).toBe('2024-01-03T00:00:00.000Z');
+        });
+
+        it('should deep merge new nested keys without removing existing ones', async () => {
+            const docRef = db.collection('settings').doc('app-config');
+
+            await docRef.set({
+                features: {
+                    darkMode: true,
+                    notifications: true,
+                },
+            });
+
+            // Add new feature without removing existing ones
+            await docRef.set(
+                {
+                    features: {
+                        analytics: false,
+                    },
+                },
+                { merge: true },
+            );
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.features?.darkMode).toBe(true);
+            expect(data?.features?.notifications).toBe(true);
+            expect(data?.features?.analytics).toBe(false);
+        });
+
+        it('should handle three levels of nesting with deep merge', async () => {
+            const docRef = db.collection('config').doc('settings');
+
+            await docRef.set({
+                level1: {
+                    level2: {
+                        level3: {
+                            value1: 'original',
+                            value2: 'original',
+                        },
+                        otherValue: 'preserved',
+                    },
+                },
+            });
+
+            await docRef.set(
+                {
+                    level1: {
+                        level2: {
+                            level3: {
+                                value1: 'updated',
+                            },
+                        },
+                    },
+                },
+                { merge: true },
+            );
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.level1?.level2?.level3?.value1).toBe('updated');
+            expect(data?.level1?.level2?.level3?.value2).toBe('original');
+            expect(data?.level1?.level2?.otherValue).toBe('preserved');
+        });
+
+        it('should handle arrays as replacement not merge', async () => {
+            const docRef = db.collection('data').doc('arrays');
+
+            await docRef.set({
+                items: [1, 2, 3],
+                metadata: {
+                    tags: ['tag1', 'tag2'],
+                },
+            });
+
+            await docRef.set(
+                {
+                    metadata: {
+                        tags: ['tag3', 'tag4', 'tag5'],
+                    },
+                },
+                { merge: true },
+            );
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            // Arrays should replace, not merge
+            expect(data?.items).toEqual([1, 2, 3]);
+            expect(data?.metadata?.tags).toEqual(['tag3', 'tag4', 'tag5']);
+        });
+
+        it('should handle null values in deep merge', async () => {
+            const docRef = db.collection('data').doc('nulls');
+
+            await docRef.set({
+                obj: {
+                    field1: 'value1',
+                    field2: 'value2',
+                },
+            });
+
+            await docRef.set(
+                {
+                    obj: {
+                        field1: null,
+                    },
+                },
+                { merge: true },
+            );
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.obj?.field1).toBeNull();
+            expect(data?.obj?.field2).toBe('value2');
+        });
+    });
+
+    describe('FieldValue.delete() operations', () => {
+        it('should delete field using FieldValue.delete() with dot notation', async () => {
+            const { FieldValue } = await import('firebase-admin/firestore');
+            const docRef = db.collection('notifications').doc('user-1');
+
+            await docRef.set({
+                changeVersion: 5,
+                groups: {
+                    'group-1': {
+                        transactionChangeCount: 10,
+                    },
+                    'group-2': {
+                        balanceChangeCount: 5,
+                    },
+                },
+            });
+
+            // Delete group-1 using dot notation
+            await docRef.update({
+                'groups.group-1': FieldValue.delete(),
+            });
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.groups?.['group-1']).toBeUndefined();
+            expect(data?.groups?.['group-2']?.balanceChangeCount).toBe(5); // Preserved
+            expect(data?.changeVersion).toBe(5); // Preserved
+        });
+
+        it('should delete multiple fields with FieldValue.delete()', async () => {
+            const { FieldValue } = await import('firebase-admin/firestore');
+            const docRef = db.collection('data').doc('doc-1');
+
+            await docRef.set({
+                field1: 'value1',
+                field2: 'value2',
+                field3: 'value3',
+                field4: 'value4',
+            });
+
+            await docRef.update({
+                field2: FieldValue.delete(),
+                field4: FieldValue.delete(),
+            });
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.field1).toBe('value1');
+            expect(data?.field2).toBeUndefined();
+            expect(data?.field3).toBe('value3');
+            expect(data?.field4).toBeUndefined();
+        });
+
+        it('should handle delete with increment in same update', async () => {
+            const { FieldValue } = await import('firebase-admin/firestore');
+            const docRef = db.collection('notifications').doc('user-1');
+
+            await docRef.set({
+                changeVersion: 5,
+                groups: {
+                    'group-1': {
+                        transactionChangeCount: 10,
+                    },
+                    'group-2': {
+                        balanceChangeCount: 5,
+                    },
+                },
+            });
+
+            // Delete group-1 and increment changeVersion
+            await docRef.update({
+                'groups.group-1': FieldValue.delete(),
+                changeVersion: FieldValue.increment(1),
+            });
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.groups?.['group-1']).toBeUndefined();
+            expect(data?.groups?.['group-2']).toBeDefined();
+            expect(data?.changeVersion).toBe(6);
+        });
+
+        it('should delete nested field preserving siblings', async () => {
+            const { FieldValue } = await import('firebase-admin/firestore');
+            const docRef = db.collection('settings').doc('user-1');
+
+            await docRef.set({
+                preferences: {
+                    theme: 'dark',
+                    notifications: {
+                        email: true,
+                        push: true,
+                    },
+                },
+            });
+
+            await docRef.update({
+                'preferences.notifications.push': FieldValue.delete(),
+            });
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.preferences?.theme).toBe('dark');
+            expect(data?.preferences?.notifications?.email).toBe(true);
+            expect(data?.preferences?.notifications?.push).toBeUndefined();
+        });
+
+        it('should handle delete on non-existent field gracefully', async () => {
+            const { FieldValue } = await import('firebase-admin/firestore');
+            const docRef = db.collection('data').doc('doc-1');
+
+            await docRef.set({
+                field1: 'value1',
+            });
+
+            await docRef.update({
+                'nonexistent.field': FieldValue.delete(),
+            });
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.field1).toBe('value1');
+            expect(data?.nonexistent).toBeUndefined();
+        });
+
+        it('should handle delete in batch operations', async () => {
+            const { FieldValue } = await import('firebase-admin/firestore');
+            const batch = db.batch();
+
+            const doc1 = db.collection('notifications').doc('user-1');
+            const doc2 = db.collection('notifications').doc('user-2');
+
+            await doc1.set({
+                groups: {
+                    'group-1': { count: 5 },
+                    'group-2': { count: 10 },
+                },
+            });
+
+            await doc2.set({
+                groups: {
+                    'group-1': { count: 3 },
+                    'group-3': { count: 7 },
+                },
+            });
+
+            batch.update(doc1, { 'groups.group-1': FieldValue.delete() });
+            batch.update(doc2, { 'groups.group-3': FieldValue.delete() });
+
+            await batch.commit();
+
+            const snapshot1 = await doc1.get();
+            const snapshot2 = await doc2.get();
+
+            expect(snapshot1.data()?.groups?.['group-1']).toBeUndefined();
+            expect(snapshot1.data()?.groups?.['group-2']).toBeDefined();
+
+            expect(snapshot2.data()?.groups?.['group-1']).toBeDefined();
+            expect(snapshot2.data()?.groups?.['group-3']).toBeUndefined();
+        });
+
+        it('should handle delete with serverTimestamp in same update', async () => {
+            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
+            const docRef = db.collection('documents').doc('doc-1');
+
+            await docRef.set({
+                oldField: 'old value',
+                content: 'document content',
+            });
+
+            await docRef.update({
+                oldField: FieldValue.delete(),
+                lastModified: FieldValue.serverTimestamp(),
+            });
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            expect(data?.oldField).toBeUndefined();
+            expect(data?.content).toBe('document content');
+            expect(data?.lastModified).toBeInstanceOf(Timestamp);
+        });
+
+        it('should handle complex NotificationService pattern with delete', async () => {
+            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
+            const docRef = db.collection('user-notifications').doc('user-1');
+
+            // Initial state with 3 groups
+            await docRef.set({
+                changeVersion: 10,
+                groups: {
+                    'group-1': {
+                        lastTransactionChange: '2024-01-01T00:00:00.000Z',
+                        transactionChangeCount: 5,
+                    },
+                    'group-2': {
+                        lastBalanceChange: '2024-01-02T00:00:00.000Z',
+                        balanceChangeCount: 10,
+                    },
+                    'group-3': {
+                        lastCommentChange: '2024-01-03T00:00:00.000Z',
+                        commentChangeCount: 3,
+                    },
+                },
+                lastModified: Timestamp.now(),
+            });
+
+            // Remove group-2 (user leaves group)
+            await docRef.update({
+                'groups.group-2': FieldValue.delete(),
+                changeVersion: FieldValue.increment(1),
+                lastModified: FieldValue.serverTimestamp(),
+            });
+
+            const snapshot = await docRef.get();
+            const data = snapshot.data();
+
+            // Verify group-2 is gone
+            expect(data?.groups?.['group-2']).toBeUndefined();
+
+            // Verify group-1 and group-3 are intact
+            expect(data?.groups?.['group-1']?.transactionChangeCount).toBe(5);
+            expect(data?.groups?.['group-3']?.commentChangeCount).toBe(3);
+
+            // Verify metadata updated
+            expect(data?.changeVersion).toBe(11);
+            expect(data?.lastModified).toBeInstanceOf(Timestamp);
+        });
+    });
 });

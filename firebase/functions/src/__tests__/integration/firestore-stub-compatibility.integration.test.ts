@@ -1066,6 +1066,297 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
         });
     });
 
+    describe('Deep Merge Operations', () => {
+        it('should deep merge nested objects identically', async () => {
+            await testBothImplementations('deep merge nested objects', async (db, isStub) => {
+                const docRef = db.collection(testCollectionPrefix).doc('deep-merge-1');
+
+                // Create document with nested structure
+                await docRef.set({
+                    name: 'Test User',
+                    settings: {
+                        theme: 'dark',
+                        notifications: {
+                            email: true,
+                            push: false,
+                        },
+                    },
+                });
+
+                // Merge update only part of nested structure
+                await docRef.set(
+                    {
+                        settings: {
+                            notifications: {
+                                push: true, // Update only push notification
+                            },
+                        },
+                    },
+                    { merge: true },
+                );
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                // Deep merge should preserve all levels
+                expect(data?.name, `Top-level field preserved (${isStub ? 'stub' : 'real'})`).toBe('Test User');
+                expect(data?.settings?.theme, `Nested theme preserved (${isStub ? 'stub' : 'real'})`).toBe('dark');
+                expect(data?.settings?.notifications?.email, `Deep nested email preserved (${isStub ? 'stub' : 'real'})`).toBe(true);
+                expect(data?.settings?.notifications?.push, `Deep nested push updated (${isStub ? 'stub' : 'real'})`).toBe(true);
+            });
+        });
+
+        it('should deep merge with multiple nested levels identically', async () => {
+            await testBothImplementations('multi-level deep merge', async (db, isStub) => {
+                const docRef = db.collection(testCollectionPrefix).doc('deep-merge-2');
+
+                // Create document with 3 levels of nesting
+                await docRef.set({
+                    user: {
+                        profile: {
+                            personal: {
+                                name: 'Alice',
+                                age: 30,
+                            },
+                            contact: {
+                                email: 'alice@example.com',
+                                phone: '555-1234',
+                            },
+                        },
+                    },
+                });
+
+                // Merge update at different levels
+                await docRef.set(
+                    {
+                        user: {
+                            profile: {
+                                personal: {
+                                    age: 31, // Update age only
+                                },
+                                contact: {
+                                    phone: '555-5678', // Update phone only
+                                },
+                            },
+                        },
+                    },
+                    { merge: true },
+                );
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                // All fields should be preserved except the updated ones
+                expect(data?.user?.profile?.personal?.name, `Name preserved (${isStub ? 'stub' : 'real'})`).toBe('Alice');
+                expect(data?.user?.profile?.personal?.age, `Age updated (${isStub ? 'stub' : 'real'})`).toBe(31);
+                expect(data?.user?.profile?.contact?.email, `Email preserved (${isStub ? 'stub' : 'real'})`).toBe('alice@example.com');
+                expect(data?.user?.profile?.contact?.phone, `Phone updated (${isStub ? 'stub' : 'real'})`).toBe('555-5678');
+            });
+        });
+
+        it('should deep merge with FieldValue.increment() in nested objects identically', async () => {
+            await testBothImplementations('deep merge with FieldValue.increment', async (db, isStub) => {
+                const { FieldValue } = await import('firebase-admin/firestore');
+                const docRef = db.collection(testCollectionPrefix).doc('deep-merge-increment-1');
+
+                // Create document with nested counters
+                await docRef.set({
+                    title: 'Analytics',
+                    stats: {
+                        views: 100,
+                        likes: 50,
+                    },
+                    metadata: {
+                        created: Timestamp.now(),
+                    },
+                });
+
+                // Merge with FieldValue.increment in nested object
+                await docRef.set(
+                    {
+                        stats: {
+                            views: FieldValue.increment(10), // Increment nested counter
+                        },
+                    },
+                    { merge: true },
+                );
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                // Deep merge should preserve other nested fields
+                expect(data?.title, `Title preserved (${isStub ? 'stub' : 'real'})`).toBe('Analytics');
+                expect(data?.stats?.views, `Nested views incremented (${isStub ? 'stub' : 'real'})`).toBe(110);
+                expect(data?.stats?.likes, `Nested likes preserved (${isStub ? 'stub' : 'real'})`).toBe(50);
+                expect(data?.metadata?.created, `Metadata preserved (${isStub ? 'stub' : 'real'})`).toBeInstanceOf(Timestamp);
+            });
+        });
+
+        it('should deep merge NotificationService pattern (groups with nested counters) identically', async () => {
+            await testBothImplementations('NotificationService pattern deep merge', async (db, isStub) => {
+                const { FieldValue } = await import('firebase-admin/firestore');
+                const docRef = db.collection(testCollectionPrefix).doc('notification-merge-1');
+
+                // Create initial notification document with multiple groups
+                await docRef.set({
+                    changeVersion: 0,
+                    groups: {
+                        'group-1': {
+                            lastTransactionChange: '2024-01-01T00:00:00.000Z',
+                            transactionChangeCount: 5,
+                            lastBalanceChange: '2024-01-01T00:00:00.000Z',
+                            balanceChangeCount: 3,
+                        },
+                        'group-2': {
+                            lastTransactionChange: '2024-01-02T00:00:00.000Z',
+                            transactionChangeCount: 10,
+                            lastBalanceChange: '2024-01-02T00:00:00.000Z',
+                            balanceChangeCount: 7,
+                        },
+                    },
+                    lastModified: Timestamp.now(),
+                });
+
+                // Merge update for group-1 only (NotificationService pattern)
+                await docRef.set(
+                    {
+                        changeVersion: FieldValue.increment(1),
+                        groups: {
+                            'group-1': {
+                                lastTransactionChange: '2024-01-03T00:00:00.000Z',
+                                transactionChangeCount: FieldValue.increment(1),
+                            },
+                        },
+                    },
+                    { merge: true },
+                );
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                // Critical: group-2 must be preserved entirely
+                expect(data?.changeVersion, `Change version incremented (${isStub ? 'stub' : 'real'})`).toBe(1);
+                expect(data?.groups?.['group-1']?.transactionChangeCount, `Group-1 counter incremented (${isStub ? 'stub' : 'real'})`).toBe(6);
+                expect(data?.groups?.['group-1']?.lastTransactionChange, `Group-1 timestamp updated (${isStub ? 'stub' : 'real'})`).toBe('2024-01-03T00:00:00.000Z');
+                expect(data?.groups?.['group-1']?.balanceChangeCount, `Group-1 balance count preserved (${isStub ? 'stub' : 'real'})`).toBe(3);
+                expect(data?.groups?.['group-1']?.lastBalanceChange, `Group-1 balance timestamp preserved (${isStub ? 'stub' : 'real'})`).toBe('2024-01-01T00:00:00.000Z');
+
+                // CRITICAL: group-2 must remain completely unchanged
+                expect(data?.groups?.['group-2']?.transactionChangeCount, `Group-2 transaction count preserved (${isStub ? 'stub' : 'real'})`).toBe(10);
+                expect(data?.groups?.['group-2']?.lastTransactionChange, `Group-2 transaction timestamp preserved (${isStub ? 'stub' : 'real'})`).toBe('2024-01-02T00:00:00.000Z');
+                expect(data?.groups?.['group-2']?.balanceChangeCount, `Group-2 balance count preserved (${isStub ? 'stub' : 'real'})`).toBe(7);
+                expect(data?.groups?.['group-2']?.lastBalanceChange, `Group-2 balance timestamp preserved (${isStub ? 'stub' : 'real'})`).toBe('2024-01-02T00:00:00.000Z');
+            });
+        });
+
+        it('should deep merge with new nested keys identically', async () => {
+            await testBothImplementations('deep merge with new keys', async (db, isStub) => {
+                const docRef = db.collection(testCollectionPrefix).doc('deep-merge-new-keys-1');
+
+                // Create document
+                await docRef.set({
+                    groups: {
+                        'group-1': {
+                            count: 5,
+                        },
+                    },
+                });
+
+                // Add new group via merge
+                await docRef.set(
+                    {
+                        groups: {
+                            'group-2': {
+                                count: 10,
+                            },
+                        },
+                    },
+                    { merge: true },
+                );
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                // Both groups should exist
+                expect(data?.groups?.['group-1']?.count, `Existing group preserved (${isStub ? 'stub' : 'real'})`).toBe(5);
+                expect(data?.groups?.['group-2']?.count, `New group added (${isStub ? 'stub' : 'real'})`).toBe(10);
+            });
+        });
+
+        it('should deep merge with mixed FieldValue operations in nested objects identically', async () => {
+            await testBothImplementations('deep merge mixed FieldValue in nested', async (db, isStub) => {
+                const { FieldValue } = await import('firebase-admin/firestore');
+                const docRef = db.collection(testCollectionPrefix).doc('deep-merge-mixed-1');
+
+                // Create document
+                await docRef.set({
+                    groups: {
+                        'group-1': {
+                            counter: 10,
+                            lastModified: '2024-01-01T00:00:00.000Z',
+                        },
+                        'group-2': {
+                            counter: 20,
+                            lastModified: '2024-01-01T00:00:00.000Z',
+                        },
+                    },
+                });
+
+                // Merge with both increment and serverTimestamp in nested structure
+                await docRef.set(
+                    {
+                        groups: {
+                            'group-1': {
+                                counter: FieldValue.increment(5),
+                                lastModified: FieldValue.serverTimestamp(),
+                            },
+                        },
+                    },
+                    { merge: true },
+                );
+
+                const snapshot = await docRef.get();
+                const data = snapshot.data();
+
+                // group-1 should have incremented counter and new timestamp
+                expect(data?.groups?.['group-1']?.counter, `Group-1 counter incremented (${isStub ? 'stub' : 'real'})`).toBe(15);
+                expect(data?.groups?.['group-1']?.lastModified, `Group-1 timestamp updated (${isStub ? 'stub' : 'real'})`).toBeInstanceOf(Timestamp);
+
+                // group-2 should be completely preserved
+                expect(data?.groups?.['group-2']?.counter, `Group-2 counter preserved (${isStub ? 'stub' : 'real'})`).toBe(20);
+                expect(data?.groups?.['group-2']?.lastModified, `Group-2 timestamp preserved (${isStub ? 'stub' : 'real'})`).toBe('2024-01-01T00:00:00.000Z');
+            });
+        });
+
+        it('should deep merge in batch operations identically', async () => {
+            await testBothImplementations('deep merge in batch', async (db, isStub) => {
+                const { FieldValue } = await import('firebase-admin/firestore');
+                const doc1 = db.collection(testCollectionPrefix).doc('batch-deep-merge-1');
+                const doc2 = db.collection(testCollectionPrefix).doc('batch-deep-merge-2');
+
+                // Create initial documents
+                await doc1.set({ groups: { 'group-1': { count: 5 } } });
+                await doc2.set({ groups: { 'group-1': { count: 10 } } });
+
+                // Batch deep merge
+                const batch = db.batch();
+                batch.set(doc1, { groups: { 'group-2': { count: 15 } } }, { merge: true });
+                batch.set(doc2, { groups: { 'group-1': { count: FieldValue.increment(5) } } }, { merge: true });
+                await batch.commit();
+
+                const snap1 = await doc1.get();
+                const snap2 = await doc2.get();
+
+                // Doc1 should have both groups
+                expect(snap1.data()?.groups?.['group-1']?.count, `Doc1 group-1 preserved (${isStub ? 'stub' : 'real'})`).toBe(5);
+                expect(snap1.data()?.groups?.['group-2']?.count, `Doc1 group-2 added (${isStub ? 'stub' : 'real'})`).toBe(15);
+
+                // Doc2 should have incremented counter
+                expect(snap2.data()?.groups?.['group-1']?.count, `Doc2 group-1 incremented (${isStub ? 'stub' : 'real'})`).toBe(15);
+            });
+        });
+    });
+
     describe('Performance Comparison', () => {
         it('should document performance characteristics', async () => {
             const iterations = 100;
