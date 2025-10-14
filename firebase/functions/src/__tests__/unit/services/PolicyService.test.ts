@@ -1,10 +1,10 @@
 import * as crypto from 'crypto';
-import { PolicyDocumentBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
-import { beforeEach, describe, expect, it } from 'vitest';
-import { HTTP_STATUS } from '../../../constants';
-import { PolicyService } from '../../../services/PolicyService';
-import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
-import { FirestoreWriter } from '../../../services/firestore/FirestoreWriter';
+import {PolicyDocumentBuilder, StubFirestoreDatabase} from '@splitifyd/test-support';
+import {beforeEach, describe, expect, it} from 'vitest';
+import {HTTP_STATUS} from '../../../constants';
+import {PolicyService} from '../../../services/PolicyService';
+import {FirestoreReader} from '../../../services/firestore/FirestoreReader';
+import {FirestoreWriter} from '../../../services/firestore/FirestoreWriter';
 
 /**
  * Consolidated PolicyService Unit Tests
@@ -29,19 +29,14 @@ import { FirestoreWriter } from '../../../services/firestore/FirestoreWriter';
 describe('PolicyService - Consolidated Unit Tests', () => {
     let policyService: PolicyService;
     let db: StubFirestoreDatabase;
-    let firestoreReader: FirestoreReader;
-    let firestoreWriter: FirestoreWriter;
 
     beforeEach(() => {
         // Create stub database
         db = new StubFirestoreDatabase();
 
         // Create real services using stub database
-        firestoreReader = new FirestoreReader(db);
-        firestoreWriter = new FirestoreWriter(db);
-
         // Create PolicyService with real services
-        policyService = new PolicyService(firestoreReader, firestoreWriter);
+        policyService = new PolicyService(new FirestoreReader(db), new FirestoreWriter(db));
     });
 
     describe('createPolicy', () => {
