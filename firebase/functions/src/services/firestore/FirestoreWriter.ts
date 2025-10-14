@@ -922,13 +922,6 @@ export class FirestoreWriter implements IFirestoreWriter {
                     lastModified: FieldValue.serverTimestamp(),
                 };
 
-                // ⚠️ UserNotifications removal validation: SKIPPED due to FieldValue operations
-                logger.warn('⚠️ UserNotifications removal validation: SKIPPED', {
-                    userId,
-                    groupId,
-                    reason: 'Only FieldValue operations (delete, increment, serverTimestamp)',
-                });
-
                 await this.db.doc(`user-notifications/${userId}`).update(updates);
 
                 logger.info('User notification group removed (FieldValue operations)', { userId, groupId });
@@ -1041,7 +1034,9 @@ export class FirestoreWriter implements IFirestoreWriter {
      * @returns Document reference
      */
     createShareLinkInTransaction(transaction: ITransaction, groupId: string, shareLinkData: Omit<ShareLinkDTO, 'id'>) {
-        const shareLinksCollection = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks');
+        const shareLinksCollection = this.db.collection(FirestoreCollections.GROUPS)
+            .doc(groupId)
+            .collection('shareLinks');
 
         const shareLinkRef = shareLinksCollection.doc();
 
