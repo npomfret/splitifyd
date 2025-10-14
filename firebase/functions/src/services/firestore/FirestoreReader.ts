@@ -773,47 +773,12 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getUserNotification(userId: string): Promise<UserNotificationDocument | null> {
+    async getUserNotificationExists(userId: string): Promise<boolean> {
         try {
             const notificationDoc = await this.db.collection('user-notifications').doc(userId).get();
-
-            if (!notificationDoc.exists) {
-                return null;
-            }
-
-            const rawData = notificationDoc.data();
-            if (!rawData) {
-                return null;
-            }
-
-            // Ensure all group entries have required count fields before validation
-            const processedData = { ...rawData };
-            if (processedData.groups) {
-                for (const groupId in processedData.groups) {
-                    const group = processedData.groups[groupId];
-                    processedData.groups[groupId] = {
-                        lastTransactionChange: group.lastTransactionChange || null,
-                        lastBalanceChange: group.lastBalanceChange || null,
-                        lastGroupDetailsChange: group.lastGroupDetailsChange || null,
-                        transactionChangeCount: group.transactionChangeCount ?? 0,
-                        balanceChangeCount: group.balanceChangeCount ?? 0,
-                        groupDetailsChangeCount: group.groupDetailsChangeCount ?? 0,
-                    };
-                }
-            }
-
-            // Ensure required top-level fields exist
-            const completeData = {
-                groups: {},
-                recentChanges: [],
-                changeVersion: 0,
-                ...processedData,
-            };
-
-            const notificationData = UserNotificationDocumentSchema.parse(completeData);
-            return notificationData;
+            return notificationDoc.exists;
         } catch (error) {
-            logger.error('Failed to get user notification', error);
+            logger.error('Failed to check user notification existence', error);
             throw error;
         }
     }

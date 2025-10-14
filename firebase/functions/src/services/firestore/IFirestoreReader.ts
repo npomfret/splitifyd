@@ -219,11 +219,11 @@ export interface IFirestoreReader {
     }>;
 
     /**
-     * Get a user notification document by user ID
+     * Check if a user notification document exists
      * @param userId - The user ID
-     * @returns User notification document or null if not found
+     * @returns True if notification document exists, false otherwise
      */
-    getUserNotification(userId: string): Promise<UserNotificationDocument | null>;
+    getUserNotificationExists(userId: string): Promise<boolean>;
 
     /**
      * Find a share link by its token across all groups

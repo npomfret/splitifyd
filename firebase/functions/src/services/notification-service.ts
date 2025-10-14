@@ -103,9 +103,9 @@ export class NotificationService {
      */
     async initializeUserNotifications(userId: string): Promise<WriteResult> {
         return measureDb('NotificationService.initializeUserNotifications', async () => {
-            const existingNotification = await this.firestoreReader.getUserNotification(userId);
+            const notificationExists = await this.firestoreReader.getUserNotificationExists(userId);
 
-            if (existingNotification) {
+            if (notificationExists) {
                 return {
                     id: userId,
                     success: true,

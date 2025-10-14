@@ -546,16 +546,16 @@ export class StubFirestore implements IFirestoreReader, IFirestoreWriter {
         };
     }
 
-    async getUserNotification(userId: string): Promise<UserNotificationDocument | null> {
-        const error = this.methodErrors.get('getUserNotification');
+    async getUserNotificationExists(userId: string): Promise<boolean> {
+        const error = this.methodErrors.get('getUserNotificationExists');
         if (error) throw error;
 
         const key = `user-notifications/${userId}`;
         if (this.notFoundDocuments.has(key)) {
-            return null;
+            return false;
         }
 
-        return this.documents.get(key) || null;
+        return this.documents.has(key);
     }
 
     async findShareLinkByToken(token: string): Promise<any | null> {
