@@ -1,146 +1,148 @@
-import { type GroupMembershipDTO, MemberRoles } from '@splitifyd/shared';
-import { GroupBalanceDTOBuilder, GroupDTOBuilder, ThemeBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
-import { beforeEach, describe, expect, it, test } from 'vitest';
-import { GroupMemberService } from '../../../services/GroupMemberService';
-import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubFirestore, StubFirestoreReader } from '../mocks/firestore-stubs';
+import {MemberRoles} from '@splitifyd/shared';
+import {GroupBalanceDTOBuilder, GroupDTOBuilder, StubFirestoreDatabase, ThemeBuilder, UserBalanceBuilder} from '@splitifyd/test-support';
+import {Timestamp} from 'firebase-admin/firestore';
+import {beforeEach, describe, expect, it, test} from 'vitest';
+import {GroupMemberService} from '../../../services/GroupMemberService';
+import {FirestoreReader} from '../../../services/firestore/FirestoreReader';
+import {FirestoreWriter} from '../../../services/firestore/FirestoreWriter';
+import {GroupMemberDocumentBuilder} from '../../support/GroupMemberDocumentBuilder';
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {
     let groupMemberService: GroupMemberService;
-    let stubReader: StubFirestore;
-    let stubWriter: StubFirestore;
-
-    // Test data
-    const testGroupId = 'test-group-id';
-    const testUserId1 = 'user-1';
-    const testUserId2 = 'user-2';
-    const testUserId3 = 'user-3';
-    const creatorUserId = 'creator-user-123';
-    const memberUserId = 'member-user-123';
-    const otherMemberUserId = 'other-member-123';
+    let db: StubFirestoreDatabase;
+    let firestoreReader: FirestoreReader;
 
     const defaultTheme = new ThemeBuilder()
-        .withLight('#FF6B6B')
-        .withDark('#FF6B6B')
-        .withName('Test Theme')
-        .withPattern('solid')
-        .withColorIndex(0)
         .build();
 
-    // Helper to initialize balance document for a group
-    const initializeGroupBalance = async (groupId: string) => {
-        const initialBalance = {
-            groupId,
-            balancesByCurrency: {},
-            simplifiedDebts: [],
-            lastUpdatedAt: new Date().toISOString(),
-            version: 0,
-        };
-        await stubWriter.setGroupBalance(groupId, initialBalance);
-    };
-
     beforeEach(async () => {
-        // Create unified stub (reader and writer share the same storage automatically)
-        const stub = new StubFirestoreReader();
-        stubReader = stub;
-        stubWriter = stub;
+        // Create stub database
+        db = new StubFirestoreDatabase();
+
+        // Create real services using stub database
+        firestoreReader = new FirestoreReader(db);
+        const firestoreWriter = new FirestoreWriter(db);
 
         // GroupMemberService uses pre-computed balances from Firestore now (no balance service needed)
-        groupMemberService = new GroupMemberService(stubReader, stubWriter);
+        groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter);
 
         // Setup test group using builder
         const testGroup = new GroupDTOBuilder()
-            .withId(testGroupId)
+            .withId('test-group-id')
             .withName('Test Group')
             .build();
-        stubReader.setDocument('groups', testGroupId, testGroup);
-        await initializeGroupBalance(testGroupId); // Initialize balance for incremental updates
+        db.seedGroup('test-group-id', testGroup);
+
+        // Initialize balance document for group
+        db.initializeGroupBalance('test-group-id');
     });
 
     describe('getAllGroupMembers', () => {
         it('should return all members for a group', async () => {
-            const testMembers: GroupMembershipDTO[] = [
-                new GroupMemberDocumentBuilder()
-                    .withUserId(testUserId1)
-                    .withGroupId(testGroupId)
-                    .withTheme(defaultTheme)
-                    .buildDocument(),
-                new GroupMemberDocumentBuilder()
-                    .withUserId(testUserId2)
-                    .withGroupId(testGroupId)
-                    .withTheme(defaultTheme)
-                    .buildDocument(),
-                new GroupMemberDocumentBuilder()
-                    .withUserId(testUserId3)
-                    .withGroupId(testGroupId)
-                    .withTheme(defaultTheme)
-                    .asAdmin()
-                    .buildDocument(),
-            ];
+            // Arrange
+            const member1 = new GroupMemberDocumentBuilder()
+                .withUserId('user-1')
+                .withGroupId('test-group-id')
+                .withTheme(defaultTheme)
+                .buildDocument();
 
-            // Set up group members in stub
-            testMembers.forEach((member) => {
-                stubReader.setDocument('group-members', `${testGroupId}_${member.uid}`, member);
-            });
+            const member2 = new GroupMemberDocumentBuilder()
+                .withUserId('user-2')
+                .withGroupId('test-group-id')
+                .withTheme(defaultTheme)
+                .buildDocument();
 
-            const result = await stubReader.getAllGroupMembers(testGroupId);
+            const member3 = new GroupMemberDocumentBuilder()
+                .withUserId('user-3')
+                .withGroupId('test-group-id')
+                .withTheme(defaultTheme)
+                .asAdmin()
+                .buildDocument();
 
-            expect(result).toEqual(testMembers);
+            db.seedGroupMember('test-group-id', 'user-1', member1);
+            db.seedGroupMember('test-group-id', 'user-2', member2);
+            db.seedGroupMember('test-group-id', 'user-3', member3);
+
+            // Act
+            const result = await firestoreReader.getAllGroupMembers('test-group-id');
+
+            // Assert
             expect(result).toHaveLength(3);
+            expect(result[0].uid).toBe('user-1');
+            expect(result[1].uid).toBe('user-2');
+            expect(result[2].uid).toBe('user-3');
+            expect(result[2].memberRole).toBe(MemberRoles.ADMIN);
         });
 
         it('should return empty array for group with no members', async () => {
-            const result = await stubReader.getAllGroupMembers(testGroupId);
+            // Act
+            const result = await firestoreReader.getAllGroupMembers('test-group-id');
 
+            // Assert
             expect(result).toEqual([]);
             expect(result).toHaveLength(0);
         });
 
         it('should handle invalid group ID', async () => {
+            // Arrange
             const invalidGroupId = '';
 
-            const result = await stubReader.getAllGroupMembers(invalidGroupId);
+            // Act
+            const result = await firestoreReader.getAllGroupMembers(invalidGroupId);
 
+            // Assert
             expect(result).toEqual([]);
         });
     });
 
     describe('isGroupMemberAsync', () => {
         it('should return true for existing group member', async () => {
+            // Arrange
             const testMember = new GroupMemberDocumentBuilder()
-                .withUserId(testUserId1)
-                .withGroupId(testGroupId)
+                .withUserId('user-1')
+                .withGroupId('test-group-id')
                 .withTheme(defaultTheme)
                 .buildDocument();
 
-            stubReader.setDocument('group-members', `${testGroupId}_${testUserId1}`, testMember);
+            db.seedGroupMember('test-group-id', 'user-1', testMember);
 
-            const result = await groupMemberService.isGroupMemberAsync(testGroupId, testUserId1);
+            // Act
+            const result = await groupMemberService.isGroupMemberAsync('test-group-id', 'user-1');
 
+            // Assert
             expect(result).toBe(true);
         });
 
         it('should return false for non-existent group member', async () => {
+            // Arrange
             const nonExistentUserId = 'nonexistent-user';
 
-            const result = await groupMemberService.isGroupMemberAsync(testGroupId, nonExistentUserId);
+            // Act
+            const result = await groupMemberService.isGroupMemberAsync('test-group-id', nonExistentUserId);
 
+            // Assert
             expect(result).toBe(false);
         });
 
         it('should return false for invalid group ID', async () => {
+            // Arrange
             const invalidGroupId = '';
 
-            const result = await groupMemberService.isGroupMemberAsync(invalidGroupId, testUserId1);
+            // Act
+            const result = await groupMemberService.isGroupMemberAsync(invalidGroupId, 'user-1');
 
+            // Assert
             expect(result).toBe(false);
         });
 
         it('should return false for invalid user ID', async () => {
+            // Arrange
             const invalidUserId = '';
 
-            const result = await groupMemberService.isGroupMemberAsync(testGroupId, invalidUserId);
+            // Act
+            const result = await groupMemberService.isGroupMemberAsync('test-group-id', invalidUserId);
 
+            // Assert
             expect(result).toBe(false);
         });
     });
@@ -151,97 +153,102 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
     describe('Leave Group Validation', () => {
         test('should prevent group creator from leaving', async () => {
-            // Setup: Creator trying to leave their own group
+            // Arrange
             const testGroup = new GroupDTOBuilder()
-                .withId(testGroupId)
-                .withCreatedBy(creatorUserId)
+                .withId('test-group-id')
+                .withCreatedBy('creator-user-123')
                 .build();
 
             const creatorMember = new GroupMemberDocumentBuilder()
-                .withUserId(creatorUserId)
-                .withGroupId(testGroupId)
+                .withUserId('creator-user-123')
+                .withGroupId('test-group-id')
                 .withRole(MemberRoles.ADMIN)
                 .buildDocument();
 
-            stubReader.setDocument('groups', testGroupId, testGroup);
-            stubReader.setDocument('group-members', `${testGroupId}_${creatorUserId}`, creatorMember);
+            db.seedGroup('test-group-id', testGroup);
+            db.seedGroupMember('test-group-id', 'creator-user-123', creatorMember);
 
             // Act & Assert
-            await expect(groupMemberService.leaveGroup(creatorUserId, testGroupId)).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.leaveGroup('creator-user-123', 'test-group-id')).rejects.toThrow(/Invalid input data/);
         });
 
         test('should prevent leaving with outstanding balance', async () => {
-            // Setup: Member with outstanding balance trying to leave
+            // Arrange
             const testGroup = new GroupDTOBuilder()
-                .withId(testGroupId)
-                .withCreatedBy(creatorUserId)
+                .withId('test-group-id')
+                .withCreatedBy('creator-user-123')
                 .build();
 
             const memberDoc = new GroupMemberDocumentBuilder()
-                .withUserId(memberUserId)
-                .withGroupId(testGroupId)
+                .withUserId('member-user-123')
+                .withGroupId('test-group-id')
                 .buildDocument();
 
             // Set up balance document with outstanding balance
-            await stubWriter.setGroupBalance(
-                testGroupId,
-                new GroupBalanceDTOBuilder(testGroupId)
-                    .withUserBalance(
-                        'USD',
-                        memberUserId,
-                        new UserBalanceBuilder().withUserId(memberUserId).withNetBalance(-50.0).build(), // Member owes $50
-                    )
-                    .withVersion(1)
-                    .build(),
-            );
+            const balanceWithDebt = new GroupBalanceDTOBuilder('test-group-id')
+                .withUserBalance(
+                    'USD',
+                    'member-user-123',
+                    new UserBalanceBuilder().withUserId('member-user-123').withNetBalance(-50.0).build(), // Member owes $50
+                )
+                .withVersion(1)
+                .build();
 
-            stubReader.setDocument('groups', testGroupId, testGroup);
-            stubReader.setDocument('group-members', `${testGroupId}_${memberUserId}`, memberDoc);
+            // Convert ISO string to Timestamp for Firestore
+            const balanceWithTimestamp = {
+                ...balanceWithDebt,
+                lastUpdatedAt: Timestamp.fromDate(new Date(balanceWithDebt.lastUpdatedAt)),
+            };
+
+            db.seedGroup('test-group-id', testGroup);
+            db.seedGroupMember('test-group-id', 'member-user-123', memberDoc);
+            db.seed(`groups/test-group-id/metadata/balance`, balanceWithTimestamp);
 
             // Act & Assert
-            await expect(groupMemberService.leaveGroup(memberUserId, testGroupId)).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.leaveGroup('member-user-123', 'test-group-id')).rejects.toThrow(/Invalid input data/);
         });
 
         test('should allow member to leave when balance is settled', async () => {
-            // Setup: Member with settled balance leaving
+            // Arrange
             const testGroup = new GroupDTOBuilder()
-                .withId(testGroupId)
-                .withCreatedBy(creatorUserId)
+                .withId('test-group-id')
+                .withCreatedBy('creator-user-123')
                 .build();
 
             const memberDoc = new GroupMemberDocumentBuilder()
-                .withUserId(memberUserId)
-                .withGroupId(testGroupId)
+                .withUserId('member-user-123')
+                .withGroupId('test-group-id')
                 .buildDocument();
-
-            // Set up balance document with zero balance
-            await stubWriter.setGroupBalance(
-                testGroupId,
-                new GroupBalanceDTOBuilder(testGroupId)
-                    .withUserBalance(
-                        'USD',
-                        memberUserId,
-                        new UserBalanceBuilder().withUserId(memberUserId).withNetBalance(0.0).build(), // Member has settled balance
-                    )
-                    .withVersion(1)
-                    .build(),
-            );
 
             // Add another member so the group has multiple members (needed for leave validation)
             const otherMemberDoc = new GroupMemberDocumentBuilder()
-                .withUserId(otherMemberUserId)
-                .withGroupId(testGroupId)
+                .withUserId('other-member-123')
+                .withGroupId('test-group-id')
                 .buildDocument();
 
-            stubReader.setDocument('groups', testGroupId, testGroup);
-            stubReader.setDocument('group-members', `${testGroupId}_${memberUserId}`, memberDoc);
-            stubReader.setDocument('group-members', `${testGroupId}_${otherMemberUserId}`, otherMemberDoc);
+            // Set up balance document with zero balance
+            const settledBalance = new GroupBalanceDTOBuilder('test-group-id')
+                .withUserBalance(
+                    'USD',
+                    'member-user-123',
+                    new UserBalanceBuilder().withUserId('member-user-123').withNetBalance(0.0).build(), // Member has settled balance
+                )
+                .withVersion(1)
+                .build();
 
-            // Mock successful write operations
-            stubWriter.setWriteResult('delete-success', true);
+            // Convert ISO string to Timestamp for Firestore
+            const settledBalanceWithTimestamp = {
+                ...settledBalance,
+                lastUpdatedAt: Timestamp.fromDate(new Date(settledBalance.lastUpdatedAt)),
+            };
+
+            db.seedGroup('test-group-id', testGroup);
+            db.seedGroupMember('test-group-id', 'member-user-123', memberDoc);
+            db.seedGroupMember('test-group-id', 'other-member-123', otherMemberDoc);
+            db.seed(`groups/test-group-id/metadata/balance`, settledBalanceWithTimestamp);
 
             // Act
-            const result = await groupMemberService.leaveGroup(memberUserId, testGroupId);
+            const result = await groupMemberService.leaveGroup('member-user-123', 'test-group-id');
 
             // Assert
             expect(result).toEqual({
@@ -252,136 +259,140 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
         test('should reject unauthorized leave request', async () => {
             // Act & Assert
-            await expect(groupMemberService.leaveGroup('', testGroupId)).rejects.toThrow(/Authentication required/);
+            await expect(groupMemberService.leaveGroup('', 'test-group-id')).rejects.toThrow(/Authentication required/);
         });
 
         test('should reject leave request for non-existent group', async () => {
-            // Setup: No group found
-            stubReader.setDocument('groups', testGroupId, null);
+            // Arrange - No group seeded, database has no group with this ID
 
             // Act & Assert
-            await expect(groupMemberService.leaveGroup(memberUserId, testGroupId)).rejects.toThrow(/Group not found/);
+            await expect(groupMemberService.leaveGroup('member-user-123', 'nonexistent-group-id')).rejects.toThrow(/Group not found/);
         });
 
         test('should reject leave request for non-member', async () => {
-            // Setup: Group exists but user is not a member
+            // Arrange
             const testGroup = new GroupDTOBuilder()
-                .withId(testGroupId)
+                .withId('test-group-id')
                 .build();
 
-            stubReader.setDocument('groups', testGroupId, testGroup);
-            stubReader.setDocument('group-members', `${testGroupId}_${memberUserId}`, null); // Member doesn't exist
+            db.seedGroup('test-group-id', testGroup);
+            // No member seeded - user is not a member
 
             // Act & Assert
-            await expect(groupMemberService.leaveGroup(memberUserId, testGroupId)).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.leaveGroup('member-user-123', 'test-group-id')).rejects.toThrow(/Invalid input data/);
         });
     });
 
     describe('Remove Member Validation', () => {
         test('should prevent non-creator from removing members', async () => {
-            // Setup: Non-creator trying to remove another member
+            // Arrange
             const testGroup = new GroupDTOBuilder()
-                .withId(testGroupId)
-                .withCreatedBy(creatorUserId)
+                .withId('test-group-id')
+                .withCreatedBy('creator-user-123')
                 .build();
 
             const targetMemberDoc = new GroupMemberDocumentBuilder()
-                .withUserId(otherMemberUserId)
-                .withGroupId(testGroupId)
+                .withUserId('other-member-123')
+                .withGroupId('test-group-id')
                 .buildDocument();
 
-            stubReader.setDocument('groups', testGroupId, testGroup);
-            stubReader.setDocument('group-members', `${testGroupId}_${otherMemberUserId}`, targetMemberDoc);
+            db.seedGroup('test-group-id', testGroup);
+            db.seedGroupMember('test-group-id', 'other-member-123', targetMemberDoc);
 
             // Act & Assert - Non-creator (memberUserId) trying to remove otherMemberUserId
-            await expect(groupMemberService.removeGroupMember(memberUserId, testGroupId, otherMemberUserId)).rejects.toThrow(/Access denied/);
+            await expect(groupMemberService.removeGroupMember('member-user-123', 'test-group-id', 'other-member-123')).rejects.toThrow(/Access denied/);
         });
 
         test('should prevent removing the group creator', async () => {
-            // Setup: Creator trying to remove themselves via removeGroupMember
+            // Arrange
             const testGroup = new GroupDTOBuilder()
-                .withId(testGroupId)
-                .withCreatedBy(creatorUserId)
+                .withId('test-group-id')
+                .withCreatedBy('creator-user-123')
                 .build();
 
             const creatorMemberDoc = new GroupMemberDocumentBuilder()
-                .withUserId(creatorUserId)
-                .withGroupId(testGroupId)
+                .withUserId('creator-user-123')
+                .withGroupId('test-group-id')
                 .withRole(MemberRoles.ADMIN)
                 .buildDocument();
 
-            stubReader.setDocument('groups', testGroupId, testGroup);
-            stubReader.setDocument('group-members', `${testGroupId}_${creatorUserId}`, creatorMemberDoc);
+            db.seedGroup('test-group-id', testGroup);
+            db.seedGroupMember('test-group-id', 'creator-user-123', creatorMemberDoc);
 
             // Act & Assert
-            await expect(groupMemberService.removeGroupMember(creatorUserId, testGroupId, creatorUserId)).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.removeGroupMember('creator-user-123', 'test-group-id', 'creator-user-123')).rejects.toThrow(/Invalid input data/);
         });
 
         test('should prevent removing member with outstanding balance', async () => {
-            // Setup: Creator trying to remove member with debt
+            // Arrange
             const testGroup = new GroupDTOBuilder()
-                .withId(testGroupId)
-                .withCreatedBy(creatorUserId)
+                .withId('test-group-id')
+                .withCreatedBy('creator-user-123')
                 .build();
 
             const memberDoc = new GroupMemberDocumentBuilder()
-                .withUserId(memberUserId)
-                .withGroupId(testGroupId)
+                .withUserId('member-user-123')
+                .withGroupId('test-group-id')
                 .buildDocument();
 
             // Set up balance document with outstanding balance
-            await stubWriter.setGroupBalance(
-                testGroupId,
-                new GroupBalanceDTOBuilder(testGroupId)
-                    .withUserBalance(
-                        'USD',
-                        memberUserId,
-                        new UserBalanceBuilder().withUserId(memberUserId).withNetBalance(25.0).build(), // Member is owed $25
-                    )
-                    .withVersion(1)
-                    .build(),
-            );
+            const balanceWithCredit = new GroupBalanceDTOBuilder('test-group-id')
+                .withUserBalance(
+                    'USD',
+                    'member-user-123',
+                    new UserBalanceBuilder().withUserId('member-user-123').withNetBalance(25.0).build(), // Member is owed $25
+                )
+                .withVersion(1)
+                .build();
 
-            stubReader.setDocument('groups', testGroupId, testGroup);
-            stubReader.setDocument('group-members', `${testGroupId}_${memberUserId}`, memberDoc);
+            // Convert ISO string to Timestamp for Firestore
+            const balanceWithCreditTimestamp = {
+                ...balanceWithCredit,
+                lastUpdatedAt: Timestamp.fromDate(new Date(balanceWithCredit.lastUpdatedAt)),
+            };
+
+            db.seedGroup('test-group-id', testGroup);
+            db.seedGroupMember('test-group-id', 'member-user-123', memberDoc);
+            db.seed(`groups/test-group-id/metadata/balance`, balanceWithCreditTimestamp);
 
             // Act & Assert
-            await expect(groupMemberService.removeGroupMember(creatorUserId, testGroupId, memberUserId)).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.removeGroupMember('creator-user-123', 'test-group-id', 'member-user-123')).rejects.toThrow(/Invalid input data/);
         });
 
         test('should allow creator to remove member with settled balance', async () => {
-            // Setup: Creator removing member with zero balance
+            // Arrange
             const testGroup = new GroupDTOBuilder()
-                .withId(testGroupId)
-                .withCreatedBy(creatorUserId)
+                .withId('test-group-id')
+                .withCreatedBy('creator-user-123')
                 .build();
 
             const memberDoc = new GroupMemberDocumentBuilder()
-                .withUserId(memberUserId)
-                .withGroupId(testGroupId)
+                .withUserId('member-user-123')
+                .withGroupId('test-group-id')
                 .buildDocument();
 
             // Set up balance document with zero balance
-            await stubWriter.setGroupBalance(
-                testGroupId,
-                new GroupBalanceDTOBuilder(testGroupId)
-                    .withUserBalance(
-                        'USD',
-                        memberUserId,
-                        new UserBalanceBuilder().withUserId(memberUserId).withNetBalance(0.0).build(), // Member has settled balance
-                    )
-                    .withVersion(1)
-                    .build(),
-            );
+            const settledBalance = new GroupBalanceDTOBuilder('test-group-id')
+                .withUserBalance(
+                    'USD',
+                    'member-user-123',
+                    new UserBalanceBuilder().withUserId('member-user-123').withNetBalance(0.0).build(), // Member has settled balance
+                )
+                .withVersion(1)
+                .build();
 
-            stubReader.setDocument('groups', testGroupId, testGroup);
-            stubReader.setDocument('group-members', `${testGroupId}_${memberUserId}`, memberDoc);
+            // Convert ISO string to Timestamp for Firestore
+            const settledBalanceWithTimestamp = {
+                ...settledBalance,
+                lastUpdatedAt: Timestamp.fromDate(new Date(settledBalance.lastUpdatedAt)),
+            };
 
-            // Mock successful write operations
-            stubWriter.setWriteResult('remove-success', true);
+            db.seedGroup('test-group-id', testGroup);
+            db.seedGroupMember('test-group-id', 'member-user-123', memberDoc);
+            db.seed(`groups/test-group-id/metadata/balance`, settledBalanceWithTimestamp);
 
             // Act
-            const result = await groupMemberService.removeGroupMember(creatorUserId, testGroupId, memberUserId);
+            const result = await groupMemberService.removeGroupMember('creator-user-123', 'test-group-id', 'member-user-123');
 
             // Assert
             expect(result).toEqual({
@@ -391,36 +402,36 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         });
 
         test('should reject removal of non-existent member', async () => {
-            // Setup: Creator trying to remove non-existent member
+            // Arrange
             const testGroup = new GroupDTOBuilder()
-                .withId(testGroupId)
-                .withCreatedBy(creatorUserId)
+                .withId('test-group-id')
+                .withCreatedBy('creator-user-123')
                 .build();
 
-            stubReader.setDocument('groups', testGroupId, testGroup);
-            stubReader.setDocument('group-members', `${testGroupId}_nonexistent-user`, null); // Member doesn't exist
+            db.seedGroup('test-group-id', testGroup);
+            // No member seeded - user doesn't exist
 
             // Act & Assert
-            await expect(groupMemberService.removeGroupMember(creatorUserId, testGroupId, 'nonexistent-user')).rejects.toThrow(/Invalid input data/);
+            await expect(groupMemberService.removeGroupMember('creator-user-123', 'test-group-id', 'nonexistent-user')).rejects.toThrow(/Invalid input data/);
         });
 
         test('should require valid member ID for removal', async () => {
             // Act & Assert
-            await expect(groupMemberService.removeGroupMember(creatorUserId, testGroupId, '')).rejects.toThrow(/Missing required field.*memberId/);
+            await expect(groupMemberService.removeGroupMember('creator-user-123', 'test-group-id', '')).rejects.toThrow(/Missing required field.*memberId/);
         });
     });
 
     describe('Authorization Edge Cases', () => {
         test('should handle empty user ID in leave request', async () => {
-            await expect(groupMemberService.leaveGroup('', testGroupId)).rejects.toThrow(/Authentication required/);
+            await expect(groupMemberService.leaveGroup('', 'test-group-id')).rejects.toThrow(/Authentication required/);
         });
 
         test('should handle null user ID in leave request', async () => {
-            await expect(groupMemberService.leaveGroup(null as any, testGroupId)).rejects.toThrow(/Authentication required/);
+            await expect(groupMemberService.leaveGroup(null as any, 'test-group-id')).rejects.toThrow(/Authentication required/);
         });
 
         test('should handle undefined user ID in leave request', async () => {
-            await expect(groupMemberService.leaveGroup(undefined as any, testGroupId)).rejects.toThrow(/Authentication required/);
+            await expect(groupMemberService.leaveGroup(undefined as any, 'test-group-id')).rejects.toThrow(/Authentication required/);
         });
     });
 });
