@@ -1071,6 +1071,66 @@ npm run test:unit
 
 **Conclusion**: Phase 1 implementation is **complete and safe**. The API now accepts both number and string amounts with zero breaking changes.
 
+### ✅ Completed: Phase 1.6 - Explicit Currency Precision Validation (October 14, 2025)
+**Goal**: Add explicit currency precision validation to all monetary amount endpoints
+
+**Rationale**: While amounts are still represented as numbers internally, floating-point arithmetic can introduce precision errors (e.g., 0.1 + 0.2 = 0.30000000000000004). By validating that incoming amounts don't have more decimal places than the currency allows, we prevent these precision issues from entering the system.
+
+**Implementation**:
+
+1. ✅ **Expense validation** - Already had explicit validation (lines 195-212 in `expenses/validation.ts`)
+   - Validates main expense amount precision
+   - Validates all split amounts precision
+   - Applies to both create and update operations
+
+2. ✅ **Settlement CREATE validation** - Added explicit validation (line 27-34 in `settlements/handlers.ts`)
+   - Validates settlement amount precision after Joi validation
+   - Throws `INVALID_AMOUNT_PRECISION` error if precision exceeds currency limits
+   - Example: JPY (0 decimals), USD (2 decimals), BHD (3 decimals)
+
+3. ✅ **Settlement UPDATE validation** - Added explicit validation (lines 63-72 in `settlements/handlers.ts`)
+   - Validates precision if both amount AND currency are provided
+   - Matches the expense update pattern for consistency
+   - **Known Limitation**: If only amount is updated without currency, precision cannot be validated without fetching the existing settlement
+
+**Files Modified**:
+- `firebase/functions/src/settlements/handlers.ts` - Added explicit precision validation (+13 lines)
+
+**Validation Logic**:
+```typescript
+// Uses validateAmountPrecision() from utils/amount-validation.ts
+// - JPY: 100.5 → REJECTED (must be whole number)
+// - USD: 100.123 → REJECTED (max 2 decimals)
+// - BHD: 10.1234 → REJECTED (max 3 decimals)
+// - EUR: 99.99 → ACCEPTED
+```
+
+**Test Coverage**:
+- ✅ Existing tests validate precision for expenses (lines 8-151 in currency-amount-validation.test.ts)
+- ✅ Existing tests validate precision for settlements (lines 153-183 in currency-amount-validation.test.ts)
+- All tests continue to pass with the new explicit validation
+
+**Why This Matters (Even with Numbers)**:
+
+Even though amounts are still represented as numbers internally, this validation prevents precision issues by:
+
+1. **Rejecting problematic inputs early**: `100.123` in USD is rejected before it can cause floating-point errors
+2. **Enforcing currency rules**: JPY amounts must be whole numbers (no fractional yen)
+3. **Preventing accumulation errors**: Split amounts that don't match currency precision are rejected
+4. **Setting up for string migration**: When Phase 2 converts amounts to strings, this validation ensures all amounts are already currency-compliant
+
+**Error Messages**:
+```
+- JPY: "Amount must be a whole number for JPY (Japanese Yen). Received 1 decimal place(s)."
+- USD: "Amount must have at most 2 decimal place(s) for USD (United States Dollar). Received 3 decimal place(s)."
+- BHD: "Amount must have at most 3 decimal place(s) for BHD (Bahraini Dinar). Received 4 decimal place(s)."
+```
+
+**Known Limitations**:
+1. **Update operations**: Only validates precision when BOTH amount and currency are provided in the update request
+2. **Floating-point representation**: Amounts are still stored as numbers internally, so precision issues can still occur in calculations
+3. **Complete fix requires Phase 2**: Converting to string amounts at the API boundary is the ultimate solution
+
 ---
 
 ## Original Implementation Phases (Reference Only - NOT FOLLOWED)

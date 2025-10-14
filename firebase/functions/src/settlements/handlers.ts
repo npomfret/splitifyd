@@ -6,6 +6,7 @@ import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
 import { logger, LoggerContext } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { validateAmountPrecision } from '../utils/amount-validation';
 import { ApiError } from '../utils/errors';
 import { createSettlementSchema, settlementIdSchema, updateSettlementSchema } from './validation';
 
@@ -22,6 +23,15 @@ export const createSettlement = async (req: AuthenticatedRequest, res: Response)
     }
 
     const settlementData: CreateSettlementRequest = value;
+
+    // Validate settlement amount precision for currency
+    // Note: Joi validation also validates precision, but we add explicit validation
+    // for consistency with expense validation and to handle edge cases
+    try {
+        validateAmountPrecision(settlementData.amount, settlementData.currency);
+    } catch (error) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT_PRECISION', (error as Error).message);
+    }
 
     const responseData = await settlementService.createSettlement(settlementData, userId);
 
@@ -49,6 +59,17 @@ export const updateSettlement = async (req: AuthenticatedRequest, res: Response)
     }
 
     const updateData: UpdateSettlementRequest = value;
+
+    // Validate amount precision if both amount and currency are provided
+    // Note: If only amount is provided without currency, we cannot validate precision
+    // without fetching the existing settlement. This matches the expense update pattern.
+    if (updateData.amount !== undefined && updateData.currency !== undefined) {
+        try {
+            validateAmountPrecision(updateData.amount, updateData.currency);
+        } catch (error) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT_PRECISION', (error as Error).message);
+        }
+    }
 
     const responseData = await settlementService.updateSettlement(settlementId, updateData, userId);
 
