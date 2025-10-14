@@ -11,11 +11,8 @@
  * directly from firebase-admin/firestore as they don't require wrapping.
  */
 
-// Export wrapper interfaces
+// Export only used wrapper interfaces
 export type {
-    IAggregateQuery,
-    IAggregateQuerySnapshot,
-    ICollectionReference,
     IDocumentReference,
     IDocumentSnapshot,
     IFirestoreDatabase,
@@ -23,23 +20,10 @@ export type {
     IQuerySnapshot,
     ITransaction,
     IWriteBatch,
-    OrderByDirection,
-    SetOptions,
-    WhereFilterOp,
 } from './types';
 
-// Export wrapper implementations
-export {
-    CollectionReferenceWrapper,
-    createFirestoreDatabase,
-    DocumentReferenceWrapper,
-    DocumentSnapshotWrapper,
-    FirestoreDatabase,
-    QuerySnapshotWrapper,
-    QueryWrapper,
-    TransactionWrapper,
-    WriteBatchWrapper,
-} from './FirestoreDatabase';
+// Export only the factory function - wrapper implementations are internal
+export { createFirestoreDatabase } from './FirestoreDatabase';
 
 // Re-export static utilities from firebase-admin/firestore
 // These don't need wrapping as they're pure functions/constants

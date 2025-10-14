@@ -4,8 +4,9 @@ import { ApiError } from './errors';
 
 /**
  * Error mapping interface for custom error codes and messages
+ * Internal use only - used by parseWithApiError
  */
-export interface ValidationErrorMapping {
+interface ValidationErrorMapping {
     [path: string]: {
         code: string;
         message: string;
@@ -125,47 +126,3 @@ function getDefaultErrorCode(fieldPath: string, zodCode: string): string {
     }
 }
 
-/**
- * Validate and sanitize string input
- */
-export function validateAndSanitizeString(
-    value: string,
-    minLength: number = 1,
-    maxLength: number = 200,
-    fieldName: string = 'field',
-): string {
-    const trimmed = value.trim();
-
-    if (trimmed.length < minLength) {
-        throw new ApiError(
-            HTTP_STATUS.BAD_REQUEST,
-            'INVALID_INPUT',
-            `${fieldName} must be at least ${minLength} character${minLength === 1 ? '' : 's'}`,
-        );
-    }
-
-    if (trimmed.length > maxLength) {
-        throw new ApiError(
-            HTTP_STATUS.BAD_REQUEST,
-            'INVALID_INPUT',
-            `${fieldName} must be no more than ${maxLength} characters`,
-        );
-    }
-
-    return trimmed;
-}
-
-/**
- * Validate ID parameter from request
- */
-export function validateId(id: unknown, resourceName: string = 'resource'): string {
-    if (!id || typeof id !== 'string' || id.trim().length === 0) {
-        throw new ApiError(
-            HTTP_STATUS.BAD_REQUEST,
-            'INVALID_INPUT',
-            `Invalid ${resourceName} ID`,
-        );
-    }
-
-    return id.trim();
-}

@@ -90,8 +90,9 @@ function translateValidationError(issue: ZodIssue, language: string): string {
 
 /**
  * Translate Zod validation error and return localized message
+ * Internal use only - used by translateJoiError
  */
-export function translateZodError(error: ZodError, language: string = 'en'): string {
+function translateZodError(error: ZodError, language: string = 'en'): string {
     if (!error.issues || error.issues.length === 0) {
         return translate('errors.server.internalError', language);
     }

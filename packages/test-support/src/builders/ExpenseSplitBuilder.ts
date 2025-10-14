@@ -1,4 +1,14 @@
-import { Amount, ExpenseSplit } from "@splitifyd/shared";
+import {Amount} from "@splitifyd/shared";
+
+/**
+ * Internal interface for expense splits - used only by ExpenseSplitBuilder
+ * For application usage, import ExpenseSplit from @splitifyd/shared
+ */
+interface ExpenseSplit {
+    uid: string;
+    amount: Amount;
+    percentage?: number;
+}
 
 /**
  * Builder for ExpenseSplit arrays - used in split strategy tests

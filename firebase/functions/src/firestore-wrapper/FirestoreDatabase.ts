@@ -25,8 +25,9 @@ import type {
 
 /**
  * Wrapper for Firestore DocumentSnapshot
+ * Internal implementation - use via IFirestoreDatabase interface
  */
-export class DocumentSnapshotWrapper implements IDocumentSnapshot {
+class DocumentSnapshotWrapper implements IDocumentSnapshot {
     constructor(private readonly snapshot: FirebaseAdmin.DocumentSnapshot) {}
 
     get exists(): boolean {
@@ -48,8 +49,9 @@ export class DocumentSnapshotWrapper implements IDocumentSnapshot {
 
 /**
  * Wrapper for Firestore QuerySnapshot
+ * Internal implementation - use via IFirestoreDatabase interface
  */
-export class QuerySnapshotWrapper implements IQuerySnapshot {
+class QuerySnapshotWrapper implements IQuerySnapshot {
     constructor(private readonly snapshot: FirebaseAdmin.QuerySnapshot) {}
 
     get docs(): IDocumentSnapshot[] {
@@ -71,8 +73,9 @@ export class QuerySnapshotWrapper implements IQuerySnapshot {
 
 /**
  * Wrapper for Firestore AggregateQuerySnapshot
+ * Internal implementation - use via IFirestoreDatabase interface
  */
-export class AggregateQuerySnapshotWrapper implements IAggregateQuerySnapshot {
+class AggregateQuerySnapshotWrapper implements IAggregateQuerySnapshot {
     constructor(private readonly snapshot: FirebaseAdmin.AggregateQuerySnapshot<{ count: FirebaseAdmin.AggregateField<number>; }>) {}
 
     data(): { count: number; } {
@@ -82,8 +85,9 @@ export class AggregateQuerySnapshotWrapper implements IAggregateQuerySnapshot {
 
 /**
  * Wrapper for Firestore AggregateQuery
+ * Internal implementation - use via IFirestoreDatabase interface
  */
-export class AggregateQueryWrapper implements IAggregateQuery {
+class AggregateQueryWrapper implements IAggregateQuery {
     constructor(private readonly aggregateQuery: FirebaseAdmin.AggregateQuery<{ count: FirebaseAdmin.AggregateField<number>; }>) {}
 
     async get(): Promise<IAggregateQuerySnapshot> {
@@ -94,8 +98,9 @@ export class AggregateQueryWrapper implements IAggregateQuery {
 
 /**
  * Wrapper for Firestore Query
+ * Internal implementation - use via IFirestoreDatabase interface
  */
-export class QueryWrapper implements IQuery {
+class QueryWrapper implements IQuery {
     constructor(protected readonly query: FirebaseAdmin.Query) {}
 
     where(fieldPath: string | any, opStr?: WhereFilterOp | any, value?: any): IQuery {
@@ -148,8 +153,9 @@ export class QueryWrapper implements IQuery {
 
 /**
  * Wrapper for Firestore CollectionReference
+ * Internal implementation - use via IFirestoreDatabase interface
  */
-export class CollectionReferenceWrapper extends QueryWrapper implements ICollectionReference {
+class CollectionReferenceWrapper extends QueryWrapper implements ICollectionReference {
     constructor(private readonly collectionRef: FirebaseAdmin.CollectionReference) {
         super(collectionRef);
     }
@@ -166,8 +172,9 @@ export class CollectionReferenceWrapper extends QueryWrapper implements ICollect
 
 /**
  * Wrapper for Firestore DocumentReference
+ * Internal implementation - use via IFirestoreDatabase interface
  */
-export class DocumentReferenceWrapper implements IDocumentReference {
+class DocumentReferenceWrapper implements IDocumentReference {
     constructor(private readonly docRef: FirebaseAdmin.DocumentReference) {}
 
     get id(): string {
@@ -218,8 +225,9 @@ export class DocumentReferenceWrapper implements IDocumentReference {
 
 /**
  * Wrapper for Firestore Transaction
+ * Internal implementation - use via IFirestoreDatabase interface
  */
-export class TransactionWrapper implements ITransaction {
+class TransactionWrapper implements ITransaction {
     constructor(private readonly transaction: FirebaseAdmin.Transaction) {}
 
     // Overload signatures to match interface
@@ -271,8 +279,9 @@ export class TransactionWrapper implements ITransaction {
 
 /**
  * Wrapper for Firestore WriteBatch
+ * Internal implementation - use via IFirestoreDatabase interface
  */
-export class WriteBatchWrapper implements IWriteBatch {
+class WriteBatchWrapper implements IWriteBatch {
     constructor(private readonly batch: FirebaseAdmin.WriteBatch) {}
 
     set(documentRef: IDocumentReference, data: any, options?: SetOptions): IWriteBatch {
@@ -305,8 +314,9 @@ export class WriteBatchWrapper implements IWriteBatch {
 /**
  * Wrapper for Firestore Database
  * This is the main entry point that creates the abstraction layer
+ * Internal implementation - use via createFirestoreDatabase factory function
  */
-export class FirestoreDatabase implements IFirestoreDatabase {
+class FirestoreDatabase implements IFirestoreDatabase {
     constructor(private readonly firestore: FirebaseAdmin.Firestore) {}
 
     collection(collectionPath: string): ICollectionReference {

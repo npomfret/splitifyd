@@ -6,5 +6,5 @@
 
 export { FirestoreReader } from './FirestoreReader';
 export { FirestoreWriter } from './FirestoreWriter';
-export { GetGroupsForUserOptions, IFirestoreReader, QueryOptions } from './IFirestoreReader';
+export { GetGroupsForUserOptions, IFirestoreReader } from './IFirestoreReader';
 export { IFirestoreWriter } from './IFirestoreWriter';
