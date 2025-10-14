@@ -2,6 +2,22 @@ import { Input } from '@/components/ui/Input.tsx';
 import { fireEvent, render, screen } from '@testing-library/preact';
 import { describe, expect, it, vi } from 'vitest';
 
+// Mock react-i18next to avoid preact/compat hook issues in tests
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => {
+            // Return the actual translation values used in the component
+            if (key === 'common.required') return '*';
+            return key;
+        },
+        i18n: {
+            language: 'en',
+            changeLanguage: vi.fn(),
+        },
+    }),
+    I18nextProvider: ({ children }: { children: any }) => children,
+}));
+
 describe('Input Component', () => {
     describe('basic rendering', () => {
         it('should render input with default props', () => {
@@ -56,7 +72,7 @@ describe('Input Component', () => {
 
             const requiredIndicator = screen.getByTestId('required-indicator');
             expect(requiredIndicator).toBeInTheDocument();
-            expect(requiredIndicator).toHaveTextContent('common.required');
+            expect(requiredIndicator).toHaveTextContent('*');
             expect(requiredIndicator).toHaveClass('text-red-500', 'ml-1');
 
             const input = screen.getByRole('textbox');
