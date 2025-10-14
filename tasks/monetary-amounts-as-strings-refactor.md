@@ -37,6 +37,19 @@ The widespread and complex nature of these calculations makes the move to string
 
 ---
 
+## Guiding Principles for the Final Refactor
+
+The successful completion of this refactor will be measured by adherence to these principles:
+
+1.  **No Floating-Point Math:** At no point should two monetary amounts be added, subtracted, or compared as floating-point numbers. All calculations must be done after converting amounts to integers (e.g., cents) or by using a dedicated decimal math library.
+
+2.  **Elimination of All Tolerances:** All validation logic that checks if amounts are "close enough" (e.g., `Math.abs(totalSplit - totalAmount) < 0.01`) **must be removed**. Once the math is correct, amounts must add up perfectly to the smallest currency unit (e.g., the penny). The use of a tolerance is a sign that floating-point math is still being used incorrectly.
+
+3.  **String-Based API:** All monetary amounts sent to or from the API (requests and responses) must be strings to ensure perfect precision during serialization and deserialization.
+
+
+---
+
 ## Phase 1: Foundational Refactor (Completed October 2025)
 
 This phase laid the groundwork for the final transition to strings without introducing breaking changes.
