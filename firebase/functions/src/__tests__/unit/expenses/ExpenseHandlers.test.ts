@@ -1,5 +1,5 @@
 import type { UpdateExpenseRequest } from '@splitifyd/shared';
-import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, ExpenseUpdateBuilder, StubFirestoreDatabase, createStubRequest, createStubResponse } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, StubFirestoreDatabase, createStubRequest, createStubResponse } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ExpenseHandlers } from '../../../expenses/ExpenseHandlers';

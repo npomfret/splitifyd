@@ -6,7 +6,7 @@
  * over data and behavior.
  */
 
-import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { Timestamp } from 'firebase-admin/firestore';
 import { GroupDTOBuilder } from '../builders';
 import type {
     IAggregateQuery,

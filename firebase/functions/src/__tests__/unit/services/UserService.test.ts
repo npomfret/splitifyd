@@ -2,8 +2,8 @@ import {PasswordChangeRequestBuilder, StubFirestoreDatabase, ThemeBuilder, UserR
 import {beforeAll, beforeEach, describe, expect, it} from 'vitest';
 import {HTTP_STATUS} from '../../../constants';
 import {ApplicationBuilder} from '../../../services/ApplicationBuilder';
-import {FirestoreReader} from '../../../services/firestore/FirestoreReader';
-import {FirestoreWriter} from '../../../services/firestore/FirestoreWriter';
+import {FirestoreReader} from '../../../services/firestore';
+import {FirestoreWriter} from '../../../services/firestore';
 import {UserService} from '../../../services/UserService2';
 import {ApiError} from '../../../utils/errors';
 import {initializeI18n} from '../../../utils/i18n';

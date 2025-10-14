@@ -1,7 +1,7 @@
 import { StubFirestoreDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
-import { FirestoreWriter } from '../../../services/firestore/FirestoreWriter';
+import { FirestoreReader } from '../../../services/firestore';
+import { FirestoreWriter } from '../../../services/firestore';
 import { type ChangeType, NotificationService } from '../../../services/notification-service';
 
 describe('NotificationService - Comments', () => {

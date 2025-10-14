@@ -1,4 +1,4 @@
-import { CommentTargetTypes, CreateCommentRequest } from '@splitifyd/shared';
+import { CommentTargetTypes } from '@splitifyd/shared';
 import { CommentRequestBuilder, createStubRequest, createStubResponse, ExpenseDTOBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CommentHandlers } from '../../../comments/CommentHandlers';

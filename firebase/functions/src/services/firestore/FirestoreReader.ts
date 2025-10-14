@@ -45,7 +45,6 @@ import {
 import { TopLevelGroupMemberSchema } from '../../schemas';
 import { type ParsedShareLink, ShareLinkDocumentSchema } from '../../schemas';
 import { CommentDocumentSchema } from '../../schemas';
-import { type UserNotificationDocument, UserNotificationDocumentSchema } from '../../schemas/user-notifications';
 
 // Note: ParsedGroupMemberDocument no longer exported from schemas after DTO migration
 // FirestoreReader now works directly with GroupMembershipDTO from @splitifyd/shared

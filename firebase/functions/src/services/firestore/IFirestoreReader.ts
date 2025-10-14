@@ -73,7 +73,6 @@ export interface GetGroupsForUserOptions extends Pick<PaginationOptions, 'limit'
 import { CommentTargetType } from '@splitifyd/shared';
 import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, RegisteredUser, SettlementDTO } from '@splitifyd/shared/src';
 import type { GroupBalanceDTO, ParsedShareLink } from '../../schemas';
-import type { UserNotificationDocument } from '../../schemas/user-notifications';
 
 export interface IFirestoreReader {
     // ========================================================================

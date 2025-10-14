@@ -7,7 +7,6 @@ import { vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import type { IDocumentSnapshot, IQuerySnapshot, ITransaction } from '../../../firestore-wrapper';
 import type { GroupBalanceDTO } from '../../../schemas';
-import type { UserNotificationDocument } from '../../../schemas/user-notifications';
 import type { IAuthService } from '../../../services/auth';
 import type { IFirestoreReader, QueryOptions } from '../../../services/firestore';
 import type { BatchWriteResult, IFirestoreWriter, WriteResult } from '../../../services/firestore/IFirestoreWriter';

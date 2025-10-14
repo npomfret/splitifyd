@@ -3,8 +3,8 @@ import {GroupBalanceDTOBuilder, GroupDTOBuilder, StubFirestoreDatabase, ThemeBui
 import {Timestamp} from 'firebase-admin/firestore';
 import {beforeEach, describe, expect, it, test} from 'vitest';
 import {GroupMemberService} from '../../../services/GroupMemberService';
-import {FirestoreReader} from '../../../services/firestore/FirestoreReader';
-import {FirestoreWriter} from '../../../services/firestore/FirestoreWriter';
+import {FirestoreReader} from '../../../services/firestore';
+import {FirestoreWriter} from '../../../services/firestore';
 import {GroupMemberDocumentBuilder} from '../../support/GroupMemberDocumentBuilder';
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {
