@@ -10,8 +10,8 @@ export type {
     OrderByDirection,
     SetOptions,
     WhereFilterOp,
-} from './__tests__/firestore-types';
-export { StubFirestoreDatabase } from './__tests__/StubFirestoreDatabase';
+} from './firestore-types';
+export { StubFirestoreDatabase } from './StubFirestoreDatabase';
 export * from './ApiDriver';
 export * from './builders';
 export * from './error-proxy';

@@ -1,4 +1,4 @@
-import { CreateExpenseRequestBuilder, ExpenseDTOBuilder } from '@splitifyd/test-support';
+import {CreateExpenseRequestBuilder, ExpenseDTOBuilder, StubFirestoreDatabase} from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { Timestamp as FirestoreTimestamp } from '../../../firestore-wrapper';
@@ -7,7 +7,7 @@ import { ExpenseService } from '../../../services/ExpenseService';
 import { FirestoreReader } from '../../../services/firestore';
 import { FirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
-import { StubAuthService, StubFirestoreDatabase } from '../mocks/StubAuthService';
+import { StubAuthService, } from '../mocks/StubAuthService';
 
 describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;

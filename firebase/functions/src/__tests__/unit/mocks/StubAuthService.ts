@@ -190,7 +190,3 @@ export class StubAuthService implements IAuthService {
         return true;
     }
 }
-
-
-// Export the new stub implementation
-export { StubFirestoreDatabase } from '@splitifyd/test-support';

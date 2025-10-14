@@ -7,7 +7,6 @@
  */
 
 import { Timestamp } from 'firebase-admin/firestore';
-import { GroupDTOBuilder } from '../builders';
 import type {
     IAggregateQuery,
     IAggregateQuerySnapshot,
@@ -23,6 +22,7 @@ import type {
     SetOptions,
     WhereFilterOp,
 } from './firestore-types';
+import { GroupDTOBuilder } from "./builders";
 
 /**
  * In-memory document storage
