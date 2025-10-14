@@ -24,6 +24,22 @@ import type { ColorPattern } from './user-colors';
  */
 export type ISOString = string;
 
+/**
+ * Type alias for monetary amounts
+ *
+ * Currently defined as `number` for backward compatibility.
+ *
+ * **Future Migration**: This will be changed to `string` to eliminate JavaScript
+ * floating-point precision bugs in financial calculations. Using strings ensures
+ * exact decimal representation across the API wire format.
+ *
+ * Rationale: JavaScript's IEEE 754 floating-point arithmetic causes precision loss
+ * (e.g., `0.1 + 0.2 !== 0.3`). For financial calculations, this is unacceptable.
+ *
+ * See: tasks/monetary-amounts-as-strings-refactor.md
+ */
+export type Amount = number;
+
 // ========================================================================
 // Constants
 // ========================================================================
