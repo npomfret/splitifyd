@@ -10,5 +10,5 @@ export interface ISplitStrategy {
      * @param currencyCode Optional currency code for precision validation
      * @throws ApiError if validation fails
      */
-    validateSplits(totalAmount: Amount, participants: string[], splits?: ExpenseSplit[], currencyCode?: string): void;
+    validateSplits(totalAmount: Amount, participants: string[], splits: ExpenseSplit[], currencyCode: string): void;
 }

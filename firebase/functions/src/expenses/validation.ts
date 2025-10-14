@@ -1,12 +1,12 @@
 import * as Joi from 'joi';
-import { HTTP_STATUS } from '../constants';
-import { ApiError } from '../utils/errors';
+import {HTTP_STATUS} from '../constants';
+import {ApiError} from '../utils/errors';
 
-import { CreateExpenseRequest, parseMonetaryAmount, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
-import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
-import { validateAmountPrecision } from '../utils/amount-validation';
-import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
-import { sanitizeString } from '../utils/security';
+import {CreateExpenseRequest, parseMonetaryAmount, SplitTypes, UpdateExpenseRequest} from '@splitifyd/shared';
+import {SplitStrategyFactory} from '../services/splits/SplitStrategyFactory';
+import {validateAmountPrecision} from '../utils/amount-validation';
+import {isUTCFormat, validateUTCDate} from '../utils/dateHelpers';
+import {sanitizeString} from '../utils/security';
 
 /**
  * Create a dual-format amount schema that accepts both numbers and strings.
@@ -309,16 +309,13 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
         if (!value.participants) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_PARTICIPANTS', 'Participants are required for split updates');
         }
-        const participants = value.participants;
-        const splits = value.splits;
 
         // Validate split amounts precision if currency is available and splits are provided
-        const currency = value.currency;
-        if (currency && splits && Array.isArray(splits)) {
-            for (const split of splits) {
+        if (value.currency && value.splits && Array.isArray(value.splits)) {
+            for (const split of value.splits) {
                 if (split.amount !== undefined) {
                     try {
-                        validateAmountPrecision(split.amount, currency);
+                        validateAmountPrecision(split.amount, value.currency);
                     } catch (error) {
                         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_AMOUNT_PRECISION', (error as Error).message);
                     }
@@ -327,7 +324,7 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
         }
 
         // Splits are always required
-        if (!Array.isArray(splits) || splits.length !== participants.length) {
+        if (!Array.isArray(value.splits) || value.splits.length !== value.participants.length) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLITS', 'Splits must be provided for all participants');
         }
 
@@ -335,11 +332,11 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
         // Note: amount validation is not critical here - will be handled when expense is retrieved and updated
         const splitStrategyFactory = SplitStrategyFactory.getInstance();
         const splitStrategy = splitStrategyFactory.getStrategy(splitType);
-        splitStrategy.validateSplits(value.amount ?? 0, participants, splits, currency);
+        splitStrategy.validateSplits(value.amount, value.participants, value.splits, value.currency);
 
         update.splitType = splitType;
-        update.participants = participants.map((p: string) => p.trim());
-        update.splits = splits;
+        update.participants = value.participants.map((p: string) => p.trim());
+        update.splits = value.splits;
     }
 
     if ('receiptUrl' in value) {

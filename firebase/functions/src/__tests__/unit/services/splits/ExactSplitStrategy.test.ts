@@ -17,15 +17,15 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user3', amount: 30 },
                 ])
                 .build();
-            expect(() => strategy.validateSplits(100, participants, splits)).not.toThrow();
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).not.toThrow();
         });
 
         it('should throw error if splits are not provided', () => {
-            expect(() => strategy.validateSplits(100, participants)).toThrow(new ApiError(400, 'INVALID_SPLITS', 'Splits must be provided for all participants'));
+            expect(() => strategy.validateSplits(100, participants, undefined as any, 'USD')).toThrow(new ApiError(400, 'INVALID_SPLITS', 'Splits must be provided for all participants'));
         });
 
         it('should throw error if splits array is empty', () => {
-            expect(() => strategy.validateSplits(100, participants, [])).toThrow(new ApiError(400, 'INVALID_SPLITS', 'Splits must be provided for all participants'));
+            expect(() => strategy.validateSplits(100, participants, [], 'USD')).toThrow(new ApiError(400, 'INVALID_SPLITS', 'Splits must be provided for all participants'));
         });
 
         it('should throw error if split amounts do not sum to total amount', () => {
@@ -36,7 +36,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user3', amount: 20 }, // Total = 90, not 100
                 ])
                 .build();
-            expect(() => strategy.validateSplits(100, participants, splits)).toThrow(new ApiError(400, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount'));
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).toThrow(new ApiError(400, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount'));
         });
 
         it('should throw error if split amounts exceed total amount', () => {
@@ -47,7 +47,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user3', amount: 40 }, // Total = 110, not 100
                 ])
                 .build();
-            expect(() => strategy.validateSplits(100, participants, splits)).toThrow(new ApiError(400, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount'));
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).toThrow(new ApiError(400, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount'));
         });
 
         it('should allow rounding differences within 0.01 tolerance', () => {
@@ -59,7 +59,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user3', amount: 33.34 }, // Total = 100.00 (within tolerance)
                 ])
                 .build();
-            expect(() => strategy.validateSplits(100, participants, splits)).not.toThrow();
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).not.toThrow();
         });
 
         it('should reject rounding differences outside 0.01 tolerance', () => {
@@ -70,7 +70,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user3', amount: 33.32 }, // Total = 99.98 (outside tolerance)
                 ])
                 .build();
-            expect(() => strategy.validateSplits(100, participants, splits)).toThrow(new ApiError(400, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount'));
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).toThrow(new ApiError(400, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount'));
         });
 
         it('should throw error if split amount is null', () => {
@@ -81,7 +81,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user3', amount: 50 },
                 ])
                 .build();
-            expect(() => strategy.validateSplits(100, participants, splits)).toThrow(new ApiError(400, 'MISSING_SPLIT_AMOUNT', 'Split amount is required for exact splits'));
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).toThrow(new ApiError(400, 'MISSING_SPLIT_AMOUNT', 'Split amount is required for exact splits'));
         });
 
         it('should throw error if split amount is undefined', () => {
@@ -92,7 +92,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user3', amount: 50 },
                 ])
                 .build();
-            expect(() => strategy.validateSplits(100, participants, splits)).toThrow(new ApiError(400, 'MISSING_SPLIT_AMOUNT', 'Split amount is required for exact splits'));
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).toThrow(new ApiError(400, 'MISSING_SPLIT_AMOUNT', 'Split amount is required for exact splits'));
         });
 
         it('should allow negative amounts if they sum correctly', () => {
@@ -104,7 +104,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user3', amount: -10 }, // Total = 100
                 ])
                 .build();
-            expect(() => strategy.validateSplits(100, participants, splits)).not.toThrow();
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).not.toThrow();
         });
 
         it('should allow zero amounts if they sum correctly', () => {
@@ -115,7 +115,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user3', amount: 0 }, // Total = 100
                 ])
                 .build();
-            expect(() => strategy.validateSplits(100, participants, splits)).not.toThrow();
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).not.toThrow();
         });
 
         it('should handle single participant', () => {
@@ -123,7 +123,7 @@ describe('ExactSplitStrategy', () => {
             const splits = ExpenseSplitBuilder
                 .exactSplit([{ uid: 'user1', amount: 50 }])
                 .build();
-            expect(() => strategy.validateSplits(50, singleParticipant, splits)).not.toThrow();
+            expect(() => strategy.validateSplits(50, singleParticipant, splits, 'USD')).not.toThrow();
         });
 
         it('should throw error if wrong number of splits provided', () => {
@@ -134,7 +134,7 @@ describe('ExactSplitStrategy', () => {
                     // Missing user3
                 ])
                 .build();
-            expect(() => strategy.validateSplits(100, participants, splits)).toThrow(new ApiError(400, 'INVALID_SPLITS', 'Splits must be provided for all participants'));
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).toThrow(new ApiError(400, 'INVALID_SPLITS', 'Splits must be provided for all participants'));
         });
 
         it('should throw error if too many splits provided', () => {
@@ -146,7 +146,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user4', amount: 25 }, // Extra user not in participants
                 ])
                 .build();
-            expect(() => strategy.validateSplits(100, participants, splits)).toThrow(new ApiError(400, 'INVALID_SPLITS', 'Splits must be provided for all participants'));
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).toThrow(new ApiError(400, 'INVALID_SPLITS', 'Splits must be provided for all participants'));
         });
 
         it('should throw error if duplicate users in splits', () => {
@@ -157,7 +157,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user2', amount: 30 },
                 ])
                 .build();
-            expect(() => strategy.validateSplits(100, participants, splits)).toThrow(new ApiError(400, 'DUPLICATE_SPLIT_USERS', 'Each participant can only appear once in splits'));
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).toThrow(new ApiError(400, 'DUPLICATE_SPLIT_USERS', 'Each participant can only appear once in splits'));
         });
 
         it('should throw error if split user is not a participant', () => {
@@ -168,7 +168,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user4', amount: 25 }, // user4 not in participants
                 ])
                 .build();
-            expect(() => strategy.validateSplits(100, participants, splits)).toThrow(new ApiError(400, 'INVALID_SPLIT_USER', 'Split user must be a participant'));
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).toThrow(new ApiError(400, 'INVALID_SPLIT_USER', 'Split user must be a participant'));
         });
 
         it('should handle large amounts correctly', () => {
@@ -179,7 +179,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user2', amount: 0.01 },
                 ])
                 .build();
-            expect(() => strategy.validateSplits(1000000, largeParticipants, splits)).not.toThrow();
+            expect(() => strategy.validateSplits(1000000, largeParticipants, splits, 'USD')).not.toThrow();
         });
 
         it('should handle very small amounts correctly', () => {
@@ -190,7 +190,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user2', amount: 0.005 },
                 ])
                 .build();
-            expect(() => strategy.validateSplits(0.01, smallParticipants, splits)).not.toThrow();
+            expect(() => strategy.validateSplits(0.01, smallParticipants, splits, 'USD')).not.toThrow();
         });
 
         it('should handle zero total amount correctly', () => {
@@ -201,7 +201,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user2', amount: 0 },
                 ])
                 .build();
-            expect(() => strategy.validateSplits(0, zeroParticipants, splits)).not.toThrow();
+            expect(() => strategy.validateSplits(0, zeroParticipants, splits, 'USD')).not.toThrow();
         });
 
         it('should handle floating point precision edge case (0.1 + 0.2)', () => {
@@ -214,7 +214,7 @@ describe('ExactSplitStrategy', () => {
                 ])
                 .build();
             // 0.1 + 0.2 = 0.30000000000000004 in JavaScript
-            expect(() => strategy.validateSplits(0.3, precisionParticipants, splits)).not.toThrow();
+            expect(() => strategy.validateSplits(0.3, precisionParticipants, splits, 'USD')).not.toThrow();
         });
 
         it('should handle currency with no decimal places (like JPY)', () => {
@@ -225,7 +225,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user2', amount: 100 },
                 ])
                 .build();
-            expect(() => strategy.validateSplits(250, jpyParticipants, splits)).not.toThrow();
+            expect(() => strategy.validateSplits(250, jpyParticipants, splits, 'JPY')).not.toThrow();
         });
 
         it('should handle JPY currency edge cases with exact amounts', () => {
@@ -239,7 +239,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user3', amount: 333 },
                 ])
                 .build();
-            expect(() => strategy.validateSplits(1000, jpyParticipants, splits)).not.toThrow();
+            expect(() => strategy.validateSplits(1000, jpyParticipants, splits, 'JPY')).not.toThrow();
         });
 
         it('should handle other zero-decimal currencies (KRW, VND)', () => {
@@ -251,7 +251,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user2', amount: 10000 },
                 ])
                 .build();
-            expect(() => strategy.validateSplits(25000, krwParticipants, krwSplits)).not.toThrow();
+            expect(() => strategy.validateSplits(25000, krwParticipants, krwSplits, 'KRW')).not.toThrow();
 
             // Vietnamese Dong example
             const vndParticipants = ['user1', 'user2', 'user3'];
@@ -262,7 +262,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user3', amount: 50000 },
                 ])
                 .build();
-            expect(() => strategy.validateSplits(300000, vndParticipants, vndSplits)).not.toThrow();
+            expect(() => strategy.validateSplits(300000, vndParticipants, vndSplits, 'VND')).not.toThrow();
         });
 
         it('should reject fractional amounts that would be invalid for zero-decimal currencies', () => {
@@ -277,7 +277,7 @@ describe('ExactSplitStrategy', () => {
                 .build();
             // Note: The strategy allows fractional amounts - currency-specific validation
             // would need to be handled at a higher level
-            expect(() => strategy.validateSplits(200, jpyParticipants, fractionalSplits)).not.toThrow();
+            expect(() => strategy.validateSplits(200, jpyParticipants, fractionalSplits, 'JPY')).not.toThrow();
         });
 
         it('should reject splits with amounts that are barely outside tolerance', () => {
@@ -288,7 +288,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user3', amount: 33.333 }, // Total = 99.999, which is 0.001 off
                 ])
                 .build();
-            expect(() => strategy.validateSplits(100, participants, splits)).not.toThrow();
+            expect(() => strategy.validateSplits(100, participants, splits, 'USD')).not.toThrow();
 
             const splitsOutsideTolerance = ExpenseSplitBuilder
                 .exactSplit([
@@ -297,7 +297,7 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user3', amount: 33.32 }, // Total = 99.96, which is 0.04 off (outside 0.01 tolerance)
                 ])
                 .build();
-            expect(() => strategy.validateSplits(100, participants, splitsOutsideTolerance)).toThrow(new ApiError(400, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount'));
+            expect(() => strategy.validateSplits(100, participants, splitsOutsideTolerance, 'USD')).toThrow(new ApiError(400, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount'));
         });
     });
 });

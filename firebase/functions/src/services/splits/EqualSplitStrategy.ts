@@ -6,7 +6,7 @@ import { ISplitStrategy } from './ISplitStrategy';
 import {Amount} from "@splitifyd/shared";
 
 export class EqualSplitStrategy implements ISplitStrategy {
-    validateSplits(totalAmount: Amount, participants: string[], splits?: ExpenseSplit[], currencyCode?: string): void {
+    validateSplits(totalAmount: Amount, participants: string[], splits: ExpenseSplit[], currencyCode: string): void {
         if (!Array.isArray(splits) || splits.length !== participants.length) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLITS', 'Splits must be provided for all participants');
         }

@@ -37,7 +37,7 @@ describe('EqualSplitStrategy', () => {
         it('should reject when splits array is missing', () => {
             const participants = ['user1', 'user2'];
 
-            expect(() => strategy.validateSplits(100, participants, undefined, 'USD')).toThrow('Splits must be provided');
+            expect(() => strategy.validateSplits(100, participants, undefined as any, 'USD')).toThrow('Splits must be provided');
         });
 
         it('should reject when splits length does not match participants', () => {
