@@ -2,14 +2,7 @@
  * Firestore Wrapper Types
  *
  * This module provides wrapper interfaces that abstract away direct Firestore dependencies.
- * This enables:
- * - Easy stubbing/mocking for tests without Firebase
- * - Potential future migration to different databases
- * - Centralized logging, monitoring, and retry logic
- * - Type-safe abstractions without exposing firebase-admin internals
- *
- * Note: Static utilities (FieldValue, Timestamp, FieldPath, Filter) remain as direct
- * imports from firebase-admin/firestore since they don't require instance state.
+ * Copied from firebase/functions/src/firestore-wrapper/types.ts for use in test-support.
  */
 
 /**
@@ -70,6 +63,30 @@ export interface IQuerySnapshot {
      * @param callback - Function to call for each document
      */
     forEach(callback: (result: IDocumentSnapshot) => void): void;
+}
+
+/**
+ * Wrapper for Firestore Aggregate Query (for count operations)
+ * Abstracts the count query result
+ */
+export interface IAggregateQuery {
+    /**
+     * Execute the aggregate query
+     * @returns Aggregate query result
+     */
+    get(): Promise<IAggregateQuerySnapshot>;
+}
+
+/**
+ * Wrapper for Firestore Aggregate Query Snapshot
+ * Contains the result of count queries
+ */
+export interface IAggregateQuerySnapshot {
+    /**
+     * Get the aggregate data (e.g., count)
+     * @returns Object with count property
+     */
+    data(): { count: number };
 }
 
 /**
@@ -179,30 +196,6 @@ export interface IQuery {
      * @returns Aggregate query for counting
      */
     count(): IAggregateQuery;
-}
-
-/**
- * Wrapper for Firestore Aggregate Query (for count operations)
- * Abstracts the count query result
- */
-export interface IAggregateQuery {
-    /**
-     * Execute the aggregate query
-     * @returns Aggregate query result
-     */
-    get(): Promise<IAggregateQuerySnapshot>;
-}
-
-/**
- * Wrapper for Firestore Aggregate Query Snapshot
- * Contains the result of count queries
- */
-export interface IAggregateQuerySnapshot {
-    /**
-     * Get the aggregate data (e.g., count)
-     * @returns Object with count property
-     */
-    data(): { count: number };
 }
 
 /**

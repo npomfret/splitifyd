@@ -1361,4 +1361,4 @@ export function clearSharedStorage() {
 }
 
 // Export the new stub implementation
-export { StubFirestoreDatabase } from './StubFirestoreDatabase';
+export { StubFirestoreDatabase } from '@splitifyd/test-support';

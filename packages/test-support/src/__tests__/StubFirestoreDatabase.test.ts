@@ -14,17 +14,14 @@ describe('StubFirestoreDatabase - Example Usage', () => {
 
     describe('Basic document operations', () => {
         it('should create and read a document', async () => {
-            // Create a document reference
             const docRef = db.collection('users').doc('user-123');
 
-            // Write data
             await docRef.set({
                 name: 'John Doe',
                 email: 'john@example.com',
                 age: 30,
             });
 
-            // Read data back
             const snapshot = await docRef.get();
 
             expect(snapshot.exists).toBe(true);
@@ -73,7 +70,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
 
     describe('Query operations', () => {
         beforeEach(async () => {
-            // Seed test data
             await db.collection('users').doc('user-1').set({ name: 'Alice', age: 25, city: 'NYC' });
             await db.collection('users').doc('user-2').set({ name: 'Bob', age: 30, city: 'LA' });
             await db.collection('users').doc('user-3').set({ name: 'Charlie', age: 35, city: 'NYC' });
@@ -120,7 +116,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
             const docRef = db.collection('counters').doc('counter-1');
             await docRef.set({ count: 0 });
 
-            // Increment counter in a transaction
             await db.runTransaction(async (transaction) => {
                 const snapshot = await transaction.get(docRef);
                 const currentCount = snapshot.data()?.count || 0;
@@ -142,10 +137,9 @@ describe('StubFirestoreDatabase - Example Usage', () => {
                     throw new Error('Transaction failed');
                 });
             } catch (error) {
-                // Transaction should be rolled back
+                //
             }
 
-            // Original data should be unchanged
             const snapshot = await docRef.get();
             expect(snapshot.data()?.balance).toBe(100);
         });
@@ -175,15 +169,14 @@ describe('StubFirestoreDatabase - Example Usage', () => {
 
             batch.set(doc1, { name: 'Alice' });
             batch.set(doc2, { name: 'Bob' });
-            batch.update(doc3, { name: 'Charlie' }); // This will fail since doc3 doesn't exist
+            batch.update(doc3, { name: 'Charlie' });
 
             try {
                 await batch.commit();
             } catch (error) {
-                // Update on non-existent doc will throw
+                //
             }
 
-            // Successful operations should still be committed
             const snapshot1 = await doc1.get();
             const snapshot2 = await doc2.get();
 
@@ -214,36 +207,8 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
     });
 
-    describe('Using with FirestoreReader/Writer', () => {
-        it('should work with FirestoreReader', async () => {
-            // This is a conceptual example showing how you'd use it with real services
-            const { FirestoreReader } = await import('../../../services/firestore/FirestoreReader');
-            const { Timestamp } = await import('../../../firestore-wrapper');
-
-            // Seed some test data - must use Firestore Timestamp format (matches actual Firestore storage)
-            db.seed('users/user-123', {
-                id: 'user-123',
-                displayName: 'Test User',
-                photoURL: null,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            });
-
-            // Create reader with stub database
-            const reader = new FirestoreReader(db);
-
-            // Use the reader - it will convert Timestamps to ISO strings in the DTO
-            const user = await reader.getUser('user-123');
-            expect(user).toBeDefined();
-            expect(user?.displayName).toBe('Test User');
-            // The DTO has ISO strings, not Timestamps
-            expect(typeof user?.createdAt).toBe('string');
-        });
-    });
-
     describe('Subcollections', () => {
         it('should handle subcollections', async () => {
-            // Create a document with subcollection
             const groupRef = db.collection('groups').doc('group-1');
             await groupRef.set({ name: 'Test Group' });
 
@@ -251,7 +216,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
             await membersRef.doc('member-1').set({ name: 'Alice', role: 'admin' });
             await membersRef.doc('member-2').set({ name: 'Bob', role: 'member' });
 
-            // Query subcollection
             const membersSnapshot = await membersRef.get();
             expect(membersSnapshot.size).toBe(2);
         });

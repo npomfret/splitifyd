@@ -7,6 +7,8 @@
  */
 
 import type {
+    IAggregateQuery,
+    IAggregateQuerySnapshot,
     ICollectionReference,
     IDocumentReference,
     IDocumentSnapshot,
@@ -18,7 +20,9 @@ import type {
     OrderByDirection,
     SetOptions,
     WhereFilterOp,
-} from '../../../firestore-wrapper';
+} from './firestore-types';
+import { Timestamp } from 'firebase-admin/firestore';
+import { GroupDTOBuilder } from '../builders/GroupDTOBuilder';
 
 /**
  * In-memory document storage
@@ -80,6 +84,29 @@ class StubQuerySnapshot implements IQuerySnapshot {
 }
 
 /**
+ * Stub AggregateQuerySnapshot implementation
+ */
+class StubAggregateQuerySnapshot implements IAggregateQuerySnapshot {
+    constructor(private readonly countValue: number) {}
+
+    data(): { count: number } {
+        return { count: this.countValue };
+    }
+}
+
+/**
+ * Stub AggregateQuery implementation
+ */
+class StubAggregateQuery implements IAggregateQuery {
+    constructor(private readonly countFn: () => Promise<number>) {}
+
+    async get(): Promise<IAggregateQuerySnapshot> {
+        const count = await this.countFn();
+        return new StubAggregateQuerySnapshot(count);
+    }
+}
+
+/**
  * Stub DocumentReference implementation
  */
 class StubDocumentReference implements IDocumentReference {
@@ -120,7 +147,6 @@ class StubDocumentReference implements IDocumentReference {
         const existingDoc = this.storage.get(this.documentPath);
 
         if (options?.merge && existingDoc) {
-            // Merge with existing data
             const mergedData = { ...existingDoc.data, ...data };
             this.storage.set(this.documentPath, {
                 id: this.id,
@@ -129,7 +155,6 @@ class StubDocumentReference implements IDocumentReference {
                 exists: true,
             });
         } else if (options?.mergeFields && existingDoc) {
-            // Merge only specified fields
             const mergedData = { ...existingDoc.data };
             for (const field of options.mergeFields) {
                 if (field in data) {
@@ -143,7 +168,6 @@ class StubDocumentReference implements IDocumentReference {
                 exists: true,
             });
         } else {
-            // Overwrite
             this.storage.set(this.documentPath, {
                 id: this.id,
                 path: this.documentPath,
@@ -209,11 +233,19 @@ class StubQuery implements IQuery {
     where(fieldPath: string | any, opStr?: WhereFilterOp | any, value?: any): IQuery {
         const newQuery = this.clone();
 
-        // Support both traditional where(field, op, value) and Filter-based where
         if (typeof fieldPath === 'string' && opStr !== undefined && value !== undefined) {
             newQuery.filters.push({ field: fieldPath, operator: opStr, value });
+        } else if (typeof fieldPath === 'object' && fieldPath !== null) {
+            // Handle FieldPath objects (e.g., FieldPath.documentId())
+            // FieldPath.documentId() is represented as a special marker
+            const fieldPathStr = fieldPath.toString?.() === '__name__' || fieldPath._segments?.[0] === '__name__'
+                ? '__name__'  // Document ID field
+                : fieldPath.toString?.() || String(fieldPath);
+
+            if (opStr !== undefined && value !== undefined) {
+                newQuery.filters.push({ field: fieldPathStr, operator: opStr, value });
+            }
         }
-        // For Filter objects, we'd need to parse them - for now, stub doesn't support Filter objects
 
         return newQuery;
     }
@@ -248,8 +280,42 @@ class StubQuery implements IQuery {
         return newQuery;
     }
 
+    count(): IAggregateQuery {
+        return new StubAggregateQuery(async () => {
+            let documents: StoredDocument[] = [];
+
+            for (const [path, doc] of this.storage.entries()) {
+                if (this.isInCollection(path) && doc.exists) {
+                    documents.push(doc);
+                }
+            }
+
+            documents = documents.filter((doc) => this.matchesFilters(doc));
+
+            if (this.orders.length > 0) {
+                documents.sort((a, b) => this.compareDocuments(a, b));
+            }
+
+            if (this.startAfterValues && this.startAfterValues.length > 0) {
+                const startAfterIndex = this.findStartAfterIndex(documents);
+                if (startAfterIndex >= 0) {
+                    documents = documents.slice(startAfterIndex + 1);
+                }
+            }
+
+            if (this.offsetCount > 0) {
+                documents = documents.slice(this.offsetCount);
+            }
+
+            if (this.limitCount !== undefined) {
+                documents = documents.slice(0, this.limitCount);
+            }
+
+            return documents.length;
+        });
+    }
+
     async get(): Promise<IQuerySnapshot> {
-        // Find all documents in this collection path
         let documents: StoredDocument[] = [];
 
         for (const [path, doc] of this.storage.entries()) {
@@ -258,15 +324,12 @@ class StubQuery implements IQuery {
             }
         }
 
-        // Apply filters
         documents = documents.filter((doc) => this.matchesFilters(doc));
 
-        // Apply ordering
         if (this.orders.length > 0) {
             documents.sort((a, b) => this.compareDocuments(a, b));
         }
 
-        // Apply startAfter cursor
         if (this.startAfterValues && this.startAfterValues.length > 0) {
             const startAfterIndex = this.findStartAfterIndex(documents);
             if (startAfterIndex >= 0) {
@@ -274,17 +337,14 @@ class StubQuery implements IQuery {
             }
         }
 
-        // Apply offset
         if (this.offsetCount > 0) {
             documents = documents.slice(this.offsetCount);
         }
 
-        // Apply limit
         if (this.limitCount !== undefined) {
             documents = documents.slice(0, this.limitCount);
         }
 
-        // Create snapshots
         const snapshots = documents.map((doc) => {
             const docRef = new StubDocumentReference(this.storage, doc.path, this.db);
             return new StubDocumentSnapshot(doc, docRef);
@@ -305,16 +365,13 @@ class StubQuery implements IQuery {
     }
 
     protected isInCollection(docPath: string): boolean {
-        // Check if document is directly in this collection
         const pathParts = docPath.split('/');
         const collectionParts = this.collectionPath.split('/');
 
-        // Collection path should be one level shorter than document path
         if (pathParts.length !== collectionParts.length + 1) {
             return false;
         }
 
-        // All collection path parts should match
         for (let i = 0; i < collectionParts.length; i++) {
             if (pathParts[i] !== collectionParts[i]) {
                 return false;
@@ -326,12 +383,23 @@ class StubQuery implements IQuery {
 
     protected matchesFilters(doc: StoredDocument): boolean {
         return this.filters.every((filter) => {
-            const fieldValue = this.getFieldValue(doc.data, filter.field);
+            const fieldValue = this.getFieldValue(doc, filter.field);
             return this.matchesFilter(fieldValue, filter.operator, filter.value);
         });
     }
 
-    protected getFieldValue(data: any, field: string): any {
+    protected getFieldValue(doc: StoredDocument | any, field: string): any {
+        // Handle special FieldPath.documentId() case
+        if (field === '__name__') {
+            // If doc is a StoredDocument, return its id
+            if (doc && typeof doc === 'object' && 'id' in doc) {
+                return doc.id;
+            }
+            return doc;
+        }
+
+        // For regular fields, access doc.data
+        const data = doc && typeof doc === 'object' && 'data' in doc ? doc.data : doc;
         const parts = field.split('.');
         let value = data;
         for (const part of parts) {
@@ -369,8 +437,8 @@ class StubQuery implements IQuery {
 
     protected compareDocuments(a: StoredDocument, b: StoredDocument): number {
         for (const order of this.orders) {
-            const aValue = this.getFieldValue(a.data, order.field);
-            const bValue = this.getFieldValue(b.data, order.field);
+            const aValue = this.getFieldValue(a, order.field);
+            const bValue = this.getFieldValue(b, order.field);
 
             let comparison = 0;
             if (aValue < bValue) comparison = -1;
@@ -384,18 +452,35 @@ class StubQuery implements IQuery {
     }
 
     protected findStartAfterIndex(documents: StoredDocument[]): number {
-        // For simplicity, assume startAfterValues[0] is a document snapshot or ID
         const startAfterValue = this.startAfterValues![0];
 
         if (typeof startAfterValue === 'object' && 'id' in startAfterValue) {
-            // It's a document snapshot
             return documents.findIndex((doc) => doc.id === startAfterValue.id);
         }
 
-        // Otherwise treat it as an ID or field value
         return documents.findIndex((doc) => {
             if (this.orders.length > 0) {
-                const fieldValue = this.getFieldValue(doc.data, this.orders[0].field);
+                const fieldValue = this.getFieldValue(doc, this.orders[0].field);
+
+                // Handle Timestamp comparisons
+                if (fieldValue instanceof Timestamp && startAfterValue instanceof Timestamp) {
+                    return fieldValue.seconds === startAfterValue.seconds && fieldValue.nanoseconds === startAfterValue.nanoseconds;
+                }
+
+                // Handle Date comparisons
+                if (fieldValue instanceof Date && startAfterValue instanceof Date) {
+                    return fieldValue.getTime() === startAfterValue.getTime();
+                }
+
+                // Handle Timestamp vs Date comparisons
+                if (fieldValue instanceof Timestamp && startAfterValue instanceof Date) {
+                    return fieldValue.toDate().getTime() === startAfterValue.getTime();
+                }
+                if (fieldValue instanceof Date && startAfterValue instanceof Timestamp) {
+                    return fieldValue.getTime() === startAfterValue.toDate().getTime();
+                }
+
+                // Fallback to equality comparison for primitives
                 return fieldValue === startAfterValue;
             }
             return doc.id === startAfterValue;
@@ -454,13 +539,11 @@ class StubTransaction implements ITransaction {
     async get(query: IQuery): Promise<IQuerySnapshot>;
     async get(documentRefOrQuery: IDocumentReference | IQuery): Promise<IDocumentSnapshot | IQuerySnapshot> {
         if ('getUnderlyingRef' in documentRefOrQuery || 'path' in documentRefOrQuery) {
-            // It's a document reference
             const docRef = documentRefOrQuery as StubDocumentReference;
             const doc = this.storage.get(docRef.path);
             this.reads.set(docRef.path, doc ?? null);
             return new StubDocumentSnapshot(doc ?? null, docRef);
         } else {
-            // It's a query
             const query = documentRefOrQuery as StubQuery;
             return await query.get();
         }
@@ -487,16 +570,13 @@ class StubTransaction implements ITransaction {
     }
 
     async commit(): Promise<void> {
-        // Verify no documents were modified since read
         for (const [path, readDoc] of this.reads.entries()) {
             const currentDoc = this.storage.get(path);
-            // Simple check - in real Firestore this would check versions
             if (JSON.stringify(readDoc) !== JSON.stringify(currentDoc ?? null)) {
                 throw new Error(`Transaction failed: document ${path} was modified`);
             }
         }
 
-        // Apply all writes
         for (const write of this.writes) {
             const ref = write.ref as StubDocumentReference;
             switch (write.type) {
@@ -551,7 +631,6 @@ class StubWriteBatch implements IWriteBatch {
     }
 
     async commit(): Promise<void> {
-        // Execute all operations sequentially
         for (const operation of this.operations) {
             await operation();
         }
@@ -573,8 +652,6 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
     }
 
     collectionGroup(collectionId: string): IQuery {
-        // For stub, return a query that matches all documents in any collection with this ID
-        // This is simplified - real collectionGroup is more complex
         return new StubQuery(this.storage, collectionId, this);
     }
 
@@ -602,9 +679,6 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
         return new StubWriteBatch(this.storage);
     }
 
-    /**
-     * Test helper: Seed data into the stub
-     */
     seed(documentPath: string, data: any): void {
         const parts = documentPath.split('/');
         const id = parts[parts.length - 1];
@@ -617,16 +691,10 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
         });
     }
 
-    /**
-     * Test helper: Clear all data
-     */
     clear(): void {
         this.storage.clear();
     }
 
-    /**
-     * Test helper: Get all stored documents (for debugging)
-     */
     getAllDocuments(): Map<string, any> {
         const result = new Map<string, any>();
         for (const [path, doc] of this.storage.entries()) {
@@ -635,5 +703,116 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
             }
         }
         return result;
+    }
+
+    // todo: this should not be here - the data should be in the correct format already
+    private convertDatesToTimestamps(data: any): any {
+        if (!data || typeof data !== 'object') {
+            return data;
+        }
+
+        const converted = Array.isArray(data) ? [...data] : { ...data };
+        const dateFields = new Set([
+            'date',
+            'createdAt',
+            'updatedAt',
+            'deletedAt',
+            'presetAppliedAt',
+            'markedForDeletionAt',
+            'joinedAt',
+            'groupUpdatedAt',
+            'assignedAt',
+            'lastUpdatedAt',
+        ]);
+
+        for (const key in converted) {
+            const value = converted[key];
+
+            if (value === null || value === undefined) {
+                continue;
+            }
+
+            if (dateFields.has(key)) {
+                if (typeof value === 'string') {
+                    try {
+                        const date = new Date(value);
+                        if (!isNaN(date.getTime())) {
+                            converted[key] = Timestamp.fromDate(date);
+                        }
+                    } catch {
+                        //
+                    }
+                } else if (value instanceof Date) {
+                    // Handle Date objects directly
+                    converted[key] = Timestamp.fromDate(value);
+                }
+            } else if (typeof value === 'object' && !Array.isArray(value) && !(value instanceof Timestamp) && !(value instanceof Date)) {
+                converted[key] = this.convertDatesToTimestamps(value);
+            } else if (Array.isArray(value)) {
+                converted[key] = value.map((item) => (typeof item === 'object' && item !== null ? this.convertDatesToTimestamps(item) : item));
+            }
+        }
+
+        return converted;
+    }
+
+    seedUser(userId: string, userData: Record<string, any> = {}): void {
+        const defaultUser = {
+            id: userId,
+            uid: userId,
+            email: userData.email || `${userId}@test.com`,
+            displayName: userData.displayName || `User ${userId}`,
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now(),
+            ...this.convertDatesToTimestamps(userData),
+        };
+        this.seed(`users/${userId}`, defaultUser);
+    }
+
+    seedGroup(groupId: string, overrides: Record<string, any> = {}): void {
+        const now = Timestamp.now();
+
+        const groupDTO = new GroupDTOBuilder()
+            .withName(overrides.name || 'Test Group')
+            .withDescription(overrides.description || 'A test group')
+            .withCreatedBy(overrides.createdBy || 'test-creator')
+            .build();
+
+        const groupData = {
+            ...groupDTO,
+            id: groupId,
+            createdAt: now,
+            updatedAt: now,
+            ...overrides,
+        };
+
+        const firestoreData = this.convertDatesToTimestamps(groupData);
+        this.seed(`groups/${groupId}`, firestoreData);
+    }
+
+    seedGroupMember(groupId: string, userId: string, memberData: Record<string, any>): void {
+        const firestoreData = this.convertDatesToTimestamps(memberData);
+        this.seed(`group-memberships/${userId}_${groupId}`, firestoreData);
+    }
+
+    seedExpense(expenseId: string, expenseData: Record<string, any>): void {
+        const firestoreData = this.convertDatesToTimestamps(expenseData);
+        this.seed(`expenses/${expenseId}`, firestoreData);
+    }
+
+    seedSettlement(settlementId: string, settlementData: Record<string, any>): void {
+        const firestoreData = this.convertDatesToTimestamps(settlementData);
+        this.seed(`settlements/${settlementId}`, firestoreData);
+    }
+
+    initializeGroupBalance(groupId: string): void {
+        const initialBalance = {
+            groupId,
+            balancesByCurrency: {},
+            simplifiedDebts: [],
+            lastUpdatedAt: Timestamp.now(),
+            version: 0,
+        };
+        this.seed(`groups/${groupId}/metadata/balance`, initialBalance);
     }
 }

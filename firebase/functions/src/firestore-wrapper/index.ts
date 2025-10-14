@@ -13,6 +13,8 @@
 
 // Export wrapper interfaces
 export type {
+    IAggregateQuery,
+    IAggregateQuerySnapshot,
     ICollectionReference,
     IDocumentReference,
     IDocumentSnapshot,

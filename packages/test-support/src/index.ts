@@ -12,3 +12,17 @@ export * from './test-pool-helpers';
 export * from './TestExpenseManager';
 export * from './TestGroupManager';
 export * from './utils/page-state-collector';
+export { StubFirestoreDatabase } from './__tests__/StubFirestoreDatabase';
+export type {
+    ICollectionReference,
+    IDocumentReference,
+    IDocumentSnapshot,
+    IFirestoreDatabase,
+    IQuery,
+    IQuerySnapshot,
+    ITransaction,
+    IWriteBatch,
+    OrderByDirection,
+    SetOptions,
+    WhereFilterOp,
+} from './__tests__/firestore-types';

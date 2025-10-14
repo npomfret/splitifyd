@@ -140,10 +140,6 @@ export class GroupMemberDocumentBuilder {
         };
     }
 
-    /**
-     * Build as Firestore document with Timestamp (for internal use only)
-     * @deprecated Tests should use build() which returns DTOs
-     */
     buildDocument(): any {
         return { ...this.memberDoc, theme: { ...this.memberDoc.theme } };
     }

@@ -7,11 +7,12 @@
 import { SecurityPresets } from '@splitifyd/shared';
 import { GroupDTOBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
+import { Timestamp } from '../../firestore-wrapper';
 import { getAuth, getFirestore } from '../../firebase';
 import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreReader } from '../../services/firestore';
-import { createTestExpense, createTestGroup, createTestUser, StubFirestore, StubFirestoreReader } from './mocks/firestore-stubs';
+import { StubFirestoreDatabase } from './mocks/firestore-stubs';
 
 describe('FirestoreReader', () => {
     const firestore = getFirestore();
@@ -46,57 +47,8 @@ describe('FirestoreReader', () => {
     });
 });
 
-describe('StubFirestoreReader', () => {
-    let stubReader: StubFirestore;
-
-    beforeEach(() => {
-        stubReader = new StubFirestoreReader();
-    });
-
-    test('should be instantiable', () => {
-        expect(stubReader).toBeDefined();
-    });
-
-    test('should have all mocked methods', () => {
-        expect(stubReader.getUser).toBeDefined();
-        expect(stubReader.getGroup).toBeDefined();
-        expect(stubReader.getExpense).toBeDefined();
-    });
-
-    test('should provide test utilities', () => {
-        expect(typeof stubReader.resetAllMocks).toBe('function');
-        expect(typeof stubReader.clearAllMocks).toBe('function');
-        expect(typeof stubReader.mockUserExists).toBe('function');
-        expect(typeof stubReader.mockGroupExists).toBe('function');
-    });
-
-    test('should provide static test builders', () => {
-        expect(typeof createTestUser).toBe('function');
-        expect(typeof createTestGroup).toBe('function');
-        expect(typeof createTestExpense).toBe('function');
-    });
-
-    test('static builders should create valid test objects', () => {
-        const testUser = createTestUser('123456');
-        expect(testUser.displayName).toBe(`Test User 123456`);
-
-        const testGroup = createTestGroup('group456');
-        expect(testGroup.id).toBe('group456');
-        expect(testGroup.name).toContain('Test Group');
-
-        const testExpense = createTestExpense('expense789');
-        expect(testExpense.id).toBe('expense789');
-        expect(testExpense.amount).toBe(10.0);
-    });
-
-    test('should allow mocking user existence', () => {
-        const testUser = createTestUser('test-user');
-        stubReader.mockUserExists('test-user', testUser);
-
-        // Mock is configured, can verify it was set up
-        expect(stubReader.getUser).toBeDefined();
-    });
-});
+// Note: Tests for the old StubFirestoreReader have been removed as we migrate to StubFirestoreDatabase.
+// The StubFirestoreDatabase is tested implicitly through its usage in service tests.
 
 /**
  * Unit tests for data validation and sanitization logic.
@@ -104,10 +56,24 @@ describe('StubFirestoreReader', () => {
  * but can be tested more efficiently as unit tests.
  */
 describe('Data Validation and Sanitization - Unit Tests', () => {
-    let stubReader: StubFirestore;
+    let db: StubFirestoreDatabase;
+    let firestoreReader: FirestoreReader;
+
+    // Helper to convert ISO strings to Timestamps for Firestore storage
+    const convertDatesToTimestamps = (data: any) => {
+        const converted = { ...data };
+        const dateFields = ['createdAt', 'updatedAt', 'deletedAt', 'presetAppliedAt'];
+        for (const field of dateFields) {
+            if (converted[field] && typeof converted[field] === 'string') {
+                converted[field] = Timestamp.fromDate(new Date(converted[field]));
+            }
+        }
+        return converted;
+    };
 
     beforeEach(() => {
-        stubReader = new StubFirestoreReader();
+        db = new StubFirestoreDatabase();
+        firestoreReader = new FirestoreReader(db);
     });
 
     describe('Invalid SecurityPreset Values', () => {
@@ -128,9 +94,9 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
                 id: 'test-group-id',
             };
 
-            stubReader.setDocument('groups', 'test-group-id', corruptedGroup);
+            db.seed('groups/test-group-id', convertDatesToTimestamps(corruptedGroup));
 
-            const result = await stubReader.getGroup('test-group-id');
+            const result = await firestoreReader.getGroup('test-group-id');
 
             expect(result).toBeDefined();
             expect(result!.id).toBe('test-group-id');
@@ -165,10 +131,10 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
                     securityPreset: preset, // Invalid value
                 };
 
-                stubReader.setDocument('groups', groupId, corruptedGroup);
+                db.seed(`groups/${groupId}`, convertDatesToTimestamps(corruptedGroup));
 
                 // The application should not crash when retrieving groups with invalid data
-                const result = await stubReader.getGroup(groupId);
+                const result = await firestoreReader.getGroup(groupId);
                 expect(result).toBeDefined();
                 expect(result!.id).toBe(groupId);
             }
@@ -195,9 +161,9 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
                     securityPreset: validPreset,
                 };
 
-                stubReader.setDocument('groups', groupId, groupWithPreset);
+                db.seed(`groups/${groupId}`, convertDatesToTimestamps(groupWithPreset));
 
-                const result = await stubReader.getGroup(groupId);
+                const result = await firestoreReader.getGroup(groupId);
                 expect(result).toBeDefined();
                 expect(result!.securityPreset).toBe(validPreset);
             }
@@ -205,8 +171,8 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
     });
 
     describe('Malformed Document Handling', () => {
-        test('should handle documents with missing required fields', async () => {
-            // Test that the application handles incomplete documents gracefully
+        test('should reject documents with missing required fields', async () => {
+            // Test that the application rejects incomplete documents via validation
             // Start with builder but then remove required fields
             const validGroup = new GroupDTOBuilder()
                 .withCreatedBy('user123')
@@ -216,20 +182,20 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
                 id: 'incomplete-group',
                 // Remove required fields to simulate corruption
                 securityPreset: validGroup.securityPreset,
-                createdAt: validGroup.createdAt,
+                createdAt: Timestamp.fromDate(new Date(validGroup.createdAt)),
+                updatedAt: Timestamp.now(), // Add required timestamp field
                 // Missing name, description, createdBy
             };
 
-            stubReader.setDocument('groups', 'incomplete-group', incompleteGroup);
+            // Don't convert - seed directly with Timestamps
+            db.seed('groups/incomplete-group', incompleteGroup);
 
-            // Should return the document as-is since StubFirestoreReader doesn't validate
-            const result = await stubReader.getGroup('incomplete-group');
-            expect(result).toBeDefined();
-            expect(result!.id).toBe('incomplete-group');
+            // Should reject due to validation errors
+            await expect(firestoreReader.getGroup('incomplete-group')).rejects.toThrow();
         });
 
-        test('should handle documents with wrong data types', async () => {
-            // Test resilience to wrong data types
+        test('should reject documents with wrong data types', async () => {
+            // Test that validation rejects wrong data types
             // Start with valid builder data, then corrupt field types
             const validGroup = new GroupDTOBuilder()
                 .withName('Valid Group')
@@ -238,35 +204,34 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
                 .build();
 
             const malformedGroup = {
-                ...validGroup,
+                ...convertDatesToTimestamps(validGroup),
                 id: 'malformed-group',
                 name: 123, // Should be string
                 description: null, // Should be string
                 createdBy: [], // Should be string
                 permissions: 'not-an-object', // Should be object
-                createdAt: 'not-a-timestamp', // Should be Timestamp
+                // Keep valid timestamps - we're testing other field types
             };
 
-            stubReader.setDocument('groups', 'malformed-group', malformedGroup);
+            // Don't try to convert - seed directly
+            db.seed('groups/malformed-group', malformedGroup);
 
-            // Application should handle this gracefully without crashing
-            const result = await stubReader.getGroup('malformed-group');
-            expect(result).toBeDefined();
-            expect(result!.id).toBe('malformed-group');
+            // Application should reject this via validation
+            await expect(firestoreReader.getGroup('malformed-group')).rejects.toThrow();
         });
 
         test('should handle completely empty or null documents', async () => {
             // Test edge cases with completely invalid data
-            stubReader.setDocument('groups', 'null-group', null);
+            // Don't seed anything - document doesn't exist
 
-            const result = await stubReader.getGroup('null-group');
+            const result = await firestoreReader.getGroup('null-group');
             expect(result).toBeNull();
         });
     });
 
     describe('Data Consistency Validation', () => {
-        test('should handle invalid timestamp fields', async () => {
-            // Test handling of invalid timestamp data
+        test('should reject invalid timestamp fields', async () => {
+            // Test that validation rejects invalid timestamp data
             // Start with valid builder data, then corrupt timestamps
             const validGroup = new GroupDTOBuilder()
                 .withName('Bad Timestamps Group')
@@ -275,49 +240,40 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
                 .build();
 
             const groupWithBadTimestamps = {
-                ...validGroup,
+                ...convertDatesToTimestamps(validGroup),
                 id: 'bad-timestamps-group',
-                createdAt: 'invalid-date', // Should be Timestamp
-                updatedAt: 12345, // Should be Timestamp
-                presetAppliedAt: {}, // Should be Timestamp or null
+                // Keep valid createdAt and updatedAt to pass basic validation
+                // Test that the reader rejects invalid timestamp fields
+                presetAppliedAt: {}, // Should be Timestamp or null, not object
             };
 
-            stubReader.setDocument('groups', 'bad-timestamps-group', groupWithBadTimestamps);
+            // Don't try to convert - seed directly
+            db.seed('groups/bad-timestamps-group', groupWithBadTimestamps);
 
-            const result = await stubReader.getGroup('bad-timestamps-group');
-            expect(result).toBeDefined();
-            expect(result!.id).toBe('bad-timestamps-group');
-            // The real implementation would sanitize these timestamps
+            // Should reject due to invalid timestamp
+            await expect(firestoreReader.getGroup('bad-timestamps-group')).rejects.toThrow();
         });
 
-        test('should handle groups with mixed valid and invalid data', async () => {
-            // Test a realistic scenario with partially corrupted data
-            // Start with valid builder data, then corrupt specific fields
+        test('should reject groups with unrecognized fields', async () => {
+            // Test that Zod schema rejects extra fields
+            // Start with valid builder data, then add extra field
             const validGroup = new GroupDTOBuilder()
                 .withName('Mixed Validity Group')
                 .withDescription('Some fields valid, some invalid')
                 .withCreatedBy('user123')
                 .build();
 
-            const mixedValidityGroup = {
-                ...validGroup,
+            const groupWithExtraField = {
+                ...convertDatesToTimestamps(validGroup),
                 id: 'mixed-validity-group',
-                securityPreset: 'unknown-preset', // Invalid
-                permissions: {
-                    ...validGroup.permissions,
-                    expenseDeletion: 'invalid-value', // Invalid
-                },
-                updatedAt: 'invalid-timestamp', // Invalid
-                someExtraField: 'should-be-ignored', // Extra field
+                someExtraField: 'should-be-rejected', // Extra field not in schema
             };
 
-            stubReader.setDocument('groups', 'mixed-validity-group', mixedValidityGroup);
+            // Don't try to convert - seed directly
+            db.seed('groups/mixed-validity-group', groupWithExtraField);
 
-            const result = await stubReader.getGroup('mixed-validity-group');
-            expect(result).toBeDefined();
-            expect(result!.id).toBe('mixed-validity-group');
-            expect(result!.name).toBe('Mixed Validity Group');
-            // Real implementation would sanitize invalid fields
+            // Should reject due to unrecognized key
+            await expect(firestoreReader.getGroup('mixed-validity-group')).rejects.toThrow();
         });
     });
 
@@ -345,12 +301,12 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
 
             // Set up all groups
             groupData.forEach((group) => {
-                stubReader.setDocument('groups', group.id, group);
+                db.seed(`groups/${group.id}`, convertDatesToTimestamps(group));
             });
 
             // Verify all groups can be retrieved without errors
             for (const group of groupData) {
-                const result = await stubReader.getGroup(group.id);
+                const result = await firestoreReader.getGroup(group.id);
                 expect(result).toBeDefined();
                 expect(result!.id).toBe(group.id);
                 expect(result!.name).toBe(group.name);

@@ -8,6 +8,8 @@
 
 import type * as FirebaseAdmin from 'firebase-admin/firestore';
 import type {
+    IAggregateQuery,
+    IAggregateQuerySnapshot,
     ICollectionReference,
     IDocumentReference,
     IDocumentSnapshot,
@@ -68,6 +70,29 @@ export class QuerySnapshotWrapper implements IQuerySnapshot {
 }
 
 /**
+ * Wrapper for Firestore AggregateQuerySnapshot
+ */
+export class AggregateQuerySnapshotWrapper implements IAggregateQuerySnapshot {
+    constructor(private readonly snapshot: FirebaseAdmin.AggregateQuerySnapshot<{ count: FirebaseAdmin.AggregateField<number> }>) {}
+
+    data(): { count: number } {
+        return { count: this.snapshot.data().count };
+    }
+}
+
+/**
+ * Wrapper for Firestore AggregateQuery
+ */
+export class AggregateQueryWrapper implements IAggregateQuery {
+    constructor(private readonly aggregateQuery: FirebaseAdmin.AggregateQuery<{ count: FirebaseAdmin.AggregateField<number> }>) {}
+
+    async get(): Promise<IAggregateQuerySnapshot> {
+        const snapshot = await this.aggregateQuery.get();
+        return new AggregateQuerySnapshotWrapper(snapshot);
+    }
+}
+
+/**
  * Wrapper for Firestore Query
  */
 export class QueryWrapper implements IQuery {
@@ -114,6 +139,10 @@ export class QueryWrapper implements IQuery {
     async get(): Promise<IQuerySnapshot> {
         const snapshot = await this.query.get();
         return new QuerySnapshotWrapper(snapshot);
+    }
+
+    count(): IAggregateQuery {
+        return new AggregateQueryWrapper(this.query.count());
     }
 }
 

@@ -1,27 +1,30 @@
-import { GroupDTOBuilder } from '@splitifyd/test-support';
+import { GroupDTOBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
 import type { IFirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubAuthService, StubFirestore, StubFirestoreReader } from '../mocks/firestore-stubs';
+import { StubAuthService } from '../mocks/firestore-stubs';
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
+    let db: StubFirestoreDatabase;
+    let firestoreReader: FirestoreReader;
     let firestoreWriter: IFirestoreWriter;
-    let stubReader: StubFirestore;
-    let stubWriter: StubFirestore;
     let stubAuth: StubAuthService;
 
     beforeEach(() => {
-        // Create unified stub (reader and writer share the same storage automatically)
-        const stub = new StubFirestoreReader();
-        stubReader = stub;
-        stubWriter = stub;
+        // Create stub database
+        db = new StubFirestoreDatabase();
+
+        // Create reader and writer instances that wrap the database
+        firestoreReader = new FirestoreReader(db);
+        const actualWriter = new FirestoreWriter(db);
         stubAuth = new StubAuthService();
 
         // Create ApplicationBuilder and build FirestoreWriter
-        const applicationBuilder = new ApplicationBuilder(stubReader, stubWriter, stubAuth);
+        const applicationBuilder = new ApplicationBuilder(firestoreReader, actualWriter, stubAuth);
         firestoreWriter = applicationBuilder.buildFirestoreWriter();
     });
 
@@ -36,15 +39,15 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
                 .withId(groupId)
                 .withCreatedBy('owner-id')
                 .build();
-            stubReader.setDocument('groups', groupId, testGroup);
+            db.seedGroup(groupId, testGroup);
 
             // Set up test member in top-level collection
             const memberDoc = new GroupMemberDocumentBuilder()
                 .withUserId(userId)
                 .withGroupId(groupId)
                 .withGroupDisplayName('Original Name')
-                .build();
-            stubReader.setDocument('group-members', `${groupId}_${userId}`, memberDoc);
+                .buildDocument();
+            db.seedGroupMember(groupId, userId, memberDoc);
         });
 
         it('should successfully update group member display name', async () => {
@@ -52,19 +55,19 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
             await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, newDisplayName);
 
             // Assert
-            const updatedMember = await stubReader.getGroupMember(groupId, userId);
+            const updatedMember = await firestoreReader.getGroupMember(groupId, userId);
             expect(updatedMember).toBeDefined();
             expect(updatedMember?.groupDisplayName).toBe(newDisplayName);
         });
 
         it('should preserve other fields when updating display name', async () => {
-            const beforeUpdate = await stubReader.getGroupMember(groupId, userId);
+            const beforeUpdate = await firestoreReader.getGroupMember(groupId, userId);
 
             // Act
             await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, newDisplayName);
 
             // Assert
-            const afterUpdate = await stubReader.getGroupMember(groupId, userId);
+            const afterUpdate = await firestoreReader.getGroupMember(groupId, userId);
             expect(afterUpdate).toBeDefined();
             expect(afterUpdate?.uid).toBe(beforeUpdate?.uid);
             expect(afterUpdate?.groupId).toBe(beforeUpdate?.groupId);
@@ -102,7 +105,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
         });
 
         it('should not modify other member fields when updating display name', async () => {
-            const beforeUpdate = await stubReader.getGroupMember(groupId, userId);
+            const beforeUpdate = await firestoreReader.getGroupMember(groupId, userId);
             const originalRole = beforeUpdate?.memberRole;
             const originalStatus = beforeUpdate?.memberStatus;
             const originalTheme = beforeUpdate?.theme;
@@ -111,7 +114,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
             await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, newDisplayName);
 
             // Assert - other fields should remain unchanged
-            const afterUpdate = await stubReader.getGroupMember(groupId, userId);
+            const afterUpdate = await firestoreReader.getGroupMember(groupId, userId);
             expect(afterUpdate?.memberRole).toBe(originalRole);
             expect(afterUpdate?.memberStatus).toBe(originalStatus);
             expect(afterUpdate?.theme).toEqual(originalTheme);
@@ -124,7 +127,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
             await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, specialName);
 
             // Assert
-            const updatedMember = await stubReader.getGroupMember(groupId, userId);
+            const updatedMember = await firestoreReader.getGroupMember(groupId, userId);
             expect(updatedMember?.groupDisplayName).toBe(specialName);
         });
 
@@ -135,7 +138,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
             await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, maxLengthName);
 
             // Assert
-            const updatedMember = await stubReader.getGroupMember(groupId, userId);
+            const updatedMember = await firestoreReader.getGroupMember(groupId, userId);
             expect(updatedMember?.groupDisplayName).toBe(maxLengthName);
         });
 
@@ -147,8 +150,8 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
                 .withUserId(otherUserId)
                 .withGroupId(groupId)
                 .withGroupDisplayName(takenName)
-                .build();
-            stubReader.setDocument('group-members', `${groupId}_${otherUserId}`, otherMember);
+                .buildDocument();
+            db.seedGroupMember(groupId, otherUserId, otherMember);
 
             // Act & Assert - try to update first user to the taken name
             let caughtError: ApiError | undefined;
@@ -168,14 +171,14 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
             const currentName = 'Original Name';
 
             // Verify current name
-            const beforeUpdate = await stubReader.getGroupMember(groupId, userId);
+            const beforeUpdate = await firestoreReader.getGroupMember(groupId, userId);
             expect(beforeUpdate?.groupDisplayName).toBe(currentName);
 
             // Act - update to same name (idempotent operation)
             await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, currentName);
 
             // Assert - should succeed without error
-            const afterUpdate = await stubReader.getGroupMember(groupId, userId);
+            const afterUpdate = await firestoreReader.getGroupMember(groupId, userId);
             expect(afterUpdate?.groupDisplayName).toBe(currentName);
         });
     });

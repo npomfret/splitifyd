@@ -6,9 +6,9 @@
  */
 
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
+import { StubFirestoreDatabase, type IFirestoreDatabase } from '@splitifyd/test-support';
 import { getFirestore } from '../../firebase';
-import { createFirestoreDatabase, type IFirestoreDatabase, Timestamp } from '../../firestore-wrapper';
-import { StubFirestoreDatabase } from '../unit/mocks/StubFirestoreDatabase';
+import { createFirestoreDatabase, Timestamp } from '../../firestore-wrapper';
 
 describe('Firestore Stub Compatibility - Integration Test', () => {
     let realDb: IFirestoreDatabase;
@@ -393,6 +393,224 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
 
                 expect(data?.tags, `Array field (${isStub ? 'stub' : 'real'})`).toEqual(['tag1', 'tag2', 'tag3']);
                 expect(data?.numbers, `Number array (${isStub ? 'stub' : 'real'})`).toEqual([1, 2, 3]);
+            });
+        });
+    });
+
+    describe('Comprehensive Pagination', () => {
+        beforeEach(async () => {
+            // Seed 25 documents with timestamps for pagination testing
+            const now = Date.now();
+            for (let i = 1; i <= 25; i++) {
+                const data = {
+                    name: `User ${i}`,
+                    order: i,
+                    createdAt: Timestamp.fromMillis(now + i * 1000), // Stagger timestamps
+                };
+                await realDb.collection(testCollectionPrefix).doc(`user-${i}`).set(data);
+                await stubDb.collection(testCollectionPrefix).doc(`user-${i}`).set(data);
+            }
+        });
+
+        it('should handle cursor-based pagination with startAfter identically', async () => {
+            await testBothImplementations('cursor pagination', async (db, isStub) => {
+                // First page
+                const page1 = await db.collection(testCollectionPrefix).orderBy('order').limit(10).get();
+
+                expect(page1.size, `First page size (${isStub ? 'stub' : 'real'})`).toBe(10);
+
+                const page1Orders = page1.docs.map((doc) => doc.data().order);
+                expect(page1Orders, `First page order (${isStub ? 'stub' : 'real'})`).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+                // Second page using cursor
+                const lastDoc = page1.docs[page1.docs.length - 1];
+                const page2 = await db.collection(testCollectionPrefix).orderBy('order').startAfter(lastDoc).limit(10).get();
+
+                expect(page2.size, `Second page size (${isStub ? 'stub' : 'real'})`).toBe(10);
+
+                const page2Orders = page2.docs.map((doc) => doc.data().order);
+                expect(page2Orders, `Second page order (${isStub ? 'stub' : 'real'})`).toEqual([11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
+
+                // Third page (partial)
+                const lastDoc2 = page2.docs[page2.docs.length - 1];
+                const page3 = await db.collection(testCollectionPrefix).orderBy('order').startAfter(lastDoc2).limit(10).get();
+
+                expect(page3.size, `Third page size (${isStub ? 'stub' : 'real'})`).toBe(5);
+
+                const page3Orders = page3.docs.map((doc) => doc.data().order);
+                expect(page3Orders, `Third page order (${isStub ? 'stub' : 'real'})`).toEqual([21, 22, 23, 24, 25]);
+            });
+        });
+
+        it('should handle pagination with descending order identically', async () => {
+            await testBothImplementations('descending pagination', async (db, isStub) => {
+                const page1 = await db.collection(testCollectionPrefix).orderBy('order', 'desc').limit(10).get();
+
+                expect(page1.size, `Descending page size (${isStub ? 'stub' : 'real'})`).toBe(10);
+
+                const page1Orders = page1.docs.map((doc) => doc.data().order);
+                expect(page1Orders, `Descending page order (${isStub ? 'stub' : 'real'})`).toEqual([25, 24, 23, 22, 21, 20, 19, 18, 17, 16]);
+            });
+        });
+
+        it('should handle pagination with Timestamp ordering identically', async () => {
+            await testBothImplementations('timestamp pagination', async (db, isStub) => {
+                const page1 = await db.collection(testCollectionPrefix).orderBy('createdAt', 'desc').limit(5).get();
+
+                expect(page1.size, `Timestamp page size (${isStub ? 'stub' : 'real'})`).toBe(5);
+
+                // Should get newest documents first
+                const page1Orders = page1.docs.map((doc) => doc.data().order);
+                expect(page1Orders, `Timestamp page order (${isStub ? 'stub' : 'real'})`).toEqual([25, 24, 23, 22, 21]);
+
+                // Cursor to next page
+                const lastDoc = page1.docs[page1.docs.length - 1];
+                const page2 = await db.collection(testCollectionPrefix).orderBy('createdAt', 'desc').startAfter(lastDoc).limit(5).get();
+
+                const page2Orders = page2.docs.map((doc) => doc.data().order);
+                expect(page2Orders, `Second timestamp page order (${isStub ? 'stub' : 'real'})`).toEqual([20, 19, 18, 17, 16]);
+            });
+        });
+
+        it('should handle empty pagination results identically', async () => {
+            await testBothImplementations('empty pagination', async (db, isStub) => {
+                // Query beyond available data
+                const snapshot = await db.collection(testCollectionPrefix).orderBy('order').offset(100).limit(10).get();
+
+                expect(snapshot.empty, `Empty result (${isStub ? 'stub' : 'real'})`).toBe(true);
+                expect(snapshot.size, `Empty size (${isStub ? 'stub' : 'real'})`).toBe(0);
+            });
+        });
+
+        it('should handle exact page boundary identically', async () => {
+            await testBothImplementations('exact boundary', async (db, isStub) => {
+                // Request exactly the number available
+                const snapshot = await db.collection(testCollectionPrefix).orderBy('order').limit(25).get();
+
+                expect(snapshot.size, `Exact boundary size (${isStub ? 'stub' : 'real'})`).toBe(25);
+
+                const orders = snapshot.docs.map((doc) => doc.data().order);
+                expect(orders.length, `All items retrieved (${isStub ? 'stub' : 'real'})`).toBe(25);
+                expect(orders[0], `First item (${isStub ? 'stub' : 'real'})`).toBe(1);
+                expect(orders[24], `Last item (${isStub ? 'stub' : 'real'})`).toBe(25);
+            });
+        });
+
+        it('should handle pagination with combined filters identically', async () => {
+            await testBothImplementations('filtered pagination', async (db, isStub) => {
+                // Only get even-numbered items
+                const page1 = await db
+                    .collection(testCollectionPrefix)
+                    .where('order', '>', 0)
+                    .where('order', '<=', 10)
+                    .orderBy('order')
+                    .limit(5)
+                    .get();
+
+                expect(page1.size, `Filtered page size (${isStub ? 'stub' : 'real'})`).toBe(5);
+
+                const orders = page1.docs.map((doc) => doc.data().order);
+                expect(orders, `Filtered items (${isStub ? 'stub' : 'real'})`).toEqual([1, 2, 3, 4, 5]);
+            });
+        });
+
+        it('should handle startAfter with field values identically', async () => {
+            await testBothImplementations('startAfter field value', async (db, isStub) => {
+                // Start after order value 10
+                const snapshot = await db.collection(testCollectionPrefix).orderBy('order').startAfter(10).limit(5).get();
+
+                expect(snapshot.size, `StartAfter size (${isStub ? 'stub' : 'real'})`).toBe(5);
+
+                const orders = snapshot.docs.map((doc) => doc.data().order);
+                expect(orders, `StartAfter results (${isStub ? 'stub' : 'real'})`).toEqual([11, 12, 13, 14, 15]);
+            });
+        });
+    });
+
+    describe('Count Aggregation', () => {
+        beforeEach(async () => {
+            // Seed test data for count tests
+            const testData = [
+                { id: 'count-1', name: 'Alice', age: 25, city: 'NYC' },
+                { id: 'count-2', name: 'Bob', age: 30, city: 'LA' },
+                { id: 'count-3', name: 'Charlie', age: 35, city: 'NYC' },
+                { id: 'count-4', name: 'David', age: 28, city: 'SF' },
+                { id: 'count-5', name: 'Eve', age: 32, city: 'NYC' },
+            ];
+
+            for (const data of testData) {
+                await realDb.collection(testCollectionPrefix).doc(data.id).set(data);
+                await stubDb.collection(testCollectionPrefix).doc(data.id).set(data);
+            }
+        });
+
+        it('should count all documents in collection identically', async () => {
+            await testBothImplementations('count all', async (db, isStub) => {
+                const countSnapshot = await db.collection(testCollectionPrefix).count().get();
+
+                expect(countSnapshot.data().count, `Total count (${isStub ? 'stub' : 'real'})`).toBe(5);
+            });
+        });
+
+        it('should count documents with where filter identically', async () => {
+            await testBothImplementations('count with filter', async (db, isStub) => {
+                const countSnapshot = await db.collection(testCollectionPrefix).where('city', '==', 'NYC').count().get();
+
+                expect(countSnapshot.data().count, `Filtered count (${isStub ? 'stub' : 'real'})`).toBe(3);
+            });
+        });
+
+        it('should count documents with range filter identically', async () => {
+            await testBothImplementations('count with range', async (db, isStub) => {
+                const countSnapshot = await db.collection(testCollectionPrefix).where('age', '>', 30).count().get();
+
+                expect(countSnapshot.data().count, `Range count (${isStub ? 'stub' : 'real'})`).toBe(2);
+            });
+        });
+
+        it('should count documents with multiple filters identically', async () => {
+            await testBothImplementations('count with multiple filters', async (db, isStub) => {
+                const countSnapshot = await db.collection(testCollectionPrefix).where('city', '==', 'NYC').where('age', '>=', 30).count().get();
+
+                expect(countSnapshot.data().count, `Multi-filter count (${isStub ? 'stub' : 'real'})`).toBe(2);
+            });
+        });
+
+        it('should count empty collection identically', async () => {
+            await testBothImplementations('count empty', async (db, isStub) => {
+                const countSnapshot = await db.collection(`${testCollectionPrefix}-empty`).count().get();
+
+                expect(countSnapshot.data().count, `Empty collection count (${isStub ? 'stub' : 'real'})`).toBe(0);
+            });
+        });
+
+        it('should count respecting pagination modifiers (limit, offset)', async () => {
+            await testBothImplementations('count respects pagination', async (db, isStub) => {
+                // Count respects limit, offset, and startAfter (counts what the query would return)
+                const countSnapshot = await db.collection(testCollectionPrefix).orderBy('age').limit(2).offset(1).count().get();
+
+                // Count returns the count of documents that would be returned by the query
+                expect(countSnapshot.data().count, `Count respects pagination (${isStub ? 'stub' : 'real'})`).toBe(2);
+            });
+        });
+
+        it('should run count in parallel with data query', async () => {
+            await testBothImplementations('parallel count and data', async (db, isStub) => {
+                // Execute count and data query in parallel
+                const [dataSnapshot, countSnapshot] = await Promise.all([
+                    db.collection(testCollectionPrefix).where('city', '==', 'NYC').orderBy('age').limit(2).get(),
+                    db.collection(testCollectionPrefix).where('city', '==', 'NYC').count().get(),
+                ]);
+
+                // Data query should return limited results
+                expect(dataSnapshot.size, `Data query limited (${isStub ? 'stub' : 'real'})`).toBe(2);
+
+                // Count query should return total matching documents
+                expect(countSnapshot.data().count, `Total count (${isStub ? 'stub' : 'real'})`).toBe(3);
+
+                // Verify data integrity
+                const names = dataSnapshot.docs.map((doc) => doc.data().name);
+                expect(names, `Data results (${isStub ? 'stub' : 'real'})`).toEqual(['Alice', 'Eve']);
             });
         });
     });

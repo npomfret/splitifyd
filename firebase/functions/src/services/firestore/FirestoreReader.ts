@@ -443,7 +443,12 @@ export class FirestoreReader implements IFirestoreReader {
 
             // Build query with database-level ordering by groupUpdatedAt
             const orderDirection = options?.orderBy?.direction || 'desc';
-            let query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('uid', '==', userId).orderBy('groupUpdatedAt', orderDirection);
+            let query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                .where('uid', '==', userId)
+                .orderBy('groupUpdatedAt', orderDirection);
+
+            // Build count query (runs in parallel for efficiency)
+            const countQuery = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('uid', '==', userId);
 
             // Apply cursor pagination
             if (options?.cursor) {
@@ -453,20 +458,28 @@ export class FirestoreReader implements IFirestoreReader {
                     const cursorTimestamp = Timestamp.fromDate(new Date(cursorData.lastUpdatedAt));
                     query = query.startAfter(cursorTimestamp);
                 } catch (error) {
-                    logger.warn('Invalid cursor provided for V2 method, ignoring');
+                    // Invalid cursor - ignore and start from beginning
+                    logger.warn('Invalid cursor provided, starting from beginning', { cursor: options.cursor });
                 }
             }
 
             query = query.limit(limit + 1); // +1 to detect hasMore
 
-            const snapshot = await query.get();
+            // Execute data query and count query in parallel
+            const [snapshot, countSnapshot] = await Promise.all([
+                query.get(),
+                countQuery.count().get()
+            ]);
+
             const hasMore = snapshot.docs.length > limit;
             const memberships = (hasMore ? snapshot.docs.slice(0, limit) : snapshot.docs).map((doc) => doc.data() as TopLevelGroupMemberDocument);
+            const totalCount = countSnapshot.data().count;
 
             if (memberships.length === 0) {
                 return {
                     data: [] as GroupDTO[],
                     hasMore: false,
+                    totalEstimate: totalCount,
                 };
             }
 
@@ -513,7 +526,7 @@ export class FirestoreReader implements IFirestoreReader {
                 data: groups,
                 hasMore,
                 nextCursor,
-                totalEstimate: hasMore ? groups.length + 10 : groups.length,
+                totalEstimate: totalCount,
             };
         });
     }
