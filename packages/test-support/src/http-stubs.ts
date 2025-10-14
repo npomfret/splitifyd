@@ -1,11 +1,12 @@
 import type { AuthenticatedUser } from '@splitifyd/shared';
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 
-export interface AuthenticatedRequest extends Request {
-    user?: AuthenticatedUser;
-}
-
-export function createStubRequest(userId: string, body: any = {}, params: any = {}): AuthenticatedRequest {
+/**
+ * Creates a stub request for testing.
+ * Returns any to allow compatibility with different AuthenticatedRequest implementations
+ * (e.g., middleware's Express-based version vs shared minimal interface).
+ */
+export function createStubRequest(userId: string, body: any = {}, params: any = {}): any {
     return {
         user: {
             uid: userId,
@@ -13,13 +14,14 @@ export function createStubRequest(userId: string, body: any = {}, params: any = 
         },
         body,
         params,
-    } as AuthenticatedRequest;
+    };
 }
 
-export function createStubResponse(): Response & {
-    getStatus: () => number;
-    getJson: () => any;
-} {
+/**
+ * Creates a stub response for testing.
+ * Returns any to allow compatibility with Express Response while adding test helper methods.
+ */
+export function createStubResponse(): any {
     let statusCode: number;
     let jsonData: any;
 
@@ -34,7 +36,7 @@ export function createStubResponse(): Response & {
         },
         getStatus: () => statusCode,
         getJson: () => jsonData,
-    } as any;
+    };
 
     return res;
 }

@@ -337,6 +337,20 @@ export interface AuthenticatedUser {
 }
 
 /**
+ * Extended Express Request with authenticated user information.
+ * Used throughout the backend for type-safe request handling.
+ *
+ * Note: This requires the 'express' package to be imported where used.
+ */
+export interface AuthenticatedRequest {
+    user?: AuthenticatedUser;
+    body: any;
+    params: any;
+    method?: string;
+    headers?: Record<string, string | string[] | undefined>;
+}
+
+/**
  * User data for client-side applications.
  * Contains all fields needed by the frontend, excluding sensitive server-only data.
  */

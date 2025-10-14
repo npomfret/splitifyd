@@ -13,7 +13,8 @@ const firestoreReader = applicationBuilder.buildFirestoreReader();
 const authService = applicationBuilder.buildAuthService();
 
 /**
- * Extended Express Request with user information
+ * Extended Express Request with user information.
+ * Note: There is also an AuthenticatedRequest type in @splitifyd/shared used for test stubs.
  */
 export interface AuthenticatedRequest extends Request {
     user?: AuthenticatedUser;
