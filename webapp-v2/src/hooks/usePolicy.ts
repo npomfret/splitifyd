@@ -1,26 +1,11 @@
-import { PolicyIds } from '@splitifyd/shared';
+import { PolicyIds, type CurrentPolicyResponse } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
+import { ApiError, apiClient } from '../app/apiClient';
 import { logError } from '../utils/browser-logger';
-
-interface PolicyResponse {
-    id: string;
-    policyName: string;
-    currentVersionHash: string;
-    text: string;
-    createdAt: string;
-}
-
-async function fetchCurrentPolicy(policyId: string, signal?: AbortSignal): Promise<PolicyResponse> {
-    const response = await fetch('/api/policies/' + policyId + '/current', { signal });
-    if (!response.ok) {
-        throw new Error('Failed to fetch policy ' + policyId + ': ' + response.status);
-    }
-    return response.json();
-}
 
 // Hook for fetching a single policy
 export function usePolicy(policyId: keyof typeof PolicyIds) {
-    const [policy, setPolicy] = useState<PolicyResponse | null>(null);
+    const [policy, setPolicy] = useState<CurrentPolicyResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +16,7 @@ export function usePolicy(policyId: keyof typeof PolicyIds) {
             try {
                 setLoading(true);
                 setError(null);
-                const policyData = await fetchCurrentPolicy(PolicyIds[policyId], controller.signal);
+                const policyData = await apiClient.getCurrentPolicy(policyId, controller.signal);
 
                 if (!controller.signal.aborted) {
                     setPolicy(policyData);
@@ -39,6 +24,9 @@ export function usePolicy(policyId: keyof typeof PolicyIds) {
             } catch (err) {
                 if (!controller.signal.aborted) {
                     // Don't log AbortError - these are expected when component unmounts
+                    if (err instanceof ApiError && err.details instanceof Error && err.details.name === 'AbortError') {
+                        return;
+                    }
                     if (err instanceof Error && err.name === 'AbortError') {
                         return;
                     }

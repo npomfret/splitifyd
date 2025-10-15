@@ -27,11 +27,6 @@ const FirebaseConfigSchema = z.object({
     measurementId: z.string().optional(),
 });
 
-const ApiConfigSchema = z.object({
-    timeout: z.number(),
-    retryAttempts: z.number(),
-});
-
 const EnvironmentConfigSchema = z.object({
     warningBanner: z.string().optional(),
 });
@@ -44,7 +39,6 @@ const FormDefaultsSchema = z.object({
 
 const AppConfigurationSchema = z.object({
     firebase: FirebaseConfigSchema,
-    api: ApiConfigSchema,
     environment: EnvironmentConfigSchema,
     formDefaults: FormDefaultsSchema,
     firebaseAuthUrl: z.string().optional(),

@@ -8,6 +8,7 @@
 import type {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
+    AppConfiguration,
     CommentDTO,
     CreateExpenseRequest,
     CreateGroupRequest,
@@ -118,6 +119,7 @@ interface RequestConfig<T = any> {
     query?: Record<string, string>;
     body?: any;
     headers?: Record<string, string>;
+    signal?: AbortSignal;
     schema?: z.ZodSchema<T>; // Optional runtime validation override
     skipAuth?: boolean; // Skip auth token for public endpoints
     skipRetry?: boolean; // Skip retry for specific requests
@@ -313,11 +315,12 @@ class ApiClient {
 
     // Internal method that handles the actual request with retry logic
     private async requestWithRetry<T = any>(config: RequestConfig<T>, attemptNumber: number): Promise<T> {
-        const { endpoint, ...options } = config;
+        const { endpoint, signal, ...options } = config;
         const url = buildUrl(`/api${endpoint}`, options.params, options.query);
 
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
+            'Accept': 'application/x-serialized-json',
             ...options.headers,
         };
 
@@ -332,6 +335,10 @@ class ApiClient {
             // Don't send cookies/credentials to avoid CORS complications
             credentials: 'omit',
         };
+
+        if (signal) {
+            fetchOptions.signal = signal;
+        }
 
         // Add body if present
         if (options.body !== undefined && options.method !== 'GET') {
@@ -735,12 +742,22 @@ class ApiClient {
         });
     }
 
-    async getCurrentPolicy(policyId: string): Promise<CurrentPolicyResponse> {
+    async getCurrentPolicy(policyId: string, signal?: AbortSignal): Promise<CurrentPolicyResponse> {
         return this.request({
             endpoint: '/policies/:id/current',
             method: 'GET',
             params: { id: policyId },
             skipAuth: true, // Public endpoint
+            signal,
+        });
+    }
+
+    async getAppConfig(signal?: AbortSignal): Promise<AppConfiguration> {
+        return this.request({
+            endpoint: '/config',
+            method: 'GET',
+            skipAuth: true,
+            signal,
         });
     }
 
