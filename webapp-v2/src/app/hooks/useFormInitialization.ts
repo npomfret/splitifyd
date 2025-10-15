@@ -4,6 +4,7 @@ import { extractTimeFromISO } from '@/utils/dateUtils.ts';
 import { useComputed, useSignal } from '@preact/signals';
 import { route } from 'preact-router';
 import { useEffect } from 'preact/hooks';
+import { amountToSmallestUnit } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
 import { expenseFormStore } from '../stores/expense-form-store';
 import { enhancedGroupDetailStore } from '../stores/group-detail-store-enhanced';
@@ -69,7 +70,9 @@ export function useFormInitialization({ groupId, expenseId, isEditMode, isCopyMo
             if (expense.splitType === 'exact') {
                 expenseFormStore.updateSplitAmount(split.uid, split.amount);
             } else if (expense.splitType === 'percentage') {
-                const percentage = (split.amount / expense.amount) * 100;
+                const totalUnits = amountToSmallestUnit(expense.amount, expense.currency);
+                const splitUnits = amountToSmallestUnit(split.amount, expense.currency);
+                const percentage = totalUnits === 0 ? 0 : (splitUnits / totalUnits) * 100;
                 expenseFormStore.updateSplitPercentage(split.uid, percentage);
             }
         });
@@ -101,7 +104,9 @@ export function useFormInitialization({ groupId, expenseId, isEditMode, isCopyMo
             if (sourceExpense.splitType === 'exact') {
                 expenseFormStore.updateSplitAmount(split.uid, split.amount);
             } else if (sourceExpense.splitType === 'percentage') {
-                const percentage = (split.amount / sourceExpense.amount) * 100;
+                const totalUnits = amountToSmallestUnit(sourceExpense.amount, sourceExpense.currency);
+                const splitUnits = amountToSmallestUnit(split.amount, sourceExpense.currency);
+                const percentage = totalUnits === 0 ? 0 : (splitUnits / totalUnits) * 100;
                 expenseFormStore.updateSplitPercentage(split.uid, percentage);
             }
         });

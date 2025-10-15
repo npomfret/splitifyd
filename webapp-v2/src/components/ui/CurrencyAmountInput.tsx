@@ -2,9 +2,10 @@ import { useCurrencySelector } from '@/app/hooks/useCurrencySelector';
 import { type Currency, CurrencyService } from '@/app/services/currencyService';
 import { useCallback, useMemo, useRef } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import {Amount} from "@splitifyd/shared";
 
 interface CurrencyAmountInputProps {
-    amount: number;
+    amount: Amount;
     currency: string;
     onAmountChange: (amount: string) => void;
     onCurrencyChange: (currency: string) => void;

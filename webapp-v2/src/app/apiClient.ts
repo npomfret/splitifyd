@@ -35,8 +35,9 @@ import type {
     UserProfileResponse,
 } from '@splitifyd/shared';
 import { z } from 'zod';
-import { ApiErrorResponseSchema, responseSchemas } from '../api/apiSchemas';
+import { ApiErrorResponseSchema, responseSchemas } from '@splitifyd/shared';
 import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';
+import type {UpdateSettlementRequest} from "@splitifyd/shared";
 
 // All types are now imported from shared-types
 
@@ -669,7 +670,7 @@ class ApiClient {
         return response.data;
     }
 
-    async updateSettlement(settlementId: string, data: Partial<CreateSettlementRequest>): Promise<SettlementDTO> {
+    async updateSettlement(settlementId: string, data: UpdateSettlementRequest): Promise<SettlementDTO> {
         return this.request({
             endpoint: '/settlements/:settlementId',
             method: 'PUT',

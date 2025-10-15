@@ -116,7 +116,8 @@ export function randomValidCurrencyAmountPair(min: number = 5, max: number = 500
     const currency: string = randomChoice<string>(currencyList);
 
     // Generate amount with correct decimal precision
-    const amount: Amount = randomDecimal(min, max, selectedDecimals);
+    const numericAmount = randomDecimal(min, max, selectedDecimals);
+    const amount: Amount = roundToCurrencyPrecision(numericAmount, currency);
 
     return { currency, amount };
 }

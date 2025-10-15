@@ -1,4 +1,4 @@
-import { SimplifiedDebt, UserBalance } from '@splitifyd/shared';
+import { SimplifiedDebt, UserBalance, isZeroAmount } from '@splitifyd/shared';
 import type { ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
 import { simplifyDebts } from '../../utils/debtSimplifier';
 
@@ -10,7 +10,7 @@ export class DebtSimplificationService {
             const currencyBalances = balancesByCurrency[currency];
 
             // Only simplify if there are actual balances
-            if (this.hasNonZeroBalances(currencyBalances)) {
+            if (this.hasNonZeroBalances(currencyBalances, currency)) {
                 const currencyDebts = simplifyDebts(currencyBalances, currency);
                 allSimplifiedDebts.push(...currencyDebts);
             }
@@ -19,9 +19,7 @@ export class DebtSimplificationService {
         return allSimplifiedDebts;
     }
 
-    private hasNonZeroBalances(userBalances: Record<string, UserBalance>): boolean {
-        return Object.values(userBalances).some(
-            (balance) => Math.abs(balance.netBalance) > 0.01, // Use small threshold for floating point comparison
-        );
+    private hasNonZeroBalances(userBalances: Record<string, UserBalance>, currency: string): boolean {
+        return Object.values(userBalances).some((balance) => !isZeroAmount(balance.netBalance, currency));
     }
 }

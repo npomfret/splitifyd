@@ -1,4 +1,5 @@
 import { formatCurrency, getCurrency } from '@/utils/currency';
+import { amountToSmallestUnit, smallestUnitToAmountString, Amount, ZERO } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
 import { Avatar } from '../ui';
 
@@ -9,18 +10,18 @@ interface Member {
 
 interface Split {
     uid: string;
-    amount: number;
+    amount: Amount;
     percentage?: number;
 }
 
 interface SplitAmountInputsProps {
     splitType: string;
-    amount: number;
+    amount: Amount;
     currency: string;
     participants: string[];
     splits: Split[];
     members: Member[];
-    updateSplitAmount: (uid: string, amount: number) => void;
+    updateSplitAmount: (uid: string, amount: Amount) => void;
     updateSplitPercentage: (uid: string, percentage: number) => void;
 }
 
@@ -34,7 +35,9 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
         {} as Record<string, Member>,
     );
 
-    if (amount <= 0 || !currency) {
+    const totalUnits = currency ? amountToSmallestUnit(amount, currency) : 0;
+
+    if (totalUnits <= 0 || !currency) {
         return null;
     }
 
@@ -59,7 +62,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                     pattern='[0-9]*\.?[0-9]*'
                                     value={split?.amount || ''}
                                     onInput={(e) => {
-                                        const value = parseFloat((e.target as HTMLInputElement).value) || 0;
+                                        const value = (e.target as HTMLInputElement).value || ZERO;
                                         updateSplitAmount(participantId, value);
                                     }}
                                     className='w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-right'
@@ -73,12 +76,15 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                         <span className='font-medium text-gray-700 dark:text-gray-300'>{t('expenseComponents.splitAmountInputs.total')}</span>
                         <span
                             className={`font-medium ${
-                                Math.abs(splits.reduce((sum, s) => sum + s.amount, 0) - amount) < 0.01 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                                (() => {
+                                    const splitUnits = splits.reduce((sum, s) => sum + amountToSmallestUnit(s.amount, currency), 0);
+                                    return splitUnits === totalUnits ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+                                })()
                             }`}
                             data-financial-amount='split-total'
                         >
                             {formatCurrency(
-                                splits.reduce((sum, s) => sum + s.amount, 0),
+                                smallestUnitToAmountString(splits.reduce((sum, s) => sum + amountToSmallestUnit(s.amount, currency), 0), currency),
                                 currency,
                             )} / {formatCurrency(amount, currency)}
                         </span>
@@ -114,7 +120,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                     className='w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-right'
                                 />
                                 <span className='text-gray-500'>{t('expenseComponents.splitAmountInputs.percentSign')}</span>
-                                <span className='text-xs text-gray-500 w-16 text-right'>{formatCurrency(split?.amount || 0, currency)}</span>
+                                <span className='text-xs text-gray-500 w-16 text-right'>{formatCurrency(split?.amount ?? ZERO, currency)}</span>
                             </div>
                         </div>
                     );

@@ -3,7 +3,7 @@ import {Amount} from "@splitifyd/shared";
 
 interface GroupBalanceDocument {
     groupId: string;
-    balances: Record<string, Record<string, number>>;
+    balances: Record<string, Record<string, Amount>>;
     lastUpdated: string; // ISO string for consistency with DTO pattern
 }
 
@@ -36,7 +36,7 @@ export class GroupBalanceDocumentBuilder {
         return this;
     }
 
-    withBalances(balances: Record<string, Record<string, number>>): this {
+    withBalances(balances: Record<string, Record<string, Amount>>): this {
         this.document.balances = balances;
         return this;
     }

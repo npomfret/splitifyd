@@ -23,13 +23,16 @@ export function getCurrencyTolerance(currencyCode: string): number {
 }
 
 /**
- * Count decimal places in a number
+ * Count decimal places in an amount string (or numeric) without relying on floating-point math
  */
-function countDecimalPlaces(value: number): number {
-    if (Math.floor(value) === value) return 0;
-    const str = value.toString();
-    if (str.indexOf('.') === -1) return 0;
-    return str.split('.')[1].length;
+function countDecimalPlaces(value: Amount | number): number {
+    const str = typeof value === 'number' ? value.toString() : value;
+    const normalized = str.trim().replace(/^-/, '');
+    const decimalIndex = normalized.indexOf('.');
+    if (decimalIndex === -1) {
+        return 0;
+    }
+    return normalized.length - decimalIndex - 1;
 }
 
 /**
@@ -57,15 +60,11 @@ export function validateAmountPrecision(amount: Amount, currencyCode: string): v
  * @param currencyField - Optional field name that contains the currency code (for validation that depends on another field)
  * @returns Joi alternatives schema that accepts both number and string amounts
  */
-export function createJoiAmountSchema(currencyField?: string): Joi.AlternativesSchema {
-    const baseSchema = Joi
-        .alternatives()
-        .try(
-            // Option 1: Accept numbers (backward compatible)
-            Joi.number().positive().max(999999.99),
-            // Option 2: Accept strings in decimal format
-            Joi.string().pattern(/^-?\d+(\.\d+)?$/, 'decimal number'),
-        )
+export function createJoiAmountSchema(currencyField?: string): Joi.StringSchema {
+    return Joi
+        .string()
+        .trim()
+        .pattern(/^\d+(\.\d+)?$/, 'decimal number')
         .custom((value, helpers) => {
             try {
                 // Parse to number using shared utility (handles both types)
@@ -73,10 +72,10 @@ export function createJoiAmountSchema(currencyField?: string): Joi.AlternativesS
 
                 // Validate range
                 if (numValue <= 0) {
-                    return helpers.error('number.positive');
+                    return helpers.error('amount.positive');
                 }
                 if (numValue > 999999.99) {
-                    return helpers.error('number.max');
+                    return helpers.error('amount.max');
                 }
 
                 // Validate precision if currency field is available
@@ -84,25 +83,24 @@ export function createJoiAmountSchema(currencyField?: string): Joi.AlternativesS
                     const currency = helpers.state.ancestors[0][currencyField];
                     if (currency) {
                         try {
-                            validateAmountPrecision(numValue, currency);
+                            validateAmountPrecision(value, currency);
                         } catch (error) {
-                            return helpers.error('number.precision', { message: (error as Error).message });
+                            return helpers.error('amount.precision', { message: (error as Error).message });
                         }
                     }
                 }
 
-                // Return normalized number for internal processing
-                return numValue;
+                // Return normalized string amount
+                return value;
             } catch (error) {
-                return helpers.error('number.invalid', { message: (error as Error).message });
+                return helpers.error('amount.invalid', { message: (error as Error).message });
             }
         })
         .messages({
-            'alternatives.match': 'Amount must be a positive number or numeric string',
-            'number.positive': 'Amount must be greater than zero',
-            'number.max': 'Amount cannot exceed 999,999.99',
-            'number.invalid': 'Invalid amount format',
+            'string.pattern.name': 'Amount must be a valid decimal number',
+            'amount.positive': 'Amount must be greater than zero',
+            'amount.max': 'Amount cannot exceed 999,999.99',
+            'amount.precision': '{#message}',
+            'amount.invalid': 'Invalid amount format',
         });
-
-    return baseSchema;
 }

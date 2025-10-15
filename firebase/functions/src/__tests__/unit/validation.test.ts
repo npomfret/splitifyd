@@ -118,7 +118,7 @@ describe('Expense Validation', () => {
             expect(result.description).toBe('Dinner at restaurant');
             expect(result.category).toBe('food');
             expect(result.receiptUrl).toBe('https://example.com/receipt.jpg');
-            expect(result.amount).toBe(100.5);
+            expect(result.amount).toBe("100.5");
             expect(result.splitType).toBe('equal');
         });
 

@@ -1,5 +1,5 @@
-import { SimplifiedDebt, UserBalance } from '@splitifyd/shared';
-import {Amount} from "@splitifyd/shared";
+import { SimplifiedDebt, UserBalance, addAmounts, compareAmounts, isZeroAmount, minAmount, negateAmount, subtractAmounts, zeroAmount } from '@splitifyd/shared';
+import type { Amount } from '@splitifyd/shared';
 
 interface NetBalance {
     uid: string;
@@ -13,26 +13,26 @@ interface NetBalance {
  * Instead of 3 transactions, returns: A pays C $15 (settles both A→B→C and A→C directly)
  */
 export function simplifyDebts(balances: Record<string, UserBalance>, currency: string): SimplifiedDebt[] {
-    const netBalances = calculateNetBalances(balances);
+    const netBalances = calculateNetBalances(balances, currency);
     return createOptimalTransactions(netBalances, currency);
 }
 
-function calculateNetBalances(balances: Record<string, UserBalance>): Record<string, NetBalance> {
+function calculateNetBalances(balances: Record<string, UserBalance>, currency: string): Record<string, NetBalance> {
     const netBalances: Record<string, NetBalance> = {};
+    const zero = zeroAmount(currency);
 
     Object.values(balances).forEach((user) => {
-        let netAmount = 0;
+        let netAmount: Amount = zero;
 
         Object.values(user.owes).forEach((amount) => {
-            netAmount -= amount;
+            netAmount = subtractAmounts(netAmount, amount, currency);
         });
 
         Object.values(user.owedBy).forEach((amount) => {
-            netAmount += amount;
+            netAmount = addAmounts(netAmount, amount, currency);
         });
 
-        // Only include users with significant balances (avoid floating-point precision issues)
-        if (Math.abs(netAmount) > 0.01) {
+        if (!isZeroAmount(netAmount, currency)) {
             netBalances[user.uid] = {
                 uid: user.uid,
                 netAmount: netAmount,
@@ -47,17 +47,18 @@ function createOptimalTransactions(netBalances: Record<string, NetBalance>, curr
     const transactions: SimplifiedDebt[] = [];
     const creditors: NetBalance[] = [];
     const debtors: NetBalance[] = [];
+    const zero = zeroAmount(currency);
 
     Object.values(netBalances).forEach((user) => {
-        if (user.netAmount > 0) {
-            creditors.push({ ...user });
-        } else if (user.netAmount < 0) {
-            debtors.push({ ...user, netAmount: -user.netAmount });
+        if (compareAmounts(user.netAmount, zero, currency) > 0) {
+            creditors.push({ ...user, netAmount: user.netAmount });
+        } else if (compareAmounts(user.netAmount, zero, currency) < 0) {
+            debtors.push({ ...user, netAmount: negateAmount(user.netAmount, currency) });
         }
     });
 
-    creditors.sort((a, b) => b.netAmount - a.netAmount);
-    debtors.sort((a, b) => b.netAmount - a.netAmount);
+    creditors.sort((a, b) => compareAmounts(b.netAmount, a.netAmount, currency));
+    debtors.sort((a, b) => compareAmounts(b.netAmount, a.netAmount, currency));
 
     let creditorIndex = 0;
     let debtorIndex = 0;
@@ -66,9 +67,9 @@ function createOptimalTransactions(netBalances: Record<string, NetBalance>, curr
         const creditor = creditors[creditorIndex];
         const debtor = debtors[debtorIndex];
 
-        const transferAmount = Math.min(creditor.netAmount, debtor.netAmount);
+        const transferAmount = minAmount(creditor.netAmount, debtor.netAmount, currency);
 
-        if (transferAmount > 0.01) {
+        if (!isZeroAmount(transferAmount, currency)) {
             transactions.push({
                 from: {
                     uid: debtor.uid,
@@ -77,17 +78,17 @@ function createOptimalTransactions(netBalances: Record<string, NetBalance>, curr
                     uid: creditor.uid,
                 },
                 amount: transferAmount,
-                currency: currency,
+                currency,
             });
         }
 
-        creditor.netAmount -= transferAmount;
-        debtor.netAmount -= transferAmount;
+        creditor.netAmount = subtractAmounts(creditor.netAmount, transferAmount, currency);
+        debtor.netAmount = subtractAmounts(debtor.netAmount, transferAmount, currency);
 
-        if (creditor.netAmount <= 0.01) {
+        if (isZeroAmount(creditor.netAmount, currency)) {
             creditorIndex++;
         }
-        if (debtor.netAmount <= 0.01) {
+        if (isZeroAmount(debtor.netAmount, currency)) {
             debtorIndex++;
         }
     }

@@ -44,7 +44,7 @@ interface ValidationMetrics {
     operation: string;
     collection: string;
     documentId: string;
-    validationType: 'full' | 'partial' | 'skipped';
+    validationType: 'full' | 'partial' | 'skipped' |  'failed';
     validatedFieldCount?: number;
     skippedFieldCount?: number;
     validatedFields?: string[];
@@ -401,6 +401,48 @@ export class FirestoreWriter implements IFirestoreWriter {
             return null;
         }
         return schema;
+    }
+
+    /**
+     * Validate data prior to document creation to ensure Firestore receives valid payloads
+     */
+    private validateCreateData(collection: string, data: Record<string, any>, documentId: string): void {
+        const schema = this.getSchemaForCollection(collection);
+        if (!schema) {
+            throw Error(`there is no validation schema for ${collection}`);
+        }
+
+        try {
+            const dataForValidation = {
+                ...data,
+                id: documentId,
+            };
+
+            schema.parse(dataForValidation);
+
+            this.trackValidationMetrics({
+                operation: 'validateCreateData',
+                collection,
+                documentId,
+                validationType: 'full',
+                validatedFieldCount: Object.keys(dataForValidation).length,
+            });
+        } catch (error) {
+            this.trackValidationMetrics({
+                operation: 'validateCreateData',
+                collection,
+                documentId,
+                validationType: 'failed',
+                skipReason: error instanceof Error ? error.message : String(error),
+            });
+
+            logger.error('Create validation failed', error as Error, {
+                collection,
+                documentId,
+                operation: 'validateCreateData',
+            });
+            throw error;
+        }
     }
 
     // ========================================================================
@@ -828,6 +870,9 @@ export class FirestoreWriter implements IFirestoreWriter {
 
         // Convert ISO strings to Timestamps before writing (DTO → Firestore conversion)
         const convertedData = this.convertISOToTimestamps(cleanedData);
+
+        // Validate document before writing to Firestore
+        this.validateCreateData(collection, convertedData, docRef.id);
 
         const finalData = {
             ...convertedData,

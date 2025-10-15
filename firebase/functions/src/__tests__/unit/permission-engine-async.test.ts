@@ -180,7 +180,7 @@ describe('PermissionEngineAsync', () => {
                 .withSplitType('equal')
                 .withPaidBy(testUserId)
                 .withParticipants([testUserId])
-                .withSplits([{ uid: testUserId, amount: 100 }])
+                .withSplits([{ uid: testUserId, amount: "100" }])
                 .build();
 
             const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'expenseDeletion', { expense: mockExpense });

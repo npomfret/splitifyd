@@ -64,10 +64,20 @@ export { validateUpdate } from './validation-helpers';
 // BALANCE CALCULATION SCHEMAS
 // ==========================================
 // These schemas validate application-layer data (DTOs with ISO strings)
-export { BalanceDisplaySchema, CurrencyBalanceDisplaySchema, type ParsedCurrencyBalances } from './balance';
+export { type ParsedCurrencyBalances } from './balance';
 
 // ==========================================
 // GROUP BALANCE SCHEMAS
 // ==========================================
 // Schemas for pre-computed group balances stored in Firestore
-export { GroupBalanceDocumentSchema, type GroupBalanceDTO } from './group-balance';
+export { GroupBalanceDocumentSchema, GroupBalanceDTOSchema, type GroupBalanceDTO } from './group-balance';
+export {
+    AuditFieldsSchema,
+    CurrencyCodeSchema,
+    DocumentIdSchema,
+    FirestoreTimestampSchema,
+    GroupIdSchema,
+    OptionalAuditFieldsSchema,
+    SoftDeletionFieldsSchema,
+    UserIdSchema,
+} from './common';

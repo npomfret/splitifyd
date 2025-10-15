@@ -1,4 +1,4 @@
-import { calculateEqualSplits, MemberRoles, MemberStatuses, PooledTestUser } from '@splitifyd/shared';
+import { amountToSmallestUnit, calculateEqualSplits, MemberRoles, MemberStatuses, PooledTestUser } from '@splitifyd/shared';
 import {
     ApiDriver,
     borrowTestUsers,
@@ -483,7 +483,7 @@ describe('Groups Management - Consolidated Tests', () => {
             // Verify final state
             const expenses = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
             const updatedExpense = expenses.expenses.find((e: any) => e.id === expense.id);
-            expect([200, 300]).toContain(updatedExpense?.amount);
+            expect(["200", "300"]).toContain(updatedExpense?.amount);
         });
 
         test('should handle concurrent expense deletion and modification', async () => {
@@ -536,7 +536,7 @@ describe('Groups Management - Consolidated Tests', () => {
             // Verify final state - expense is either deleted or updated
             try {
                 const remainingExpense = await apiDriver.getExpense(expense.id, users[0].token);
-                expect(remainingExpense.amount).toBe(75);
+                expect(remainingExpense.amount).toBe("75");
             } catch (error: any) {
                 expect(error.message).toMatch(/not found|does not exist/i);
             }
@@ -583,12 +583,15 @@ describe('Groups Management - Consolidated Tests', () => {
             expect(successes.length).toBeGreaterThan(0);
 
             if (failures.length > 0) {
+                for (const failure of failures) {
+                    console.log(JSON.stringify(failure))
+                }
                 expect(conflicts.length).toBeGreaterThan(0);
             }
 
             // Verify final state
             const updatedSettlement = await apiDriver.getSettlement(testGroup.id, settlement.id, users[0].token);
-            expect([75, 100]).toContain(updatedSettlement?.amount);
+            expect(["75", "100"]).toContain(updatedSettlement?.amount);
         });
 
         test('should handle cross-entity race conditions', async () => {
@@ -1153,9 +1156,9 @@ describe('Groups Management - Consolidated Tests', () => {
 
             // Create multiple expenses where the user pays themselves (testing expense tracking)
             const expenses = [
-                { amount: 50, description: 'Expense 1', currency: 'USD' },
-                { amount: 30, description: 'Expense 2', currency: 'USD' },
-                { amount: 20, description: 'Expense 3', currency: 'USD' },
+                { amount: "50", description: 'Expense 1', currency: 'USD' },
+                { amount: "30", description: 'Expense 2', currency: 'USD' },
+                { amount: "20", description: 'Expense 3', currency: 'USD' },
             ];
 
             const createdExpenseIds = [];
@@ -1177,11 +1180,11 @@ describe('Groups Management - Consolidated Tests', () => {
             const loadedExpenses = await Promise.all(createdExpenseIds.map((id) => apiDriver.getExpense(id, testUser.token)));
 
             expect(loadedExpenses).toHaveLength(3);
-            expect(loadedExpenses[0].amount).toBe(50);
+            expect(loadedExpenses[0].amount).toBe("50");
             expect(loadedExpenses[0].paidBy).toBe(testUser.uid);
-            expect(loadedExpenses[1].amount).toBe(30);
+            expect(loadedExpenses[1].amount).toBe("30");
             expect(loadedExpenses[1].paidBy).toBe(testUser.uid);
-            expect(loadedExpenses[2].amount).toBe(20);
+            expect(loadedExpenses[2].amount).toBe("20");
             expect(loadedExpenses[2].paidBy).toBe(testUser.uid);
 
             // Verify all expenses are tracked
@@ -1252,7 +1255,7 @@ describe('Groups Management - Consolidated Tests', () => {
             // Verify expense was created
             const expenses = await apiDriver.getGroupExpenses(complexGroup.id, users[0].token);
             expect(expenses.expenses).toHaveLength(1);
-            expect(expenses.expenses[0].amount).toBe(90);
+            expect(expenses.expenses[0].amount).toBe("90");
 
             // Verify group details include balance info after expense creation
             const { group: groupWithBalance } = await apiDriver.getGroupFullDetails(complexGroup.id, users[0].token);
@@ -1283,7 +1286,7 @@ describe('Groups Management - Consolidated Tests', () => {
 
             // Verify initial expense data
             let fetchedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
-            expect(fetchedExpense.amount).toBe(50);
+            expect(fetchedExpense.amount).toBe("50");
             expect(fetchedExpense.description).toBe('Update Test Expense');
 
             // Update the expense
@@ -1302,13 +1305,18 @@ describe('Groups Management - Consolidated Tests', () => {
 
             // Verify the update worked
             fetchedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
-            expect(fetchedExpense.amount).toBe(80);
+            expect(fetchedExpense.amount).toBe("80");
             expect(fetchedExpense.description).toBe('Updated Test Expense');
 
             // Verify splits were recalculated
             expect(fetchedExpense.splits).toHaveLength(2);
-            const totalSplits = fetchedExpense.splits.reduce((sum: number, split: any) => sum + split.amount, 0);
-            expect(totalSplits).toBeCloseTo(80, 1);
+            const currency = fetchedExpense.currency;
+            const totalUnits = fetchedExpense.splits.reduce(
+                (sum: number, split: any) => sum + amountToSmallestUnit(split.amount, currency),
+                0,
+            );
+            const expectedUnits = amountToSmallestUnit(fetchedExpense.amount, currency);
+            expect(totalUnits).toBe(expectedUnits);
         });
     });
 

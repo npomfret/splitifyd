@@ -123,10 +123,10 @@ export class ExpenseService {
         // Validate user data
         try {
             const validatedData = UserDataSchema.parse(userData);
+            const displayName = validatedData.displayName ?? 'Unknown User';
 
             // Generate initials from display name
-            const initials = validatedData
-                .displayName
+            const initials = displayName
                 .split(' ')
                 .map((n) => n[0])
                 .join('')
@@ -138,7 +138,7 @@ export class ExpenseService {
             if (!memberData) {
                 return {
                     uid: userId,
-                    displayName: validatedData.displayName,
+                    displayName,
                     initials,
                     themeColor: userData.themeColor || {
                         light: '#9CA3AF',
@@ -152,14 +152,14 @@ export class ExpenseService {
                     memberStatus: 'active', // Last known status (can't use 'left' - not in enum)
                     joinedAt: '', // Historical data unavailable
                     invitedBy: undefined,
-                    groupDisplayName: validatedData.displayName, // Use global displayName for departed members
+                    groupDisplayName: displayName, // Use global displayName for departed members
                 };
             }
 
             // Normal path: member is still in the group
             return {
                 uid: userId,
-                displayName: validatedData.displayName,
+                displayName,
                 initials,
                 themeColor: memberData.theme,
                 memberRole: memberData.memberRole,
@@ -410,6 +410,18 @@ export class ExpenseService {
             }
         }
 
+        const splitsToValidate = updateData.splits ?? expense.splits;
+        const uniqueSplitParticipants = Array.from(new Set(splitsToValidate.map((split) => split.uid)));
+        await Promise.all(uniqueSplitParticipants.map(async (splitUid) => {
+            if (!memberIds.includes(splitUid)) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Split participant ${splitUid} is not a member of the group`);
+            }
+            const memberRecord = await this.firestoreReader.getGroupMember(expense.groupId, splitUid);
+            if (!memberRecord) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Split participant ${splitUid} is not a member of the group`);
+            }
+        }));
+
         // Build update object with ISO timestamp
         // Note: updatedAt will be set to current ISO timestamp for optimistic locking
         // FirestoreWriter will convert ISO strings to Timestamps when writing
@@ -455,17 +467,8 @@ export class ExpenseService {
             // Filter out undefined values for Firestore compatibility
             const cleanExpenseData = Object.fromEntries(Object.entries(expense).filter(([, value]) => value !== undefined));
 
-            const historyEntry = {
-                ...cleanExpenseData,
-                modifiedAt: new Date().toISOString(), // ISO string
-                modifiedBy: userId,
-                changeType: 'update' as const,
-                changes: Object.keys(updateData),
-            };
-
             // Save history and update expense
             // FirestoreWriter will convert ISO strings to Timestamps
-            this.firestoreWriter.createInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}/history`, crypto.randomUUID(), historyEntry);
             this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}`, updates);
 
             // Update group timestamp to track activity

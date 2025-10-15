@@ -3,13 +3,16 @@ import * as Joi from 'joi';
 import { createJoiAmountSchema } from '../utils/amount-validation';
 import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
 
-const amountSchema = createJoiAmountSchema('currency').required().messages({
-    'number.base': 'Amount must be a number',
-    'number.positive': 'Amount must be greater than 0',
-    'number.max': 'Amount cannot exceed 999,999.99',
-    'number.precision': '{#message}',
-    'any.required': 'Amount is required',
-});
+const amountSchema = createJoiAmountSchema('currency')
+    .required()
+    .messages({
+        'string.base': 'Amount must be provided as a string',
+        'amount.positive': 'Amount must be greater than 0',
+        'amount.max': 'Amount cannot exceed 999,999.99',
+        'amount.precision': '{#message}',
+        'amount.invalid': 'Invalid amount format',
+        'any.required': 'Amount is required',
+    });
 
 const noteSchema = Joi.string().max(500).optional().allow('').messages({
     'string.max': 'Note cannot exceed 500 characters',
@@ -78,12 +81,15 @@ export const createSettlementSchema = Joi
 
 export const updateSettlementSchema = Joi
     .object<UpdateSettlementRequest>({
-        amount: createJoiAmountSchema('currency').optional().messages({
-            'number.base': 'Amount must be a number',
-            'number.positive': 'Amount must be greater than 0',
-            'number.max': 'Amount cannot exceed 999,999.99',
-            'number.precision': '{#message}',
-        }),
+        amount: createJoiAmountSchema('currency')
+            .optional()
+            .messages({
+                'string.base': 'Amount must be provided as a string',
+                'amount.positive': 'Amount must be greater than 0',
+                'amount.max': 'Amount cannot exceed 999,999.99',
+                'amount.precision': '{#message}',
+                'amount.invalid': 'Invalid amount format',
+            }),
         currency: Joi.string().length(3).uppercase().optional(),
         date: dateSchema,
         note: noteSchema,

@@ -5,8 +5,8 @@
  * This ensures type safety at runtime and catches server contract violations
  */
 
-import { SplitTypes } from '@splitifyd/shared';
 import { z } from 'zod';
+import { PositiveAmountStringSchema, SplitTypes } from '../shared-types';
 
 const UserThemeColorSchema = z.object({
     light: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
@@ -63,9 +63,9 @@ const GroupSchema = z.object({
                 z.string(),
                 z.object({
                     currency: z.string(),
-                    netBalance: z.number(),
-                    owes: z.record(z.string(), z.number()).optional(),
-                    owedBy: z.record(z.string(), z.number()).optional(),
+                    netBalance: z.string(),
+                    owes: z.record(z.string(), z.string()).optional(),
+                    owedBy: z.record(z.string(), z.string()).optional(),
                 }),
             ),
         })
@@ -74,7 +74,7 @@ const GroupSchema = z.object({
     lastExpense: z
         .object({
             description: z.string().min(1),
-            amount: z.number(),
+            amount: PositiveAmountStringSchema,
             date: z.string(),
         })
         .optional(),
@@ -118,9 +118,9 @@ const ListGroupsResponseSchema = z.object({
 });
 
 // Expense schemas
-const ExpenseSplitSchema = z.object({
+export const ExpenseSplitSchema = z.object({
     uid: z.string().min(1),
-    amount: z.number(),
+    amount: PositiveAmountStringSchema,
     percentage: z.number().optional(),
     userName: z.string().min(1).optional(),
 });
@@ -129,7 +129,7 @@ const ExpenseDataSchema = z.object({
     id: z.string().min(1),
     groupId: z.string().min(1),
     description: z.string().min(1),
-    amount: z.number(),
+    amount: PositiveAmountStringSchema,
     currency: z.string().length(3),
     paidBy: z.string().min(1),
     paidByName: z.string().min(1).optional(),
@@ -151,10 +151,10 @@ const ExpenseListResponseSchema = z.object({
     nextCursor: z.string().optional(),
 });
 
-const SimplifiedDebtSchema = z.object({
+export const SimplifiedDebtSchema = z.object({
     from: z.object({ uid: z.string() }),
     to: z.object({ uid: z.string() }),
-    amount: z.number(),
+    amount: PositiveAmountStringSchema,
     currency: z.string().length(3),
 });
 
@@ -253,7 +253,7 @@ const SettlementSchema = z.object({
     groupId: z.string().min(1),
     payerId: z.string().min(1),
     payeeId: z.string().min(1),
-    amount: z.number().positive(),
+    amount: PositiveAmountStringSchema,
     currency: z.string().length(3),
     date: z.string(),
     note: z.string().optional(),
@@ -282,7 +282,7 @@ const SettlementListItemSchema = z.object({
     groupId: z.string().min(1),
     payer: SettlementMemberSchema, // Minimal member object for display
     payee: SettlementMemberSchema, // Minimal member object for display
-    amount: z.number().positive(),
+    amount: PositiveAmountStringSchema,
     currency: z.string().length(3),
     date: z.string(),
     note: z.string().optional(),
@@ -413,3 +413,15 @@ export const responseSchemas = {
     'POST /groups/:id/leave': MessageResponseSchema,
     'DELETE /groups/:id/members/:memberId': MessageResponseSchema,
 } as const;
+
+// Schema for the currency-specific balance data used in GroupService.addComputedFields
+export const CurrencyBalanceDisplaySchema = z.object({
+    currency: z.string(),
+    netBalance: z.string(),
+    totalOwed: z.string(),
+    totalOwing: z.string(),
+});
+
+export const BalanceDisplaySchema = z.object({
+    balancesByCurrency: z.record(z.string(), CurrencyBalanceDisplaySchema),
+});

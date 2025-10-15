@@ -27,8 +27,8 @@ export class ExpenseFormDataBuilder {
         return this;
     }
 
-    withAmount(amount: Amount): this {
-        this.expense.amount = amount;
+    withAmount(amount: Amount | number): this {
+        this.expense.amount = typeof amount === "number" ? amount.toString() : amount;
         return this;
     }
 

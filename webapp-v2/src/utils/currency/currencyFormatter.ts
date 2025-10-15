@@ -1,11 +1,11 @@
 import { getCurrency } from './currencyList';
-import {Amount} from "@splitifyd/shared";
+import { Amount, normalizeAmount, amountToSmallestUnit } from '@splitifyd/shared';
 
 export interface FormatOptions {
     locale?: string;
 }
 
-export const formatCurrency = (amount: Amount, currencyCode: string, options: FormatOptions = {}): string => {
+export const formatCurrency = (amount: Amount | number, currencyCode: string, options: FormatOptions = {}): string => {
     const { locale = 'en-US' } = options;
 
     if (!currencyCode || currencyCode.trim() === '') {
@@ -14,6 +14,10 @@ export const formatCurrency = (amount: Amount, currencyCode: string, options: Fo
 
     // getCurrency now throws for invalid currencies (fail-fast principle)
     const currency = getCurrency(currencyCode);
+    const normalizedAmount = normalizeAmount(amount, currencyCode);
+    const amountUnits = amountToSmallestUnit(normalizedAmount, currencyCode);
+    const multiplier = Math.pow(10, currency.decimal_digits);
+    const numericAmount = amountUnits / multiplier;
 
     const formatter = new Intl.NumberFormat(locale, {
         style: 'currency',
@@ -22,5 +26,5 @@ export const formatCurrency = (amount: Amount, currencyCode: string, options: Fo
         maximumFractionDigits: currency.decimal_digits,
     });
 
-    return formatter.format(amount);
+    return formatter.format(numericAmount);
 };

@@ -1,4 +1,4 @@
-import {Amount} from "@splitifyd/shared";
+import { Amount, amountToSmallestUnit, roundToCurrencyPrecision, smallestUnitToAmountString } from '@splitifyd/shared';
 
 /**
  * Internal interface for expense splits - used only by ExpenseSplitBuilder
@@ -31,12 +31,33 @@ export class ExpenseSplitBuilder {
     /**
      * Create a percentage split for the given participants with specified percentages
      */
-    static percentageSplit(totalAmount: Amount, userPercentages: Array<{ uid: string; percentage: number; }>): ExpenseSplitBuilder {
+    static percentageSplit(
+        totalAmount: Amount | number,
+        userPercentages: Array<{ uid: string; percentage: number; }>,
+        currency: string = 'USD',
+    ): ExpenseSplitBuilder {
         const builder = new ExpenseSplitBuilder();
+        const normalizedTotal = roundToCurrencyPrecision(totalAmount, currency);
+        const totalUnits = amountToSmallestUnit(normalizedTotal, currency);
+        let allocatedUnits = 0;
 
-        for (const { uid, percentage } of userPercentages) {
-            const amount = (totalAmount * percentage) / 100;
+        userPercentages.forEach(({ uid, percentage }, index) => {
+            const isLast = index === userPercentages.length - 1;
+            let amountUnits: number;
+
+            if (isLast) {
+                amountUnits = totalUnits - allocatedUnits;
+            } else {
+                amountUnits = Math.floor((totalUnits * percentage) / 100);
+            }
+
+            const amount = smallestUnitToAmountString(amountUnits, currency);
             builder.splits.push({ uid, amount, percentage });
+            allocatedUnits += amountUnits;
+        });
+
+        if (allocatedUnits !== totalUnits) {
+            throw new Error('Percentage splits did not allocate the total amount correctly');
         }
 
         return builder;

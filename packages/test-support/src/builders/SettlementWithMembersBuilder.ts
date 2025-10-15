@@ -77,8 +77,8 @@ export class SettlementWithMembersBuilder {
         return this;
     }
 
-    withAmount(amount: Amount): this {
-        this.settlement.amount = amount;
+    withAmount(amount: Amount | number): this {
+        this.settlement.amount = typeof amount === "number" ? amount.toString() : amount;
         return this;
     }
 
@@ -111,13 +111,4 @@ export class SettlementWithMembersBuilder {
         return { ...this.settlement };
     }
 
-    /**
-     * Create a settlement between two specific users
-     */
-    static between(payerId: string, payeeId: string, amount: Amount = 100): SettlementWithMembersBuilder {
-        return new SettlementWithMembersBuilder()
-            .withPayerId(payerId)
-            .withPayeeId(payeeId)
-            .withAmount(amount);
-    }
 }

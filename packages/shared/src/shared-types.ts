@@ -38,7 +38,17 @@ export type ISOString = string;
  *
  * See: tasks/monetary-amounts-as-strings-refactor.md
  */
-export type Amount = number;
+export type Amount = string;
+export const ZERO: Amount = "0";
+
+/**
+ * Zod schema for expense splits
+ */
+export const PositiveAmountStringSchema = z
+    .string()
+    .trim()
+    .regex(/^\d+(\.\d+)?$/, 'Amount must be a positive decimal number')
+    .refine((value) => parseFloat(value) > 0, 'Amount must be greater than zero');
 
 // ========================================================================
 // Constants
@@ -411,16 +421,16 @@ export interface PolicyDTO extends Policy, BaseDTO {}
 
 export interface UserBalance {
     uid: string;
-    owes: Record<string, number>;
-    owedBy: Record<string, number>;
-    netBalance: number;
+    owes: Record<string, Amount>;
+    owedBy: Record<string, Amount>;
+    netBalance: Amount;
 }
 
 export interface CurrencyBalance {
     currency: string;
-    netBalance: number;
-    totalOwed: number;
-    totalOwing: number;
+    netBalance: Amount;
+    totalOwed: Amount;
+    totalOwing: Amount;
 }
 
 // ========================================================================

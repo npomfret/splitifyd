@@ -1,25 +1,20 @@
-import { CreateSettlementRequestBuilder, createStubRequest, createStubResponse, SettlementDTOBuilder, SettlementUpdateBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
-import { beforeEach, describe, expect, it } from 'vitest';
-import { HTTP_STATUS } from '../../../constants';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { FirestoreReader } from '../../../services/firestore';
-import { FirestoreWriter } from '../../../services/firestore';
-import { SettlementHandlers } from '../../../settlements/SettlementHandlers';
-import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubAuthService } from '../mocks/StubAuthService';
+import {CreateSettlementRequestBuilder, createStubRequest, createStubResponse, SettlementDTOBuilder, SettlementUpdateBuilder, StubFirestoreDatabase} from '@splitifyd/test-support';
+import {beforeEach, describe, expect, it} from 'vitest';
+import {HTTP_STATUS} from '../../../constants';
+import {ApplicationBuilder} from '../../../services/ApplicationBuilder';
+import {FirestoreReader, FirestoreWriter} from '../../../services/firestore';
+import {SettlementHandlers} from '../../../settlements/SettlementHandlers';
+import {GroupMemberDocumentBuilder} from '../../support/GroupMemberDocumentBuilder';
+import {StubAuthService} from '../mocks/StubAuthService';
 
 describe('SettlementHandlers - Unit Tests', () => {
     let settlementHandlers: SettlementHandlers;
     let db: StubFirestoreDatabase;
-    let stubAuth: StubAuthService;
 
     beforeEach(() => {
         db = new StubFirestoreDatabase();
-        stubAuth = new StubAuthService();
 
-        const firestoreReader = new FirestoreReader(db);
-        const firestoreWriter = new FirestoreWriter(db);
-        const applicationBuilder = new ApplicationBuilder(firestoreReader, firestoreWriter, stubAuth);
+        const applicationBuilder = new ApplicationBuilder(new FirestoreReader(db), new FirestoreWriter(db), new StubAuthService());
 
         settlementHandlers = new SettlementHandlers(applicationBuilder.buildSettlementService());
     });
@@ -81,7 +76,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                     groupId,
                     payerId: 'payer-user',
                     payeeId: 'payee-user',
-                    amount: 100.50,
+                    amount: "100.5",
                     currency: 'USD',
                     note: 'Test settlement',
                 }),
@@ -140,7 +135,7 @@ describe('SettlementHandlers - Unit Tests', () => {
             expect(json).toMatchObject({
                 success: true,
                 data: expect.objectContaining({
-                    amount: 50.00,
+                    amount: "50",
                 }),
             });
             // Verify note field is not present or is undefined
@@ -576,7 +571,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 success: true,
                 data: expect.objectContaining({
                     id: settlementId,
-                    amount: 150.75,
+                    amount: "150.75",
                 }),
             });
         });
@@ -645,7 +640,7 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject update with invalid settlement ID', async () => {
-            const updateRequest = { amount: 150 };
+            const updateRequest = { amount: "150"};
             const req = createStubRequest('test-user', updateRequest, { settlementId: '' });
             const res = createStubResponse();
 
@@ -672,7 +667,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
         it('should reject update with invalid amount precision when currency provided', async () => {
             const updateRequest = {
-                amount: 100.50,
+                amount: "100.50",
                 currency: 'JPY',
             };
             const req = createStubRequest('test-user', updateRequest, { settlementId: 'test-settlement' });
@@ -690,7 +685,7 @@ describe('SettlementHandlers - Unit Tests', () => {
             const userId = 'test-user';
             db.seedUser(userId);
 
-            const updateRequest = { amount: 150 };
+            const updateRequest = { amount: "150"};
             const req = createStubRequest(userId, updateRequest, { settlementId: 'non-existent-settlement' });
             const res = createStubResponse();
 
@@ -817,7 +812,7 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject update with zero amount', async () => {
-            const updateRequest = { amount: 0 };
+            const updateRequest = { amount: "0"};
             const req = createStubRequest('test-user', updateRequest, { settlementId: 'test-settlement' });
             const res = createStubResponse();
 
@@ -830,7 +825,7 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject update with negative amount', async () => {
-            const updateRequest = { amount: -50 };
+            const updateRequest = { amount: "-50" };
             const req = createStubRequest('test-user', updateRequest, { settlementId: 'test-settlement' });
             const res = createStubResponse();
 

@@ -71,7 +71,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             expect(populatedBalances.groupId).toBe(testGroup.id);
             expect(Object.keys(populatedBalances.balancesByCurrency.USD)).toContain(users[0].uid);
             expect(populatedBalances.balancesByCurrency.USD[users[0].uid]).toHaveProperty('netBalance');
-            expect(populatedBalances.balancesByCurrency.USD[users[0].uid].netBalance).toBeGreaterThan(0); // User 0 should be owed money
+            expect(parseFloat(populatedBalances.balancesByCurrency.USD[users[0].uid].netBalance)).toBeGreaterThan(0); // User 0 should be owed money
         });
 
         test('should handle authentication and authorization correctly', async () => {
@@ -132,7 +132,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                 const retrieved = await apiDriver.getSettlement(testGroup.id, created.id, settlementUsers[0].token);
 
                 expect(retrieved.id).toBe(created.id);
-                expect(retrieved.amount).toBe(100.0);
+                expect(retrieved.amount).toBe("100");
                 expect(retrieved.currency).toBe('USD');
                 expect(retrieved.note).toBe('Retrieve test');
                 expect(retrieved.payer).toBeDefined();
@@ -180,7 +180,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
                 const updated = await apiDriver.updateSettlement(created.id, updateData, settlementUsers[0].token);
 
-                expect(updated.amount).toBe(75.25);
+                expect(updated.amount).toBe("75.25");
                 expect(updated.currency).toBe('EUR');
                 expect(updated.note).toBe('Updated note');
             });

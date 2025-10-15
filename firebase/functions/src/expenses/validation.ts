@@ -1,12 +1,12 @@
 import * as Joi from 'joi';
-import {HTTP_STATUS} from '../constants';
-import {ApiError} from '../utils/errors';
+import { HTTP_STATUS } from '../constants';
+import { ApiError } from '../utils/errors';
 
-import {CreateExpenseRequest, parseMonetaryAmount, SplitTypes, UpdateExpenseRequest} from '@splitifyd/shared';
-import {SplitStrategyFactory} from '../services/splits/SplitStrategyFactory';
-import {validateAmountPrecision} from '../utils/amount-validation';
-import {isUTCFormat, validateUTCDate} from '../utils/dateHelpers';
-import {sanitizeString} from '../utils/security';
+import { CreateExpenseRequest, parseMonetaryAmount, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
+import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
+import { validateAmountPrecision } from '../utils/amount-validation';
+import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
+import { sanitizeString } from '../utils/security';
 
 /**
  * Create a dual-format amount schema that accepts both numbers and strings.
@@ -20,31 +20,24 @@ import {sanitizeString} from '../utils/security';
  */
 const createAmountSchema = () =>
     Joi
-        .alternatives()
-        .try(
-            // Option 1: Accept numbers (backward compatible)
-            Joi.number().positive(),
-            // Option 2: Accept strings in decimal format
-            Joi.string().pattern(/^-?\d+(\.\d+)?$/, 'decimal number'),
-        )
+        .string()
+        .trim()
+        .pattern(/^\d+(\.\d+)?$/, 'decimal number')
         .custom((value, helpers) => {
             try {
-                // Normalize to number using shared utility
                 const numValue = parseMonetaryAmount(value);
                 if (numValue <= 0) {
-                    return helpers.error('number.positive');
+                    return helpers.error('string.positive');
                 }
-                // Return as number for internal processing
-                // (Will be converted to string at API boundary later)
-                return numValue;
+                return value;
             } catch (error) {
-                return helpers.error('number.invalid', { message: (error as Error).message });
+                return helpers.error('string.invalid', { message: (error as Error).message });
             }
         })
         .messages({
-            'alternatives.match': 'Amount must be a positive number or numeric string',
-            'number.positive': 'Amount must be greater than zero',
-            'number.invalid': 'Invalid amount format',
+            'string.pattern.name': 'Amount must be a positive decimal string',
+            'string.positive': 'Amount must be greater than zero',
+            'string.invalid': 'Invalid amount format',
         });
 
 const expenseSplitSchema = Joi.object({

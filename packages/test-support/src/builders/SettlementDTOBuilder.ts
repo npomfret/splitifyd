@@ -64,8 +64,8 @@ export class SettlementDTOBuilder {
         return this;
     }
 
-    withAmount(amount: Amount): SettlementDTOBuilder {
-        this.amount = amount;
+    withAmount(amount: Amount | number): SettlementDTOBuilder {
+        this.amount = typeof amount === "number" ? amount.toString() : amount;
         return this;
     }
 

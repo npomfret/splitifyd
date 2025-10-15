@@ -45,7 +45,7 @@
  * and normal-flow/user-notification-system.test.ts
  */
 
-import { calculateEqualSplits, PooledTestUser } from '@splitifyd/shared';
+import { calculateEqualSplits, PooledTestUser, ZERO, amountToSmallestUnit, smallestUnitToAmountString } from '@splitifyd/shared';
 import {
     ApiDriver,
     borrowTestUsers,
@@ -419,16 +419,17 @@ describe('Notifications Management - Consolidated Tests', () => {
             const balances = await apiDriver.getGroupBalances(dynamicGroup.id, user1.token);
 
             for (const [currency, currencyBalances] of Object.entries(balances.balancesByCurrency)) {
-                const user1CurrencyBalance = currencyBalances[user2.uid]?.netBalance || 0;
+                const user1CurrencyBalance = currencyBalances[user2.uid]?.netBalance || ZERO;
+                const balanceUnits = amountToSmallestUnit(user1CurrencyBalance, currency);
 
-                if (user1CurrencyBalance < 0) {
+                if (balanceUnits < 0) {
                     // user2 owes user1 in this currency
                     await apiDriver.createSettlement(
                         new CreateSettlementRequestBuilder()
                             .withGroupId(dynamicGroup.id)
                             .withPayerId(user2.uid)
                             .withPayeeId(user1.uid)
-                            .withAmount(Math.abs(user1CurrencyBalance))
+                            .withAmount(smallestUnitToAmountString(Math.abs(balanceUnits), currency))
                             .withCurrency(currency)
                             .build(),
                         user2.token,
@@ -439,14 +440,14 @@ describe('Notifications Management - Consolidated Tests', () => {
                     await user2Listener.waitForEventCount(dynamicGroup.id, 'transaction', 1);
                     await user2Listener.waitForEventCount(dynamicGroup.id, 'balance', 1);
                     notificationDriver.clearEvents();
-                } else if (user1CurrencyBalance > 0) {
+                } else if (balanceUnits > 0) {
                     // user1 owes user2 in this currency
                     await apiDriver.createSettlement(
                         new CreateSettlementRequestBuilder()
                             .withGroupId(dynamicGroup.id)
                             .withPayerId(user1.uid)
                             .withPayeeId(user2.uid)
-                            .withAmount(Math.abs(user1CurrencyBalance))
+                            .withAmount(smallestUnitToAmountString(Math.abs(balanceUnits), currency))
                             .withCurrency(currency)
                             .build(),
                         user1.token,
@@ -753,29 +754,30 @@ describe('Notifications Management - Consolidated Tests', () => {
 
             let settlementsCreated = 0;
             for (const [currency, currencyBalances] of Object.entries(balancesByCurrency)) {
-                const user1CurrencyBalance = currencyBalances[user2.uid]?.netBalance || 0;
+                const user1CurrencyBalance = currencyBalances[user2.uid]?.netBalance || ZERO;
+                const balanceUnits = amountToSmallestUnit(user1CurrencyBalance, currency);
 
-                if (user1CurrencyBalance < 0) {
+                if (balanceUnits < 0) {
                     // user2 owes user1 in this currency
                     await apiDriver.createSettlement(
                         new CreateSettlementRequestBuilder()
                             .withGroupId(permissionGroup.id)
                             .withPayerId(user2.uid)
                             .withPayeeId(user1.uid)
-                            .withAmount(Math.abs(user1CurrencyBalance))
+                            .withAmount(smallestUnitToAmountString(Math.abs(balanceUnits), currency))
                             .withCurrency(currency)
                             .build(),
                         user2.token,
                     );
                     settlementsCreated++;
-                } else if (user1CurrencyBalance > 0) {
+                } else if (balanceUnits > 0) {
                     // user1 owes user2 in this currency
                     await apiDriver.createSettlement(
                         new CreateSettlementRequestBuilder()
                             .withGroupId(permissionGroup.id)
                             .withPayerId(user1.uid)
                             .withPayeeId(user2.uid)
-                            .withAmount(Math.abs(user1CurrencyBalance))
+                            .withAmount(smallestUnitToAmountString(Math.abs(balanceUnits), currency))
                             .withCurrency(currency)
                             .build(),
                         user1.token,

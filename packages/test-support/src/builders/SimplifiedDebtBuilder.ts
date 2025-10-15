@@ -19,7 +19,7 @@ export class SimplifiedDebtBuilder {
             to: {
                 uid: 'user-2',
             },
-            amount: 50.0,
+            amount: "50.0",
             currency: 'USD',
         };
     }
@@ -43,8 +43,8 @@ export class SimplifiedDebtBuilder {
     /**
      * Set the amount owed
      */
-    withAmount(amount: Amount): this {
-        this.debt.amount = amount;
+    withAmount(amount: Amount | number): this {
+        this.debt.amount = typeof amount === "number" ? amount.toString() : amount;
         return this;
     }
 

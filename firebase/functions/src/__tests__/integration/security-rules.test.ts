@@ -181,8 +181,8 @@ describe('Firestore Security Rules (Production)', () => {
                     // Note: ExpenseDTOBuilder doesn't have memberIds - access is controlled differently
                     .withParticipants(['user1-id', 'user2-id'])
                     .withSplits([
-                        { uid: 'user1-id', amount: 50 },
-                        { uid: 'user2-id', amount: 50 },
+                        { uid: 'user1-id', amount: "50" },
+                        { uid: 'user2-id', amount: "50" },
                     ])
                     .build();
 
@@ -250,7 +250,7 @@ describe('Firestore Security Rules (Production)', () => {
 
         it('should deny all client writes to settlements', async () => {
             const updateData = {
-                amount: 75,
+                amount: "75",
             };
 
             // No clients can write settlements
@@ -483,8 +483,8 @@ describe('Firestore Security Rules (Production)', () => {
                 const groupBalance = new GroupBalanceDocumentBuilder()
                     .withGroupId(groupId)
                     .withBalances({
-                        'user1-id': { USD: 50 },
-                        'user2-id': { USD: -50 },
+                        'user1-id': { USD: "50" },
+                        'user2-id': { USD: "-50" },
                     })
                     .build();
 

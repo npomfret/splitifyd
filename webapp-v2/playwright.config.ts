@@ -68,7 +68,7 @@ export default defineConfig({
             name: 'chromium',
             use: {
                 ...devices['Desktop Chrome'],
-                viewport: { width: 1280, height: 1024 }, // Taller desktop viewport
+                viewport: { width: 1280, height: 2048 }, // Taller desktop viewport
             },
             testDir: './src/__tests__/unit/playwright',
         },

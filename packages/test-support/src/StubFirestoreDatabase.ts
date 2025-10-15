@@ -23,6 +23,7 @@ import type {
     WhereFilterOp,
 } from './firestore-types';
 import { GroupDTOBuilder } from "./builders";
+import type {UserRecord} from "firebase-admin/auth";
 
 /**
  * In-memory document storage
@@ -989,8 +990,8 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
         return converted;
     }
 
-    seedUser(userId: string, userData: Record<string, any> = {}): void {
-        const defaultUser = {
+    seedUser(userId: string, userData: Record<string, any> = {}) {
+        const defaultUser: UserRecord = {
             id: userId,
             email: userData.email || `${userId}@test.com`,
             displayName: userData.displayName || `User ${userId}`,
@@ -998,7 +999,10 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
             updatedAt: Timestamp.now(),
             ...this.convertDatesToTimestamps(userData),
         };
+
         this.seed(`users/${userId}`, defaultUser);
+
+        return defaultUser;
     }
 
     seedGroup(groupId: string, overrides: Record<string, any> = {}): void {

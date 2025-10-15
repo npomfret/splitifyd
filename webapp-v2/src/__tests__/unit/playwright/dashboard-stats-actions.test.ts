@@ -429,7 +429,7 @@ test.describe('Dashboard Group Card Actions', () => {
             .withBalance({
                 USD: {
                     currency: 'USD',
-                    netBalance: 50.0,
+                    netBalance: "50.0",
                     owes: {},
                     owedBy: {},
                 },
@@ -463,7 +463,7 @@ test.describe('Dashboard Group Card Actions', () => {
             .withBalance({
                 USD: {
                     currency: 'USD',
-                    netBalance: -50.0,
+                    netBalance: "-50.0",
                     owes: {},
                     owedBy: {},
                 },

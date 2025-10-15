@@ -14,13 +14,13 @@ describe('Currency-Aware Amount Validation', () => {
                 .withParticipants(['user1', 'user2'])
                 .withPaidBy('user1')
                 .withSplits([
-                    { uid: 'user1', amount: 500 },
-                    { uid: 'user2', amount: 500 },
+                    { uid: 'user1', amount: "500" },
+                    { uid: 'user2', amount: "500" },
                 ])
                 .build();
 
             const result = validateCreateExpense(expenseData);
-            expect(result.amount).toBe(1000);
+            expect(result.amount).toBe("1000");
         });
 
         it('should reject decimal amounts for JPY', () => {
@@ -44,8 +44,8 @@ describe('Currency-Aware Amount Validation', () => {
                 .withParticipants(['user1', 'user2'])
                 .withPaidBy('user1')
                 .withSplits([
-                    { uid: 'user1', amount: 5000.5 },
-                    { uid: 'user2', amount: 4999.5 },
+                    { uid: 'user1', amount: "5000.5" },
+                    { uid: 'user2', amount: "4999.5" },
                 ])
                 .build();
 
@@ -63,13 +63,13 @@ describe('Currency-Aware Amount Validation', () => {
                 .withParticipants(['user1', 'user2'])
                 .withPaidBy('user1')
                 .withSplits([
-                    { uid: 'user1', amount: 49.99 },
-                    { uid: 'user2', amount: 50.0 },
+                    { uid: 'user1', amount: "49.99" },
+                    { uid: 'user2', amount: "50.0" },
                 ])
                 .build();
 
             const result = validateCreateExpense(expenseData);
-            expect(result.amount).toBe(99.99);
+            expect(result.amount).toBe("99.99");
         });
 
         it('should reject 3 decimal places for EUR', () => {
@@ -95,13 +95,13 @@ describe('Currency-Aware Amount Validation', () => {
                 .withParticipants(['user1', 'user2'])
                 .withPaidBy('user1')
                 .withSplits([
-                    { uid: 'user1', amount: 5.062 },
-                    { uid: 'user2', amount: 5.061 },
+                    { uid: 'user1', amount: "5.062" },
+                    { uid: 'user2', amount: "5.061" },
                 ])
                 .build();
 
             const result = validateCreateExpense(expenseData);
-            expect(result.amount).toBe(10.123);
+            expect(result.amount).toBe("10.123");
         });
 
         it('should reject 4 decimal places for KWD', () => {
@@ -127,13 +127,13 @@ describe('Currency-Aware Amount Validation', () => {
                 .withParticipants(['user1', 'user2'])
                 .withPaidBy('user1')
                 .withSplits([
-                    { uid: 'user1', amount: 50.3 },
-                    { uid: 'user2', amount: 50.2 },
+                    { uid: 'user1', amount: "50.3" },
+                    { uid: 'user2', amount: "50.2" },
                 ])
                 .build();
 
             const result = validateCreateExpense(expenseData);
-            expect(result.amount).toBe(100.5);
+            expect(result.amount).toBe("100.5");
         });
 
         it('should reject 2 decimal places for MRU', () => {
@@ -192,14 +192,14 @@ describe('Currency-Aware Amount Validation', () => {
                 .withParticipants(['user1', 'user2', 'user3'])
                 .withPaidBy('user1')
                 .withSplits([
-                    { uid: 'user1', amount: 334 },
-                    { uid: 'user2', amount: 333 },
-                    { uid: 'user3', amount: 333 }, // Total: 1000 (within tolerance)
+                    { uid: 'user1', amount: "334" },
+                    { uid: 'user2', amount: "333" },
+                    { uid: 'user3', amount: "333" }, // Total: 1000 (within tolerance)
                 ])
                 .build();
 
             const result = validateCreateExpense(expenseData);
-            expect(result.amount).toBe(1000);
+            expect(result.amount).toBe("1000");
         });
 
         it('should use correct tolerance for USD exact splits (tolerance: 0.01)', () => {
@@ -210,14 +210,14 @@ describe('Currency-Aware Amount Validation', () => {
                 .withParticipants(['user1', 'user2', 'user3'])
                 .withPaidBy('user1')
                 .withSplits([
-                    { uid: 'user1', amount: 33.34 },
-                    { uid: 'user2', amount: 33.33 },
-                    { uid: 'user3', amount: 33.33 }, // Total: 100.00 (within tolerance)
+                    { uid: 'user1', amount: "33.34" },
+                    { uid: 'user2', amount: "33.33" },
+                    { uid: 'user3', amount: "33.33" }, // Total: 100.00 (within tolerance)
                 ])
                 .build();
 
             const result = validateCreateExpense(expenseData);
-            expect(result.amount).toBe(100.0);
+            expect(result.amount).toBe("100");
         });
 
         it('should use correct tolerance for BHD exact splits (tolerance: 0.001)', () => {
@@ -228,14 +228,14 @@ describe('Currency-Aware Amount Validation', () => {
                 .withParticipants(['user1', 'user2', 'user3'])
                 .withPaidBy('user1')
                 .withSplits([
-                    { uid: 'user1', amount: 3.334 },
-                    { uid: 'user2', amount: 3.333 },
-                    { uid: 'user3', amount: 3.333 }, // Total: 10.000 (within tolerance)
+                    { uid: 'user1', amount: "3.334" },
+                    { uid: 'user2', amount: "3.333" },
+                    { uid: 'user3', amount: "3.333" }, // Total: 10.000 (within tolerance)
                 ])
                 .build();
 
             const result = validateCreateExpense(expenseData);
-            expect(result.amount).toBe(10.0);
+            expect(result.amount).toBe("10");
         });
     });
 });

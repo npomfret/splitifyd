@@ -140,7 +140,7 @@ describe('Expense Change Tracking Logic', () => {
                 groupId: 'test-group-broken',
                 paidBy: 'user1',
                 // Missing participants array entirely
-                amount: 15.0,
+                amount: "15.0",
                 description: 'Broken expense',
             };
 

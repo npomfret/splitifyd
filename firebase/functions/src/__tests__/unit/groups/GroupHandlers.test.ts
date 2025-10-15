@@ -1,10 +1,13 @@
 import {
     CreateGroupRequestBuilder,
+    ExpenseDTOBuilder,
+    GroupBalanceDTOBuilder,
     GroupUpdateBuilder,
     StubFirestoreDatabase,
     createStubRequest,
     createStubResponse,
 } from '@splitifyd/test-support';
+import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { GroupHandlers } from '../../../groups/GroupHandlers';
 import { HTTP_STATUS } from '../../../constants';
@@ -12,14 +15,16 @@ import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
 import { StubAuthService } from '../mocks/StubAuthService';
+import { Amount } from '@splitifyd/shared';
 
 describe('GroupHandlers - Unit Tests', () => {
     let groupHandlers: GroupHandlers;
     let db: StubFirestoreDatabase;
+    let stubAuth: StubAuthService;
 
     beforeEach(() => {
         db = new StubFirestoreDatabase();
-        const stubAuth = new StubAuthService();
+        stubAuth = new StubAuthService();
 
         const firestoreReader = new FirestoreReader(db);
         const firestoreWriter = new FirestoreWriter(db);
@@ -468,6 +473,124 @@ describe('GroupHandlers - Unit Tests', () => {
                     code: 'INVALID_INPUT',
                 }),
             );
+        });
+    });
+
+    describe('getGroupFullDetails', () => {
+        const groupId = 'full-details-group';
+        const userId = 'details-owner';
+        const currency = 'GBP';
+
+        const seedCoreGroup = () => {
+            stubAuth.setUser(userId, {
+                uid: userId,
+                email: 'owner@example.com',
+                displayName: 'Owner User',
+            });
+
+            db.seedUser(userId, { displayName: 'Owner User', email: 'owner@example.com' });
+            db.seedGroup(groupId, { name: 'Adventure Squad', createdBy: userId });
+
+            const membership = new GroupMemberDocumentBuilder()
+                .withUserId(userId)
+                .withGroupId(groupId)
+                .withRole('admin')
+                .withStatus('active')
+                .buildDocument();
+            db.seedGroupMember(groupId, userId, membership);
+
+            const balanceDTO = new GroupBalanceDTOBuilder(groupId)
+                .withCurrencyBalances(currency, {
+                    [userId]: {
+                        uid: userId,
+                        owes: {},
+                        owedBy: {},
+                        netBalance: '0.00' as Amount,
+                    },
+                })
+                .withVersion(1)
+                .build();
+
+            db.seed(`groups/${groupId}/metadata/balance`, {
+                ...balanceDTO,
+                lastUpdatedAt: Timestamp.fromDate(new Date(balanceDTO.lastUpdatedAt)),
+            });
+        };
+
+        const seedExpense = (amount: string | number) => {
+            const now = new Date();
+            const stringAmount = typeof amount === 'number' ? amount.toFixed(2) : amount;
+
+            const expense = new ExpenseDTOBuilder()
+                .withId('expense-1')
+                .withGroupId(groupId)
+                .withCreatedBy(userId)
+                .withPaidBy(userId)
+                .withCurrency(currency)
+                .withAmount(stringAmount as Amount)
+                .withDescription('Team dinner')
+                .withCategory('food')
+                .withDate(now.toISOString())
+                .withCreatedAt(now)
+                .withUpdatedAt(now)
+                .withParticipants([userId])
+                .withSplits([
+                    {
+                        uid: userId,
+                        amount: stringAmount as Amount,
+                    },
+                ])
+                .build();
+
+            const expenseData = typeof amount === 'number'
+                ? {
+                    ...expense,
+                    amount: amount as unknown as Amount,
+                    splits: expense.splits.map((split) => ({
+                        ...split,
+                        amount: amount as unknown as Amount,
+                    })),
+                }
+                : expense;
+
+            db.seedExpense(expenseData.id, expenseData);
+        };
+
+        const createRequest = () => {
+            const req = createStubRequest(userId, {}, { id: groupId });
+            req.query = {};
+            return req;
+        };
+
+        it('should return full group details with string-based amounts', async () => {
+            seedCoreGroup();
+            seedExpense('120.50');
+
+            const req = createRequest();
+            const res = createStubResponse();
+
+            await groupHandlers.getGroupFullDetails(req, res);
+
+            const json = (res as any).getJson();
+            expect(json.group.id).toBe(groupId);
+            expect(json.members.members[0]).toMatchObject({
+                uid: userId,
+                displayName: 'Owner User',
+            });
+            expect(json.expenses.expenses).toHaveLength(1);
+            expect(json.expenses.expenses[0].amount).toBe('120.50');
+            expect(json.expenses.expenses[0].splits[0].amount).toBe('120.50');
+            expect(json.balances.lastUpdated).toBeDefined();
+        });
+
+        it('should surface validation errors when expenses contain numeric amounts', async () => {
+            seedCoreGroup();
+            seedExpense(75);
+
+            const req = createRequest();
+            const res = createStubResponse();
+
+            await expect(groupHandlers.getGroupFullDetails(req, res)).rejects.toThrow(/expected string, received number/i);
         });
     });
 

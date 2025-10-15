@@ -1,6 +1,6 @@
 import { SystemUserRoles } from '@splitifyd/shared';
 import { z } from 'zod';
-import { createDocumentSchemas, FirestoreTimestampSchema, OptionalAuditFieldsSchema } from './common';
+import {createDocumentSchemas, FirestoreTimestampSchema, OptionalAuditFieldsSchema} from './common';
 
 /**
  * Schema for UserThemeColor object (complex theme configuration)

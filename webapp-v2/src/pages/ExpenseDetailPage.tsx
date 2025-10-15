@@ -125,7 +125,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
             navigator
                 .share({
                     title: `${t('pages.expenseDetailPage.expenseLabel')}${expense.value?.description}`,
-                    text: `${t('pages.expenseDetailPage.checkOutExpense')}${expense.value?.description} - ${formatCurrency(expense.value?.amount || 0, expense.value?.currency || 'USD')}`,
+                    text: `${t('pages.expenseDetailPage.checkOutExpense')}${expense.value?.description} - ${formatCurrency(expense.value?.amount ?? '0', expense.value?.currency || 'USD')}`,
                     url: url,
                 })
                 .catch((error) => {

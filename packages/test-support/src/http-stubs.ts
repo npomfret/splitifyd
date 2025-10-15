@@ -5,8 +5,12 @@
  */
 export function createStubRequest(userId: string, body: any = {}, params: any = {}): any {
     return {
+        // these tests skip the auth middlewhere (firebase/functions/src/auth/middleware.ts) which adds a `user` object to the request
         user: {
+            // any authenticated request requires user.uid to be there, see validateUserAuth(), it represents the user who is making the request
             uid: userId,
+
+            // not strictly needed, only used in logging
             displayName: `User ${userId}`,
         },
         body,

@@ -318,6 +318,7 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Verify equal splits show a specific amount
      * Scoped to the equal split container to avoid false matches
+     * //todo" make this MUCH better
      */
     async verifyEqualSplitsContainAmount(amount: string): Promise<void> {
         const container = this.getEqualSplitContainer();

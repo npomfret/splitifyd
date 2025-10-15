@@ -1,5 +1,5 @@
 import { formatCurrency } from '@/utils/currency';
-import { ExpenseDTO, GroupMember } from '@splitifyd/shared';
+import { ExpenseDTO, GroupMember, amountToSmallestUnit } from '@splitifyd/shared';
 import { SplitTypes } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
 import { Avatar } from '../ui/Avatar';
@@ -46,6 +46,8 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
         }
     };
 
+    const totalUnits = amountToSmallestUnit(expense.amount, expense.currency);
+
     return (
         <Stack spacing='md'>
             <div className='flex items-center justify-between'>
@@ -60,10 +62,10 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
             <div className='space-y-3'>
                 {expense.splits.map((split) => {
                     const member = memberMap[split.uid];
-                    const percentage = (split.amount / expense.amount) * 100;
+                    const splitUnits = amountToSmallestUnit(split.amount, expense.currency);
+                    const percentage = totalUnits === 0 ? 0 : (splitUnits / totalUnits) * 100;
                     const isPayer = expense.paidBy === split.uid;
-                    const owesAmount = isPayer ? 0 : split.amount;
-                    const isOwing = owesAmount > 0;
+                    const isOwing = !isPayer && splitUnits > 0;
 
                     return (
                         <div key={split.uid} className='bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4'>
@@ -104,7 +106,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                                 <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden'>
                                     <div
                                         className={`h-full transition-all duration-300 ${isPayer ? 'bg-green-500 dark:bg-green-400' : 'bg-red-500 dark:bg-red-400'}`}
-                                        style={{ width: `${percentage}%` }}
+                                        style={{ width: `${Math.min(100, Math.max(0, percentage))}%` }}
                                     />
                                 </div>
                                 {isOwing && (
@@ -123,7 +125,16 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                 <div className='mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg'>
                     <p className='text-sm text-yellow-800 dark:text-yellow-200'>
                         {t('expenseComponents.splitBreakdown.total')}
-                        {expense.splits.reduce((sum, s) => sum + (s.amount / expense.amount) * 100, 0).toFixed(1)}%
+                        {(() => {
+                            if (totalUnits === 0) {
+                                return '0.0';
+                            }
+                            const percentageTotal = expense.splits.reduce((sum, s) => {
+                                const splitUnits = amountToSmallestUnit(s.amount, expense.currency);
+                                return sum + (splitUnits / totalUnits) * 100;
+                            }, 0);
+                            return percentageTotal.toFixed(1);
+                        })()}%
                     </p>
                 </div>
             )}

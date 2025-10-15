@@ -1,4 +1,5 @@
 import type { UserBalance, Amount } from '@splitifyd/shared';
+import { ZERO } from '@splitifyd/shared';
 
 /**
  * Builder for creating UserBalance objects for debt simplification tests
@@ -9,7 +10,7 @@ export class UserBalanceBuilder {
         uid: 'user1',
         owes: {},
         owedBy: {},
-        netBalance: 0,
+        netBalance: ZERO,
     };
 
     withUserId(userId: string): UserBalanceBuilder {
@@ -17,18 +18,18 @@ export class UserBalanceBuilder {
         return this;
     }
 
-    owesUser(userId: string, amount: Amount): UserBalanceBuilder {
-        this.userBalance.owes[userId] = amount;
+    owesUser(userId: string, amount: Amount | number): UserBalanceBuilder {
+        this.userBalance.owes[userId] = typeof amount === "number" ? amount.toString() : amount;
         return this;
     }
 
-    owedByUser(userId: string, amount: Amount): UserBalanceBuilder {
-        this.userBalance.owedBy[userId] = amount;
+    owedByUser(userId: string, amount: Amount | number): UserBalanceBuilder {
+        this.userBalance.owedBy[userId] = typeof amount === "number" ? amount.toString() : amount;
         return this;
     }
 
-    withNetBalance(balance: number): UserBalanceBuilder {
-        this.userBalance.netBalance = balance;
+    withNetBalance(balance: Amount | number): UserBalanceBuilder {
+        this.userBalance.netBalance = typeof balance === "number" ? balance.toString() : balance;
         return this;
     }
 

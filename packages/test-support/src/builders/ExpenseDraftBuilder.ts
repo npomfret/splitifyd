@@ -31,8 +31,8 @@ export class ExpenseDraftBuilder {
         return this;
     }
 
-    withAmount(amount: Amount): this {
-        this.draft.amount = amount;
+    withAmount(amount: Amount | number): this {
+        this.draft.amount = typeof amount === "number" ? amount.toString() : amount;
         return this;
     }
 

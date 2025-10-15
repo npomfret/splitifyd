@@ -1,5 +1,5 @@
 import { formatCurrency } from '@/utils/currency';
-import { GroupDTO } from '@splitifyd/shared';
+import { GroupDTO, absAmount, amountToSmallestUnit } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
 import { Card } from '../ui';
 
@@ -37,13 +37,13 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
         let balance = group.balance.balancesByCurrency[currencies[0]];
         for (const currency of currencies) {
             const currencyBalance = group.balance.balancesByCurrency[currency];
-            if (currencyBalance.netBalance !== 0) {
+            if (amountToSmallestUnit(currencyBalance.netBalance, currencyBalance.currency) !== 0) {
                 balance = currencyBalance;
                 break;
             }
         }
 
-        if (!balance || balance.netBalance === 0) {
+        if (!balance || amountToSmallestUnit(balance.netBalance, balance.currency) === 0) {
             return {
                 text: t('groupCard.settledUp'),
                 color: 'text-blue-400',
@@ -51,7 +51,9 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
             };
         }
 
-        if (balance.netBalance > 0) {
+        const netBalanceUnits = amountToSmallestUnit(balance.netBalance, balance.currency);
+
+        if (netBalanceUnits > 0) {
             // User is owed money
             return {
                 text: t('dashboard.groupCard.youAreOwed', { amount: formatCurrency(balance.netBalance, balance.currency) }),
@@ -61,7 +63,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
         } else {
             // User owes money
             return {
-                text: t('dashboard.groupCard.youOwe', { amount: formatCurrency(Math.abs(balance.netBalance), balance.currency) }),
+                text: t('dashboard.groupCard.youOwe', { amount: formatCurrency(absAmount(balance.netBalance, balance.currency), balance.currency) }),
                 color: 'text-red-600',
                 bgColor: 'bg-red-50',
             };

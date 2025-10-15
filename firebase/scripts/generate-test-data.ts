@@ -1,10 +1,19 @@
 #!/usr/bin/env tsx
 
-import type { GroupDTO } from '@splitifyd/shared';
-import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
-import { UserRegistration } from '@splitifyd/shared';
-import { AuthenticatedFirebaseUser, Amount } from '@splitifyd/shared';
+import type { Amount, GroupDTO } from '@splitifyd/shared';
+import {
+    PREDEFINED_EXPENSE_CATEGORIES,
+    UserRegistration,
+    AuthenticatedFirebaseUser,
+    normalizeAmount,
+    zeroAmount,
+    compareAmounts,
+    minAmount,
+    subtractAmounts,
+    isZeroAmount,
+} from '@splitifyd/shared';
 import { ApiDriver, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
+import type {CreateSettlementRequest} from "@splitifyd/shared/src";
 
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
@@ -284,7 +293,7 @@ const generateRandomExpense = (): TestExpenseTemplate => {
             break;
         }
     }
-    const amount = amountTypes[selectedIndex]();
+    const amount = amountTypes[selectedIndex]().toFixed(2) as Amount;
     return { description, amount, category };
 };
 
@@ -431,10 +440,11 @@ async function createTestExpenseTemplate(groupId: string, expense: TestExpenseTe
 
     // Randomly choose between GBP and EUR
     const currency = Math.random() < 0.5 ? 'GBP' : 'EUR';
+    const normalizedAmount = normalizeAmount(expense.amount, currency);
 
     const expenseData = new CreateExpenseRequestBuilder()
         .withGroupId(groupId)
-        .withAmount(expense.amount)
+        .withAmount(normalizedAmount)
         .withCurrency(currency)
         .withDescription(expense.description)
         .withCategory(expense.category)
@@ -523,14 +533,14 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
 
     // Create various expenses in both currencies
     const expenseScenarios = [
-        { description: 'Restaurant dinner', amount: 120, currency: 'GBP', category: 'food' },
-        { description: 'Hotel booking', amount: 350, currency: 'EUR', category: 'accommodation' },
-        { description: 'Concert tickets', amount: 180, currency: 'GBP', category: 'entertainment' },
-        { description: 'Car rental', amount: 240, currency: 'EUR', category: 'transport' },
-        { description: 'Grocery shopping', amount: 85, currency: 'GBP', category: 'food' },
-        { description: 'Train tickets', amount: 150, currency: 'EUR', category: 'transport' },
-        { description: 'Museum passes', amount: 60, currency: 'GBP', category: 'entertainment' },
-        { description: 'Wine tasting tour', amount: 180, currency: 'EUR', category: 'entertainment' },
+        { description: 'Restaurant dinner', amount: "120", currency: 'GBP', category: 'food' },
+        { description: 'Hotel booking', amount: "350", currency: 'EUR', category: 'accommodation' },
+        { description: 'Concert tickets', amount: "180", currency: 'GBP', category: 'entertainment' },
+        { description: 'Car rental', amount: "240", currency: 'EUR', category: 'transport' },
+        { description: 'Grocery shopping', amount: "85", currency: 'GBP', category: 'food' },
+        { description: 'Train tickets', amount: "150", currency: 'EUR', category: 'transport' },
+        { description: 'Museum passes', amount: "60", currency: 'GBP', category: 'entertainment' },
+        { description: 'Wine tasting tour', amount: "180", currency: 'EUR', category: 'entertainment' },
     ];
 
     // Create expenses with different payers and participants
@@ -555,10 +565,11 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
         }
 
         const participantIds = participants.map((p) => p.uid);
+        const normalizedScenarioAmount = normalizeAmount(scenario.amount, scenario.currency);
 
         const expenseData = new CreateExpenseRequestBuilder()
             .withGroupId(settledGroup.id)
-            .withAmount(scenario.amount)
+            .withAmount(normalizedScenarioAmount)
             .withCurrency(scenario.currency)
             .withDescription(scenario.description)
             .withCategory(scenario.category)
@@ -585,34 +596,36 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
     const balancesByCurrency = balancesResponse.balancesByCurrency || {};
 
     // Create settlements to zero out all balances
-    const settlementPromises = [];
+    const settlementPromises: Array<Promise<void>> = [];
 
     for (const currency of ['GBP', 'EUR']) {
         const currencyBalances = balancesByCurrency[currency];
         if (!currencyBalances) continue;
 
-        // Find who owes and who is owed
+        const zero = zeroAmount(currency);
+
         const debtors: { user: AuthenticatedFirebaseUser; amount: Amount; }[] = [];
         const creditors: { user: AuthenticatedFirebaseUser; amount: Amount; }[] = [];
 
         for (const member of groupMembers) {
             const balance = currencyBalances[member.uid];
-            if (balance && balance.netBalance) {
-                if (balance.netBalance < -0.01) {
-                    // This person owes money
-                    debtors.push({ user: member, amount: Math.abs(balance.netBalance) });
-                } else if (balance.netBalance > 0.01) {
-                    // This person is owed money
-                    creditors.push({ user: member, amount: balance.netBalance });
-                }
+            if (!balance || balance.netBalance === undefined) {
+                continue;
+            }
+            const netBalance = normalizeAmount(balance.netBalance, currency);
+            const comparison = compareAmounts(netBalance, zero, currency);
+
+            if (comparison < 0) {
+                const owed = subtractAmounts(zero, netBalance, currency);
+                debtors.push({ user: member, amount: owed });
+            } else if (comparison > 0) {
+                creditors.push({ user: member, amount: netBalance });
             }
         }
 
-        // Sort debtors and creditors by amount (largest first)
-        debtors.sort((a, b) => b.amount - a.amount);
-        creditors.sort((a, b) => b.amount - a.amount);
+        debtors.sort((a, b) => compareAmounts(b.amount, a.amount, currency));
+        creditors.sort((a, b) => compareAmounts(b.amount, a.amount, currency));
 
-        // Create settlements using a greedy algorithm
         let debtorIndex = 0;
         let creditorIndex = 0;
 
@@ -620,16 +633,15 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
             const debtor = debtors[debtorIndex];
             const creditor = creditors[creditorIndex];
 
-            // Calculate settlement amount
-            const settlementAmount = Math.min(debtor.amount, creditor.amount);
+            const settlementAmount = minAmount(debtor.amount, creditor.amount, currency);
 
-            if (settlementAmount > 0.01) {
-                const settlementData = {
+            if (!isZeroAmount(settlementAmount, currency)) {
+                const settlementData: CreateSettlementRequest = {
                     groupId: settledGroup.id,
                     payerId: debtor.user.uid,
                     payeeId: creditor.user.uid,
-                    amount: Math.round(settlementAmount * 100) / 100,
-                    currency: currency,
+                    amount: settlementAmount,
+                    currency,
                     note: `Settling up ${currency} expenses`,
                     date: new Date(Date.now() - Math.random() * 5 * 24 * 60 * 60 * 1000).toISOString(),
                 };
@@ -639,21 +651,28 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
                         .createSettlement(settlementData, debtor.user.token)
                         .then(() => {
                             const symbol = currency === 'GBP' ? '£' : '€';
-                            console.log(`Created settlement: ${debtor.user.displayName} → ${creditor.user.displayName} ${symbol}${settlementData.amount}`);
+                            console.log(`Created settlement: ${debtor.user.displayName} → ${creditor.user.displayName} ${symbol}${settlementAmount}`);
                         })
                         .catch((err) => {
                             throw new Error(`Failed to create settlement: ${err.message}`);
                         }),
                 );
 
-                // Update remaining amounts
-                debtor.amount -= settlementAmount;
-                creditor.amount -= settlementAmount;
+                debtor.amount = subtractAmounts(debtor.amount, settlementAmount, currency);
+                creditor.amount = subtractAmounts(creditor.amount, settlementAmount, currency);
             }
 
-            // Move to next debtor or creditor
-            if (debtor.amount < 0.01) debtorIndex++;
-            if (creditor.amount < 0.01) creditorIndex++;
+            if (isZeroAmount(debtor.amount, currency)) {
+                debtorIndex++;
+            } else if (isZeroAmount(settlementAmount, currency)) {
+                debtorIndex++;
+            }
+
+            if (isZeroAmount(creditor.amount, currency)) {
+                creditorIndex++;
+            } else if (isZeroAmount(settlementAmount, currency)) {
+                creditorIndex++;
+            }
         }
     }
 
@@ -666,12 +685,13 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
     for (const currency of ['GBP', 'EUR']) {
         const currencyBalances = finalBalances.balancesByCurrency?.[currency];
         if (currencyBalances) {
+            const zero = zeroAmount(currency);
             console.log(`  ${currency}:`);
             for (const member of groupMembers) {
                 const balance = currencyBalances[member.uid];
                 if (balance) {
-                    const netBalance = Math.round((balance.netBalance || 0) * 100) / 100;
                     const symbol = currency === 'GBP' ? '£' : '€';
+                    const netBalance = normalizeAmount(balance.netBalance ?? zero, currency);
                     console.log(`    ${member.displayName}: ${symbol}${netBalance}`);
                 }
             }
@@ -759,9 +779,6 @@ async function createSmallPaymentsForGroups(groups: GroupWithInvite[], groupMemb
 
                     const payee = availablePayees[Math.floor(Math.random() * availablePayees.length)];
 
-                    // Generate small payment amounts between $5 and $50
-                    const paymentAmount = Math.round((Math.random() * 45 + 5) * 100) / 100;
-
                     const paymentNotes = [
                         'Coffee payment',
                         'Lunch payback',
@@ -779,8 +796,10 @@ async function createSmallPaymentsForGroups(groups: GroupWithInvite[], groupMemb
 
                     // Randomly choose between GBP and EUR for settlements
                     const currency = Math.random() < 0.5 ? 'GBP' : 'EUR';
+                    const rawPaymentAmount = Math.random() * 45 + 5;
+                    const paymentAmount = normalizeAmount(rawPaymentAmount, currency);
 
-                    const settlementData = {
+                    const settlementData: CreateSettlementRequest = {
                         groupId: group.id,
                         payerId: payer.uid,
                         payeeId: payee.uid,

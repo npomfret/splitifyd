@@ -29,13 +29,18 @@ export class ExpenseUpdateBuilder {
         return new ExpenseUpdateBuilder(false);
     }
 
-    withAmount(amount: Amount): this {
-        this.update.amount = amount;
+    withAmount(amount: Amount | number): this {
+        this.update.amount = typeof amount === "number" ? amount.toString() : amount;
         return this;
     }
 
     withCurrency(currency: string): this {
         this.update.currency = currency;
+        return this;
+    }
+
+    withPaidBy(userId: string): this {
+        this.update.paidBy = userId;
         return this;
     }
 
@@ -78,6 +83,7 @@ export class ExpenseUpdateBuilder {
         return {
             ...(this.update.amount !== undefined && { amount: this.update.amount }),
             ...(this.update.currency !== undefined && { currency: this.update.currency }),
+            ...(this.update.paidBy !== undefined && { paidBy: this.update.paidBy }),
             ...(this.update.description !== undefined && { description: this.update.description }),
             ...(this.update.category !== undefined && { category: this.update.category }),
             ...(this.update.date !== undefined && { date: this.update.date }),

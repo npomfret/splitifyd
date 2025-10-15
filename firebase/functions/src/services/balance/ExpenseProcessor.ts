@@ -1,6 +1,5 @@
-import { ExpenseDTO, UserBalance } from '@splitifyd/shared';
+import { Amount, ExpenseDTO, UserBalance, addAmounts, normalizeAmount, subtractAmounts, sumAmounts, zeroAmount } from '@splitifyd/shared';
 import type { ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
-import {Amount} from "@splitifyd/shared";
 
 export class ExpenseProcessor {
     processExpenses(expenses: ExpenseDTO[], memberIds: string[]): CurrencyBalances {
@@ -21,7 +20,7 @@ export class ExpenseProcessor {
                         uid: memberId,
                         owes: {},
                         owedBy: {},
-                        netBalance: 0,
+                        netBalance: zeroAmount(expense.currency),
                     };
                 }
             }
@@ -38,7 +37,7 @@ export class ExpenseProcessor {
         // Process each split in the expense
         for (const split of expense.splits) {
             const splitUserId = split.uid;
-            const splitAmount = split.amount;
+            const splitAmount = normalizeAmount(split.amount, expense.currency);
 
             // Initialize user balances if they don't exist
             if (!userBalances[splitUserId]) {
@@ -46,7 +45,7 @@ export class ExpenseProcessor {
                     uid: splitUserId,
                     owes: {},
                     owedBy: {},
-                    netBalance: 0,
+                    netBalance: zeroAmount(expense.currency),
                 };
             }
 
@@ -55,7 +54,7 @@ export class ExpenseProcessor {
                     uid: payerId,
                     owes: {},
                     owedBy: {},
-                    netBalance: 0,
+                    netBalance: zeroAmount(expense.currency),
                 };
             }
 
@@ -65,24 +64,25 @@ export class ExpenseProcessor {
             }
 
             // Update balances: splitUser owes payerId the split amount
-            this.updateUserBalance(userBalances[splitUserId], payerId, splitAmount, 'owes');
-            this.updateUserBalance(userBalances[payerId], splitUserId, splitAmount, 'owedBy');
+            this.updateUserBalance(userBalances[splitUserId], payerId, splitAmount, 'owes', expense.currency);
+            this.updateUserBalance(userBalances[payerId], splitUserId, splitAmount, 'owedBy', expense.currency);
         }
 
         // Recalculate net balances for all users
         for (const userId of Object.keys(userBalances)) {
-            this.recalculateNetBalance(userBalances[userId]);
+            this.recalculateNetBalance(userBalances[userId], expense.currency);
         }
     }
 
-    private updateUserBalance(userBalance: UserBalance, otherUserId: string, amount: Amount, type: 'owes' | 'owedBy'): void {
+    private updateUserBalance(userBalance: UserBalance, otherUserId: string, amount: Amount, type: 'owes' | 'owedBy', currency: string): void {
         const balanceMap = userBalance[type];
-        balanceMap[otherUserId] = (balanceMap[otherUserId] || 0) + amount;
+        const existing = balanceMap[otherUserId] ?? zeroAmount(currency);
+        balanceMap[otherUserId] = addAmounts(existing, amount, currency);
     }
 
-    private recalculateNetBalance(userBalance: UserBalance): void {
-        const totalOwed = Object.values(userBalance.owedBy).reduce((sum, amount) => sum + amount, 0);
-        const totalOwing = Object.values(userBalance.owes).reduce((sum, amount) => sum + amount, 0);
-        userBalance.netBalance = totalOwed - totalOwing;
+    private recalculateNetBalance(userBalance: UserBalance, currency: string): void {
+        const totalOwed = sumAmounts(Object.values(userBalance.owedBy), currency);
+        const totalOwing = sumAmounts(Object.values(userBalance.owes), currency);
+        userBalance.netBalance = subtractAmounts(totalOwed, totalOwing, currency);
     }
 }

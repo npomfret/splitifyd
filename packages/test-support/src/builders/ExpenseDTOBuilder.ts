@@ -73,8 +73,18 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
-    withAmount(amount: Amount): this {
-        this.expense.amount = amount;
+    withAmount(amount: Amount | number): this {
+        const normalizedAmount = typeof amount === 'number' ? amount.toString() : amount;
+        this.expense.amount = normalizedAmount;
+
+        // Keep default split amounts in sync when builder still owns the split definition
+        if (this.expense.splits.length === 1) {
+            const [existingSplit] = this.expense.splits;
+            this.expense.splits = [{
+                ...existingSplit,
+                amount: normalizedAmount,
+            }];
+        }
         return this;
     }
 
@@ -100,6 +110,20 @@ export class ExpenseDTOBuilder {
 
     withParticipants(participants: string[]): this {
         this.expense.participants = [...participants];
+        if (participants.length === this.expense.splits.length) {
+            this.expense.splits = participants.map((uid, index) => ({
+                uid,
+                amount: this.expense.splits[index]?.amount ?? this.expense.amount,
+                ...(this.expense.splits[index]?.percentage !== undefined
+                    ? { percentage: this.expense.splits[index]?.percentage }
+                    : {}),
+            }));
+        } else {
+            this.expense.splits = participants.map((uid) => ({
+                uid,
+                amount: this.expense.amount,
+            }));
+        }
         return this;
     }
 

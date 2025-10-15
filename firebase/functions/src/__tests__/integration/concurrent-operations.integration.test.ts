@@ -1,4 +1,4 @@
-import { GroupDTO } from '@splitifyd/shared';
+import { GroupDTO, amountToSmallestUnit } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
 import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, NotificationDriver } from '@splitifyd/test-support';
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
@@ -315,11 +315,13 @@ describe('Concurrent Operations Integration Tests', () => {
             const balances = await apiDriver.getGroupBalances(testGroup.id, testUser1.token);
 
             expect(balances.balancesByCurrency.USD).toBeDefined();
-            const user1Balance = balances.balancesByCurrency.USD[testUser1.uid].netBalance;
-            const user2Balance = balances.balancesByCurrency.USD[testUser2.uid].netBalance;
-            const user3Balance = balances.balancesByCurrency.USD[testUser3.uid].netBalance;
+            const currencyBalances = balances.balancesByCurrency.USD;
 
-            expect(user1Balance + user2Balance + user3Balance).toBeCloseTo(0, 2);
+            const totalUnits = Object.values(currencyBalances).reduce(
+                (sum, balance: any) => sum + amountToSmallestUnit(balance.netBalance, 'USD'),
+                0,
+            );
+            expect(totalUnits).toBe(0);
         });
 
         test('should handle rapid concurrent updates to same user balance', async () => {
@@ -515,8 +517,11 @@ describe('Concurrent Operations Integration Tests', () => {
 
             currencies.forEach((currency) => {
                 const currencyBalances = balances.balancesByCurrency[currency];
-                const sum = Object.values(currencyBalances).reduce((total, userBal: any) => total + userBal.netBalance, 0);
-                expect(sum).toBeCloseTo(0, 2);
+                const sumUnits = Object.values(currencyBalances).reduce(
+                    (total, userBal: any) => total + amountToSmallestUnit(userBal.netBalance, currency),
+                    0,
+                );
+                expect(sumUnits).toBe(0);
             });
         });
     });

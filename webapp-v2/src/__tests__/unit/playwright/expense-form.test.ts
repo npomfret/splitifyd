@@ -241,11 +241,11 @@ test.describe('Expense Form', () => {
 
             await expenseFormPage.verifyExactSplitDisplayed();
             await expenseFormPage.verifyExactSplitInputCount(2);
-            await expenseFormPage.verifyExactSplitInputsHaveValue('50');
+            await expenseFormPage.verifyExactSplitInputsHaveValue('50.00');
 
             await expenseFormPage.fillAmount('200');
 
-            await expenseFormPage.verifyExactSplitInputsHaveValue('100');
+            await expenseFormPage.verifyExactSplitInputsHaveValue('100.00');
             await expenseFormPage.verifyExactSplitTotal('$200.00', '$200.00');
         });
 
@@ -276,7 +276,7 @@ test.describe('Expense Form', () => {
 
             await expenseFormPage.verifyExactSplitDisplayed();
             await expenseFormPage.verifyExactSplitInputCount(3);
-            await expenseFormPage.verifyExactSplitInputsHaveValue('50');
+            await expenseFormPage.verifyExactSplitInputsHaveValue('50.00');
         });
 
         test('should recalculate EXACT splits when currency changes', async ({ authenticatedPage }) => {
@@ -303,7 +303,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectSplitParticipants(['User 2']);
             await expenseFormPage.selectSplitType('Exact amounts');
 
-            await expenseFormPage.verifyExactSplitInputsHaveValue('50');
+            await expenseFormPage.verifyExactSplitInputsHaveValue('50.00');
             await expenseFormPage.verifyExactSplitTotal('$100.00', '$100.00');
 
             await expenseFormPage.selectCurrency('JPY');
@@ -343,7 +343,7 @@ test.describe('Expense Form', () => {
 
             await expenseFormPage.verifyExactSplitDisplayed();
             await expenseFormPage.verifyExactSplitInputCount(2);
-            await expenseFormPage.verifyExactSplitInputsHaveValue('50');
+            await expenseFormPage.verifyExactSplitInputsHaveValue('50.00');
         });
 
         test('should switch from EXACT to EQUAL split type', async ({ authenticatedPage }) => {
@@ -427,13 +427,13 @@ test.describe('Expense Form', () => {
 
             await expenseFormPage.fillDescription('3 Decimal Test');
             await expenseFormPage.fillAmount('100.001');
-            await expenseFormPage.selectCurrency('USD');
+            await expenseFormPage.selectCurrency('BHD');
             await expenseFormPage.selectPayer(testUser.displayName);
             await expenseFormPage.selectSplitParticipants(['User 2', 'User 3']);
 
             await expenseFormPage.verifyEqualSplitDisplayed();
-            // Should round to 2 decimal places: $100.00 ÷ 3
-            await expenseFormPage.verifyEqualSplitsContainAmount('$33.33');
+            // BHD supports 3 decimal places; split should show exact 3-decimal rounding
+            await expenseFormPage.verifyEqualSplitsContainAmount('BHD 33.333');
         });
     });
 

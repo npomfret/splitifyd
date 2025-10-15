@@ -2,14 +2,17 @@ import { getCurrency, getCurrencyDecimals } from '@splitifyd/shared';
 import {Amount} from "@splitifyd/shared";
 
 /**
- * Count decimal places in a number
+ * Count decimal places in an amount without relying on floating-point math
  * Matches backend implementation in firebase/functions/src/utils/amount-validation.ts
  */
-function countDecimalPlaces(value: number): number {
-    if (Math.floor(value) === value) return 0;
-    const str = value.toString();
-    if (str.indexOf('.') === -1) return 0;
-    return str.split('.')[1].length;
+function countDecimalPlaces(value: Amount | number): number {
+    const str = typeof value === 'number' ? value.toString() : value;
+    const normalized = str.trim().replace(/^-/, '');
+    const decimalIndex = normalized.indexOf('.');
+    if (decimalIndex === -1) {
+        return 0;
+    }
+    return normalized.length - decimalIndex - 1;
 }
 
 /**

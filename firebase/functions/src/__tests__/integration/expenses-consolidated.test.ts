@@ -1,7 +1,7 @@
 // Consolidated Expense Management Integration Tests
 // Combines tests from expenses-api.test.ts, ExpenseService.integration.test.ts, and expenses-full-details.test.ts
 
-import { calculateEqualSplits, PooledTestUser } from '@splitifyd/shared';
+import { amountToSmallestUnit, calculateEqualSplits, PooledTestUser } from '@splitifyd/shared';
 import {
     ApiDriver,
     borrowTestUsers,
@@ -58,12 +58,9 @@ describe('Expenses Management - Consolidated Tests', () => {
             const serviceResult = await apiDriver.createExpense(apiExpenseData, users[0].token);
             expect(serviceResult.id).toBeDefined();
             expect(serviceResult.splits).toHaveLength(3);
-
-            // Verify equal distribution (currency conversion may affect exact amounts)
-            const firstSplitAmount = serviceResult.splits[0].amount;
-            serviceResult.splits.forEach((split: any) => {
-                expect(split.amount).toBeCloseTo(firstSplitAmount, 0.1); // All splits should be equal
-            });
+            expect(serviceResult.splits[0].amount).toBe("30.00");
+            expect(serviceResult.splits[1].amount).toBe("30.00");
+            expect(serviceResult.splits[2].amount).toBe("30.00");
         });
 
         // NOTE: Split calculation logic is now comprehensively tested in unit tests
@@ -163,12 +160,17 @@ describe('Expenses Management - Consolidated Tests', () => {
             await apiDriver.updateExpense(createdExpense.id, secondUpdateData, users[0].token);
 
             const finalUpdatedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
-            expect(finalUpdatedExpense.amount).toBe(200);
+            expect(finalUpdatedExpense.amount).toBe("200");
             expect(finalUpdatedExpense.participants).toEqual([users[0].uid, users[1].uid, users[2].uid]);
             expect(finalUpdatedExpense.splits).toHaveLength(3);
             // Verify splits sum to total amount (200 / 3 = 66.66, 66.66, 66.68)
-            const totalSplits = finalUpdatedExpense.splits.reduce((sum: number, split: any) => sum + split.amount, 0);
-            expect(totalSplits).toBeCloseTo(200, 1);
+            const currency = finalUpdatedExpense.currency;
+            const totalUnits = finalUpdatedExpense.splits.reduce(
+                (sum: number, split: any) => sum + amountToSmallestUnit(split.amount, currency),
+                0,
+            );
+            const expectedUnits = amountToSmallestUnit(finalUpdatedExpense.amount, currency);
+            expect(totalUnits).toBe(expectedUnits);
         });
 
         test('should track edit history and update timestamps', async () => {
@@ -211,11 +213,51 @@ describe('Expenses Management - Consolidated Tests', () => {
             );
 
             const finalExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
-            expect(finalExpense.amount).toBe(200);
+            expect(finalExpense.amount).toBe("200");
             expect(finalExpense.description).toBe('First Update');
             expect(finalExpense.category).toBe('transport');
             expect(finalExpense.updatedAt).toBeDefined();
             expect(new Date(finalExpense.updatedAt!).getTime()).toBeGreaterThan(new Date(finalExpense.createdAt).getTime());
+        });
+
+        test('should flip balance direction when payer changes', async () => {
+            const participants = [users[0].uid, users[1].uid];
+
+            const createData = new CreateExpenseRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withAmount(60)
+                .withCurrency('EUR')
+                .withPaidBy(users[0].uid)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(60, 'EUR', participants))
+                .build();
+
+            const createdExpense = await apiDriver.createExpense(createData, users[0].token);
+
+            const updatePayload = ExpenseUpdateBuilder
+                .minimal()
+                .withAmount(60)
+                .withCurrency('EUR')
+                .withPaidBy(users[1].uid)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(60, 'EUR', participants))
+                .build();
+
+            await apiDriver.updateExpense(createdExpense.id, updatePayload, users[0].token);
+
+            const balances = await apiDriver.getGroupBalances(testGroup.id, users[0].token);
+            const currencyBalances = balances.balancesByCurrency?.EUR;
+            expect(currencyBalances).toBeDefined();
+
+            const user1Balance = currencyBalances![users[0].uid];
+            const user2Balance = currencyBalances![users[1].uid];
+
+            expect(user1Balance.owes[users[1].uid]).toBe('30.00');
+            expect(user1Balance.owedBy[users[1].uid]).toBeUndefined();
+            expect(user2Balance.owedBy[users[0].uid]).toBe('30.00');
+            expect(user2Balance.owes[users[0].uid]).toBeUndefined();
         });
 
         test('should enforce update permissions based on group settings', async () => {
@@ -382,9 +424,9 @@ describe('Expenses Management - Consolidated Tests', () => {
                     .withParticipants([users[0].uid, users[1].uid, users[2].uid])
                     .withSplitType('exact')
                     .withSplits([
-                        { uid: users[0].uid, amount: 30 },
-                        { uid: users[1].uid, amount: 40 },
-                        { uid: users[2].uid, amount: 30 },
+                        { uid: users[0].uid, amount: "30" },
+                        { uid: users[1].uid, amount: "40" },
+                        { uid: users[2].uid, amount: "30" },
                     ])
                     .build(),
                 users[0].token,
@@ -393,9 +435,9 @@ describe('Expenses Management - Consolidated Tests', () => {
             const fullDetails = await apiDriver.getExpenseFullDetails(complexExpense.id, users[1].token);
 
             expect(fullDetails.expense.splitType).toBe('exact');
-            expect(fullDetails.expense.splits.find((s: any) => s.uid === users[0].uid)?.amount).toBe(30);
-            expect(fullDetails.expense.splits.find((s: any) => s.uid === users[1].uid)?.amount).toBe(40);
-            expect(fullDetails.expense.splits.find((s: any) => s.uid === users[2].uid)?.amount).toBe(30);
+            expect(fullDetails.expense.splits.find((s: any) => s.uid === users[0].uid)?.amount).toBe("30");
+            expect(fullDetails.expense.splits.find((s: any) => s.uid === users[1].uid)?.amount).toBe("40");
+            expect(fullDetails.expense.splits.find((s: any) => s.uid === users[2].uid)?.amount).toBe("30");
         });
 
         test('should enforce access control for full details endpoint', async () => {

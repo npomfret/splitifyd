@@ -1,10 +1,9 @@
-import { MemberRoles } from '@splitifyd/shared';
-import { logger, LoggerContext } from '../logger';
+import { MemberRoles, amountToSmallestUnit } from '@splitifyd/shared';
+import {logger, LoggerContext} from '../logger';
 import * as measure from '../monitoring/measure';
-import { PerformanceTimer } from '../monitoring/PerformanceTimer';
-import { ApiError, Errors } from '../utils/errors';
-import type { IFirestoreReader } from './firestore';
-import type { IFirestoreWriter } from './firestore';
+import {PerformanceTimer} from '../monitoring/PerformanceTimer';
+import {ApiError, Errors} from '../utils/errors';
+import type {IFirestoreReader, IFirestoreWriter} from './firestore';
 
 export class GroupMemberService {
     constructor(
@@ -86,12 +85,13 @@ export class GroupMemberService {
             const balancesByCurrency = groupBalance.balancesByCurrency;
 
             for (const currency in balancesByCurrency) {
-                const currencyBalances = balancesByCurrency[currency];
-                const targetBalance = currencyBalances[targetUserId];
-
-                if (targetBalance && Math.abs(targetBalance.netBalance) > 0.01) {
-                    const message = isLeaving ? 'Cannot leave group with outstanding balance' : 'Cannot remove member with outstanding balance';
-                    throw Errors.INVALID_INPUT({ message });
+                const targetBalance = balancesByCurrency[currency][targetUserId];
+                if (targetBalance) {
+                    const balanceUnits = amountToSmallestUnit(targetBalance.netBalance, currency);
+                    if (balanceUnits !== 0) {
+                        const message = isLeaving ? 'Cannot leave group with outstanding balance' : 'Cannot remove member with outstanding balance';
+                        throw Errors.INVALID_INPUT({ message });
+                    }
                 }
             }
         } catch (balanceError: unknown) {

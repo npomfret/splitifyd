@@ -1,9 +1,8 @@
-import { ExpenseSplit } from '@splitifyd/shared';
+import { Amount, ExpenseSplit, amountToSmallestUnit, getCurrencyDecimals, normalizeAmount } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../../constants';
 import { getCurrencyTolerance } from '../../utils/amount-validation';
 import { ApiError } from '../../utils/errors';
 import { ISplitStrategy } from './ISplitStrategy';
-import {Amount} from "@splitifyd/shared";
 
 export class ExactSplitStrategy implements ISplitStrategy {
     validateSplits(totalAmount: Amount, participants: string[], splits: ExpenseSplit[], currencyCode: string): void {
@@ -18,20 +17,31 @@ export class ExactSplitStrategy implements ISplitStrategy {
             }
         }
 
+        const normalizedTotal = normalizeAmount(totalAmount, currencyCode);
+        const normalizedSplits = splits.map((split) => ({
+            ...split,
+            amount: normalizeAmount(split.amount, currencyCode),
+        }));
+
         // Validate that split amounts sum to total amount
-        const totalSplit = splits.reduce((sum: number, split: ExpenseSplit) => {
-            return sum + split.amount!;
-        }, 0);
+        const totalUnits = amountToSmallestUnit(normalizedTotal, currencyCode);
+        const splitUnits = normalizedSplits.reduce(
+            (sum, split) => sum + amountToSmallestUnit(split.amount, currencyCode),
+            0,
+        );
 
         // Use currency-specific tolerance, fallback to 0.01 if currency not provided
         const tolerance = currencyCode ? getCurrencyTolerance(currencyCode) : 0.01;
+        const decimals = currencyCode ? getCurrencyDecimals(currencyCode) : 2;
+        const multiplier = Math.pow(10, decimals);
+        const toleranceUnits = Math.round(tolerance * multiplier);
 
-        if (Math.abs(totalSplit - totalAmount) > tolerance) {
+        if (Math.abs(splitUnits - totalUnits) > toleranceUnits) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount');
         }
 
         // Validate no duplicate users
-        const splitUserIds = splits.map((s: ExpenseSplit) => s.uid);
+        const splitUserIds = normalizedSplits.map((s: ExpenseSplit) => s.uid);
         const uniqueSplitUserIds = new Set(splitUserIds);
         if (splitUserIds.length !== uniqueSplitUserIds.size) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'DUPLICATE_SPLIT_USERS', 'Each participant can only appear once in splits');

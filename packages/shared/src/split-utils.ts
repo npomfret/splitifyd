@@ -74,25 +74,26 @@ export function parseMonetaryAmount(amount: string | number): number {
  * formatMonetaryAmount(123.456, 'BHD') // "123.456" (3 decimals)
  */
 export function formatMonetaryAmount(amount: Amount, currencyCode: string): string {
-    const decimals = getCurrencyDecimals(currencyCode);
-    return amount.toFixed(decimals);
+    return roundToCurrencyPrecision(amount, currencyCode);
 }
 
 /**
  * Round an amount to the correct decimal precision for a currency
  * @param amount - The amount to round
  * @param currencyCode - 3-letter ISO currency code
- * @returns Amount rounded to currency precision
+ * @returns Amount rounded to currency precision as a string
  *
  * @example
- * roundToCurrencyPrecision(33.333333, 'JPY') // 33 (0 decimals)
- * roundToCurrencyPrecision(33.333333, 'USD') // 33.33 (2 decimals)
- * roundToCurrencyPrecision(33.333333, 'BHD') // 33.333 (3 decimals)
+ * roundToCurrencyPrecision(33.333333, 'JPY') // "33" (0 decimals)
+ * roundToCurrencyPrecision(33.333333, 'USD') // "33.33" (2 decimals)
+ * roundToCurrencyPrecision(33.333333, 'BHD') // "33.333" (3 decimals)
  */
-export function roundToCurrencyPrecision(amount: Amount, currencyCode: string): number {
+export function roundToCurrencyPrecision(amount: Amount | number, currencyCode: string): string {
+    const numericAmount = parseMonetaryAmount(amount);
     const decimals = getCurrencyDecimals(currencyCode);
     const multiplier = Math.pow(10, decimals);
-    return Math.round(amount * multiplier) / multiplier;
+    const rounded = Math.round(numericAmount * multiplier) / multiplier;
+    return rounded.toFixed(decimals);
 }
 
 /**
@@ -112,35 +113,36 @@ export function roundToCurrencyPrecision(amount: Amount, currencyCode: string): 
  * // USD 100 split 3 ways: [33.33, 33.33, 33.34]
  * calculateEqualSplits(100, 'USD', ['user1', 'user2', 'user3'])
  */
-export function calculateEqualSplits(totalAmount: Amount, currencyCode: string, participantIds: string[]): ExpenseSplit[] {
+export function calculateEqualSplits(totalAmount: Amount | number, currencyCode: string, participantIds: string[]): ExpenseSplit[] {
     if (participantIds.length === 0) {
         return [];
     }
 
-    if (totalAmount <= 0) {
+    const totalAmountNumber = parseMonetaryAmount(totalAmount);
+    if (totalAmountNumber <= 0) {
         return [];
     }
 
-    const decimals = getCurrencyDecimals(currencyCode);
-    const multiplier = Math.pow(10, decimals);
+    // Normalize to string with correct precision before converting to smallest units
+    const normalizedTotal = roundToCurrencyPrecision(totalAmount, currencyCode);
 
     // Convert to smallest currency unit (integer arithmetic to avoid floating point errors)
-    const totalUnits = Math.round(totalAmount * multiplier);
+    const totalUnits = amountToSmallestUnit(normalizedTotal, currencyCode);
     const numParticipants = participantIds.length;
 
     // Calculate base split in smallest units (integer division)
     const baseUnits = Math.floor(totalUnits / numParticipants);
+    const totalUnitsAllocatedToBase = baseUnits * (numParticipants - 1);
 
     // Calculate splits: all but last get base amount
-    const splits: ExpenseSplit[] = participantIds.map((uid, index) => ({
-        uid,
-        amount: baseUnits / multiplier,
-    }));
-
-    // Calculate the last split as total - sum of others to ensure perfect precision
-    // This accounts for any floating point errors in the division
-    const sumOfOthers = splits.slice(0, -1).reduce((sum, split) => sum + split.amount, 0);
-    splits[splits.length - 1].amount = roundToCurrencyPrecision(totalAmount - sumOfOthers, currencyCode);
+    const splits: ExpenseSplit[] = participantIds.map((uid, index) => {
+        const isLastParticipant = index === numParticipants - 1;
+        const amountUnits = isLastParticipant ? totalUnits - totalUnitsAllocatedToBase : baseUnits;
+        return {
+            uid,
+            amount: smallestUnitToAmountString(amountUnits, currencyCode),
+        };
+    });
 
     return splits;
 }
@@ -154,7 +156,7 @@ export function calculateEqualSplits(totalAmount: Amount, currencyCode: string, 
  * @param participantIds - Array of participant user IDs
  * @returns Array of ExpenseSplit objects with equal amounts as starting point
  */
-export function calculateExactSplits(totalAmount: Amount, currencyCode: string, participantIds: string[]): ExpenseSplit[] {
+export function calculateExactSplits(totalAmount: Amount | number, currencyCode: string, participantIds: string[]): ExpenseSplit[] {
     // For exact splits, use same logic as equal splits as a starting point
     // User will then manually adjust amounts
     return calculateEqualSplits(totalAmount, currencyCode, participantIds);
@@ -173,20 +175,21 @@ export function calculateExactSplits(totalAmount: Amount, currencyCode: string, 
  * // 100% split 3 ways: [33.33%, 33.33%, 33.34%]
  * calculatePercentageSplits(100, 'USD', ['user1', 'user2', 'user3'])
  */
-export function calculatePercentageSplits(totalAmount: Amount, currencyCode: string, participantIds: string[]): ExpenseSplit[] {
+export function calculatePercentageSplits(totalAmount: Amount | number, currencyCode: string, participantIds: string[]): ExpenseSplit[] {
     if (participantIds.length === 0) {
         return [];
     }
 
-    if (totalAmount <= 0) {
+    const totalAmountNumber = parseMonetaryAmount(totalAmount);
+    if (totalAmountNumber <= 0) {
         return [];
     }
 
-    const decimals = getCurrencyDecimals(currencyCode);
-    const multiplier = Math.pow(10, decimals);
+    // Normalize to string with correct precision before converting to smallest units
+    const normalizedTotal = roundToCurrencyPrecision(totalAmount, currencyCode);
 
     // Convert to smallest currency unit (integer arithmetic to avoid floating point errors)
-    const totalUnits = Math.round(totalAmount * multiplier);
+    const totalUnits = amountToSmallestUnit(normalizedTotal, currencyCode);
     const numParticipants = participantIds.length;
 
     // Calculate base percentage
@@ -196,18 +199,16 @@ export function calculatePercentageSplits(totalAmount: Amount, currencyCode: str
     const baseUnits = Math.floor(totalUnits / numParticipants);
 
     // Calculate splits: all but last get base percentage and amount
-    const splits: ExpenseSplit[] = participantIds.map((uid) => ({
-        uid,
-        percentage: basePercentage,
-        amount: baseUnits / multiplier,
-    }));
-
-    // Calculate the last split's amount as total - sum of others to ensure perfect precision
-    const sumOfOthers = splits.slice(0, -1).reduce((sum, split) => sum + split.amount, 0);
-    splits[splits.length - 1].amount = roundToCurrencyPrecision(totalAmount - sumOfOthers, currencyCode);
-
-    // Adjust last participant's percentage to ensure total is exactly 100%
-    splits[splits.length - 1].percentage = 100 - basePercentage * (numParticipants - 1);
+    const splits: ExpenseSplit[] = participantIds.map((uid, index) => {
+        const isLastParticipant = index === numParticipants - 1;
+        const amountUnits = isLastParticipant ? totalUnits - baseUnits * (numParticipants - 1) : baseUnits;
+        const percentage = isLastParticipant ? 100 - basePercentage * (numParticipants - 1) : basePercentage;
+        return {
+            uid,
+            percentage,
+            amount: smallestUnitToAmountString(amountUnits, currencyCode),
+        };
+    });
 
     return splits;
 }

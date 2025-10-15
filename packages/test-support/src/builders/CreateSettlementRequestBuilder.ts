@@ -33,8 +33,8 @@ export class CreateSettlementRequestBuilder {
         return this;
     }
 
-    withAmount(amount: Amount): this {
-        this.settlement.amount = amount;
+    withAmount(amount: Amount | number): this {
+        this.settlement.amount = typeof amount === "number" ? amount.toString() : amount;
         return this;
     }
 

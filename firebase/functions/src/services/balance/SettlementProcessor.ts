@@ -1,4 +1,15 @@
-import { SettlementDTO, UserBalance } from '@splitifyd/shared';
+import {
+    Amount,
+    SettlementDTO,
+    UserBalance,
+    addAmounts,
+    compareAmounts,
+    isZeroAmount,
+    normalizeAmount,
+    subtractAmounts,
+    sumAmounts,
+    zeroAmount,
+} from '@splitifyd/shared';
 import type { ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
 
 export class SettlementProcessor {
@@ -22,7 +33,7 @@ export class SettlementProcessor {
     private processSettlementForCurrency(settlement: SettlementDTO, userBalances: Record<string, UserBalance>): void {
         const payerId = settlement.payerId;
         const payeeId = settlement.payeeId;
-        const amount = settlement.amount;
+        const amount = normalizeAmount(settlement.amount, settlement.currency);
 
         // Initialize user balances if they don't exist
         if (!userBalances[payerId]) {
@@ -30,7 +41,7 @@ export class SettlementProcessor {
                 uid: payerId,
                 owes: {},
                 owedBy: {},
-                netBalance: 0,
+                netBalance: zeroAmount(settlement.currency),
             };
         }
 
@@ -39,55 +50,55 @@ export class SettlementProcessor {
                 uid: payeeId,
                 owes: {},
                 owedBy: {},
-                netBalance: 0,
+                netBalance: zeroAmount(settlement.currency),
             };
         }
 
         // Process the settlement: payerId pays payeeId the settlement amount
         // This reduces what payerId owes payeeId or creates a reverse debt
-        this.processSettlementBetweenUsers(userBalances[payerId], userBalances[payeeId], amount);
+        this.processSettlementBetweenUsers(userBalances[payerId], userBalances[payeeId], amount, settlement.currency);
 
         // Recalculate net balances
-        this.recalculateNetBalance(userBalances[payerId]);
-        this.recalculateNetBalance(userBalances[payeeId]);
+        this.recalculateNetBalance(userBalances[payerId], settlement.currency);
+        this.recalculateNetBalance(userBalances[payeeId], settlement.currency);
     }
 
-    private processSettlementBetweenUsers(payerBalance: UserBalance, payeeBalance: UserBalance, settlementAmount: number): void {
+    private processSettlementBetweenUsers(payerBalance: UserBalance, payeeBalance: UserBalance, settlementAmount: Amount, currency: string): void {
         const payerId = payerBalance.uid;
         const payeeId = payeeBalance.uid;
 
         // How much does payer currently owe payee?
-        const currentDebt = payerBalance.owes[payeeId] || 0;
+        const currentDebt = payerBalance.owes[payeeId] ?? zeroAmount(currency);
 
-        if (settlementAmount <= currentDebt) {
+        if (compareAmounts(settlementAmount, currentDebt, currency) <= 0) {
             // Settlement reduces existing debt
-            payerBalance.owes[payeeId] = currentDebt - settlementAmount;
-            payeeBalance.owedBy[payerId] = (payeeBalance.owedBy[payerId] || 0) - settlementAmount;
+            payerBalance.owes[payeeId] = subtractAmounts(currentDebt, settlementAmount, currency);
+            payeeBalance.owedBy[payerId] = subtractAmounts(payeeBalance.owedBy[payerId] ?? zeroAmount(currency), settlementAmount, currency);
 
             // Clean up zero balances
-            if (payerBalance.owes[payeeId] === 0) {
+            if (isZeroAmount(payerBalance.owes[payeeId], currency)) {
                 delete payerBalance.owes[payeeId];
             }
-            if (payeeBalance.owedBy[payerId] === 0) {
+            if (isZeroAmount(payeeBalance.owedBy[payerId], currency)) {
                 delete payeeBalance.owedBy[payerId];
             }
         } else {
             // Settlement exceeds debt - creates reverse debt
-            const overpayment = settlementAmount - currentDebt;
+            const overpayment = subtractAmounts(settlementAmount, currentDebt, currency);
 
             // Clear existing debt
             delete payerBalance.owes[payeeId];
             delete payeeBalance.owedBy[payerId];
 
             // Create reverse debt (payee now owes payer)
-            payeeBalance.owes[payerId] = (payeeBalance.owes[payerId] || 0) + overpayment;
-            payerBalance.owedBy[payeeId] = (payerBalance.owedBy[payeeId] || 0) + overpayment;
+            payeeBalance.owes[payerId] = addAmounts(payeeBalance.owes[payerId] ?? zeroAmount(currency), overpayment, currency);
+            payerBalance.owedBy[payeeId] = addAmounts(payerBalance.owedBy[payeeId] ?? zeroAmount(currency), overpayment, currency);
         }
     }
 
-    private recalculateNetBalance(userBalance: UserBalance): void {
-        const totalOwed = Object.values(userBalance.owedBy).reduce((sum, amount) => sum + amount, 0);
-        const totalOwing = Object.values(userBalance.owes).reduce((sum, amount) => sum + amount, 0);
-        userBalance.netBalance = totalOwed - totalOwing;
+    private recalculateNetBalance(userBalance: UserBalance, currency: string): void {
+        const totalOwed = sumAmounts(Object.values(userBalance.owedBy), currency);
+        const totalOwing = sumAmounts(Object.values(userBalance.owes), currency);
+        userBalance.netBalance = subtractAmounts(totalOwed, totalOwing, currency);
     }
 }

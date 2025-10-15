@@ -1,6 +1,7 @@
 import { useComputed } from '@preact/signals';
 import { expenseFormStore } from '../stores/expense-form-store';
 import {Amount} from "@splitifyd/shared";
+import {ZERO} from "@splitifyd/shared";
 
 /**
  * Hook that provides access to form state and validation
@@ -35,8 +36,8 @@ export function useFormState() {
         const input = e.target as HTMLInputElement;
         // Parse string input to number at the UI boundary
         // Convert empty string to 0, preserve user decimals during typing
-        const numericValue = input.value.trim() === '' ? 0 : parseFloat(input.value) || 0;
-        expenseFormStore.updateField('amount', numericValue);
+        const nonEmptyValue = input.value.trim() === '' ? ZERO : input.value;
+        expenseFormStore.updateField('amount', nonEmptyValue);
     };
 
     const handleParticipantToggle = (memberId: string) => {

@@ -4,7 +4,17 @@ import { CurrencyService } from '@/app/services/currencyService.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { formatCurrency } from '@/utils/currency';
 import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
-import { CreateSettlementRequest, GroupMember, SettlementWithMembers, SimplifiedDebt } from '@splitifyd/shared';
+import {
+    CreateSettlementRequest,
+    GroupMember,
+    SettlementWithMembers,
+    SimplifiedDebt,
+    ZERO,
+    amountToSmallestUnit,
+    normalizeAmount,
+    isZeroAmount,
+
+} from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, CurrencyAmountInput, Form } from '../ui';
@@ -30,7 +40,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     // Form state - converted from module-level signals to component state
     const [payerId, setPayerId] = useState('');
     const [payeeId, setPayeeId] = useState('');
-    const [amount, setAmount] = useState('');
+    const [amount, setAmount] = useState(ZERO);
     const [currency, setCurrency] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [note, setNote] = useState('');
@@ -51,21 +61,21 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 // Pre-populate form with settlement data for editing
                 setPayerId(settlementToEdit.payer.uid);
                 setPayeeId(settlementToEdit.payee.uid);
-                setAmount(settlementToEdit.amount.toFixed(2));
+                setAmount(settlementToEdit.amount);
                 setCurrency(settlementToEdit.currency);
                 setDate(settlementToEdit.date.split('T')[0]);
                 setNote(settlementToEdit.note || '');
             } else if (preselectedDebt && currentUser) {
                 setPayerId(preselectedDebt.from.uid);
                 setPayeeId(preselectedDebt.to.uid);
-                setAmount(preselectedDebt.amount.toFixed(2));
+                setAmount(preselectedDebt.amount);
                 setCurrency(preselectedDebt.currency);
                 setDate(new Date().toISOString().split('T')[0]);
                 setNote('');
             } else if (currentUser) {
                 setPayerId(currentUser.uid);
                 setPayeeId('');
-                setAmount('');
+                setAmount(ZERO);
                 // Determine currency from existing group balances or recent expenses
                 const balances = enhancedGroupDetailStore.balances;
                 const expenses = enhancedGroupDetailStore.expenses;
@@ -97,22 +107,22 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
         return member?.displayName || t('common.unknownUser');
     };
 
-    const getCurrentDebt = (): number => {
+    const getCurrentDebt = (): string => {
         if (!payerId || !payeeId || !currency || !enhancedGroupDetailStore.balances) {
-            return 0;
+            return ZERO;
         }
 
         const balancesByCurrency = enhancedGroupDetailStore.balances.balancesByCurrency;
-        if (!balancesByCurrency) return 0;
+        if (!balancesByCurrency) return ZERO;
 
         const currencyBalances = balancesByCurrency[currency];
-        if (!currencyBalances) return 0;
+        if (!currencyBalances) return ZERO;
 
         const payerBalance = currencyBalances[payerId];
-        if (!payerBalance) return 0;
+        if (!payerBalance) return ZERO;
 
         // Find how much payer owes to payee
-        const debtToPayee = payerBalance.owes[payeeId] || 0;
+        const debtToPayee = payerBalance.owes[payeeId] || ZERO;
 
         // Return the amount (already positive if there's a debt)
         return debtToPayee;
@@ -137,24 +147,24 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             return;
         }
 
-        const amountNum = parseFloat(amount);
-        if (isNaN(amountNum) || amountNum <= 0) {
+        const normalizedAmount = normalizeAmount(amount, currency);
+        const amountUnits = amountToSmallestUnit(normalizedAmount, currency);
+        if (amountUnits <= 0) {
             setWarningMessage(null);
             return;
         }
 
-        const currentDebt = getCurrentDebt();
+        const currentDebt = normalizeAmount(getCurrentDebt(), currency);
+        const currentDebtUnits = amountToSmallestUnit(currentDebt, currency);
 
-        // Warning Case 1: Payer doesn't owe payee anything
-        if (currentDebt === 0) {
+        if (currentDebtUnits === 0) {
             const payerName = getMemberName(payerId);
             const payeeName = getMemberName(payeeId);
             setWarningMessage(t('settlementForm.warnings.noDebt', { payer: payerName, payee: payeeName, currency }));
             return;
         }
 
-        // Warning Case 2: Overpayment (settlement > current debt)
-        if (amountNum > currentDebt) {
+        if (amountUnits > currentDebtUnits) {
             const payerName = getMemberName(payerId);
             const payeeName = getMemberName(payeeId);
             setWarningMessage(
@@ -162,13 +172,12 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                     payer: payerName,
                     payee: payeeName,
                     debt: formatCurrency(currentDebt, currency),
-                    amount: formatCurrency(amountNum, currency),
+                    amount: formatCurrency(normalizedAmount, currency),
                 }),
             );
             return;
         }
 
-        // No warning
         setWarningMessage(null);
     }, [payerId, payeeId, amount, currency, enhancedGroupDetailStore.balances]);
 
@@ -179,7 +188,8 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     };
 
     const validateForm = (): string | null => {
-        const amountNum = parseFloat(amount);
+        const normalizedAmount = currency ? normalizeAmount(amount, currency) : amount;
+        const amountUnits = currency ? amountToSmallestUnit(normalizedAmount, currency) : 0;
 
         if (!payerId) {
             return t('settlementForm.validation.selectPayer');
@@ -197,11 +207,11 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             return t('settlementForm.validation.currencyRequired');
         }
 
-        if (!amount || isNaN(amountNum) || amountNum <= 0) {
+        if (!amount || amountUnits <= 0) {
             return t('settlementForm.validation.validAmountRequired');
         }
 
-        if (amountNum > 999999.99) {
+        if (currency && amountUnits > amountToSmallestUnit('999999.99', currency)) {
             return t('settlementForm.validation.amountTooLarge');
         }
 
@@ -233,7 +243,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             if (editMode && settlementToEdit) {
                 // Update existing settlement - only send fields that can be updated
                 const updateData = {
-                    amount: parseFloat(amount),
+                    amount: amount,
                     currency: currency,
                     date: getUTCMidnight(date), // Always send UTC to server
                     note: note.trim() || undefined,
@@ -245,7 +255,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                     groupId,
                     payerId: payerId,
                     payeeId: payeeId,
-                    amount: parseFloat(amount),
+                    amount: amount,
                     currency: currency,
                     date: getUTCMidnight(date), // Always send UTC to server
                     note: note.trim() || undefined,
@@ -270,8 +280,9 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
     // Computed property for form validity
     const isFormValid = (() => {
-        const amountNum = parseFloat(amount);
-        return payerId && payeeId && payerId !== payeeId && amount && !isNaN(amountNum) && amountNum > 0 && amountNum <= 999999.99 && date && !isDateInFuture(date);
+        const normalizedAmount = currency ? normalizeAmount(amount, currency) : amount;
+        const amountUnits = currency ? amountToSmallestUnit(normalizedAmount, currency) : 0;
+        return payerId && payeeId && payerId !== payeeId && amount && amountUnits > 0 && amountUnits <= amountToSmallestUnit('999999.99', currency || 'USD') && date && !isDateInFuture(date);
     })();
 
     return (
@@ -349,7 +360,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                         {/* Amount with integrated Currency selector */}
                         <div>
                             <CurrencyAmountInput
-                                amount={parseFloat(amount) || 0}
+                                amount={amount || ZERO}
                                 currency={currency}
                                 onAmountChange={(value) => {
                                     setAmount(value);
@@ -404,13 +415,13 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                         </div>
 
                         {/* Summary */}
-                        {payerId && payeeId && amount && (
+                        {payerId && payeeId && currency && !isZeroAmount(amount, currency) && (
                             <div class='p-3 bg-gray-50 rounded-md'>
                                 <p class='text-sm text-gray-600'>
                                     {t('settlementForm.paymentSummary', {
                                         payer: getMemberName(payerId),
                                         payee: getMemberName(payeeId),
-                                        amount: formatCurrency(parseFloat(amount), currency),
+                                        amount: formatCurrency(amount, currency),
                                     })}
                                 </p>
                             </div>

@@ -2,21 +2,21 @@ import { CurrencyService } from '@/app/services/currencyService.ts';
 import { formatCurrency } from '@/utils/currency';
 import { getLastNight, getThisMorning, getToday, getYesterday } from '@/utils/dateUtils.ts';
 import { ClockIcon } from '@heroicons/react/24/outline';
-import { ExpenseCategory } from '@splitifyd/shared';
+import { Amount, ExpenseCategory, ZERO } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, CategorySuggestionInput, CurrencyAmountInput, TimeInput } from '../ui';
 import { Stack } from '../ui/Stack';
 
 interface ExpenseBasicFieldsProps {
     description: string;
-    amount: number;
+    amount: Amount;
     currency: string;
     date: string;
     time: string;
     category: string;
-    validationErrors: any;
+    validationErrors: Record<string, string>;
     updateField: (field: string, value: any) => void;
-    getRecentAmounts: () => number[];
+    getRecentAmounts: () => Amount[];
     PREDEFINED_EXPENSE_CATEGORIES: ExpenseCategory[];
 }
 
@@ -61,11 +61,11 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                     {/* Combined Amount and Currency */}
                     <div>
                         <CurrencyAmountInput
-                            amount={amount || 0}
+                            amount={amount || ZERO}
                             currency={currency}
                             onAmountChange={(value) => {
-                                const numValue = parseFloat(value) || 0;
-                                updateField('amount', numValue);
+                                const normalized = value.trim() === '' ? ZERO : value;
+                                updateField('amount', normalized);
                             }}
                             onCurrencyChange={(value) => {
                                 updateField('currency', value);

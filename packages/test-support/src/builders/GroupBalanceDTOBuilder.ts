@@ -1,6 +1,7 @@
 import type { SimplifiedDebt, UserBalance } from '@splitifyd/shared';
 import { generateShortId } from '../test-helpers';
 import {Amount} from "@splitifyd/shared";
+import { negateNormalizedAmount, ZERO } from '@splitifyd/shared';
 
 /**
  * Group balance DTO structure for testing
@@ -59,7 +60,7 @@ export class GroupBalanceDTOBuilder {
             uid: userId,
             owes: balance.owes || {},
             owedBy: balance.owedBy || {},
-            netBalance: balance.netBalance || 0,
+            netBalance: balance.netBalance || ZERO,
         };
 
         return this;
@@ -94,7 +95,9 @@ export class GroupBalanceDTOBuilder {
      * Convenience method: Create simple two-user USD debt
      * User2 owes User1 the specified amount
      */
-    withSimpleUSDDebt(user1: string, user2: string, amount: Amount): this {
+    withSimpleUSDDebt(user1: string, user2: string, amt: Amount | number): this {
+        const amount = typeof amt === 'number' ? amt.toString() : amt;
+
         this.withUserBalance('USD', user1, {
             uid: user1,
             owes: {},
@@ -106,7 +109,7 @@ export class GroupBalanceDTOBuilder {
             uid: user2,
             owes: { [user1]: amount },
             owedBy: {},
-            netBalance: -amount,
+            netBalance: negateNormalizedAmount(amount),
         });
 
         this.withSimplifiedDebt({
@@ -133,7 +136,7 @@ export class GroupBalanceDTOBuilder {
                 uid: userId,
                 owes: {},
                 owedBy: {},
-                netBalance: 0,
+                netBalance: ZERO,
             };
         }
 

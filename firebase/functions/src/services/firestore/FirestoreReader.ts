@@ -34,8 +34,8 @@ import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 // Import all schemas for validation (these still validate Timestamp objects from Firestore)
 import {
     ExpenseDocumentSchema,
-    GroupBalanceDocumentSchema,
     type GroupBalanceDTO,
+    GroupBalanceDocumentSchema,
     GroupDocumentSchema,
     PolicyDocumentSchema,
     SettlementDocumentSchema,
@@ -204,7 +204,6 @@ export class FirestoreReader implements IFirestoreReader {
             }
 
             // Validate with Firestore schema (expects Timestamps)
-            const { GroupBalanceDocumentSchema } = await import('../../schemas');
             const validated = GroupBalanceDocumentSchema.parse(data);
 
             // Convert Timestamps to ISO strings for DTO

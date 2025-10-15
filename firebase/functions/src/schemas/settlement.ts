@@ -1,15 +1,21 @@
+import { PositiveAmountStringSchema } from '@splitifyd/shared';
 import { z } from 'zod';
-import { AuditFieldsSchema, createDocumentSchemas, CurrencyCodeSchema, FirestoreTimestampSchema, GroupIdSchema, SoftDeletionFieldsSchema, UserIdSchema } from './common';
+import {
+    AuditFieldsSchema,
+    createDocumentSchemas,
+    CurrencyCodeSchema,
+    FirestoreTimestampSchema,
+    GroupIdSchema,
+    SoftDeletionFieldsSchema,
+    UserIdSchema,
+} from './common';
 
-/**
- * Base Settlement schema without document ID
- */
-const BaseSettlementSchema = z
+export const BaseSettlementSchema = z
     .object({
         groupId: GroupIdSchema,
         payerId: UserIdSchema,
         payeeId: UserIdSchema,
-        amount: z.number().positive('Amount must be greater than zero'),
+        amount: PositiveAmountStringSchema,
         currency: CurrencyCodeSchema,
         date: FirestoreTimestampSchema,
         createdBy: UserIdSchema,

@@ -1,11 +1,25 @@
-import { CreateGroupRequest, GroupDTO, GroupFullDetailsDTO, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets, UpdateGroupRequest } from '@splitifyd/shared';
+import {
+    Amount,
+    CreateGroupRequest,
+    GroupDTO,
+    GroupFullDetailsDTO,
+    ListGroupsResponse,
+    MemberRoles,
+    MemberStatuses,
+    MessageResponse,
+    SecurityPresets,
+    UpdateGroupRequest,
+    amountToSmallestUnit,
+    smallestUnitToAmountString,
+
+} from '@splitifyd/shared';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { DOCUMENT_CONFIG, FIRESTORE, FirestoreCollections } from '../constants';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { PermissionEngine } from '../permissions';
-import { BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupBalanceDTO } from '../schemas';
+import { GroupBalanceDTO } from '../schemas';
 import * as dateHelpers from '../utils/dateHelpers';
 import { Errors } from '../utils/errors';
 import { getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
@@ -16,6 +30,7 @@ import { GroupShareService } from './GroupShareService';
 import { NotificationService } from './notification-service';
 import { SettlementService } from './SettlementService';
 import { UserService } from './UserService2';
+import {BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupBalances} from "@splitifyd/shared";
 
 /**
  * Service for managing group operations
@@ -48,21 +63,29 @@ export class GroupService {
             string,
             {
                 currency: string;
-                netBalance: number;
-                totalOwed: number;
-                totalOwing: number;
+                netBalance: Amount;
+                totalOwed: Amount;
+                totalOwing: Amount;
             }
         > = {};
 
         if (groupBalance.balancesByCurrency) {
             for (const [currency, currencyBalances] of Object.entries(groupBalance.balancesByCurrency)) {
                 const currencyUserBalance = currencyBalances[userId];
-                if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
+                if (currencyUserBalance) {
+                    const netBalanceUnits = amountToSmallestUnit(currencyUserBalance.netBalance, currency);
+                    if (netBalanceUnits === 0) {
+                        continue;
+                    }
+
+                    const totalOwedUnits = netBalanceUnits > 0 ? netBalanceUnits : 0;
+                    const totalOwingUnits = netBalanceUnits < 0 ? Math.abs(netBalanceUnits) : 0;
+
                     const currencyDisplayData = {
                         currency,
-                        netBalance: currencyUserBalance.netBalance,
-                        totalOwed: currencyUserBalance.netBalance > 0 ? currencyUserBalance.netBalance : 0,
-                        totalOwing: currencyUserBalance.netBalance < 0 ? Math.abs(currencyUserBalance.netBalance) : 0,
+                        netBalance: smallestUnitToAmountString(netBalanceUnits, currency),
+                        totalOwed: smallestUnitToAmountString(totalOwedUnits, currency),
+                        totalOwing: smallestUnitToAmountString(totalOwingUnits, currency),
                     };
 
                     // Validate the currency display data structure
@@ -132,11 +155,15 @@ export class GroupService {
     /**
      * Calculate totalOwed and totalOwing from netBalance
      */
-    private calculateBalanceBreakdown(netBalance: number): { netBalance: number; totalOwed: number; totalOwing: number; } {
+    private calculateBalanceBreakdown(netBalance: Amount, currency: string): { netBalance: Amount; totalOwed: Amount; totalOwing: Amount; } {
+        const netBalanceUnits = amountToSmallestUnit(netBalance, currency);
+        const totalOwedUnits = netBalanceUnits > 0 ? netBalanceUnits : 0;
+        const totalOwingUnits = netBalanceUnits < 0 ? Math.abs(netBalanceUnits) : 0;
+
         return {
-            netBalance,
-            totalOwed: netBalance > 0 ? netBalance : 0,
-            totalOwing: netBalance < 0 ? Math.abs(netBalance) : 0,
+            netBalance: smallestUnitToAmountString(netBalanceUnits, currency),
+            totalOwed: smallestUnitToAmountString(totalOwedUnits, currency),
+            totalOwing: smallestUnitToAmountString(totalOwingUnits, currency),
         };
     }
 
@@ -149,9 +176,9 @@ export class GroupService {
             string,
             {
                 currency: string;
-                netBalance: number;
-                totalOwed: number;
-                totalOwing: number;
+                netBalance: Amount;
+                totalOwed: Amount;
+                totalOwing: Amount;
             }
         > = {};
 
@@ -159,10 +186,15 @@ export class GroupService {
             // groupBalances is already validated by GroupBalanceDTO from getGroupBalance()
             for (const [currency, currencyBalances] of Object.entries(groupBalances.balancesByCurrency)) {
                 const currencyUserBalance = currencyBalances[userId];
-                if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
+                if (currencyUserBalance) {
+                    const netBalanceUnits = amountToSmallestUnit(currencyUserBalance.netBalance, currency);
+                    if (netBalanceUnits === 0) {
+                        continue;
+                    }
+
                     const currencyDisplayData = {
                         currency,
-                        ...this.calculateBalanceBreakdown(currencyUserBalance.netBalance),
+                        ...this.calculateBalanceBreakdown(currencyUserBalance.netBalance, currency),
                     };
 
                     // Validate the currency display data structure
@@ -781,7 +813,7 @@ export class GroupService {
 
         // balancesData is already validated GroupBalanceDTO from getGroupBalance()
         // Map lastUpdatedAt to lastUpdated for API response compatibility
-        const balancesDTO = {
+        const balancesDTO: GroupBalances = {
             ...balancesData,
             lastUpdated: balancesData.lastUpdatedAt,
             userBalances: {}, // TODO: Populate from balancesByCurrency if needed by client

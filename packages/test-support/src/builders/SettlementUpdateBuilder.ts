@@ -16,8 +16,8 @@ export class SettlementUpdateBuilder {
         };
     }
 
-    withAmount(amount: Amount): this {
-        this.update.amount = amount;
+    withAmount(amount: Amount | number): this {
+        this.update.amount = typeof amount === "number" ? amount.toString() : amount;
         return this;
     }
 
