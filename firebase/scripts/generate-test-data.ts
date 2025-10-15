@@ -3,7 +3,7 @@
 import type { GroupDTO } from '@splitifyd/shared';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
 import { UserRegistration } from '@splitifyd/shared';
-import { AuthenticatedFirebaseUser } from '@splitifyd/shared';
+import { AuthenticatedFirebaseUser, Amount } from '@splitifyd/shared';
 import { ApiDriver, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 
 // Initialize ApiDriver which handles all configuration
