@@ -84,22 +84,5 @@
       "Bash(git commit:*)",
       "Bash(git push:*)"
     ]
-  },
-  "mcpServers": {
-    "puppeteer": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@cloudflare/puppeteer-core",
-        "puppeteer-mcp"
-      ]
-    },
-    "ide": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@vonloxx/mcp-ide"
-      ]
-    }
   }
 }
