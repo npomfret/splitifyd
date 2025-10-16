@@ -1985,5 +1985,441 @@ describe('app tests', () => {
             expect(members).toHaveLength(2);
             expect(members.find(m => m.uid === user3)).toBeUndefined();
         });
+
+        describe('split validation', () => {
+            it('should reject percentage splits not totaling 100%', async () => {
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                await appDriver.joinGroupByLink(user2, linkId);
+                await appDriver.joinGroupByLink(user3, linkId);
+
+                const participants = [user1, user2, user3];
+                const invalidPercentageSplits = [
+                    { uid: user1, amount: '40.00', percentage: 40 },
+                    { uid: user2, amount: '40.00', percentage: 40 },
+                    { uid: user3, amount: '19.00', percentage: 19 },
+                ];
+
+                const expenseRequest = new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(100)
+                    .withCurrency('USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('percentage')
+                    .withSplits(invalidPercentageSplits)
+                    .build();
+
+                await expect(appDriver.createExpense(user1, expenseRequest))
+                    .rejects
+                    .toMatchObject({ code: 'INVALID_PERCENTAGE_TOTAL' });
+            });
+
+            it('should reject negative percentage in splits', async () => {
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                await appDriver.joinGroupByLink(user2, linkId);
+
+                const participants = [user1, user2];
+                const invalidPercentageSplits = [
+                    { uid: user1, amount: '120.00', percentage: 120 },
+                    { uid: user2, amount: '-20.00', percentage: -20 },
+                ];
+
+                const expenseRequest = new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(100)
+                    .withCurrency('USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('percentage')
+                    .withSplits(invalidPercentageSplits)
+                    .build();
+
+                await expect(appDriver.createExpense(user1, expenseRequest))
+                    .rejects
+                    .toMatchObject({ code: 'INVALID_INPUT' });
+            });
+
+            it('should reject expense where payer is not a participant', async () => {
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                await appDriver.joinGroupByLink(user2, linkId);
+                await appDriver.joinGroupByLink(user3, linkId);
+
+                const participants = [user1, user2];
+                const expenseRequest = new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(100)
+                    .withCurrency('USD')
+                    .withPaidBy(user3)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(100, 'USD', participants))
+                    .build();
+
+                await expect(appDriver.createExpense(user1, expenseRequest))
+                    .rejects
+                    .toMatchObject({ code: 'PAYER_NOT_PARTICIPANT' });
+            });
+
+            it('should handle equal split with single participant', async () => {
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+
+                const singleParticipant = [user1];
+                const splits = calculateEqualSplits(100, 'USD', singleParticipant);
+
+                const expense = await appDriver.createExpense(
+                    user1,
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(100)
+                        .withCurrency('USD')
+                        .withPaidBy(user1)
+                        .withParticipants(singleParticipant)
+                        .withSplitType('equal')
+                        .withSplits(splits)
+                        .build(),
+                );
+
+                expect(expense.id).toBeDefined();
+
+                const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+                const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+
+                expect(usdBalances).toBeDefined();
+                expect(usdBalances![user1].netBalance).toBe('0.00');
+                expect(usdBalances![user1].owedBy).toEqual({});
+                expect(usdBalances![user1].owes).toEqual({});
+            });
+        });
+
+        describe('boundary and limit testing', () => {
+            it('should handle very large expense amounts', async () => {
+                const LARGE_AMOUNT = 9999999.99;
+                const CURRENCY = 'USD';
+
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                await appDriver.joinGroupByLink(user2, linkId);
+
+                const participants = [user1, user2];
+                const splits = calculateEqualSplits(LARGE_AMOUNT, CURRENCY, participants);
+
+                const expense = await appDriver.createExpense(
+                    user1,
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(LARGE_AMOUNT)
+                        .withCurrency(CURRENCY)
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(splits)
+                        .build(),
+                );
+
+                expect(expense.amount).toBe(String(LARGE_AMOUNT));
+
+                const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+                const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+
+                expect(usdBalances).toBeDefined();
+                verifyBalanceConsistency(usdBalances!, CURRENCY, 'very large amount');
+            });
+
+            it('should handle minimum valid amounts', async () => {
+                const MIN_AMOUNT = 0.02;
+                const CURRENCY = 'USD';
+
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                await appDriver.joinGroupByLink(user2, linkId);
+
+                const participants = [user1, user2];
+                const splits = calculateEqualSplits(MIN_AMOUNT, CURRENCY, participants);
+
+                const expense = await appDriver.createExpense(
+                    user1,
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(MIN_AMOUNT)
+                        .withCurrency(CURRENCY)
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(splits)
+                        .build(),
+                );
+
+                expect(expense.amount).toBe(String(MIN_AMOUNT));
+
+                const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+                const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+
+                expect(usdBalances).toBeDefined();
+                verifyBalanceConsistency(usdBalances!, CURRENCY, 'minimum valid amount');
+            });
+
+            it('should enforce maximum length on group description', async () => {
+                const longDescription = 'x'.repeat(10000);
+
+                await expect(
+                    appDriver.createGroup(
+                        user1,
+                        new CreateGroupRequestBuilder()
+                            .withName('Test Group')
+                            .withDescription(longDescription)
+                            .build(),
+                    ),
+                )
+                    .rejects
+                    .toMatchObject({ code: 'INVALID_INPUT' });
+            });
+
+            it('should enforce maximum length on expense description', async () => {
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+
+                const longDescription = 'x'.repeat(10000);
+                const participants = [user1];
+
+                await expect(
+                    appDriver.createExpense(
+                        user1,
+                        new CreateExpenseRequestBuilder()
+                            .withGroupId(groupId)
+                            .withDescription(longDescription)
+                            .withAmount(100)
+                            .withCurrency('USD')
+                            .withPaidBy(user1)
+                            .withParticipants(participants)
+                            .withSplitType('equal')
+                            .withSplits(calculateEqualSplits(100, 'USD', participants))
+                            .build(),
+                    ),
+                )
+                    .rejects
+                    .toMatchObject({ code: 'INVALID_DESCRIPTION' });
+            });
+
+            it('should handle expense with many participants', async () => {
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+
+                // Join initial users to the group
+                await appDriver.joinGroupByLink(user2, linkId);
+                await appDriver.joinGroupByLink(user3, linkId);
+                await appDriver.joinGroupByLink(user4, linkId);
+
+                const manyUsers = [user1, user2, user3, user4];
+                for (let i = 5; i <= 20; i++) {
+                    const userId = `user-${i}`;
+                    appDriver.seedUser(userId, { displayName: `User ${i}` });
+                    await appDriver.joinGroupByLink(userId, linkId);
+                    manyUsers.push(userId);
+                }
+
+                const AMOUNT = 1000;
+                const CURRENCY = 'USD';
+                const splits = calculateEqualSplits(AMOUNT, CURRENCY, manyUsers);
+
+                const expense = await appDriver.createExpense(
+                    user1,
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(AMOUNT)
+                        .withCurrency(CURRENCY)
+                        .withPaidBy(user1)
+                        .withParticipants(manyUsers)
+                        .withSplitType('equal')
+                        .withSplits(splits)
+                        .build(),
+                );
+
+                expect(expense.id).toBeDefined();
+
+                const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+                const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+
+                expect(usdBalances).toBeDefined();
+                verifyBalanceConsistency(usdBalances!, CURRENCY, 'many participants');
+                expect(Object.keys(usdBalances!)).toHaveLength(20);
+            });
+        });
+
+        describe('data consistency and integrity', () => {
+            it('should reject operations on deleted group', async () => {
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+
+                await appDriver.deleteGroup(user1, groupId);
+
+                const participants = [user1];
+                await expect(
+                    appDriver.createExpense(
+                        user1,
+                        new CreateExpenseRequestBuilder()
+                            .withGroupId(groupId)
+                            .withAmount(100)
+                            .withCurrency('USD')
+                            .withPaidBy(user1)
+                            .withParticipants(participants)
+                            .withSplitType('equal')
+                            .withSplits(calculateEqualSplits(100, 'USD', participants))
+                            .build(),
+                    ),
+                )
+                    .rejects
+                    .toMatchObject({ code: 'NOT_FOUND' });
+            });
+
+            it('should reject malformed group ID', async () => {
+                await expect(appDriver.getGroupFullDetails(user1, 'not-a-valid-id'))
+                    .rejects
+                    .toMatchObject({ code: 'NOT_FOUND' });
+            });
+
+            it('should reject malformed expense ID', async () => {
+                await expect(appDriver.getExpenseFullDetails(user1, 'not-a-valid-id'))
+                    .rejects
+                    .toMatchObject({ code: 'NOT_FOUND' });
+            });
+
+            it('should reject operations on non-existent expense', async () => {
+                await appDriver.createGroup(user1);
+
+                const nonExistentExpenseId = 'expense-does-not-exist';
+
+                await expect(appDriver.deleteExpense(user1, nonExistentExpenseId))
+                    .rejects
+                    .toMatchObject({ code: 'NOT_FOUND' });
+            });
+
+            it('should reject creating expense with zero amount', async () => {
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+
+                const participants = [user1];
+                await expect(
+                    appDriver.createExpense(
+                        user1,
+                        new CreateExpenseRequestBuilder()
+                            .withGroupId(groupId)
+                            .withAmount(0)
+                            .withCurrency('USD')
+                            .withPaidBy(user1)
+                            .withParticipants(participants)
+                            .withSplitType('equal')
+                            .withSplits([{ uid: user1, amount: '0.00' }])
+                            .build(),
+                    ),
+                )
+                    .rejects
+                    .toMatchObject({ code: 'INVALID_AMOUNT' });
+            });
+
+            it('should reject creating expense with negative amount', async () => {
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+
+                const participants = [user1];
+                await expect(
+                    appDriver.createExpense(
+                        user1,
+                        new CreateExpenseRequestBuilder()
+                            .withGroupId(groupId)
+                            .withAmount(-100)
+                            .withCurrency('USD')
+                            .withPaidBy(user1)
+                            .withParticipants(participants)
+                            .withSplitType('equal')
+                            .withSplits([{ uid: user1, amount: '-100.00' }])
+                            .build(),
+                    ),
+                )
+                    .rejects
+                    .toMatchObject({ code: 'INVALID_AMOUNT' });
+            });
+
+            it('should reject settlement with zero amount', async () => {
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                await appDriver.joinGroupByLink(user2, linkId);
+
+                const participants = [user1, user2];
+                await appDriver.createExpense(
+                    user1,
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(100)
+                        .withCurrency('USD')
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(calculateEqualSplits(100, 'USD', participants))
+                        .build(),
+                );
+
+                await expect(
+                    appDriver.createSettlement(
+                        user2,
+                        new CreateSettlementRequestBuilder()
+                            .withGroupId(groupId)
+                            .withPayerId(user2)
+                            .withPayeeId(user1)
+                            .withAmount('0.00')
+                            .withCurrency('USD')
+                            .build(),
+                    ),
+                )
+                    .rejects
+                    .toMatchObject({ code: 'VALIDATION_ERROR' });
+            });
+
+            it('should reject settlement with negative amount', async () => {
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                await appDriver.joinGroupByLink(user2, linkId);
+
+                const participants = [user1, user2];
+                await appDriver.createExpense(
+                    user1,
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(100)
+                        .withCurrency('USD')
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(calculateEqualSplits(100, 'USD', participants))
+                        .build(),
+                );
+
+                await expect(
+                    appDriver.createSettlement(
+                        user2,
+                        new CreateSettlementRequestBuilder()
+                            .withGroupId(groupId)
+                            .withPayerId(user2)
+                            .withPayeeId(user1)
+                            .withAmount('-25.00')
+                            .withCurrency('USD')
+                            .build(),
+                    ),
+                )
+                    .rejects
+                    .toMatchObject({ code: 'VALIDATION_ERROR' });
+            });
+        });
     });
 });
