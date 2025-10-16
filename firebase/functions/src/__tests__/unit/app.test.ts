@@ -1814,7 +1814,7 @@ describe('app tests', () => {
 
             const participants = [user1, user2, user3];
 
-            const equalSplits = calculateEqualSplits(AMOUNT, CURRENCY, participants);
+            const equalSplits = calculateEqualSplits(AMOUNT, CURRENCY, participants, 0);
             const createdExpense = await appDriver.createExpense(
                 user1,
                 new CreateExpenseRequestBuilder()
@@ -1836,7 +1836,7 @@ describe('app tests', () => {
 
             const balanceAfterEqual = amountToSmallestUnit(eurBalances![user1].netBalance, CURRENCY);
 
-            const percentageSplits = calculatePercentageSplits(AMOUNT, CURRENCY, participants);
+            const percentageSplits = calculatePercentageSplits(AMOUNT, CURRENCY, participants, 0);
             await appDriver.updateExpense(
                 user1,
                 createdExpense.id,
@@ -1885,7 +1885,7 @@ describe('app tests', () => {
             const balanceAfterExact = amountToSmallestUnit(eurBalances![user1].netBalance, CURRENCY);
             expect(balanceAfterExact, 'Balance after percentage → exact conversion should be exactly the same (zero-tolerance)').toBe(balanceAfterPercentage);
 
-            const finalEqualSplits = calculateEqualSplits(AMOUNT, CURRENCY, participants);
+            const finalEqualSplits = calculateEqualSplits(AMOUNT, CURRENCY, participants, 0);
             await appDriver.updateExpense(
                 user1,
                 createdExpense.id,
