@@ -93,6 +93,17 @@ export class DashboardPage extends BaseDashboardPage {
      * This method overrides the base class to return the e2e-specific GroupDetailPage
      * instead of the shared GroupDetailPage. This allows e2e tests to access
      * e2e-specific methods like waitForPage(), verifyAllSettledUp(), etc.
+     *
+     * The base class handles the UI interactions (clicking buttons, filling forms),
+     * while this override ensures the returned page object has all the e2e-specific
+     * functionality needed for complex workflows like:
+     * - Multi-user state synchronization (waitForPage with member count)
+     * - Real-time update verification (polling for balance changes)
+     * - Settlement and balance validation across multiple users
+     *
+     * @param name - Group name (defaults to generated ID)
+     * @param description - Group description (defaults to generated ID)
+     * @returns E2E GroupDetailPage with extended e2e-specific methods
      */
     async createGroupAndNavigate(name: string = generateShortId(), description: string = generateShortId()): Promise<GroupDetailPage> {
         const currentUrl = this.page.url();

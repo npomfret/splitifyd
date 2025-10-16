@@ -163,13 +163,21 @@ export abstract class BasePage extends SharedBasePage {
         await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
     }
 
-    async waitForDomContentLoaded(timeout = 5000) {
-        await this._page.waitForLoadState('domcontentloaded', { timeout });
-    }
-
     /**
-     * Expects a button to be enabled before clicking.
-     * Provides detailed error messages if the button is disabled.
+     * E2E-specific override of expectButtonEnabled with enhanced error gathering.
+     *
+     * DIFFERENCES FROM SHARED BASE VERSION:
+     * 1. Gathers validation error messages from the page (searches for .error-message, .text-red-500, [role="alert"])
+     * 2. Includes button title attribute in error message for additional context
+     * 3. Provides comprehensive error details to help diagnose why button is disabled
+     *
+     * WHY THIS OVERRIDE EXISTS:
+     * - E2E tests run against the full application with complex form validation
+     * - When buttons are disabled, it's crucial to see which validation errors are preventing submission
+     * - This helps debug test failures by showing the actual validation state of the page
+     *
+     * The shared base version checks if button is enabled, but doesn't gather page context.
+     * This e2e version scans the page for error messages to provide richer debugging information.
      */
     async expectButtonEnabled(button: Locator, buttonText?: string): Promise<void> {
         const isDisabled = await button.isDisabled();
@@ -193,9 +201,22 @@ export abstract class BasePage extends SharedBasePage {
     }
 
     /**
-     * Standard button click method that ensures button is visible and enabled before clicking.
-     * Provides clear error messages if the button cannot be clicked.
-     * This should be the default way to click any button in tests.
+     * E2E-specific override of clickButton with enhanced robustness and options.
+     *
+     * DIFFERENCES FROM SHARED BASE VERSION:
+     * 1. Waits for button to be attached to DOM before checking visibility (prevents "not attached" errors)
+     * 2. Provides skipEnabledCheck option for special cases (e.g., testing disabled button behavior)
+     * 3. Enhanced error messages that distinguish between "not visible" and "hidden" states
+     * 4. More granular timeout control at each step
+     *
+     * WHY THIS OVERRIDE EXISTS:
+     * - E2E tests run in parallel with 4 workers, causing timing challenges
+     * - Elements can be detached/reattached during real-time updates
+     * - Some test scenarios need to click buttons even when disabled (error testing)
+     * - Better error messages help diagnose failures in complex multi-user scenarios
+     *
+     * The shared base version assumes simpler, more controlled test environments.
+     * This e2e version handles the complexity of parallel execution and real-time updates.
      *
      * @param button - The button locator
      * @param options - Optional configuration

@@ -17,6 +17,10 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         super(page);
     }
 
+    // ============================================================================
+    // E2E-SPECIFIC PROPERTIES AND BASIC UTILITIES
+    // ============================================================================
+
     /**
      * Header property for e2e navigation
      */
@@ -48,6 +52,10 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         }
         return match[1];
     }
+
+    // ============================================================================
+    // E2E-SPECIFIC GETTERS AND FORM OPENING METHODS
+    // ============================================================================
 
     /**
      * Get group name as text (e2e-specific, shared base has getGroupName() returning Locator)
@@ -124,6 +132,10 @@ export class GroupDetailPage extends BaseGroupDetailPage {
 
         return expenseFormPage;
     }
+
+    // ============================================================================
+    // POLLING AND WAITING METHODS (Real-time update verification)
+    // ============================================================================
 
     /**
      * Wait for group title to update (e2e-specific polling for real-time updates)
@@ -275,6 +287,10 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         }
     }
 
+    // ============================================================================
+    // EXPENSE METHODS
+    // ============================================================================
+
     /**
      * Clicks on an expense by its description to view details
      * Returns the ExpenseDetailPage for further interactions
@@ -374,6 +390,10 @@ export class GroupDetailPage extends BaseGroupDetailPage {
             .toPass({ timeout: 5000 });
     }
 
+    // ============================================================================
+    // MODAL OPENING METHODS (Share, Edit)
+    // ============================================================================
+
     /**
      * Opens the share group modal and returns the ShareGroupModalPage instance.
      * E2E-specific version that returns e2e ShareGroupModalPage
@@ -424,9 +444,9 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         return editModal;
     }
 
-    // ==============================
-    // ADDITIONAL METHODS FOR TEST REFACTORING
-    // ==============================
+    // ============================================================================
+    // MEMBER COUNT AND ITEMS
+    // ============================================================================
 
     /**
      * Get member count text element using data-testid
@@ -482,6 +502,10 @@ export class GroupDetailPage extends BaseGroupDetailPage {
 
         return names;
     }
+
+    // ============================================================================
+    // SETTLEMENT HISTORY METHODS (Payment History Section)
+    // ============================================================================
 
     /**
      * E2E-specific payment history container (for settlement features)
@@ -746,6 +770,10 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         }
     }
 
+    // ============================================================================
+    // DEBT AND BALANCE VERIFICATION METHODS
+    // ============================================================================
+
     async verifyDebtRelationship(debtorName: string, creditorName: string, expectedAmount: string): Promise<void> {
         // Use polling pattern to wait for real-time updates
         await expect(async () => {
@@ -877,7 +905,9 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         await this.waitForBalancesSection(groupId);
     }
 
-    // ========== Member Management Methods ==========
+    // ============================================================================
+    // MEMBER MANAGEMENT METHODS
+    // ============================================================================
 
     private getMemberItem(memberName: string): Locator {
         // Use data-member-name attribute for precise selection within the members container
@@ -943,7 +973,9 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         await expect(this.getMemberItem(memberName)).not.toBeVisible();
     }
 
-    // ========== Comments Methods ==========
+    // ============================================================================
+    // COMMENTS METHODS
+    // ============================================================================
 
     /**
      * Get the comments section for the group
@@ -1046,7 +1078,9 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         await expect(sendButton).toBeDisabled();
     }
 
-    // ========== Additional Verification Methods for Test Refactoring ==========
+    // ============================================================================
+    // ADDITIONAL VERIFICATION METHODS
+    // ============================================================================
 
     /**
      * Copy share link to clipboard
