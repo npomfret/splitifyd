@@ -1,141 +1,82 @@
-import { CreateSettlementRequestBuilder, createStubRequest, createStubResponse, SettlementDTOBuilder, SettlementUpdateBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
+import { CreateSettlementRequestBuilder, SettlementUpdateBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
 import { SettlementHandlers } from '../../../settlements/SettlementHandlers';
-import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubAuthService } from '../mocks/StubAuthService';
+import { AppDriver } from '../AppDriver';
 
 describe('SettlementHandlers - Unit Tests', () => {
-    let settlementHandlers: SettlementHandlers;
-    let db: StubFirestoreDatabase;
+    let appDriver: AppDriver;
 
     beforeEach(() => {
-        db = new StubFirestoreDatabase();
-
-        const applicationBuilder = new ApplicationBuilder(new FirestoreReader(db), new FirestoreWriter(db), new StubAuthService());
-
-        settlementHandlers = new SettlementHandlers(applicationBuilder.buildSettlementService());
+        appDriver = new AppDriver();
     });
 
     describe('createSettlement', () => {
         it('should create a settlement successfully with valid data', async () => {
-            const groupId = 'test-group';
             const userId = 'test-user';
+            const payerId = 'payer-user';
+            const payeeId = 'payee-user';
 
-            db.seedUser(userId, { displayName: 'Test User' });
-            db.seedUser('payer-user', { displayName: 'Payer' });
-            db.seedUser('payee-user', { displayName: 'Payee' });
-            db.seedGroup(groupId, { name: 'Test Group', createdBy: userId });
-            db.initializeGroupBalance(groupId);
+            appDriver.seedUser(userId, { displayName: 'Test User' });
+            appDriver.seedUser(payerId, { displayName: 'Payer' });
+            appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const creatorMembership = new GroupMemberDocumentBuilder()
-                .withUserId(userId)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-
-            db.seedGroupMember(groupId, userId, creatorMembership);
-            db.seedGroupMember(groupId, 'payer-user', payerMembership);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembership);
+            const group = await appDriver.createGroup(userId);
+            const { linkId } = await appDriver.generateShareableLink(userId, group.id);
+            await appDriver.joinGroupByLink(payerId, linkId);
+            await appDriver.joinGroupByLink(payeeId, linkId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
+                .withGroupId(group.id)
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
                 .withAmount(100.50)
                 .withCurrency('USD')
                 .withNote('Test settlement')
                 .build();
 
-            const req = createStubRequest(userId, settlementRequest);
-            const res = createStubResponse();
+            const result = await appDriver.createSettlement(userId, settlementRequest);
 
-            await settlementHandlers.createSettlement(req, res);
-
-            expect((res as any).getStatus()).toBe(HTTP_STATUS.CREATED);
-            const json = (res as any).getJson();
-            expect(json).toMatchObject(
-                expect.objectContaining({
-                    id: expect.any(String),
-                    groupId,
-                    payerId: 'payer-user',
-                    payeeId: 'payee-user',
-                    amount: '100.5',
-                    currency: 'USD',
-                    note: 'Test settlement',
-                }),
-            );
+            expect(result).toMatchObject({
+                id: expect.any(String),
+                groupId: group.id,
+                payerId,
+                payeeId,
+                amount: '100.5',
+                currency: 'USD',
+                note: 'Test settlement',
+            });
         });
 
         it('should create a settlement without optional note', async () => {
-            const groupId = 'test-group';
             const userId = 'test-user';
+            const payerId = 'payer-user';
+            const payeeId = 'payee-user';
 
-            db.seedUser(userId, { displayName: 'Test User' });
-            db.seedUser('payer-user', { displayName: 'Payer' });
-            db.seedUser('payee-user', { displayName: 'Payee' });
-            db.seedGroup(groupId, { name: 'Test Group', createdBy: userId });
-            db.initializeGroupBalance(groupId);
+            appDriver.seedUser(userId, { displayName: 'Test User' });
+            appDriver.seedUser(payerId, { displayName: 'Payer' });
+            appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const creatorMembership = new GroupMemberDocumentBuilder()
-                .withUserId(userId)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-
-            db.seedGroupMember(groupId, userId, creatorMembership);
-            db.seedGroupMember(groupId, 'payer-user', payerMembership);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembership);
+            const group = await appDriver.createGroup(userId);
+            const { linkId } = await appDriver.generateShareableLink(userId, group.id);
+            await appDriver.joinGroupByLink(payerId, linkId);
+            await appDriver.joinGroupByLink(payeeId, linkId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
+                .withGroupId(group.id)
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
                 .withAmount(50.00)
                 .withCurrency('USD')
                 .withoutNote()
                 .build();
 
-            const req = createStubRequest(userId, settlementRequest);
-            const res = createStubResponse();
+            const result = await appDriver.createSettlement(userId, settlementRequest);
 
-            await settlementHandlers.createSettlement(req, res);
-
-            expect((res as any).getStatus()).toBe(HTTP_STATUS.CREATED);
-            const json = (res as any).getJson();
-            expect(json).toMatchObject(expect.objectContaining({
+            expect(result).toMatchObject({
                 amount: '50',
-            }));
-            // Verify note field is not present or is undefined
-            expect(json.note).toBeUndefined();
+            });
+            expect(result.note).toBeUndefined();
         });
 
         it('should reject settlement with invalid amount (zero)', async () => {
@@ -147,10 +88,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withCurrency('USD')
                 .build();
 
-            const req = createStubRequest('test-user', invalidRequest);
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -167,10 +105,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withCurrency('USD')
                 .build();
 
-            const req = createStubRequest('test-user', invalidRequest);
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -187,10 +122,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withCurrency('USD')
                 .build();
 
-            const req = createStubRequest('test-user', invalidRequest);
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -208,10 +140,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             (invalidRequest as any).currency = 'US';
 
-            const req = createStubRequest('test-user', invalidRequest);
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -228,10 +157,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withCurrency('JPY')
                 .build();
 
-            const req = createStubRequest('test-user', invalidRequest);
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -250,10 +176,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withNote(longNote)
                 .build();
 
-            const req = createStubRequest('test-user', invalidRequest);
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -271,10 +194,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             delete (invalidRequest as any).groupId;
 
-            const req = createStubRequest('test-user', invalidRequest);
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -292,10 +212,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             delete (invalidRequest as any).payerId;
 
-            const req = createStubRequest('test-user', invalidRequest);
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -313,10 +230,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             delete (invalidRequest as any).payeeId;
 
-            const req = createStubRequest('test-user', invalidRequest);
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -334,10 +248,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             delete (invalidRequest as any).amount;
 
-            const req = createStubRequest('test-user', invalidRequest);
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -355,10 +266,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             delete (invalidRequest as any).currency;
 
-            const req = createStubRequest('test-user', invalidRequest);
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -368,7 +276,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
         it('should reject settlement for non-existent group', async () => {
             const userId = 'test-user';
-            db.seedUser(userId);
+            appDriver.seedUser(userId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId('non-existent-group')
@@ -378,10 +286,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withCurrency('USD')
                 .build();
 
-            const req = createStubRequest(userId, settlementRequest);
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.createSettlement(userId, settlementRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                 }),
@@ -389,39 +294,30 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject settlement when creator is not a group member', async () => {
-            const groupId = 'test-group';
-            const userId = 'non-member-user';
+            const creatorId = 'creator-user';
+            const nonMemberId = 'non-member-user';
+            const payerId = 'payer-user';
+            const payeeId = 'payee-user';
 
-            db.seedUser(userId);
-            db.seedUser('payer-user');
-            db.seedUser('payee-user');
-            db.seedGroup(groupId, { createdBy: 'another-user' });
-            db.initializeGroupBalance(groupId);
+            appDriver.seedUser(creatorId);
+            appDriver.seedUser(nonMemberId);
+            appDriver.seedUser(payerId);
+            appDriver.seedUser(payeeId);
 
-            const payerMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .buildDocument();
-            const payeeMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .buildDocument();
-
-            db.seedGroupMember(groupId, 'payer-user', payerMembership);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembership);
+            const group = await appDriver.createGroup(creatorId);
+            const { linkId } = await appDriver.generateShareableLink(creatorId, group.id);
+            await appDriver.joinGroupByLink(payerId, linkId);
+            await appDriver.joinGroupByLink(payeeId, linkId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
+                .withGroupId(group.id)
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
                 .withAmount(100)
                 .withCurrency('USD')
                 .build();
 
-            const req = createStubRequest(userId, settlementRequest);
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.createSettlement(nonMemberId, settlementRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
                 }),
@@ -429,39 +325,26 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject settlement when payer is not a group member', async () => {
-            const groupId = 'test-group';
             const userId = 'test-user';
+            const payeeId = 'payee-user';
 
-            db.seedUser(userId);
-            db.seedUser('non-member-payer');
-            db.seedUser('payee-user');
-            db.seedGroup(groupId, { createdBy: userId });
-            db.initializeGroupBalance(groupId);
+            appDriver.seedUser(userId);
+            appDriver.seedUser('non-member-payer');
+            appDriver.seedUser(payeeId);
 
-            const creatorMembership = new GroupMemberDocumentBuilder()
-                .withUserId(userId)
-                .withGroupId(groupId)
-                .buildDocument();
-            const payeeMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .buildDocument();
-
-            db.seedGroupMember(groupId, userId, creatorMembership);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembership);
+            const group = await appDriver.createGroup(userId);
+            const { linkId } = await appDriver.generateShareableLink(userId, group.id);
+            await appDriver.joinGroupByLink(payeeId, linkId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
+                .withGroupId(group.id)
                 .withPayerId('non-member-payer')
-                .withPayeeId('payee-user')
+                .withPayeeId(payeeId)
                 .withAmount(100)
                 .withCurrency('USD')
                 .build();
 
-            const req = createStubRequest(userId, settlementRequest);
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.createSettlement(userId, settlementRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                 }),
@@ -469,39 +352,26 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject settlement when payee is not a group member', async () => {
-            const groupId = 'test-group';
             const userId = 'test-user';
+            const payerId = 'payer-user';
 
-            db.seedUser(userId);
-            db.seedUser('payer-user');
-            db.seedUser('non-member-payee');
-            db.seedGroup(groupId, { createdBy: userId });
-            db.initializeGroupBalance(groupId);
+            appDriver.seedUser(userId);
+            appDriver.seedUser(payerId);
+            appDriver.seedUser('non-member-payee');
 
-            const creatorMembership = new GroupMemberDocumentBuilder()
-                .withUserId(userId)
-                .withGroupId(groupId)
-                .buildDocument();
-            const payerMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .buildDocument();
-
-            db.seedGroupMember(groupId, userId, creatorMembership);
-            db.seedGroupMember(groupId, 'payer-user', payerMembership);
+            const group = await appDriver.createGroup(userId);
+            const { linkId } = await appDriver.generateShareableLink(userId, group.id);
+            await appDriver.joinGroupByLink(payerId, linkId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
+                .withGroupId(group.id)
+                .withPayerId(payerId)
                 .withPayeeId('non-member-payee')
                 .withAmount(100)
                 .withCurrency('USD')
                 .build();
 
-            const req = createStubRequest(userId, settlementRequest);
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.createSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.createSettlement(userId, settlementRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                 }),
@@ -511,130 +381,78 @@ describe('SettlementHandlers - Unit Tests', () => {
 
     describe('updateSettlement', () => {
         it('should update settlement amount successfully', async () => {
-            const groupId = 'test-group';
             const userId = 'test-user';
-            const settlementId = 'test-settlement';
+            const payerId = 'payer-user';
+            const payeeId = 'payee-user';
 
-            db.seedUser(userId, { displayName: 'Test User' });
-            db.seedUser('payer-user', { displayName: 'Payer' });
-            db.seedUser('payee-user', { displayName: 'Payee' });
-            db.seedGroup(groupId, { name: 'Test Group', createdBy: userId });
-            db.initializeGroupBalance(groupId);
+            appDriver.seedUser(userId, { displayName: 'Test User' });
+            appDriver.seedUser(payerId, { displayName: 'Payer' });
+            appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const settlement = new SettlementDTOBuilder()
-                .withId(settlementId)
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
-                .withCreatedBy(userId)
+            const group = await appDriver.createGroup(userId);
+            const { linkId } = await appDriver.generateShareableLink(userId, group.id);
+            await appDriver.joinGroupByLink(payerId, linkId);
+            await appDriver.joinGroupByLink(payeeId, linkId);
+
+            const settlementRequest = new CreateSettlementRequestBuilder()
+                .withGroupId(group.id)
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
+                .withAmount(100)
+                .withCurrency('USD')
                 .build();
 
-            db.seedSettlement(settlementId, settlement);
-
-            const creatorMembership = new GroupMemberDocumentBuilder()
-                .withUserId(userId)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-
-            db.seedGroupMember(groupId, userId, creatorMembership);
-            db.seedGroupMember(groupId, 'payer-user', payerMembership);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembership);
+            const created = await appDriver.createSettlement(userId, settlementRequest);
 
             const updateRequest = new SettlementUpdateBuilder().withAmount(150.75).withCurrency('USD').build();
 
-            const req = createStubRequest(userId, updateRequest, { settlementId });
-            const res = createStubResponse();
+            const result = await appDriver.updateSettlement(userId, created.id, updateRequest);
 
-            await settlementHandlers.updateSettlement(req, res);
-
-            expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
-            const json = (res as any).getJson();
-            expect(json).toMatchObject(expect.objectContaining({
-                id: settlementId,
+            expect(result).toMatchObject({
+                id: created.id,
                 amount: '150.75',
-            }));
+            });
         });
 
         it('should update settlement note successfully', async () => {
-            const groupId = 'test-group';
             const userId = 'test-user';
-            const settlementId = 'test-settlement';
+            const payerId = 'payer-user';
+            const payeeId = 'payee-user';
 
-            db.seedUser(userId, { displayName: 'Test User' });
-            db.seedUser('payer-user', { displayName: 'Payer' });
-            db.seedUser('payee-user', { displayName: 'Payee' });
-            db.seedGroup(groupId, { name: 'Test Group', createdBy: userId });
-            db.initializeGroupBalance(groupId);
+            appDriver.seedUser(userId, { displayName: 'Test User' });
+            appDriver.seedUser(payerId, { displayName: 'Payer' });
+            appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const settlement = new SettlementDTOBuilder()
-                .withId(settlementId)
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
+            const group = await appDriver.createGroup(userId);
+            const { linkId } = await appDriver.generateShareableLink(userId, group.id);
+            await appDriver.joinGroupByLink(payerId, linkId);
+            await appDriver.joinGroupByLink(payeeId, linkId);
+
+            const settlementRequest = new CreateSettlementRequestBuilder()
+                .withGroupId(group.id)
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
+                .withAmount(100)
+                .withCurrency('USD')
                 .withNote('Old note')
-                .withCreatedBy(userId)
                 .build();
 
-            db.seedSettlement(settlementId, settlement);
-
-            const creatorMembership = new GroupMemberDocumentBuilder()
-                .withUserId(userId)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-
-            db.seedGroupMember(groupId, userId, creatorMembership);
-            db.seedGroupMember(groupId, 'payer-user', payerMembership);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembership);
+            const created = await appDriver.createSettlement(userId, settlementRequest);
 
             const updateRequest = new SettlementUpdateBuilder().withNote('Updated note').build();
 
-            const req = createStubRequest(userId, updateRequest, { settlementId });
-            const res = createStubResponse();
+            const result = await appDriver.updateSettlement(userId, created.id, updateRequest);
 
-            await settlementHandlers.updateSettlement(req, res);
-
-            expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
-            const json = (res as any).getJson();
-            expect(json).toMatchObject(expect.objectContaining({
-                id: settlementId,
+            expect(result).toMatchObject({
+                id: created.id,
                 note: 'Updated note',
-            }));
+            });
         });
 
         it('should reject update with invalid settlement ID', async () => {
             const updateRequest = { amount: '150' };
-            const req = createStubRequest('test-user', updateRequest, { settlementId: '' });
-            const res = createStubResponse();
 
-            await expect(settlementHandlers.updateSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.updateSettlement('test-user', '', updateRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_SETTLEMENT_ID',
@@ -644,10 +462,8 @@ describe('SettlementHandlers - Unit Tests', () => {
 
         it('should reject update with no fields provided', async () => {
             const updateRequest = {};
-            const req = createStubRequest('test-user', updateRequest, { settlementId: 'test-settlement' });
-            const res = createStubResponse();
 
-            await expect(settlementHandlers.updateSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.updateSettlement('test-user', 'test-settlement', updateRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -660,10 +476,8 @@ describe('SettlementHandlers - Unit Tests', () => {
                 amount: '100.50',
                 currency: 'JPY',
             };
-            const req = createStubRequest('test-user', updateRequest, { settlementId: 'test-settlement' });
-            const res = createStubResponse();
 
-            await expect(settlementHandlers.updateSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.updateSettlement('test-user', 'test-settlement', updateRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -673,13 +487,11 @@ describe('SettlementHandlers - Unit Tests', () => {
 
         it('should reject update of non-existent settlement', async () => {
             const userId = 'test-user';
-            db.seedUser(userId);
+            appDriver.seedUser(userId);
 
             const updateRequest = { amount: '150' };
-            const req = createStubRequest(userId, updateRequest, { settlementId: 'non-existent-settlement' });
-            const res = createStubResponse();
 
-            await expect(settlementHandlers.updateSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.updateSettlement(userId, 'non-existent-settlement', updateRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                 }),
@@ -687,50 +499,34 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject update when user is not a group member', async () => {
-            const groupId = 'test-group';
             const creatorId = 'creator-user';
             const nonMemberId = 'non-member-user';
-            const settlementId = 'test-settlement';
+            const payerId = 'payer-user';
+            const payeeId = 'payee-user';
 
-            db.seedUser(creatorId);
-            db.seedUser(nonMemberId);
-            db.seedUser('payer-user');
-            db.seedUser('payee-user');
-            db.seedGroup(groupId, { createdBy: creatorId });
-            db.initializeGroupBalance(groupId);
+            appDriver.seedUser(creatorId);
+            appDriver.seedUser(nonMemberId);
+            appDriver.seedUser(payerId);
+            appDriver.seedUser(payeeId);
 
-            const settlement = new SettlementDTOBuilder()
-                .withId(settlementId)
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
-                .withCreatedBy(creatorId)
+            const group = await appDriver.createGroup(creatorId);
+            const { linkId } = await appDriver.generateShareableLink(creatorId, group.id);
+            await appDriver.joinGroupByLink(payerId, linkId);
+            await appDriver.joinGroupByLink(payeeId, linkId);
+
+            const settlementRequest = new CreateSettlementRequestBuilder()
+                .withGroupId(group.id)
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
+                .withAmount(100)
+                .withCurrency('USD')
                 .build();
 
-            db.seedSettlement(settlementId, settlement);
-
-            const creatorMembership = new GroupMemberDocumentBuilder()
-                .withUserId(creatorId)
-                .withGroupId(groupId)
-                .buildDocument();
-            const payerMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .buildDocument();
-            const payeeMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .buildDocument();
-
-            db.seedGroupMember(groupId, creatorId, creatorMembership);
-            db.seedGroupMember(groupId, 'payer-user', payerMembership);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembership);
+            const created = await appDriver.createSettlement(creatorId, settlementRequest);
 
             const updateRequest = new SettlementUpdateBuilder().withAmount(150).build();
-            const req = createStubRequest(nonMemberId, updateRequest, { settlementId });
-            const res = createStubResponse();
 
-            await expect(settlementHandlers.updateSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.updateSettlement(nonMemberId, created.id, updateRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
                 }),
@@ -738,63 +534,35 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject update by non-creator even if admin', async () => {
-            const groupId = 'test-group';
             const adminId = 'admin-user';
             const creatorId = 'creator-user';
-            const settlementId = 'test-settlement';
+            const payerId = 'payer-user';
+            const payeeId = 'payee-user';
 
-            db.seedUser(adminId, { displayName: 'Admin User' });
-            db.seedUser(creatorId, { displayName: 'Creator User' });
-            db.seedUser('payer-user', { displayName: 'Payer' });
-            db.seedUser('payee-user', { displayName: 'Payee' });
-            db.seedGroup(groupId, { name: 'Test Group', createdBy: adminId });
-            db.initializeGroupBalance(groupId);
+            appDriver.seedUser(adminId, { displayName: 'Admin User' });
+            appDriver.seedUser(creatorId, { displayName: 'Creator User' });
+            appDriver.seedUser(payerId, { displayName: 'Payer' });
+            appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const settlement = new SettlementDTOBuilder()
-                .withId(settlementId)
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
-                .withCreatedBy(creatorId)
+            const group = await appDriver.createGroup(adminId);
+            const { linkId } = await appDriver.generateShareableLink(adminId, group.id);
+            await appDriver.joinGroupByLink(creatorId, linkId);
+            await appDriver.joinGroupByLink(payerId, linkId);
+            await appDriver.joinGroupByLink(payeeId, linkId);
+
+            const settlementRequest = new CreateSettlementRequestBuilder()
+                .withGroupId(group.id)
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
+                .withAmount(100)
+                .withCurrency('USD')
                 .build();
 
-            db.seedSettlement(settlementId, settlement);
-
-            const adminMembership = new GroupMemberDocumentBuilder()
-                .withUserId(adminId)
-                .withGroupId(groupId)
-                .withRole('admin')
-                .withStatus('active')
-                .buildDocument();
-            const creatorMembership = new GroupMemberDocumentBuilder()
-                .withUserId(creatorId)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-
-            db.seedGroupMember(groupId, adminId, adminMembership);
-            db.seedGroupMember(groupId, creatorId, creatorMembership);
-            db.seedGroupMember(groupId, 'payer-user', payerMembership);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembership);
+            const created = await appDriver.createSettlement(creatorId, settlementRequest);
 
             const updateRequest = new SettlementUpdateBuilder().withAmount(200.50).withCurrency('USD').build();
-            const req = createStubRequest(adminId, updateRequest, { settlementId });
-            const res = createStubResponse();
 
-            await expect(settlementHandlers.updateSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.updateSettlement(adminId, created.id, updateRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
                 }),
@@ -803,10 +571,8 @@ describe('SettlementHandlers - Unit Tests', () => {
 
         it('should reject update with zero amount', async () => {
             const updateRequest = { amount: '0' };
-            const req = createStubRequest('test-user', updateRequest, { settlementId: 'test-settlement' });
-            const res = createStubResponse();
 
-            await expect(settlementHandlers.updateSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.updateSettlement('test-user', 'test-settlement', updateRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -816,10 +582,8 @@ describe('SettlementHandlers - Unit Tests', () => {
 
         it('should reject update with negative amount', async () => {
             const updateRequest = { amount: '-50' };
-            const req = createStubRequest('test-user', updateRequest, { settlementId: 'test-settlement' });
-            const res = createStubResponse();
 
-            await expect(settlementHandlers.updateSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.updateSettlement('test-user', 'test-settlement', updateRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -830,10 +594,8 @@ describe('SettlementHandlers - Unit Tests', () => {
         it('should reject update with excessively long note', async () => {
             const longNote = 'a'.repeat(501);
             const updateRequest = { note: longNote };
-            const req = createStubRequest('test-user', updateRequest, { settlementId: 'test-settlement' });
-            const res = createStubResponse();
 
-            await expect(settlementHandlers.updateSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.updateSettlement('test-user', 'test-settlement', updateRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -844,69 +606,38 @@ describe('SettlementHandlers - Unit Tests', () => {
 
     describe('deleteSettlement', () => {
         it('should soft delete settlement successfully', async () => {
-            const groupId = 'test-group';
             const userId = 'test-user';
-            const settlementId = 'test-settlement';
+            const payerId = 'payer-user';
+            const payeeId = 'payee-user';
 
-            db.seedUser(userId, { displayName: 'Test User' });
-            db.seedUser('payer-user', { displayName: 'Payer' });
-            db.seedUser('payee-user', { displayName: 'Payee' });
-            db.seedGroup(groupId, { name: 'Test Group', createdBy: userId });
-            db.initializeGroupBalance(groupId);
+            appDriver.seedUser(userId, { displayName: 'Test User' });
+            appDriver.seedUser(payerId, { displayName: 'Payer' });
+            appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const settlement = new SettlementDTOBuilder()
-                .withId(settlementId)
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
+            const group = await appDriver.createGroup(userId);
+            const { linkId } = await appDriver.generateShareableLink(userId, group.id);
+            await appDriver.joinGroupByLink(payerId, linkId);
+            await appDriver.joinGroupByLink(payeeId, linkId);
+
+            const settlementRequest = new CreateSettlementRequestBuilder()
+                .withGroupId(group.id)
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
                 .withAmount(100)
                 .withCurrency('USD')
-                .withDate(new Date().toISOString())
-                .withCreatedBy(userId)
                 .build();
 
-            db.seedSettlement(settlementId, settlement);
+            const created = await appDriver.createSettlement(userId, settlementRequest);
 
-            const creatorMembership = new GroupMemberDocumentBuilder()
-                .withUserId(userId)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
+            const result = await appDriver.deleteSettlement(userId, created.id);
 
-            db.seedGroupMember(groupId, userId, creatorMembership);
-            db.seedGroupMember(groupId, 'payer-user', payerMembership);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembership);
-
-            const req = createStubRequest(userId, {}, { settlementId });
-            const res = createStubResponse();
-
-            await settlementHandlers.deleteSettlement(req, res);
-
-            expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
-            const json = (res as any).getJson();
-            expect(json).toMatchObject({
+            expect(result).toMatchObject({
                 message: 'Settlement deleted successfully',
             });
         });
 
         it('should reject delete with invalid settlement ID', async () => {
-            const req = createStubRequest('test-user', {}, { settlementId: '' });
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.deleteSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.deleteSettlement('test-user', '')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_SETTLEMENT_ID',
@@ -915,10 +646,7 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject delete of non-existent settlement', async () => {
-            const req = createStubRequest('test-user', {}, { settlementId: 'non-existent-settlement' });
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.deleteSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.deleteSettlement('test-user', 'non-existent-settlement')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                 }),
@@ -926,126 +654,66 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should allow group admin to delete settlement created by another user', async () => {
-            const groupId = 'test-group';
             const adminId = 'admin-user';
             const creatorId = 'creator-user';
-            const settlementId = 'test-settlement';
+            const payerId = 'payer-user';
+            const payeeId = 'payee-user';
 
-            db.seedUser(adminId, { displayName: 'Admin User' });
-            db.seedUser(creatorId, { displayName: 'Creator User' });
-            db.seedUser('payer-user', { displayName: 'Payer' });
-            db.seedUser('payee-user', { displayName: 'Payee' });
-            db.seedGroup(groupId, { name: 'Test Group', createdBy: adminId });
-            db.initializeGroupBalance(groupId);
+            appDriver.seedUser(adminId, { displayName: 'Admin User' });
+            appDriver.seedUser(creatorId, { displayName: 'Creator User' });
+            appDriver.seedUser(payerId, { displayName: 'Payer' });
+            appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const settlement = new SettlementDTOBuilder()
-                .withId(settlementId)
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
+            const group = await appDriver.createGroup(adminId);
+            const { linkId } = await appDriver.generateShareableLink(adminId, group.id);
+            await appDriver.joinGroupByLink(creatorId, linkId);
+            await appDriver.joinGroupByLink(payerId, linkId);
+            await appDriver.joinGroupByLink(payeeId, linkId);
+
+            const settlementRequest = new CreateSettlementRequestBuilder()
+                .withGroupId(group.id)
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
                 .withAmount(100)
                 .withCurrency('USD')
-                .withDate(new Date().toISOString())
-                .withCreatedBy(creatorId)
                 .build();
 
-            db.seedSettlement(settlementId, settlement);
+            const created = await appDriver.createSettlement(creatorId, settlementRequest);
 
-            const adminMembership = new GroupMemberDocumentBuilder()
-                .withUserId(adminId)
-                .withGroupId(groupId)
-                .withRole('admin')
-                .withStatus('active')
-                .buildDocument();
-            const creatorMembership = new GroupMemberDocumentBuilder()
-                .withUserId(creatorId)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
+            const result = await appDriver.deleteSettlement(adminId, created.id);
 
-            db.seedGroupMember(groupId, adminId, adminMembership);
-            db.seedGroupMember(groupId, creatorId, creatorMembership);
-            db.seedGroupMember(groupId, 'payer-user', payerMembership);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembership);
-
-            const req = createStubRequest(adminId, {}, { settlementId });
-            const res = createStubResponse();
-
-            await settlementHandlers.deleteSettlement(req, res);
-
-            expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
-            const json = (res as any).getJson();
-            expect(json).toMatchObject({
+            expect(result).toMatchObject({
                 message: 'Settlement deleted successfully',
             });
         });
 
         it('should reject delete when user is not a group member', async () => {
-            const groupId = 'test-group';
             const creatorId = 'creator-user';
             const nonMemberId = 'non-member-user';
-            const settlementId = 'test-settlement';
+            const payerId = 'payer-user';
+            const payeeId = 'payee-user';
 
-            db.seedUser(creatorId, { displayName: 'Creator User' });
-            db.seedUser(nonMemberId, { displayName: 'Non-member User' });
-            db.seedUser('payer-user', { displayName: 'Payer' });
-            db.seedUser('payee-user', { displayName: 'Payee' });
-            db.seedGroup(groupId, { name: 'Test Group', createdBy: creatorId });
-            db.initializeGroupBalance(groupId);
+            appDriver.seedUser(creatorId, { displayName: 'Creator User' });
+            appDriver.seedUser(nonMemberId, { displayName: 'Non-member User' });
+            appDriver.seedUser(payerId, { displayName: 'Payer' });
+            appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const settlement = new SettlementDTOBuilder()
-                .withId(settlementId)
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
+            const group = await appDriver.createGroup(creatorId);
+            const { linkId } = await appDriver.generateShareableLink(creatorId, group.id);
+            await appDriver.joinGroupByLink(payerId, linkId);
+            await appDriver.joinGroupByLink(payeeId, linkId);
+
+            const settlementRequest = new CreateSettlementRequestBuilder()
+                .withGroupId(group.id)
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
                 .withAmount(100)
                 .withCurrency('USD')
-                .withDate(new Date().toISOString())
-                .withCreatedBy(creatorId)
                 .build();
 
-            db.seedSettlement(settlementId, settlement);
+            const created = await appDriver.createSettlement(creatorId, settlementRequest);
 
-            const creatorMembership = new GroupMemberDocumentBuilder()
-                .withUserId(creatorId)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-
-            db.seedGroupMember(groupId, creatorId, creatorMembership);
-            db.seedGroupMember(groupId, 'payer-user', payerMembership);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembership);
-
-            const req = createStubRequest(nonMemberId, {}, { settlementId });
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.deleteSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.deleteSettlement(nonMemberId, created.id)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
                 }),
@@ -1053,60 +721,33 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject delete by non-creator regular member', async () => {
-            const groupId = 'test-group';
             const creatorId = 'creator-user';
             const otherMemberId = 'other-member-user';
-            const settlementId = 'test-settlement';
+            const payerId = 'payer-user';
+            const payeeId = 'payee-user';
 
-            db.seedUser(creatorId, { displayName: 'Creator User' });
-            db.seedUser(otherMemberId, { displayName: 'Other Member User' });
-            db.seedUser('payer-user', { displayName: 'Payer' });
-            db.seedUser('payee-user', { displayName: 'Payee' });
-            db.seedGroup(groupId, { name: 'Test Group', createdBy: creatorId });
-            db.initializeGroupBalance(groupId);
+            appDriver.seedUser(creatorId, { displayName: 'Creator User' });
+            appDriver.seedUser(otherMemberId, { displayName: 'Other Member User' });
+            appDriver.seedUser(payerId, { displayName: 'Payer' });
+            appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const settlement = new SettlementDTOBuilder()
-                .withId(settlementId)
-                .withGroupId(groupId)
-                .withCreatedBy(creatorId)
+            const group = await appDriver.createGroup(creatorId);
+            const { linkId } = await appDriver.generateShareableLink(creatorId, group.id);
+            await appDriver.joinGroupByLink(otherMemberId, linkId);
+            await appDriver.joinGroupByLink(payerId, linkId);
+            await appDriver.joinGroupByLink(payeeId, linkId);
+
+            const settlementRequest = new CreateSettlementRequestBuilder()
+                .withGroupId(group.id)
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
+                .withAmount(100)
+                .withCurrency('USD')
                 .build();
 
-            db.seedSettlement(settlementId, settlement);
+            const created = await appDriver.createSettlement(creatorId, settlementRequest);
 
-            const creatorMembership = new GroupMemberDocumentBuilder()
-                .withUserId(creatorId)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const otherMemberMembership = new GroupMemberDocumentBuilder()
-                .withUserId(otherMemberId)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-
-            db.seedGroupMember(groupId, creatorId, creatorMembership);
-            db.seedGroupMember(groupId, otherMemberId, otherMemberMembership);
-            db.seedGroupMember(groupId, 'payer-user', payerMembership);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembership);
-
-            const req = createStubRequest(otherMemberId, {}, { settlementId });
-            const res = createStubResponse();
-
-            await expect(settlementHandlers.deleteSettlement(req, res)).rejects.toThrow(
+            await expect(appDriver.deleteSettlement(otherMemberId, created.id)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
                 }),
@@ -1114,55 +755,32 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should allow creator to delete their own settlement', async () => {
-            const groupId = 'test-group';
             const creatorId = 'creator-user';
-            const settlementId = 'test-settlement';
+            const payerId = 'payer-user';
+            const payeeId = 'payee-user';
 
-            db.seedUser(creatorId, { displayName: 'Creator User' });
-            db.seedUser('payer-user', { displayName: 'Payer' });
-            db.seedUser('payee-user', { displayName: 'Payee' });
-            db.seedGroup(groupId, { name: 'Test Group', createdBy: creatorId });
-            db.initializeGroupBalance(groupId);
+            appDriver.seedUser(creatorId, { displayName: 'Creator User' });
+            appDriver.seedUser(payerId, { displayName: 'Payer' });
+            appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const settlement = new SettlementDTOBuilder()
-                .withId(settlementId)
-                .withGroupId(groupId)
-                .withCreatedBy(creatorId)
+            const group = await appDriver.createGroup(creatorId);
+            const { linkId } = await appDriver.generateShareableLink(creatorId, group.id);
+            await appDriver.joinGroupByLink(payerId, linkId);
+            await appDriver.joinGroupByLink(payeeId, linkId);
+
+            const settlementRequest = new CreateSettlementRequestBuilder()
+                .withGroupId(group.id)
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
+                .withAmount(100)
+                .withCurrency('USD')
                 .build();
 
-            db.seedSettlement(settlementId, settlement);
+            const created = await appDriver.createSettlement(creatorId, settlementRequest);
 
-            const creatorMembership = new GroupMemberDocumentBuilder()
-                .withUserId(creatorId)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembership = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
+            const result = await appDriver.deleteSettlement(creatorId, created.id);
 
-            db.seedGroupMember(groupId, creatorId, creatorMembership);
-            db.seedGroupMember(groupId, 'payer-user', payerMembership);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembership);
-
-            const req = createStubRequest(creatorId, {}, { settlementId });
-            const res = createStubResponse();
-
-            await settlementHandlers.deleteSettlement(req, res);
-
-            expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
-            const json = (res as any).getJson();
-            expect(json).toMatchObject({
+            expect(result).toMatchObject({
                 message: 'Settlement deleted successfully',
             });
         });
