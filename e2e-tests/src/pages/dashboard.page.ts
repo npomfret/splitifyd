@@ -88,6 +88,11 @@ export class DashboardPage extends BaseDashboardPage {
     /**
      * E2E-specific group creation that returns e2e GroupDetailPage
      * Delegates to base class for UI interactions, adds e2e-specific verification
+     *
+     * OVERRIDE RATIONALE:
+     * This method overrides the base class to return the e2e-specific GroupDetailPage
+     * instead of the shared GroupDetailPage. This allows e2e tests to access
+     * e2e-specific methods like waitForPage(), verifyAllSettledUp(), etc.
      */
     async createGroupAndNavigate(name: string = generateShortId(), description: string = generateShortId()): Promise<GroupDetailPage> {
         const currentUrl = this.page.url();
@@ -123,7 +128,12 @@ export class DashboardPage extends BaseDashboardPage {
 
     /**
      * E2E-specific modal opening that returns e2e CreateGroupModalPage
-     * Uses base class selector but wraps result in e2e page object
+     *
+     * OVERRIDE RATIONALE:
+     * Uses base class click method but returns e2e-specific CreateGroupModalPage.
+     * This allows e2e tests to access e2e-specific modal methods if they exist.
+     * Currently just wraps the base implementation, but maintains consistency
+     * with other e2e overrides for future extensibility.
      */
     async openCreateGroupModal() {
         // Use base class method to click the button
@@ -212,11 +222,19 @@ export class DashboardPage extends BaseDashboardPage {
 
     /**
      * E2E-specific: Click on a group card and navigate to group detail page
-     * Use this method in e2e tests to get the GroupDetailPage instance
      *
-     * This overrides the base class method to return GroupDetailPage instead of void.
-     * TypeScript doesn't allow changing return types in overrides, but this is intentional
-     * for e2e test workflows that need the page object instance.
+     * OVERRIDE RATIONALE:
+     * This method overrides the base class to return the e2e-specific GroupDetailPage.
+     * The base class returns void, but e2e tests need the page object for complex
+     * workflows like multi-user state verification, settlement operations, etc.
+     *
+     * TypeScript doesn't allow changing return types in overrides, but this is
+     * intentional for e2e test ergonomics. The @ts-expect-error suppresses the
+     * compile error while maintaining type safety for callers.
+     *
+     * @param groupName - The name of the group card to click
+     * @param groupId - Optional group ID for URL verification
+     * @returns E2E GroupDetailPage with extended e2e-specific methods
      */
     // @ts-expect-error - Intentionally changing return type for e2e test ergonomics
     async clickGroupCard(groupName: string, groupId?: string): Promise<GroupDetailPage> {

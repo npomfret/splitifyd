@@ -1,12 +1,17 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { createErrorHandlingProxy } from '@splitifyd/test-support';
+import { BasePage as SharedBasePage, createErrorHandlingProxy } from '@splitifyd/test-support';
 import { EMULATOR_URL } from '../helpers';
 import { HeaderPage } from './header.page';
 
-export abstract class BasePage {
+/**
+ * E2E-specific base page that extends the shared BasePage
+ * Adds e2e-specific functionality like header navigation and emulator URL helpers
+ */
+export abstract class BasePage extends SharedBasePage {
     private _header?: HeaderPage;
 
     constructor(protected _page: Page) {
+        super(_page);
         // Apply automatic error handling proxy to all derived classes
         // This wraps all async methods to automatically capture context on errors
         const className = this.constructor.name;
@@ -20,19 +25,11 @@ export abstract class BasePage {
                 'page', // Getter for page property
                 // Private methods that shouldn't be proxied
                 'waitForFocus',
-                'getFieldIdentifier',
                 'validateInputValue',
                 'waitForMembersInExpenseForm',
                 // Note: get*, is*, has*, constructor, toString, etc. are handled by DEFAULT_EXCLUDED_METHODS
             ],
         }) as this;
-    }
-
-    /**
-     * Public getter for the page property
-     */
-    get page(): Page {
-        return this._page;
     }
 
     /**
@@ -52,17 +49,6 @@ export abstract class BasePage {
 
     private async waitForFocus(input: Locator, timeout = 2000): Promise<void> {
         await expect(input).toBeFocused({ timeout });
-    }
-
-    /**
-     * Helper method to get field identifier for error reporting.
-     */
-    private async getFieldIdentifier(input: Locator): Promise<string> {
-        const fieldName = (await input.getAttribute('name')) || null;
-        const fieldId = (await input.getAttribute('id')) || null;
-        const placeholder = (await input.getAttribute('placeholder')) || null;
-
-        return fieldName || fieldId || placeholder || 'unknown field';
     }
 
     /**
@@ -94,17 +80,30 @@ export abstract class BasePage {
         // For non-number inputs or if number comparison failed, do string comparison
         // Allow trimmed values to match (UI may trim whitespace from inputs)
         if (actualValue !== expectedValue && actualValue !== expectedValue.trim()) {
-            const fieldIdentifier = await this.getFieldIdentifier(input);
+            const fieldIdentifier = await this.getInputIdentifier(input);
             throw new Error(`Input validation failed for field "${fieldIdentifier}": expected "${expectedValue}" but got "${actualValue}"`);
         }
     }
 
     /**
-     * Fill an input field in a way that properly triggers Preact signal updates.
+     * E2E-specific fill input implementation with enhanced validation and event dispatch.
+     *
      * This is necessary because Playwright's fill() method doesn't always trigger
      * the onChange events that Preact signals rely on.
+     *
+     * DIFFERENCES FROM SHARED BASE VERSION:
+     * 1. Calls dispatchEvent('input') to ensure Preact onChange handlers are triggered
+     * 2. Uses validateInputValue() for comprehensive validation (handles number inputs)
+     * 3. Includes focus-based waiting to prevent race conditions under high load
+     * 4. Has retry logic to handle text truncation during parallel test execution
+     *
+     * WHY WE NEED BOTH VERSIONS:
+     * - Shared base: Simpler, sufficient for unit tests in controlled environments
+     * - E2E version: More robust, handles parallel execution and complex validation
+     *
      * Uses focus-based waiting with pressSequentially for reliable input.
-     * Includes retry logic to handle text truncation which has been observed to happen under high load (typically during parallel test execution).
+     * Includes retry logic to handle text truncation which has been observed to happen
+     * under high load (typically during parallel test execution).
      */
     async fillPreactInput(selector: string | Locator, value: string, maxRetries = 3) {
         const input = typeof selector === 'string' ? this._page.locator(selector) : selector;
@@ -145,7 +144,7 @@ export abstract class BasePage {
 
                 // Log and retry if not final attempt
                 if (attempt < maxRetries) {
-                    const fieldId = await this.getFieldIdentifier(input);
+                    const fieldId = await this.getInputIdentifier(input);
                     console.warn(`Input retry ${attempt}: expected "${value}", got "${actualValue}" for ${fieldId}`);
                     await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
                 }

@@ -183,6 +183,10 @@ export abstract class BasePage {
      *
      * Rather than chase down every edge case in Preact's event handling, we use a
      * retry approach: keep trying pressSequentially() until the value is correct.
+     *
+     * NOTE: The e2e BasePage has a more complex version with dispatchEvent('input')
+     * and additional validation. That version is kept for e2e test reliability.
+     * This version is simpler and sufficient for unit tests.
      */
     async fillPreactInput(selector: string | Locator, value: string) {
         const input = typeof selector === 'string' ? this._page.locator(selector) : selector;
@@ -323,8 +327,9 @@ export abstract class BasePage {
 
     /**
      * Get a human-readable identifier for an input field (for error messages)
+     * Protected so child classes can use it for enhanced error reporting
      */
-    private async getInputIdentifier(input: Locator): Promise<string> {
+    protected async getInputIdentifier(input: Locator): Promise<string> {
         const id = await input.getAttribute('id');
         if (id) return `#${id}`;
 
