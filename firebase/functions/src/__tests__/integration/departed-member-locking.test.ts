@@ -7,7 +7,7 @@ import {
     borrowTestUsers,
     CreateExpenseRequestBuilder,
     CreateSettlementRequestBuilder,
-    ExpenseUpdateBuilder,
+    ExpenseUpdateBuilder, generateShortId,
     NotificationDriver,
     SettlementUpdateBuilder,
     TestGroupManager,
@@ -545,10 +545,8 @@ describe('Departed Member Transaction Locking', () => {
 
         test('should allow editing settlement when both parties are current members', async () => {
             // Create group
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 3), {
-                memberCount: 3,
-                fresh: true,
-            });
+            const groupMembers = users.slice(0, 3);
+            const testGroup= await apiDriver.createGroupWithMembers(generateShortId(), groupMembers, groupMembers[0].token);
 
             // Create expense
             await apiDriver.createExpense(
@@ -565,6 +563,7 @@ describe('Departed Member Transaction Locking', () => {
             // Create settlement
             const settlement = await apiDriver.createSettlement(
                 new CreateSettlementRequestBuilder()
+                    .withAmount(40, 'USD')
                     .withGroupId(testGroup.id)
                     .withPayerId(users[1].uid)
                     .withPayeeId(users[0].uid)
@@ -575,6 +574,7 @@ describe('Departed Member Transaction Locking', () => {
             // Update should succeed (no one has left) - update as creator (user 1)
             const updateData = new SettlementUpdateBuilder()
                 .withNote('Updated payment amount')
+                .withAmount(40, 'USD')
                 .build();
 
             await expect(
