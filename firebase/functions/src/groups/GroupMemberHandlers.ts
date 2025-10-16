@@ -1,10 +1,10 @@
-import {GroupMemberService} from "../services/GroupMemberService";
-import {ApplicationBuilder} from "../services/ApplicationBuilder";
-import {getAuth, getFirestore} from "../firebase";
-import {AuthenticatedRequest} from "../auth/middleware";
-import {Response} from "express";
-import {validateGroupId} from "./validation";
-import {logger} from "../utils/contextual-logger";
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../auth/middleware';
+import { getAuth, getFirestore } from '../firebase';
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { GroupMemberService } from '../services/GroupMemberService';
+import { logger } from '../utils/contextual-logger';
+import { validateGroupId } from './validation';
 
 export class GroupMemberHandlers {
     constructor(private readonly groupMemberService: GroupMemberService) {
@@ -12,7 +12,7 @@ export class GroupMemberHandlers {
 
     static createGroupMemberHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth())) {
         const groupMemberService = applicationBuilder.buildGroupMemberService();
-        return new GroupMemberHandlers(groupMemberService)
+        return new GroupMemberHandlers(groupMemberService);
     }
 
     leaveGroup = async (req: AuthenticatedRequest, res: Response) => {
@@ -29,7 +29,7 @@ export class GroupMemberHandlers {
             });
             throw error;
         }
-    }
+    };
 
     removeGroupMember = async (req: AuthenticatedRequest, res: Response) => {
         const userId = req.user?.uid;
@@ -47,5 +47,5 @@ export class GroupMemberHandlers {
             });
             throw error;
         }
-    }
+    };
 }

@@ -3,7 +3,6 @@ import { HTTP_STATUS } from '../../../constants';
 import type { IAuthService } from '../../../services/auth';
 import { ApiError } from '../../../utils/errors';
 
-
 /**
  * In-memory stub implementation of IAuthService for unit testing
  * Provides predictable behavior for testing user authentication operations

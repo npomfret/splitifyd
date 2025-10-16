@@ -1,14 +1,6 @@
 import { PositiveAmountStringSchema, SplitTypes } from '@splitifyd/shared';
 import { z } from 'zod';
-import {
-    AuditFieldsSchema,
-    createDocumentSchemas,
-    CurrencyCodeSchema,
-    FirestoreTimestampSchema,
-    GroupIdSchema,
-    SoftDeletionFieldsSchema,
-    UserIdSchema,
-} from './common';
+import { AuditFieldsSchema, createDocumentSchemas, CurrencyCodeSchema, FirestoreTimestampSchema, GroupIdSchema, SoftDeletionFieldsSchema, UserIdSchema } from './common';
 
 const FirestoreExpenseSplitSchema = z.object({
     uid: UserIdSchema,

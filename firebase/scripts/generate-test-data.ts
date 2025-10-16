@@ -1,19 +1,9 @@
 #!/usr/bin/env tsx
 
 import type { Amount, GroupDTO } from '@splitifyd/shared';
-import {
-    PREDEFINED_EXPENSE_CATEGORIES,
-    UserRegistration,
-    AuthenticatedFirebaseUser,
-    normalizeAmount,
-    zeroAmount,
-    compareAmounts,
-    minAmount,
-    subtractAmounts,
-    isZeroAmount,
-} from '@splitifyd/shared';
+import { AuthenticatedFirebaseUser, compareAmounts, isZeroAmount, minAmount, normalizeAmount, PREDEFINED_EXPENSE_CATEGORIES, subtractAmounts, UserRegistration, zeroAmount } from '@splitifyd/shared';
+import type { CreateSettlementRequest } from '@splitifyd/shared/src';
 import { ApiDriver, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
-import type {CreateSettlementRequest} from "@splitifyd/shared/src";
 
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
@@ -533,14 +523,14 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
 
     // Create various expenses in both currencies
     const expenseScenarios = [
-        { description: 'Restaurant dinner', amount: "120", currency: 'GBP', category: 'food' },
-        { description: 'Hotel booking', amount: "350", currency: 'EUR', category: 'accommodation' },
-        { description: 'Concert tickets', amount: "180", currency: 'GBP', category: 'entertainment' },
-        { description: 'Car rental', amount: "240", currency: 'EUR', category: 'transport' },
-        { description: 'Grocery shopping', amount: "85", currency: 'GBP', category: 'food' },
-        { description: 'Train tickets', amount: "150", currency: 'EUR', category: 'transport' },
-        { description: 'Museum passes', amount: "60", currency: 'GBP', category: 'entertainment' },
-        { description: 'Wine tasting tour', amount: "180", currency: 'EUR', category: 'entertainment' },
+        { description: 'Restaurant dinner', amount: '120', currency: 'GBP', category: 'food' },
+        { description: 'Hotel booking', amount: '350', currency: 'EUR', category: 'accommodation' },
+        { description: 'Concert tickets', amount: '180', currency: 'GBP', category: 'entertainment' },
+        { description: 'Car rental', amount: '240', currency: 'EUR', category: 'transport' },
+        { description: 'Grocery shopping', amount: '85', currency: 'GBP', category: 'food' },
+        { description: 'Train tickets', amount: '150', currency: 'EUR', category: 'transport' },
+        { description: 'Museum passes', amount: '60', currency: 'GBP', category: 'entertainment' },
+        { description: 'Wine tasting tour', amount: '180', currency: 'EUR', category: 'entertainment' },
     ];
 
     // Create expenses with different payers and participants

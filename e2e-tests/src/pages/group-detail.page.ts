@@ -359,8 +359,7 @@ export class GroupDetailPage extends BaseGroupDetailPage {
             if (!found) {
                 const debugInfo = expenseTexts
                     .map(
-                        (e) =>
-                            `  [${e.index}] hasPayer=${e.hasPayer}, hasAmount=${e.hasAmount}\n     Text: "${e.text.substring(0, 200)}${e.text.length > 200 ? '...' : ''}"`,
+                        (e) => `  [${e.index}] hasPayer=${e.hasPayer}, hasAmount=${e.hasAmount}\n     Text: "${e.text.substring(0, 200)}${e.text.length > 200 ? '...' : ''}"`,
                     )
                     .join('\n');
 
@@ -371,7 +370,8 @@ export class GroupDetailPage extends BaseGroupDetailPage {
                         + `Looking for amount: "${currencyAmount}"`,
                 );
             }
-        }).toPass({ timeout: 5000 });
+        })
+            .toPass({ timeout: 5000 });
     }
 
     /**

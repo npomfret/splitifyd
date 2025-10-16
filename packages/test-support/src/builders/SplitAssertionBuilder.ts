@@ -1,6 +1,6 @@
 import type { ExpenseSplit } from '@splitifyd/shared';
-import { generateShortId } from '../test-helpers';
 import { Amount, ZERO } from '@splitifyd/shared';
+import { generateShortId } from '../test-helpers';
 
 /**
  * Builder for single ExpenseSplit objects - used in split strategy test assertions
@@ -28,7 +28,7 @@ export class SplitAssertionBuilder {
      * Set the amount for this split
      */
     withAmount(amount: Amount | number): this {
-        this.split.amount = typeof amount === "number" ? amount.toString() : amount;
+        this.split.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
 

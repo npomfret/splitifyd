@@ -8,8 +8,8 @@ export * from './user-colors';
 export * from './currencies';
 
 // Export split calculation utilities
-export * from './split-utils';
 export * from './amount-math';
+export * from './split-utils';
 
 // Export application constants
 export * from './constants';

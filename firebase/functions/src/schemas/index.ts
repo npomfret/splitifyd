@@ -70,14 +70,5 @@ export { type ParsedCurrencyBalances } from './balance';
 // GROUP BALANCE SCHEMAS
 // ==========================================
 // Schemas for pre-computed group balances stored in Firestore
-export { GroupBalanceDocumentSchema, GroupBalanceDTOSchema, type GroupBalanceDTO } from './group-balance';
-export {
-    AuditFieldsSchema,
-    CurrencyCodeSchema,
-    DocumentIdSchema,
-    FirestoreTimestampSchema,
-    GroupIdSchema,
-    OptionalAuditFieldsSchema,
-    SoftDeletionFieldsSchema,
-    UserIdSchema,
-} from './common';
+export { AuditFieldsSchema, CurrencyCodeSchema, DocumentIdSchema, FirestoreTimestampSchema, GroupIdSchema, OptionalAuditFieldsSchema, SoftDeletionFieldsSchema, UserIdSchema } from './common';
+export { GroupBalanceDocumentSchema, type GroupBalanceDTO, GroupBalanceDTOSchema } from './group-balance';

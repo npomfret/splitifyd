@@ -39,7 +39,7 @@ export type ISOString = string;
  * See: tasks/monetary-amounts-as-strings-refactor.md
  */
 export type Amount = string;
-export const ZERO: Amount = "0";
+export const ZERO: Amount = '0';
 
 /**
  * Zod schema for expense splits

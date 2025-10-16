@@ -1,10 +1,10 @@
+import { PolicyDocumentBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
 import * as crypto from 'crypto';
-import {PolicyDocumentBuilder, StubFirestoreDatabase} from '@splitifyd/test-support';
-import {beforeEach, describe, expect, it} from 'vitest';
-import {HTTP_STATUS} from '../../../constants';
-import {PolicyService} from '../../../services/PolicyService';
-import {FirestoreReader} from '../../../services/firestore';
-import {FirestoreWriter} from '../../../services/firestore';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { HTTP_STATUS } from '../../../constants';
+import { FirestoreReader } from '../../../services/firestore';
+import { FirestoreWriter } from '../../../services/firestore';
+import { PolicyService } from '../../../services/PolicyService';
 
 /**
  * Consolidated PolicyService Unit Tests
@@ -883,12 +883,14 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Create same content version - should fail
             await expect(
                 policyService.updatePolicy(policyId, baseContent), // Same text as original
-            ).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.CONFLICT,
-                    code: 'VERSION_ALREADY_EXISTS',
-                }),
-            );
+            )
+                .rejects
+                .toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.CONFLICT,
+                        code: 'VERSION_ALREADY_EXISTS',
+                    }),
+                );
 
             // Different content should succeed
             const updateResult = await policyService.updatePolicy(policyId, 'Different content');

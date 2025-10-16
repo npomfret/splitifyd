@@ -1,6 +1,6 @@
 import type { ExpenseDTO } from '@splitifyd/shared';
+import { Amount } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair, timestampToISOString } from '../test-helpers';
-import {Amount} from "@splitifyd/shared";
 
 /**
  * Builder for creating ExpenseDTO objects for tests

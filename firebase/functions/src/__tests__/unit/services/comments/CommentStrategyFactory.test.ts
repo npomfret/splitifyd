@@ -1,4 +1,5 @@
 import { CommentTargetTypes } from '@splitifyd/shared';
+import { StubFirestoreDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CommentStrategyFactory } from '../../../../services/comments/CommentStrategyFactory';
 import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCommentStrategy';
@@ -6,7 +7,6 @@ import { GroupCommentStrategy } from '../../../../services/comments/GroupComment
 import { FirestoreReader } from '../../../../services/firestore';
 import { FirestoreWriter } from '../../../../services/firestore';
 import { GroupMemberService } from '../../../../services/GroupMemberService';
-import { StubFirestoreDatabase } from '@splitifyd/test-support';
 
 describe('CommentStrategyFactory', () => {
     let factory: CommentStrategyFactory;

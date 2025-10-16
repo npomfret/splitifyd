@@ -1,5 +1,5 @@
 import { formatCurrency } from '@/utils/currency';
-import { GroupDTO, absAmount, amountToSmallestUnit } from '@splitifyd/shared';
+import { absAmount, amountToSmallestUnit, GroupDTO } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
 import { Card } from '../ui';
 

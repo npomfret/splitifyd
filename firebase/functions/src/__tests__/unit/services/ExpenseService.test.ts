@@ -1,12 +1,12 @@
-import {CreateExpenseRequestBuilder, ExpenseDTOBuilder, StubFirestoreDatabase} from '@splitifyd/test-support';
-import {beforeEach, describe, expect, it} from 'vitest';
-import {HTTP_STATUS} from '../../../constants';
-import {Timestamp as FirestoreTimestamp} from '../../../firestore-wrapper';
-import {ApplicationBuilder} from '../../../services/ApplicationBuilder';
-import {ExpenseService} from '../../../services/ExpenseService';
-import {FirestoreReader, FirestoreWriter} from '../../../services/firestore';
-import {ApiError} from '../../../utils/errors';
-import {StubAuthService,} from '../mocks/StubAuthService';
+import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { HTTP_STATUS } from '../../../constants';
+import { Timestamp as FirestoreTimestamp } from '../../../firestore-wrapper';
+import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { ExpenseService } from '../../../services/ExpenseService';
+import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
+import { ApiError } from '../../../utils/errors';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;
@@ -37,8 +37,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withSplitType('equal')
                 .withParticipants([userId, 'other-user'])
                 .withSplits([
-                    { uid: userId, amount: "50.25" },
-                    { uid: 'other-user', amount: "50.25" },
+                    { uid: userId, amount: '50.25' },
+                    { uid: 'other-user', amount: '50.25' },
                 ])
                 .withReceiptUrl('https://example.com/receipt.jpg')
                 .withCreatedAt(now)
@@ -57,7 +57,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 groupId: 'test-group-id',
                 createdBy: 'creator-id',
                 paidBy: 'payer-id',
-                amount: "100.5",
+                amount: '100.5',
                 currency: 'USD',
                 description: 'Test expense',
                 category: 'Food',
@@ -65,8 +65,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 splitType: 'equal',
                 participants: [userId, 'other-user'],
                 splits: [
-                    { uid: userId, amount: "50.25"},
-                    { uid: 'other-user', amount: "50.25"},
+                    { uid: userId, amount: '50.25' },
+                    { uid: 'other-user', amount: '50.25' },
                 ],
                 receiptUrl: 'https://example.com/receipt.jpg',
                 createdAt: expect.any(String),
@@ -203,7 +203,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withId(expenseId)
                 .withAmount(100.33)
                 .withParticipants([userId])
-                .withSplits([{ uid: userId, amount: "100.33" }])
+                .withSplits([{ uid: userId, amount: '100.33' }])
                 .withCreatedAt(FirestoreTimestamp.now())
                 .withUpdatedAt(FirestoreTimestamp.now())
                 .build();
@@ -214,8 +214,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const result = await expenseService.getExpense(expenseId, userId);
 
             // Assert
-            expect(result.amount).toBe("100.33");
-            expect(result.splits[0].amount).toBe("100.33");
+            expect(result.amount).toBe('100.33');
+            expect(result.splits[0].amount).toBe('100.33');
         });
     });
 
@@ -231,7 +231,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withPaidBy('user1')
                 .withParticipants(['user1'])
                 .withSplitType('equal')
-                .withSplits([{ uid: 'user1', amount: "-50" }])
+                .withSplits([{ uid: 'user1', amount: '-50' }])
                 .withDate(new Date().toISOString())
                 .build();
 
@@ -254,7 +254,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withPaidBy('user1')
                 .withParticipants(['user1'])
                 .withSplitType('equal')
-                .withSplits([{ uid: 'user1', amount: "100" }])
+                .withSplits([{ uid: 'user1', amount: '100' }])
                 .withDate(new Date().toISOString())
                 .build();
 
@@ -412,7 +412,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withCategory('Food')
                 .withSplitType('equal')
                 .withParticipants([userId])
-                .withSplits([{ uid: userId, amount: "100.5" }])
+                .withSplits([{ uid: userId, amount: '100.5' }])
                 .withReceiptUrl('https://example.com/receipt.jpg')
                 .withCreatedAt(now)
                 .withUpdatedAt(now)
@@ -429,14 +429,14 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 groupId: 'test-group',
                 createdBy: userId,
                 paidBy: userId,
-                amount: "100.5",
+                amount: '100.5',
                 currency: 'USD',
                 description: 'Test expense',
                 category: 'Food',
                 date: expect.any(String), // ISO string
                 splitType: 'equal',
                 participants: [userId],
-                splits: [{ uid: userId, amount: "100.5"}],
+                splits: [{ uid: userId, amount: '100.5' }],
                 receiptUrl: 'https://example.com/receipt.jpg',
                 createdAt: expect.any(String),
                 updatedAt: expect.any(String),

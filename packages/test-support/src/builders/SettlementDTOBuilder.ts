@@ -1,6 +1,6 @@
 import type { SettlementDTO } from '@splitifyd/shared';
+import { Amount } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair, timestampToISOString } from '../test-helpers';
-import {Amount} from "@splitifyd/shared";
 
 /**
  * Builder for creating Settlement objects for tests
@@ -65,7 +65,7 @@ export class SettlementDTOBuilder {
     }
 
     withAmount(amount: Amount | number): SettlementDTOBuilder {
-        this.amount = typeof amount === "number" ? amount.toString() : amount;
+        this.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
 

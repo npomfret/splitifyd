@@ -1,5 +1,5 @@
-import {GroupShareHandlers} from "./GroupShareHandlers";
-import {getAppBuilder} from "../ApplicationBuilderSingleton";
+import { getAppBuilder } from '../ApplicationBuilderSingleton';
+import { GroupShareHandlers } from './GroupShareHandlers';
 
 const groupShareHandlers = GroupShareHandlers.createGroupShareHandlers(getAppBuilder());
 

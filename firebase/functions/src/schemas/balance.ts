@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import { z } from 'zod';
 
 // Schema for UserBalance (from @splitifyd/shared)
 const UserBalanceSchema = z.object({

@@ -1,4 +1,4 @@
-import { Amount, ExpenseSplit, amountToSmallestUnit, getCurrencyDecimals, normalizeAmount } from '@splitifyd/shared';
+import { Amount, amountToSmallestUnit, ExpenseSplit, getCurrencyDecimals, normalizeAmount } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../../constants';
 import { getCurrencyTolerance } from '../../utils/amount-validation';
 import { ApiError } from '../../utils/errors';

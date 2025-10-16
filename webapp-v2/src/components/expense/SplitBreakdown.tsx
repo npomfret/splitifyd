@@ -1,5 +1,5 @@
 import { formatCurrency } from '@/utils/currency';
-import { ExpenseDTO, GroupMember, amountToSmallestUnit } from '@splitifyd/shared';
+import { amountToSmallestUnit, ExpenseDTO, GroupMember } from '@splitifyd/shared';
 import { SplitTypes } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
 import { Avatar } from '../ui/Avatar';

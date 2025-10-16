@@ -1,5 +1,5 @@
 import { CreateGroupRequest } from '@splitifyd/shared';
-import {CreateGroupRequestBuilder, GroupUpdateBuilder, StubFirestoreDatabase} from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder, GroupUpdateBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
 import { validateCreateGroup, validateGroupId, validateUpdateGroup } from '../../groups/validation';
@@ -9,7 +9,7 @@ import { FirestoreWriter } from '../../services/firestore';
 import { GroupService } from '../../services/GroupService';
 import { ApiError } from '../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
-import { StubAuthService} from './mocks/StubAuthService';
+import { StubAuthService } from './mocks/StubAuthService';
 
 describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;

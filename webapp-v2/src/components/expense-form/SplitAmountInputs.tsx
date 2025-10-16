@@ -1,5 +1,5 @@
 import { formatCurrency, getCurrency } from '@/utils/currency';
-import { amountToSmallestUnit, smallestUnitToAmountString, Amount, ZERO } from '@splitifyd/shared';
+import { Amount, amountToSmallestUnit, smallestUnitToAmountString, ZERO } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
 import { Avatar } from '../ui';
 

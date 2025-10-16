@@ -1,4 +1,4 @@
-import { SimplifiedDebt, UserBalance, isZeroAmount } from '@splitifyd/shared';
+import { isZeroAmount, SimplifiedDebt, UserBalance } from '@splitifyd/shared';
 import type { ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
 import { simplifyDebts } from '../../utils/debtSimplifier';
 

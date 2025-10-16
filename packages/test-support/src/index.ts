@@ -1,3 +1,8 @@
+export * from './ApiDriver';
+export * from './builders';
+export * from './error-proxy';
+export * from './errors/test-errors';
+export * from './firebase-emulator-config';
 export type {
     ICollectionReference,
     IDocumentReference,
@@ -11,16 +16,11 @@ export type {
     SetOptions,
     WhereFilterOp,
 } from './firestore-types';
-export { StubFirestoreDatabase } from './StubFirestoreDatabase';
-export * from './ApiDriver';
-export * from './builders';
-export * from './error-proxy';
-export * from './errors/test-errors';
-export * from './firebase-emulator-config';
 export * from './http-stubs';
 export * from './NotificationDriver';
 export * from './page-objects';
 export * from './Polling';
+export { StubFirestoreDatabase } from './StubFirestoreDatabase';
 export * from './test-constants';
 export * from './test-helpers';
 export * from './test-pool-helpers';

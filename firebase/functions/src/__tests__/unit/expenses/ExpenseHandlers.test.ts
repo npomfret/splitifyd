@@ -1,12 +1,12 @@
-import type {UpdateExpenseRequest} from '@splitifyd/shared';
-import {CreateExpenseRequestBuilder, createStubRequest, createStubResponse, ExpenseDTOBuilder, StubFirestoreDatabase} from '@splitifyd/test-support';
-import {beforeEach, describe, expect, it} from 'vitest';
-import {HTTP_STATUS} from '../../../constants';
-import {ExpenseHandlers} from '../../../expenses/ExpenseHandlers';
-import {ApplicationBuilder} from '../../../services/ApplicationBuilder';
-import {FirestoreReader, FirestoreWriter} from '../../../services/firestore';
-import {GroupMemberDocumentBuilder} from '../../support/GroupMemberDocumentBuilder';
-import {StubAuthService} from '../mocks/StubAuthService';
+import type { UpdateExpenseRequest } from '@splitifyd/shared';
+import { CreateExpenseRequestBuilder, createStubRequest, createStubResponse, ExpenseDTOBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { HTTP_STATUS } from '../../../constants';
+import { ExpenseHandlers } from '../../../expenses/ExpenseHandlers';
+import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
+import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('ExpenseHandlers - Unit Tests', () => {
     let expenseHandlers: ExpenseHandlers;
@@ -315,7 +315,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should reject update with invalid expense ID', async () => {
-            const updateRequest: UpdateExpenseRequest = { amount: "150" };
+            const updateRequest: UpdateExpenseRequest = { amount: '150' };
             const req = createStubRequest('test-user', updateRequest);
             req.query = { id: '' };
             const res = createStubResponse();
@@ -344,7 +344,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
         it('should reject update with invalid amount precision when currency provided', async () => {
             const updateRequest: UpdateExpenseRequest = {
-                amount: "100.50",
+                amount: '100.50',
                 currency: 'JPY',
             };
             const req = createStubRequest('test-user', updateRequest);

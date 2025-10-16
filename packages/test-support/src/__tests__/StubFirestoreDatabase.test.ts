@@ -3,7 +3,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest';
-import {StubFirestoreDatabase} from "../StubFirestoreDatabase";
+import { StubFirestoreDatabase } from '../StubFirestoreDatabase';
 
 describe('StubFirestoreDatabase - Example Usage', () => {
     let db: StubFirestoreDatabase;

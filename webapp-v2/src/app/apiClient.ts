@@ -34,10 +34,10 @@ import type {
     UserPolicyStatusResponse,
     UserProfileResponse,
 } from '@splitifyd/shared';
-import { z } from 'zod';
 import { ApiErrorResponseSchema, responseSchemas } from '@splitifyd/shared';
+import type { UpdateSettlementRequest } from '@splitifyd/shared';
+import { z } from 'zod';
 import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';
-import type {UpdateSettlementRequest} from "@splitifyd/shared";
 
 // All types are now imported from shared-types
 

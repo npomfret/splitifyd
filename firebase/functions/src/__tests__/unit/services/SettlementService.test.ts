@@ -1,12 +1,12 @@
-import {CreateSettlementRequestBuilder, StubFirestoreDatabase} from '@splitifyd/test-support';
-import {beforeEach, describe, expect, it} from 'vitest';
-import {HTTP_STATUS} from '../../../constants';
-import {Timestamp} from '@google-cloud/firestore';
-import {ApplicationBuilder} from '../../../services/ApplicationBuilder';
-import {FirestoreReader, FirestoreWriter} from '../../../services/firestore';
-import {SettlementService} from '../../../services/SettlementService';
-import {GroupMemberDocumentBuilder} from '../../support/GroupMemberDocumentBuilder';
-import {StubAuthService,} from '../mocks/StubAuthService';
+import { Timestamp } from '@google-cloud/firestore';
+import { CreateSettlementRequestBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { HTTP_STATUS } from '../../../constants';
+import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
+import { SettlementService } from '../../../services/SettlementService';
+import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('SettlementService - Unit Tests', () => {
     let settlementService: SettlementService;
@@ -72,7 +72,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Assert
             expect(result.id).toBeDefined();
-            expect(result.amount).toBe("100.5");
+            expect(result.amount).toBe('100.5');
             expect(result.currency).toBe('USD');
             expect(result.note).toBe('Test settlement');
         });
@@ -125,7 +125,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Assert
             expect(result.id).toBeDefined();
-            expect(result.amount).toBe("50");
+            expect(result.amount).toBe('50');
             expect(result.note).toBeUndefined();
         });
     });
@@ -425,7 +425,7 @@ describe('SettlementService - Unit Tests', () => {
             const result = await settlementService.createSettlement(settlementData, userId);
 
             // Assert
-            expect(result.amount).toBe("123.45");
+            expect(result.amount).toBe('123.45');
         });
 
         it('should handle maximum valid amount', async () => {
@@ -582,7 +582,7 @@ describe('SettlementService - Unit Tests', () => {
                 groupId,
                 payerId: 'payer-user',
                 payeeId: 'payee-user',
-                amount: "100",
+                amount: '100',
                 currency: 'USD',
                 date: Timestamp.now(),
                 note: 'Test settlement',
@@ -638,7 +638,7 @@ describe('SettlementService - Unit Tests', () => {
                 groupId,
                 payerId: 'payer-user',
                 payeeId: 'payee-user',
-                amount: "100",
+                amount: '100',
                 currency: 'USD',
                 date: Timestamp.now(),
                 createdBy: creatorId,
@@ -681,7 +681,7 @@ describe('SettlementService - Unit Tests', () => {
                 groupId,
                 payerId: 'payer-user',
                 payeeId: 'payee-user',
-                amount: "100",
+                amount: '100',
                 currency: 'USD',
                 date: Timestamp.now(),
                 createdBy: creatorId,
@@ -735,7 +735,7 @@ describe('SettlementService - Unit Tests', () => {
                 groupId,
                 payerId: 'payer-user',
                 payeeId: 'payee-user',
-                amount: "100",
+                amount: '100',
                 currency: 'USD',
                 date: Timestamp.now(),
                 createdBy: creatorId, // Different from admin
@@ -797,7 +797,7 @@ describe('SettlementService - Unit Tests', () => {
                 groupId,
                 payerId: 'payer-user',
                 payeeId: 'payee-user',
-                amount: "100",
+                amount: '100',
                 currency: 'USD',
                 date: Timestamp.now(),
                 createdBy: creatorId,
@@ -854,7 +854,7 @@ describe('SettlementService - Unit Tests', () => {
                 groupId,
                 payerId: 'payer-user',
                 payeeId: 'payee-user',
-                amount: "100",
+                amount: '100',
                 currency: 'USD',
                 date: Timestamp.now(),
                 createdBy: creatorId,

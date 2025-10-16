@@ -15,7 +15,7 @@ vi.mock('react-i18next', () => ({
             changeLanguage: vi.fn(),
         },
     }),
-    I18nextProvider: ({ children }: { children: any }) => children,
+    I18nextProvider: ({ children }: { children: any; }) => children,
 }));
 
 describe('Input Component', () => {

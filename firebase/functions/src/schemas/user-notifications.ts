@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-
-import {FirestoreTimestampSchema} from "./common";
+import { FirestoreTimestampSchema } from './common';
 
 /**
  * Schema for per-user notification documents

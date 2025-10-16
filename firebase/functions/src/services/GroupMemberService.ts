@@ -1,9 +1,9 @@
-import { MemberRoles, amountToSmallestUnit } from '@splitifyd/shared';
-import {logger, LoggerContext} from '../logger';
+import { amountToSmallestUnit, MemberRoles } from '@splitifyd/shared';
+import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
-import {PerformanceTimer} from '../monitoring/PerformanceTimer';
-import {ApiError, Errors} from '../utils/errors';
-import type {IFirestoreReader, IFirestoreWriter} from './firestore';
+import { PerformanceTimer } from '../monitoring/PerformanceTimer';
+import { ApiError, Errors } from '../utils/errors';
+import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 
 export class GroupMemberService {
     constructor(

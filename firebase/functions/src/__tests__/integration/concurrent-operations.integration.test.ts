@@ -1,4 +1,4 @@
-import { GroupDTO, amountToSmallestUnit } from '@splitifyd/shared';
+import { amountToSmallestUnit, GroupDTO } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
 import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, NotificationDriver } from '@splitifyd/test-support';
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';

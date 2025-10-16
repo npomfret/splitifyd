@@ -1,6 +1,6 @@
 import { CommentTargetTypes } from '@splitifyd/shared';
 import type { CommentTargetType, CreateCommentRequest } from '@splitifyd/shared';
-import {AuthUserRecordBuilder, CommentRequestBuilder, ExpenseDTOBuilder, GroupDTOBuilder, StubFirestoreDatabase} from '@splitifyd/test-support';
+import { AuthUserRecordBuilder, CommentRequestBuilder, ExpenseDTOBuilder, GroupDTOBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { validateCommentId, validateCreateComment, validateListCommentsQuery, validateTargetId } from '../../../comments/validation';
 import { HTTP_STATUS } from '../../../constants';
@@ -10,7 +10,7 @@ import { FirestoreReader } from '../../../services/firestore';
 import { FirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
-import { StubAuthService, } from '../mocks/StubAuthService';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('CommentService - Consolidated Tests', () => {
     let commentService: CommentService;

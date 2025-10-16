@@ -1,5 +1,5 @@
+import { Amount, amountToSmallestUnit, normalizeAmount } from '@splitifyd/shared';
 import { getCurrency } from './currencyList';
-import { Amount, normalizeAmount, amountToSmallestUnit } from '@splitifyd/shared';
 
 export interface FormatOptions {
     locale?: string;

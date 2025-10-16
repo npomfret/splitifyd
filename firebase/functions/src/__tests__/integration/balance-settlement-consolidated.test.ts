@@ -132,7 +132,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                 const retrieved = await apiDriver.getSettlement(testGroup.id, created.id, settlementUsers[0].token);
 
                 expect(retrieved.id).toBe(created.id);
-                expect(retrieved.amount).toBe("100");
+                expect(retrieved.amount).toBe('100');
                 expect(retrieved.currency).toBe('USD');
                 expect(retrieved.note).toBe('Retrieve test');
                 expect(retrieved.payer).toBeDefined();
@@ -180,7 +180,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
                 const updated = await apiDriver.updateSettlement(created.id, updateData, settlementUsers[0].token);
 
-                expect(updated.amount).toBe("75.25");
+                expect(updated.amount).toBe('75.25');
                 expect(updated.currency).toBe('EUR');
                 expect(updated.note).toBe('Updated note');
             });

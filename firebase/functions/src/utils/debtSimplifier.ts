@@ -1,4 +1,4 @@
-import { SimplifiedDebt, UserBalance, addAmounts, compareAmounts, isZeroAmount, minAmount, negateAmount, subtractAmounts, zeroAmount } from '@splitifyd/shared';
+import { addAmounts, compareAmounts, isZeroAmount, minAmount, negateAmount, SimplifiedDebt, subtractAmounts, UserBalance, zeroAmount } from '@splitifyd/shared';
 import type { Amount } from '@splitifyd/shared';
 
 interface NetBalance {

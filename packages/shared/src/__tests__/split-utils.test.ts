@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, getCurrencyDecimals, roundToCurrencyPrecision } from '../split-utils';
 
 const amountFor = (value: number | string, currency: string): string => roundToCurrencyPrecision(value, currency);
-const sumSplitAmounts = (splits: Array<{ amount: string }>): number => splits.reduce((sum, split) => sum + Number(split.amount), 0);
+const sumSplitAmounts = (splits: Array<{ amount: string; }>): number => splits.reduce((sum, split) => sum + Number(split.amount), 0);
 
 describe('Split Utils', () => {
     describe('getCurrencyDecimals', () => {

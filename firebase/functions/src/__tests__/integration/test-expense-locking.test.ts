@@ -90,6 +90,6 @@ describe('Expense Locking Debug Test', () => {
         // Verify final state
         const expenses = await apiDriver.getGroupExpenses(group.id, user1.token);
         const updatedExpense = expenses.expenses.find((e: any) => e.id === expense.id);
-        expect(["200", "300"]).toContain(updatedExpense?.amount);
+        expect(['200', '300']).toContain(updatedExpense?.amount);
     });
 });

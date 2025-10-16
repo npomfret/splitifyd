@@ -330,16 +330,25 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
             // Set up share links in multiple groups (mirrors real production use case)
             // Add testRunId to filter collection group queries to only this test run
             const groups = [
-                { groupId: 'group-1', links: [
-                    { id: 'link-1', token: 'token-1', isActive: true, createdBy: 'user-1', testRunId: testCollectionPrefix },
-                    { id: 'link-2', token: 'token-2', isActive: false, createdBy: 'user-1', testRunId: testCollectionPrefix },
-                ]},
-                { groupId: 'group-2', links: [
-                    { id: 'link-3', token: 'token-3', isActive: true, createdBy: 'user-2', testRunId: testCollectionPrefix },
-                ]},
-                { groupId: 'group-3', links: [
-                    { id: 'link-4', token: 'token-4', isActive: true, createdBy: 'user-3', testRunId: testCollectionPrefix },
-                ]},
+                {
+                    groupId: 'group-1',
+                    links: [
+                        { id: 'link-1', token: 'token-1', isActive: true, createdBy: 'user-1', testRunId: testCollectionPrefix },
+                        { id: 'link-2', token: 'token-2', isActive: false, createdBy: 'user-1', testRunId: testCollectionPrefix },
+                    ],
+                },
+                {
+                    groupId: 'group-2',
+                    links: [
+                        { id: 'link-3', token: 'token-3', isActive: true, createdBy: 'user-2', testRunId: testCollectionPrefix },
+                    ],
+                },
+                {
+                    groupId: 'group-3',
+                    links: [
+                        { id: 'link-4', token: 'token-4', isActive: true, createdBy: 'user-3', testRunId: testCollectionPrefix },
+                    ],
+                },
             ];
 
             for (const group of groups) {
@@ -384,7 +393,8 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
 
         it('should combine multiple filters in collection group identically', async () => {
             await testBothImplementations('collection group multiple filters', async (db, isStub) => {
-                const snapshot = await db.collectionGroup('shareLinks')
+                const snapshot = await db
+                    .collectionGroup('shareLinks')
                     .where('testRunId', '==', testCollectionPrefix)
                     .where('isActive', '==', true)
                     .where('createdBy', '==', 'user-1')
@@ -406,7 +416,8 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
 
         it('should order and limit collection group queries identically', async () => {
             await testBothImplementations('collection group order and limit', async (db, isStub) => {
-                const snapshot = await db.collectionGroup('shareLinks')
+                const snapshot = await db
+                    .collectionGroup('shareLinks')
                     .where('testRunId', '==', testCollectionPrefix)
                     .where('isActive', '==', true)
                     .orderBy('createdBy')
@@ -829,16 +840,16 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
                 await docRef.set({
                     stats: {
                         views: 10,
-                        likes: 5
+                        likes: 5,
                     },
-                    name: 'Test'
+                    name: 'Test',
                 });
 
                 // Increment nested fields using dot notation (Firestore's proper way)
                 const { FieldValue } = await import('firebase-admin/firestore');
                 await docRef.update({
                     'stats.views': FieldValue.increment(3),
-                    'stats.likes': FieldValue.increment(2)
+                    'stats.likes': FieldValue.increment(2),
                 });
 
                 const snapshot = await docRef.get();
@@ -860,7 +871,7 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
                 await docRef.update({
                     count1: FieldValue.increment(1),
                     count2: FieldValue.increment(2),
-                    count3: FieldValue.increment(3)
+                    count3: FieldValue.increment(3),
                 });
 
                 const snapshot = await docRef.get();

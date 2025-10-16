@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-
-import {FirestoreTimestampSchema} from "./common";
+import { FirestoreTimestampSchema } from './common';
 
 /**
  * Zod schema for Comment documents stored in Firestore

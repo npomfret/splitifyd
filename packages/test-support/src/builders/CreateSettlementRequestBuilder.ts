@@ -1,6 +1,6 @@
 import type { CreateSettlementRequest } from '@splitifyd/shared';
+import { Amount } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-import {Amount} from "@splitifyd/shared";
 
 export class CreateSettlementRequestBuilder {
     private settlement: CreateSettlementRequest;
@@ -34,7 +34,7 @@ export class CreateSettlementRequestBuilder {
     }
 
     withAmount(amount: Amount | number): this {
-        this.settlement.amount = typeof amount === "number" ? amount.toString() : amount;
+        this.settlement.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
 

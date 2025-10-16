@@ -58,9 +58,9 @@ describe('Expenses Management - Consolidated Tests', () => {
             const serviceResult = await apiDriver.createExpense(apiExpenseData, users[0].token);
             expect(serviceResult.id).toBeDefined();
             expect(serviceResult.splits).toHaveLength(3);
-            expect(serviceResult.splits[0].amount).toBe("30.00");
-            expect(serviceResult.splits[1].amount).toBe("30.00");
-            expect(serviceResult.splits[2].amount).toBe("30.00");
+            expect(serviceResult.splits[0].amount).toBe('30.00');
+            expect(serviceResult.splits[1].amount).toBe('30.00');
+            expect(serviceResult.splits[2].amount).toBe('30.00');
         });
 
         // NOTE: Split calculation logic is now comprehensively tested in unit tests
@@ -160,7 +160,7 @@ describe('Expenses Management - Consolidated Tests', () => {
             await apiDriver.updateExpense(createdExpense.id, secondUpdateData, users[0].token);
 
             const finalUpdatedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
-            expect(finalUpdatedExpense.amount).toBe("200");
+            expect(finalUpdatedExpense.amount).toBe('200');
             expect(finalUpdatedExpense.participants).toEqual([users[0].uid, users[1].uid, users[2].uid]);
             expect(finalUpdatedExpense.splits).toHaveLength(3);
             // Verify splits sum to total amount (200 / 3 = 66.66, 66.66, 66.68)
@@ -213,7 +213,7 @@ describe('Expenses Management - Consolidated Tests', () => {
             );
 
             const finalExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
-            expect(finalExpense.amount).toBe("200");
+            expect(finalExpense.amount).toBe('200');
             expect(finalExpense.description).toBe('First Update');
             expect(finalExpense.category).toBe('transport');
             expect(finalExpense.updatedAt).toBeDefined();
@@ -424,9 +424,9 @@ describe('Expenses Management - Consolidated Tests', () => {
                     .withParticipants([users[0].uid, users[1].uid, users[2].uid])
                     .withSplitType('exact')
                     .withSplits([
-                        { uid: users[0].uid, amount: "30" },
-                        { uid: users[1].uid, amount: "40" },
-                        { uid: users[2].uid, amount: "30" },
+                        { uid: users[0].uid, amount: '30' },
+                        { uid: users[1].uid, amount: '40' },
+                        { uid: users[2].uid, amount: '30' },
                     ])
                     .build(),
                 users[0].token,
@@ -435,9 +435,9 @@ describe('Expenses Management - Consolidated Tests', () => {
             const fullDetails = await apiDriver.getExpenseFullDetails(complexExpense.id, users[1].token);
 
             expect(fullDetails.expense.splitType).toBe('exact');
-            expect(fullDetails.expense.splits.find((s: any) => s.uid === users[0].uid)?.amount).toBe("30");
-            expect(fullDetails.expense.splits.find((s: any) => s.uid === users[1].uid)?.amount).toBe("40");
-            expect(fullDetails.expense.splits.find((s: any) => s.uid === users[2].uid)?.amount).toBe("30");
+            expect(fullDetails.expense.splits.find((s: any) => s.uid === users[0].uid)?.amount).toBe('30');
+            expect(fullDetails.expense.splits.find((s: any) => s.uid === users[1].uid)?.amount).toBe('40');
+            expect(fullDetails.expense.splits.find((s: any) => s.uid === users[2].uid)?.amount).toBe('30');
         });
 
         test('should enforce access control for full details endpoint', async () => {

@@ -285,7 +285,7 @@ describe('Departed Member Transaction Locking', () => {
 
             // Verify update succeeded
             const updated = await apiDriver.getExpense(expense.id, users[0].token);
-            expect(updated.amount).toBe("120");
+            expect(updated.amount).toBe('120');
             expect(updated.description).toBe('Updated successfully');
         });
 
@@ -614,7 +614,7 @@ describe('Departed Member Transaction Locking', () => {
             // Verify update succeeded
             const fullDetails = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
             const updated = fullDetails.settlements.settlements.find((s) => s.id === settlement.id);
-            expect(updated?.amount).toBe("40");
+            expect(updated?.amount).toBe('40');
             expect(updated?.note).toBe('Updated payment amount');
         });
 

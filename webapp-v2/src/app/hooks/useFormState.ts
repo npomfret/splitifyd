@@ -1,7 +1,7 @@
 import { useComputed } from '@preact/signals';
+import { Amount } from '@splitifyd/shared';
+import { ZERO } from '@splitifyd/shared';
 import { expenseFormStore } from '../stores/expense-form-store';
-import {Amount} from "@splitifyd/shared";
-import {ZERO} from "@splitifyd/shared";
 
 /**
  * Hook that provides access to form state and validation

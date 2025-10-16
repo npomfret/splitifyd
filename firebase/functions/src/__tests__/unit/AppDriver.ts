@@ -1,28 +1,32 @@
-import {CreateGroupRequestBuilder, createStubRequest, createStubResponse, StubFirestoreDatabase} from "@splitifyd/test-support";
-import {ApplicationBuilder} from "../../services/ApplicationBuilder";
-import {FirestoreReader, FirestoreWriter} from "../../services/firestore";
-import {StubAuthService} from "./mocks/StubAuthService";
-import {SettlementHandlers} from "../../settlements/SettlementHandlers";
-import {GroupHandlers} from "../../groups/GroupHandlers";
-import {ExpenseHandlers} from "../../expenses/ExpenseHandlers";
 import {
     CreateCommentResponse,
     CreateExpenseRequest,
     CreateGroupRequest,
-    CreateSettlementRequest, CreateSettlementResponse, DeleteSettlementResponse,
+    CreateSettlementRequest,
+    CreateSettlementResponse,
+    DeleteSettlementResponse,
     ExpenseFullDetailsDTO,
     GroupDTO,
     GroupFullDetailsDTO,
     JoinGroupResponse,
     ListCommentsResponse,
-    ListGroupsResponse, MessageResponse,
+    ListGroupsResponse,
+    MessageResponse,
     PreviewGroupResponse,
     UpdateGroupRequest,
-    UpdateSettlementRequest, UpdateSettlementResponse
-} from "@splitifyd/shared/src";
-import {GroupShareHandlers} from "../../groups/GroupShareHandlers";
-import {GroupMemberHandlers} from "../../groups/GroupMemberHandlers";
-import {CommentHandlers} from "../../comments/CommentHandlers";
+    UpdateSettlementRequest,
+    UpdateSettlementResponse,
+} from '@splitifyd/shared/src';
+import { CreateGroupRequestBuilder, createStubRequest, createStubResponse, StubFirestoreDatabase } from '@splitifyd/test-support';
+import { CommentHandlers } from '../../comments/CommentHandlers';
+import { ExpenseHandlers } from '../../expenses/ExpenseHandlers';
+import { GroupHandlers } from '../../groups/GroupHandlers';
+import { GroupMemberHandlers } from '../../groups/GroupMemberHandlers';
+import { GroupShareHandlers } from '../../groups/GroupShareHandlers';
+import { ApplicationBuilder } from '../../services/ApplicationBuilder';
+import { FirestoreReader, FirestoreWriter } from '../../services/firestore';
+import { SettlementHandlers } from '../../settlements/SettlementHandlers';
+import { StubAuthService } from './mocks/StubAuthService';
 
 /**
  * Thin façade around the public HTTP handlers.
@@ -66,7 +70,7 @@ export class AppDriver {
 
     async listGroups(userId1: string) {
         const req = createStubRequest(userId1, {});
-        req.query = {limit: '20'};
+        req.query = { limit: '20' };
         const res = createStubResponse();
 
         await this.groupHandlers.listGroups(req, res);
@@ -75,7 +79,7 @@ export class AppDriver {
     }
 
     async getGroupFullDetails(userId1: string, groupId: string) {
-        const req = createStubRequest(userId1, {}, {id: groupId});
+        const req = createStubRequest(userId1, {}, { id: groupId });
         req.query = {};
         const res = createStubResponse();
 
@@ -94,7 +98,7 @@ export class AppDriver {
     }
 
     async generateShareableLink(userId1: string, groupId: string): Promise<{ shareablePath: string; linkId: string; }> {
-        const req = createStubRequest(userId1, {groupId});
+        const req = createStubRequest(userId1, { groupId });
         const res = createStubResponse();
 
         await this.groupShareHandlers.generateShareableLink(req, res);
@@ -103,7 +107,7 @@ export class AppDriver {
     }
 
     async joinGroupByLink(userId1: string, linkId: string): Promise<JoinGroupResponse> {
-        const req = createStubRequest(userId1, {linkId});
+        const req = createStubRequest(userId1, { linkId });
         const res = createStubResponse();
 
         await this.groupShareHandlers.joinGroupByLink(req, res);
@@ -112,7 +116,7 @@ export class AppDriver {
     }
 
     async previewGroupByLink(userId: string, linkId: string): Promise<PreviewGroupResponse> {
-        const req = createStubRequest(userId, {linkId});
+        const req = createStubRequest(userId, { linkId });
         const res = createStubResponse();
 
         await this.groupShareHandlers.previewGroupByLink(req, res);
@@ -121,7 +125,7 @@ export class AppDriver {
     }
 
     async updateGroup(userId: string, groupId: string, updates: Partial<UpdateGroupRequest>) {
-        const req = createStubRequest(userId, updates, {id: groupId});
+        const req = createStubRequest(userId, updates, { id: groupId });
         const res = createStubResponse();
 
         await this.groupHandlers.updateGroup(req, res);
@@ -130,7 +134,7 @@ export class AppDriver {
     }
 
     async deleteGroup(userId: string, groupId: string) {
-        const req = createStubRequest(userId, {}, {id: groupId});
+        const req = createStubRequest(userId, {}, { id: groupId });
         const res = createStubResponse();
 
         await this.groupHandlers.deleteGroup(req, res);
@@ -139,7 +143,7 @@ export class AppDriver {
     }
 
     async leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string; }> {
-        const req = createStubRequest(userId, {}, {id: groupId});
+        const req = createStubRequest(userId, {}, { id: groupId });
         const res = createStubResponse();
 
         await this.groupMemberHandlers.leaveGroup(req, res);
@@ -148,7 +152,7 @@ export class AppDriver {
     }
 
     async removeGroupMember(userId: string, groupId: string, memberId: string): Promise<{ success: true; message: string; }> {
-        const req = createStubRequest(userId, {}, {id: groupId, memberId});
+        const req = createStubRequest(userId, {}, { id: groupId, memberId });
         const res = createStubResponse();
 
         await this.groupMemberHandlers.removeGroupMember(req, res);
@@ -156,8 +160,8 @@ export class AppDriver {
         return (res as any).getJson();
     }
 
-    async updateGroupMemberDisplayName(userId: string, groupId: string, displayName: string): Promise<{ success: boolean; message:  string}> {
-        const req = createStubRequest(userId, {displayName}, {id: groupId});
+    async updateGroupMemberDisplayName(userId: string, groupId: string, displayName: string): Promise<{ success: boolean; message: string; }> {
+        const req = createStubRequest(userId, { displayName }, { id: groupId });
         const res = createStubResponse();
 
         await this.groupHandlers.updateGroupMemberDisplayName(req, res);
@@ -171,22 +175,22 @@ export class AppDriver {
 
         await this.expenseHandlers.createExpense(req, res);
 
-        return (res as any).getJson() as any;// todo: fix the return type
+        return (res as any).getJson() as any; // todo: fix the return type
     }
 
     async updateExpense(userId: string, expenseId: string, updateBody: any) {
         const req = createStubRequest(userId, updateBody);
-        req.query = {id: expenseId};
+        req.query = { id: expenseId };
         const res = createStubResponse();
 
         await this.expenseHandlers.updateExpense(req, res);
 
-        return (res as any).getJson() as any;// todo: fix the return type
+        return (res as any).getJson() as any; // todo: fix the return type
     }
 
     async deleteExpense(userId: string, expenseId: string) {
         const req = createStubRequest(userId, {});
-        req.query = {id: expenseId};
+        req.query = { id: expenseId };
         const res = createStubResponse();
 
         await this.expenseHandlers.deleteExpense(req, res);
@@ -195,7 +199,7 @@ export class AppDriver {
     }
 
     async getExpenseFullDetails(userId: string, expenseId: string) {
-        const req = createStubRequest(userId, {}, {id: expenseId});
+        const req = createStubRequest(userId, {}, { id: expenseId });
         const res = createStubResponse();
 
         await this.expenseHandlers.getExpenseFullDetails(req, res);
@@ -213,7 +217,7 @@ export class AppDriver {
     }
 
     async updateSettlement(userId: string, settlementId: string, updateRequest: UpdateSettlementRequest) {
-        const req = createStubRequest(userId, updateRequest, {settlementId});
+        const req = createStubRequest(userId, updateRequest, { settlementId });
         const res = createStubResponse();
 
         await this.settlementHandlers.updateSettlement(req, res);
@@ -222,7 +226,7 @@ export class AppDriver {
     }
 
     async deleteSettlement(userId: string, settlementId: string) {
-        const req = createStubRequest(userId, {}, {settlementId});
+        const req = createStubRequest(userId, {}, { settlementId });
         const res = createStubResponse();
 
         await this.settlementHandlers.deleteSettlement(req, res);
@@ -231,7 +235,7 @@ export class AppDriver {
     }
 
     async createGroupComment(userId: string, groupId: string, text: string): Promise<CreateCommentResponse> {
-        const req = createStubRequest(userId, {text}, {groupId});
+        const req = createStubRequest(userId, { text }, { groupId });
         req.path = `/groups/${groupId}/comments`;
         const res = createStubResponse();
 
@@ -241,7 +245,7 @@ export class AppDriver {
     }
 
     async listGroupComments(userId: string, groupId: string): Promise<{ success: boolean; data: ListCommentsResponse; }> {
-        const req = createStubRequest(userId, {}, {groupId});
+        const req = createStubRequest(userId, {}, { groupId });
         req.path = `/groups/${groupId}/comments`;
         req.query = {};
         const res = createStubResponse();
@@ -252,7 +256,7 @@ export class AppDriver {
     }
 
     async createExpenseComment(userId: string, expenseId: string, text: string): Promise<CreateCommentResponse> {
-        const req = createStubRequest(userId, {text}, {expenseId});
+        const req = createStubRequest(userId, { text }, { expenseId });
         req.path = `/expenses/${expenseId}/comments`;
         const res = createStubResponse();
 
@@ -262,7 +266,7 @@ export class AppDriver {
     }
 
     async listExpenseComments(userId: string, expenseId: string): Promise<{ success: boolean; data: ListCommentsResponse; }> {
-        const req = createStubRequest(userId, {}, {expenseId});
+        const req = createStubRequest(userId, {}, { expenseId });
         req.path = `/expenses/${expenseId}/comments`;
         req.query = {};
         const res = createStubResponse();
@@ -271,5 +275,4 @@ export class AppDriver {
 
         return (res as any).getJson() as { success: boolean; data: ListCommentsResponse; };
     }
-
 }

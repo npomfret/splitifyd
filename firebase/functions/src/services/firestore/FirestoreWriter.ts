@@ -44,7 +44,7 @@ interface ValidationMetrics {
     operation: string;
     collection: string;
     documentId: string;
-    validationType: 'full' | 'partial' | 'skipped' |  'failed';
+    validationType: 'full' | 'partial' | 'skipped' | 'failed';
     validatedFieldCount?: number;
     skippedFieldCount?: number;
     validatedFields?: string[];
@@ -1079,7 +1079,9 @@ export class FirestoreWriter implements IFirestoreWriter {
      * @returns Document reference
      */
     createShareLinkInTransaction(transaction: ITransaction, groupId: string, shareLinkData: Omit<ShareLinkDTO, 'id'>) {
-        const shareLinksCollection = this.db.collection(FirestoreCollections.GROUPS)
+        const shareLinksCollection = this
+            .db
+            .collection(FirestoreCollections.GROUPS)
             .doc(groupId)
             .collection('shareLinks');
 

@@ -45,7 +45,7 @@
  * and normal-flow/user-notification-system.test.ts
  */
 
-import { calculateEqualSplits, PooledTestUser, ZERO, amountToSmallestUnit, smallestUnitToAmountString } from '@splitifyd/shared';
+import { amountToSmallestUnit, calculateEqualSplits, PooledTestUser, smallestUnitToAmountString, ZERO } from '@splitifyd/shared';
 import {
     ApiDriver,
     borrowTestUsers,

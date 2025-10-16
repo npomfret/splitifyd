@@ -1,13 +1,13 @@
-import {ExpenseDTOBuilder, GroupDTOBuilder, StubFirestoreDatabase} from '@splitifyd/test-support';
-import {Timestamp} from 'firebase-admin/firestore';
-import {beforeEach, describe, expect, it} from 'vitest';
-import {HTTP_STATUS} from '../../../../constants';
-import {ExpenseCommentStrategy} from '../../../../services/comments/ExpenseCommentStrategy';
-import {FirestoreReader} from '../../../../services/firestore';
-import {FirestoreWriter} from '../../../../services/firestore';
-import {GroupMemberService} from '../../../../services/GroupMemberService';
-import {ApiError} from '../../../../utils/errors';
-import {GroupMemberDocumentBuilder} from '../../../support/GroupMemberDocumentBuilder';
+import { ExpenseDTOBuilder, GroupDTOBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
+import { Timestamp } from 'firebase-admin/firestore';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { HTTP_STATUS } from '../../../../constants';
+import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCommentStrategy';
+import { FirestoreReader } from '../../../../services/firestore';
+import { FirestoreWriter } from '../../../../services/firestore';
+import { GroupMemberService } from '../../../../services/GroupMemberService';
+import { ApiError } from '../../../../utils/errors';
+import { GroupMemberDocumentBuilder } from '../../../support/GroupMemberDocumentBuilder';
 
 describe('ExpenseCommentStrategy', () => {
     let strategy: ExpenseCommentStrategy;

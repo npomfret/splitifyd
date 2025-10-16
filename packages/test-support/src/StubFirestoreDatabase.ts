@@ -6,7 +6,9 @@
  * over data and behavior.
  */
 
+import type { UserRecord } from 'firebase-admin/auth';
 import { Timestamp } from 'firebase-admin/firestore';
+import { GroupDTOBuilder } from './builders';
 import type {
     IAggregateQuery,
     IAggregateQuerySnapshot,
@@ -22,8 +24,6 @@ import type {
     SetOptions,
     WhereFilterOp,
 } from './firestore-types';
-import { GroupDTOBuilder } from "./builders";
-import type {UserRecord} from "firebase-admin/auth";
 
 /**
  * In-memory document storage
@@ -163,15 +163,13 @@ class StubDocumentReference implements IDocumentReference {
             // Check if this is a FieldValue.serverTimestamp() sentinel
             if (value && typeof value === 'object' && value.constructor.name === 'ServerTimestampTransform') {
                 result[key] = Timestamp.now();
-            }
-            // Check if this is a FieldValue.increment() sentinel
+            } // Check if this is a FieldValue.increment() sentinel
             else if (value && typeof value === 'object' && value.constructor.name === 'NumericIncrementTransform') {
                 // Extract the increment operand from the FieldValue.increment() sentinel
                 const incrementBy = (value as any).operand || 0;
                 const currentValue = existingData[key] || 0;
                 result[key] = currentValue + incrementBy;
-            }
-            // Recursively process nested objects that might contain FieldValue operations
+            } // Recursively process nested objects that might contain FieldValue operations
             // Note: In Firestore, nested objects replace the entire field, so we process
             // FieldValues within them but don't merge with existing nested data
             // Skip any FieldValue sentinels (constructor names ending with "Transform")
@@ -204,14 +202,12 @@ class StubDocumentReference implements IDocumentReference {
             // Check if this is a FieldValue.serverTimestamp() sentinel
             if (value && typeof value === 'object' && value.constructor.name === 'ServerTimestampTransform') {
                 result[key] = Timestamp.now();
-            }
-            // Check if this is a FieldValue.increment() sentinel
+            } // Check if this is a FieldValue.increment() sentinel
             else if (value && typeof value === 'object' && value.constructor.name === 'NumericIncrementTransform') {
                 const incrementBy = (value as any).operand || 0;
                 const currentValue = existingNestedData?.[key] || 0;
                 result[key] = currentValue + incrementBy;
-            }
-            // Recursively process deeper nesting, but skip FieldValue sentinels
+            } // Recursively process deeper nesting, but skip FieldValue sentinels
             else if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Timestamp) && !(value instanceof Date) && !value.constructor.name.endsWith('Transform')) {
                 // Recursively process deeper nesting
                 result[key] = this.processFieldValuesInNestedObject(value, existingNestedData?.[key]);
@@ -253,16 +249,16 @@ class StubDocumentReference implements IDocumentReference {
 
             // If update value is an object (not array, not Timestamp, not Date), deep merge
             if (
-                updateValue &&
-                typeof updateValue === 'object' &&
-                !Array.isArray(updateValue) &&
-                !(updateValue instanceof Timestamp) &&
-                !(updateValue instanceof Date) &&
-                existingValue &&
-                typeof existingValue === 'object' &&
-                !Array.isArray(existingValue) &&
-                !(existingValue instanceof Timestamp) &&
-                !(existingValue instanceof Date)
+                updateValue
+                && typeof updateValue === 'object'
+                && !Array.isArray(updateValue)
+                && !(updateValue instanceof Timestamp)
+                && !(updateValue instanceof Date)
+                && existingValue
+                && typeof existingValue === 'object'
+                && !Array.isArray(existingValue)
+                && !(existingValue instanceof Timestamp)
+                && !(existingValue instanceof Date)
             ) {
                 // Both are objects - recursively deep merge
                 result[key] = this.deepMerge(existingValue, updateValue);

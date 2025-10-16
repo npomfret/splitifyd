@@ -1,6 +1,6 @@
 // Import currency utilities from shared package
 import { getCurrencyDecimals, roundToCurrencyPrecision } from '@splitifyd/shared';
-import {Amount} from "@splitifyd/shared";
+import { Amount } from '@splitifyd/shared';
 
 /**
  * Generates a short, readable UUID for test data

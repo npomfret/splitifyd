@@ -12,15 +12,7 @@
  */
 
 // Export only used wrapper interfaces
-export type {
-    IDocumentReference,
-    IDocumentSnapshot,
-    IFirestoreDatabase,
-    IQuery,
-    IQuerySnapshot,
-    ITransaction,
-    IWriteBatch,
-} from './types';
+export type { IDocumentReference, IDocumentSnapshot, IFirestoreDatabase, IQuery, IQuerySnapshot, ITransaction, IWriteBatch } from './types';
 
 // Export only the factory function - wrapper implementations are internal
 export { createFirestoreDatabase } from './FirestoreDatabase';

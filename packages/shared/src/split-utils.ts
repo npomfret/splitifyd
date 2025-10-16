@@ -1,5 +1,5 @@
 import { getCurrency } from './currencies';
-import {Amount, ExpenseSplit} from './shared-types';
+import { Amount, ExpenseSplit } from './shared-types';
 
 /**
  * Get the decimal precision for a currency

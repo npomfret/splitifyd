@@ -5,16 +5,16 @@ import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
 import { ReadonlySignal, signal } from '@preact/signals';
 import {
     Amount,
-    ZERO,
+    amountToSmallestUnit,
     calculateEqualSplits,
     calculateExactSplits,
     calculatePercentageSplits,
     CreateExpenseRequest,
     ExpenseDTO,
     ExpenseSplit,
-    SplitTypes,
-    amountToSmallestUnit,
     smallestUnitToAmountString,
+    SplitTypes,
+    ZERO,
 } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
@@ -502,7 +502,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 // Always recalculate splits when payer changes
                 // This handles the case where participants list changed (e.g., member left group)
                 // Only recalculate if we have all required data
-        if (this.#currencySignal.value && this.toUnits(this.#amountSignal.value) > 0 && this.#participantsSignal.value.length > 0) {
+                if (this.#currencySignal.value && this.toUnits(this.#amountSignal.value) > 0 && this.#participantsSignal.value.length > 0) {
                     this.handleSplitTypeChange(this.#splitTypeSignal.value);
                 }
                 break;

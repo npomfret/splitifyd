@@ -1,5 +1,5 @@
 import type { SimplifiedDebt } from '@splitifyd/shared';
-import {Amount} from "@splitifyd/shared";
+import { Amount } from '@splitifyd/shared';
 
 /**
  * Builder for creating SimplifiedDebt objects for testing
@@ -19,7 +19,7 @@ export class SimplifiedDebtBuilder {
             to: {
                 uid: 'user-2',
             },
-            amount: "50.0",
+            amount: '50.0',
             currency: 'USD',
         };
     }
@@ -44,7 +44,7 @@ export class SimplifiedDebtBuilder {
      * Set the amount owed
      */
     withAmount(amount: Amount | number): this {
-        this.debt.amount = typeof amount === "number" ? amount.toString() : amount;
+        this.debt.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
 

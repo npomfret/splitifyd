@@ -1,5 +1,5 @@
 import { ExpenseSplit } from '@splitifyd/shared';
-import {Amount} from "@splitifyd/shared";
+import { Amount } from '@splitifyd/shared';
 
 export interface ISplitStrategy {
     /**

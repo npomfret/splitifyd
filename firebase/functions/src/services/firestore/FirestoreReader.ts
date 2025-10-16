@@ -34,8 +34,8 @@ import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 // Import all schemas for validation (these still validate Timestamp objects from Firestore)
 import {
     ExpenseDocumentSchema,
-    type GroupBalanceDTO,
     GroupBalanceDocumentSchema,
+    type GroupBalanceDTO,
     GroupDocumentSchema,
     PolicyDocumentSchema,
     SettlementDocumentSchema,

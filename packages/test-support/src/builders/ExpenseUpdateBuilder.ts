@@ -1,6 +1,6 @@
 import type { UpdateExpenseRequest } from '@splitifyd/shared';
+import { Amount } from '@splitifyd/shared';
 import { randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-import {Amount} from "@splitifyd/shared";
 
 export class ExpenseUpdateBuilder {
     private update: Partial<UpdateExpenseRequest>;
@@ -30,7 +30,7 @@ export class ExpenseUpdateBuilder {
     }
 
     withAmount(amount: Amount | number): this {
-        this.update.amount = typeof amount === "number" ? amount.toString() : amount;
+        this.update.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
 

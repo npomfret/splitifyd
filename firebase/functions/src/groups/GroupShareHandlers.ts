@@ -1,11 +1,11 @@
-import {GroupShareService} from "../services/GroupShareService";
-import {getAuth, getFirestore} from "../firebase";
-import {ApplicationBuilder} from "../services/ApplicationBuilder";
-import {AuthenticatedRequest} from "../auth/middleware";
-import {Response} from "express";
-import {HTTP_STATUS} from "../constants";
-import {ApiError} from "../utils/errors";
-import {logger} from "../utils/contextual-logger";
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../auth/middleware';
+import { HTTP_STATUS } from '../constants';
+import { getAuth, getFirestore } from '../firebase';
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { GroupShareService } from '../services/GroupShareService';
+import { logger } from '../utils/contextual-logger';
+import { ApiError } from '../utils/errors';
 
 export class GroupShareHandlers {
     constructor(private readonly groupShareService: GroupShareService) {
@@ -16,11 +16,11 @@ export class GroupShareHandlers {
 
     static createGroupShareHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth())) {
         const groupShareService = applicationBuilder.buildGroupShareService();
-        return new GroupShareHandlers(groupShareService)
+        return new GroupShareHandlers(groupShareService);
     }
 
     generateShareableLink = async (req: AuthenticatedRequest, res: Response) => {
-        const {groupId} = req.body;
+        const { groupId } = req.body;
         const userId = req.user!.uid;
 
         try {
@@ -39,10 +39,10 @@ export class GroupShareHandlers {
 
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INTERNAL_ERROR', 'Failed to generate shareable link');
         }
-    }
+    };
 
     previewGroupByLink = async (req: AuthenticatedRequest, res: Response) => {
-        const {linkId} = req.body;
+        const { linkId } = req.body;
         const userId = req.user!.uid;
 
         try {
@@ -58,10 +58,10 @@ export class GroupShareHandlers {
 
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INTERNAL_ERROR', 'Failed to preview group');
         }
-    }
+    };
 
     joinGroupByLink = async (req: AuthenticatedRequest, res: Response) => {
-        const {linkId} = req.body;
+        const { linkId } = req.body;
         const userId = req.user!.uid;
 
         try {
@@ -77,5 +77,5 @@ export class GroupShareHandlers {
 
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INTERNAL_ERROR', 'Failed to join group');
         }
-    }
+    };
 }

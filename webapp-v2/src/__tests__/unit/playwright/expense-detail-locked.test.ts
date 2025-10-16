@@ -1,6 +1,6 @@
-import {ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberBuilder, ThemeBuilder} from '@splitifyd/test-support';
-import translationEn from '../../../locales/en/translation.json' with {type: 'json'};
-import {expect, test} from '../../utils/console-logging-fixture';
+import { ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
+import { expect, test } from '../../utils/console-logging-fixture';
 
 /**
  * Helper function to mock the expense full-details API endpoint
@@ -36,8 +36,8 @@ async function mockExpenseCommentsApi(page: any, expenseId: string, comments: an
 }
 
 test.describe('Expense Detail - Locked Expense UI', () => {
-    test('should display lock warning banner when expense is locked', async ({authenticatedPage}) => {
-        const {page, user: testUser} = authenticatedPage;
+    test('should display lock warning banner when expense is locked', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const expenseId = 'locked-expense-123';
         const groupId = 'test-group-456';
 
@@ -54,7 +54,8 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                 .withSplitType('equal')
                 .withIsLocked(true) // Mark as locked
                 .build(),
-            group: GroupDTOBuilder.groupForUser(testUser.uid)
+            group: GroupDTOBuilder
+                .groupForUser(testUser.uid)
                 .withId(groupId)
                 .withName('Test Group')
                 .build(),
@@ -64,7 +65,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                         .withUid(testUser.uid)
                         .withDisplayName(testUser.displayName)
                         .build(),
-                ]
+                ],
             },
         };
 
@@ -72,13 +73,13 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         await mockExpenseCommentsApi(page, expenseId);
 
         // Navigate to expense detail page
-        await page.goto(`/groups/${groupId}/expenses/${expenseId}`, {waitUntil: 'domcontentloaded'});
+        await page.goto(`/groups/${groupId}/expenses/${expenseId}`, { waitUntil: 'domcontentloaded' });
 
         // Wait for expense to load
-        await expect(page.getByRole('heading', {name: 'Locked Expense'})).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Locked Expense' })).toBeVisible();
 
         // Verify lock warning banner is displayed
-        const warningBanner = page.locator('.bg-yellow-50').filter({hasText: translationEn.pages.expenseDetailPage.cannotEdit});
+        const warningBanner = page.locator('.bg-yellow-50').filter({ hasText: translationEn.pages.expenseDetailPage.cannotEdit });
         await expect(warningBanner).toBeVisible();
 
         // Verify warning banner contains the emoji
@@ -91,8 +92,8 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         await expect(warningBanner).toContainText(translationEn.pages.expenseDetailPage.containsDepartedMembers);
     });
 
-    test('should disable edit button when expense is locked', async ({authenticatedPage}) => {
-        const {page, user: testUser} = authenticatedPage;
+    test('should disable edit button when expense is locked', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const expenseId = 'locked-expense-123';
         const groupId = 'test-group-456';
 
@@ -106,7 +107,8 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                 .withPaidBy(testUser.uid)
                 .withIsLocked(true) // Mark as locked
                 .build(),
-            group: GroupDTOBuilder.groupForUser(testUser.uid)
+            group: GroupDTOBuilder
+                .groupForUser(testUser.uid)
                 .withId(groupId)
                 .build(),
             members: {
@@ -114,7 +116,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                     new GroupMemberBuilder()
                         .withUid(testUser.uid)
                         .build(),
-                ]
+                ],
             },
         };
 
@@ -122,13 +124,13 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         await mockExpenseCommentsApi(page, expenseId);
 
         // Navigate to expense detail page
-        await page.goto(`/groups/${groupId}/expenses/${expenseId}`, {waitUntil: 'domcontentloaded'});
+        await page.goto(`/groups/${groupId}/expenses/${expenseId}`, { waitUntil: 'domcontentloaded' });
 
         // Wait for expense to load
-        await expect(page.getByRole('heading', {name: 'Locked Expense'})).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Locked Expense' })).toBeVisible();
 
         // Find the edit button
-        const editButton = page.getByRole('button', {name: translationEn.expenseComponents.expenseActions.edit});
+        const editButton = page.getByRole('button', { name: translationEn.expenseComponents.expenseActions.edit });
 
         // Verify edit button is disabled
         await expect(editButton).toBeDisabled();
@@ -138,8 +140,8 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         await expect(editButtonWrapper).toBeVisible();
     });
 
-    test('should not display lock warning when expense is not locked', async ({authenticatedPage}) => {
-        const {page, user: testUser} = authenticatedPage;
+    test('should not display lock warning when expense is not locked', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
         const expenseId = 'unlocked-expense-123';
         const groupId = 'test-group-456';
 
@@ -154,7 +156,8 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                 .withPaidBy(testUser.uid)
                 .withSplitType('equal')
                 .build(),
-            group: GroupDTOBuilder.groupForUser(testUser.uid)
+            group: GroupDTOBuilder
+                .groupForUser(testUser.uid)
                 .withId(groupId)
                 .build(),
             members: {
@@ -163,7 +166,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                         .withUid(testUser.uid)
                         .withDisplayName(testUser.displayName)
                         .build(),
-                ]
+                ],
             },
         };
 
@@ -171,17 +174,17 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         await mockExpenseCommentsApi(page, expenseId);
 
         // Navigate to expense detail page
-        await page.goto(`/groups/${groupId}/expenses/${expenseId}`, {waitUntil: 'domcontentloaded'});
+        await page.goto(`/groups/${groupId}/expenses/${expenseId}`, { waitUntil: 'domcontentloaded' });
 
         // Wait for expense to load
-        await expect(page.getByRole('heading', {name: 'Normal Expense'})).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Normal Expense' })).toBeVisible();
 
         // Verify lock warning banner is NOT displayed
-        const warningBanner = page.locator('.bg-yellow-50').filter({hasText: translationEn.pages.expenseDetailPage.cannotEdit});
+        const warningBanner = page.locator('.bg-yellow-50').filter({ hasText: translationEn.pages.expenseDetailPage.cannotEdit });
         await expect(warningBanner).not.toBeVisible();
 
         // Find the edit button
-        const editButton = page.getByRole('button', {name: translationEn.expenseComponents.expenseActions.edit});
+        const editButton = page.getByRole('button', { name: translationEn.expenseComponents.expenseActions.edit });
 
         // Verify edit button is enabled
         await expect(editButton).toBeEnabled();

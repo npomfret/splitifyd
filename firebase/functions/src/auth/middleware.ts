@@ -65,7 +65,7 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
         req.user = {
             uid: userRecord.uid,
             displayName: userRecord.displayName,
-            role: userRole,//todo: what is this?
+            role: userRole, // todo: what is this?
         };
 
         // Add user context to logging context

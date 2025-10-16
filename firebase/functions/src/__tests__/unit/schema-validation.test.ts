@@ -1,5 +1,5 @@
-import { GroupDTOBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
 import { ApiErrorResponseSchema, responseSchemas } from '@splitifyd/shared';
+import { GroupDTOBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
 import { describe, expect, it } from 'vitest';
 
 const groupDetailSchema = responseSchemas['/groups/:id'];

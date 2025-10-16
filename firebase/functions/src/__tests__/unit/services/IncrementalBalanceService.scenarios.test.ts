@@ -1,5 +1,5 @@
-import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, StubFirestoreDatabase, UserBalanceBuilder } from '@splitifyd/test-support';
 import type { SimplifiedDebt } from '@splitifyd/shared';
+import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, StubFirestoreDatabase, UserBalanceBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
 import { FirestoreWriter } from '../../../services/firestore';
@@ -59,8 +59,8 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withSplitType('equal')
                 .withParticipants([user1, user2])
                 .withSplits([
-                    { uid: user1, amount: "100" },
-                    { uid: user2, amount: "100" },
+                    { uid: user1, amount: '100' },
+                    { uid: user2, amount: '100' },
                 ])
                 .build();
 
@@ -75,7 +75,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             // Verify expense was applied correctly
-            expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe("-100.00");
+            expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe('-100.00');
 
             // === ACTION ===
             // User2 makes settlement in EUR (different currency than debt)
@@ -101,17 +101,17 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             // USD debt should be UNCHANGED (no currency conversion)
-            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe("-100.00");
-            expect(finalBalance.balancesByCurrency.USD[user2].owes[user1]).toBe("100.00");
-            expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe("100.00");
-            expect(finalBalance.balancesByCurrency.USD[user1].owedBy[user2]).toBe("100.00");
+            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe('-100.00');
+            expect(finalBalance.balancesByCurrency.USD[user2].owes[user1]).toBe('100.00');
+            expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe('100.00');
+            expect(finalBalance.balancesByCurrency.USD[user1].owedBy[user2]).toBe('100.00');
 
             // NEW EUR debt should exist (User2 paid User1 €75, so User1 now owes User2 €75)
             expect(finalBalance.balancesByCurrency.EUR).toBeDefined();
-            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe("-75.00");
-            expect(finalBalance.balancesByCurrency.EUR[user1].owes[user2]).toBe("75.00");
-            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe("75.00");
-            expect(finalBalance.balancesByCurrency.EUR[user2].owedBy[user1]).toBe("75.00");
+            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe('-75.00');
+            expect(finalBalance.balancesByCurrency.EUR[user1].owes[user2]).toBe('75.00');
+            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe('75.00');
+            expect(finalBalance.balancesByCurrency.EUR[user2].owedBy[user1]).toBe('75.00');
 
             // Should have TWO separate simplified debts (one per currency)
             expect(finalBalance.simplifiedDebts).toHaveLength(2);
@@ -120,13 +120,13 @@ describe('IncrementalBalanceService - Scenarios', () => {
             expect(usdDebt).toBeDefined();
             expect(usdDebt?.from.uid).toBe(user2);
             expect(usdDebt?.to.uid).toBe(user1);
-            expect(usdDebt?.amount).toBe("100.00");
+            expect(usdDebt?.amount).toBe('100.00');
 
             const eurDebt = finalBalance.simplifiedDebts.find((debt: SimplifiedDebt) => debt.currency === 'EUR');
             expect(eurDebt).toBeDefined();
             expect(eurDebt?.from.uid).toBe(user1);
             expect(eurDebt?.to.uid).toBe(user2);
-            expect(eurDebt?.amount).toBe("75.00");
+            expect(eurDebt?.amount).toBe('75.00');
         });
 
         it('should not perform implicit currency conversion on settlements', async () => {
@@ -144,8 +144,8 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withPaidBy(user1)
                 .withParticipants([user1, user2])
                 .withSplits([
-                    { uid: user1, amount: "75" },
-                    { uid: user2, amount: "75" },
+                    { uid: user1, amount: '75' },
+                    { uid: user2, amount: '75' },
                 ])
                 .build();
 
@@ -168,8 +168,8 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withPaidBy(user1)
                 .withParticipants([user1, user2])
                 .withSplits([
-                    { uid: user1, amount: "25" },
-                    { uid: user2, amount: "25" },
+                    { uid: user1, amount: '25' },
+                    { uid: user2, amount: '25' },
                 ])
                 .build();
 
@@ -184,7 +184,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             // User2 now owes User1 exactly $100 USD
-            expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe("-100.00");
+            expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe('-100.00');
 
             // === ACTION ===
             // User2 settles with €75 EUR
@@ -211,12 +211,12 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // CRITICAL ASSERTION: USD debt must still be $100
             // If this fails with $25 remaining, currency conversion occurred (BUG)
-            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe("-100.00");
-            expect(finalBalance.balancesByCurrency.USD[user2].owes[user1]).toBe("100.00");
+            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe('-100.00');
+            expect(finalBalance.balancesByCurrency.USD[user2].owes[user1]).toBe('100.00');
 
             // EUR debt should exist from settlement
-            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe("-75.00");
-            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe("75.00");
+            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe('-75.00');
+            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe('75.00');
         });
 
         it('should maintain currency independence in complex multi-currency scenarios', async () => {
@@ -287,12 +287,12 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             // USD and GBP debts should be completely unchanged
-            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe("-50");
-            expect(finalBalance.balancesByCurrency.GBP[user1].netBalance).toBe("-30");
+            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe('-50');
+            expect(finalBalance.balancesByCurrency.GBP[user1].netBalance).toBe('-30');
 
             // EUR debt should be newly created
-            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe("-100.00");
-            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe("100.00");
+            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe('-100.00');
+            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe('100.00');
 
             // Should have 3 separate currency debts
             expect(finalBalance.simplifiedDebts).toHaveLength(3);
@@ -335,13 +335,13 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             // Debt reduced by settlement amount
-            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe("-40.00");
-            expect(finalBalance.balancesByCurrency.USD[user2].owes[user1]).toBe("40.00");
-            expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe("40.00");
-            expect(finalBalance.balancesByCurrency.USD[user1].owedBy[user2]).toBe("40.00");
+            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe('-40.00');
+            expect(finalBalance.balancesByCurrency.USD[user2].owes[user1]).toBe('40.00');
+            expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe('40.00');
+            expect(finalBalance.balancesByCurrency.USD[user1].owedBy[user2]).toBe('40.00');
 
             expect(finalBalance.simplifiedDebts).toHaveLength(1);
-            expect(finalBalance.simplifiedDebts[0].amount).toBe("40.00");
+            expect(finalBalance.simplifiedDebts[0].amount).toBe('40.00');
         });
 
         it('should handle multiple sequential partial settlements correctly', async () => {
@@ -394,12 +394,12 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // === ASSERT AFTER FIRST SETTLEMENT ===
             // Debt should be reduced to €60
-            expect(currentBalance.balancesByCurrency.EUR[user2].netBalance).toBe("-60.00");
-            expect(currentBalance.balancesByCurrency.EUR[user2].owes[user1]).toBe("60.00");
-            expect(currentBalance.balancesByCurrency.EUR[user1].netBalance).toBe("60.00");
-            expect(currentBalance.balancesByCurrency.EUR[user1].owedBy[user2]).toBe("60.00");
+            expect(currentBalance.balancesByCurrency.EUR[user2].netBalance).toBe('-60.00');
+            expect(currentBalance.balancesByCurrency.EUR[user2].owes[user1]).toBe('60.00');
+            expect(currentBalance.balancesByCurrency.EUR[user1].netBalance).toBe('60.00');
+            expect(currentBalance.balancesByCurrency.EUR[user1].owedBy[user2]).toBe('60.00');
             expect(currentBalance.simplifiedDebts).toHaveLength(1);
-            expect(currentBalance.simplifiedDebts[0].amount).toBe("60.00");
+            expect(currentBalance.simplifiedDebts[0].amount).toBe('60.00');
 
             // === ACTION 2 ===
             // Second partial settlement: User2 pays €35
@@ -425,12 +425,12 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // === ASSERT AFTER SECOND SETTLEMENT ===
             // Debt should be reduced to €25
-            expect(currentBalance.balancesByCurrency.EUR[user2].netBalance).toBe("-25.00");
-            expect(currentBalance.balancesByCurrency.EUR[user2].owes[user1]).toBe("25.00");
-            expect(currentBalance.balancesByCurrency.EUR[user1].netBalance).toBe("25.00");
-            expect(currentBalance.balancesByCurrency.EUR[user1].owedBy[user2]).toBe("25.00");
+            expect(currentBalance.balancesByCurrency.EUR[user2].netBalance).toBe('-25.00');
+            expect(currentBalance.balancesByCurrency.EUR[user2].owes[user1]).toBe('25.00');
+            expect(currentBalance.balancesByCurrency.EUR[user1].netBalance).toBe('25.00');
+            expect(currentBalance.balancesByCurrency.EUR[user1].owedBy[user2]).toBe('25.00');
             expect(currentBalance.simplifiedDebts).toHaveLength(1);
-            expect(currentBalance.simplifiedDebts[0].amount).toBe("25.00");
+            expect(currentBalance.simplifiedDebts[0].amount).toBe('25.00');
 
             // === ACTION 3 ===
             // Final settlement: User2 pays remaining €25
@@ -456,8 +456,8 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // === ASSERT AFTER FINAL SETTLEMENT ===
             // All debts should be cleared (fully settled)
-            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe("0.00");
-            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe("0.00");
+            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe('0.00');
+            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe('0.00');
             expect(Object.keys(finalBalance.balancesByCurrency.EUR[user1].owes)).toHaveLength(0);
             expect(Object.keys(finalBalance.balancesByCurrency.EUR[user1].owedBy)).toHaveLength(0);
             expect(Object.keys(finalBalance.balancesByCurrency.EUR[user2].owes)).toHaveLength(0);
@@ -497,15 +497,15 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             // Debt reversed: User1 now owes User2 $50
-            expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe("-50.00");
-            expect(finalBalance.balancesByCurrency.USD[user1].owes[user2]).toBe("50.00");
-            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe("50.00");
-            expect(finalBalance.balancesByCurrency.USD[user2].owedBy[user1]).toBe("50.00");
+            expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe('-50.00');
+            expect(finalBalance.balancesByCurrency.USD[user1].owes[user2]).toBe('50.00');
+            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe('50.00');
+            expect(finalBalance.balancesByCurrency.USD[user2].owedBy[user1]).toBe('50.00');
 
             expect(finalBalance.simplifiedDebts).toHaveLength(1);
             expect(finalBalance.simplifiedDebts[0].from.uid).toBe(user1);
             expect(finalBalance.simplifiedDebts[0].to.uid).toBe(user2);
-            expect(finalBalance.simplifiedDebts[0].amount).toBe("50.00");
+            expect(finalBalance.simplifiedDebts[0].amount).toBe('50.00');
         });
 
         it('should handle exact settlement resulting in zero balance', async () => {
@@ -540,8 +540,8 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             // All debts cleared
-            expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe("0.00");
-            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe("0.00");
+            expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe('0.00');
+            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe('0.00');
             expect(Object.keys(finalBalance.balancesByCurrency.USD[user1].owes)).toHaveLength(0);
             expect(Object.keys(finalBalance.balancesByCurrency.USD[user1].owedBy)).toHaveLength(0);
             expect(Object.keys(finalBalance.balancesByCurrency.USD[user2].owes)).toHaveLength(0);
@@ -620,16 +620,16 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // === ASSERT AFTER USD SETTLEMENT ===
             // USD debt reduced to $40, EUR debt unchanged at €75
-            expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe("-40.00");
-            expect(currentBalance.balancesByCurrency.USD[user2].owes[user1]).toBe("40.00");
-            expect(currentBalance.balancesByCurrency.USD[user1].netBalance).toBe("40.00");
-            expect(currentBalance.balancesByCurrency.USD[user1].owedBy[user2]).toBe("40.00");
+            expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe('-40.00');
+            expect(currentBalance.balancesByCurrency.USD[user2].owes[user1]).toBe('40.00');
+            expect(currentBalance.balancesByCurrency.USD[user1].netBalance).toBe('40.00');
+            expect(currentBalance.balancesByCurrency.USD[user1].owedBy[user2]).toBe('40.00');
 
             // EUR debt should be completely unchanged
-            expect(currentBalance.balancesByCurrency.EUR[user1].netBalance).toBe("-75");
-            expect(currentBalance.balancesByCurrency.EUR[user1].owes[user2]).toBe("75");
-            expect(currentBalance.balancesByCurrency.EUR[user2].netBalance).toBe("75");
-            expect(currentBalance.balancesByCurrency.EUR[user2].owedBy[user1]).toBe("75");
+            expect(currentBalance.balancesByCurrency.EUR[user1].netBalance).toBe('-75');
+            expect(currentBalance.balancesByCurrency.EUR[user1].owes[user2]).toBe('75');
+            expect(currentBalance.balancesByCurrency.EUR[user2].netBalance).toBe('75');
+            expect(currentBalance.balancesByCurrency.EUR[user2].owedBy[user1]).toBe('75');
 
             expect(currentBalance.simplifiedDebts).toHaveLength(2);
 
@@ -657,15 +657,15 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // === ASSERT AFTER EUR SETTLEMENT ===
             // USD debt unchanged at $40, EUR debt reduced to €25
-            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe("-40.00");
-            expect(finalBalance.balancesByCurrency.USD[user2].owes[user1]).toBe("40.00");
-            expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe("40.00");
-            expect(finalBalance.balancesByCurrency.USD[user1].owedBy[user2]).toBe("40.00");
+            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe('-40.00');
+            expect(finalBalance.balancesByCurrency.USD[user2].owes[user1]).toBe('40.00');
+            expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe('40.00');
+            expect(finalBalance.balancesByCurrency.USD[user1].owedBy[user2]).toBe('40.00');
 
-            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe("-25.00");
-            expect(finalBalance.balancesByCurrency.EUR[user1].owes[user2]).toBe("25.00");
-            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe("25.00");
-            expect(finalBalance.balancesByCurrency.EUR[user2].owedBy[user1]).toBe("25.00");
+            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe('-25.00');
+            expect(finalBalance.balancesByCurrency.EUR[user1].owes[user2]).toBe('25.00');
+            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe('25.00');
+            expect(finalBalance.balancesByCurrency.EUR[user2].owedBy[user1]).toBe('25.00');
 
             // Should still have 2 separate currency debts
             expect(finalBalance.simplifiedDebts).toHaveLength(2);
@@ -674,13 +674,13 @@ describe('IncrementalBalanceService - Scenarios', () => {
             expect(finalUsdDebt).toBeDefined();
             expect(finalUsdDebt?.from.uid).toBe(user2);
             expect(finalUsdDebt?.to.uid).toBe(user1);
-            expect(finalUsdDebt?.amount).toBe("40.00");
+            expect(finalUsdDebt?.amount).toBe('40.00');
 
             const finalEurDebt = finalBalance.simplifiedDebts.find((d: SimplifiedDebt) => d.currency === 'EUR');
             expect(finalEurDebt).toBeDefined();
             expect(finalEurDebt?.from.uid).toBe(user1);
             expect(finalEurDebt?.to.uid).toBe(user2);
-            expect(finalEurDebt?.amount).toBe("25.00");
+            expect(finalEurDebt?.amount).toBe('25.00');
         });
     });
 
@@ -709,8 +709,8 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withPaidBy(user1)
                 .withParticipants([user1, user2])
                 .withSplits([
-                    { uid: user1, amount: "100" },
-                    { uid: user2, amount: "100" },
+                    { uid: user1, amount: '100' },
+                    { uid: user2, amount: '100' },
                 ])
                 .build();
 
@@ -726,12 +726,12 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // Verify initial USD debt
             expect(currentBalance.balancesByCurrency.USD).toBeDefined();
-            expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe("-100.00");
-            expect(currentBalance.balancesByCurrency.USD[user1].netBalance).toBe("100.00");
+            expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe('-100.00');
+            expect(currentBalance.balancesByCurrency.USD[user1].netBalance).toBe('100.00');
             expect(currentBalance.balancesByCurrency.EUR).toBeUndefined();
             expect(currentBalance.simplifiedDebts).toHaveLength(1);
             expect(currentBalance.simplifiedDebts[0].currency).toBe('USD');
-            expect(currentBalance.simplifiedDebts[0].amount).toBe("100.00");
+            expect(currentBalance.simplifiedDebts[0].amount).toBe('100.00');
 
             // === ACTION ===
             // Change expense currency from USD to EUR (keep same amount)
@@ -743,8 +743,8 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withPaidBy(user1)
                 .withParticipants([user1, user2])
                 .withSplits([
-                    { uid: user1, amount: "100" },
-                    { uid: user2, amount: "100" },
+                    { uid: user1, amount: '100' },
+                    { uid: user2, amount: '100' },
                 ])
                 .build();
 
@@ -764,20 +764,20 @@ describe('IncrementalBalanceService - Scenarios', () => {
             expect(usdDebtAfter).toBeUndefined();
 
             if (finalBalance.balancesByCurrency.USD) {
-                expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe("0.00");
-                expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe("0.00");
+                expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe('0.00');
+                expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe('0.00');
             }
 
             // EUR debt should now exist with correct amounts
             expect(finalBalance.balancesByCurrency.EUR).toBeDefined();
-            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe("100.00");
-            expect(finalBalance.balancesByCurrency.EUR[user1].owedBy[user2]).toBe("100.00");
-            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe("-100.00");
-            expect(finalBalance.balancesByCurrency.EUR[user2].owes[user1]).toBe("100.00");
+            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe('100.00');
+            expect(finalBalance.balancesByCurrency.EUR[user1].owedBy[user2]).toBe('100.00');
+            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe('-100.00');
+            expect(finalBalance.balancesByCurrency.EUR[user2].owes[user1]).toBe('100.00');
 
             const eurDebtAfter = finalBalance.simplifiedDebts.find((d: SimplifiedDebt) => d.currency === 'EUR');
             expect(eurDebtAfter).toBeDefined();
-            expect(eurDebtAfter?.amount).toBe("100.00");
+            expect(eurDebtAfter?.amount).toBe('100.00');
             expect(eurDebtAfter?.from.uid).toBe(user2);
             expect(eurDebtAfter?.to.uid).toBe(user1);
         });
@@ -804,8 +804,8 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withPaidBy(user1)
                 .withParticipants([user1, user2])
                 .withSplits([
-                    { uid: user1, amount: "150"},
-                    { uid: user2, amount: "150"},
+                    { uid: user1, amount: '150' },
+                    { uid: user2, amount: '150' },
                 ])
                 .build();
 
@@ -820,8 +820,8 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             // Verify initial debt: User2 owes User1 $150 USD
-            expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe("-150.00");
-            expect(currentBalance.simplifiedDebts[0].amount).toBe("150.00");
+            expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe('-150.00');
+            expect(currentBalance.simplifiedDebts[0].amount).toBe('150.00');
             expect(currentBalance.simplifiedDebts[0].currency).toBe('USD');
 
             // Create settlement in USD: User2 pays User1 $50
@@ -846,8 +846,8 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             // Verify after settlement: User2 owes User1 $100 USD
-            expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe("-100.00");
-            expect(currentBalance.simplifiedDebts[0].amount).toBe("100.00");
+            expect(currentBalance.balancesByCurrency.USD[user2].netBalance).toBe('-100.00');
+            expect(currentBalance.simplifiedDebts[0].amount).toBe('100.00');
             expect(currentBalance.balancesByCurrency.EUR).toBeUndefined();
 
             // === ACTION ===
@@ -876,20 +876,20 @@ describe('IncrementalBalanceService - Scenarios', () => {
             // USD debt should be restored to $150 (original $150 - $0 since settlement was removed)
             const updatedUsdDebt = finalBalance.simplifiedDebts.find((d: SimplifiedDebt) => d.currency === 'USD');
             expect(updatedUsdDebt).toBeDefined();
-            expect(updatedUsdDebt?.amount).toBe("150.00");
-            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe("-150.00");
-            expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe("150.00");
+            expect(updatedUsdDebt?.amount).toBe('150.00');
+            expect(finalBalance.balancesByCurrency.USD[user2].netBalance).toBe('-150.00');
+            expect(finalBalance.balancesByCurrency.USD[user1].netBalance).toBe('150.00');
 
             // EUR debt should now exist (User1 owes User2 €50 from the settlement)
             const eurDebtAfter = finalBalance.simplifiedDebts.find((d: SimplifiedDebt) => d.currency === 'EUR');
             expect(eurDebtAfter).toBeDefined();
-            expect(eurDebtAfter?.amount).toBe("50.00");
+            expect(eurDebtAfter?.amount).toBe('50.00');
             expect(eurDebtAfter?.from.uid).toBe(user1); // User1 owes User2
             expect(eurDebtAfter?.to.uid).toBe(user2);
 
             expect(finalBalance.balancesByCurrency.EUR).toBeDefined();
-            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe("-50.00");
-            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe("50.00");
+            expect(finalBalance.balancesByCurrency.EUR[user1].netBalance).toBe('-50.00');
+            expect(finalBalance.balancesByCurrency.EUR[user2].netBalance).toBe('50.00');
 
             // Should have 2 separate currency debts
             expect(finalBalance.simplifiedDebts).toHaveLength(2);

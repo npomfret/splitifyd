@@ -1,8 +1,8 @@
 import { ExpenseSplit } from '@splitifyd/shared';
+import { Amount } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../../constants';
 import { ApiError } from '../../utils/errors';
 import { ISplitStrategy } from './ISplitStrategy';
-import {Amount} from "@splitifyd/shared";
 
 export class PercentageSplitStrategy implements ISplitStrategy {
     validateSplits(totalAmount: Amount, participants: string[], splits: ExpenseSplit[], currencyCode: string): void {

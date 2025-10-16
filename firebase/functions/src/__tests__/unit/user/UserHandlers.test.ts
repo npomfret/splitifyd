@@ -1,12 +1,4 @@
-import {
-    AuthUserRecordBuilder,
-    PasswordChangeRequestBuilder,
-    RegisteredUserBuilder,
-    StubFirestoreDatabase,
-    UserUpdateBuilder,
-    createStubRequest,
-    createStubResponse,
-} from '@splitifyd/test-support';
+import { AuthUserRecordBuilder, createStubRequest, createStubResponse, PasswordChangeRequestBuilder, RegisteredUserBuilder, StubFirestoreDatabase, UserUpdateBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';

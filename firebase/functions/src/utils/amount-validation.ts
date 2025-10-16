@@ -1,6 +1,6 @@
 import { getCurrency, parseMonetaryAmount } from '@splitifyd/shared';
+import { Amount } from '@splitifyd/shared';
 import * as Joi from 'joi';
-import {Amount} from "@splitifyd/shared";
 
 /**
  * Get the maximum allowed decimal places for a currency

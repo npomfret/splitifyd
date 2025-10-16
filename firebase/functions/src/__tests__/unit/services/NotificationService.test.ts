@@ -1,8 +1,8 @@
+import { StubFirestoreDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { UserNotificationDocument } from '../../../schemas/user-notifications';
-import { type ChangeType, NotificationService } from '../../../services/notification-service';
-import { StubFirestoreDatabase } from '@splitifyd/test-support';
 import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
+import { type ChangeType, NotificationService } from '../../../services/notification-service';
 
 describe('NotificationService - Comprehensive Unit Tests', () => {
     let db: StubFirestoreDatabase;

@@ -1,7 +1,7 @@
 import type { GroupMember, SettlementWithMembers } from '@splitifyd/shared';
+import { Amount } from '@splitifyd/shared';
 import { generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
 import { GroupMemberBuilder } from './GroupMemberBuilder';
-import {Amount} from "@splitifyd/shared";
 
 /**
  * Builder for creating SettlementWithMembers objects for tests
@@ -78,7 +78,7 @@ export class SettlementWithMembersBuilder {
     }
 
     withAmount(amount: Amount | number): this {
-        this.settlement.amount = typeof amount === "number" ? amount.toString() : amount;
+        this.settlement.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
 
@@ -110,5 +110,4 @@ export class SettlementWithMembersBuilder {
     build(): SettlementWithMembers {
         return { ...this.settlement };
     }
-
 }
