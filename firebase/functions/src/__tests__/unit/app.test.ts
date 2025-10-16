@@ -1,6 +1,7 @@
-import { amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, smallestUnitToAmountString } from '@splitifyd/shared';
+import { UserBalance, amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, smallestUnitToAmountString } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, it } from 'vitest';
+import { AppDriver } from './AppDriver';
 
 const amountFor = (splits: Array<{ uid: string; amount: string; }>, uid: string) => splits.find((split) => split.uid === uid)!.amount;
 
@@ -10,7 +11,17 @@ const netBalanceForPayer = (splits: Array<{ uid: string; amount: string; }>, pay
         .reduce((sum, split) => sum + amountToSmallestUnit(split.amount, currency), 0);
     return smallestUnitToAmountString(totalUnits, currency);
 };
-import { AppDriver } from './AppDriver';
+
+const sumBalances = (balances: Record<string, UserBalance>, currency: string): number => {
+    return Object.values(balances).reduce((sum, balance) => {
+        return sum + amountToSmallestUnit(balance.netBalance, currency);
+    }, 0);
+};
+
+const verifyBalanceConsistency = (balances: Record<string, UserBalance>, currency: string, testDescription: string) => {
+    const totalBalance = sumBalances(balances, currency);
+    expect(totalBalance, `Total balance should be zero for ${testDescription} (found ${totalBalance} smallest units)`).toBe(0);
+};
 
 describe('app tests', () => {
     let appDriver: AppDriver;
@@ -1428,6 +1439,529 @@ describe('app tests', () => {
             await expect(appDriver.generateShareableLink(user2, groupId))
                 .rejects
                 .toMatchObject({ code: 'UNAUTHORIZED' });
+        });
+
+        it('should handle JavaScript floating point precision bugs (0.1 + 0.2 != 0.3)', async () => {
+            const group = await appDriver.createGroup(
+                user1,
+                new CreateGroupRequestBuilder()
+                    .withName('Float Precision Test')
+                    .build(),
+            );
+
+            const groupId = group.id;
+            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            await appDriver.joinGroupByLink(user2, linkId);
+
+            const participants = [user1, user2];
+            const CURRENCY = 'USD';
+
+            const testCase1Splits = calculateEqualSplits('0.10', CURRENCY, participants);
+            await appDriver.createExpense(
+                user1,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Test 0.10')
+                    .withAmount('0.10')
+                    .withCurrency(CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(testCase1Splits)
+                    .build(),
+            );
+
+            const testCase2Splits = calculateEqualSplits('0.20', CURRENCY, participants);
+            await appDriver.createExpense(
+                user1,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Test 0.20')
+                    .withAmount('0.20')
+                    .withCurrency(CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(testCase2Splits)
+                    .build(),
+            );
+
+            let groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            let usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+
+            expect(usdBalances).toBeDefined();
+            verifyBalanceConsistency(usdBalances!, CURRENCY, 'after 0.10 + 0.20');
+
+            const expectedAfterTwoExpenses = amountToSmallestUnit('0.30', CURRENCY);
+            const actualUser1NetAfterTwo = amountToSmallestUnit(usdBalances![user1].netBalance, CURRENCY);
+            expect(actualUser1NetAfterTwo, 'After 0.10 + 0.20, user1 net should be exactly 15 cents (not 15.000000000000002)').toBe(expectedAfterTwoExpenses / 2);
+
+            const testCase3Splits = calculateEqualSplits('0.70', CURRENCY, participants);
+            await appDriver.createExpense(
+                user1,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Test 0.70')
+                    .withAmount('0.70')
+                    .withCurrency(CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(testCase3Splits)
+                    .build(),
+            );
+
+            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+
+            expect(usdBalances).toBeDefined();
+            verifyBalanceConsistency(usdBalances!, CURRENCY, 'after 0.10 + 0.20 + 0.70');
+
+            const expectedAfterThreeExpenses = amountToSmallestUnit('1.00', CURRENCY);
+            const actualUser1NetAfterThree = amountToSmallestUnit(usdBalances![user1].netBalance, CURRENCY);
+            expect(actualUser1NetAfterThree, 'After 0.10 + 0.20 + 0.70 = 1.00, user1 net should be exactly 50 cents (not 49.99999999999999)').toBe(expectedAfterThreeExpenses / 2);
+
+            for (let i = 0; i < 100; i++) {
+                const splits = calculateEqualSplits('0.10', CURRENCY, participants);
+                await appDriver.createExpense(
+                    user1,
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withDescription(`0.10 expense ${i + 1}`)
+                        .withAmount('0.10')
+                        .withCurrency(CURRENCY)
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(splits)
+                        .build(),
+                );
+            }
+
+            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+
+            expect(usdBalances).toBeDefined();
+            verifyBalanceConsistency(usdBalances!, CURRENCY, 'after 100 × 0.10');
+
+            const totalSmallestUnits = amountToSmallestUnit('0.10', CURRENCY) * 100 + amountToSmallestUnit('1.00', CURRENCY);
+            const expectedUser1Final = totalSmallestUnits - Math.floor(totalSmallestUnits / participants.length);
+            const actualUser1Final = amountToSmallestUnit(usdBalances![user1].netBalance, CURRENCY);
+            expect(actualUser1Final, `After 100 × 0.10 + (0.10 + 0.20 + 0.70), user1 net should be exactly ${expectedUser1Final} cents with zero floating point error`).toBe(expectedUser1Final);
+        });
+
+        it('should maintain precision across many small equal splits', async () => {
+            const SMALL_AMOUNT = '0.03';
+            const NUM_OPERATIONS = 100;
+            const CURRENCY = 'USD';
+
+            const group = await appDriver.createGroup(
+                user1,
+                new CreateGroupRequestBuilder()
+                    .withName('Rounding Test Group')
+                    .build(),
+            );
+
+            const groupId = group.id;
+            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            await appDriver.joinGroupByLink(user2, linkId);
+            await appDriver.joinGroupByLink(user3, linkId);
+
+            const participants = [user1, user2, user3];
+
+            for (let i = 0; i < NUM_OPERATIONS; i++) {
+                const splits = calculateEqualSplits(SMALL_AMOUNT, CURRENCY, participants);
+                await appDriver.createExpense(
+                    user1,
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withDescription(`Small expense ${i + 1}`)
+                        .withAmount(SMALL_AMOUNT)
+                        .withCurrency(CURRENCY)
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(splits)
+                        .build(),
+                );
+            }
+
+            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+
+            expect(usdBalances, 'USD balances should exist after many small operations').toBeDefined();
+            verifyBalanceConsistency(usdBalances!, CURRENCY, 'many small equal splits');
+
+            const smallAmountUnits = amountToSmallestUnit(SMALL_AMOUNT, CURRENCY);
+            const totalAmountUnits = smallAmountUnits * NUM_OPERATIONS;
+            const perUserUnits = Math.floor(totalAmountUnits / participants.length);
+            const expectedUser1NetUnits = totalAmountUnits - perUserUnits;
+            const actualUser1NetUnits = amountToSmallestUnit(usdBalances![user1].netBalance, CURRENCY);
+
+            expect(actualUser1NetUnits, `User1 net balance should be exactly ${expectedUser1NetUnits} smallest units (no rounding error allowed)`).toBe(expectedUser1NetUnits);
+        });
+
+        it('should handle large monetary amounts without precision loss', async () => {
+            const LARGE_AMOUNT = 1234567.88;
+            const CURRENCY = 'USD';
+
+            const group = await appDriver.createGroup(
+                user1,
+                new CreateGroupRequestBuilder()
+                    .withName('Large Amount Test')
+                    .build(),
+            );
+
+            const groupId = group.id;
+            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            await appDriver.joinGroupByLink(user2, linkId);
+
+            const participants = [user1, user2];
+            const splits = calculateEqualSplits(LARGE_AMOUNT, CURRENCY, participants);
+
+            await appDriver.createExpense(
+                user1,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Large real estate payment')
+                    .withAmount(LARGE_AMOUNT)
+                    .withCurrency(CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(splits)
+                    .build(),
+            );
+
+            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+
+            expect(usdBalances).toBeDefined();
+            verifyBalanceConsistency(usdBalances!, CURRENCY, 'large amount expense');
+
+            expect(usdBalances![user1].owedBy[user2]).toBe(amountFor(splits, user2));
+            expect(usdBalances![user2].owes[user1]).toBe(amountFor(splits, user2));
+            expect(usdBalances![user1].netBalance).toBe(netBalanceForPayer(splits, user1, CURRENCY));
+        });
+
+        it('should achieve exactly zero balance through multiple partial settlements', async () => {
+            const EXPENSE_AMOUNT = 100;
+            const FIRST_SETTLEMENT = '10.00';
+            const SECOND_SETTLEMENT = '15.00';
+            const THIRD_SETTLEMENT = '12.50';
+            const FOURTH_SETTLEMENT = '12.50';
+            const CURRENCY = 'EUR';
+
+            const group = await appDriver.createGroup(
+                user1,
+                new CreateGroupRequestBuilder()
+                    .withName('Precise Settlement Test')
+                    .build(),
+            );
+
+            const groupId = group.id;
+            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            await appDriver.joinGroupByLink(user2, linkId);
+
+            const participants = [user1, user2];
+            await appDriver.createExpense(
+                user1,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Shared expense')
+                    .withAmount(EXPENSE_AMOUNT)
+                    .withCurrency(CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(EXPENSE_AMOUNT, CURRENCY, participants))
+                    .build(),
+            );
+
+            let groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('50.00');
+
+            await appDriver.createSettlement(
+                user2,
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(FIRST_SETTLEMENT)
+                    .withCurrency(CURRENCY)
+                    .build(),
+            );
+
+            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('40.00');
+
+            await appDriver.createSettlement(
+                user2,
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(SECOND_SETTLEMENT)
+                    .withCurrency(CURRENCY)
+                    .build(),
+            );
+
+            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('25.00');
+
+            await appDriver.createSettlement(
+                user2,
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(THIRD_SETTLEMENT)
+                    .withCurrency(CURRENCY)
+                    .build(),
+            );
+
+            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            let eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
+            expect(eurBalances![user2].owes[user1]).toBe('12.50');
+
+            await appDriver.createSettlement(
+                user2,
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(FOURTH_SETTLEMENT)
+                    .withCurrency(CURRENCY)
+                    .build(),
+            );
+
+            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
+
+            expect(eurBalances).toBeDefined();
+            expect(eurBalances![user1].netBalance).toBe('0.00');
+            expect(eurBalances![user2].netBalance).toBe('0.00');
+            expect(eurBalances![user1].owedBy[user2]).toBeUndefined();
+            expect(eurBalances![user2].owes[user1]).toBeUndefined();
+
+            verifyBalanceConsistency(eurBalances!, CURRENCY, 'complete settlement through multiple payments');
+        });
+
+        it('should correctly calculate circular debt balances', async () => {
+            const CIRCULAR_AMOUNT = 90;
+            const CURRENCY = 'USD';
+
+            const group = await appDriver.createGroup(
+                user1,
+                new CreateGroupRequestBuilder()
+                    .withName('Circular Debt Test')
+                    .build(),
+            );
+
+            const groupId = group.id;
+            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            await appDriver.joinGroupByLink(user2, linkId);
+            await appDriver.joinGroupByLink(user3, linkId);
+
+            await appDriver.createExpense(
+                user1,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('User1 pays for User1 and User2')
+                    .withAmount(CIRCULAR_AMOUNT)
+                    .withCurrency(CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants([user1, user2])
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(CIRCULAR_AMOUNT, CURRENCY, [user1, user2]))
+                    .build(),
+            );
+
+            await appDriver.createExpense(
+                user2,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('User2 pays for User2 and User3')
+                    .withAmount(CIRCULAR_AMOUNT)
+                    .withCurrency(CURRENCY)
+                    .withPaidBy(user2)
+                    .withParticipants([user2, user3])
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(CIRCULAR_AMOUNT, CURRENCY, [user2, user3]))
+                    .build(),
+            );
+
+            await appDriver.createExpense(
+                user3,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('User3 pays for User3 and User1')
+                    .withAmount(CIRCULAR_AMOUNT)
+                    .withCurrency(CURRENCY)
+                    .withPaidBy(user3)
+                    .withParticipants([user3, user1])
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(CIRCULAR_AMOUNT, CURRENCY, [user3, user1]))
+                    .build(),
+            );
+
+            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+
+            expect(usdBalances).toBeDefined();
+
+            expect(usdBalances![user1].netBalance).toBe('0.00');
+            expect(usdBalances![user2].netBalance).toBe('0.00');
+            expect(usdBalances![user3].netBalance).toBe('0.00');
+
+            verifyBalanceConsistency(usdBalances!, CURRENCY, 'circular debt scenario');
+        });
+
+        it('should maintain balance consistency through complex multi-currency operations', async () => {
+            const group = await appDriver.createGroup(
+                user1,
+                new CreateGroupRequestBuilder()
+                    .withName('Multi-Currency Consistency Test')
+                    .build(),
+            );
+
+            const groupId = group.id;
+            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            await appDriver.joinGroupByLink(user2, linkId);
+            await appDriver.joinGroupByLink(user3, linkId);
+
+            const participants = [user1, user2, user3];
+
+            const usdExpense1Splits = calculateEqualSplits(150, 'USD', participants);
+            await appDriver.createExpense(
+                user1,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('USD Expense 1')
+                    .withAmount(150)
+                    .withCurrency('USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(usdExpense1Splits)
+                    .build(),
+            );
+
+            const eurExpense1Splits = calculateEqualSplits(200, 'EUR', participants);
+            await appDriver.createExpense(
+                user2,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('EUR Expense 1')
+                    .withAmount(200)
+                    .withCurrency('EUR')
+                    .withPaidBy(user2)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(eurExpense1Splits)
+                    .build(),
+            );
+
+            const gbpExpense1Splits = calculateEqualSplits(75.50, 'GBP', participants);
+            await appDriver.createExpense(
+                user3,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('GBP Expense 1')
+                    .withAmount(75.50)
+                    .withCurrency('GBP')
+                    .withPaidBy(user3)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(gbpExpense1Splits)
+                    .build(),
+            );
+
+            await appDriver.createSettlement(
+                user2,
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount('50.00')
+                    .withCurrency('USD')
+                    .build(),
+            );
+
+            await appDriver.createSettlement(
+                user3,
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user3)
+                    .withPayeeId(user2)
+                    .withAmount('66.67')
+                    .withCurrency('EUR')
+                    .build(),
+            );
+
+            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+
+            const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+            const eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
+            const gbpBalances = groupDetails.balances.balancesByCurrency?.GBP;
+
+            expect(usdBalances).toBeDefined();
+            expect(eurBalances).toBeDefined();
+            expect(gbpBalances).toBeDefined();
+
+            verifyBalanceConsistency(usdBalances!, 'USD', 'USD after settlements');
+            verifyBalanceConsistency(eurBalances!, 'EUR', 'EUR after settlements');
+            verifyBalanceConsistency(gbpBalances!, 'GBP', 'GBP without settlements');
+
+            expect(groupDetails.expenses.expenses).toHaveLength(3);
+            expect(groupDetails.settlements.settlements).toHaveLength(2);
+        });
+
+        it('should maintain balance consistency through many expense operations', async () => {
+            const OPERATIONS_COUNT = 20;
+
+            const group = await appDriver.createGroup(
+                user1,
+                new CreateGroupRequestBuilder()
+                    .withName('Consistency Test')
+                    .build(),
+            );
+
+            const groupId = group.id;
+            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            await appDriver.joinGroupByLink(user2, linkId);
+            await appDriver.joinGroupByLink(user3, linkId);
+
+            const participants = [user1, user2, user3];
+            const payers = [user1, user2, user3];
+
+            for (let i = 0; i < OPERATIONS_COUNT; i++) {
+                const amount = (i + 1) * 10;
+                const payer = payers[i % payers.length];
+                const splits = calculateEqualSplits(amount, 'USD', participants);
+
+                await appDriver.createExpense(
+                    payer,
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withDescription(`Expense ${i + 1}`)
+                        .withAmount(amount)
+                        .withCurrency('USD')
+                        .withPaidBy(payer)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(splits)
+                        .build(),
+                );
+            }
+
+            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+
+            expect(usdBalances).toBeDefined();
+            verifyBalanceConsistency(usdBalances!, 'USD', 'many expense operations');
+
+            expect(groupDetails.expenses.expenses).toHaveLength(OPERATIONS_COUNT);
         });
     });
 });
