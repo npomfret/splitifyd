@@ -36,7 +36,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 new SimplifiedDebtBuilder()
                     .from(userId2)
                     .to(userId1)
-                    .withAmount('50')
+                    .withAmount(50)
                     .withCurrency('USD')
                     .build(),
             )
@@ -298,7 +298,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const settlement = new SettlementDTOBuilder()
                     .withId('settlement-lifecycle')
                     .withGroupId(groupId)
-                    .withAmount('50.25')
+                    .withAmount(50.25)
                     .withCurrency(currency)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
@@ -464,7 +464,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
-                    .withAmount('30')
+                    .withAmount(30)
                     .withCurrency('USD')
                     .withCreatedBy(userId2)
                     .build();
@@ -489,7 +489,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
-                    .withAmount('50') // Full amount
+                    .withAmount(50) // Full amount
                     .withCurrency('USD')
                     .withCreatedBy(userId2)
                     .build();
@@ -513,7 +513,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
-                    .withAmount('70') // More than owed
+                    .withAmount(70) // More than owed
                     .withCurrency('USD')
                     .withCreatedBy(userId2)
                     .build();
@@ -539,7 +539,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
-                    .withAmount('30')
+                    .withAmount(30)
                     .withCurrency('USD')
                     .withCreatedBy(userId2)
                     .build();
@@ -570,7 +570,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
-                    .withAmount('30')
+                    .withAmount(30)
                     .withCurrency('USD')
                     .withCreatedBy(userId2)
                     .build();
@@ -580,7 +580,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
-                    .withAmount('40') // Increased amount
+                    .withAmount(40) // Increased amount
                     .withCurrency('USD')
                     .withCreatedBy(userId2)
                     .build();
@@ -606,7 +606,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
-                    .withAmount('30')
+                    .withAmount(30)
                     .withCurrency('USD')
                     .withCreatedBy(userId2)
                     .build();
@@ -616,7 +616,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
-                    .withAmount('30')
+                    .withAmount(30)
                     .withCurrency('EUR') // Changed currency
                     .withCreatedBy(userId2)
                     .build();

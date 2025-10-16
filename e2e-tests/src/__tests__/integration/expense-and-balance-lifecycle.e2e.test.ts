@@ -79,7 +79,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             new SettlementFormDataBuilder()
                 .withPayerName(user2DisplayName)
                 .withPayeeName(user1DisplayName)
-                .withAmount('50.25')
+                .withAmount(50.25)
                 .withCurrency('EUR')
                 .withNote('Partial settlement test')
                 .build(),
@@ -175,7 +175,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             new SettlementFormDataBuilder()
                 .withPayerName(user2DisplayName)
                 .withPayeeName(user1DisplayName)
-                .withAmount('25')
+                .withAmount(25)
                 .withCurrency('EUR')
                 .withNote('Cross-currency settlement test')
                 .build(),
@@ -295,7 +295,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             new SettlementFormDataBuilder()
                 .withPayerName(user2DisplayName)
                 .withPayeeName(user1DisplayName)
-                .withAmount('60.00')
+                .withAmount(60.00)
                 .withCurrency('EUR')
                 .withNote('Partial settlement in complex scenario')
                 .build(),
@@ -379,7 +379,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             new SettlementFormDataBuilder()
                 .withPayerName(user2DisplayName)
                 .withPayeeName(user1DisplayName)
-                .withAmount('30')
+                .withAmount(30)
                 .withCurrency('JPY')
                 .withNote(settlementNote1)
                 .build(),
@@ -401,7 +401,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             new SettlementFormDataBuilder()
                 .withPayerName(user2DisplayName)
                 .withPayeeName(user1DisplayName)
-                .withAmount('10')
+                .withAmount(10)
                 .withCurrency('JPY')
                 .withNote(settlementNote2)
                 .build(),
@@ -423,7 +423,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             new SettlementFormDataBuilder()
                 .withPayerName(user3DisplayName)
                 .withPayeeName(user1DisplayName)
-                .withAmount('25')
+                .withAmount(25)
                 .withCurrency('JPY')
                 .withNote(settlementNote3)
                 .build(),
@@ -583,7 +583,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         const settlementData1 = new SettlementFormDataBuilder()
             .withPayerName(payerName)
             .withPayeeName(payeeName)
-            .withAmount('101')
+            .withAmount(101)
             .withCurrency('JPY')
             .withNote('Test payment for history')
             .build();
@@ -598,7 +598,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         const settlementData2 = new SettlementFormDataBuilder()
             .withPayerName(payeeName) // Other user pays
             .withPayeeName(payerName) // Creator receives
-            .withAmount('75')
+            .withAmount(75)
             .withCurrency('JPY')
             .withNote('Creator receives payment')
             .build();
@@ -630,7 +630,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         const initialData = new SettlementFormDataBuilder()
             .withPayerName(payerName)
             .withPayeeName(payeeName)
-            .withAmount('101')
+            .withAmount(101)
             .withCurrency('JPY')
             .withNote('Initial test payment')
             .build();
@@ -700,7 +700,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         const settlementData1 = new SettlementFormDataBuilder()
             .withPayerName(payerName)
             .withPayeeName(payeeName)
-            .withAmount('100')
+            .withAmount(100)
             .withCurrency('JPY')
             .withNote('Payment to be deleted')
             .build();
@@ -712,7 +712,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         const settlementData2 = new SettlementFormDataBuilder()
             .withPayerName(payerName)
             .withPayeeName(payeeName)
-            .withAmount('75')
+            .withAmount(75)
             .withCurrency('JPY')
             .withNote('Payment to keep')
             .build();
