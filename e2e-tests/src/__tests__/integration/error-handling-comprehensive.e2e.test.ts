@@ -43,7 +43,7 @@ test.describe('Network & Server Error Handling', () => {
 
         // Open modal and fill form
         const createGroupModal = await dashboardPage.openCreateGroupModal();
-        await expect(createGroupModal.isOpen()).resolves.toBe(true);
+        await expect(createGroupModal.getModalContainer()).toBeVisible();
         await createGroupModal.fillGroupForm('Network Test Group', 'Testing network error handling');
 
         // Submit the form
@@ -62,10 +62,10 @@ test.describe('Network & Server Error Handling', () => {
         await expect(errorMessage).toBeVisible({ timeout: 10000 });
 
         // Verify modal stays open on error
-        await expect(createGroupModal.isOpen()).resolves.toBe(true);
+        await expect(createGroupModal.getModalContainer()).toBeVisible();
 
         // Verify submit button is re-enabled after error
-        const submitButton = createGroupModal.getCreateGroupFormButton();
+        const submitButton = createGroupModal.getSubmitButton();
         await expect(submitButton).toBeEnabled({ timeout: 2000 });
 
         // Clean up route
@@ -159,7 +159,7 @@ test.describe('Network & Server Error Handling', () => {
         });
 
         // Close current modal and open new one for timeout test
-        await createGroupModalPage.cancel();
+        await createGroupModalPage.clickCancel();
         await dashboardPage.openCreateGroupModal();
         await createGroupModalPage.fillGroupForm('Timeout Test Group');
 
@@ -178,12 +178,12 @@ test.describe('Network & Server Error Handling', () => {
         await Promise.race([submitPromise, buttonReenabledPromise]);
 
         // Verify expected state: button should be re-enabled after timeout
-        const submitButton = createGroupModalPage.getCreateGroupFormButton();
+        const submitButton = createGroupModalPage.getSubmitButton();
         const isSubmitButtonEnabled = await submitButton.isEnabled();
         expect(isSubmitButtonEnabled).toBe(true);
 
         // Modal should still be open
-        await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
+        await expect(createGroupModalPage.getModalContainer()).toBeVisible();
 
         // Close modal
         await page.keyboard.press('Escape');
@@ -195,10 +195,10 @@ test.describe('Network & Server Error Handling', () => {
 
         // Test 1: Client-side validation
         await dashboardPage.openCreateGroupModal();
-        await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
+        await expect(createGroupModalPage.getModalContainer()).toBeVisible();
 
         // Try to submit empty form
-        const submitButton = createGroupModalPage.getCreateGroupFormButton();
+        const submitButton = createGroupModalPage.getSubmitButton();
         await expect(submitButton).toBeVisible();
 
         // Submit button should be disabled for empty form
@@ -239,7 +239,7 @@ test.describe('Network & Server Error Handling', () => {
         // The error is displayed via enhancedGroupsStore.errorSignal in the modal
 
         // Modal should still be open
-        await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
+        await expect(createGroupModalPage.getModalContainer()).toBeVisible();
 
         // Should show error message within the modal
         const errorMessage = createGroupModalPage.getErrorMessage();

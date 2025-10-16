@@ -442,8 +442,8 @@ simpleTest.describe('Group Deletion', () => {
         ownerDashboardPage = await editModal1.handleDeleteConfirmDialog(groupName1);
 
         // CRITICAL TEST: Both dashboards should update in real-time WITHOUT reload
-        await ownerDashboardPage.waitForGroupToNotBePresent(groupName1);
-        await memberDashboardPage1.waitForGroupToNotBePresent(groupName1);
+        await ownerDashboardPage.waitForGroupToDisappear(groupName1);
+        await memberDashboardPage1.waitForGroupToDisappear(groupName1);
 
         // Scenario 2: Member redirect when group deleted while viewing
         let [ownerGroupDetailPage2, member2GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), memberDashboardPage2);

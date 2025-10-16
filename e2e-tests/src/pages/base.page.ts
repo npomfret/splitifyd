@@ -43,10 +43,6 @@ export abstract class BasePage extends SharedBasePage {
         return this._header;
     }
 
-    getHeadingByLevel(level: number) {
-        return this._page.getByRole('heading', { level });
-    }
-
     private async waitForFocus(input: Locator, timeout = 2000): Promise<void> {
         await expect(input).toBeFocused({ timeout });
     }

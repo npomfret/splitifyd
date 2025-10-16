@@ -344,4 +344,12 @@ export abstract class BasePage {
 
         return '[input]';
     }
+
+    /**
+     * Get heading by semantic level (generic utility)
+     * Useful for finding headings without knowing exact text
+     */
+    getHeadingByLevel(level: number): Locator {
+        return this._page.getByRole('heading', { level });
+    }
 }

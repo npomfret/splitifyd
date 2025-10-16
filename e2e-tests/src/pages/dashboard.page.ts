@@ -30,11 +30,6 @@ export class DashboardPage extends BaseDashboardPage {
         return this._header;
     }
 
-    // Override navigate to include e2e-specific setup
-    async navigate() {
-        await super.navigate();
-    }
-
     // Overload: Accept CreateGroupFormDataBuilder for builder pattern
     async createMultiUserGroup(dataBuilder: CreateGroupFormDataBuilder, ...dashboardPages: DashboardPage[]): Promise<GroupDetailPage[]>;
     // Overload: Accept plain object for backward compatibility
@@ -210,26 +205,6 @@ export class DashboardPage extends BaseDashboardPage {
         await this.waitForDomContentLoaded();
     }
 
-    /**
-     * E2E-specific: Wait for a group to not be present (with custom polling intervals)
-     * Delegates to base class but adds e2e-specific polling strategy
-     */
-    async waitForGroupToNotBePresent(groupName: string, options: { timeout?: number; } = {}) {
-        await expect(this.page).toHaveURL(/\/dashboard/);
-        const timeout = options.timeout || 5000;
-
-        // Use base class method with e2e-specific polling
-        await super.waitForGroupToDisappear(groupName, timeout);
-    }
-
-    /**
-     * E2E-specific: Wait for a group to appear (delegates to base class)
-     * Accepts options object for backwards compatibility
-     */
-    async waitForGroupToAppear(groupName: string, options: { timeout?: number; } | number = {}) {
-        const timeout = typeof options === 'number' ? options : options.timeout || 5000;
-        await super.waitForGroupToAppear(groupName, timeout);
-    }
 
     /**
      * E2E-specific: Click on a group card and navigate to group detail page
