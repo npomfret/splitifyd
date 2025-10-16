@@ -303,7 +303,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async createPolicy(userId: string, policyData: { policyName: string; text: string }): Promise<CreatePolicyResponse> {
+    async createPolicy(userId: string, policyData: { policyName: string; text: string; }): Promise<CreatePolicyResponse> {
         const req = createStubRequest(userId, policyData);
         const res = createStubResponse();
 
@@ -312,13 +312,13 @@ export class AppDriver {
         return (res as any).getJson() as CreatePolicyResponse;
     }
 
-    async listPolicies(userId: string): Promise<{ policies: any[]; count: number }> {
+    async listPolicies(userId: string): Promise<{ policies: any[]; count: number; }> {
         const req = createStubRequest(userId, {});
         const res = createStubResponse();
 
         await this.policyHandlers.listPolicies(req, res);
 
-        return (res as any).getJson() as { policies: any[]; count: number };
+        return (res as any).getJson() as { policies: any[]; count: number; };
     }
 
     async getPolicy(userId: string, policyId: string): Promise<any> {
@@ -339,7 +339,7 @@ export class AppDriver {
         return (res as any).getJson();
     }
 
-    async updatePolicy(userId: string, policyId: string, updateData: { text: string; publish?: boolean }): Promise<UpdatePolicyResponse> {
+    async updatePolicy(userId: string, policyId: string, updateData: { text: string; publish?: boolean; }): Promise<UpdatePolicyResponse> {
         const req = createStubRequest(userId, updateData, { id: policyId });
         const res = createStubResponse();
 

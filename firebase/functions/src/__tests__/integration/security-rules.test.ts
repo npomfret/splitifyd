@@ -71,58 +71,59 @@ describe('Firestore Security Rules (Production)', () => {
 
         beforeAll(async () => {
             // Setup test data with admin privileges
-            await testEnv.withSecurityRulesDisabled(async (context: any) => {
-                const db = context.firestore();
+            await testEnv
+                .withSecurityRulesDisabled(async (context: any) => {
+                    const db = context.firestore();
 
-                // Create a group with user1 and user2 as members
-                const group = new GroupDTOBuilder()
-                    .withName('Test Group')
-                    .withDescription('A test group')
-                    .withCreatedBy('user1-id')
-                    .build();
+                    // Create a group with user1 and user2 as members
+                    const group = new GroupDTOBuilder()
+                        .withName('Test Group')
+                        .withDescription('A test group')
+                        .withCreatedBy('user1-id')
+                        .build();
 
-                await setDoc(doc(db, 'groups', groupId), group);
+                    await setDoc(doc(db, 'groups', groupId), group);
 
-                // Create group-memberships documents for security rules
-                // Note: Using client SDK Timestamp.now() instead of builder to avoid admin/client SDK mismatch
-                const now = Timestamp.now();
-                const user1Membership = {
-                    uid: 'user1-id',
-                    groupId: groupId,
-                    memberRole: 'member',
-                    memberStatus: 'active',
-                    joinedAt: now,
-                    invitedBy: 'system',
-                    theme: {
-                        light: '#3B82F6',
-                        dark: '#1E40AF',
-                        name: 'Blue',
-                        pattern: 'solid',
-                        assignedAt: new Date().toISOString(),
-                        colorIndex: 0,
-                    },
-                };
+                    // Create group-memberships documents for security rules
+                    // Note: Using client SDK Timestamp.now() instead of builder to avoid admin/client SDK mismatch
+                    const now = Timestamp.now();
+                    const user1Membership = {
+                        uid: 'user1-id',
+                        groupId: groupId,
+                        memberRole: 'member',
+                        memberStatus: 'active',
+                        joinedAt: now,
+                        invitedBy: 'system',
+                        theme: {
+                            light: '#3B82F6',
+                            dark: '#1E40AF',
+                            name: 'Blue',
+                            pattern: 'solid',
+                            assignedAt: new Date().toISOString(),
+                            colorIndex: 0,
+                        },
+                    };
 
-                const user2Membership = {
-                    uid: 'user2-id',
-                    groupId: groupId,
-                    memberRole: 'member',
-                    memberStatus: 'active',
-                    joinedAt: now,
-                    invitedBy: 'system',
-                    theme: {
-                        light: '#F59E0B',
-                        dark: '#D97706',
-                        name: 'Amber',
-                        pattern: 'solid',
-                        assignedAt: new Date().toISOString(),
-                        colorIndex: 1,
-                    },
-                };
+                    const user2Membership = {
+                        uid: 'user2-id',
+                        groupId: groupId,
+                        memberRole: 'member',
+                        memberStatus: 'active',
+                        joinedAt: now,
+                        invitedBy: 'system',
+                        theme: {
+                            light: '#F59E0B',
+                            dark: '#D97706',
+                            name: 'Amber',
+                            pattern: 'solid',
+                            assignedAt: new Date().toISOString(),
+                            colorIndex: 1,
+                        },
+                    };
 
-                await setDoc(doc(db, 'group-memberships', 'user1-id_' + groupId), user1Membership);
-                await setDoc(doc(db, 'group-memberships', 'user2-id_' + groupId), user2Membership);
-            });
+                    await setDoc(doc(db, 'group-memberships', 'user1-id_' + groupId), user1Membership);
+                    await setDoc(doc(db, 'group-memberships', 'user2-id_' + groupId), user2Membership);
+                });
         });
 
         it('should allow group members to read groups they belong to', async () => {
@@ -168,26 +169,28 @@ describe('Firestore Security Rules (Production)', () => {
         const groupId = 'test-group-1';
 
         beforeAll(async () => {
-            await testEnv.withSecurityRulesDisabled(async (context: any) => {
-                const db = context.firestore();
+            await testEnv
+                .withSecurityRulesDisabled(async (context: any) => {
+                    const db = context.firestore();
 
-                // Create an expense for the test group
-                const expense = new ExpenseDTOBuilder()
-                    .withGroupId(groupId)
-                    .withDescription('Test Expense')
-                    .withAmount(100)
-                    .withCreatedBy('user1-id')
-                    .withPaidBy('user1-id')
-                    // Note: ExpenseDTOBuilder doesn't have memberIds - access is controlled differently
-                    .withParticipants(['user1-id', 'user2-id'])
-                    .withSplits([
-                        { uid: 'user1-id', amount: '50' },
-                        { uid: 'user2-id', amount: '50' },
-                    ])
-                    .build();
+                    // Create an expense for the test group
+                    const expense = new ExpenseDTOBuilder()
+                        .withGroupId(groupId)
+                        .withDescription('Test Expense')
+                        .withAmount(100)
+                        .withCreatedBy('user1-id')
+                        .withPaidBy('user1-id')
+                        // Note: ExpenseDTOBuilder doesn't have memberIds - access is controlled differently
 
-                await setDoc(doc(db, 'expenses', expenseId), expense);
-            });
+                        .withParticipants(['user1-id', 'user2-id'])
+                        .withSplits([
+                            { uid: 'user1-id', amount: '50' },
+                            { uid: 'user2-id', amount: '50' },
+                        ])
+                        .build();
+
+                    await setDoc(doc(db, 'expenses', expenseId), expense);
+                });
         });
 
         it('should allow group members to read expenses in their groups', async () => {
@@ -218,21 +221,22 @@ describe('Firestore Security Rules (Production)', () => {
         const settlementId = 'test-settlement-1';
 
         beforeAll(async () => {
-            await testEnv.withSecurityRulesDisabled(async (context: any) => {
-                const db = context.firestore();
+            await testEnv
+                .withSecurityRulesDisabled(async (context: any) => {
+                    const db = context.firestore();
 
-                // Create a settlement
-                const settlement = new SettlementDTOBuilder()
-                    .withGroupId('test-group-1')
-                    .withPayerId('user2-id') // Changed from fromUserId to payerId
-                    .withPayeeId('user1-id') // Changed from toUserId to payeeId
-                    .withAmount(50)
-                    .withCurrency('USD')
-                    // Note: ExpenseDTOBuilder doesn't have memberIds - access is controlled differently
-                    .build();
+                    // Create a settlement
+                    const settlement = new SettlementDTOBuilder()
+                        .withGroupId('test-group-1')
+                        .withPayerId('user2-id') // Changed from fromUserId to payerId
+                        .withPayeeId('user1-id') // Changed from toUserId to payeeId
+                        .withAmount(50)
+                        .withCurrency('USD')
+                        // Note: ExpenseDTOBuilder doesn't have memberIds - access is controlled differently
+                        .build();
 
-                await setDoc(doc(db, 'settlements', settlementId), settlement);
-            });
+                    await setDoc(doc(db, 'settlements', settlementId), settlement);
+                });
         });
 
         it('should allow group members to read settlements in their groups', async () => {
@@ -265,79 +269,80 @@ describe('Firestore Security Rules (Production)', () => {
         const expenseCommentId = 'expense-comment-1';
 
         beforeAll(async () => {
-            await testEnv.withSecurityRulesDisabled(async (context: any) => {
-                const db = context.firestore();
+            await testEnv
+                .withSecurityRulesDisabled(async (context: any) => {
+                    const db = context.firestore();
 
-                // Create group with comments
-                const commentGroup = new GroupDTOBuilder()
-                    .withName('Group with Comments')
-                    .build();
+                    // Create group with comments
+                    const commentGroup = new GroupDTOBuilder()
+                        .withName('Group with Comments')
+                        .build();
 
-                await setDoc(doc(db, 'groups', groupId), commentGroup);
+                    await setDoc(doc(db, 'groups', groupId), commentGroup);
 
-                // Create comment document manually for now (CommentBuilder creates API response structure)
-                await setDoc(doc(db, 'groups', groupId, 'comments', groupCommentId), {
-                    text: 'A group comment',
-                    userId: 'user1-id',
-                    createdAt: new Date(),
+                    // Create comment document manually for now (CommentBuilder creates API response structure)
+                    await setDoc(doc(db, 'groups', groupId, 'comments', groupCommentId), {
+                        text: 'A group comment',
+                        userId: 'user1-id',
+                        createdAt: new Date(),
+                    });
+
+                    // Create group-memberships for comment group
+                    // Note: Using client SDK Timestamp.now() instead of builder to avoid admin/client SDK mismatch
+                    const commentNow = Timestamp.now();
+                    const commentUser1Membership = {
+                        uid: 'user1-id',
+                        groupId: groupId,
+                        memberRole: 'member',
+                        memberStatus: 'active',
+                        joinedAt: commentNow,
+                        invitedBy: 'system',
+                        theme: {
+                            light: '#3B82F6',
+                            dark: '#1E40AF',
+                            name: 'Blue',
+                            pattern: 'solid',
+                            assignedAt: new Date().toISOString(),
+                            colorIndex: 0,
+                        },
+                    };
+
+                    const commentUser2Membership = {
+                        uid: 'user2-id',
+                        groupId: groupId,
+                        memberRole: 'member',
+                        memberStatus: 'active',
+                        joinedAt: commentNow,
+                        invitedBy: 'system',
+                        theme: {
+                            light: '#F59E0B',
+                            dark: '#D97706',
+                            name: 'Amber',
+                            pattern: 'solid',
+                            assignedAt: new Date().toISOString(),
+                            colorIndex: 1,
+                        },
+                    };
+
+                    await setDoc(doc(db, 'group-memberships', 'user1-id_' + groupId), commentUser1Membership);
+                    await setDoc(doc(db, 'group-memberships', 'user2-id_' + groupId), commentUser2Membership);
+
+                    // Create expense with comments
+                    const commentExpense = new ExpenseDTOBuilder()
+                        .withDescription('Expense with Comments')
+                        .withParticipants(['user1-id', 'user2-id'])
+                        .withAmount(100)
+                        .build();
+
+                    await setDoc(doc(db, 'expenses', expenseId), commentExpense);
+
+                    // Create expense comment document manually for now
+                    await setDoc(doc(db, 'expenses', expenseId, 'comments', expenseCommentId), {
+                        text: 'An expense comment',
+                        userId: 'user1-id',
+                        createdAt: new Date(),
+                    });
                 });
-
-                // Create group-memberships for comment group
-                // Note: Using client SDK Timestamp.now() instead of builder to avoid admin/client SDK mismatch
-                const commentNow = Timestamp.now();
-                const commentUser1Membership = {
-                    uid: 'user1-id',
-                    groupId: groupId,
-                    memberRole: 'member',
-                    memberStatus: 'active',
-                    joinedAt: commentNow,
-                    invitedBy: 'system',
-                    theme: {
-                        light: '#3B82F6',
-                        dark: '#1E40AF',
-                        name: 'Blue',
-                        pattern: 'solid',
-                        assignedAt: new Date().toISOString(),
-                        colorIndex: 0,
-                    },
-                };
-
-                const commentUser2Membership = {
-                    uid: 'user2-id',
-                    groupId: groupId,
-                    memberRole: 'member',
-                    memberStatus: 'active',
-                    joinedAt: commentNow,
-                    invitedBy: 'system',
-                    theme: {
-                        light: '#F59E0B',
-                        dark: '#D97706',
-                        name: 'Amber',
-                        pattern: 'solid',
-                        assignedAt: new Date().toISOString(),
-                        colorIndex: 1,
-                    },
-                };
-
-                await setDoc(doc(db, 'group-memberships', 'user1-id_' + groupId), commentUser1Membership);
-                await setDoc(doc(db, 'group-memberships', 'user2-id_' + groupId), commentUser2Membership);
-
-                // Create expense with comments
-                const commentExpense = new ExpenseDTOBuilder()
-                    .withDescription('Expense with Comments')
-                    .withParticipants(['user1-id', 'user2-id'])
-                    .withAmount(100)
-                    .build();
-
-                await setDoc(doc(db, 'expenses', expenseId), commentExpense);
-
-                // Create expense comment document manually for now
-                await setDoc(doc(db, 'expenses', expenseId, 'comments', expenseCommentId), {
-                    text: 'An expense comment',
-                    userId: 'user1-id',
-                    createdAt: new Date(),
-                });
-            });
         });
 
         it('should allow authenticated users to read group comments', async () => {
@@ -372,39 +377,40 @@ describe('Firestore Security Rules (Production)', () => {
 
     describe('User Notifications Collection', () => {
         beforeAll(async () => {
-            await testEnv.withSecurityRulesDisabled(async (context: any) => {
-                const db = context.firestore();
+            await testEnv
+                .withSecurityRulesDisabled(async (context: any) => {
+                    const db = context.firestore();
 
-                const now = Timestamp.now();
+                    const now = Timestamp.now();
 
-                // Create user notification documents inline with client SDK Timestamps
-                const user1Notification = {
-                    changeVersion: 1,
-                    groups: {
-                        'test-group-1': {
-                            lastTransactionChange: now,
-                            lastBalanceChange: null,
-                            lastGroupDetailsChange: null,
-                            lastCommentChange: null,
-                            transactionChangeCount: 5,
-                            balanceChangeCount: 0,
-                            groupDetailsChangeCount: 0,
-                            commentChangeCount: 0,
+                    // Create user notification documents inline with client SDK Timestamps
+                    const user1Notification = {
+                        changeVersion: 1,
+                        groups: {
+                            'test-group-1': {
+                                lastTransactionChange: now,
+                                lastBalanceChange: null,
+                                lastGroupDetailsChange: null,
+                                lastCommentChange: null,
+                                transactionChangeCount: 5,
+                                balanceChangeCount: 0,
+                                groupDetailsChangeCount: 0,
+                                commentChangeCount: 0,
+                            },
                         },
-                    },
-                    lastModified: now,
-                };
+                        lastModified: now,
+                    };
 
-                await setDoc(doc(db, 'user-notifications', 'user1-id'), user1Notification);
+                    await setDoc(doc(db, 'user-notifications', 'user1-id'), user1Notification);
 
-                const user2Notification = {
-                    changeVersion: 1,
-                    groups: {},
-                    lastModified: now,
-                };
+                    const user2Notification = {
+                        changeVersion: 1,
+                        groups: {},
+                        lastModified: now,
+                    };
 
-                await setDoc(doc(db, 'user-notifications', 'user2-id'), user2Notification);
-            });
+                    await setDoc(doc(db, 'user-notifications', 'user2-id'), user2Notification);
+                });
         });
 
         it('should allow users to read their own notification document', async () => {
@@ -437,18 +443,19 @@ describe('Firestore Security Rules (Production)', () => {
         const policyId = 'privacy-policy';
 
         beforeAll(async () => {
-            await testEnv.withSecurityRulesDisabled(async (context: any) => {
-                const db = context.firestore();
+            await testEnv
+                .withSecurityRulesDisabled(async (context: any) => {
+                    const db = context.firestore();
 
-                // Create a policy document
-                const policy = new PolicyDocumentBuilder()
-                    .withId(policyId)
-                    .withPolicyName('privacy')
-                    .withVersionText('v1.0.0', 'Privacy policy content...')
-                    .build();
+                    // Create a policy document
+                    const policy = new PolicyDocumentBuilder()
+                        .withId(policyId)
+                        .withPolicyName('privacy')
+                        .withVersionText('v1.0.0', 'Privacy policy content...')
+                        .build();
 
-                await setDoc(doc(db, 'policies', policyId), policy);
-            });
+                    await setDoc(doc(db, 'policies', policyId), policy);
+                });
         });
 
         it('should allow all authenticated users to read policies', async () => {
@@ -476,20 +483,21 @@ describe('Firestore Security Rules (Production)', () => {
         const groupId = 'test-group-1';
 
         beforeAll(async () => {
-            await testEnv.withSecurityRulesDisabled(async (context: any) => {
-                const db = context.firestore();
+            await testEnv
+                .withSecurityRulesDisabled(async (context: any) => {
+                    const db = context.firestore();
 
-                // Create a group balance document
-                const groupBalance = new GroupBalanceDocumentBuilder()
-                    .withGroupId(groupId)
-                    .withBalances({
-                        'user1-id': { USD: '50' },
-                        'user2-id': { USD: '-50' },
-                    })
-                    .build();
+                    // Create a group balance document
+                    const groupBalance = new GroupBalanceDocumentBuilder()
+                        .withGroupId(groupId)
+                        .withBalances({
+                            'user1-id': { USD: '50' },
+                            'user2-id': { USD: '-50' },
+                        })
+                        .build();
 
-                await setDoc(doc(db, 'group-balances', groupId), groupBalance);
-            });
+                    await setDoc(doc(db, 'group-balances', groupId), groupBalance);
+                });
         });
 
         it('should allow authenticated users to read group balances', async () => {
@@ -567,14 +575,15 @@ describe('Firestore Security Rules (Production)', () => {
         });
 
         it('should deny users from reading other users documents', async () => {
-            await testEnv.withSecurityRulesDisabled(async (context: any) => {
-                const userData = {
-                    email: 'other@example.com',
-                    displayName: 'Other User',
-                    role: 'user',
-                };
-                await setDoc(doc(context.firestore(), 'users', 'other-user-id'), userData);
-            });
+            await testEnv
+                .withSecurityRulesDisabled(async (context: any) => {
+                    const userData = {
+                        email: 'other@example.com',
+                        displayName: 'Other User',
+                        role: 'user',
+                    };
+                    await setDoc(doc(context.firestore(), 'users', 'other-user-id'), userData);
+                });
 
             // User should NOT be able to read other user's document
             await assertFails(getDoc(doc(user1Db, 'users', 'other-user-id')));
@@ -583,17 +592,18 @@ describe('Firestore Security Rules (Production)', () => {
 
     describe('Edge Cases and Security Boundaries', () => {
         it('should properly handle empty memberIds arrays', async () => {
-            await testEnv.withSecurityRulesDisabled(async (context: any) => {
-                const db = context.firestore();
+            await testEnv
+                .withSecurityRulesDisabled(async (context: any) => {
+                    const db = context.firestore();
 
-                // Create a group with empty memberIds
-                const emptyMembersGroup = new GroupDTOBuilder()
-                    .withName('Empty Members Group')
-                    .withMemberIds([])
-                    .build();
+                    // Create a group with empty memberIds
+                    const emptyMembersGroup = new GroupDTOBuilder()
+                        .withName('Empty Members Group')
+                        .withMemberIds([])
+                        .build();
 
-                await setDoc(doc(db, 'groups', 'empty-members-group'), emptyMembersGroup);
-            });
+                    await setDoc(doc(db, 'groups', 'empty-members-group'), emptyMembersGroup);
+                });
 
             // No one should be able to read a group with empty memberIds
             await assertFails(getDoc(doc(user1Db, 'groups', 'empty-members-group')));
@@ -601,17 +611,18 @@ describe('Firestore Security Rules (Production)', () => {
         });
 
         it('should handle missing memberIds field correctly', async () => {
-            await testEnv.withSecurityRulesDisabled(async (context: any) => {
-                const db = context.firestore();
+            await testEnv
+                .withSecurityRulesDisabled(async (context: any) => {
+                    const db = context.firestore();
 
-                // Create a group without memberIds field
-                const noMembersFieldGroup = new GroupDTOBuilder()
-                    .withName('No Members Field Group')
-                    .withoutMemberIds()
-                    .build();
+                    // Create a group without memberIds field
+                    const noMembersFieldGroup = new GroupDTOBuilder()
+                        .withName('No Members Field Group')
+                        .withoutMemberIds()
+                        .build();
 
-                await setDoc(doc(db, 'groups', 'no-members-field'), noMembersFieldGroup);
-            });
+                    await setDoc(doc(db, 'groups', 'no-members-field'), noMembersFieldGroup);
+                });
 
             // Should fail for all users when memberIds is missing
             await assertFails(getDoc(doc(user1Db, 'groups', 'no-members-field')));

@@ -26,7 +26,9 @@ describe('UserHandlers - Unit Tests', () => {
 
             appDriver.seedUser(userId, firestoreUser);
 
-            const updateRequest = new UserUpdateBuilder().withDisplayName('New Name').build();
+            const updateRequest = new UserUpdateBuilder()
+                .withDisplayName('New Name')
+                .build();
 
             const result = await appDriver.updateUserProfile(userId, updateRequest);
 
@@ -46,7 +48,9 @@ describe('UserHandlers - Unit Tests', () => {
 
             appDriver.seedUser(userId, firestoreUser);
 
-            const updateRequest = new UserUpdateBuilder().withPhotoURL('https://example.com/new-photo.jpg').build();
+            const updateRequest = new UserUpdateBuilder()
+                .withPhotoURL('https://example.com/new-photo.jpg')
+                .build();
 
             const result = await appDriver.updateUserProfile(userId, updateRequest);
 
@@ -64,7 +68,9 @@ describe('UserHandlers - Unit Tests', () => {
 
             appDriver.seedUser(userId, firestoreUser);
 
-            const updateRequest = new UserUpdateBuilder().withPreferredLanguage('en').build();
+            const updateRequest = new UserUpdateBuilder()
+                .withPreferredLanguage('en')
+                .build();
 
             await appDriver.updateUserProfile(userId, updateRequest);
         });
@@ -105,7 +111,9 @@ describe('UserHandlers - Unit Tests', () => {
 
             appDriver.seedUser(userId, firestoreUser);
 
-            const updateRequest = new UserUpdateBuilder().withPhotoURL(null).build();
+            const updateRequest = new UserUpdateBuilder()
+                .withPhotoURL(null)
+                .build();
 
             await appDriver.updateUserProfile(userId, updateRequest);
         });
@@ -124,7 +132,9 @@ describe('UserHandlers - Unit Tests', () => {
 
         it('should reject update with invalid photoURL format', async () => {
             const userId = 'test-user-123';
-            const updateRequest = new UserUpdateBuilder().withPhotoURL('not-a-valid-url').build();
+            const updateRequest = new UserUpdateBuilder()
+                .withPhotoURL('not-a-valid-url')
+                .build();
 
             await expect(appDriver.updateUserProfile(userId, updateRequest)).rejects.toThrow(
                 expect.objectContaining({
@@ -137,7 +147,9 @@ describe('UserHandlers - Unit Tests', () => {
         it('should reject update with displayName exceeding 100 characters', async () => {
             const userId = 'test-user-123';
             const longName = 'a'.repeat(101);
-            const updateRequest = new UserUpdateBuilder().withDisplayName(longName).build();
+            const updateRequest = new UserUpdateBuilder()
+                .withDisplayName(longName)
+                .build();
 
             await expect(appDriver.updateUserProfile(userId, updateRequest)).rejects.toThrow(
                 expect.objectContaining({
@@ -149,7 +161,9 @@ describe('UserHandlers - Unit Tests', () => {
 
         it('should reject update with empty display name', async () => {
             const userId = 'test-user-123';
-            const updateRequest = new UserUpdateBuilder().withDisplayName('').build();
+            const updateRequest = new UserUpdateBuilder()
+                .withDisplayName('')
+                .build();
 
             await expect(appDriver.updateUserProfile(userId, updateRequest)).rejects.toThrow(
                 expect.objectContaining({
@@ -161,7 +175,9 @@ describe('UserHandlers - Unit Tests', () => {
 
         it('should reject update with invalid language code', async () => {
             const userId = 'test-user-123';
-            const updateRequest = new UserUpdateBuilder().withPreferredLanguage('invalid-lang').build();
+            const updateRequest = new UserUpdateBuilder()
+                .withPreferredLanguage('invalid-lang')
+                .build();
 
             await expect(appDriver.updateUserProfile(userId, updateRequest)).rejects.toThrow(
                 expect.objectContaining({

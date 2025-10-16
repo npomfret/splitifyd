@@ -16,7 +16,10 @@ test.describe('Dashboard Groups Pagination', () => {
 
         await mockGroupsApi(
             page,
-            ListGroupsResponseBuilder.responseWithMetadata(groups, 1).withHasMore(false).build(),
+            ListGroupsResponseBuilder
+                .responseWithMetadata(groups, 1)
+                .withHasMore(false)
+                .build(),
         );
 
         await page.goto('/dashboard');
@@ -156,7 +159,10 @@ test.describe('Dashboard Groups Pagination', () => {
         // Setup route for page 2
         await mockGroupsApi(
             page,
-            ListGroupsResponseBuilder.responseWithMetadata(page2Groups, 1).withHasMore(false).build(),
+            ListGroupsResponseBuilder
+                .responseWithMetadata(page2Groups, 1)
+                .withHasMore(false)
+                .build(),
         );
 
         const nextButton = page.getByTestId('pagination-next');
@@ -205,7 +211,10 @@ test.describe('Dashboard Groups Pagination', () => {
 
         await mockGroupsApi(
             page,
-            ListGroupsResponseBuilder.responseWithMetadata(groups, 1).withHasMore(false).build(),
+            ListGroupsResponseBuilder
+                .responseWithMetadata(groups, 1)
+                .withHasMore(false)
+                .build(),
         );
 
         await page.goto('/dashboard');
@@ -253,7 +262,10 @@ test.describe('Dashboard Groups Pagination', () => {
         // Setup delayed route for page 2 to test loading state
         await mockGroupsApi(
             page,
-            ListGroupsResponseBuilder.responseWithMetadata(page2Groups, 1).withHasMore(false).build(),
+            ListGroupsResponseBuilder
+                .responseWithMetadata(page2Groups, 1)
+                .withHasMore(false)
+                .build(),
             { delayMs: 500 },
         );
 
@@ -313,14 +325,21 @@ test.describe('Dashboard Groups Pagination', () => {
         // Setup route for page 2
         await mockGroupsApi(
             page,
-            ListGroupsResponseBuilder.responseWithMetadata(page2Groups, 1).withHasMore(false).build(),
+            ListGroupsResponseBuilder
+                .responseWithMetadata(page2Groups, 1)
+                .withHasMore(false)
+                .build(),
         );
 
         const nextButton = page.getByTestId('pagination-next');
         await nextButton.click();
         await dashboardPage.verifyGroupDisplayed('Page 2 Group 1');
 
-        const newGroup = GroupDTOBuilder.groupForUser(user.uid).withId('new-group').withName('New Group').build();
+        const newGroup = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId('new-group')
+            .withName('New Group')
+            .build();
 
         const updatedPage1Groups = [newGroup, ...page1Groups];
 
@@ -369,7 +388,10 @@ test.describe('Dashboard Groups Pagination', () => {
         const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        const emptyResponse = ListGroupsResponseBuilder.responseWithMetadata([], 0).withHasMore(false).build();
+        const emptyResponse = ListGroupsResponseBuilder
+            .responseWithMetadata([], 0)
+            .withHasMore(false)
+            .build();
 
         await mockGroupsApi(page, emptyResponse);
 

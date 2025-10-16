@@ -189,7 +189,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .withUserBalance(
                     'USD',
                     'member-user-123',
-                    new UserBalanceBuilder().withUserId('member-user-123').withNetBalance(-50.0).build(), // Member owes $50
+                    new UserBalanceBuilder()
+                        .withUserId('member-user-123')
+                        .withNetBalance(-50.0)
+                        .build(), // Member owes $50
                 )
                 .withVersion(1)
                 .build();
@@ -231,7 +234,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .withUserBalance(
                     'USD',
                     'member-user-123',
-                    new UserBalanceBuilder().withUserId('member-user-123').withNetBalance(0.0).build(), // Member has settled balance
+                    new UserBalanceBuilder()
+                        .withUserId('member-user-123')
+                        .withNetBalance(0.0)
+                        .build(), // Member has settled balance
                 )
                 .withVersion(1)
                 .build();
@@ -339,7 +345,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .withUserBalance(
                     'USD',
                     'member-user-123',
-                    new UserBalanceBuilder().withUserId('member-user-123').withNetBalance(25.0).build(), // Member is owed $25
+                    new UserBalanceBuilder()
+                        .withUserId('member-user-123')
+                        .withNetBalance(25.0)
+                        .build(), // Member is owed $25
                 )
                 .withVersion(1)
                 .build();
@@ -375,7 +384,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .withUserBalance(
                     'USD',
                     'member-user-123',
-                    new UserBalanceBuilder().withUserId('member-user-123').withNetBalance(0.0).build(), // Member has settled balance
+                    new UserBalanceBuilder()
+                        .withUserId('member-user-123')
+                        .withNetBalance(0.0)
+                        .build(), // Member has settled balance
                 )
                 .withVersion(1)
                 .build();

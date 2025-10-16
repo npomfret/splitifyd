@@ -143,7 +143,8 @@ export class PolicyAcceptanceModalPage extends BasePage {
             const policyName = await this.getCurrentPolicyName();
             expect(policyName).toBeTruthy();
             expect(policyName.length).toBeGreaterThan(minLength);
-        }).toPass({ timeout: 5000 });
+        })
+            .toPass({ timeout: 5000 });
     }
 
     /**

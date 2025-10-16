@@ -139,7 +139,8 @@ export class ListGroupsResponseBuilder {
             .withHasMore(hasMore);
 
         if (nextCursor) {
-            builder.withNextCursor(nextCursor);
+            builder
+                .withNextCursor(nextCursor);
         }
 
         return builder;

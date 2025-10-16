@@ -355,7 +355,8 @@ export class JoinGroupPage extends BasePage {
         await expect(async () => {
             const actualName = await this.getGroupName();
             expect(actualName).toBe(expectedName);
-        }).toPass({ timeout: 5000 });
+        })
+            .toPass({ timeout: 5000 });
     }
 
     /**

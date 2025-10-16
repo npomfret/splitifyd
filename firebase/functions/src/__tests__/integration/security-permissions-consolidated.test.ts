@@ -160,7 +160,9 @@ describe('Security and Permissions - Consolidated Tests', () => {
             await expect(
                 apiDriver.updateGroup(
                     edgeTestGroup.id,
-                    new GroupUpdateBuilder().withName('Hacked Name').build(),
+                    new GroupUpdateBuilder()
+                        .withName('Hacked Name')
+                        .build(),
                     users[3].token,
                 ),
             )
@@ -183,7 +185,9 @@ describe('Security and Permissions - Consolidated Tests', () => {
             // Admin can update group
             await apiDriver.updateGroup(
                 roleTestGroup.id,
-                new GroupUpdateBuilder().withName('Updated by Admin').build(),
+                new GroupUpdateBuilder()
+                    .withName('Updated by Admin')
+                    .build(),
                 adminUser.token,
             );
 
@@ -194,7 +198,9 @@ describe('Security and Permissions - Consolidated Tests', () => {
             await expect(
                 apiDriver.updateGroup(
                     roleTestGroup.id,
-                    new GroupUpdateBuilder().withName('Hacked by Member').build(),
+                    new GroupUpdateBuilder()
+                        .withName('Hacked by Member')
+                        .build(),
                     memberUser.token,
                 ),
             )

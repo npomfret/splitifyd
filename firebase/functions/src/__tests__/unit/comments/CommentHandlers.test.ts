@@ -126,7 +126,11 @@ describe('CommentHandlers - Unit Tests', () => {
 
             const expense = await appDriver.createExpense(
                 userId,
-                new CreateExpenseRequestBuilder().withGroupId(group.id).withPaidBy(userId).withParticipants([userId]).build(),
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
             );
 
             const result = await appDriver.createExpenseComment(userId, expense.id, 'This is an expense comment');
@@ -149,7 +153,11 @@ describe('CommentHandlers - Unit Tests', () => {
 
             const expense = await appDriver.createExpense(
                 creatorId,
-                new CreateExpenseRequestBuilder().withGroupId(group.id).withPaidBy(creatorId).withParticipants([creatorId]).build(),
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(creatorId)
+                    .withParticipants([creatorId])
+                    .build(),
             );
 
             await expect(appDriver.createExpenseComment(userId, expense.id, 'Test comment')).rejects.toThrow(
@@ -239,7 +247,11 @@ describe('CommentHandlers - Unit Tests', () => {
 
             const expense = await appDriver.createExpense(
                 userId,
-                new CreateExpenseRequestBuilder().withGroupId(group.id).withPaidBy(userId).withParticipants([userId]).build(),
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
             );
 
             const result = await appDriver.listExpenseComments(userId, expense.id);
@@ -258,7 +270,11 @@ describe('CommentHandlers - Unit Tests', () => {
 
             const expense = await appDriver.createExpense(
                 userId,
-                new CreateExpenseRequestBuilder().withGroupId(group.id).withPaidBy(userId).withParticipants([userId]).build(),
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
             );
 
             const result = await appDriver.listExpenseComments(userId, expense.id);
@@ -278,7 +294,11 @@ describe('CommentHandlers - Unit Tests', () => {
 
             const expense = await appDriver.createExpense(
                 creatorId,
-                new CreateExpenseRequestBuilder().withGroupId(group.id).withPaidBy(creatorId).withParticipants([creatorId]).build(),
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(creatorId)
+                    .withParticipants([creatorId])
+                    .build(),
             );
 
             await expect(appDriver.listExpenseComments(userId, expense.id)).rejects.toThrow(

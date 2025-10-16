@@ -561,12 +561,18 @@ describe('Groups Management - Consolidated Tests', () => {
             const updatePromises = [
                 apiDriver.updateSettlement(
                     settlement.id,
-                    new SettlementUpdateBuilder().withAmount(75).withCurrency('USD').build(),
+                    new SettlementUpdateBuilder()
+                        .withAmount(75)
+                        .withCurrency('USD')
+                        .build(),
                     users[0].token,
                 ),
                 apiDriver.updateSettlement(
                     settlement.id,
-                    new SettlementUpdateBuilder().withAmount(100).withCurrency('USD').build(),
+                    new SettlementUpdateBuilder()
+                        .withAmount(100)
+                        .withCurrency('USD')
+                        .build(),
                     users[0].token,
                 ),
             ];

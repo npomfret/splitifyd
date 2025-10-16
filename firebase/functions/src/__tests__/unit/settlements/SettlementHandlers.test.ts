@@ -404,7 +404,10 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             const created = await appDriver.createSettlement(userId, settlementRequest);
 
-            const updateRequest = new SettlementUpdateBuilder().withAmount(150.75).withCurrency('USD').build();
+            const updateRequest = new SettlementUpdateBuilder()
+                .withAmount(150.75)
+                .withCurrency('USD')
+                .build();
 
             const result = await appDriver.updateSettlement(userId, created.id, updateRequest);
 
@@ -439,7 +442,9 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             const created = await appDriver.createSettlement(userId, settlementRequest);
 
-            const updateRequest = new SettlementUpdateBuilder().withNote('Updated note').build();
+            const updateRequest = new SettlementUpdateBuilder()
+                .withNote('Updated note')
+                .build();
 
             const result = await appDriver.updateSettlement(userId, created.id, updateRequest);
 
@@ -524,7 +529,9 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             const created = await appDriver.createSettlement(creatorId, settlementRequest);
 
-            const updateRequest = new SettlementUpdateBuilder().withAmount(150).build();
+            const updateRequest = new SettlementUpdateBuilder()
+                .withAmount(150)
+                .build();
 
             await expect(appDriver.updateSettlement(nonMemberId, created.id, updateRequest)).rejects.toThrow(
                 expect.objectContaining({
@@ -560,7 +567,10 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             const created = await appDriver.createSettlement(creatorId, settlementRequest);
 
-            const updateRequest = new SettlementUpdateBuilder().withAmount(200.50).withCurrency('USD').build();
+            const updateRequest = new SettlementUpdateBuilder()
+                .withAmount(200.50)
+                .withCurrency('USD')
+                .build();
 
             await expect(appDriver.updateSettlement(adminId, created.id, updateRequest)).rejects.toThrow(
                 expect.objectContaining({

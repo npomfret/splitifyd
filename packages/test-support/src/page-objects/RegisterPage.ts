@@ -581,7 +581,8 @@ export class RegisterPage extends BasePage {
             await expect(errorElement).toBeVisible({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
             const errorText = await errorElement.textContent();
             expect(errorText?.toLowerCase()).toMatch(pattern);
-        }).toPass({ timeout: 5000 });
+        })
+            .toPass({ timeout: 5000 });
     }
 
     /**

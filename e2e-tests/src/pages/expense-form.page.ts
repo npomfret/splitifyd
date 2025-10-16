@@ -676,7 +676,8 @@ export class ExpenseFormPage extends BaseExpenseFormPage {
             const dateInput = this.getDateInput();
             const value = await dateInput.inputValue();
             expect(value).toMatch(pattern);
-        }).toPass({ timeout: 5000 });
+        })
+            .toPass({ timeout: 5000 });
     }
 
     /**

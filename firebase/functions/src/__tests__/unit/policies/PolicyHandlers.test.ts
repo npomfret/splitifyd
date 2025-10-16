@@ -55,7 +55,9 @@ describe('PolicyHandlers - Unit Tests', () => {
                     policyName: 'Terms of Service',
                     text: 'Updated terms...',
                 }),
-            ).rejects.toThrow('Policy already exists');
+            )
+                .rejects
+                .toThrow('Policy already exists');
         });
     });
 
@@ -232,7 +234,9 @@ describe('PolicyHandlers - Unit Tests', () => {
                     text: '',
                     publish: false,
                 } as any),
-            ).rejects.toThrow();
+            )
+                .rejects
+                .toThrow();
         });
 
         it('should reject update for non-existent policy', async () => {
@@ -245,7 +249,9 @@ describe('PolicyHandlers - Unit Tests', () => {
                 appDriver.updatePolicy(userId, policyId, {
                     text: 'Some updated text',
                 }),
-            ).rejects.toThrow('Policy not found');
+            )
+                .rejects
+                .toThrow('Policy not found');
         });
     });
 

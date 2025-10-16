@@ -49,7 +49,8 @@ export class SplitAssertionBuilder {
             .withAmount(amount);
 
         if (percentage !== undefined) {
-            builder.withPercentage(percentage);
+            builder
+                .withPercentage(percentage);
         }
 
         return builder.build();

@@ -98,26 +98,29 @@ export class GroupBalanceDTOBuilder {
     withSimpleUSDDebt(user1: string, user2: string, amt: Amount | number): this {
         const amount = typeof amt === 'number' ? amt.toString() : amt;
 
-        this.withUserBalance('USD', user1, {
-            uid: user1,
-            owes: {},
-            owedBy: { [user2]: amount },
-            netBalance: amount,
-        });
+        this
+            .withUserBalance('USD', user1, {
+                uid: user1,
+                owes: {},
+                owedBy: { [user2]: amount },
+                netBalance: amount,
+            });
 
-        this.withUserBalance('USD', user2, {
-            uid: user2,
-            owes: { [user1]: amount },
-            owedBy: {},
-            netBalance: negateNormalizedAmount(amount),
-        });
+        this
+            .withUserBalance('USD', user2, {
+                uid: user2,
+                owes: { [user1]: amount },
+                owedBy: {},
+                netBalance: negateNormalizedAmount(amount),
+            });
 
-        this.withSimplifiedDebt({
-            from: { uid: user2 },
-            to: { uid: user1 },
-            amount,
-            currency: 'USD',
-        });
+        this
+            .withSimplifiedDebt({
+                from: { uid: user2 },
+                to: { uid: user1 },
+                amount,
+                currency: 'USD',
+            });
 
         return this;
     }

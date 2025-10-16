@@ -1,15 +1,15 @@
-import {CreateExpenseRequest, DELETED_AT_FIELD, ExpenseDTO, ExpenseFullDetailsDTO, GroupDTO, GroupMember, UpdateExpenseRequest} from '@splitifyd/shared';
-import {z} from 'zod';
-import {FirestoreCollections, HTTP_STATUS} from '../constants';
+import { CreateExpenseRequest, DELETED_AT_FIELD, ExpenseDTO, ExpenseFullDetailsDTO, GroupDTO, GroupMember, UpdateExpenseRequest } from '@splitifyd/shared';
+import { z } from 'zod';
+import { FirestoreCollections, HTTP_STATUS } from '../constants';
 import * as expenseValidation from '../expenses/validation';
-import type {IDocumentReference} from '../firestore-wrapper';
-import {logger, LoggerContext} from '../logger';
+import type { IDocumentReference } from '../firestore-wrapper';
+import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
-import {PerformanceTimer} from '../monitoring/PerformanceTimer';
-import {PermissionEngineAsync} from '../permissions/permission-engine-async';
-import {ApiError, Errors} from '../utils/errors';
-import {IncrementalBalanceService} from './balance/IncrementalBalanceService';
-import type {IFirestoreReader, IFirestoreWriter} from './firestore';
+import { PerformanceTimer } from '../monitoring/PerformanceTimer';
+import { PermissionEngineAsync } from '../permissions/permission-engine-async';
+import { ApiError, Errors } from '../utils/errors';
+import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
+import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -693,7 +693,7 @@ export class ExpenseService {
 
         return {
             expense: {
-                ...(expense),
+                ...expense,
                 isLocked,
             },
             group,

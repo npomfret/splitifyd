@@ -55,7 +55,8 @@ export class GroupMemberBuilder {
     }
 
     withTheme(themeColor: UserThemeColor): this {
-        return this.withThemeColor(themeColor);
+        return this
+            .withThemeColor(themeColor);
     }
 
     // Group membership metadata methods
@@ -65,7 +66,8 @@ export class GroupMemberBuilder {
     }
 
     withRole(role: MemberRole): this {
-        return this.withMemberRole(role);
+        return this
+            .withMemberRole(role);
     }
 
     withMemberStatus(status: MemberStatus): this {
@@ -74,7 +76,8 @@ export class GroupMemberBuilder {
     }
 
     withStatus(status: MemberStatus): this {
-        return this.withMemberStatus(status);
+        return this
+            .withMemberStatus(status);
     }
 
     withJoinedAt(joinedAt: string | Date): this {

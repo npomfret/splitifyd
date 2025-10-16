@@ -8,9 +8,19 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
-            const members = [new GroupMemberBuilder().withUid(testUser.uid).build()];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
+            const members = [
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .build(),
+            ];
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -27,13 +37,28 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-equal-split';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
-                new GroupMemberBuilder().withUid('user-3').withDisplayName('User 3').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-3')
+                    .withDisplayName('User 3')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -63,12 +88,24 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-equal-2';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -91,14 +128,32 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-equal-4';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
-                new GroupMemberBuilder().withUid('user-3').withDisplayName('User 3').build(),
-                new GroupMemberBuilder().withUid('user-4').withDisplayName('User 4').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-3')
+                    .withDisplayName('User 3')
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-4')
+                    .withDisplayName('User 4')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -123,12 +178,24 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-currency-usd-jpy';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -155,12 +222,24 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-currency-jpy-usd';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -186,12 +265,24 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-currency-usd-eur';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -219,12 +310,24 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-exact-split';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -253,13 +356,28 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-exact-3';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
-                new GroupMemberBuilder().withUid('user-3').withDisplayName('User 3').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-3')
+                    .withDisplayName('User 3')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -283,12 +401,24 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-exact-currency';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -317,12 +447,24 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-switch-equal-exact';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -350,12 +492,24 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-switch-exact-equal';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -384,12 +538,24 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-decimal';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -411,13 +577,28 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-3-decimals';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
-                new GroupMemberBuilder().withUid('user-3').withDisplayName('User 3').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-3')
+                    .withDisplayName('User 3')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -442,12 +623,24 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-large';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -471,15 +664,36 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-5-members';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
-                new GroupMemberBuilder().withUid('user-3').withDisplayName('User 3').build(),
-                new GroupMemberBuilder().withUid('user-4').withDisplayName('User 4').build(),
-                new GroupMemberBuilder().withUid('user-5').withDisplayName('User 5').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-3')
+                    .withDisplayName('User 3')
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-4')
+                    .withDisplayName('User 4')
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-5')
+                    .withDisplayName('User 5')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -504,12 +718,24 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-rapid-changes';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -543,12 +769,24 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-complex-changes';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -592,13 +830,28 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-uneven';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
-                new GroupMemberBuilder().withUid('user-3').withDisplayName('User 3').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-3')
+                    .withDisplayName('User 3')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -622,12 +875,24 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-small';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -651,12 +916,24 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-gbp';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);
@@ -680,12 +957,24 @@ test.describe('Expense Form', () => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-exact-curr-adv';
 
-            const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+            const group = GroupDTOBuilder
+                .groupForUser(testUser.uid)
+                .withId(groupId)
+                .build();
             const members = [
-                new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-                new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+                new GroupMemberBuilder()
+                    .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .build(),
+                new GroupMemberBuilder()
+                    .withUid('user-2')
+                    .withDisplayName('User 2')
+                    .build(),
             ];
-            const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+            const fullDetails = new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .build();
 
             await mockGroupDetailApi(page, groupId, fullDetails);
             await mockGroupCommentsApi(page, groupId);

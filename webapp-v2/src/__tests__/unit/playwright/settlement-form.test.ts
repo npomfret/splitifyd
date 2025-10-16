@@ -7,12 +7,24 @@ test.describe('Settlement Form Validation', () => {
         const { page, user: testUser } = authenticatedPage;
         const groupId = 'test-group-default';
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withId(groupId)
+            .build();
         const members = [
-            new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-            new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+            new GroupMemberBuilder()
+                .withUid(testUser.uid)
+                .withDisplayName(testUser.displayName)
+                .build(),
+            new GroupMemberBuilder()
+                .withUid('user-2')
+                .withDisplayName('User 2')
+                .build(),
         ];
-        const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members)
+            .build();
 
         await mockGroupDetailApi(page, groupId, fullDetails);
         await mockGroupCommentsApi(page, groupId);
@@ -27,12 +39,24 @@ test.describe('Settlement Form Validation', () => {
         const { page, user: testUser } = authenticatedPage;
         const groupId = 'test-group-no-payee';
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withId(groupId)
+            .build();
         const members = [
-            new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-            new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+            new GroupMemberBuilder()
+                .withUid(testUser.uid)
+                .withDisplayName(testUser.displayName)
+                .build(),
+            new GroupMemberBuilder()
+                .withUid('user-2')
+                .withDisplayName('User 2')
+                .build(),
         ];
-        const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members)
+            .build();
 
         await mockGroupDetailApi(page, groupId, fullDetails);
         await mockGroupCommentsApi(page, groupId);
@@ -50,12 +74,24 @@ test.describe('Settlement Form Validation', () => {
         const { page, user: testUser } = authenticatedPage;
         const groupId = 'test-group-no-amount';
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withId(groupId)
+            .build();
         const members = [
-            new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-            new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+            new GroupMemberBuilder()
+                .withUid(testUser.uid)
+                .withDisplayName(testUser.displayName)
+                .build(),
+            new GroupMemberBuilder()
+                .withUid('user-2')
+                .withDisplayName('User 2')
+                .build(),
         ];
-        const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members)
+            .build();
 
         await mockGroupDetailApi(page, groupId, fullDetails);
         await mockGroupCommentsApi(page, groupId);
@@ -73,12 +109,24 @@ test.describe('Settlement Form Validation', () => {
         const { page, user: testUser } = authenticatedPage;
         const groupId = 'test-group-no-currency';
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withId(groupId)
+            .build();
         const members = [
-            new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-            new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+            new GroupMemberBuilder()
+                .withUid(testUser.uid)
+                .withDisplayName(testUser.displayName)
+                .build(),
+            new GroupMemberBuilder()
+                .withUid('user-2')
+                .withDisplayName('User 2')
+                .build(),
         ];
-        const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members)
+            .build();
 
         await mockGroupDetailApi(page, groupId, fullDetails);
         await mockGroupCommentsApi(page, groupId);
@@ -95,12 +143,24 @@ test.describe('Settlement Form Validation', () => {
         const { page, user: testUser } = authenticatedPage;
         const groupId = 'test-group-validation';
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withId(groupId)
+            .build();
         const members = [
-            new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-            new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+            new GroupMemberBuilder()
+                .withUid(testUser.uid)
+                .withDisplayName(testUser.displayName)
+                .build(),
+            new GroupMemberBuilder()
+                .withUid('user-2')
+                .withDisplayName('User 2')
+                .build(),
         ];
-        const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members)
+            .build();
 
         await mockGroupDetailApi(page, groupId, fullDetails);
         await mockGroupCommentsApi(page, groupId);
@@ -125,12 +185,24 @@ test.describe('Settlement Form Validation', () => {
         const { page, user: testUser } = authenticatedPage;
         const groupId = 'test-group-close';
 
-        const group = GroupDTOBuilder.groupForUser(testUser.uid).withId(groupId).build();
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withId(groupId)
+            .build();
         const members = [
-            new GroupMemberBuilder().withUid(testUser.uid).withDisplayName(testUser.displayName).build(),
-            new GroupMemberBuilder().withUid('user-2').withDisplayName('User 2').build(),
+            new GroupMemberBuilder()
+                .withUid(testUser.uid)
+                .withDisplayName(testUser.displayName)
+                .build(),
+            new GroupMemberBuilder()
+                .withUid('user-2')
+                .withDisplayName('User 2')
+                .build(),
         ];
-        const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members)
+            .build();
 
         await mockGroupDetailApi(page, groupId, fullDetails);
         await mockGroupCommentsApi(page, groupId);

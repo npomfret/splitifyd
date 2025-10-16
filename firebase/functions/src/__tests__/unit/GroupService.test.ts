@@ -55,7 +55,10 @@ describe('GroupService - Unit Tests', () => {
                 .buildDocument();
             db.seedGroupMember(groupId, userId, membershipDoc);
 
-            const updateRequest = new GroupUpdateBuilder().withName('Updated Name').withDescription('Updated Description').build();
+            const updateRequest = new GroupUpdateBuilder()
+                .withName('Updated Name')
+                .withDescription('Updated Description')
+                .build();
 
             const result = await groupService.updateGroup(groupId, userId, updateRequest);
 

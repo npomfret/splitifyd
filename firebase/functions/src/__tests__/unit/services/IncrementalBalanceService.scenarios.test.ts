@@ -46,7 +46,9 @@ describe('IncrementalBalanceService - Scenarios', () => {
         it('should handle mixed currency settlements without currency conversion', async () => {
             // === SETUP ===
             // Start with empty balance and create USD expense
-            const initialBalance = new GroupBalanceDTOBuilder(groupId).withVersion(0).build();
+            const initialBalance = new GroupBalanceDTOBuilder(groupId)
+                .withVersion(0)
+                .build();
             stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
             // User1 pays $200 expense → User2 owes User1 $100
@@ -132,7 +134,9 @@ describe('IncrementalBalanceService - Scenarios', () => {
         it('should not perform implicit currency conversion on settlements', async () => {
             // === SETUP ===
             // Complex scenario: Multiple expenses creating USD debt
-            const initialBalance = new GroupBalanceDTOBuilder(groupId).withVersion(0).build();
+            const initialBalance = new GroupBalanceDTOBuilder(groupId)
+                .withVersion(0)
+                .build();
             stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
             // Expense 1: User1 pays $150, User2 owes $75
@@ -226,22 +230,38 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withUserBalance(
                     'USD',
                     user1,
-                    new UserBalanceBuilder().withUserId(user1).owedByUser(user2, 50).withNetBalance(50).build(),
+                    new UserBalanceBuilder()
+                        .withUserId(user1)
+                        .owedByUser(user2, 50)
+                        .withNetBalance(50)
+                        .build(),
                 )
                 .withUserBalance(
                     'USD',
                     user2,
-                    new UserBalanceBuilder().withUserId(user2).owesUser(user1, 50).withNetBalance(-50).build(),
+                    new UserBalanceBuilder()
+                        .withUserId(user2)
+                        .owesUser(user1, 50)
+                        .withNetBalance(-50)
+                        .build(),
                 )
                 .withUserBalance(
                     'GBP',
                     user1,
-                    new UserBalanceBuilder().withUserId(user1).owesUser(user2, 30).withNetBalance(-30).build(),
+                    new UserBalanceBuilder()
+                        .withUserId(user1)
+                        .owesUser(user2, 30)
+                        .withNetBalance(-30)
+                        .build(),
                 )
                 .withUserBalance(
                     'GBP',
                     user2,
-                    new UserBalanceBuilder().withUserId(user2).owedByUser(user1, 30).withNetBalance(30).build(),
+                    new UserBalanceBuilder()
+                        .withUserId(user2)
+                        .owedByUser(user1, 30)
+                        .withNetBalance(30)
+                        .build(),
                 )
                 .withSimplifiedDebt(
                     new SimplifiedDebtBuilder()
@@ -351,12 +371,20 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withUserBalance(
                     'EUR',
                     user1,
-                    new UserBalanceBuilder().withUserId(user1).owedByUser(user2, 100).withNetBalance(100).build(),
+                    new UserBalanceBuilder()
+                        .withUserId(user1)
+                        .owedByUser(user2, 100)
+                        .withNetBalance(100)
+                        .build(),
                 )
                 .withUserBalance(
                     'EUR',
                     user2,
-                    new UserBalanceBuilder().withUserId(user2).owesUser(user1, 100).withNetBalance(-100).build(),
+                    new UserBalanceBuilder()
+                        .withUserId(user2)
+                        .owesUser(user1, 100)
+                        .withNetBalance(-100)
+                        .build(),
                 )
                 .withSimplifiedDebt(
                     new SimplifiedDebtBuilder()
@@ -559,22 +587,38 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withUserBalance(
                     'USD',
                     user1,
-                    new UserBalanceBuilder().withUserId(user1).owedByUser(user2, 100).withNetBalance(100).build(),
+                    new UserBalanceBuilder()
+                        .withUserId(user1)
+                        .owedByUser(user2, 100)
+                        .withNetBalance(100)
+                        .build(),
                 )
                 .withUserBalance(
                     'USD',
                     user2,
-                    new UserBalanceBuilder().withUserId(user2).owesUser(user1, 100).withNetBalance(-100).build(),
+                    new UserBalanceBuilder()
+                        .withUserId(user2)
+                        .owesUser(user1, 100)
+                        .withNetBalance(-100)
+                        .build(),
                 )
                 .withUserBalance(
                     'EUR',
                     user1,
-                    new UserBalanceBuilder().withUserId(user1).owesUser(user2, 75).withNetBalance(-75).build(),
+                    new UserBalanceBuilder()
+                        .withUserId(user1)
+                        .owesUser(user2, 75)
+                        .withNetBalance(-75)
+                        .build(),
                 )
                 .withUserBalance(
                     'EUR',
                     user2,
-                    new UserBalanceBuilder().withUserId(user2).owedByUser(user1, 75).withNetBalance(75).build(),
+                    new UserBalanceBuilder()
+                        .withUserId(user2)
+                        .owedByUser(user1, 75)
+                        .withNetBalance(75)
+                        .build(),
                 )
                 .withSimplifiedDebt(
                     new SimplifiedDebtBuilder()
@@ -697,7 +741,9 @@ describe('IncrementalBalanceService - Scenarios', () => {
         it('should update balances correctly when expense currency is changed', async () => {
             // === SETUP ===
             // Create initial expense in USD
-            const initialBalance = new GroupBalanceDTOBuilder(groupId).withVersion(0).build();
+            const initialBalance = new GroupBalanceDTOBuilder(groupId)
+                .withVersion(0)
+                .build();
             stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
             // User1 pays $200 USD expense → User2 owes User1 $100 USD
@@ -793,7 +839,9 @@ describe('IncrementalBalanceService - Scenarios', () => {
         it('should update balances correctly when settlement currency is changed', async () => {
             // === SETUP ===
             // Create initial expense in USD: User1 pays $300, User2 owes $150
-            const initialBalance = new GroupBalanceDTOBuilder(groupId).withVersion(0).build();
+            const initialBalance = new GroupBalanceDTOBuilder(groupId)
+                .withVersion(0)
+                .build();
             stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
             const expense = new ExpenseDTOBuilder()

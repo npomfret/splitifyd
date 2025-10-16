@@ -35,7 +35,9 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Test User' });
 
-            const groupRequest = new CreateGroupRequestBuilder().withName('Simple Group').build();
+            const groupRequest = new CreateGroupRequestBuilder()
+                .withName('Simple Group')
+                .build();
             delete (groupRequest as any).description;
 
             const result = await appDriver.createGroup(userId, groupRequest);
@@ -46,7 +48,9 @@ describe('GroupHandlers - Unit Tests', () => {
         });
 
         it('should reject group creation with empty name', async () => {
-            const groupRequest = new CreateGroupRequestBuilder().withName('').build();
+            const groupRequest = new CreateGroupRequestBuilder()
+                .withName('')
+                .build();
 
             await expect(appDriver.createGroup('test-user', groupRequest)).rejects.toThrow(
                 expect.objectContaining({
@@ -58,7 +62,9 @@ describe('GroupHandlers - Unit Tests', () => {
 
         it('should reject group creation with name exceeding 100 characters', async () => {
             const longName = 'a'.repeat(101);
-            const groupRequest = new CreateGroupRequestBuilder().withName(longName).build();
+            const groupRequest = new CreateGroupRequestBuilder()
+                .withName(longName)
+                .build();
 
             await expect(appDriver.createGroup('test-user', groupRequest)).rejects.toThrow(
                 expect.objectContaining({
@@ -100,9 +106,16 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Test User' });
 
-            const group = await appDriver.createGroup(userId, new CreateGroupRequestBuilder().withName('Old Name').build());
+            const group = await appDriver.createGroup(
+                userId,
+                new CreateGroupRequestBuilder()
+                    .withName('Old Name')
+                    .build(),
+            );
 
-            const updateRequest = new GroupUpdateBuilder().withName('New Name').build();
+            const updateRequest = new GroupUpdateBuilder()
+                .withName('New Name')
+                .build();
 
             const result = await appDriver.updateGroup(userId, group.id, updateRequest);
 
@@ -117,10 +130,15 @@ describe('GroupHandlers - Unit Tests', () => {
 
             const group = await appDriver.createGroup(
                 userId,
-                new CreateGroupRequestBuilder().withName('Test Group').withDescription('Old description').build(),
+                new CreateGroupRequestBuilder()
+                    .withName('Test Group')
+                    .withDescription('Old description')
+                    .build(),
             );
 
-            const updateRequest = new GroupUpdateBuilder().withDescription('New description').build();
+            const updateRequest = new GroupUpdateBuilder()
+                .withDescription('New description')
+                .build();
 
             const result = await appDriver.updateGroup(userId, group.id, updateRequest);
 
@@ -135,10 +153,16 @@ describe('GroupHandlers - Unit Tests', () => {
 
             const group = await appDriver.createGroup(
                 userId,
-                new CreateGroupRequestBuilder().withName('Old Name').withDescription('Old description').build(),
+                new CreateGroupRequestBuilder()
+                    .withName('Old Name')
+                    .withDescription('Old description')
+                    .build(),
             );
 
-            const updateRequest = new GroupUpdateBuilder().withName('New Name').withDescription('New description').build();
+            const updateRequest = new GroupUpdateBuilder()
+                .withName('New Name')
+                .withDescription('New description')
+                .build();
 
             const result = await appDriver.updateGroup(userId, group.id, updateRequest);
 
@@ -159,7 +183,9 @@ describe('GroupHandlers - Unit Tests', () => {
         });
 
         it('should reject update with empty group ID', async () => {
-            const updateRequest = new GroupUpdateBuilder().withName('New Name').build();
+            const updateRequest = new GroupUpdateBuilder()
+                .withName('New Name')
+                .build();
 
             await expect(appDriver.updateGroup('test-user', '', updateRequest)).rejects.toThrow(
                 expect.objectContaining({
@@ -171,7 +197,9 @@ describe('GroupHandlers - Unit Tests', () => {
 
         it('should reject update with name exceeding 100 characters', async () => {
             const longName = 'a'.repeat(101);
-            const updateRequest = new GroupUpdateBuilder().withName(longName).build();
+            const updateRequest = new GroupUpdateBuilder()
+                .withName(longName)
+                .build();
 
             await expect(appDriver.updateGroup('test-user', 'test-group', updateRequest)).rejects.toThrow(
                 expect.objectContaining({
@@ -183,7 +211,9 @@ describe('GroupHandlers - Unit Tests', () => {
 
         it('should reject update with description exceeding 500 characters', async () => {
             const longDescription = 'a'.repeat(501);
-            const updateRequest = new GroupUpdateBuilder().withDescription(longDescription).build();
+            const updateRequest = new GroupUpdateBuilder()
+                .withDescription(longDescription)
+                .build();
 
             await expect(appDriver.updateGroup('test-user', 'test-group', updateRequest)).rejects.toThrow(
                 expect.objectContaining({
@@ -234,8 +264,18 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Test User' });
 
-            await appDriver.createGroup(userId, new CreateGroupRequestBuilder().withName('Group 1').build());
-            await appDriver.createGroup(userId, new CreateGroupRequestBuilder().withName('Group 2').build());
+            await appDriver.createGroup(
+                userId,
+                new CreateGroupRequestBuilder()
+                    .withName('Group 1')
+                    .build(),
+            );
+            await appDriver.createGroup(
+                userId,
+                new CreateGroupRequestBuilder()
+                    .withName('Group 2')
+                    .build(),
+            );
 
             const result = await appDriver.listGroups(userId);
 
@@ -306,7 +346,9 @@ describe('GroupHandlers - Unit Tests', () => {
 
             const group = await appDriver.createGroup(
                 userId,
-                new CreateGroupRequestBuilder().withName('Adventure Squad').build(),
+                new CreateGroupRequestBuilder()
+                    .withName('Adventure Squad')
+                    .build(),
             );
 
             const expenseRequest = new CreateExpenseRequestBuilder()
