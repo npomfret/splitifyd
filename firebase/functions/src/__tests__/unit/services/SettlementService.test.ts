@@ -31,8 +31,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
                 .withPayeeId('payee-user')
-                .withAmount(100.5)
-                .withCurrency('USD')
+                .withAmount(100.5, 'USD')
                 .withNote('Test settlement')
                 .build();
 
@@ -84,8 +83,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
                 .withPayeeId('payee-user')
-                .withAmount(50.0)
-                .withCurrency('USD')
+                .withAmount(50.0, 'USD')
                 .withoutNote()
                 .build();
 
@@ -320,8 +318,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
                 .withPayeeId('non-member-payee')
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .withDate(new Date().toISOString())
                 .build();
 
@@ -386,8 +383,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
                 .withPayeeId('payee-user')
-                .withAmount(123.45)
-                .withCurrency('USD')
+                .withAmount(123.45, 'USD')
                 .build();
 
             // Seed required data
@@ -435,8 +431,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
                 .withPayeeId('payee-user')
-                .withAmount(999999.99)
-                .withCurrency('USD')
+                .withAmount(999999.99, 'USD')
                 .build();
 
             // Seed required data
@@ -481,8 +476,7 @@ describe('SettlementService - Unit Tests', () => {
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
                 .withPayeeId('payee-user')
-                .withAmount(0.01)
-                .withCurrency('USD')
+                .withAmount(0.01, 'USD')
                 .build();
 
             // Seed required data

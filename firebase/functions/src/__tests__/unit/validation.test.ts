@@ -107,8 +107,7 @@ describe('Expense Validation', () => {
             const validExpenseData = new CreateExpenseRequestBuilder()
                 .withDescription('Dinner at restaurant')
                 .withCategory('food')
-                .withAmount(100.5)
-                .withCurrency('USD')
+                .withAmount(100.5, 'USD')
                 .withSplitType('equal')
                 .withReceiptUrl('https://example.com/receipt.jpg')
                 .build();

@@ -30,7 +30,7 @@ export class SettlementFormDataBuilder {
         return this;
     }
 
-    withAmount(amount: string | number): this {
+    withAmount(amount: string | number, currency: string): this {
         this.settlement.amount = amount.toString();
         return this;
     }

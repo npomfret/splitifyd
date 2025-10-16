@@ -201,13 +201,11 @@ test.describe('Group Detail - Expenses Display', () => {
             new ExpenseDTOBuilder()
                 .withId('exp-1')
                 .withDescription('Groceries')
-                .withAmount(50.0)
-                .build(),
+                .withAmount(50.0)                .build(),
             new ExpenseDTOBuilder()
                 .withId('exp-2')
                 .withDescription('Dinner')
-                .withAmount(75.5)
-                .build(),
+                .withAmount(75.5)                .build(),
         ];
 
         const fullDetails = new GroupFullDetailsBuilder()

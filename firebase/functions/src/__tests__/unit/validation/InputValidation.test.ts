@@ -9,8 +9,7 @@ describe('Input Validation Unit Tests', () => {
         describe('Decimal Precision Edge Cases', () => {
             it('should handle very small amounts with proper precision', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(0.02)
-                    .withCurrency('USD')
+                    .withAmount(0.02, 'USD')
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
                     .withPaidBy('user1')
@@ -27,8 +26,7 @@ describe('Input Validation Unit Tests', () => {
 
             it('should reject amounts with too many decimal places for currency', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(33.333333)
-                    .withCurrency('USD')
+                    .withAmount(33.333333, 'USD')
                     .withParticipants(['user1', 'user2', 'user3'])
                     .withPaidBy('user1')
                     .build();
@@ -39,8 +37,7 @@ describe('Input Validation Unit Tests', () => {
 
             it('should handle very large amounts', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(999999.98)
-                    .withCurrency('USD')
+                    .withAmount(999999.98, 'USD')
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
                     .withPaidBy('user1')
@@ -59,12 +56,11 @@ describe('Input Validation Unit Tests', () => {
         describe('Invalid Amount Validation', () => {
             it('should reject zero amounts', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withCurrency('USD')
                     .withSplitType('exact')
                     .withParticipants(['user1'])
                     .withPaidBy('user1')
                     .withSplits([{ uid: 'user1', amount: '0' }])
-                    .withAmount(0)
+                    .withAmount(0, 'USD')
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -72,7 +68,6 @@ describe('Input Validation Unit Tests', () => {
 
             it('should reject negative amounts', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withCurrency('USD')
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
                     .withPaidBy('user1')
@@ -80,7 +75,7 @@ describe('Input Validation Unit Tests', () => {
                         { uid: 'user1', amount: '25' },
                         { uid: 'user2', amount: '25' },
                     ])
-                    .withAmount(-50)
+                    .withAmount(-50, "USD")
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -88,7 +83,6 @@ describe('Input Validation Unit Tests', () => {
 
             it('should reject very small negative numbers', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withCurrency('USD')
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
                     .withPaidBy('user1')
@@ -96,7 +90,7 @@ describe('Input Validation Unit Tests', () => {
                         { uid: 'user1', amount: '0.01' },
                         { uid: 'user2', amount: '0.01' },
                     ])
-                    .withAmount(-0.01)
+                    .withAmount(-0.01, "USD")
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -109,7 +103,7 @@ describe('Input Validation Unit Tests', () => {
                     .withParticipants(['user1'])
                     .withPaidBy('user1')
                     .withSplits([{ uid: 'user1', amount: '1' }])
-                    .withAmount(Number.NEGATIVE_INFINITY)
+                    .withAmount(Number.NEGATIVE_INFINITY, "USD")
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -122,7 +116,7 @@ describe('Input Validation Unit Tests', () => {
                     .withParticipants(['user1'])
                     .withPaidBy('user1')
                     .withSplits([{ uid: 'user1', amount: '1' }])
-                    .withAmount(NaN)
+                    .withAmount(NaN, "USD")
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -134,8 +128,7 @@ describe('Input Validation Unit Tests', () => {
         describe('Exact Split Validation', () => {
             it('should reject splits that do not add up to total amount', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
                     .withSplits([
@@ -149,8 +142,7 @@ describe('Input Validation Unit Tests', () => {
 
             it('should accept splits with minor rounding differences (within tolerance)', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2', 'user3'])
                     .withPaidBy('user1')
@@ -168,8 +160,7 @@ describe('Input Validation Unit Tests', () => {
 
             it('should reject splits with differences greater than tolerance', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
                     .withSplits([
@@ -183,8 +174,7 @@ describe('Input Validation Unit Tests', () => {
 
             it('should reject negative split amounts', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
                     .withSplits([
@@ -198,8 +188,7 @@ describe('Input Validation Unit Tests', () => {
 
             it('should reject zero split amounts', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
                     .withSplits([
@@ -213,8 +202,7 @@ describe('Input Validation Unit Tests', () => {
 
             it('should reject duplicate users in splits', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
                     .withSplits([
@@ -228,8 +216,7 @@ describe('Input Validation Unit Tests', () => {
 
             it('should reject splits for users not in participants list', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withSplitType('exact')
                     .withParticipants(['user1']) // Only user1 is a participant
                     .withSplits([
@@ -243,8 +230,7 @@ describe('Input Validation Unit Tests', () => {
 
             it('should require splits for all participants in exact split type', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2', 'user3']) // 3 participants
                     .withSplits([
@@ -260,8 +246,7 @@ describe('Input Validation Unit Tests', () => {
         describe('Percentage Split Validation', () => {
             it('should reject percentages that do not add up to 100%', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withSplitType('percentage')
                     .withParticipants(['user1', 'user2'])
                     .withSplits([
@@ -275,8 +260,7 @@ describe('Input Validation Unit Tests', () => {
 
             it('should accept percentages with minor rounding differences (within tolerance)', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withSplitType('percentage')
                     .withParticipants(['user1', 'user2', 'user3'])
                     .withPaidBy('user1')
@@ -294,8 +278,7 @@ describe('Input Validation Unit Tests', () => {
 
             it('should reject negative percentages', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withSplitType('percentage')
                     .withParticipants(['user1', 'user2'])
                     .withSplits([
@@ -309,8 +292,7 @@ describe('Input Validation Unit Tests', () => {
 
             it('should reject percentages over 100%', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withSplitType('percentage')
                     .withParticipants(['user1'])
                     .withSplits([
@@ -323,8 +305,7 @@ describe('Input Validation Unit Tests', () => {
 
             it('should require splits for all participants in percentage split type', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withSplitType('percentage')
                     .withParticipants(['user1', 'user2']) // 2 participants
                     .withSplits([
@@ -340,8 +321,7 @@ describe('Input Validation Unit Tests', () => {
     describe('Settlement Validation', () => {
         it('should reject negative settlement amounts', () => {
             const settlementData = new CreateSettlementRequestBuilder()
-                .withAmount(-50) // Negative amount
-                .withCurrency('USD')
+                .withAmount(-50, 'USD')
                 .build();
 
             const { error } = createSettlementSchema.validate(settlementData);
@@ -351,8 +331,7 @@ describe('Input Validation Unit Tests', () => {
 
         it('should reject zero settlement amounts', () => {
             const settlementData = new CreateSettlementRequestBuilder()
-                .withAmount(0) // Zero amount
-                .withCurrency('USD')
+                .withAmount(0, 'USD')
                 .build();
 
             const { error } = createSettlementSchema.validate(settlementData);
@@ -362,8 +341,7 @@ describe('Input Validation Unit Tests', () => {
 
         it('should validate settlement amount does not exceed maximum', () => {
             const settlementData = new CreateSettlementRequestBuilder()
-                .withAmount(1000000) // Amount exceeds max of 999,999.99
-                .withCurrency('USD')
+                .withAmount(1000000, 'USD')
                 .build();
 
             const { error } = createSettlementSchema.validate(settlementData);
@@ -373,8 +351,7 @@ describe('Input Validation Unit Tests', () => {
 
         it('should accept valid settlement amounts', () => {
             const settlementData = new CreateSettlementRequestBuilder()
-                .withAmount(50.0)
-                .withCurrency('USD')
+                .withAmount(50.0, 'USD')
                 .withPayerId('user1')
                 .withPayeeId('user2')
                 .build();
@@ -393,8 +370,7 @@ describe('Input Validation Unit Tests', () => {
             futureDate.setFullYear(futureDate.getFullYear() + 1);
 
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .withDate(futureDate.toISOString())
                 .build();
 
@@ -406,8 +382,7 @@ describe('Input Validation Unit Tests', () => {
             validDate.setMonth(validDate.getMonth() - 1);
 
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .withDate(validDate.toISOString())
                 .build();
 
@@ -420,8 +395,7 @@ describe('Input Validation Unit Tests', () => {
     describe('Category Validation', () => {
         it('should accept valid category', () => {
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .withCategory('food')
                 .build();
 

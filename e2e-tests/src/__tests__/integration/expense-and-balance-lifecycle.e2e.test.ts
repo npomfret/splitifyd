@@ -42,7 +42,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(expenseDescription)
-                .withAmount(100)
+                .withAmount(100, 'EUR')
                 .withPaidByDisplayName(user1DisplayName)
                 .withCurrency('EUR')
                 .withSplitType('equal')
@@ -79,8 +79,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             new SettlementFormDataBuilder()
                 .withPayerName(user2DisplayName)
                 .withPayeeName(user1DisplayName)
-                .withAmount(50.25)
-                .withCurrency('EUR')
+                .withAmount(50.25, 'EUR')
                 .withNote('Partial settlement test')
                 .build(),
             2,
@@ -123,7 +122,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await expenseFormPage2.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(`Multi-currency JPY ${uniqueId}`)
-                .withAmount(123) // Should split as ¥62 each (123/2 = 61.5 rounds up)
+                .withAmount(123, 'JPY') // Should split as ¥62 each (123/2 = 61.5 rounds up)
                 .withPaidByDisplayName(user1DisplayName)
                 .withCurrency('JPY')
                 .withSplitType('equal')
@@ -136,7 +135,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await expenseFormPage1.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(`Multi-currency BHD ${uniqueId}`)
-                .withAmount(30.5)
+                .withAmount(30.5, 'BHD')
                 .withPaidByDisplayName(user1DisplayName)
                 .withCurrency('BHD')
                 .withSplitType('equal')
@@ -151,7 +150,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(`Multi-currency KWD ${uniqueId}`)
-                .withAmount(5.5)
+                .withAmount(5.5, 'KWD')
                 .withPaidByDisplayName(user1DisplayName)
                 .withCurrency('KWD')
                 .withSplitType('equal')
@@ -175,8 +174,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             new SettlementFormDataBuilder()
                 .withPayerName(user2DisplayName)
                 .withPayeeName(user1DisplayName)
-                .withAmount(25)
-                .withCurrency('EUR')
+                .withAmount(25, 'EUR')
                 .withNote('Cross-currency settlement test')
                 .build(),
             2,
@@ -261,7 +259,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await expenseFormPage2.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription('Large User1 Payment')
-                .withAmount(300)
+                .withAmount(300, 'EUR')
                 .withPaidByDisplayName(user1DisplayName)
                 .withCurrency('EUR')
                 .withSplitType('equal')
@@ -277,7 +275,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await expenseFormPage1.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription('Small User2 Payment')
-                .withAmount(100)
+                .withAmount(100, 'EUR')
                 .withPaidByDisplayName(user2DisplayName)
                 .withCurrency('EUR')
                 .withSplitType('equal')
@@ -295,8 +293,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             new SettlementFormDataBuilder()
                 .withPayerName(user2DisplayName)
                 .withPayeeName(user1DisplayName)
-                .withAmount(60.00)
-                .withCurrency('EUR')
+                .withAmount(60.00, 'EUR')
                 .withNote('Partial settlement in complex scenario')
                 .build(),
             2,
@@ -315,7 +312,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription('Final Test Expense')
-                .withAmount(50)
+                .withAmount(50, 'EUR')
                 .withPaidByDisplayName(user1DisplayName)
                 .withCurrency('EUR')
                 .withSplitType('equal')
@@ -353,7 +350,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(expenseDescription)
-                .withAmount(120)
+                .withAmount(120, 'JPY')
                 .withPaidByDisplayName(user1DisplayName)
                 .withCurrency('JPY')
                 .withSplitType('equal')
@@ -379,8 +376,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             new SettlementFormDataBuilder()
                 .withPayerName(user2DisplayName)
                 .withPayeeName(user1DisplayName)
-                .withAmount(30)
-                .withCurrency('JPY')
+                .withAmount(30, 'JPY')
                 .withNote(settlementNote1)
                 .build(),
             memberCount,
@@ -401,8 +397,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             new SettlementFormDataBuilder()
                 .withPayerName(user2DisplayName)
                 .withPayeeName(user1DisplayName)
-                .withAmount(10)
-                .withCurrency('JPY')
+                .withAmount(10, 'JPY')
                 .withNote(settlementNote2)
                 .build(),
             memberCount,
@@ -423,8 +418,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             new SettlementFormDataBuilder()
                 .withPayerName(user3DisplayName)
                 .withPayeeName(user1DisplayName)
-                .withAmount(25)
-                .withCurrency('JPY')
+                .withAmount(25, 'JPY')
                 .withNote(settlementNote3)
                 .build(),
             memberCount,
@@ -527,8 +521,7 @@ simpleTest.describe('Real-time Comments', () => {
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(expenseDescription)
-                .withAmount(50000)
-                .withCurrency('VND')
+                .withAmount(50000, 'VND')
                 .withPaidByDisplayName(user1DisplayName)
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
@@ -583,8 +576,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         const settlementData1 = new SettlementFormDataBuilder()
             .withPayerName(payerName)
             .withPayeeName(payeeName)
-            .withAmount(101)
-            .withCurrency('JPY')
+            .withAmount(101, 'JPY')
             .withNote('Test payment for history')
             .build();
 
@@ -598,8 +590,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         const settlementData2 = new SettlementFormDataBuilder()
             .withPayerName(payeeName) // Other user pays
             .withPayeeName(payerName) // Creator receives
-            .withAmount(75)
-            .withCurrency('JPY')
+            .withAmount(75, 'JPY')
             .withNote('Creator receives payment')
             .build();
 
@@ -630,8 +621,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         const initialData = new SettlementFormDataBuilder()
             .withPayerName(payerName)
             .withPayeeName(payeeName)
-            .withAmount(101)
-            .withCurrency('JPY')
+            .withAmount(101, 'JPY')
             .withNote('Initial test payment')
             .build();
 
@@ -700,8 +690,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         const settlementData1 = new SettlementFormDataBuilder()
             .withPayerName(payerName)
             .withPayeeName(payeeName)
-            .withAmount(100)
-            .withCurrency('JPY')
+            .withAmount(100, 'JPY')
             .withNote('Payment to be deleted')
             .build();
 
@@ -712,8 +701,7 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         const settlementData2 = new SettlementFormDataBuilder()
             .withPayerName(payerName)
             .withPayeeName(payeeName)
-            .withAmount(75)
-            .withCurrency('JPY')
+            .withAmount(75, 'JPY')
             .withNote('Payment to keep')
             .build();
 
@@ -754,8 +742,7 @@ simpleTest.describe('Copy Expense Feature', () => {
         await originalExpenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(originalDescription)
-                .withAmount(125.75)
-                .withCurrency('EUR')
+                .withAmount(125.75, 'EUR')
                 .withPaidByDisplayName(user1DisplayName)
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
@@ -826,8 +813,7 @@ simpleTest.describe('Copy Expense Feature', () => {
         await originalExpenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(originalDescription)
-                .withAmount(150)
-                .withCurrency('JPY')
+                .withAmount(150, 'JPY')
                 .withPaidByDisplayName(user2DisplayName) // User2 pays
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName, user3DisplayName]) // Split 3 ways

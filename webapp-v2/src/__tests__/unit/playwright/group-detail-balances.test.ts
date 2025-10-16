@@ -368,8 +368,7 @@ test.describe('Group Detail - Balance Display: With Expenses', () => {
             new ExpenseDTOBuilder()
                 .withId('expense-1')
                 .withDescription('Dinner')
-                .withAmount(100.0)
-                .withPaidBy(user.uid)
+                .withAmount(100.0)                .withPaidBy(user.uid)
                 .withGroupId(groupId)
                 .build(),
         ];

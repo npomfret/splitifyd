@@ -58,8 +58,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(30)
-                    .withCurrency('USD')
+                    .withAmount(30, 'USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid, users[2].uid])
                     .withSplitType('equal')
@@ -123,8 +122,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(settlementUsers[0].uid)
                     .withPayeeId(settlementUsers[1].uid)
-                    .withAmount(100.0)
-                    .withCurrency('USD')
+                    .withAmount(100.0, 'USD')
                     .withNote('Retrieve test')
                     .build();
 
@@ -165,16 +163,14 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(settlementUsers[0].uid)
                     .withPayeeId(settlementUsers[1].uid)
-                    .withAmount(50.0)
-                    .withCurrency('USD')
+                    .withAmount(50.0, 'USD')
                     .withNote('Original note')
                     .build();
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
                 const updateData = new SettlementUpdateBuilder()
-                    .withAmount(75.25)
-                    .withCurrency('EUR')
+                    .withAmount(75.25, 'EUR')
                     .withNote('Updated note')
                     .build();
 
@@ -191,7 +187,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                     .withPayerId(settlementUsers[0].uid)
                     .withPayeeId(settlementUsers[1].uid)
                     .withCurrency('USD')
-                    .withAmount(1)
+                    .withAmount(1, 'USD')
                     .build();
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
@@ -199,8 +195,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                 await expect(apiDriver.updateSettlement(
                     created.id,
                     new SettlementUpdateBuilder()
-                        .withAmount(100)
-                        .withCurrency('USD')
+                        .withAmount(100, 'USD')
                         .build(),
                     settlementUsers[1].token,
                 ))
@@ -215,8 +210,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(settlementUsers[0].uid)
                     .withPayeeId(settlementUsers[1].uid)
-                    .withAmount(1)
-                    .withCurrency('USD')
+                    .withAmount(1, 'USD')
                     .build();
 
                 const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
@@ -224,8 +218,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                 await expect(apiDriver.updateSettlement(
                     created.id,
                     new SettlementUpdateBuilder()
-                        .withAmount(-100)
-                        .withCurrency('USD')
+                        .withAmount(-100, 'USD')
                         .build(),
                     settlementUsers[0].token,
                 ))
@@ -288,8 +281,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                 await apiDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(group.id)
-                        .withAmount(60)
-                        .withCurrency('JPY')
+                        .withAmount(60, 'JPY')
                         .withPaidBy(testUsers[0].uid)
                         .withParticipants([testUsers[0].uid, testUsers[1].uid])
                         .withSplitType('equal')
@@ -306,8 +298,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                         .withGroupId(group.id)
                         .withPayerId(testUsers[1].uid) // User 1 pays
                         .withPayeeId(testUsers[0].uid) // User 0 receives
-                        .withAmount(30)
-                        .withCurrency('JPY')
+                        .withAmount(30, 'JPY')
                         .build(),
                     testUsers[1].token,
                 );
@@ -429,8 +420,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             await expect(apiDriver.updateSettlement(
                 created.id,
                 new SettlementUpdateBuilder()
-                    .withAmount(200.0)
-                    .withCurrency('USD')
+                    .withAmount(200.0, 'USD')
                     .build(),
                 settlementUsers[0].token,
             ))

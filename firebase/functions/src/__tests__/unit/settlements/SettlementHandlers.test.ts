@@ -30,8 +30,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId(group.id)
                 .withPayerId(payerId)
                 .withPayeeId(payeeId)
-                .withAmount(100.50)
-                .withCurrency('USD')
+                .withAmount(100.50, 'USD')
                 .withNote('Test settlement')
                 .build();
 
@@ -66,8 +65,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId(group.id)
                 .withPayerId(payerId)
                 .withPayeeId(payeeId)
-                .withAmount(50.00)
-                .withCurrency('USD')
+                .withAmount(50.00, 'USD')
                 .withoutNote()
                 .build();
 
@@ -84,8 +82,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId('test-group')
                 .withPayerId('payer')
                 .withPayeeId('payee')
-                .withAmount(0)
-                .withCurrency('USD')
+                .withAmount(0, 'USD')
                 .build();
 
             await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
@@ -101,8 +98,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId('test-group')
                 .withPayerId('payer')
                 .withPayeeId('payee')
-                .withAmount(-50)
-                .withCurrency('USD')
+                .withAmount(-50, 'USD')
                 .build();
 
             await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
@@ -118,8 +114,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId('test-group')
                 .withPayerId('same-user')
                 .withPayeeId('same-user')
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .build();
 
             await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
@@ -135,7 +130,6 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId('test-group')
                 .withPayerId('payer')
                 .withPayeeId('payee')
-                .withAmount(100)
                 .build();
 
             (invalidRequest as any).currency = 'US';
@@ -153,8 +147,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId('test-group')
                 .withPayerId('payer')
                 .withPayeeId('payee')
-                .withAmount(100.50)
-                .withCurrency('JPY')
+                .withAmount(100.50, 'JPY')
                 .build();
 
             await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
@@ -171,8 +164,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId('test-group')
                 .withPayerId('payer')
                 .withPayeeId('payee')
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .withNote(longNote)
                 .build();
 
@@ -188,8 +180,7 @@ describe('SettlementHandlers - Unit Tests', () => {
             const invalidRequest = new CreateSettlementRequestBuilder()
                 .withPayerId('payer')
                 .withPayeeId('payee')
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .build();
 
             delete (invalidRequest as any).groupId;
@@ -206,8 +197,7 @@ describe('SettlementHandlers - Unit Tests', () => {
             const invalidRequest = new CreateSettlementRequestBuilder()
                 .withGroupId('test-group')
                 .withPayeeId('payee')
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .build();
 
             delete (invalidRequest as any).payerId;
@@ -224,8 +214,7 @@ describe('SettlementHandlers - Unit Tests', () => {
             const invalidRequest = new CreateSettlementRequestBuilder()
                 .withGroupId('test-group')
                 .withPayerId('payer')
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .build();
 
             delete (invalidRequest as any).payeeId;
@@ -243,7 +232,6 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId('test-group')
                 .withPayerId('payer')
                 .withPayeeId('payee')
-                .withCurrency('USD')
                 .build();
 
             delete (invalidRequest as any).amount;
@@ -261,7 +249,6 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId('test-group')
                 .withPayerId('payer')
                 .withPayeeId('payee')
-                .withAmount(100)
                 .build();
 
             delete (invalidRequest as any).currency;
@@ -282,8 +269,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId('non-existent-group')
                 .withPayerId('payer')
                 .withPayeeId('payee')
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .build();
 
             await expect(appDriver.createSettlement(userId, settlementRequest)).rejects.toThrow(
@@ -313,8 +299,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId(group.id)
                 .withPayerId(payerId)
                 .withPayeeId(payeeId)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .build();
 
             await expect(appDriver.createSettlement(nonMemberId, settlementRequest)).rejects.toThrow(
@@ -340,8 +325,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId(group.id)
                 .withPayerId('non-member-payer')
                 .withPayeeId(payeeId)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .build();
 
             await expect(appDriver.createSettlement(userId, settlementRequest)).rejects.toThrow(
@@ -367,8 +351,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId(group.id)
                 .withPayerId(payerId)
                 .withPayeeId('non-member-payee')
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .build();
 
             await expect(appDriver.createSettlement(userId, settlementRequest)).rejects.toThrow(
@@ -398,15 +381,13 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId(group.id)
                 .withPayerId(payerId)
                 .withPayeeId(payeeId)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .build();
 
             const created = await appDriver.createSettlement(userId, settlementRequest);
 
             const updateRequest = new SettlementUpdateBuilder()
-                .withAmount(150.75)
-                .withCurrency('USD')
+                .withAmount(150.75, 'USD')
                 .build();
 
             const result = await appDriver.updateSettlement(userId, created.id, updateRequest);
@@ -435,8 +416,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId(group.id)
                 .withPayerId(payerId)
                 .withPayeeId(payeeId)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .withNote('Old note')
                 .build();
 
@@ -523,14 +503,13 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId(group.id)
                 .withPayerId(payerId)
                 .withPayeeId(payeeId)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .build();
 
             const created = await appDriver.createSettlement(creatorId, settlementRequest);
 
             const updateRequest = new SettlementUpdateBuilder()
-                .withAmount(150)
+                .withAmount(150, 'USD')
                 .build();
 
             await expect(appDriver.updateSettlement(nonMemberId, created.id, updateRequest)).rejects.toThrow(
@@ -561,15 +540,13 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId(group.id)
                 .withPayerId(payerId)
                 .withPayeeId(payeeId)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .build();
 
             const created = await appDriver.createSettlement(creatorId, settlementRequest);
 
             const updateRequest = new SettlementUpdateBuilder()
-                .withAmount(200.50)
-                .withCurrency('USD')
+                .withAmount(200.50, 'USD')
                 .build();
 
             await expect(appDriver.updateSettlement(adminId, created.id, updateRequest)).rejects.toThrow(
@@ -633,8 +610,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId(group.id)
                 .withPayerId(payerId)
                 .withPayeeId(payeeId)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .build();
 
             const created = await appDriver.createSettlement(userId, settlementRequest);
@@ -684,8 +660,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId(group.id)
                 .withPayerId(payerId)
                 .withPayeeId(payeeId)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .build();
 
             const created = await appDriver.createSettlement(creatorId, settlementRequest);
@@ -717,8 +692,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId(group.id)
                 .withPayerId(payerId)
                 .withPayeeId(payeeId)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .build();
 
             const created = await appDriver.createSettlement(creatorId, settlementRequest);
@@ -751,8 +725,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId(group.id)
                 .withPayerId(payerId)
                 .withPayeeId(payeeId)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .build();
 
             const created = await appDriver.createSettlement(creatorId, settlementRequest);
@@ -782,8 +755,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withGroupId(group.id)
                 .withPayerId(payerId)
                 .withPayeeId(payeeId)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .build();
 
             const created = await appDriver.createSettlement(creatorId, settlementRequest);

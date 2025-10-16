@@ -176,8 +176,6 @@ describe('Firestore Security Rules (Production)', () => {
                     // Create an expense for the test group
                     const expense = new ExpenseDTOBuilder()
                         .withGroupId(groupId)
-                        .withDescription('Test Expense')
-                        .withAmount(100)
                         .withCreatedBy('user1-id')
                         .withPaidBy('user1-id')
                         // Note: ExpenseDTOBuilder doesn't have memberIds - access is controlled differently
@@ -230,8 +228,7 @@ describe('Firestore Security Rules (Production)', () => {
                         .withGroupId('test-group-1')
                         .withPayerId('user2-id') // Changed from fromUserId to payerId
                         .withPayeeId('user1-id') // Changed from toUserId to payeeId
-                        .withAmount(50)
-                        .withCurrency('USD')
+                        .withAmount(50, 'USD')
                         // Note: ExpenseDTOBuilder doesn't have memberIds - access is controlled differently
                         .build();
 
@@ -331,7 +328,6 @@ describe('Firestore Security Rules (Production)', () => {
                     const commentExpense = new ExpenseDTOBuilder()
                         .withDescription('Expense with Comments')
                         .withParticipants(['user1-id', 'user2-id'])
-                        .withAmount(100)
                         .build();
 
                     await setDoc(doc(db, 'expenses', expenseId), commentExpense);

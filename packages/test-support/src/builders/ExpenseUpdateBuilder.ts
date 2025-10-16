@@ -29,7 +29,8 @@ export class ExpenseUpdateBuilder {
         return new ExpenseUpdateBuilder(false);
     }
 
-    withAmount(amount: Amount | number): this {
+    withAmount(amount: Amount | number, currency: string): this {
+        this.update.currency = currency;
         this.update.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }

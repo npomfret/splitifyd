@@ -102,8 +102,7 @@ describe('UTC Date Validation', () => {
     describe('Expense Validation', () => {
         it('should accept expenses with UTC dates', () => {
             const validExpense = new CreateExpenseRequestBuilder()
-                .withAmount(1)
-                .withCurrency('USD')
+                .withAmount(1, 'USD')
                 .withDate('2024-01-01T00:00:00.000Z')
                 .build();
 
@@ -112,8 +111,7 @@ describe('UTC Date Validation', () => {
 
         it('should reject expenses with non-UTC dates', () => {
             const invalidExpense = new CreateExpenseRequestBuilder()
-                .withAmount(1)
-                .withCurrency('USD')
+                .withAmount(1, 'USD')
                 .withDate('2024-01-01T00:00:00-05:00') // Non-UTC timezone
                 .build();
 
@@ -125,8 +123,7 @@ describe('UTC Date Validation', () => {
             future.setDate(future.getDate() + 2); // 2 days in future, beyond 24h buffer
 
             const futureExpense = new CreateExpenseRequestBuilder()
-                .withAmount(1)
-                .withCurrency('USD')
+                .withAmount(1, 'USD')
                 .withDate(future.toISOString())
                 .build();
 

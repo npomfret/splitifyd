@@ -29,8 +29,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withGroupId('test-group-id')
                 .withCreatedBy('creator-id')
                 .withPaidBy('payer-id')
-                .withAmount(100.5)
-                .withCurrency('USD')
+                .withAmount(100.5, 'USD')
                 .withDescription('Test expense')
                 .withCategory('Food')
                 .withSplitType('equal')
@@ -200,7 +199,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
             const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
-                .withAmount(100.33)
+                .withAmount(100.33, "USD")
                 .withParticipants([userId])
                 .withSplits([{ uid: userId, amount: '100.33' }])
                 .withCreatedAt(FirestoreTimestamp.now())
@@ -224,8 +223,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const mockExpenseRequest = new CreateExpenseRequestBuilder()
                 .withGroupId('test-group')
                 .withDescription('Negative amount test')
-                .withAmount(-50) // Invalid negative amount
-                .withCurrency('USD')
+                .withAmount(-50, "USD") // Invalid negative amount                .withCurrency('USD')
                 .withCategory('Food')
                 .withPaidBy('user1')
                 .withParticipants(['user1'])
@@ -247,8 +245,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const mockExpenseRequest = new CreateExpenseRequestBuilder()
                 .withGroupId('test-group')
                 .withDescription('Invalid currency test')
-                .withAmount(100)
-                .withCurrency('INVALID_CURRENCY') // Invalid currency code
+                .withAmount(100, 'INVALID_CURRENCY') // Invalid currency code
                 .withCategory('Food')
                 .withPaidBy('user1')
                 .withParticipants(['user1'])
@@ -405,8 +402,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withGroupId('test-group')
                 .withCreatedBy(userId)
                 .withPaidBy(userId)
-                .withAmount(100.5)
-                .withCurrency('USD')
+                .withAmount(100.5, 'USD')
                 .withDescription('Test expense')
                 .withCategory('Food')
                 .withSplitType('equal')

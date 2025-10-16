@@ -39,8 +39,7 @@ describe('Expenses Management - Consolidated Tests', () => {
             // Test API layer creation
             const apiExpenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
-                .withAmount(90.0)
-                .withCurrency('USD')
+                .withAmount(90.0, 'USD')
                 .withPaidBy(users[0].uid)
                 .withParticipants(users.slice(0, 3).map((u) => u.uid))
                 .withSplitType('equal')
@@ -125,8 +124,7 @@ describe('Expenses Management - Consolidated Tests', () => {
             // Create expense for update tests
             const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
                 .withSplitType('equal')
@@ -137,8 +135,7 @@ describe('Expenses Management - Consolidated Tests', () => {
             const participants1 = [users[0].uid, users[1].uid];
             const apiUpdateData = new ExpenseUpdateBuilder()
                 .withDescription('Updated Test Expense')
-                .withAmount(150.5)
-                .withCurrency('USD')
+                .withAmount(150.5, 'USD')
                 .withCategory('food')
                 .withParticipants(participants1)
                 .withSplits(calculateEqualSplits(150.5, 'USD', participants1))
@@ -152,8 +149,7 @@ describe('Expenses Management - Consolidated Tests', () => {
             // Test API update with participant recalculation
             const participants2 = [users[0].uid, users[1].uid, users[2].uid];
             const secondUpdateData = new ExpenseUpdateBuilder()
-                .withAmount(200)
-                .withCurrency('USD')
+                .withAmount(200, 'USD')
                 .withParticipants(participants2)
                 .withSplits(calculateEqualSplits(200, 'USD', participants2))
                 .build();
@@ -177,8 +173,7 @@ describe('Expenses Management - Consolidated Tests', () => {
             const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('History Test Expense')
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
                 .withSplitType('equal')
@@ -191,8 +186,7 @@ describe('Expenses Management - Consolidated Tests', () => {
             await apiDriver.updateExpense(
                 createdExpense.id,
                 new ExpenseUpdateBuilder()
-                    .withAmount(150)
-                    .withCurrency('USD')
+                    .withAmount(150, 'USD')
                     .withDescription('First Update')
                     .withParticipants(historyParticipants)
                     .withSplits(calculateEqualSplits(150, 'USD', historyParticipants))
@@ -202,8 +196,7 @@ describe('Expenses Management - Consolidated Tests', () => {
             await apiDriver.updateExpense(
                 createdExpense.id,
                 new ExpenseUpdateBuilder()
-                    .withAmount(200)
-                    .withCurrency('USD')
+                    .withAmount(200, 'USD')
                     .withDescription('First Update')
                     .withCategory('transport')
                     .withParticipants(historyParticipants)
@@ -225,8 +218,7 @@ describe('Expenses Management - Consolidated Tests', () => {
 
             const createData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
-                .withAmount(60)
-                .withCurrency('EUR')
+                .withAmount(60, 'EUR')
                 .withPaidBy(users[0].uid)
                 .withParticipants(participants)
                 .withSplitType('equal')
@@ -237,8 +229,7 @@ describe('Expenses Management - Consolidated Tests', () => {
 
             const updatePayload = ExpenseUpdateBuilder
                 .minimal()
-                .withAmount(60)
-                .withCurrency('EUR')
+                .withAmount(60, 'EUR')
                 .withPaidBy(users[1].uid)
                 .withParticipants(participants)
                 .withSplitType('equal')
@@ -267,8 +258,7 @@ describe('Expenses Management - Consolidated Tests', () => {
             const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(managedGroup.id)
                 .withDescription('Permission Test Expense')
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
                 .withSplitType('equal')
@@ -281,8 +271,7 @@ describe('Expenses Management - Consolidated Tests', () => {
             await apiDriver.updateExpense(
                 createdExpense.id,
                 new ExpenseUpdateBuilder()
-                    .withAmount(150)
-                    .withCurrency('USD')
+                    .withAmount(150, 'USD')
                     .withParticipants(permissionParticipants)
                     .withSplits(calculateEqualSplits(150, 'USD', permissionParticipants))
                     .build(),
@@ -294,8 +283,7 @@ describe('Expenses Management - Consolidated Tests', () => {
                 createdExpense.id,
                 new ExpenseUpdateBuilder()
                     .withDescription('Updated by non-creator')
-                    .withAmount(120)
-                    .withCurrency('USD')
+                    .withAmount(120, 'USD')
                     .withParticipants(permissionParticipants)
                     .withSplits(calculateEqualSplits(120, 'USD', permissionParticipants))
                     .build(),
@@ -320,8 +308,7 @@ describe('Expenses Management - Consolidated Tests', () => {
                 .withGroupId(testGroup.id)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .withDescription('Expense to delete')
                 .withSplitType('equal')
                 .build();
@@ -344,8 +331,7 @@ describe('Expenses Management - Consolidated Tests', () => {
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid])
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .build(),
                 users[0].token,
             );
@@ -354,8 +340,7 @@ describe('Expenses Management - Consolidated Tests', () => {
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid])
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .build(),
                 users[0].token,
             );
@@ -418,8 +403,7 @@ describe('Expenses Management - Consolidated Tests', () => {
             const complexExpense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withPaidBy(users[1].uid)
                     .withParticipants([users[0].uid, users[1].uid, users[2].uid])
                     .withSplitType('exact')
@@ -499,8 +483,7 @@ describe('Expenses Management - Consolidated Tests', () => {
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(departedTestGroup.id)
-                    .withAmount(90)
-                    .withCurrency('USD')
+                    .withAmount(90, 'USD')
                     .withPaidBy(departedTestUsers[0].uid)
                     .withParticipants([departedTestUsers[0].uid, departedTestUsers[1].uid, departedTestUsers[2].uid])
                     .withSplitType('equal')
@@ -515,8 +498,7 @@ describe('Expenses Management - Consolidated Tests', () => {
                     .withGroupId(departedTestGroup.id)
                     .withPayerId(departedTestUsers[1].uid)
                     .withPayeeId(departedTestUsers[0].uid)
-                    .withAmount(30)
-                    .withCurrency('USD')
+                    .withAmount(30, 'USD')
                     .withNote('Settling up before leaving')
                     .build(),
                 departedTestUsers[1].token,

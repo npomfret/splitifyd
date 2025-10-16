@@ -36,8 +36,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(expenseDescription)
-                .withAmount(90)
-                .withCurrency('USD')
+                .withAmount(90, 'USD')
                 .withPaidByDisplayName(aliceDisplayName)
                 .withSplitType('equal')
                 .withParticipants([aliceDisplayName, bobDisplayName, charlieDisplayName])
@@ -116,8 +115,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(expenseDescription)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .withPaidByDisplayName(aliceDisplayName)
                 .withSplitType('equal')
                 .withParticipants([aliceDisplayName, bobDisplayName])
@@ -214,8 +212,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(expenseDescription)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .withPaidByDisplayName(bobDisplayName)
                 .withSplitType('equal')
                 .withParticipants([aliceDisplayName, bobDisplayName])
@@ -317,8 +314,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(initialExpenseDescription)
-                .withAmount(90)
-                .withCurrency('USD')
+                .withAmount(90, 'USD')
                 .withPaidByDisplayName(aliceDisplayName)
                 .withSplitType('equal')
                 .withParticipants([aliceDisplayName, bobDisplayName, charlieDisplayName])
@@ -363,8 +359,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         await newExpenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(newExpenseDescription)
-                .withAmount(60)
-                .withCurrency('USD')
+                .withAmount(60, 'USD')
                 .withPaidByDisplayName(aliceDisplayName)
                 .withSplitType('equal')
                 .withParticipants([aliceDisplayName, charlieDisplayName])

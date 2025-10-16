@@ -7,11 +7,9 @@ import { ApiError } from '../../../utils/errors';
 
 describe('String Length Validation - Focused Tests', () => {
     const baseValidExpenseData = new CreateExpenseRequestBuilder()
-        .withAmount(1)
-        .withCurrency('USD')
+        .withAmount(1, 'USD')
         .withGroupId('test-group-id')
         .withDescription('Test expense')
-        .withCurrency('USD')
         .build();
 
     const baseValidGroupData = new CreateGroupRequestBuilder()

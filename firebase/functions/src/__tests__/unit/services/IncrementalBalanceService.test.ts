@@ -36,8 +36,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 new SimplifiedDebtBuilder()
                     .from(userId2)
                     .to(userId1)
-                    .withAmount(50)
-                    .withCurrency('USD')
+                    .withAmount(50, 'USD')
                     .build(),
             )
             .build();
@@ -56,8 +55,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const expense = new ExpenseDTOBuilder()
                     .withId('expense-1')
                     .withGroupId(groupId)
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
@@ -88,8 +86,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const expense = new ExpenseDTOBuilder()
                     .withId('expense-2')
                     .withGroupId(groupId)
-                    .withAmount(60)
-                    .withCurrency('USD')
+                    .withAmount(60, 'USD')
                     .withPaidBy(userId2)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
@@ -119,8 +116,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const expense = new ExpenseDTOBuilder()
                     .withId('expense-3')
                     .withGroupId(groupId)
-                    .withAmount(90)
-                    .withCurrency('EUR')
+                    .withAmount(90, 'EUR')
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2, userId3])
@@ -150,8 +146,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const expense = new ExpenseDTOBuilder()
                     .withId('expense-1')
                     .withGroupId(groupId)
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
@@ -189,8 +184,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const expense = new ExpenseDTOBuilder()
                     .withId('expense-1')
                     .withGroupId(groupId)
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
@@ -235,8 +229,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const expense = new ExpenseDTOBuilder()
                     .withId('expense-eur')
                     .withGroupId(groupId)
-                    .withAmount(150.5)
-                    .withCurrency(currency)
+                    .withAmount(150.5, currency)
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants(participants)
@@ -266,8 +259,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const originalExpense = new ExpenseDTOBuilder()
                     .withId('expense-lifecycle')
                     .withGroupId(groupId)
-                    .withAmount(100)
-                    .withCurrency(currency)
+                    .withAmount(100, currency)
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants(participants)
@@ -282,8 +274,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const updatedExpense = new ExpenseDTOBuilder()
                     .withId('expense-lifecycle')
                     .withGroupId(groupId)
-                    .withAmount(150.5)
-                    .withCurrency(currency)
+                    .withAmount(150.5, currency)
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants(participants)
@@ -298,8 +289,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const settlement = new SettlementDTOBuilder()
                     .withId('settlement-lifecycle')
                     .withGroupId(groupId)
-                    .withAmount(50.25)
-                    .withCurrency(currency)
+                    .withAmount(50.25, currency)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
                     .build();
@@ -326,8 +316,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const oldExpense = new ExpenseDTOBuilder()
                     .withId('expense-1')
                     .withGroupId(groupId)
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
@@ -340,8 +329,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const newExpense = new ExpenseDTOBuilder()
                     .withId('expense-1')
                     .withGroupId(groupId)
-                    .withAmount(120) // Changed from 100
-                    .withCurrency('USD')
+                    .withAmount(120, 'USD')
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
@@ -369,8 +357,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const oldExpense = new ExpenseDTOBuilder()
                     .withId('expense-1')
                     .withGroupId(groupId)
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
@@ -383,8 +370,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const newExpense = new ExpenseDTOBuilder()
                     .withId('expense-1')
                     .withGroupId(groupId)
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withPaidBy(userId2) // Changed payer
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
@@ -414,8 +400,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const oldExpense = new ExpenseDTOBuilder()
                     .withId('expense-1')
                     .withGroupId(groupId)
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
@@ -428,8 +413,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const newExpense = new ExpenseDTOBuilder()
                     .withId('expense-1')
                     .withGroupId(groupId)
-                    .withAmount(80)
-                    .withCurrency('EUR') // Changed currency
+                    .withAmount(80, 'EUR') // Changed currency
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
@@ -464,8 +448,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
-                    .withAmount(30)
-                    .withCurrency('USD')
+                    .withAmount(30, 'USD')
                     .withCreatedBy(userId2)
                     .build();
 
@@ -489,8 +472,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
-                    .withAmount(50) // Full amount
-                    .withCurrency('USD')
+                    .withAmount(50, 'USD')
                     .withCreatedBy(userId2)
                     .build();
 
@@ -513,8 +495,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
-                    .withAmount(70) // More than owed
-                    .withCurrency('USD')
+                    .withAmount(70, 'USD')
                     .withCreatedBy(userId2)
                     .build();
 
@@ -539,8 +520,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
-                    .withAmount(30)
-                    .withCurrency('USD')
+                    .withAmount(30, 'USD')
                     .withCreatedBy(userId2)
                     .build();
 
@@ -570,8 +550,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
-                    .withAmount(30)
-                    .withCurrency('USD')
+                    .withAmount(30, 'USD')
                     .withCreatedBy(userId2)
                     .build();
 
@@ -580,8 +559,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
-                    .withAmount(40) // Increased amount
-                    .withCurrency('USD')
+                    .withAmount(40, 'USD')
                     .withCreatedBy(userId2)
                     .build();
 
@@ -606,8 +584,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
-                    .withAmount(30)
-                    .withCurrency('USD')
+                    .withAmount(30, 'USD')
                     .withCreatedBy(userId2)
                     .build();
 
@@ -616,8 +593,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(userId2)
                     .withPayeeId(userId1)
-                    .withAmount(30)
-                    .withCurrency('EUR') // Changed currency
+                    .withAmount(30, 'EUR') // Changed currency
                     .withCreatedBy(userId2)
                     .build();
 
@@ -645,8 +621,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
             const expense = new ExpenseDTOBuilder()
                 .withId('expense-1')
                 .withGroupId(groupId)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .withPaidBy(userId1)
                 .withSplitType('equal')
                 .withParticipants([userId1, userId2])
@@ -684,8 +659,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
             const usdExpense = new ExpenseDTOBuilder()
                 .withId('expense-usd')
                 .withGroupId(groupId)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .withPaidBy(userId1)
                 .withSplitType('equal')
                 .withParticipants([userId1, userId2])
@@ -698,8 +672,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
             const eurExpense = new ExpenseDTOBuilder()
                 .withId('expense-eur')
                 .withGroupId(groupId)
-                .withAmount(80)
-                .withCurrency('EUR')
+                .withAmount(80, 'EUR')
                 .withPaidBy(userId2)
                 .withSplitType('equal')
                 .withParticipants([userId1, userId2])

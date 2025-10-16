@@ -55,8 +55,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(100)
-                    .withCurrency('EUR')
+                    .withAmount(100, 'EUR')
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -76,8 +75,7 @@ describe('app tests', () => {
                 createdExpense.id,
                 ExpenseUpdateBuilder
                     .minimal()
-                    .withAmount(150.5)
-                    .withCurrency('EUR')
+                    .withAmount(150.5, 'EUR')
                     .withParticipants(participants)
                     .withSplitType('equal')
                     .withSplits(calculateEqualSplits(150.5, 'EUR', participants))
@@ -99,8 +97,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(50.25)
-                    .withCurrency('EUR')
+                    .withAmount(50.25, 'EUR')
                     .build(),
             );
 
@@ -136,8 +133,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(12.345)
-                    .withCurrency('KWD')
+                    .withAmount(12.345, 'KWD')
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -162,8 +158,7 @@ describe('app tests', () => {
                 user2,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(303)
-                    .withCurrency('JPY')
+                    .withAmount(303, 'JPY')
                     .withPaidBy(user2)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -188,8 +183,7 @@ describe('app tests', () => {
                 user3,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(45.67)
-                    .withCurrency('GBP')
+                    .withAmount(45.67, 'GBP')
                     .withPaidBy(user3)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -233,8 +227,7 @@ describe('app tests', () => {
                 user2,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(275.25)
-                    .withCurrency('USD')
+                    .withAmount(275.25, 'USD')
                     .withPaidBy(user2)
                     .withParticipants(participants)
                     .withSplitType('exact')
@@ -280,8 +273,7 @@ describe('app tests', () => {
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withDescription('Team Outing EUR')
-                    .withAmount(200)
-                    .withCurrency('EUR')
+                    .withAmount(200, 'EUR')
                     .withPaidBy(user3)
                     .withParticipants(participants)
                     .withSplitType('percentage')
@@ -316,8 +308,7 @@ describe('app tests', () => {
                 ExpenseUpdateBuilder
                     .minimal()
                     .withDescription('Team Outing JPY')
-                    .withAmount(303)
-                    .withCurrency('JPY')
+                    .withAmount(303, 'JPY')
                     .withPaidBy(user1)
                     .withParticipants(updatedParticipants)
                     .withSplitType('equal')
@@ -376,8 +367,7 @@ describe('app tests', () => {
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withDescription('Beach house deposit')
-                    .withAmount(90)
-                    .withCurrency('USD')
+                    .withAmount(90, 'USD')
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -432,8 +422,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(120)
-                    .withCurrency('USD')
+                    .withAmount(120, 'USD')
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -454,7 +443,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(10.00)
+                    .withAmount(10, 'USD')
                     .withCurrency('USD')
                     .build(),
             );
@@ -466,7 +455,7 @@ describe('app tests', () => {
             expect(groupDetails.balances.balancesByCurrency!.USD![user2].owes[user1]).toBe('50.00');
             expect(groupDetails.balances.balancesByCurrency!.USD![user2].netBalance).toBe('-50.00');
             expect(groupDetails.settlements.settlements).toHaveLength(1);
-            expect(groupDetails.settlements.settlements[0].amount).toBe('10.00');
+            expect(groupDetails.settlements.settlements[0].amount).toBe('10');
 
             await appDriver.createSettlement(
                 user2,
@@ -474,8 +463,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(50.00)
-                    .withCurrency('USD')
+                    .withAmount(50, 'USD')
                     .build(),
             );
 
@@ -493,7 +481,7 @@ describe('app tests', () => {
                 .settlements
                 .map((settlement) => settlement.amount)
                 .sort();
-            expect(settlementAmounts).toEqual(['10.00', '50.00']);
+            expect(settlementAmounts).toEqual(['10', '50']);
         });
 
         it('should preserve expense metadata and remove it cleanly on deletion', async () => {
@@ -512,8 +500,7 @@ describe('app tests', () => {
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withDescription('Hotel booking with receipt')
-                    .withAmount(80)
-                    .withCurrency('USD')
+                    .withAmount(80, 'USD')
                     .withPaidBy(user1)
                     .withCategory('Travel')
                     .withDate('2024-06-15T12:30:00.000Z')
@@ -530,8 +517,7 @@ describe('app tests', () => {
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withDescription('Fuel stop')
-                    .withAmount(50)
-                    .withCurrency('USD')
+                    .withAmount(50, 'USD')
                     .withPaidBy(user2)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -681,8 +667,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -696,8 +681,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(30.00)
-                    .withCurrency('USD')
+                    .withAmount(30.00, 'USD')
                     .withNote('Initial payment')
                     .build(),
             );
@@ -735,8 +719,7 @@ describe('app tests', () => {
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withDescription('Lunch at cafe')
-                    .withAmount(60)
-                    .withCurrency('USD')
+                    .withAmount(60, 'USD')
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -789,8 +772,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(100)
-                    .withCurrency('EUR')
+                    .withAmount(100, 'EUR')
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -810,8 +792,7 @@ describe('app tests', () => {
                 createdExpense.id,
                 ExpenseUpdateBuilder
                     .minimal()
-                    .withAmount(150.5)
-                    .withCurrency('EUR')
+                    .withAmount(150.5, 'EUR')
                     .withParticipants(participants)
                     .withSplitType('equal')
                     .withSplits(calculateEqualSplits(150.5, 'EUR', participants))
@@ -834,8 +815,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(50.25)
-                    .withCurrency('EUR')
+                    .withAmount(50.25, 'EUR')
                     .build(),
             );
 
@@ -869,8 +849,7 @@ describe('app tests', () => {
             const participants = [user1, user2];
             const baseExpense = new CreateExpenseRequestBuilder()
                 .withGroupId(groupId)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .withPaidBy(user1)
                 .withParticipants(participants)
                 .withSplitType('exact')
@@ -900,8 +879,7 @@ describe('app tests', () => {
             const participants = [user1, user2];
             const baseExpense = new CreateExpenseRequestBuilder()
                 .withGroupId(groupId)
-                .withAmount(12)
-                .withCurrency('JPY')
+                .withAmount(12, 'JPY')
                 .withPaidBy(user1)
                 .withParticipants(participants)
                 .withSplitType('exact')
@@ -959,8 +937,7 @@ describe('app tests', () => {
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withDescription('Confidential dinner')
-                    .withAmount(50)
-                    .withCurrency('USD')
+                    .withAmount(50, 'USD')
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -989,8 +966,7 @@ describe('app tests', () => {
             const participants = [user1, user2];
             const expenseRequest = new CreateExpenseRequestBuilder()
                 .withGroupId(groupId)
-                .withAmount(40)
-                .withCurrency('USD')
+                .withAmount(40, 'USD')
                 .withPaidBy(user1)
                 .withParticipants(participants)
                 .withSplitType('equal')
@@ -1022,8 +998,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(120)
-                    .withCurrency('USD')
+                    .withAmount(120, 'USD')
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1037,8 +1012,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(60.00)
-                    .withCurrency('USD')
+                    .withAmount(60.00, 'USD')
                     .build(),
             );
 
@@ -1078,8 +1052,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(30)
-                    .withCurrency('USD')
+                    .withAmount(30, 'USD')
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1117,8 +1090,7 @@ describe('app tests', () => {
             const expense = new CreateExpenseRequestBuilder()
                 .withGroupId(groupId)
                 .withDescription('Invalid receipt URL')
-                .withAmount(40)
-                .withCurrency('USD')
+                .withAmount(40, 'USD')
                 .withPaidBy(user1)
                 .withReceiptUrl('not-a-url')
                 .withParticipants(participants)
@@ -1143,8 +1115,7 @@ describe('app tests', () => {
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withDescription('Original expense')
-                    .withAmount(60)
-                    .withCurrency('USD')
+                    .withAmount(60, 'USD')
                     .withPaidBy(user1)
                     .withParticipants([user1, user2])
                     .withSplitType('equal')
@@ -1160,8 +1131,7 @@ describe('app tests', () => {
                 baseExpense.id,
                 ExpenseUpdateBuilder
                     .minimal()
-                    .withAmount(90)
-                    .withCurrency('USD')
+                    .withAmount(90, 'USD')
                     .withParticipants(updatedParticipants)
                     .withSplits(updatedSplits)
                     .withSplitType('equal')
@@ -1183,8 +1153,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(80)
-                    .withCurrency('USD')
+                    .withAmount(80, 'USD')
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1198,8 +1167,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(40.00)
-                    .withCurrency('USD')
+                    .withAmount(40.00, 'USD')
                     .build(),
             );
 
@@ -1236,8 +1204,7 @@ describe('app tests', () => {
                 .withGroupId(groupId)
                 .withPayerId(user4)
                 .withPayeeId(user1)
-                .withAmount(20.00)
-                .withCurrency('USD')
+                .withAmount(20.00, 'USD')
                 .build();
 
             await expect(appDriver.createSettlement(user1, settlement))
@@ -1257,8 +1224,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(50)
-                    .withCurrency('USD')
+                    .withAmount(50, 'USD')
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1298,8 +1264,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(0.10)
-                    .withCurrency(CURRENCY)
+                    .withAmount(0.10, CURRENCY)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1312,8 +1277,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(0.20)
-                    .withCurrency(CURRENCY)
+                    .withAmount(0.20, CURRENCY)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1336,8 +1300,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(0.70)
-                    .withCurrency(CURRENCY)
+                    .withAmount(0.70, CURRENCY)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1361,8 +1324,7 @@ describe('app tests', () => {
                     user1,
                     new CreateExpenseRequestBuilder()
                         .withGroupId(groupId)
-                        .withAmount(0.10)
-                        .withCurrency(CURRENCY)
+                        .withAmount(0.10, CURRENCY)
                         .withPaidBy(user1)
                         .withParticipants(participants)
                         .withSplitType('equal')
@@ -1403,8 +1365,7 @@ describe('app tests', () => {
                     user1,
                     new CreateExpenseRequestBuilder()
                         .withGroupId(groupId)
-                        .withAmount(SMALL_AMOUNT)
-                        .withCurrency(CURRENCY)
+                        .withAmount(SMALL_AMOUNT, CURRENCY)
                         .withPaidBy(user1)
                         .withParticipants(participants)
                         .withSplitType('equal')
@@ -1445,8 +1406,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(LARGE_AMOUNT)
-                    .withCurrency(CURRENCY)
+                    .withAmount(LARGE_AMOUNT, CURRENCY)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1484,8 +1444,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(EXPENSE_AMOUNT)
-                    .withCurrency(CURRENCY)
+                    .withAmount(EXPENSE_AMOUNT, CURRENCY)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1502,8 +1461,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(FIRST_SETTLEMENT)
-                    .withCurrency(CURRENCY)
+                    .withAmount(FIRST_SETTLEMENT, CURRENCY)
                     .build(),
             );
 
@@ -1516,8 +1474,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(SECOND_SETTLEMENT)
-                    .withCurrency(CURRENCY)
+                    .withAmount(SECOND_SETTLEMENT, CURRENCY)
                     .build(),
             );
 
@@ -1530,8 +1487,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(THIRD_SETTLEMENT)
-                    .withCurrency(CURRENCY)
+                    .withAmount(THIRD_SETTLEMENT, CURRENCY)
                     .build(),
             );
 
@@ -1545,8 +1501,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(FOURTH_SETTLEMENT)
-                    .withCurrency(CURRENCY)
+                    .withAmount(FOURTH_SETTLEMENT, CURRENCY)
                     .build(),
             );
 
@@ -1577,8 +1532,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(CIRCULAR_AMOUNT)
-                    .withCurrency(CURRENCY)
+                    .withAmount(CIRCULAR_AMOUNT, CURRENCY)
                     .withPaidBy(user1)
                     .withParticipants([user1, user2])
                     .withSplitType('equal')
@@ -1590,8 +1544,7 @@ describe('app tests', () => {
                 user2,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(CIRCULAR_AMOUNT)
-                    .withCurrency(CURRENCY)
+                    .withAmount(CIRCULAR_AMOUNT, CURRENCY)
                     .withPaidBy(user2)
                     .withParticipants([user2, user3])
                     .withSplitType('equal')
@@ -1603,8 +1556,7 @@ describe('app tests', () => {
                 user3,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(CIRCULAR_AMOUNT)
-                    .withCurrency(CURRENCY)
+                    .withAmount(CIRCULAR_AMOUNT, CURRENCY)
                     .withPaidBy(user3)
                     .withParticipants([user3, user1])
                     .withSplitType('equal')
@@ -1639,8 +1591,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(150)
-                    .withCurrency('USD')
+                    .withAmount(150, 'USD')
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1653,8 +1604,7 @@ describe('app tests', () => {
                 user2,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(200)
-                    .withCurrency('EUR')
+                    .withAmount(200, 'EUR')
                     .withPaidBy(user2)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1667,8 +1617,7 @@ describe('app tests', () => {
                 user3,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(75.50)
-                    .withCurrency('GBP')
+                    .withAmount(75.50, 'GBP')
                     .withPaidBy(user3)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1682,8 +1631,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(50.00)
-                    .withCurrency('USD')
+                    .withAmount(50.00, 'USD')
                     .build(),
             );
 
@@ -1693,8 +1641,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user3)
                     .withPayeeId(user2)
-                    .withAmount(66.67)
-                    .withCurrency('EUR')
+                    .withAmount(66.67, 'EUR')
                     .build(),
             );
 
@@ -1738,8 +1685,7 @@ describe('app tests', () => {
                     payer,
                     new CreateExpenseRequestBuilder()
                         .withGroupId(groupId)
-                        .withAmount(amount)
-                        .withCurrency('USD')
+                        .withAmount(amount, 'USD')
                         .withPaidBy(payer)
                         .withParticipants(participants)
                         .withSplitType('equal')
@@ -1776,8 +1722,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
-                    .withAmount(100)
-                    .withCurrency('JPY')
+                    .withAmount(100, 'JPY')
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1817,8 +1762,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(AMOUNT)
-                    .withCurrency(CURRENCY)
+                    .withAmount(AMOUNT, CURRENCY)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1840,8 +1784,7 @@ describe('app tests', () => {
                 createdExpense.id,
                 ExpenseUpdateBuilder
                     .minimal()
-                    .withAmount(AMOUNT)
-                    .withCurrency(CURRENCY)
+                    .withAmount(AMOUNT, CURRENCY)
                     .withParticipants(participants)
                     .withSplitType('percentage')
                     .withSplits(percentageSplits)
@@ -1866,8 +1809,7 @@ describe('app tests', () => {
                 createdExpense.id,
                 ExpenseUpdateBuilder
                     .minimal()
-                    .withAmount(AMOUNT)
-                    .withCurrency(CURRENCY)
+                    .withAmount(AMOUNT, CURRENCY)
                     .withParticipants(participants)
                     .withSplitType('exact')
                     .withSplits(exactSplits)
@@ -1889,8 +1831,7 @@ describe('app tests', () => {
                 createdExpense.id,
                 ExpenseUpdateBuilder
                     .minimal()
-                    .withAmount(AMOUNT)
-                    .withCurrency(CURRENCY)
+                    .withAmount(AMOUNT, CURRENCY)
                     .withParticipants(participants)
                     .withSplitType('equal')
                     .withSplits(finalEqualSplits)
@@ -1923,8 +1864,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(150)
-                    .withCurrency(CURRENCY)
+                    .withAmount(150, CURRENCY)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1960,8 +1900,7 @@ describe('app tests', () => {
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(100)
-                    .withCurrency(CURRENCY)
+                    .withAmount(100, CURRENCY)
                     .withPaidBy(user1)
                     .withParticipants([user1, user2])
                     .withSplitType('equal')
@@ -2001,8 +1940,7 @@ describe('app tests', () => {
 
                 const expenseRequest = new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('percentage')
@@ -2028,8 +1966,7 @@ describe('app tests', () => {
 
                 const expenseRequest = new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('percentage')
@@ -2051,8 +1988,7 @@ describe('app tests', () => {
                 const participants = [user1, user2];
                 const expenseRequest = new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withPaidBy(user3)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -2075,8 +2011,7 @@ describe('app tests', () => {
                     user1,
                     new CreateExpenseRequestBuilder()
                         .withGroupId(groupId)
-                        .withAmount(100)
-                        .withCurrency('USD')
+                        .withAmount(100, 'USD')
                         .withPaidBy(user1)
                         .withParticipants(singleParticipant)
                         .withSplitType('equal')
@@ -2113,8 +2048,7 @@ describe('app tests', () => {
                     user1,
                     new CreateExpenseRequestBuilder()
                         .withGroupId(groupId)
-                        .withAmount(LARGE_AMOUNT)
-                        .withCurrency(CURRENCY)
+                        .withAmount(LARGE_AMOUNT, CURRENCY)
                         .withPaidBy(user1)
                         .withParticipants(participants)
                         .withSplitType('equal')
@@ -2147,8 +2081,7 @@ describe('app tests', () => {
                     user1,
                     new CreateExpenseRequestBuilder()
                         .withGroupId(groupId)
-                        .withAmount(MIN_AMOUNT)
-                        .withCurrency(CURRENCY)
+                        .withAmount(MIN_AMOUNT, CURRENCY)
                         .withPaidBy(user1)
                         .withParticipants(participants)
                         .withSplitType('equal')
@@ -2194,8 +2127,7 @@ describe('app tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(groupId)
                             .withDescription(longDescription)
-                            .withAmount(100)
-                            .withCurrency('USD')
+                            .withAmount(100, 'USD')
                             .withPaidBy(user1)
                             .withParticipants(participants)
                             .withSplitType('equal')
@@ -2233,8 +2165,7 @@ describe('app tests', () => {
                     user1,
                     new CreateExpenseRequestBuilder()
                         .withGroupId(groupId)
-                        .withAmount(AMOUNT)
-                        .withCurrency(CURRENCY)
+                        .withAmount(AMOUNT, CURRENCY)
                         .withPaidBy(user1)
                         .withParticipants(manyUsers)
                         .withSplitType('equal')
@@ -2266,8 +2197,7 @@ describe('app tests', () => {
                         user1,
                         new CreateExpenseRequestBuilder()
                             .withGroupId(groupId)
-                            .withAmount(100)
-                            .withCurrency('USD')
+                            .withAmount(100, 'USD')
                             .withPaidBy(user1)
                             .withParticipants(participants)
                             .withSplitType('equal')
@@ -2311,8 +2241,7 @@ describe('app tests', () => {
                         user1,
                         new CreateExpenseRequestBuilder()
                             .withGroupId(groupId)
-                            .withAmount(0)
-                            .withCurrency('USD')
+                            .withAmount(0, 'USD')
                             .withPaidBy(user1)
                             .withParticipants(participants)
                             .withSplitType('equal')
@@ -2334,8 +2263,7 @@ describe('app tests', () => {
                         user1,
                         new CreateExpenseRequestBuilder()
                             .withGroupId(groupId)
-                            .withAmount(-100)
-                            .withCurrency('USD')
+                            .withAmount(-100, 'USD')
                             .withPaidBy(user1)
                             .withParticipants(participants)
                             .withSplitType('equal')
@@ -2358,8 +2286,7 @@ describe('app tests', () => {
                     user1,
                     new CreateExpenseRequestBuilder()
                         .withGroupId(groupId)
-                        .withAmount(100)
-                        .withCurrency('USD')
+                        .withAmount(100, 'USD')
                         .withPaidBy(user1)
                         .withParticipants(participants)
                         .withSplitType('equal')
@@ -2374,8 +2301,7 @@ describe('app tests', () => {
                             .withGroupId(groupId)
                             .withPayerId(user2)
                             .withPayeeId(user1)
-                            .withAmount(0.00)
-                            .withCurrency('USD')
+                            .withAmount(0.00, 'USD')
                             .build(),
                     ),
                 )
@@ -2394,8 +2320,7 @@ describe('app tests', () => {
                     user1,
                     new CreateExpenseRequestBuilder()
                         .withGroupId(groupId)
-                        .withAmount(100)
-                        .withCurrency('USD')
+                        .withAmount(100, 'USD')
                         .withPaidBy(user1)
                         .withParticipants(participants)
                         .withSplitType('equal')
@@ -2410,8 +2335,7 @@ describe('app tests', () => {
                             .withGroupId(groupId)
                             .withPayerId(user2)
                             .withPayeeId(user1)
-                            .withAmount('-25.00')
-                            .withCurrency('USD')
+                            .withAmount('-25.00', 'USD')
                             .build(),
                     ),
                 )

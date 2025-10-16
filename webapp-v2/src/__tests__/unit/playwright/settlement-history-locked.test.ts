@@ -39,8 +39,7 @@ test.describe('Settlement History - Locked Settlement UI', () => {
             .withGroupId(groupId)
             .withPayer(testUserMember)
             .withPayee(otherUser)
-            .withAmount(50.0)
-            .withCurrency('USD')
+            .withAmount(50.0, 'USD')
             .withNote('Test Payment')
             .withIsLocked(true) // Mark as locked
             .build();
@@ -122,8 +121,7 @@ test.describe('Settlement History - Locked Settlement UI', () => {
             .withGroupId(groupId)
             .withPayer(testUserMember)
             .withPayee(otherUser)
-            .withAmount(30.0)
-            .withCurrency('USD')
+            .withAmount(30.0, 'USD')
             .withNote('Normal Payment')
             // isLocked defaults to false
             .build();
@@ -205,8 +203,7 @@ test.describe('Settlement History - Locked Settlement UI', () => {
             .withGroupId(groupId)
             .withPayer(testUserMember)
             .withPayee(otherUser)
-            .withAmount(25.0)
-            .withCurrency('USD')
+            .withAmount(25.0, 'USD')
             .withNote('Reactive Test Payment')
             .withIsLocked(false) // Start unlocked
             .build();

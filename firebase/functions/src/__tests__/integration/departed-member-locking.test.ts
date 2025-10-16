@@ -41,8 +41,7 @@ describe('Departed Member Transaction Locking', () => {
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(90)
-                    .withCurrency('USD')
+                    .withAmount(90, 'USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid, users[2].uid])
                     .withSplitType('equal')
@@ -69,8 +68,7 @@ describe('Departed Member Transaction Locking', () => {
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(90)
-                    .withCurrency('USD')
+                    .withAmount(90, 'USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid, users[2].uid])
                     .withSplitType('equal')
@@ -84,8 +82,7 @@ describe('Departed Member Transaction Locking', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(users[1].uid)
                     .withPayeeId(users[0].uid)
-                    .withAmount(30)
-                    .withCurrency('USD')
+                    .withAmount(30, 'USD')
                     .build(),
                 users[1].token,
             );
@@ -113,8 +110,7 @@ describe('Departed Member Transaction Locking', () => {
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withDescription('Will be locked')
-                    .withAmount(60)
-                    .withCurrency('USD')
+                    .withAmount(60, 'USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid])
                     .withSplitType('equal')
@@ -126,8 +122,7 @@ describe('Departed Member Transaction Locking', () => {
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withDescription('Will remain unlocked')
-                    .withAmount(90)
-                    .withCurrency('USD')
+                    .withAmount(90, 'USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[2].uid])
                     .withSplitType('equal')
@@ -141,8 +136,7 @@ describe('Departed Member Transaction Locking', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(users[1].uid)
                     .withPayeeId(users[0].uid)
-                    .withAmount(30)
-                    .withCurrency('USD')
+                    .withAmount(30, 'USD')
                     .build(),
                 users[1].token,
             );
@@ -173,8 +167,7 @@ describe('Departed Member Transaction Locking', () => {
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(60)
-                    .withCurrency('USD')
+                    .withAmount(60, 'USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid])
                     .withSplitType('equal')
@@ -188,8 +181,7 @@ describe('Departed Member Transaction Locking', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(users[1].uid)
                     .withPayeeId(users[0].uid)
-                    .withAmount(30)
-                    .withCurrency('USD')
+                    .withAmount(30, 'USD')
                     .build(),
                 users[1].token,
             );
@@ -216,8 +208,7 @@ describe('Departed Member Transaction Locking', () => {
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(90)
-                    .withCurrency('USD')
+                    .withAmount(90, 'USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid, users[2].uid])
                     .withSplitType('equal')
@@ -231,8 +222,7 @@ describe('Departed Member Transaction Locking', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(users[1].uid)
                     .withPayeeId(users[0].uid)
-                    .withAmount(30)
-                    .withCurrency('USD')
+                    .withAmount(30, 'USD')
                     .build(),
                 users[1].token,
             );
@@ -240,8 +230,7 @@ describe('Departed Member Transaction Locking', () => {
 
             // Attempt to update expense - should fail
             const updateData = new ExpenseUpdateBuilder()
-                .withAmount(120)
-                .withCurrency('USD')
+                .withAmount(120, 'USD')
                 .withDescription('Attempted update')
                 .withParticipants([users[0].uid, users[1].uid, users[2].uid])
                 .withSplits(calculateEqualSplits(120, 'USD', [users[0].uid, users[1].uid, users[2].uid]))
@@ -263,8 +252,7 @@ describe('Departed Member Transaction Locking', () => {
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(90)
-                    .withCurrency('USD')
+                    .withAmount(90, 'USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid, users[2].uid])
                     .withSplitType('equal')
@@ -274,8 +262,7 @@ describe('Departed Member Transaction Locking', () => {
 
             // Update should succeed (no one has left)
             const updateData = new ExpenseUpdateBuilder()
-                .withAmount(120)
-                .withCurrency('USD')
+                .withAmount(120, 'USD')
                 .withDescription('Updated successfully')
                 .withParticipants([users[0].uid, users[1].uid, users[2].uid])
                 .withSplits(calculateEqualSplits(120, 'USD', [users[0].uid, users[1].uid, users[2].uid]))
@@ -302,8 +289,7 @@ describe('Departed Member Transaction Locking', () => {
             // Attempt to create expense with departed member - should fail
             const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
-                .withAmount(60)
-                .withCurrency('USD')
+                .withAmount(60, 'USD')
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid]) // includes departed member
                 .withSplitType('equal')
@@ -327,8 +313,7 @@ describe('Departed Member Transaction Locking', () => {
             // Create expense with only current members - should succeed
             const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
-                .withAmount(60)
-                .withCurrency('USD')
+                .withAmount(60, 'USD')
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[2].uid]) // only current members
                 .withSplitType('equal')
@@ -350,8 +335,7 @@ describe('Departed Member Transaction Locking', () => {
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(60)
-                    .withCurrency('USD')
+                    .withAmount(60, 'USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid])
                     .withSplitType('equal')
@@ -392,8 +376,7 @@ describe('Departed Member Transaction Locking', () => {
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(60)
-                    .withCurrency('USD')
+                    .withAmount(60, 'USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid])
                     .withSplitType('equal')
@@ -407,8 +390,7 @@ describe('Departed Member Transaction Locking', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(users[1].uid)
                     .withPayeeId(users[0].uid)
-                    .withAmount(30)
-                    .withCurrency('USD')
+                    .withAmount(30, 'USD')
                     .build(),
                 users[1].token,
             );
@@ -439,8 +421,7 @@ describe('Departed Member Transaction Locking', () => {
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(60)
-                    .withCurrency('USD')
+                    .withAmount(60, 'USD')
                     .withPaidBy(users[3].uid)
                     .withParticipants([users[1].uid, users[3].uid])
                     .withSplitType('equal')
@@ -454,8 +435,7 @@ describe('Departed Member Transaction Locking', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(users[1].uid)
                     .withPayeeId(users[3].uid)
-                    .withAmount(30)
-                    .withCurrency('USD')
+                    .withAmount(30, 'USD')
                     .build(),
                 users[1].token,
             );
@@ -488,8 +468,7 @@ describe('Departed Member Transaction Locking', () => {
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(60)
-                    .withCurrency('USD')
+                    .withAmount(60, 'USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid])
                     .withSplitType('equal')
@@ -503,8 +482,7 @@ describe('Departed Member Transaction Locking', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(users[1].uid)
                     .withPayeeId(users[0].uid)
-                    .withAmount(30)
-                    .withCurrency('USD')
+                    .withAmount(30, 'USD')
                     .build(),
                 users[1].token,
             );
@@ -514,7 +492,6 @@ describe('Departed Member Transaction Locking', () => {
 
             // Attempt to update settlement - should fail
             const updateData = new SettlementUpdateBuilder()
-                .withAmount(40)
                 .withNote('Attempted update')
                 .build();
 
@@ -534,8 +511,7 @@ describe('Departed Member Transaction Locking', () => {
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(60)
-                    .withCurrency('USD')
+                    .withAmount(60, 'USD')
                     .withPaidBy(users[3].uid)
                     .withParticipants([users[1].uid, users[3].uid])
                     .withSplitType('equal')
@@ -549,8 +525,7 @@ describe('Departed Member Transaction Locking', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(users[1].uid)
                     .withPayeeId(users[3].uid)
-                    .withAmount(30)
-                    .withCurrency('USD')
+                    .withAmount(30, 'USD')
                     .build(),
                 users[1].token,
             );
@@ -560,7 +535,6 @@ describe('Departed Member Transaction Locking', () => {
 
             // Attempt to update settlement - should fail
             const updateData = new SettlementUpdateBuilder()
-                .withAmount(40)
                 .withNote('Attempted update')
                 .build();
 
@@ -580,8 +554,7 @@ describe('Departed Member Transaction Locking', () => {
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid])
                     .withSplitType('equal')
@@ -601,7 +574,6 @@ describe('Departed Member Transaction Locking', () => {
 
             // Update should succeed (no one has left) - update as creator (user 1)
             const updateData = new SettlementUpdateBuilder()
-                .withAmount(40)
                 .withNote('Updated payment amount')
                 .build();
 
@@ -681,8 +653,7 @@ describe('Departed Member Transaction Locking', () => {
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(100)
-                    .withCurrency('USD')
+                    .withAmount(100, 'USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants(users.slice(0, 4).map((u) => u.uid))
                     .withSplitType('equal')
@@ -696,8 +667,7 @@ describe('Departed Member Transaction Locking', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(users[1].uid)
                     .withPayeeId(users[0].uid)
-                    .withAmount(25)
-                    .withCurrency('USD')
+                    .withAmount(25, 'USD')
                     .build(),
                 users[1].token,
             );
@@ -707,8 +677,7 @@ describe('Departed Member Transaction Locking', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(users[2].uid)
                     .withPayeeId(users[0].uid)
-                    .withAmount(25)
-                    .withCurrency('USD')
+                    .withAmount(25, 'USD')
                     .build(),
                 users[2].token,
             );
@@ -726,8 +695,7 @@ describe('Departed Member Transaction Locking', () => {
                 apiDriver.updateExpense(
                     expense.id,
                     new ExpenseUpdateBuilder()
-                        .withAmount(150)
-                        .withCurrency('USD')
+                        .withAmount(150, 'USD')
                         .withParticipants(users.slice(0, 4).map((u) => u.uid))
                         .withSplits(calculateEqualSplits(150, 'USD', users.slice(0, 4).map((u) => u.uid)))
                         .build(),
@@ -749,8 +717,7 @@ describe('Departed Member Transaction Locking', () => {
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
-                    .withAmount(60)
-                    .withCurrency('USD')
+                    .withAmount(60, 'USD')
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid])
                     .withSplitType('equal')
@@ -768,8 +735,7 @@ describe('Departed Member Transaction Locking', () => {
                     .withGroupId(testGroup.id)
                     .withPayerId(users[1].uid)
                     .withPayeeId(users[0].uid)
-                    .withAmount(30)
-                    .withCurrency('USD')
+                    .withAmount(30, 'USD')
                     .build(),
                 users[1].token,
             );

@@ -36,8 +36,7 @@ describe('Expense Locking Debug Test', () => {
             new CreateExpenseRequestBuilder()
                 .withGroupId(group.id)
                 .withDescription('Test Expense')
-                .withAmount(100)
-                .withCurrency('EUR')
+                .withAmount(100, 'EUR')
                 .withPaidBy(user1.uid)
                 .withCategory('food')
                 .withDate(new Date().toISOString())
@@ -55,8 +54,7 @@ describe('Expense Locking Debug Test', () => {
             await apiDriver.updateExpense(
                 expense.id,
                 new ExpenseUpdateBuilder()
-                    .withAmount(200)
-                    .withCurrency('EUR')
+                    .withAmount(200, 'EUR')
                     .withParticipants(lockingTestParticipants)
                     .withSplits(calculateEqualSplits(200, 'EUR', lockingTestParticipants))
                     .build(),
@@ -65,8 +63,7 @@ describe('Expense Locking Debug Test', () => {
             await apiDriver.updateExpense(
                 expense.id,
                 new ExpenseUpdateBuilder()
-                    .withAmount(300)
-                    .withCurrency('EUR')
+                    .withAmount(300, 'EUR')
                     .withParticipants(lockingTestParticipants)
                     .withSplits(calculateEqualSplits(300, 'EUR', lockingTestParticipants))
                     .build(),

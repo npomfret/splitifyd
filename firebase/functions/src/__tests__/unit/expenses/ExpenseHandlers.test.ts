@@ -183,7 +183,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
         it('should reject expense with excessive precision for JPY', async () => {
             const userId = 'test-user';
             const expenseRequest = new CreateExpenseRequestBuilder()
-                .withAmount(100.50)
+                .withAmount(100.50, 'JPY')
                 .withCurrency('JPY')
                 .build();
 

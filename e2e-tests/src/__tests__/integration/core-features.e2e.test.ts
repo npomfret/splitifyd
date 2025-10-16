@@ -141,8 +141,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(expenseDescription)
-                .withAmount(100)
-                .withCurrency('JPY')
+                .withAmount(100, 'JPY')
                 .withPaidByDisplayName(ownerDisplayName)
                 .withSplitType('equal')
                 .withParticipants([ownerDisplayName, memberDisplayName])
@@ -186,8 +185,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription('Test expense for balance validation')
-                .withAmount(60)
-                .withCurrency('JPY')
+                .withAmount(60, 'JPY')
                 .withPaidByDisplayName(ownerDisplayName)
                 .withSplitType('equal')
                 .withParticipants([ownerDisplayName, memberDisplayName])
@@ -291,8 +289,7 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(expenseDescription)
-                .withAmount(60)
-                .withCurrency('JPY')
+                .withAmount(60, 'JPY')
                 .withPaidByDisplayName(creatorDisplayName)
                 .withSplitType('equal')
                 .withParticipants([creatorDisplayName])

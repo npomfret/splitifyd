@@ -285,8 +285,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(payer.uid)
-                            .withAmount(amount)
-                            .withCurrency('USD')
+                            .withAmount(amount, 'USD')
                             .withParticipants(participants)
                             .withSplitType('equal')
                             .build(),
@@ -298,8 +297,7 @@ describe('Concurrent Operations Integration Tests', () => {
                             .withGroupId(testGroup.id)
                             .withPayerId(payerId)
                             .withPayeeId(payeeId)
-                            .withAmount(amount)
-                            .withCurrency('USD')
+                            .withAmount(amount, 'USD')
                             .build(),
                         token,
                     )
@@ -345,8 +343,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser1.uid)
-                            .withAmount(50 + i)
-                            .withCurrency('USD')
+                            .withAmount(50 + i, 'USD')
                             .withParticipants([testUser1.uid, testUser2.uid])
                             .withSplitType('equal')
                             .build(),
@@ -390,8 +387,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser1.uid)
-                            .withAmount(100)
-                            .withCurrency('USD')
+                            .withAmount(100, 'USD')
                             .withParticipants([testUser1.uid, testUser2.uid])
                             .withSplitType('equal')
                             .build(),
@@ -402,8 +398,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser2.uid)
-                            .withAmount(80)
-                            .withCurrency('EUR')
+                            .withAmount(80, 'EUR')
                             .withParticipants([testUser2.uid, testUser3.uid])
                             .withSplitType('equal')
                             .build(),
@@ -414,8 +409,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser3.uid)
-                            .withAmount(60)
-                            .withCurrency('GBP')
+                            .withAmount(60, 'GBP')
                             .withParticipants([testUser1.uid, testUser3.uid])
                             .withSplitType('equal')
                             .build(),
@@ -426,8 +420,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser1.uid)
-                            .withAmount(120)
-                            .withCurrency('USD')
+                            .withAmount(120, 'USD')
                             .withParticipants([testUser1.uid, testUser2.uid, testUser3.uid])
                             .withSplitType('equal')
                             .build(),
@@ -438,8 +431,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser2.uid)
-                            .withAmount(90)
-                            .withCurrency('EUR')
+                            .withAmount(90, 'EUR')
                             .withParticipants([testUser1.uid, testUser2.uid])
                             .withSplitType('equal')
                             .build(),
@@ -450,8 +442,7 @@ describe('Concurrent Operations Integration Tests', () => {
                             .withGroupId(testGroup.id)
                             .withPayerId(testUser2.uid)
                             .withPayeeId(testUser1.uid)
-                            .withAmount(25)
-                            .withCurrency('USD')
+                            .withAmount(25, 'USD')
                             .build(),
                         testUser2.token,
                     ),
@@ -461,8 +452,7 @@ describe('Concurrent Operations Integration Tests', () => {
                             .withGroupId(testGroup.id)
                             .withPayerId(testUser3.uid)
                             .withPayeeId(testUser2.uid)
-                            .withAmount(30)
-                            .withCurrency('EUR')
+                            .withAmount(30, 'EUR')
                             .build(),
                         testUser3.token,
                     ),
@@ -472,8 +462,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser3.uid)
-                            .withAmount(75)
-                            .withCurrency('GBP')
+                            .withAmount(75, 'GBP')
                             .withParticipants([testUser2.uid, testUser3.uid])
                             .withSplitType('equal')
                             .build(),
@@ -484,8 +473,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser1.uid)
-                            .withAmount(110)
-                            .withCurrency('USD')
+                            .withAmount(110, 'USD')
                             .withParticipants([testUser1.uid, testUser3.uid])
                             .withSplitType('equal')
                             .build(),
@@ -496,8 +484,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser2.uid)
-                            .withAmount(95)
-                            .withCurrency('EUR')
+                            .withAmount(95, 'EUR')
                             .withParticipants([testUser1.uid, testUser2.uid, testUser3.uid])
                             .withSplitType('equal')
                             .build(),

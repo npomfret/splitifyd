@@ -47,7 +47,6 @@ export class SplitAssertionBuilder {
         const builder = new SplitAssertionBuilder()
             .forUser(uid)
             .withAmount(amount);
-
         if (percentage !== undefined) {
             builder
                 .withPercentage(percentage);

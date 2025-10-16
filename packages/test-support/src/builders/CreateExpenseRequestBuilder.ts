@@ -46,7 +46,8 @@ export class CreateExpenseRequestBuilder {
         return this;
     }
 
-    withAmount(amount: Amount | number): this {
+    withAmount(amount: Amount | number, currency: string): this {
+        this.expense.currency = currency;
         this.expense.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }

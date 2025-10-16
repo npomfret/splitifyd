@@ -40,17 +40,11 @@ export class SimplifiedDebtBuilder {
         return this;
     }
 
-    /**
-     * Set the amount owed
-     */
-    withAmount(amount: Amount | number): this {
+    withAmount(amount: Amount | number, currency: string): this {
         this.debt.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
 
-    /**
-     * Set the currency
-     */
     withCurrency(currency: string): this {
         this.debt.currency = currency;
         return this;

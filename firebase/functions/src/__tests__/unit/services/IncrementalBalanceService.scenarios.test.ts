@@ -55,8 +55,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             const usdExpense = new ExpenseDTOBuilder()
                 .withId('expense-usd')
                 .withGroupId(groupId)
-                .withAmount(200)
-                .withCurrency('USD')
+                .withAmount(200, 'USD')
                 .withPaidBy(user1)
                 .withSplitType('equal')
                 .withParticipants([user1, user2])
@@ -86,8 +85,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withGroupId(groupId)
                 .withPayerId(user2)
                 .withPayeeId(user1)
-                .withAmount(75)
-                .withCurrency('EUR') // DIFFERENT from debt currency (USD)
+                .withAmount(75, 'EUR') // DIFFERENT from debt currency (USD)
                 .withNote('EUR Settlement for USD Debt')
                 .build();
 
@@ -143,8 +141,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             const expense1 = new ExpenseDTOBuilder()
                 .withId('expense-1')
                 .withGroupId(groupId)
-                .withAmount(150)
-                .withCurrency('USD')
+                .withAmount(150, 'USD')
                 .withPaidBy(user1)
                 .withParticipants([user1, user2])
                 .withSplits([
@@ -167,8 +164,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             const expense2 = new ExpenseDTOBuilder()
                 .withId('expense-2')
                 .withGroupId(groupId)
-                .withAmount(50)
-                .withCurrency('USD')
+                .withAmount(50, 'USD')
                 .withPaidBy(user1)
                 .withParticipants([user1, user2])
                 .withSplits([
@@ -197,8 +193,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withGroupId(groupId)
                 .withPayerId(user2)
                 .withPayeeId(user1)
-                .withAmount(75)
-                .withCurrency('EUR')
+                .withAmount(75, 'EUR')
                 .withNote('Testing Currency Conversion Bug')
                 .build();
 
@@ -267,16 +262,14 @@ describe('IncrementalBalanceService - Scenarios', () => {
                     new SimplifiedDebtBuilder()
                         .from(user2)
                         .to(user1)
-                        .withAmount(50)
-                        .withCurrency('USD')
+                        .withAmount(50, 'USD')
                         .build(),
                 )
                 .withSimplifiedDebt(
                     new SimplifiedDebtBuilder()
                         .from(user1)
                         .to(user2)
-                        .withAmount(30)
-                        .withCurrency('GBP')
+                        .withAmount(30, 'GBP')
                         .build(),
                 )
                 .withVersion(5)
@@ -291,8 +284,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withGroupId(groupId)
                 .withPayerId(user2)
                 .withPayeeId(user1)
-                .withAmount(100)
-                .withCurrency('EUR')
+                .withAmount(100, 'EUR')
                 .build();
 
             await stubDb.runTransaction(async (transaction) => {
@@ -338,8 +330,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withGroupId(groupId)
                 .withPayerId(user2)
                 .withPayeeId(user1)
-                .withAmount(60)
-                .withCurrency('USD')
+                .withAmount(60, 'USD')
                 .withNote('Partial payment')
                 .build();
 
@@ -390,8 +381,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                     new SimplifiedDebtBuilder()
                         .from(user2)
                         .to(user1)
-                        .withAmount(100)
-                        .withCurrency('EUR')
+                        .withAmount(100, 'EUR')
                         .build(),
                 )
                 .build();
@@ -405,8 +395,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withGroupId(groupId)
                 .withPayerId(user2)
                 .withPayeeId(user1)
-                .withAmount(40)
-                .withCurrency('EUR')
+                .withAmount(40, 'EUR')
                 .withNote('Partial payment 1 of 3')
                 .build();
 
@@ -436,8 +425,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withGroupId(groupId)
                 .withPayerId(user2)
                 .withPayeeId(user1)
-                .withAmount(35)
-                .withCurrency('EUR')
+                .withAmount(35, 'EUR')
                 .withNote('Partial payment 2 of 3')
                 .build();
 
@@ -467,8 +455,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withGroupId(groupId)
                 .withPayerId(user2)
                 .withPayeeId(user1)
-                .withAmount(25)
-                .withCurrency('EUR')
+                .withAmount(25, 'EUR')
                 .withNote('Final settlement payment')
                 .build();
 
@@ -508,8 +495,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withGroupId(groupId)
                 .withPayerId(user2)
                 .withPayeeId(user1)
-                .withAmount(150) // $50 more than owed
-                .withCurrency('USD')
+                .withAmount(150, 'USD')
                 .withNote('Overpayment')
                 .build();
 
@@ -551,8 +537,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withGroupId(groupId)
                 .withPayerId(user2)
                 .withPayeeId(user1)
-                .withAmount(100)
-                .withCurrency('USD')
+                .withAmount(100, 'USD')
                 .withNote('Full settlement')
                 .build();
 
@@ -624,16 +609,14 @@ describe('IncrementalBalanceService - Scenarios', () => {
                     new SimplifiedDebtBuilder()
                         .from(user2)
                         .to(user1)
-                        .withAmount(100)
-                        .withCurrency('USD')
+                        .withAmount(100, 'USD')
                         .build(),
                 )
                 .withSimplifiedDebt(
                     new SimplifiedDebtBuilder()
                         .from(user1)
                         .to(user2)
-                        .withAmount(75)
-                        .withCurrency('EUR')
+                        .withAmount(75, 'EUR')
                         .build(),
                 )
                 .build();
@@ -647,8 +630,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withGroupId(groupId)
                 .withPayerId(user2)
                 .withPayeeId(user1)
-                .withAmount(60)
-                .withCurrency('USD')
+                .withAmount(60, 'USD')
                 .withNote('Partial USD settlement')
                 .build();
 
@@ -684,8 +666,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withGroupId(groupId)
                 .withPayerId(user1)
                 .withPayeeId(user2)
-                .withAmount(50)
-                .withCurrency('EUR')
+                .withAmount(50, 'EUR')
                 .withNote('Partial EUR settlement')
                 .build();
 
@@ -750,8 +731,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             const originalExpense = new ExpenseDTOBuilder()
                 .withId('expense-1')
                 .withGroupId(groupId)
-                .withAmount(200)
-                .withCurrency('USD')
+                .withAmount(200, 'USD')
                 .withPaidBy(user1)
                 .withParticipants([user1, user2])
                 .withSplits([
@@ -784,8 +764,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             const updatedExpense = new ExpenseDTOBuilder()
                 .withId('expense-1')
                 .withGroupId(groupId)
-                .withAmount(200)
-                .withCurrency('EUR') // Changed from USD to EUR
+                .withAmount(200, 'EUR') // Changed from USD to EUR
                 .withPaidBy(user1)
                 .withParticipants([user1, user2])
                 .withSplits([
@@ -847,8 +826,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             const expense = new ExpenseDTOBuilder()
                 .withId('expense-1')
                 .withGroupId(groupId)
-                .withAmount(300)
-                .withCurrency('USD')
+                .withAmount(300, 'USD')
                 .withPaidBy(user1)
                 .withParticipants([user1, user2])
                 .withSplits([
@@ -878,8 +856,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withGroupId(groupId)
                 .withPayerId(user2)
                 .withPayeeId(user1)
-                .withAmount(50)
-                .withCurrency('USD')
+                .withAmount(50, 'USD')
                 .withNote('Original USD settlement')
                 .build();
 
@@ -905,8 +882,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withGroupId(groupId)
                 .withPayerId(user2)
                 .withPayeeId(user1)
-                .withAmount(50)
-                .withCurrency('EUR') // Changed from USD to EUR
+                .withAmount(50, 'EUR') // Changed from USD to EUR
                 .withNote('Changed to EUR')
                 .build();
 

@@ -38,7 +38,6 @@ describe('Expense Change Tracking Logic', () => {
                 .withGroupId('test-group-123')
                 .withPaidBy('user1')
                 .withParticipants(['user1', 'user2', 'user3']) // 3 participants
-                .withAmount(30.0)
                 .withDescription('Shared dinner')
                 .build();
 
@@ -56,7 +55,6 @@ describe('Expense Change Tracking Logic', () => {
                 .withGroupId('test-group-456')
                 .withPaidBy('user1')
                 .withParticipants(['user2']) // Only user2 participates, but user1 paid
-                .withAmount(20.0)
                 .withDescription('Coffee for friend')
                 .build();
 
@@ -74,7 +72,6 @@ describe('Expense Change Tracking Logic', () => {
                 .withGroupId('test-group-789')
                 .withPaidBy('user1')
                 .withParticipants(['user1', 'user2']) // user1 appears in both paidBy and participants
-                .withAmount(25.0)
                 .withDescription('Shared lunch')
                 .build();
 
@@ -95,7 +92,6 @@ describe('Expense Change Tracking Logic', () => {
                 .withGroupId('multi-user-test-group')
                 .withPaidBy('user1') // User1 pays
                 .withParticipants(['user1', 'user2']) // Both users participate
-                .withAmount(50.0)
                 .withDescription('Shared expense between User1 and User2')
                 .build();
 
@@ -122,7 +118,6 @@ describe('Expense Change Tracking Logic', () => {
                 .withGroupId('test-group-solo')
                 .withPaidBy('user1')
                 .withParticipants([]) // Empty participants
-                .withAmount(15.0)
                 .withDescription('Solo expense')
                 .build();
 

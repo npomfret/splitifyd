@@ -8,8 +8,7 @@ describe('Currency-Aware Amount Validation', () => {
     describe('Zero Decimal Currencies (JPY, KRW, VND, etc.)', () => {
         it('should accept whole numbers for JPY', () => {
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(1000)
-                .withCurrency('JPY')
+                .withAmount(1000, 'JPY')
                 .withSplitType('exact')
                 .withParticipants(['user1', 'user2'])
                 .withPaidBy('user1')
@@ -25,8 +24,7 @@ describe('Currency-Aware Amount Validation', () => {
 
         it('should reject decimal amounts for JPY', () => {
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(100.5)
-                .withCurrency('JPY')
+                .withAmount(100.5, 'JPY')
                 .withSplitType('equal')
                 .withParticipants(['user1'])
                 .withPaidBy('user1')
@@ -38,8 +36,7 @@ describe('Currency-Aware Amount Validation', () => {
 
         it('should reject decimal split amounts for KRW', () => {
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(10000)
-                .withCurrency('KRW')
+                .withAmount(10000, 'KRW')
                 .withSplitType('exact')
                 .withParticipants(['user1', 'user2'])
                 .withPaidBy('user1')
@@ -57,8 +54,7 @@ describe('Currency-Aware Amount Validation', () => {
     describe('Two Decimal Currencies (USD, EUR, GBP, etc.)', () => {
         it('should accept 2 decimal places for USD', () => {
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(99.99)
-                .withCurrency('USD')
+                .withAmount(99.99, 'USD')
                 .withSplitType('exact')
                 .withParticipants(['user1', 'user2'])
                 .withPaidBy('user1')
@@ -74,8 +70,7 @@ describe('Currency-Aware Amount Validation', () => {
 
         it('should reject 3 decimal places for EUR', () => {
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(100.123)
-                .withCurrency('EUR')
+                .withAmount(100.123, 'EUR')
                 .withSplitType('equal')
                 .withParticipants(['user1'])
                 .withPaidBy('user1')
@@ -89,8 +84,7 @@ describe('Currency-Aware Amount Validation', () => {
     describe('Three Decimal Currencies (BHD, KWD, OMR, etc.)', () => {
         it('should accept 3 decimal places for BHD', () => {
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(10.123)
-                .withCurrency('BHD')
+                .withAmount(10.123, 'BHD')
                 .withSplitType('exact')
                 .withParticipants(['user1', 'user2'])
                 .withPaidBy('user1')
@@ -106,8 +100,7 @@ describe('Currency-Aware Amount Validation', () => {
 
         it('should reject 4 decimal places for KWD', () => {
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(10.1234)
-                .withCurrency('KWD')
+                .withAmount(10.1234, 'KWD')
                 .withSplitType('equal')
                 .withParticipants(['user1'])
                 .withPaidBy('user1')
@@ -121,8 +114,7 @@ describe('Currency-Aware Amount Validation', () => {
     describe('One Decimal Currencies (MGA, MRU)', () => {
         it('should accept 1 decimal place for MGA', () => {
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(100.5)
-                .withCurrency('MGA')
+                .withAmount(100.5, 'MGA')
                 .withSplitType('exact')
                 .withParticipants(['user1', 'user2'])
                 .withPaidBy('user1')
@@ -138,8 +130,7 @@ describe('Currency-Aware Amount Validation', () => {
 
         it('should reject 2 decimal places for MRU', () => {
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(100.55)
-                .withCurrency('MRU')
+                .withAmount(100.55, 'MRU')
                 .withSplitType('equal')
                 .withParticipants(['user1'])
                 .withPaidBy('user1')
@@ -153,8 +144,7 @@ describe('Currency-Aware Amount Validation', () => {
     describe('Settlement Currency Validation', () => {
         it('should accept correct decimal precision for USD settlement', () => {
             const settlementData = new CreateSettlementRequestBuilder()
-                .withAmount(99.99)
-                .withCurrency('USD')
+                .withAmount(99.99, 'USD')
                 .build();
 
             const { error } = createSettlementSchema.validate(settlementData);
@@ -163,8 +153,7 @@ describe('Currency-Aware Amount Validation', () => {
 
         it('should reject incorrect decimal precision for JPY settlement', () => {
             const settlementData = new CreateSettlementRequestBuilder()
-                .withAmount(100.5)
-                .withCurrency('JPY')
+                .withAmount(100.5, 'JPY')
                 .build();
 
             const { error } = createSettlementSchema.validate(settlementData);
@@ -174,8 +163,7 @@ describe('Currency-Aware Amount Validation', () => {
 
         it('should accept 3 decimals for BHD settlement', () => {
             const settlementData = new CreateSettlementRequestBuilder()
-                .withAmount(10.123)
-                .withCurrency('BHD')
+                .withAmount(10.123, 'BHD')
                 .build();
 
             const { error } = createSettlementSchema.validate(settlementData);
@@ -186,8 +174,7 @@ describe('Currency-Aware Amount Validation', () => {
     describe('Split Strategy Currency Tolerance', () => {
         it('should use correct tolerance for JPY exact splits (tolerance: 1)', () => {
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(1000)
-                .withCurrency('JPY')
+                .withAmount(1000, 'JPY')
                 .withSplitType('exact')
                 .withParticipants(['user1', 'user2', 'user3'])
                 .withPaidBy('user1')
@@ -204,8 +191,7 @@ describe('Currency-Aware Amount Validation', () => {
 
         it('should use correct tolerance for USD exact splits (tolerance: 0.01)', () => {
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(100.0)
-                .withCurrency('USD')
+                .withAmount(100.0, 'USD')
                 .withSplitType('exact')
                 .withParticipants(['user1', 'user2', 'user3'])
                 .withPaidBy('user1')
@@ -222,8 +208,7 @@ describe('Currency-Aware Amount Validation', () => {
 
         it('should use correct tolerance for BHD exact splits (tolerance: 0.001)', () => {
             const expenseData = new CreateExpenseRequestBuilder()
-                .withAmount(10.0)
-                .withCurrency('BHD')
+                .withAmount(10.0, 'BHD')
                 .withSplitType('exact')
                 .withParticipants(['user1', 'user2', 'user3'])
                 .withPaidBy('user1')

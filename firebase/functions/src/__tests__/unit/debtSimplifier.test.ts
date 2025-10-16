@@ -11,8 +11,7 @@ const buildDebt = (from: string, to: string, amount: Amount | number, currency: 
     new SimplifiedDebtBuilder()
         .from(from)
         .to(to)
-        .withAmount(amount)
-        .withCurrency(currency)
+        .withAmount(amount, currency)
         .build();
 
 const normalizeTransactions = (transactions: SimplifiedDebt[]) =>

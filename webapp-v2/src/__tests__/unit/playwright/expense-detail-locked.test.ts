@@ -47,8 +47,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                 .withId(expenseId)
                 .withGroupId(groupId)
                 .withDescription('Locked Expense')
-                .withAmount(100.0)
-                .withCurrency('EUR')
+                .withAmount(100.0, 'EUR')
                 .withPaidBy(testUser.uid)
                 .withCategory('food')
                 .withSplitType('equal')
@@ -102,8 +101,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                 .withId(expenseId)
                 .withGroupId(groupId)
                 .withDescription('Locked Expense')
-                .withAmount(100.0)
-                .withCurrency('EUR')
+                .withAmount(100.0, 'EUR')
                 .withPaidBy(testUser.uid)
                 .withIsLocked(true) // Mark as locked
                 .build(),
@@ -151,8 +149,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                 .withId(expenseId)
                 .withGroupId(groupId)
                 .withDescription('Normal Expense')
-                .withAmount(50.0)
-                .withCurrency('EUR')
+                .withAmount(50.0, 'EUR')
                 .withPaidBy(testUser.uid)
                 .withSplitType('equal')
                 .build(),

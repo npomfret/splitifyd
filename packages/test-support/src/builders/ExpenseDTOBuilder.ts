@@ -73,7 +73,8 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
-    withAmount(amount: Amount | number): this {
+    withAmount(amount: Amount | number, currency: string): this {
+        this.expense.currency = currency;
         const normalizedAmount = typeof amount === 'number' ? amount.toString() : amount;
         this.expense.amount = normalizedAmount;
 

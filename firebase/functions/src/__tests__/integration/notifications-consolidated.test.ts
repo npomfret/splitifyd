@@ -126,8 +126,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(group.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid, user2.uid])
-                    .withAmount(100.0)
-                    .withCurrency('USD')
+                    .withAmount(100.0, 'USD')
                     .build(),
                 user1.token,
             );
@@ -338,8 +337,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(multiUserGroup.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid, user2.uid, user3.uid])
-                    .withAmount(60.0)
-                    .withCurrency('USD')
+                    .withAmount(60.0, 'USD')
                     .withSplitType('equal')
                     .build(),
                 user1.token,
@@ -397,8 +395,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(dynamicGroup.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid, user2.uid])
-                    .withAmount(40.0)
-                    .withCurrency('USD')
+                    .withAmount(40.0, 'USD')
                     .build(),
                 user1.token,
             );
@@ -429,8 +426,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                             .withGroupId(dynamicGroup.id)
                             .withPayerId(user2.uid)
                             .withPayeeId(user1.uid)
-                            .withAmount(smallestUnitToAmountString(Math.abs(balanceUnits), currency))
-                            .withCurrency(currency)
+                            .withAmount(smallestUnitToAmountString(Math.abs(balanceUnits), currency), currency)
                             .build(),
                         user2.token,
                     );
@@ -447,8 +443,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                             .withGroupId(dynamicGroup.id)
                             .withPayerId(user1.uid)
                             .withPayeeId(user2.uid)
-                            .withAmount(smallestUnitToAmountString(Math.abs(balanceUnits), currency))
-                            .withCurrency(currency)
+                            .withAmount(smallestUnitToAmountString(Math.abs(balanceUnits), currency), currency)
                             .build(),
                         user1.token,
                     );
@@ -483,8 +478,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(dynamicGroup.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid])
-                    .withAmount(30.0)
-                    .withCurrency('USD')
+                    .withAmount(30.0, 'USD')
                     .build(),
                 user1.token,
             );
@@ -645,8 +639,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(privateGroup.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid])
-                    .withAmount(25.0)
-                    .withCurrency('USD')
+                    .withAmount(25.0, 'USD')
                     .build(),
                 user1.token,
             );
@@ -668,8 +661,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(publicGroup.id)
                     .withPaidBy(user2.uid)
                     .withParticipants([user2.uid, user3.uid])
-                    .withAmount(35.0)
-                    .withCurrency('USD')
+                    .withAmount(35.0, 'USD')
                     .build(),
                 user2.token,
             );
@@ -731,8 +723,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(permissionGroup.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid, user2.uid])
-                    .withAmount(50.0)
-                    .withCurrency('USD')
+                    .withAmount(50.0, 'USD')
                     .build(),
                 user1.token,
             );
@@ -764,8 +755,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                             .withGroupId(permissionGroup.id)
                             .withPayerId(user2.uid)
                             .withPayeeId(user1.uid)
-                            .withAmount(smallestUnitToAmountString(Math.abs(balanceUnits), currency))
-                            .withCurrency(currency)
+                            .withAmount(smallestUnitToAmountString(Math.abs(balanceUnits), currency), currency)
                             .build(),
                         user2.token,
                     );
@@ -777,8 +767,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                             .withGroupId(permissionGroup.id)
                             .withPayerId(user1.uid)
                             .withPayeeId(user2.uid)
-                            .withAmount(smallestUnitToAmountString(Math.abs(balanceUnits), currency))
-                            .withCurrency(currency)
+                            .withAmount(smallestUnitToAmountString(Math.abs(balanceUnits), currency), currency)
                             .build(),
                         user1.token,
                     );
@@ -818,8 +807,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(permissionGroup.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid])
-                    .withAmount(25.0)
-                    .withCurrency('USD')
+                    .withAmount(25.0, 'USD')
                     .build(),
                 user1.token,
             );
@@ -876,8 +864,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(eventGroup.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid, user2.uid])
-                    .withAmount(30.0)
-                    .withCurrency('USD')
+                    .withAmount(30.0, 'USD')
                     .build(),
                 user1.token,
             );
@@ -898,8 +885,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.updateExpense(
                 expense.id,
                 new ExpenseUpdateBuilder()
-                    .withAmount(45.0)
-                    .withCurrency('USD')
+                    .withAmount(45.0, 'USD')
                     .withParticipants(expenseUpdateParticipants)
                     .withSplits(calculateEqualSplits(45.0, 'USD', expenseUpdateParticipants))
                     .build(),
@@ -987,8 +973,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(balanceGroup.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid, user2.uid])
-                    .withAmount(100.0)
-                    .withCurrency('USD')
+                    .withAmount(100.0, 'USD')
                     .withSplitType('equal')
                     .build(),
                 user1.token,
@@ -1051,8 +1036,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                         .withGroupId(churnGroup.id)
                         .withPaidBy(user1.uid)
                         .withParticipants([user1.uid])
-                        .withAmount(25 + i)
-                        .withCurrency('USD')
+                        .withAmount(25 + i, 'USD')
                         .build(),
                     user1.token,
                 );
@@ -1095,8 +1079,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(recoveryGroup.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid])
-                    .withAmount(20.0)
-                    .withCurrency('USD')
+                    .withAmount(20.0, 'USD')
                     .build(),
                 user1.token,
             );
@@ -1116,8 +1099,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(recoveryGroup.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid])
-                    .withAmount(35.0)
-                    .withCurrency('USD')
+                    .withAmount(35.0, 'USD')
                     .build(),
                 user1.token,
             );
@@ -1179,8 +1161,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                             .withGroupId(conflictGroup.id)
                             .withPaidBy(user1.uid)
                             .withParticipants([user1.uid, user2.uid])
-                            .withAmount(50 + i)
-                            .withCurrency('USD')
+                            .withAmount(50 + i, 'USD')
                             .build(),
                         user1.token,
                     ),
@@ -1234,8 +1215,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                             .withGroupId(lockingGroup.id)
                             .withPaidBy(user1.uid)
                             .withParticipants([user1.uid])
-                            .withAmount(50 + i)
-                            .withCurrency('USD')
+                            .withAmount(50 + i, 'USD')
                             .build(),
                         user1.token,
                     ),
@@ -1259,8 +1239,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(lockingGroup.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid])
-                    .withAmount(100.0)
-                    .withCurrency('USD')
+                    .withAmount(100.0, 'USD')
                     .build(),
                 user1.token,
             );
@@ -1321,8 +1300,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(balanceGroup.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid, user2.uid])
-                    .withAmount(90.0)
-                    .withCurrency('USD')
+                    .withAmount(90.0, 'USD')
                     .withSplitType('equal')
                     .build(),
                 user1.token,
@@ -1437,8 +1415,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(policyGroup.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid, user2.uid])
-                    .withAmount(25.0)
-                    .withCurrency('USD')
+                    .withAmount(25.0, 'USD')
                     .build(),
                 user1.token,
             );
@@ -1556,8 +1533,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                         .withGroupId(loadTestGroup.id)
                         .withPaidBy(user1.uid)
                         .withParticipants([user1.uid])
-                        .withAmount(10 + i)
-                        .withCurrency('USD')
+                        .withAmount(10 + i, 'USD')
                         .withDescription(`Load Test Expense ${i}`)
                         .build(),
                     user1.token,
@@ -1625,8 +1601,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(scaleGroup.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid, user2.uid, user3.uid])
-                    .withAmount(90.0)
-                    .withCurrency('USD')
+                    .withAmount(90.0, 'USD')
                     .withSplitType('equal')
                     .build(),
                 user1.token,
@@ -1652,8 +1627,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                         .withGroupId(scaleGroup.id)
                         .withPaidBy(user2.uid)
                         .withParticipants([user2.uid, user3.uid])
-                        .withAmount(30.0)
-                        .withCurrency('USD')
+                        .withAmount(30.0, 'USD')
                         .build(),
                     user2.token,
                 ),
@@ -1662,8 +1636,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                         .withGroupId(scaleGroup.id)
                         .withPaidBy(user3.uid)
                         .withParticipants([user1.uid, user3.uid])
-                        .withAmount(40.0)
-                        .withCurrency('USD')
+                        .withAmount(40.0, 'USD')
                         .build(),
                     user3.token,
                 ),
@@ -1740,7 +1713,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
-                    .withAmount(100)
+                    .withAmount(100, "USD")
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid, user2.uid])
                     .withCurrency('USD')

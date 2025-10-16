@@ -434,8 +434,7 @@ async function createTestExpenseTemplate(groupId: string, expense: TestExpenseTe
 
     const expenseData = new CreateExpenseRequestBuilder()
         .withGroupId(groupId)
-        .withAmount(normalizedAmount)
-        .withCurrency(currency)
+        .withAmount(normalizedAmount, currency)
         .withDescription(expense.description)
         .withCategory(expense.category)
         .withDate(new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString())
@@ -559,8 +558,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
 
         const expenseData = new CreateExpenseRequestBuilder()
             .withGroupId(settledGroup.id)
-            .withAmount(normalizedScenarioAmount)
-            .withCurrency(scenario.currency)
+            .withAmount(normalizedScenarioAmount, scenario.currency)
             .withDescription(scenario.description)
             .withCategory(scenario.category)
             .withDate(new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString())
