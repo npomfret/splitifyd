@@ -210,6 +210,28 @@ export class RegisterPage extends BasePage {
     }
 
     /**
+     * Check the Terms of Service checkbox (ensure it's checked)
+     */
+    async checkTermsCheckbox(): Promise<void> {
+        const checkbox = this.getTermsCheckbox();
+        const isChecked = await checkbox.isChecked();
+        if (!isChecked) {
+            await checkbox.click();
+        }
+    }
+
+    /**
+     * Uncheck the Terms of Service checkbox (ensure it's unchecked)
+     */
+    async uncheckTermsCheckbox(): Promise<void> {
+        const checkbox = this.getTermsCheckbox();
+        const isChecked = await checkbox.isChecked();
+        if (isChecked) {
+            await checkbox.click();
+        }
+    }
+
+    /**
      * Toggle the Cookie Policy checkbox
      */
     async toggleCookiesCheckbox(): Promise<void> {
@@ -217,11 +239,49 @@ export class RegisterPage extends BasePage {
     }
 
     /**
+     * Check the Cookie Policy checkbox (ensure it's checked)
+     */
+    async checkCookieCheckbox(): Promise<void> {
+        const checkbox = this.getCookiesCheckbox();
+        const isChecked = await checkbox.isChecked();
+        if (!isChecked) {
+            await checkbox.click();
+        }
+    }
+
+    /**
+     * Uncheck the Cookie Policy checkbox (ensure it's unchecked)
+     */
+    async uncheckCookieCheckbox(): Promise<void> {
+        const checkbox = this.getCookiesCheckbox();
+        const isChecked = await checkbox.isChecked();
+        if (isChecked) {
+            await checkbox.click();
+        }
+    }
+
+    /**
      * Accept both policy checkboxes
      */
     async acceptAllPolicies(): Promise<void> {
-        await this.toggleTermsCheckbox();
-        await this.toggleCookiesCheckbox();
+        await this.checkTermsCheckbox();
+        await this.checkCookieCheckbox();
+    }
+
+    /**
+     * Click the Terms of Service link
+     */
+    async clickTermsLink(): Promise<void> {
+        const link = this.getTermsLink();
+        await link.click();
+    }
+
+    /**
+     * Click the Cookie Policy link
+     */
+    async clickCookiePolicyLink(): Promise<void> {
+        const link = this.getCookiePolicyLink();
+        await link.click();
     }
 
     /**
@@ -404,5 +464,110 @@ export class RegisterPage extends BasePage {
         await expect(this.getPasswordInput()).toHaveValue('');
         await expect(this.getConfirmPasswordInput()).toHaveValue('');
         await this.verifyCheckboxStates(false, false);
+    }
+
+    /**
+     * Verify form has persisted values (after error, form should retain user input)
+     */
+    async verifyFormPersistedValues(name: string, email: string): Promise<void> {
+        await expect(this.getNameInput()).toHaveValue(name);
+        await expect(this.getEmailInput()).toHaveValue(email);
+    }
+
+    /**
+     * Verify checkboxes are visible
+     */
+    async verifyTermsCheckboxVisible(): Promise<void> {
+        await expect(this.getTermsCheckbox()).toBeVisible();
+    }
+
+    async verifyCookiesCheckboxVisible(): Promise<void> {
+        await expect(this.getCookiesCheckbox()).toBeVisible();
+    }
+
+    /**
+     * Verify policy links are visible
+     */
+    async verifyTermsLinkVisible(): Promise<void> {
+        await expect(this.getTermsLink()).toBeVisible();
+    }
+
+    async verifyCookiePolicyLinkVisible(): Promise<void> {
+        await expect(this.getCookiePolicyLink()).toBeVisible();
+    }
+
+    /**
+     * Verify submit button is enabled
+     */
+    async verifySubmitButtonEnabled(): Promise<void> {
+        await expect(this.getSubmitButton()).toBeEnabled();
+    }
+
+    /**
+     * Verify submit button is disabled
+     */
+    async verifySubmitButtonDisabled(): Promise<void> {
+        await expect(this.getSubmitButton()).toBeDisabled();
+    }
+
+    /**
+     * Verify error container is visible
+     */
+    async verifyErrorContainerVisible(): Promise<void> {
+        await expect(this.getErrorContainer()).toBeVisible({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
+    }
+
+    /**
+     * Check if loading spinner is visible (for registration process)
+     */
+    async isLoadingSpinnerVisible(): Promise<boolean> {
+        const spinner = this.page.locator('.animate-spin');
+        return await spinner.isVisible().catch(() => false);
+    }
+
+    /**
+     * Wait for form to be ready (all inputs visible and enabled)
+     */
+    async waitForFormReady(): Promise<void> {
+        await this.verifyRegisterPageLoaded();
+        await this.verifyFormEnabled();
+    }
+
+    /**
+     * Wait for registration response with specific status code
+     */
+    async waitForRegistrationResponse(expectedStatusCode: number): Promise<void> {
+        await this.page.waitForResponse(
+            (response) => response.url().includes('/auth/register') && response.status() === expectedStatusCode,
+            { timeout: TEST_TIMEOUTS.API_RESPONSE },
+        );
+    }
+
+    /**
+     * Expect current URL to match pattern
+     */
+    async expectUrl(pattern: RegExp): Promise<void> {
+        await expect(this.page).toHaveURL(pattern);
+    }
+
+    /**
+     * Verify name input has expected value
+     */
+    async verifyNameInputValue(expectedValue: string): Promise<void> {
+        await expect(this.getNameInput()).toHaveValue(expectedValue);
+    }
+
+    /**
+     * Verify email input has expected value
+     */
+    async verifyEmailInputValue(expectedValue: string): Promise<void> {
+        await expect(this.getEmailInput()).toHaveValue(expectedValue);
+    }
+
+    /**
+     * Verify password input is visible
+     */
+    async verifyPasswordInputVisible(): Promise<void> {
+        await expect(this.getPasswordInput()).toBeVisible();
     }
 }

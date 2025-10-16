@@ -38,40 +38,39 @@ simpleTest.describe('User Profile Management', () => {
         // Verify profile information is displayed
         const expectedDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
         await settingsPage.verifyProfileInformation(expectedDisplayName, user.email);
-        await expect(settingsPage.getDisplayNameInput()).toBeVisible();
-        await expect(settingsPage.getSaveChangesButton()).toBeVisible();
+        await settingsPage.verifyDisplayNameInputVisible();
+        await settingsPage.verifySaveButtonVisible();
 
         // Test display name validation
-        await settingsPage.fillPreactInput(settingsPage.getDisplayNameInput(), '');
-        await expect(page.getByText('Display name cannot be empty')).toBeVisible();
-        await expect(settingsPage.getSaveChangesButton()).toBeDisabled();
+        await settingsPage.fillDisplayName('');
+        await settingsPage.verifyErrorMessage('Display name cannot be empty');
+        await settingsPage.verifySaveButtonDisabled();
 
         const longName = 'A'.repeat(101);
-        await settingsPage.fillPreactInput(settingsPage.getDisplayNameInput(), longName);
-        await expect(page.getByText('Display name must be 100 characters or less')).toBeVisible();
-        await expect(settingsPage.getSaveChangesButton()).toBeDisabled();
+        await settingsPage.fillDisplayName(longName);
+        await settingsPage.verifyErrorMessage('Display name must be 100 characters or less');
+        await settingsPage.verifySaveButtonDisabled();
 
         // Test successful profile update with loading states and real-time updates
         const newDisplayName = `Updated Name ${Date.now()}`;
-        await settingsPage.fillPreactInput(settingsPage.getDisplayNameInput(), newDisplayName);
-        await expect(settingsPage.getSaveChangesButton()).toBeEnabled();
+        await settingsPage.fillDisplayName(newDisplayName);
+        await settingsPage.verifySaveButtonEnabled();
 
-        const saveButton = settingsPage.getSaveChangesButton();
-        await settingsPage.clickButton(saveButton, { buttonName: 'Save Changes' });
+        await settingsPage.clickSaveChangesButton();
         await settingsPage.verifyLoadingState('save');
         await settingsPage.waitForLoadingComplete('save');
 
         // Verify comprehensive real-time updates across all UI components
-        await expect(settingsPage.getProfileDisplayName()).toContainText(newDisplayName);
-        await expect(settingsPage.header.getUserMenuButton()).toContainText(newDisplayName);
-        await expect(settingsPage.getDisplayNameInput()).toHaveValue(newDisplayName);
+        await settingsPage.verifyProfileDisplayNameText(newDisplayName);
+        await settingsPage.header.verifyUserMenuButtonContainsText(newDisplayName);
+        await settingsPage.verifyDisplayNameInputValue(newDisplayName);
 
         // Verify persistence when navigating to dashboard and back
         await settingsPage.navigateToDashboard();
-        await expect(settingsPage.header.getUserMenuButton()).toContainText(newDisplayName);
+        await settingsPage.header.verifyUserMenuButtonContainsText(newDisplayName);
         await settingsPage.navigate();
-        await expect(settingsPage.getProfileEmail()).toContainText(user.email);
-        await expect(settingsPage.getProfileDisplayName()).toContainText(newDisplayName);
+        await settingsPage.verifyProfileEmailText(user.email);
+        await settingsPage.verifyProfileDisplayNameText(newDisplayName);
 
         // Test 2: Password management with fresh user account
         const { page: passwordPage } = await newEmptyBrowser();

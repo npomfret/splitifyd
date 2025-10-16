@@ -112,4 +112,13 @@ export class HeaderPage extends BasePage {
         await expect(this.page).toHaveURL(/\/dashboard/);
         await this.page.waitForLoadState('domcontentloaded');
     }
+
+    /**
+     * Verify user menu button contains specific text
+     * Uses Playwright's built-in polling for async content
+     */
+    async verifyUserMenuButtonContainsText(expectedText: string): Promise<void> {
+        const userMenuButton = this.getUserMenuButton();
+        await expect(userMenuButton).toContainText(expectedText);
+    }
 }

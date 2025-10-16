@@ -133,4 +133,16 @@ export class PolicyAcceptanceModalPage extends BasePage {
             }
         }
     }
+
+    /**
+     * Verify policy name has meaningful content (min length)
+     * Uses Playwright's polling to handle async content loading
+     */
+    async verifyPolicyNameHasContent(minLength: number = 5): Promise<void> {
+        await expect(async () => {
+            const policyName = await this.getCurrentPolicyName();
+            expect(policyName).toBeTruthy();
+            expect(policyName.length).toBeGreaterThan(minLength);
+        }).toPass({ timeout: 5000 });
+    }
 }

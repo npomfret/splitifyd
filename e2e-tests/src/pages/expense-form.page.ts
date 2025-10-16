@@ -486,6 +486,78 @@ export class ExpenseFormPage extends BaseExpenseFormPage {
         return await splitCard.getByText(userName).isVisible();
     }
 
+    /**
+     * E2E-specific: Get date input value
+     * Encapsulates date input value extraction
+     */
+    async getDateInputValue(): Promise<string> {
+        const dateInput = this.getDateInput();
+        return await dateInput.inputValue();
+    }
+
+    /**
+     * E2E-specific: Get time button count
+     * Used to check if time button exists before clicking
+     */
+    async getTimeButtonCount(): Promise<number> {
+        const timeButton = this.getTimeButton();
+        return await timeButton.count();
+    }
+
+    /**
+     * E2E-specific: Click time button
+     * Opens the time input field
+     */
+    async clickTimeButton(): Promise<void> {
+        const timeButton = this.getTimeButton();
+        await timeButton.click();
+    }
+
+    /**
+     * E2E-specific: Fill time input
+     * Fills the time input field with a value
+     */
+    async fillTimeInput(value: string): Promise<void> {
+        const timeInput = this.getTimeInput();
+        await timeInput.fill(value);
+    }
+
+    /**
+     * E2E-specific: Get clock icon count
+     * Used to check if clock icon exists before clicking
+     */
+    async getClockIconCount(): Promise<number> {
+        const clockIcon = this.getClockIcon();
+        return await clockIcon.count();
+    }
+
+    /**
+     * E2E-specific: Click Update Expense button
+     * Used in edit mode to save changes
+     */
+    async clickUpdateExpenseButton(): Promise<void> {
+        const updateButton = this.getUpdateExpenseButton();
+        await updateButton.click();
+    }
+
+    /**
+     * E2E-specific: Click Expense Details heading
+     * Used to blur/commit input values
+     */
+    async clickExpenseDetailsHeading(): Promise<void> {
+        const heading = this.getExpenseDetailsHeading();
+        await heading.click();
+    }
+
+    /**
+     * E2E-specific: Click time suggestion
+     * Selects a suggested time from the dropdown
+     */
+    async clickTimeSuggestion(time: string): Promise<void> {
+        const suggestion = this.getTimeSuggestion(time);
+        await suggestion.click();
+    }
+
     // ============================================================================
     // E2E-SPECIFIC VERIFICATION METHODS
     // ============================================================================
@@ -545,5 +617,74 @@ export class ExpenseFormPage extends BaseExpenseFormPage {
         // Also verify member is not in "Who paid?" section
         const memberRadio = this.page.getByRole('radio', { name: memberName });
         await expect(memberRadio).not.toBeVisible();
+    }
+
+    /**
+     * E2E-specific: Verify time button is visible
+     */
+    async verifyTimeButtonVisible(): Promise<void> {
+        const timeButton = this.getTimeButton();
+        await expect(timeButton).toBeVisible();
+    }
+
+    /**
+     * E2E-specific: Verify time input is visible
+     */
+    async verifyTimeInputVisible(): Promise<void> {
+        const timeInput = this.getTimeInput();
+        await expect(timeInput).toBeVisible();
+    }
+
+    /**
+     * E2E-specific: Verify time input is focused
+     */
+    async verifyTimeInputFocused(): Promise<void> {
+        const timeInput = this.getTimeInput();
+        await expect(timeInput).toBeFocused();
+    }
+
+    /**
+     * E2E-specific: Verify time suggestion is visible
+     */
+    async verifyTimeSuggestionVisible(time: string): Promise<void> {
+        const suggestion = this.getTimeSuggestion(time);
+        await expect(suggestion).toBeVisible();
+    }
+
+    /**
+     * E2E-specific: Verify Split Between heading is visible
+     */
+    async verifySplitBetweenHeadingVisible(): Promise<void> {
+        const heading = this.getSplitBetweenHeading();
+        await expect(heading).toBeVisible();
+    }
+
+    /**
+     * E2E-specific: Verify first checkbox in Split Between section is checked
+     */
+    async verifyFirstCheckboxChecked(): Promise<void> {
+        const firstCheckbox = this.getSplitOptionsFirstCheckbox();
+        await expect(firstCheckbox).toBeChecked();
+    }
+
+    /**
+     * E2E-specific: Verify date input value matches expected pattern
+     * Uses Playwright's polling to handle async updates
+     */
+    async verifyDateInputMatchesPattern(pattern: RegExp): Promise<void> {
+        await expect(async () => {
+            const dateInput = this.getDateInput();
+            const value = await dateInput.inputValue();
+            expect(value).toMatch(pattern);
+        }).toPass({ timeout: 5000 });
+    }
+
+    /**
+     * E2E-specific: Verify date input has specific value
+     * Uses Playwright's built-in polling assertion
+     */
+    async verifyDateInputValue(expectedValue: string): Promise<void> {
+        const dateInput = this.getDateInput();
+        await expect(dateInput).toHaveValue(expectedValue);
     }
 }

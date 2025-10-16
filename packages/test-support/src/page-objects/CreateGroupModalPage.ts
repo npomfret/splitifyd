@@ -353,4 +353,18 @@ export class CreateGroupModalPage extends BasePage {
         await expect(this.getGroupNameHelpText()).toBeVisible();
         await expect(this.getGroupDescriptionHelpText()).toBeVisible();
     }
+
+    /**
+     * Click the create button (alias for submitForm for semantic consistency)
+     */
+    async clickCreateButton(): Promise<void> {
+        await this.submitForm();
+    }
+
+    /**
+     * Verify error message is visible (without checking specific text)
+     */
+    async verifyErrorMessageVisible(): Promise<void> {
+        await expect(this.getErrorContainer()).toBeVisible();
+    }
 }

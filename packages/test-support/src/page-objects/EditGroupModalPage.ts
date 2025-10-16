@@ -367,4 +367,25 @@ export class EditGroupModalPage extends BasePage {
             await expect(this.getConfirmDeleteButton()).toBeDisabled();
         }
     }
+
+    /**
+     * Verify save button is disabled
+     */
+    async verifySaveButtonDisabled(): Promise<void> {
+        await expect(this.getSaveButton()).toBeDisabled();
+    }
+
+    /**
+     * Click save button (alias for submitForm for semantic consistency)
+     */
+    async clickSaveButton(): Promise<void> {
+        await this.submitForm();
+    }
+
+    /**
+     * Click cancel button (alias for clickCancel for semantic consistency)
+     */
+    async clickCancelButton(): Promise<void> {
+        await this.clickCancel();
+    }
 }

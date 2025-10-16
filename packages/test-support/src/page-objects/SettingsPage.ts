@@ -113,6 +113,57 @@ export class SettingsPage extends BasePage {
     }
 
     /**
+     * Profile Form Actions - Encapsulated fill methods
+     */
+    async fillDisplayName(value: string): Promise<void> {
+        const input = this.getDisplayNameInput();
+        await this.fillPreactInput(input, value);
+    }
+
+    async clickSaveChangesButton(): Promise<void> {
+        const button = this.getSaveChangesButton();
+        await this.clickButton(button, { buttonName: 'Save Changes' });
+    }
+
+    /**
+     * Profile Form Verification Methods
+     */
+    async verifyDisplayNameInputVisible(): Promise<void> {
+        await expect(this.getDisplayNameInput()).toBeVisible();
+    }
+
+    async verifySaveButtonVisible(): Promise<void> {
+        await expect(this.getSaveChangesButton()).toBeVisible();
+    }
+
+    async verifySaveButtonEnabled(): Promise<void> {
+        await expect(this.getSaveChangesButton()).toBeEnabled();
+    }
+
+    async verifySaveButtonDisabled(): Promise<void> {
+        await expect(this.getSaveChangesButton()).toBeDisabled();
+    }
+
+    async verifyProfileDisplayNameText(text: string): Promise<void> {
+        await expect(this.getProfileDisplayName()).toContainText(text);
+    }
+
+    async verifyProfileEmailText(text: string): Promise<void> {
+        await expect(this.getProfileEmail()).toContainText(text);
+    }
+
+    async verifyDisplayNameInputValue(value: string): Promise<void> {
+        await expect(this.getDisplayNameInput()).toHaveValue(value);
+    }
+
+    /**
+     * Error message verification
+     */
+    async verifyErrorMessage(text: string): Promise<void> {
+        await expect(this.page.getByText(text)).toBeVisible();
+    }
+
+    /**
      * Password Change Actions
      */
     async openPasswordChangeForm(): Promise<void> {
@@ -123,6 +174,61 @@ export class SettingsPage extends BasePage {
         await expect(this.getCurrentPasswordInput()).toBeVisible();
         await expect(this.getNewPasswordInput()).toBeVisible();
         await expect(this.getConfirmPasswordInput()).toBeVisible();
+    }
+
+    /**
+     * Password Form Actions - Encapsulated fill methods
+     */
+    async fillCurrentPassword(value: string): Promise<void> {
+        const input = this.getCurrentPasswordInput();
+        await this.fillPreactInput(input, value);
+    }
+
+    async fillNewPassword(value: string): Promise<void> {
+        const input = this.getNewPasswordInput();
+        await this.fillPreactInput(input, value);
+    }
+
+    async fillConfirmPassword(value: string): Promise<void> {
+        const input = this.getConfirmPasswordInput();
+        await this.fillPreactInput(input, value);
+    }
+
+    async clickUpdatePasswordButton(): Promise<void> {
+        const button = this.getUpdatePasswordButton();
+        await this.clickButton(button, { buttonName: this.updatePasswordButtonText });
+    }
+
+    async clickChangePasswordButton(): Promise<void> {
+        const button = this.getChangePasswordButton();
+        await this.clickButton(button, { buttonName: this.changePasswordButtonText });
+    }
+
+    /**
+     * Password Form Verification Methods
+     */
+    async verifyChangePasswordButtonVisible(): Promise<void> {
+        await expect(this.getChangePasswordButton()).toBeVisible();
+    }
+
+    async verifyCurrentPasswordInputVisible(): Promise<void> {
+        await expect(this.getCurrentPasswordInput()).toBeVisible();
+    }
+
+    async verifyNewPasswordInputVisible(): Promise<void> {
+        await expect(this.getNewPasswordInput()).toBeVisible();
+    }
+
+    async verifyConfirmPasswordInputVisible(): Promise<void> {
+        await expect(this.getConfirmPasswordInput()).toBeVisible();
+    }
+
+    async verifyUpdatePasswordButtonVisible(): Promise<void> {
+        await expect(this.getUpdatePasswordButton()).toBeVisible();
+    }
+
+    async verifyUpdatePasswordButtonDisabled(): Promise<void> {
+        await expect(this.getUpdatePasswordButton()).toBeDisabled();
     }
 
     async fillPasswordChangeForm(

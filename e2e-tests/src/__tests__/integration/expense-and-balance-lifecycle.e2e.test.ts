@@ -62,7 +62,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         await editFormPage.fillDescription(updatedDescription);
         await editFormPage.fillAmount('150.50');
-        await editFormPage.getUpdateExpenseButton().click();
+        await editFormPage.clickUpdateExpenseButton();
 
         await expenseDetailPage.waitForExpenseDescription(updatedDescription);
         await expenseDetailPage.waitForCurrencyAmount('€150.50');
@@ -214,23 +214,20 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await expenseFormPage.clickYesterdayButton();
 
         // Set custom time
-        let timeButton = expenseFormPage.getTimeButton();
-        const timeButtonCount = await timeButton.count();
+        let timeButtonCount = await expenseFormPage.getTimeButtonCount();
 
         if (timeButtonCount === 0) {
-            const clockIcon = expenseFormPage.getClockIcon();
-            const clockIconCount = await clockIcon.count();
+            const clockIconCount = await expenseFormPage.getClockIconCount();
             if (clockIconCount > 0) {
                 await expenseFormPage.clickClockIcon();
             }
-            timeButton = expenseFormPage.getTimeButton();
+            timeButtonCount = await expenseFormPage.getTimeButtonCount();
         }
 
-        await expect(timeButton).toBeVisible();
-        await timeButton.click();
-        const timeInput = expenseFormPage.getTimeInput();
-        await timeInput.fill('7:30pm');
-        await expenseFormPage.getExpenseDetailsHeading().click(); // Blur to commit
+        await expenseFormPage.verifyTimeButtonVisible();
+        await expenseFormPage.clickTimeButton();
+        await expenseFormPage.fillTimeInput('7:30pm');
+        await expenseFormPage.clickExpenseDetailsHeading(); // Blur to commit
 
         // Submit expense (single person group, so no balance change expected)
         await expenseFormPage.selectPayer(userDisplayName);
@@ -461,17 +458,15 @@ simpleTest.describe('Date and Time Selection', () => {
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
 
         // Test date convenience buttons
-        const dateInput = expenseFormPage.getDateInput();
-
         // Test Today button
         await expenseFormPage.clickTodayButton();
-        const todayInputValue = await dateInput.inputValue();
-        expect(todayInputValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        await expenseFormPage.verifyDateInputMatchesPattern(/^\d{4}-\d{2}-\d{2}$/);
+        const todayInputValue = await expenseFormPage.getDateInputValue();
 
         // Test Yesterday button
         await expenseFormPage.clickYesterdayButton();
-        const yesterdayInputValue = await dateInput.inputValue();
-        expect(yesterdayInputValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        await expenseFormPage.verifyDateInputMatchesPattern(/^\d{4}-\d{2}-\d{2}$/);
+        const yesterdayInputValue = await expenseFormPage.getDateInputValue();
 
         // Verify yesterday is one day before today
         const todayParsed = new Date(todayInputValue + 'T00:00:00');
@@ -481,37 +476,33 @@ simpleTest.describe('Date and Time Selection', () => {
 
         // Test Last Night button (sets evening time)
         await expenseFormPage.clickLastNightButton();
-        const lastNightInputValue = await dateInput.inputValue();
-        expect(lastNightInputValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        await expenseFormPage.verifyDateInputMatchesPattern(/^\d{4}-\d{2}-\d{2}$/);
 
         // Test time input functionality
-        let timeButton = expenseFormPage.getTimeButton();
-        const timeButtonCount = await timeButton.count();
+        let timeButtonCount = await expenseFormPage.getTimeButtonCount();
 
         if (timeButtonCount === 0) {
-            const clockIcon = expenseFormPage.getClockIcon();
-            const clockIconCount = await clockIcon.count();
+            const clockIconCount = await expenseFormPage.getClockIconCount();
             if (clockIconCount > 0) {
                 await expenseFormPage.clickClockIcon();
             }
-            timeButton = expenseFormPage.getTimeButton();
+            timeButtonCount = await expenseFormPage.getTimeButtonCount();
         }
 
-        await expect(timeButton).toBeVisible();
-        await timeButton.click();
+        await expenseFormPage.verifyTimeButtonVisible();
+        await expenseFormPage.clickTimeButton();
 
-        const timeInput = expenseFormPage.getTimeInput();
-        await expect(timeInput).toBeVisible();
-        await expect(timeInput).toBeFocused();
+        await expenseFormPage.verifyTimeInputVisible();
+        await expenseFormPage.verifyTimeInputFocused();
 
         // Test time suggestions
-        await timeInput.fill('3');
-        await expect(expenseFormPage.getTimeSuggestion('3:00 AM')).toBeVisible();
-        await expect(expenseFormPage.getTimeSuggestion('3:00 PM')).toBeVisible();
+        await expenseFormPage.fillTimeInput('3');
+        await expenseFormPage.verifyTimeSuggestionVisible('3:00 AM');
+        await expenseFormPage.verifyTimeSuggestionVisible('3:00 PM');
 
         // Accept time selection
-        await expenseFormPage.getTimeSuggestion('3:00 PM').click();
-        await expect(expenseFormPage.getTimeSuggestion('at 3:00 PM')).toBeVisible();
+        await expenseFormPage.clickTimeSuggestion('3:00 PM');
+        await expenseFormPage.verifyTimeSuggestionVisible('at 3:00 PM');
     });
 });
 
@@ -796,7 +787,7 @@ simpleTest.describe('Copy Expense Feature', () => {
         await copyExpenseFormPage.fillAmount('89.50');
 
         // Step 8: Submit the copied expense
-        await copyExpenseFormPage.getUpdateExpenseButton().click();
+        await copyExpenseFormPage.clickUpdateExpenseButton();
 
         // Step 9: Verify redirect to group page
         await groupDetailPage1.waitForExpense(copiedDescription);
@@ -859,7 +850,7 @@ simpleTest.describe('Copy Expense Feature', () => {
 
         // Change payer to User1
         await copyExpenseFormPage.selectPayer(user1DisplayName);
-        await copyExpenseFormPage.getUpdateExpenseButton().click();
+        await copyExpenseFormPage.clickUpdateExpenseButton();
 
         // Verify real-time updates: all users should see both expenses
         await groupDetailPage1.waitForExpense(originalDescription);

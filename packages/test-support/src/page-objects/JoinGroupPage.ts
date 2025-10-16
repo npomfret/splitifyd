@@ -330,4 +330,45 @@ export class JoinGroupPage extends BasePage {
         const alreadyMemberMessage = this.getAlreadyMemberMessage();
         await expect(alreadyMemberMessage).toBeVisible();
     }
+
+    /**
+     * Click the "Back to Dashboard" button on error pages
+     */
+    async clickBackToDashboard(): Promise<void> {
+        const backButton = this.getBackToDashboardButton();
+        await this.clickButton(backButton, { buttonName: 'Back to Dashboard' });
+    }
+
+    /**
+     * Verify that an invalid link error is displayed
+     */
+    async verifyInvalidLinkError(): Promise<void> {
+        const errorMessage = this.getErrorMessage();
+        await expect(errorMessage).toBeVisible();
+    }
+
+    /**
+     * Verify group name matches expected text
+     * Uses Playwright's polling to handle async content loading
+     */
+    async verifyGroupNameMatchesText(expectedName: string): Promise<void> {
+        await expect(async () => {
+            const actualName = await this.getGroupName();
+            expect(actualName).toBe(expectedName);
+        }).toPass({ timeout: 5000 });
+    }
+
+    /**
+     * Check if join button is visible (without throwing)
+     */
+    async isJoinButtonVisible(): Promise<boolean> {
+        return await this.getJoinGroupButton().isVisible().catch(() => false);
+    }
+
+    /**
+     * Expect current URL to match pattern
+     */
+    async expectUrl(pattern: RegExp): Promise<void> {
+        await expect(this.page).toHaveURL(pattern);
+    }
 }

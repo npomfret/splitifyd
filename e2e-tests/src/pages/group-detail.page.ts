@@ -1045,6 +1045,48 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         // Send button should initially be disabled (no text input yet)
         await expect(sendButton).toBeDisabled();
     }
+
+    // ========== Additional Verification Methods for Test Refactoring ==========
+
+    /**
+     * Copy share link to clipboard
+     * Opens share modal, retrieves the link, and closes the modal
+     */
+    async copyShareLink(): Promise<string> {
+        return await this.getShareLink();
+    }
+
+    /**
+     * Verify the group name matches expected text
+     */
+    async verifyGroupNameText(expectedText: string): Promise<void> {
+        const actualText = await this.getGroupNameText();
+        expect(actualText).toBe(expectedText);
+    }
+
+    /**
+     * Verify leave button is not visible (e.g., when user has outstanding balance)
+     */
+    async verifyLeaveButtonNotVisible(): Promise<void> {
+        const leaveButton = this.getLeaveGroupButton();
+        await expect(leaveButton).not.toBeVisible();
+    }
+
+    /**
+     * Verify edit button is visible
+     */
+    async verifyEditButtonVisible(): Promise<void> {
+        const editButton = this.getEditGroupButton();
+        await expect(editButton).toBeVisible();
+    }
+
+    /**
+     * Verify a comment with specific text is visible
+     */
+    async verifyCommentVisible(text: string): Promise<void> {
+        const comment = this.getCommentByText(text);
+        await expect(comment).toBeVisible();
+    }
 }
 
 /**
