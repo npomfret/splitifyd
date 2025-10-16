@@ -11,6 +11,7 @@ import {
     ListGroupsResponse,
     MessageResponse,
     PreviewGroupResponse,
+    RegisteredUser,
     SettlementDTO,
     SettlementWithMembers,
     ShareLinkResponse,
@@ -26,6 +27,7 @@ import { GroupShareHandlers } from '../../groups/GroupShareHandlers';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreReader, FirestoreWriter } from '../../services/firestore';
 import { SettlementHandlers } from '../../settlements/SettlementHandlers';
+import { UserHandlers } from '../../user/UserHandlers';
 import { StubAuthService } from './mocks/StubAuthService';
 
 /**
@@ -50,6 +52,7 @@ export class AppDriver {
     private groupMemberHandlers = new GroupMemberHandlers(this.applicationBuilder.buildGroupMemberService());
     private expenseHandlers = new ExpenseHandlers(this.applicationBuilder.buildExpenseService());
     private commentHandlers = new CommentHandlers(this.applicationBuilder.buildCommentService());
+    private userHandlers = new UserHandlers(this.applicationBuilder.buildUserService());
 
     seedUser(userId: string, userData: Record<string, any> = {}) {
         const user = this.db.seedUser(userId, userData);
@@ -274,5 +277,23 @@ export class AppDriver {
         await this.commentHandlers.listExpenseComments(req, res);
 
         return (res as any).getJson() as ListCommentsResponse;
+    }
+
+    async updateUserProfile(userId: string, updateRequest: any): Promise<RegisteredUser> {
+        const req = createStubRequest(userId, updateRequest);
+        const res = createStubResponse();
+
+        await this.userHandlers.updateUserProfile(req, res);
+
+        return (res as any).getJson() as RegisteredUser;
+    }
+
+    async changePassword(userId: string, passwordRequest: any): Promise<MessageResponse> {
+        const req = createStubRequest(userId, passwordRequest);
+        const res = createStubResponse();
+
+        await this.userHandlers.changePassword(req, res);
+
+        return (res as any).getJson() as MessageResponse;
     }
 }

@@ -1,65 +1,36 @@
-import { AuthUserRecordBuilder, createStubRequest, createStubResponse, PasswordChangeRequestBuilder, RegisteredUserBuilder, StubFirestoreDatabase, UserUpdateBuilder } from '@splitifyd/test-support';
+import { PasswordChangeRequestBuilder, RegisteredUserBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
 import { UserHandlers } from '../../../user/UserHandlers';
 import { initializeI18n } from '../../../utils/i18n';
-import { StubAuthService } from '../mocks/StubAuthService';
+import { AppDriver } from '../AppDriver';
 
 describe('UserHandlers - Unit Tests', () => {
-    let userHandlers: UserHandlers;
-    let db: StubFirestoreDatabase;
-    let stubAuth: StubAuthService;
+    let appDriver: AppDriver;
 
     beforeEach(async () => {
-        // Initialize i18n for validation error messages
         await initializeI18n();
-
-        db = new StubFirestoreDatabase();
-        stubAuth = new StubAuthService();
-
-        const firestoreReader = new FirestoreReader(db);
-        const firestoreWriter = new FirestoreWriter(db);
-        const applicationBuilder = new ApplicationBuilder(firestoreReader, firestoreWriter, stubAuth);
-
-        userHandlers = new UserHandlers(applicationBuilder.buildUserService());
+        appDriver = new AppDriver();
     });
 
     describe('updateUserProfile', () => {
         it('should update display name successfully', async () => {
             const userId = 'test-user-123';
 
-            // Seed user in Firestore using builder
-            // Note: uid and emailVerified are excluded - uid is the document ID, emailVerified is in Auth
             const { uid, emailVerified, ...firestoreUser } = new RegisteredUserBuilder()
                 .withUid(userId)
                 .withDisplayName('Original Name')
                 .withPhotoURL('https://example.com/photo.jpg')
                 .withPreferredLanguage('en')
                 .build();
-            db.seedUser(userId, firestoreUser);
 
-            // Seed user in Auth using builder
-            const authUser = new AuthUserRecordBuilder()
-                .withUid(userId)
-                .withEmail('test@example.com')
-                .withDisplayName('Original Name')
-                .withPhotoURL('https://example.com/photo.jpg')
-                .withEmailVerified(true)
-                .build();
-            stubAuth.setUser(userId, authUser);
+            appDriver.seedUser(userId, firestoreUser);
 
             const updateRequest = new UserUpdateBuilder().withDisplayName('New Name').build();
 
-            const req = createStubRequest(userId, updateRequest);
-            const res = createStubResponse();
+            const result = await appDriver.updateUserProfile(userId, updateRequest);
 
-            await userHandlers.updateUserProfile(req, res);
-
-            expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
-            const json = (res as any).getJson();
-            expect(json).toMatchObject({
+            expect(result).toMatchObject({
                 displayName: 'New Name',
             });
         });
@@ -72,27 +43,14 @@ describe('UserHandlers - Unit Tests', () => {
                 .withDisplayName('Test User')
                 .withPhotoURL('https://example.com/old-photo.jpg')
                 .build();
-            db.seedUser(userId, firestoreUser);
 
-            const authUser = new AuthUserRecordBuilder()
-                .withUid(userId)
-                .withEmail('test@example.com')
-                .withDisplayName('Test User')
-                .withPhotoURL('https://example.com/old-photo.jpg')
-                .withEmailVerified(true)
-                .build();
-            stubAuth.setUser(userId, authUser);
+            appDriver.seedUser(userId, firestoreUser);
 
             const updateRequest = new UserUpdateBuilder().withPhotoURL('https://example.com/new-photo.jpg').build();
 
-            const req = createStubRequest(userId, updateRequest);
-            const res = createStubResponse();
+            const result = await appDriver.updateUserProfile(userId, updateRequest);
 
-            await userHandlers.updateUserProfile(req, res);
-
-            expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
-            const json = (res as any).getJson();
-            expect(json.displayName).toBe('Test User');
+            expect(result.displayName).toBe('Test User');
         });
 
         it('should update preferredLanguage successfully', async () => {
@@ -103,24 +61,12 @@ describe('UserHandlers - Unit Tests', () => {
                 .withDisplayName('Test User')
                 .withPreferredLanguage('en')
                 .build();
-            db.seedUser(userId, firestoreUser);
 
-            const authUser = new AuthUserRecordBuilder()
-                .withUid(userId)
-                .withEmail('test@example.com')
-                .withDisplayName('Test User')
-                .withEmailVerified(true)
-                .build();
-            stubAuth.setUser(userId, authUser);
+            appDriver.seedUser(userId, firestoreUser);
 
             const updateRequest = new UserUpdateBuilder().withPreferredLanguage('en').build();
 
-            const req = createStubRequest(userId, updateRequest);
-            const res = createStubResponse();
-
-            await userHandlers.updateUserProfile(req, res);
-
-            expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
+            await appDriver.updateUserProfile(userId, updateRequest);
         });
 
         it('should update multiple fields at once', async () => {
@@ -132,16 +78,8 @@ describe('UserHandlers - Unit Tests', () => {
                 .withPhotoURL('https://example.com/old-photo.jpg')
                 .withPreferredLanguage('en')
                 .build();
-            db.seedUser(userId, firestoreUser);
 
-            const authUser = new AuthUserRecordBuilder()
-                .withUid(userId)
-                .withEmail('test@example.com')
-                .withDisplayName('Original Name')
-                .withPhotoURL('https://example.com/old-photo.jpg')
-                .withEmailVerified(true)
-                .build();
-            stubAuth.setUser(userId, authUser);
+            appDriver.seedUser(userId, firestoreUser);
 
             const updateRequest = new UserUpdateBuilder()
                 .withDisplayName('New Name')
@@ -149,14 +87,9 @@ describe('UserHandlers - Unit Tests', () => {
                 .withPreferredLanguage('en')
                 .build();
 
-            const req = createStubRequest(userId, updateRequest);
-            const res = createStubResponse();
+            const result = await appDriver.updateUserProfile(userId, updateRequest);
 
-            await userHandlers.updateUserProfile(req, res);
-
-            expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
-            const json = (res as any).getJson();
-            expect(json).toMatchObject({
+            expect(result).toMatchObject({
                 displayName: 'New Name',
             });
         });
@@ -169,36 +102,19 @@ describe('UserHandlers - Unit Tests', () => {
                 .withDisplayName('Test User')
                 .withPhotoURL('https://example.com/photo.jpg')
                 .build();
-            db.seedUser(userId, firestoreUser);
 
-            const authUser = new AuthUserRecordBuilder()
-                .withUid(userId)
-                .withEmail('test@example.com')
-                .withDisplayName('Test User')
-                .withPhotoURL('https://example.com/photo.jpg')
-                .withEmailVerified(true)
-                .build();
-            stubAuth.setUser(userId, authUser);
+            appDriver.seedUser(userId, firestoreUser);
 
             const updateRequest = new UserUpdateBuilder().withPhotoURL(null).build();
 
-            const req = createStubRequest(userId, updateRequest);
-            const res = createStubResponse();
-
-            await userHandlers.updateUserProfile(req, res);
-
-            expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
+            await appDriver.updateUserProfile(userId, updateRequest);
         });
 
         it('should reject update with no fields provided', async () => {
             const userId = 'test-user-123';
             const updateRequest = {};
 
-            const req = createStubRequest(userId, updateRequest);
-            req.language = 'en'; // Required for validation error messages
-            const res = createStubResponse();
-
-            await expect(userHandlers.updateUserProfile(req, res)).rejects.toThrow(
+            await expect(appDriver.updateUserProfile(userId, updateRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -210,11 +126,7 @@ describe('UserHandlers - Unit Tests', () => {
             const userId = 'test-user-123';
             const updateRequest = new UserUpdateBuilder().withPhotoURL('not-a-valid-url').build();
 
-            const req = createStubRequest(userId, updateRequest);
-            req.language = 'en'; // Required for validation error messages
-            const res = createStubResponse();
-
-            await expect(userHandlers.updateUserProfile(req, res)).rejects.toThrow(
+            await expect(appDriver.updateUserProfile(userId, updateRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -227,11 +139,7 @@ describe('UserHandlers - Unit Tests', () => {
             const longName = 'a'.repeat(101);
             const updateRequest = new UserUpdateBuilder().withDisplayName(longName).build();
 
-            const req = createStubRequest(userId, updateRequest);
-            req.language = 'en'; // Required for validation error messages
-            const res = createStubResponse();
-
-            await expect(userHandlers.updateUserProfile(req, res)).rejects.toThrow(
+            await expect(appDriver.updateUserProfile(userId, updateRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -243,11 +151,7 @@ describe('UserHandlers - Unit Tests', () => {
             const userId = 'test-user-123';
             const updateRequest = new UserUpdateBuilder().withDisplayName('').build();
 
-            const req = createStubRequest(userId, updateRequest);
-            req.language = 'en'; // Required for validation error messages
-            const res = createStubResponse();
-
-            await expect(userHandlers.updateUserProfile(req, res)).rejects.toThrow(
+            await expect(appDriver.updateUserProfile(userId, updateRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -259,11 +163,7 @@ describe('UserHandlers - Unit Tests', () => {
             const userId = 'test-user-123';
             const updateRequest = new UserUpdateBuilder().withPreferredLanguage('invalid-lang').build();
 
-            const req = createStubRequest(userId, updateRequest);
-            req.language = 'en'; // Required for validation error messages
-            const res = createStubResponse();
-
-            await expect(userHandlers.updateUserProfile(req, res)).rejects.toThrow(
+            await expect(appDriver.updateUserProfile(userId, updateRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -280,28 +180,17 @@ describe('UserHandlers - Unit Tests', () => {
                 .withUid(userId)
                 .withDisplayName('Test User')
                 .build();
-            db.seedUser(userId, firestoreUser);
 
-            const authUser = new AuthUserRecordBuilder()
-                .withUid(userId)
-                .withEmail('test@example.com')
-                .withDisplayName('Test User')
-                .withEmailVerified(true)
-                .build();
-            stubAuth.setUser(userId, authUser);
+            appDriver.seedUser(userId, firestoreUser);
 
             const passwordRequest = new PasswordChangeRequestBuilder()
                 .withCurrentPassword('ValidPass123!')
                 .withNewPassword('NewValidPass456!')
                 .build();
 
-            const req = createStubRequest(userId, passwordRequest);
-            const res = createStubResponse();
+            const result = await appDriver.changePassword(userId, passwordRequest);
 
-            await userHandlers.changePassword(req, res);
-
-            expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
-            expect((res as any).getJson()).toMatchObject({
+            expect(result).toMatchObject({
                 message: 'Password changed successfully',
             });
         });
@@ -313,10 +202,7 @@ describe('UserHandlers - Unit Tests', () => {
                 .withNewPassword('validpass123!')
                 .build();
 
-            const req = createStubRequest(userId, passwordRequest);
-            const res = createStubResponse();
-
-            await expect(userHandlers.changePassword(req, res)).rejects.toThrow(
+            await expect(appDriver.changePassword(userId, passwordRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -331,10 +217,7 @@ describe('UserHandlers - Unit Tests', () => {
                 .withNewPassword('VALIDPASS123!')
                 .build();
 
-            const req = createStubRequest(userId, passwordRequest);
-            const res = createStubResponse();
-
-            await expect(userHandlers.changePassword(req, res)).rejects.toThrow(
+            await expect(appDriver.changePassword(userId, passwordRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -349,10 +232,7 @@ describe('UserHandlers - Unit Tests', () => {
                 .withNewPassword('ValidPassword!')
                 .build();
 
-            const req = createStubRequest(userId, passwordRequest);
-            const res = createStubResponse();
-
-            await expect(userHandlers.changePassword(req, res)).rejects.toThrow(
+            await expect(appDriver.changePassword(userId, passwordRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -367,10 +247,7 @@ describe('UserHandlers - Unit Tests', () => {
                 .withNewPassword('ValidPass123')
                 .build();
 
-            const req = createStubRequest(userId, passwordRequest);
-            const res = createStubResponse();
-
-            await expect(userHandlers.changePassword(req, res)).rejects.toThrow(
+            await expect(appDriver.changePassword(userId, passwordRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -385,10 +262,7 @@ describe('UserHandlers - Unit Tests', () => {
                 .withNewPassword('Pass1!')
                 .build();
 
-            const req = createStubRequest(userId, passwordRequest);
-            const res = createStubResponse();
-
-            await expect(userHandlers.changePassword(req, res)).rejects.toThrow(
+            await expect(appDriver.changePassword(userId, passwordRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -404,10 +278,7 @@ describe('UserHandlers - Unit Tests', () => {
                 .withNewPassword(samePassword)
                 .build();
 
-            const req = createStubRequest(userId, passwordRequest);
-            const res = createStubResponse();
-
-            await expect(userHandlers.changePassword(req, res)).rejects.toThrow(
+            await expect(appDriver.changePassword(userId, passwordRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
