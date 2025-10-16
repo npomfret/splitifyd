@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin';
 import type { Firestore } from 'firebase-admin/firestore';
-import { createFirestoreDatabase } from '../firestore-wrapper';
+import { createFirestoreDatabase, IFirestoreDatabase } from '../firestore-wrapper';
 import { IAuthService } from './auth';
 import { FirebaseAuthService } from './auth';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
@@ -31,26 +31,25 @@ export class ApplicationBuilder {
     private groupShareService?: GroupShareService;
     private notificationService?: NotificationService;
     private incrementalBalanceService?: IncrementalBalanceService;
+    private firestoreReader: IFirestoreReader;
+    private firestoreWriter: IFirestoreWriter;
 
-    constructor(
-        private firestoreReader: IFirestoreReader,
-        private firestoreWriter: IFirestoreWriter,
-        private authService: IAuthService,
-    ) {}
+    constructor(private authService: IAuthService, db: IFirestoreDatabase) {
+        this.firestoreReader = new FirestoreReader(db);
+        this.firestoreWriter = new FirestoreWriter(db);
+    }
 
     static createApplicationBuilder(firestore: Firestore, auth: admin.auth.Auth) {
         // Wrap the Firestore instance with our abstraction layer
         const wrappedDb = createFirestoreDatabase(firestore);
 
-        const firestoreReader = new FirestoreReader(wrappedDb);
-        const firestoreWriter = new FirestoreWriter(wrappedDb);
         const firebaseAuthService = new FirebaseAuthService(
             auth,
             true, // enableValidation
             true, // enableMetrics
         );
 
-        return new ApplicationBuilder(firestoreReader, firestoreWriter, firebaseAuthService);
+        return new ApplicationBuilder(firebaseAuthService, wrappedDb);
     }
 
     // ========================================================================

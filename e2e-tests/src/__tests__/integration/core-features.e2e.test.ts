@@ -1,5 +1,4 @@
 import { CreateGroupFormDataBuilder, ExpenseFormDataBuilder, generateShortId } from '@splitifyd/test-support';
-import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { expect, simpleTest } from '../../fixtures';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 

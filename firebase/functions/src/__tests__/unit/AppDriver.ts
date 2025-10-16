@@ -30,7 +30,7 @@ import { GroupMemberHandlers } from '../../groups/GroupMemberHandlers';
 import { GroupShareHandlers } from '../../groups/GroupShareHandlers';
 import { PolicyHandlers } from '../../policies/PolicyHandlers';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
-import { FirestoreReader, FirestoreWriter } from '../../services/firestore';
+import { FirestoreWriter } from '../../services/firestore';
 import { SettlementHandlers } from '../../settlements/SettlementHandlers';
 import { UserHandlers } from '../../user/UserHandlers';
 import { StubAuthService } from './mocks/StubAuthService';
@@ -50,7 +50,7 @@ export class AppDriver {
     private db = new StubFirestoreDatabase();
     private authService = new StubAuthService();
 
-    private applicationBuilder = new ApplicationBuilder(new FirestoreReader(this.db), new FirestoreWriter(this.db), this.authService);
+    private applicationBuilder = new ApplicationBuilder(this.authService, this.db);
     private settlementHandlers = new SettlementHandlers(this.applicationBuilder.buildSettlementService());
     private groupHandlers = new GroupHandlers(this.applicationBuilder.buildGroupService(), new FirestoreWriter(this.db));
     private groupShareHandlers = new GroupShareHandlers(this.applicationBuilder.buildGroupShareService());

@@ -2,8 +2,6 @@ import { PasswordChangeRequestBuilder, StubFirestoreDatabase, ThemeBuilder, User
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { FirestoreReader } from '../../../services/firestore';
-import { FirestoreWriter } from '../../../services/firestore';
 import { UserService } from '../../../services/UserService2';
 import { ApiError } from '../../../utils/errors';
 import { initializeI18n } from '../../../utils/i18n';
@@ -27,7 +25,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         stubAuth = new StubAuthService();
 
         // Create UserService via ApplicationBuilder
-        userService = new ApplicationBuilder(new FirestoreReader(db), new FirestoreWriter(db), stubAuth).buildUserService();
+        userService = new ApplicationBuilder(stubAuth, db).buildUserService();
 
         // Clear all stub data
         stubAuth.clear();
@@ -428,7 +426,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         const testUserId = 'test-user-id';
 
         beforeEach(() => {
-            validationUserService = new ApplicationBuilder(new FirestoreReader(db), new FirestoreWriter(db), stubAuth).buildUserService();
+            validationUserService = new ApplicationBuilder(stubAuth, db).buildUserService();
         });
 
         describe('updateProfile validation', () => {

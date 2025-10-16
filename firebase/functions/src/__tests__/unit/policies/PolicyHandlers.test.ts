@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { HTTP_STATUS } from '../../../constants';
 import { PolicyHandlers } from '../../../policies/PolicyHandlers';
 import { AppDriver } from '../AppDriver';
 

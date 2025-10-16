@@ -4,8 +4,6 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
 import { validateCreateGroup, validateGroupId, validateUpdateGroup } from '../../groups/validation';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
-import { FirestoreReader } from '../../services/firestore';
-import { FirestoreWriter } from '../../services/firestore';
 import { GroupService } from '../../services/GroupService';
 import { ApiError } from '../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
@@ -22,12 +20,7 @@ describe('GroupService - Unit Tests', () => {
         db = new StubFirestoreDatabase();
         stubAuth = new StubAuthService();
 
-        // Create reader and writer with stub database
-        const firestoreReader = new FirestoreReader(db);
-        const firestoreWriter = new FirestoreWriter(db);
-
-        // Create ApplicationBuilder and build GroupService
-        applicationBuilder = new ApplicationBuilder(firestoreReader, firestoreWriter, stubAuth);
+        applicationBuilder = new ApplicationBuilder(stubAuth, db);
         groupService = applicationBuilder.buildGroupService();
     });
 

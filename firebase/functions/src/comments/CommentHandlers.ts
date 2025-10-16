@@ -1,4 +1,4 @@
-import { CommentTargetType, CommentTargetTypes, ListCommentsResponse } from '@splitifyd/shared';
+import { CommentTargetType, CommentTargetTypes } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';

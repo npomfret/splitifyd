@@ -2,7 +2,6 @@ import { expect } from '@playwright/test';
 import { CreateGroupFormDataBuilder, DEFAULT_PASSWORD, generateTestEmail, generateTestGroupName, generateTestUserName, TestUserBuilder } from '@splitifyd/test-support';
 import { ApiDriver } from '@splitifyd/test-support';
 import { JoinGroupPage } from '@splitifyd/test-support';
-import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { simpleTest } from '../../fixtures';
 import { getUserPool } from '../../fixtures/user-pool.fixture';
 import { DashboardPage, GroupDetailPage, HomepagePage, LoginPage, RegisterPage, SettingsPage } from '../../pages';

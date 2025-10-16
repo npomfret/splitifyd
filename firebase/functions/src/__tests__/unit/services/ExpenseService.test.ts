@@ -4,7 +4,6 @@ import { HTTP_STATUS } from '../../../constants';
 import { Timestamp as FirestoreTimestamp } from '../../../firestore-wrapper';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { ExpenseService } from '../../../services/ExpenseService';
-import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
 import { StubAuthService } from '../mocks/StubAuthService';
 
@@ -14,7 +13,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
     beforeEach(() => {
         db = new StubFirestoreDatabase();
-        const applicationBuilder = new ApplicationBuilder(new FirestoreReader(db), new FirestoreWriter(db), new StubAuthService());
+        const applicationBuilder = new ApplicationBuilder(new StubAuthService(), db);
         expenseService = applicationBuilder.buildExpenseService();
     });
 

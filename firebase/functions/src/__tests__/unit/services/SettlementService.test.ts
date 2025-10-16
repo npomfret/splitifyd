@@ -3,7 +3,6 @@ import { CreateSettlementRequestBuilder, StubFirestoreDatabase } from '@splitify
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
 import { SettlementService } from '../../../services/SettlementService';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
 import { StubAuthService } from '../mocks/StubAuthService';
@@ -19,7 +18,7 @@ describe('SettlementService - Unit Tests', () => {
         db = new StubFirestoreDatabase();
         stubAuth = new StubAuthService();
 
-        applicationBuilder = new ApplicationBuilder(new FirestoreReader(db), new FirestoreWriter(db), stubAuth);
+        applicationBuilder = new ApplicationBuilder(stubAuth, db);
         settlementService = applicationBuilder.buildSettlementService();
     });
 

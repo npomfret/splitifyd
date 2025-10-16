@@ -6,8 +6,6 @@ import { validateCommentId, validateCreateComment, validateListCommentsQuery, va
 import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { CommentService } from '../../../services/CommentService';
-import { FirestoreReader } from '../../../services/firestore';
-import { FirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
 import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
 import { StubAuthService } from '../mocks/StubAuthService';
@@ -21,9 +19,7 @@ describe('CommentService - Consolidated Tests', () => {
         db = new StubFirestoreDatabase();
         stubAuth = new StubAuthService();
 
-        const firestoreReader = new FirestoreReader(db);
-        const firestoreWriter = new FirestoreWriter(db);
-        const applicationBuilder = new ApplicationBuilder(firestoreReader, firestoreWriter, stubAuth);
+        const applicationBuilder = new ApplicationBuilder(stubAuth, db);
 
         commentService = applicationBuilder.buildCommentService();
 
