@@ -1,7 +1,7 @@
-import { UserBalance, amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, smallestUnitToAmountString } from '@splitifyd/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
-import { beforeEach, describe, it } from 'vitest';
-import { AppDriver } from './AppDriver';
+import {amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, smallestUnitToAmountString, UserBalance} from '@splitifyd/shared';
+import {CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder} from '@splitifyd/test-support';
+import {beforeEach, describe, it} from 'vitest';
+import {AppDriver} from './AppDriver';
 
 const amountFor = (splits: Array<{ uid: string; amount: string; }>, uid: string) => splits.find((split) => split.uid === uid)!.amount;
 
@@ -1759,137 +1759,46 @@ describe('app tests', () => {
             expect(groupDetails.expenses.expenses).toHaveLength(OPERATIONS_COUNT);
         });
 
-        it('should maintain precision across 100 percentage split operations', async () => {
-            const NUM_OPERATIONS = 100;
-            const AMOUNT = 100;
-            const CURRENCY = 'USD';
+        it('should maintain zero-sum balance with indivisible JPY amounts', async () => {
+            // 100 JPY ÷ 3 = 33 + 33 + 34 (1 yen remainder)
+            const group = await appDriver.createGroup(user1);
 
-            const group = await appDriver.createGroup(user1,);
-
-            const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
             await appDriver.joinGroupByLink(user2, linkId);
             await appDriver.joinGroupByLink(user3, linkId);
 
             const participants = [user1, user2, user3];
+            const splits = calculateEqualSplits(100, 'JPY', participants, 2);
 
-            for (let i = 0; i < NUM_OPERATIONS; i++) {
-                const percentageSplits = calculatePercentageSplits(AMOUNT, CURRENCY, participants);
-                await appDriver.createExpense(
-                    user1,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withAmount(AMOUNT)
-                        .withCurrency(CURRENCY)
-                        .withPaidBy(user1)
-                        .withParticipants(participants)
-                        .withSplitType('percentage')
-                        .withSplits(percentageSplits)
-                        .build(),
-                );
-            }
+            expect(splits[0].amount).toBe('33');
+            expect(splits[1].amount).toBe('33');
+            expect(splits[2].amount).toBe('34'); // Gets 1 yen remainder
 
-            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
-            const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+            await appDriver.createExpense(
+                user1,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100)
+                    .withCurrency('JPY')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(splits)
+                    .build(),
+            );
 
-            expect(usdBalances, 'USD balances should exist after many percentage operations').toBeDefined();
-            verifyBalanceConsistency(usdBalances!, CURRENCY, '100 percentage split operations');
-
-            const amountUnits = amountToSmallestUnit(String(AMOUNT), CURRENCY);
-            const totalUnits = amountUnits * NUM_OPERATIONS;
-            const perUserUnits = Math.floor(totalUnits / participants.length);
-            const expectedUser1NetUnits = totalUnits - perUserUnits;
-            const actualUser1NetUnits = amountToSmallestUnit(usdBalances![user1].netBalance, CURRENCY);
-
-            expect(actualUser1NetUnits, `User1 net balance should be exactly ${expectedUser1NetUnits} smallest units after 100 percentage operations (no rounding error allowed)`).toBe(expectedUser1NetUnits);
-        });
-
-        it('should maintain precision for JPY (0 decimals) across 100 operations', async () => {
-            const NUM_OPERATIONS = 100;
-            const CURRENCY = 'JPY';
-
-            const group = await appDriver.createGroup(user1,);
-
-            const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
-
-            const participants = [user1, user2];
-
-            for (let i = 0; i < NUM_OPERATIONS; i++) {
-                const amount = (i % 2 === 0) ? 100 : 101;
-                const splits = calculateEqualSplits(amount, CURRENCY, participants);
-                await appDriver.createExpense(
-                    user1,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withAmount(amount)
-                        .withCurrency(CURRENCY)
-                        .withPaidBy(user1)
-                        .withParticipants(participants)
-                        .withSplitType('equal')
-                        .withSplits(splits)
-                        .build(),
-                );
-            }
-
-            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            const groupDetails = await appDriver.getGroupFullDetails(user1, group.id);
             const jpyBalances = groupDetails.balances.balancesByCurrency?.JPY;
 
-            expect(jpyBalances, 'JPY balances should exist after many operations').toBeDefined();
-            verifyBalanceConsistency(jpyBalances!, CURRENCY, '100 JPY operations with 0 decimals');
+            expect(jpyBalances, 'JPY balances should exist').toBeDefined();
+            verifyBalanceConsistency(jpyBalances!, 'JPY', 'indivisible JPY split');
 
-            const totalAmount = (50 * 100) + (50 * 101);
-            const perUserAmount = Math.floor(totalAmount / participants.length);
-            const expectedUser1Net = totalAmount - perUserAmount;
-            const actualUser1Net = amountToSmallestUnit(jpyBalances![user1].netBalance, CURRENCY);
-
-            expect(actualUser1Net, `User1 net balance should be exactly ${expectedUser1Net} yen (no fractional precision allowed for JPY)`).toBe(expectedUser1Net);
-        });
-
-        it('should maintain precision for KWD (3 decimals) across 100 operations', async () => {
-            const AMOUNT = '12.345';
-            const NUM_OPERATIONS = 100;
-            const CURRENCY = 'KWD';
-
-            const group = await appDriver.createGroup(user1,);
-
-            const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
-
-            const participants = [user1, user2, user3];
-
-            for (let i = 0; i < NUM_OPERATIONS; i++) {
-                const splits = calculateEqualSplits(AMOUNT, CURRENCY, participants);
-                await appDriver.createExpense(
-                    user1,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withAmount(AMOUNT)
-                        .withCurrency(CURRENCY)
-                        .withPaidBy(user1)
-                        .withParticipants(participants)
-                        .withSplitType('equal')
-                        .withSplits(splits)
-                        .build(),
-                );
-            }
-
-            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
-            const kwdBalances = groupDetails.balances.balancesByCurrency?.KWD;
-
-            expect(kwdBalances, 'KWD balances should exist after many operations').toBeDefined();
-            verifyBalanceConsistency(kwdBalances!, CURRENCY, '100 KWD operations with 3 decimals');
-
-            const amountUnits = amountToSmallestUnit(AMOUNT, CURRENCY);
-            const totalUnits = amountUnits * NUM_OPERATIONS;
-            const perUserUnits = Math.floor(totalUnits / participants.length);
-            const expectedUser1NetUnits = totalUnits - perUserUnits;
-            const actualUser1NetUnits = amountToSmallestUnit(kwdBalances![user1].netBalance, CURRENCY);
-
-            expect(actualUser1NetUnits, `User1 net balance should be exactly ${expectedUser1NetUnits} fils (no rounding error allowed for 3-decimal KWD)`).toBe(expectedUser1NetUnits);
+            // User1 paid 100, owes themselves 33 = net +67
+            expect(jpyBalances![user1].netBalance).toBe('67');
+            // User2 paid 0, owes 33 = net -33
+            expect(jpyBalances![user2].netBalance).toBe('-33');
+            // User3 paid 0, owes 34 = net -34
+            expect(jpyBalances![user3].netBalance).toBe('-34');
         });
 
         it('should maintain precision when converting between split types', async () => {

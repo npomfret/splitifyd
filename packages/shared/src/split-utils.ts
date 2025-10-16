@@ -98,22 +98,28 @@ export function roundToCurrencyPrecision(amount: Amount | number, currencyCode: 
 
 /**
  * Calculate equal splits for an expense
- * Distributes amount evenly among participants, with any remainder going to the last participant
+ * Distributes amount evenly among participants, with remainder distributed fairly
  *
  * @param totalAmount - Total expense amount
  * @param currencyCode - 3-letter ISO currency code
  * @param participantIds - Array of participant user IDs
+ * @param rotationSeed - Optional seed for remainder rotation (default: uses totalUnits for deterministic distribution)
  * @returns Array of ExpenseSplit objects with currency-aware amounts
  *
  * @example
- * // JPY 100 split 3 ways: [33, 33, 34] (last person gets remainder)
- * calculateEqualSplits(100, 'JPY', ['user1', 'user2', 'user3'])
+ * // JPY 100 split 3 ways: [34, 33, 33] (first person gets remainder with rotationSeed=0)
+ * calculateEqualSplits(100, 'JPY', ['user1', 'user2', 'user3'], 0)
  *
  * @example
- * // USD 100 split 3 ways: [33.33, 33.33, 33.34]
+ * // USD 100 split 3 ways with rotation based on amount (default)
  * calculateEqualSplits(100, 'USD', ['user1', 'user2', 'user3'])
  */
-export function calculateEqualSplits(totalAmount: Amount | number, currencyCode: string, participantIds: string[]): ExpenseSplit[] {
+export function calculateEqualSplits(
+    totalAmount: Amount | number,
+    currencyCode: string,
+    participantIds: string[],
+    rotationSeed?: number,
+): ExpenseSplit[] {
     if (participantIds.length === 0) {
         return [];
     }
@@ -132,12 +138,17 @@ export function calculateEqualSplits(totalAmount: Amount | number, currencyCode:
 
     // Calculate base split in smallest units (integer division)
     const baseUnits = Math.floor(totalUnits / numParticipants);
-    const totalUnitsAllocatedToBase = baseUnits * (numParticipants - 1);
+    const remainder = totalUnits - baseUnits * numParticipants;
 
-    // Calculate splits: all but last get base amount
+    // Determine who gets the remainder
+    // Use rotationSeed if provided (for controlled tests), otherwise use totalUnits (deterministic based on amount)
+    const seed = rotationSeed !== undefined ? rotationSeed : totalUnits;
+    const recipientIndex = seed % numParticipants;
+
+    // Calculate splits: distribute base + remainder to designated participant
     const splits: ExpenseSplit[] = participantIds.map((uid, index) => {
-        const isLastParticipant = index === numParticipants - 1;
-        const amountUnits = isLastParticipant ? totalUnits - totalUnitsAllocatedToBase : baseUnits;
+        const getsRemainder = index === recipientIndex;
+        const amountUnits = baseUnits + (getsRemainder ? remainder : 0);
         return {
             uid,
             amount: smallestUnitToAmountString(amountUnits, currencyCode),
@@ -164,18 +175,24 @@ export function calculateExactSplits(totalAmount: Amount | number, currencyCode:
 
 /**
  * Calculate initial percentage splits for an expense
- * Distributes 100% evenly among participants, with any remainder going to the last participant
+ * Distributes 100% evenly among participants, with remainder distributed fairly
  *
  * @param totalAmount - Total expense amount
  * @param currencyCode - 3-letter ISO currency code
  * @param participantIds - Array of participant user IDs
+ * @param rotationSeed - Optional seed for remainder rotation (default: uses totalUnits for deterministic distribution)
  * @returns Array of ExpenseSplit objects with percentage and calculated amounts
  *
  * @example
- * // 100% split 3 ways: [33.33%, 33.33%, 33.34%]
- * calculatePercentageSplits(100, 'USD', ['user1', 'user2', 'user3'])
+ * // 100% split 3 ways: [33.34%, 33.33%, 33.33%] (first person gets remainder with rotationSeed=0)
+ * calculatePercentageSplits(100, 'USD', ['user1', 'user2', 'user3'], 0)
  */
-export function calculatePercentageSplits(totalAmount: Amount | number, currencyCode: string, participantIds: string[]): ExpenseSplit[] {
+export function calculatePercentageSplits(
+    totalAmount: Amount | number,
+    currencyCode: string,
+    participantIds: string[],
+    rotationSeed?: number,
+): ExpenseSplit[] {
     if (participantIds.length === 0) {
         return [];
     }
@@ -197,12 +214,18 @@ export function calculatePercentageSplits(totalAmount: Amount | number, currency
 
     // Calculate base split in smallest units (integer division)
     const baseUnits = Math.floor(totalUnits / numParticipants);
+    const remainder = totalUnits - baseUnits * numParticipants;
 
-    // Calculate splits: all but last get base percentage and amount
+    // Determine who gets the remainder
+    // Use rotationSeed if provided (for controlled tests), otherwise use totalUnits (deterministic based on amount)
+    const seed = rotationSeed !== undefined ? rotationSeed : totalUnits;
+    const recipientIndex = seed % numParticipants;
+
+    // Calculate splits: distribute base + remainder to designated participant
     const splits: ExpenseSplit[] = participantIds.map((uid, index) => {
-        const isLastParticipant = index === numParticipants - 1;
-        const amountUnits = isLastParticipant ? totalUnits - baseUnits * (numParticipants - 1) : baseUnits;
-        const percentage = isLastParticipant ? 100 - basePercentage * (numParticipants - 1) : basePercentage;
+        const getsRemainder = index === recipientIndex;
+        const amountUnits = baseUnits + (getsRemainder ? remainder : 0);
+        const percentage = getsRemainder ? 100 - basePercentage * (numParticipants - 1) : basePercentage;
         return {
             uid,
             percentage,
