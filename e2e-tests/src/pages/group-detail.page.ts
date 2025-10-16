@@ -300,6 +300,81 @@ export class GroupDetailPage extends BaseGroupDetailPage {
     }
 
     /**
+     * Verify that a currency amount is visible for a specific user within the expenses section
+     * Properly scoped to the Expenses container by its heading
+     * @param payer - The display name of the user who paid (e.g., 'pool user 6dbee5f4')
+     * @param currencyAmount - The formatted currency amount to find (e.g., '¥123', 'BHD 30.500', 'EUR 50.00')
+     */
+    async verifyCurrencyAmountInExpenses(payer: string, currencyAmount: string): Promise<void> {
+        // Find the Expenses section by its heading
+        const expensesHeading = this.page.getByRole('heading', { name: /Expenses/i });
+        await expect(expensesHeading).toBeVisible({ timeout: 2000 });
+
+        // Get the expenses container (parent of the heading)
+        const expensesContainer = this.getExpensesContainer();
+        await expect(expensesContainer).toBeVisible();
+
+        // Find the specific expense item that contains both the payer name and amount
+        // Use polling to wait for the expense to appear
+        await expect(async () => {
+            // Find all expense items
+            const expenseItems = expensesContainer.locator('[data-testid="expense-item"]');
+            const count = await expenseItems.count();
+
+            if (count === 0) {
+                throw new Error('No expense items found yet');
+            }
+
+            // Look for an expense item that has both the payer and amount
+            let found = false;
+            const expenseTexts: Array<{ index: number; text: string; hasPayer: boolean; hasAmount: boolean; }> = [];
+
+            for (let i = 0; i < count; i++) {
+                const item = expenseItems.nth(i);
+                const text = await item.textContent();
+
+                if (text) {
+                    // Normalize spaces: replace non-breaking spaces (U+00A0) with regular spaces
+                    const normalizedText = text.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
+                    const normalizedPayer = payer.replace(/\u00A0/g, ' ').trim();
+                    const normalizedAmount = currencyAmount.replace(/\u00A0/g, ' ').trim();
+
+                    const hasPayer = normalizedText.includes(normalizedPayer);
+                    const hasAmount = normalizedText.includes(normalizedAmount);
+
+                    expenseTexts.push({
+                        index: i,
+                        text: normalizedText,
+                        hasPayer,
+                        hasAmount,
+                    });
+
+                    if (hasPayer && hasAmount) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!found) {
+                const debugInfo = expenseTexts
+                    .map(
+                        (e) =>
+                            `  [${e.index}] hasPayer=${e.hasPayer}, hasAmount=${e.hasAmount}\n     Text: "${e.text.substring(0, 200)}${e.text.length > 200 ? '...' : ''}"`,
+                    )
+                    .join('\n');
+
+                throw new Error(
+                    `No expense found with payer "${payer}" AND amount "${currencyAmount}"\n`
+                        + `Found ${count} expense(s):\n${debugInfo}\n`
+                        + `Looking for payer: "${payer}"\n`
+                        + `Looking for amount: "${currencyAmount}"`,
+                );
+            }
+        }).toPass({ timeout: 5000 });
+    }
+
+    /**
      * Opens the share group modal and returns the ShareGroupModalPage instance.
      * E2E-specific version that returns e2e ShareGroupModalPage
      */

@@ -102,10 +102,11 @@ export class SettlementFormPage extends BasePage {
 
     /**
      * Clear and fill amount field
+     * Note: fill() automatically clears the input first, which should work fine
+     * for number inputs as they don't trigger validation on programmatic clear
      */
     async clearAndFillAmount(amount: string): Promise<void> {
         const input = this.getAmountInput();
-        await input.clear();
         await input.fill(amount);
         await input.blur();
     }

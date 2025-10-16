@@ -346,6 +346,34 @@ export class ExpenseFormPage extends BaseExpenseFormPage {
     }
 
     /**
+     * E2E-specific: Select currency from dropdown
+     * Enhanced version with search functionality
+     * The currency selector is an inline dropdown (not a modal), using role=listbox
+     */
+    async selectCurrency(currencyCode: string): Promise<void> {
+        // Get currency button using base class selector (scoped to Expense Details section by label)
+        const currencyButton = this.getCurrencySelect();
+        await expect(currencyButton).toBeVisible();
+        await this.clickButton(currencyButton, { buttonName: 'Select currency' });
+
+        // Wait for the dropdown to open - it's a listbox, not a modal
+        // Find the search input to confirm dropdown is open
+        const searchInput = this.page.getByPlaceholder('Search by symbol, code, or country...');
+        await expect(searchInput).toBeVisible({ timeout: 2000 });
+
+        // Type in search to filter currencies (optional but helpful for finding specific currency)
+        await this.fillPreactInput(searchInput, currencyCode);
+
+        // Find and click the currency option using role=option (as base class does)
+        const currencyOption = this.page.getByRole('option', { name: new RegExp(currencyCode, 'i') });
+        await expect(currencyOption).toBeVisible({ timeout: 3000 });
+        await this.clickButton(currencyOption, { buttonName: `Select ${currencyCode}` });
+
+        // Verify dropdown closed by checking search input is no longer visible
+        await expect(searchInput).not.toBeVisible({ timeout: 2000 });
+    }
+
+    /**
      * E2E-specific: Complete expense submission workflow
      * Handles currency selection, permission errors, and navigation verification
      */
@@ -354,18 +382,12 @@ export class ExpenseFormPage extends BaseExpenseFormPage {
 
         // Fill form fields
         await this.fillDescription(expense.description);
-        await this.fillAmount(expense.amount.toString());
 
-        // Set currency with enhanced interaction
-        const currencyButton = this.page.getByRole('button', { name: /select currency/i });
-        await currencyButton.click();
-        const searchInput = this.page.getByPlaceholder('Search by symbol, code, or country...');
-        await expect(searchInput).toBeVisible();
-        await searchInput.fill(expense.currency);
-        const currencyOption = this.page.getByText(expense.currency).first();
-        await expect(currencyOption).toBeVisible({ timeout: 3000 });
-        await currencyOption.click();
-        await expect(searchInput).not.toBeVisible();
+        // Set currency FIRST - before filling amount
+        // This ensures amount validation uses the correct currency precision rules
+        await this.selectCurrency(expense.currency);
+
+        await this.fillAmount(expense.amount.toString());
 
         // Select payer using enhanced selector
         await this.selectPayer(expense.paidByDisplayName);

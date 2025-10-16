@@ -13,11 +13,25 @@ import {
     amountToSmallestUnit,
     normalizeAmount,
     isZeroAmount,
-
+    getCurrencyDecimals,
 } from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, CurrencyAmountInput, Form } from '../ui';
+
+/**
+ * Get the maximum allowed amount string for a given currency
+ * Returns a properly formatted amount with correct decimal places
+ * Example: JPY (0 decimals) -> '999999', USD (2 decimals) -> '999999.99'
+ */
+function getMaxAmountForCurrency(currency: string): string {
+    const decimals = getCurrencyDecimals(currency);
+    if (decimals === 0) {
+        return '999999';
+    }
+    const fractionalPart = '9'.repeat(decimals);
+    return `999999.${fractionalPart}`;
+}
 
 interface SettlementFormProps {
     isOpen: boolean;
@@ -211,7 +225,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             return t('settlementForm.validation.validAmountRequired');
         }
 
-        if (currency && amountUnits > amountToSmallestUnit('999999.99', currency)) {
+        if (currency && amountUnits > amountToSmallestUnit(getMaxAmountForCurrency(currency), currency)) {
             return t('settlementForm.validation.amountTooLarge');
         }
 
@@ -280,9 +294,19 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
     // Computed property for form validity
     const isFormValid = (() => {
-        const normalizedAmount = currency ? normalizeAmount(amount, currency) : amount;
-        const amountUnits = currency ? amountToSmallestUnit(normalizedAmount, currency) : 0;
-        return payerId && payeeId && payerId !== payeeId && amount && amountUnits > 0 && amountUnits <= amountToSmallestUnit('999999.99', currency || 'USD') && date && !isDateInFuture(date);
+        if (!payerId || !payeeId || payerId === payeeId || !amount || !date || isDateInFuture(date) || !currency) {
+            return false;
+        }
+
+        try {
+            const normalizedAmount = normalizeAmount(amount, currency);
+            const amountUnits = amountToSmallestUnit(normalizedAmount, currency);
+            const maxUnits = amountToSmallestUnit(getMaxAmountForCurrency(currency), currency);
+            return amountUnits > 0 && amountUnits <= maxUnits;
+        } catch (error) {
+            // If amount validation fails (e.g., too many decimals), form is invalid
+            return false;
+        }
     })();
 
     return (

@@ -115,6 +115,9 @@ export class SettlementFormPage extends BaseSettlementFormPage {
             // Select the target currency from dropdown
             const currencyOption = modal.getByRole('option', { name: settlement.currency });
             await currencyOption.click();
+
+            // Brief wait for currency change to propagate
+            await this.page.waitForTimeout(100);
         }
 
         // Select payer by display name
@@ -165,9 +168,11 @@ export class SettlementFormPage extends BaseSettlementFormPage {
         }
         await payeeSelect.selectOption(payeeValue);
 
-        // Fill amount and note
+        // Fill amount and note inputs
+        // Note: Use fill() instead of fillPreactInput() for amount to avoid triggering validation
+        // when clearing the input. The amount input is empty after currency change, so we can
+        // fill it directly without clearing.
         await amountInput.fill(settlement.amount);
-        await amountInput.blur();
         await this.fillPreactInput(noteInput, settlement.note);
 
         // Defensive check: verify the values persisted (catches real-time update bug)

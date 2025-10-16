@@ -143,6 +143,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withParticipants([user1DisplayName, user2DisplayName])
                 .build(),
         );
+        await groupDetailPage.waitForExpense(`Multi-currency BHD ${uniqueId}`);
+        await groupDetailPage.verifyCurrencyAmountInExpenses(user1DisplayName, 'BHD 30.500');
 
         // PHASE 3: Test KWD (3 decimals) - comprehensive currency test
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
@@ -156,32 +158,12 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withParticipants([user1DisplayName, user2DisplayName])
                 .build(),
         );
+        await groupDetailPage.waitForExpense(`Multi-currency KWD ${uniqueId}`);
+        await groupDetailPage.verifyCurrencyAmountInExpenses(user1DisplayName, 'KWD 5.500');
 
-        // Verify all currency amounts are displayed with correct precision
-        await expect(groupDetailPage.page.getByText('¥123').first()).toBeVisible();
-        await expect(groupDetailPage.page.getByText('BHD 30.500').first()).toBeVisible();
-
-        // Check KWD with flexible format matching
-        const kwdElements = [
-            groupDetailPage.page.getByText('KD5.500').first(),
-            groupDetailPage.page.getByText('KD 5.500').first(),
-            groupDetailPage.page.getByText('5.500 KD').first(),
-            groupDetailPage.page.getByText('KWD 5.500').first(),
-        ];
-
-        let kwdFound = false;
-        for (const element of kwdElements) {
-            try {
-                await expect(element).toBeVisible({ timeout: 1000 });
-                kwdFound = true;
-                break;
-            } catch (e) {
-                // Continue to next format
-            }
-        }
-        if (!kwdFound) {
-            throw new Error('KWD amount not found in any expected format');
-        }
+        // Verify JPY expense (created first) is still visible
+        await groupDetailPage.waitForExpense(`Multi-currency JPY ${uniqueId}`);
+        await groupDetailPage.verifyCurrencyAmountInExpenses(user1DisplayName, '¥123');
 
         // Verify multi-currency balances (separate debt per currency)
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62');
@@ -225,14 +207,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await expenseFormPage.fillDescription(expenseDescription);
         await expenseFormPage.fillAmount('89.99');
 
-        // Set currency to EUR
-        const currencyButton = page.getByRole('button', { name: /select currency/i });
-        await currencyButton.click();
-        const searchInput = page.getByPlaceholder('Search by symbol, code, or country...');
-        await expect(searchInput).toBeVisible();
-        await searchInput.fill('EUR');
-        const currencyOption = page.getByText('Euro (EUR)').first();
-        await currencyOption.click();
+        // Set currency to EUR using page object method
+        await expenseFormPage.selectCurrency('EUR');
 
         // Set yesterday's date and custom time
         await expenseFormPage.clickYesterdayButton();
@@ -387,6 +363,9 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withParticipants([user1DisplayName, user2DisplayName, user3DisplayName])
                 .build(),
         );
+
+        // Wait for expense on creator's page first to allow real-time propagation
+        await groupDetailPage1.waitForExpense(expenseDescription);
 
         // Verify initial state across all pages
         for (const page of pages) {

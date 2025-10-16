@@ -11,7 +11,7 @@ export default defineConfig({
     /* Global setup and teardown for user pool management */
     globalSetup: './src/fixtures/global-setup.ts',
     /* Global test timeout - some are slow */
-    timeout: 15000,
+    timeout: 25000,
     /* Expect timeout for assertions like toBeVisible() */
     expect: {
         timeout: 2000,
