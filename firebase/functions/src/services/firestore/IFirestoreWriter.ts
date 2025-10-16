@@ -23,7 +23,6 @@ import type { CreateUserNotificationDocument } from '../../schemas/user-notifica
 export interface WriteResult {
     id: string;
     success: boolean;
-    timestamp?: Timestamp | Date; // todo: remove this
     error?: string;
 }
 

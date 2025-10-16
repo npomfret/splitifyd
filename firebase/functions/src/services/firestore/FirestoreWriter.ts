@@ -1026,7 +1026,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                     await batch.commit();
 
                     for (const update of chunk) {
-                        allResults.push({ id: update.userId, success: true, timestamp: new Date() });
+                        allResults.push({ id: update.userId, success: true });
                         totalSuccess++;
                     }
 
