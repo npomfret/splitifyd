@@ -1,4 +1,4 @@
-import { ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import { ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
 

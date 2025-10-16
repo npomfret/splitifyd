@@ -1,4 +1,4 @@
-import { amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, smallestUnitToAmountString, UserBalance } from '@splitifyd/shared';
+import { amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, smallestUnitToAmountString } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, it } from 'vitest';
 

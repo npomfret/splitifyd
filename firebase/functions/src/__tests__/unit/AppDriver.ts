@@ -1,7 +1,6 @@
 import {
     CreateCommentResponse,
     CreateExpenseRequest,
-    CreateGroupRequest,
     CreateSettlementRequest,
     CreateSettlementResponse,
     DeleteSettlementResponse,
