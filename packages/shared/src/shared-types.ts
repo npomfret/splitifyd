@@ -873,6 +873,26 @@ export interface DeleteSettlementResponse {
     message: string;
 }
 
+export interface UpdateGroupMemberDisplayNameResponse {
+    success: boolean;
+    message: string;
+}
+
+export interface CreateExpenseResponse {
+    success: boolean;
+    data: ExpenseDTO;
+}
+
+export interface UpdateExpenseResponse {
+    success: boolean;
+    data: ExpenseDTO;
+}
+
+export interface ListCommentsWrapperResponse {
+    success: boolean;
+    data: ListCommentsResponse;
+}
+
 // ========================================================================
 // Balance calculation types
 // ========================================================================

@@ -4,14 +4,19 @@ import {
     CreateSettlementRequest,
     CreateSettlementResponse,
     DeleteSettlementResponse,
+    ExpenseDTO,
     ExpenseFullDetailsDTO,
     GroupDTO,
     GroupFullDetailsDTO,
     JoinGroupResponse,
-    ListCommentsResponse,
+    LeaveGroupResponse,
+    ListCommentsWrapperResponse,
     ListGroupsResponse,
     MessageResponse,
     PreviewGroupResponse,
+    RemoveGroupMemberResponse,
+    ShareLinkResponse,
+    UpdateGroupMemberDisplayNameResponse,
     UpdateGroupRequest,
     UpdateSettlementRequest,
     UpdateSettlementResponse,
@@ -96,13 +101,13 @@ export class AppDriver {
         return (res as any).getJson() as GroupDTO;
     }
 
-    async generateShareableLink(userId1: string, groupId: string): Promise<{ shareablePath: string; linkId: string; }> {
+    async generateShareableLink(userId1: string, groupId: string): Promise<ShareLinkResponse> {
         const req = createStubRequest(userId1, { groupId });
         const res = createStubResponse();
 
         await this.groupShareHandlers.generateShareableLink(req, res);
 
-        return (res as any).getJson();
+        return (res as any).getJson() as ShareLinkResponse;
     }
 
     async joinGroupByLink(userId1: string, linkId: string): Promise<JoinGroupResponse> {
@@ -141,50 +146,50 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string; }> {
+    async leaveGroup(userId: string, groupId: string): Promise<LeaveGroupResponse> {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = createStubResponse();
 
         await this.groupMemberHandlers.leaveGroup(req, res);
 
-        return (res as any).getJson();
+        return (res as any).getJson() as LeaveGroupResponse;
     }
 
-    async removeGroupMember(userId: string, groupId: string, memberId: string): Promise<{ success: true; message: string; }> {
+    async removeGroupMember(userId: string, groupId: string, memberId: string): Promise<RemoveGroupMemberResponse> {
         const req = createStubRequest(userId, {}, { id: groupId, memberId });
         const res = createStubResponse();
 
         await this.groupMemberHandlers.removeGroupMember(req, res);
 
-        return (res as any).getJson();
+        return (res as any).getJson() as RemoveGroupMemberResponse;
     }
 
-    async updateGroupMemberDisplayName(userId: string, groupId: string, displayName: string): Promise<{ success: boolean; message: string; }> {
+    async updateGroupMemberDisplayName(userId: string, groupId: string, displayName: string): Promise<UpdateGroupMemberDisplayNameResponse> {
         const req = createStubRequest(userId, { displayName }, { id: groupId });
         const res = createStubResponse();
 
         await this.groupHandlers.updateGroupMemberDisplayName(req, res);
 
-        return (res as any).getJson();
+        return (res as any).getJson() as UpdateGroupMemberDisplayNameResponse;
     }
 
-    async createExpense(userId1: string, expenseRequest: CreateExpenseRequest) {
+    async createExpense(userId1: string, expenseRequest: CreateExpenseRequest): Promise<ExpenseDTO> {
         const req = createStubRequest(userId1, expenseRequest);
         const res = createStubResponse();
 
         await this.expenseHandlers.createExpense(req, res);
 
-        return (res as any).getJson() as any; // todo: fix the return type
+        return (res as any).getJson() as ExpenseDTO;
     }
 
-    async updateExpense(userId: string, expenseId: string, updateBody: any) {
+    async updateExpense(userId: string, expenseId: string, updateBody: any): Promise<ExpenseDTO> {
         const req = createStubRequest(userId, updateBody);
         req.query = { id: expenseId };
         const res = createStubResponse();
 
         await this.expenseHandlers.updateExpense(req, res);
 
-        return (res as any).getJson() as any; // todo: fix the return type
+        return (res as any).getJson() as ExpenseDTO;
     }
 
     async deleteExpense(userId: string, expenseId: string) {
@@ -243,7 +248,7 @@ export class AppDriver {
         return (res as any).getJson() as CreateCommentResponse;
     }
 
-    async listGroupComments(userId: string, groupId: string): Promise<{ success: boolean; data: ListCommentsResponse; }> {
+    async listGroupComments(userId: string, groupId: string): Promise<ListCommentsWrapperResponse> {
         const req = createStubRequest(userId, {}, { groupId });
         req.path = `/groups/${groupId}/comments`;
         req.query = {};
@@ -251,7 +256,7 @@ export class AppDriver {
 
         await this.commentHandlers.listGroupComments(req, res);
 
-        return (res as any).getJson() as { success: boolean; data: ListCommentsResponse; };
+        return (res as any).getJson() as ListCommentsWrapperResponse;
     }
 
     async createExpenseComment(userId: string, expenseId: string, text: string): Promise<CreateCommentResponse> {
@@ -264,7 +269,7 @@ export class AppDriver {
         return (res as any).getJson() as CreateCommentResponse;
     }
 
-    async listExpenseComments(userId: string, expenseId: string): Promise<{ success: boolean; data: ListCommentsResponse; }> {
+    async listExpenseComments(userId: string, expenseId: string): Promise<ListCommentsWrapperResponse> {
         const req = createStubRequest(userId, {}, { expenseId });
         req.path = `/expenses/${expenseId}/comments`;
         req.query = {};
@@ -272,6 +277,6 @@ export class AppDriver {
 
         await this.commentHandlers.listExpenseComments(req, res);
 
-        return (res as any).getJson() as { success: boolean; data: ListCommentsResponse; };
+        return (res as any).getJson() as ListCommentsWrapperResponse;
     }
 }
