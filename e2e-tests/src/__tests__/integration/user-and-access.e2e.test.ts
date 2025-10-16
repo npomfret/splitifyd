@@ -86,17 +86,17 @@ simpleTest.describe('User Profile Management', () => {
 
         // Test password validation
         await passwordSettingsPage.openPasswordChangeForm();
-        await passwordSettingsPage.fillPreactInput(passwordSettingsPage.getCurrentPasswordInput(), 'currentPass');
-        await passwordSettingsPage.fillPreactInput(passwordSettingsPage.getNewPasswordInput(), '123');
-        await passwordSettingsPage.fillPreactInput(passwordSettingsPage.getConfirmPasswordInput(), '123');
-        await passwordSettingsPage.clickButton(passwordSettingsPage.getUpdatePasswordButton(), { buttonName: 'Update Password' });
-        await expect(passwordPage.getByText('New password must be at least 6 characters long')).toBeVisible();
+        await passwordSettingsPage.fillCurrentPassword('currentPass');
+        await passwordSettingsPage.fillNewPassword('123');
+        await passwordSettingsPage.fillConfirmPassword('123');
+        await passwordSettingsPage.clickUpdatePasswordButton();
+        await passwordSettingsPage.verifyErrorMessage('New password must be at least 6 characters long');
 
         // Test password mismatch
-        await passwordSettingsPage.fillPreactInput(passwordSettingsPage.getNewPasswordInput(), 'newPassword123');
-        await passwordSettingsPage.fillPreactInput(passwordSettingsPage.getConfirmPasswordInput(), 'differentPassword');
-        await passwordSettingsPage.clickButton(passwordSettingsPage.getUpdatePasswordButton(), { buttonName: 'Update Password' });
-        await expect(passwordPage.getByText('Passwords do not match')).toBeVisible();
+        await passwordSettingsPage.fillNewPassword('newPassword123');
+        await passwordSettingsPage.fillConfirmPassword('differentPassword');
+        await passwordSettingsPage.clickUpdatePasswordButton();
+        await passwordSettingsPage.verifyErrorMessage('Passwords do not match');
 
         // Test successful password change
         await passwordSettingsPage.cancelPasswordChange();
@@ -106,11 +106,11 @@ simpleTest.describe('User Profile Management', () => {
 
         // Test password change cancellation
         await passwordSettingsPage.openPasswordChangeForm();
-        await passwordSettingsPage.fillPreactInput(passwordSettingsPage.getCurrentPasswordInput(), 'somePassword');
-        await passwordSettingsPage.fillPreactInput(passwordSettingsPage.getNewPasswordInput(), 'newPassword123');
+        await passwordSettingsPage.fillCurrentPassword('somePassword');
+        await passwordSettingsPage.fillNewPassword('newPassword123');
         await passwordSettingsPage.cancelPasswordChange();
         await passwordSettingsPage.verifyPasswordFormVisible(false);
-        await expect(passwordSettingsPage.getChangePasswordButton()).toBeVisible();
+        await passwordSettingsPage.verifyChangePasswordButtonVisible();
     });
 });
 
@@ -127,7 +127,7 @@ simpleTest.describe('User Registration & Account Management', () => {
         await registerPage.register(displayName, email, password);
 
         await expect(page).toHaveURL(/\/dashboard/);
-        await expect(page.getByText(displayName).first()).toBeVisible();
+        await registerPage.verifyUserDisplayNameVisible(displayName);
     });
 
     simpleTest('comprehensive registration flow with loading states, validation, and error handling', async ({ newEmptyBrowser }) => {
@@ -146,8 +146,7 @@ simpleTest.describe('User Registration & Account Management', () => {
         await registerPage.fillRegistrationForm(displayName, email, password);
         await registerPage.acceptAllPolicies();
 
-        const submitButton = registerPage.getSubmitButton();
-        await expect(submitButton).toBeEnabled();
+        await registerPage.verifySubmitButtonEnabled();
 
         await registerPage.submitForm();
 
@@ -192,10 +191,8 @@ simpleTest.describe('User Registration & Account Management', () => {
         await registerPage.expectUrl(/\/register/);
 
         // Verify error message appears and form persistence
-        const errorElement = registerPage.getErrorContainer();
-        await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
-        const errorText = await errorElement.textContent();
-        expect(errorText?.toLowerCase()).toMatch(/email.*already.*exists|email.*in use|account.*exists|email.*registered/);
+        await registerPage.verifyErrorContainerVisible();
+        await registerPage.verifyErrorMessageMatches(/email.*already.*exists|email.*in use|account.*exists|email.*registered/);
 
         // Verify 409 error in console
         const errorInConsole = consoleMessages.some((msg) => {
@@ -205,10 +202,8 @@ simpleTest.describe('User Registration & Account Management', () => {
         expect(errorInConsole).toBe(true);
 
         // Test form persistence (user doesn't lose their input)
-        const nameInput = registerPage.getNameInput();
-        const emailInput = registerPage.getEmailInput();
-        await expect(nameInput).toHaveValue(displayName);
-        await expect(emailInput).toHaveValue(email);
+        await registerPage.verifyNameInputValue(displayName);
+        await registerPage.verifyEmailInputValue(email);
 
         // Test 3: Recovery by changing email and additional loading state tests
         const newEmail = generateTestEmail('recovery');
@@ -252,16 +247,16 @@ simpleTest.describe('Policy Acceptance', () => {
                 await homepagePage.getHeadingByLevel(1).filter({ hasText: heading }).first().waitFor();
 
                 // Wait for policy content to fully load - the loading spinner should disappear
-                await expect(page.locator('.animate-spin')).toBeHidden({ timeout: 5000 });
+                await homepagePage.verifyLoadingSpinnerHidden();
             }
 
             // Test footer navigation from login page
             await page.goto('/login');
-            await homepagePage.getTermsLink().click();
+            await homepagePage.clickTermsLink();
             await expect(page).toHaveURL(/\/terms/);
 
             await page.goto('/login');
-            await homepagePage.getPrivacyLink().click();
+            await homepagePage.clickPrivacyLink();
             await expect(page).toHaveURL(/\/privacy/);
         });
     });
@@ -273,34 +268,32 @@ simpleTest.describe('Policy Acceptance', () => {
             await registerPage.navigate();
 
             // Verify both checkboxes and links are present
-            await expect(registerPage.getTermsCheckbox()).toBeVisible();
-            await expect(registerPage.getCookiesCheckbox()).toBeVisible();
-            await expect(registerPage.getTermsLink()).toBeVisible();
-            await expect(registerPage.getCookiePolicyLink()).toBeVisible();
+            await registerPage.verifyTermsCheckboxVisible();
+            await registerPage.verifyCookiesCheckboxVisible();
+            await registerPage.verifyTermsLinkVisible();
+            await registerPage.verifyCookiePolicyLinkVisible();
 
             // Fill form completely
-            await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
-            await registerPage.fillPreactInput('input[placeholder="Enter your email"]', generateTestEmail());
-            await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', DEFAULT_PASSWORD);
-            await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', DEFAULT_PASSWORD);
-
-            const submitButton = registerPage.getSubmitButton();
+            await registerPage.fillName('Test User');
+            await registerPage.fillEmail(generateTestEmail());
+            await registerPage.fillPassword(DEFAULT_PASSWORD);
+            await registerPage.fillConfirmPassword(DEFAULT_PASSWORD);
 
             // Submit should be disabled with no checkboxes
-            await expect(submitButton).toBeDisabled();
+            await registerPage.verifySubmitButtonDisabled();
 
             // Submit should be disabled with only terms checked
             await registerPage.checkTermsCheckbox();
-            await expect(submitButton).toBeDisabled();
+            await registerPage.verifySubmitButtonDisabled();
 
             // Submit should be disabled with only cookie policy checked
             await registerPage.uncheckTermsCheckbox();
             await registerPage.checkCookieCheckbox();
-            await expect(submitButton).toBeDisabled();
+            await registerPage.verifySubmitButtonDisabled();
 
             // Submit should be enabled with both checked
             await registerPage.checkTermsCheckbox();
-            await expect(submitButton).toBeEnabled();
+            await registerPage.verifySubmitButtonEnabled();
         });
     });
 
@@ -409,21 +402,19 @@ simpleTest.describe('Policy Acceptance', () => {
             await policyModal.waitForModalToAppear();
 
             // Verify modal structure
-            await expect(policyModal.title).toBeVisible();
-            await expect(policyModal.subtitle).toBeVisible();
-            await expect(policyModal.progressBar).toBeVisible();
-            await expect(policyModal.policyCard).toBeVisible();
+            await policyModal.verifyTitleVisible();
+            await policyModal.verifySubtitleVisible();
+            await policyModal.verifyProgressBarVisible();
+            await policyModal.verifyPolicyCardVisible();
 
             await policyModal.waitForPolicyContentToLoad();
 
             // Verify policy acceptance elements
-            await expect(policyModal.acceptanceCheckbox).toBeVisible();
-            await expect(policyModal.acceptanceLabel).toBeVisible();
+            await policyModal.verifyAcceptanceCheckboxVisible();
+            await policyModal.verifyAcceptanceLabelVisible();
 
             // Verify policy name is displayed (should be some policy content)
-            const policyName = await policyModal.getCurrentPolicyName();
-            expect(policyName).toBeTruthy();
-            expect(policyName.length).toBeGreaterThan(5); // Should have some meaningful content
+            await policyModal.verifyPolicyNameHasContent(5);
 
             // Complete acceptance - use acceptMultiplePoliciesSequentially since there may be
             // multiple policies pending (the test only updates one, but system shows all pending)

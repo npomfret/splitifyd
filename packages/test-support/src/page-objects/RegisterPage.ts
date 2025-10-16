@@ -570,4 +570,24 @@ export class RegisterPage extends BasePage {
     async verifyPasswordInputVisible(): Promise<void> {
         await expect(this.getPasswordInput()).toBeVisible();
     }
+
+    /**
+     * Verify error message matches pattern
+     * Uses Playwright's polling to handle async error display
+     */
+    async verifyErrorMessageMatches(pattern: RegExp): Promise<void> {
+        await expect(async () => {
+            const errorElement = this.getErrorContainer();
+            await expect(errorElement).toBeVisible({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
+            const errorText = await errorElement.textContent();
+            expect(errorText?.toLowerCase()).toMatch(pattern);
+        }).toPass({ timeout: 5000 });
+    }
+
+    /**
+     * Verify user display name is visible on page after navigation
+     */
+    async verifyUserDisplayNameVisible(displayName: string): Promise<void> {
+        await expect(this.page.getByText(displayName).first()).toBeVisible();
+    }
 }

@@ -263,7 +263,7 @@ test.describe('Network & Server Error Handling', () => {
         await loginPage.navigate();
 
         // Page should still render even if API calls fail
-        await expect(loginPage.getSignInHeading()).toBeVisible({ timeout: 5000 });
+        await loginPage.verifySignInHeadingVisible(5000);
 
         // Should not have unhandled errors (handled network errors are ok)
         // This is a basic check - app should handle network failures gracefully

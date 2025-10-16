@@ -145,4 +145,31 @@ export class PolicyAcceptanceModalPage extends BasePage {
             expect(policyName.length).toBeGreaterThan(minLength);
         }).toPass({ timeout: 5000 });
     }
+
+    /**
+     * Verify modal structure elements are visible
+     */
+    async verifyTitleVisible(): Promise<void> {
+        await expect(this.title).toBeVisible();
+    }
+
+    async verifySubtitleVisible(): Promise<void> {
+        await expect(this.subtitle).toBeVisible();
+    }
+
+    async verifyProgressBarVisible(): Promise<void> {
+        await expect(this.progressBar).toBeVisible();
+    }
+
+    async verifyPolicyCardVisible(): Promise<void> {
+        await expect(this.policyCard).toBeVisible();
+    }
+
+    async verifyAcceptanceCheckboxVisible(): Promise<void> {
+        await expect(this.acceptanceCheckbox).toBeVisible();
+    }
+
+    async verifyAcceptanceLabelVisible(): Promise<void> {
+        await expect(this.acceptanceLabel).toBeVisible();
+    }
 }
