@@ -1,44 +1,26 @@
-import { createStubRequest, createStubResponse, PolicyDocumentBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { PolicyHandlers } from '../../../policies/PolicyHandlers';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { FirestoreReader } from '../../../services/firestore';
-import { FirestoreWriter } from '../../../services/firestore';
-import { StubAuthService } from '../mocks/StubAuthService';
+import { AppDriver } from '../AppDriver';
 
-describe('PolicyHandlers', () => {
-    let db: StubFirestoreDatabase;
-    let stubAuth: StubAuthService;
-    let policyHandlers: PolicyHandlers;
+describe('PolicyHandlers - Unit Tests', () => {
+    let appDriver: AppDriver;
 
     beforeEach(() => {
-        db = new StubFirestoreDatabase();
-        stubAuth = new StubAuthService();
-        const firestoreReader = new FirestoreReader(db);
-        const firestoreWriter = new FirestoreWriter(db);
-        const applicationBuilder = new ApplicationBuilder(firestoreReader, firestoreWriter, stubAuth);
-        policyHandlers = new PolicyHandlers(applicationBuilder.buildPolicyService());
+        appDriver = new AppDriver();
     });
 
     describe('createPolicy', () => {
         it('should create a new policy successfully with valid data', async () => {
             const userId = 'admin-user';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            const policyData = {
+            const result = await appDriver.createPolicy(userId, {
                 policyName: 'Terms of Service',
                 text: 'These are the terms...',
-            };
+            });
 
-            const req = createStubRequest(userId, policyData);
-            const res = createStubResponse();
-
-            await policyHandlers.createPolicy(req, res);
-
-            expect((res as any).getStatus()).toBe(HTTP_STATUS.CREATED);
-            const json = (res as any).getJson();
-            expect(json).toMatchObject({
+            expect(result).toMatchObject({
                 success: true,
                 id: expect.any(String),
                 versionHash: expect.any(String),
@@ -48,63 +30,44 @@ describe('PolicyHandlers', () => {
 
         it('should reject creation with missing policy name', async () => {
             const userId = 'admin-user';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            const policyData = {
-                text: 'Some policy text',
-            };
-
-            const req = createStubRequest(userId, policyData);
-            const res = createStubResponse();
-
-            await expect(policyHandlers.createPolicy(req, res)).rejects.toThrow('Policy name is required');
+            await expect(appDriver.createPolicy(userId, { policyName: '', text: 'Some policy text' } as any)).rejects.toThrow();
         });
 
         it('should reject creation with missing text', async () => {
             const userId = 'admin-user';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            const policyData = {
-                policyName: 'Privacy Policy',
-            };
-
-            const req = createStubRequest(userId, policyData);
-            const res = createStubResponse();
-
-            await expect(policyHandlers.createPolicy(req, res)).rejects.toThrow('Policy text is required');
+            await expect(appDriver.createPolicy(userId, { policyName: 'Privacy Policy', text: '' } as any)).rejects.toThrow();
         });
 
         it('should reject creation when policy already exists', async () => {
             const userId = 'admin-user';
-            const policyId = 'terms-of-service';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            db.seedPolicy(policyId, new PolicyDocumentBuilder().withId(policyId).build());
-
-            const policyData = {
+            await appDriver.createPolicy(userId, {
                 policyName: 'Terms of Service',
-                text: 'Updated terms...',
-            };
+                text: 'Original terms...',
+            });
 
-            const req = createStubRequest(userId, policyData);
-            const res = createStubResponse();
-
-            await expect(policyHandlers.createPolicy(req, res)).rejects.toThrow('Policy already exists');
+            await expect(
+                appDriver.createPolicy(userId, {
+                    policyName: 'Terms of Service',
+                    text: 'Updated terms...',
+                }),
+            ).rejects.toThrow('Policy already exists');
         });
     });
 
     describe('listPolicies', () => {
         it('should return empty list when no policies exist', async () => {
             const userId = 'admin-user';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            const req = createStubRequest(userId, {});
-            const res = createStubResponse();
+            const result = await appDriver.listPolicies(userId);
 
-            await policyHandlers.listPolicies(req, res);
-
-            const json = (res as any).getJson();
-            expect(json).toMatchObject({
+            expect(result).toMatchObject({
                 policies: [],
                 count: 0,
             });
@@ -112,21 +75,24 @@ describe('PolicyHandlers', () => {
 
         it('should return all policies when they exist', async () => {
             const userId = 'admin-user';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            db.seedPolicy('policy-1', new PolicyDocumentBuilder().withId('policy-1').build());
-            db.seedPolicy('policy-2', new PolicyDocumentBuilder().withId('policy-2').build());
+            const policy1 = await appDriver.createPolicy(userId, {
+                policyName: 'Policy One',
+                text: 'First policy text',
+            });
 
-            const req = createStubRequest(userId, {});
-            const res = createStubResponse();
+            const policy2 = await appDriver.createPolicy(userId, {
+                policyName: 'Policy Two',
+                text: 'Second policy text',
+            });
 
-            await policyHandlers.listPolicies(req, res);
+            const result = await appDriver.listPolicies(userId);
 
-            const json = (res as any).getJson();
-            expect(json).toMatchObject({
+            expect(result).toMatchObject({
                 policies: expect.arrayContaining([
-                    expect.objectContaining({ id: 'policy-1' }),
-                    expect.objectContaining({ id: 'policy-2' }),
+                    expect.objectContaining({ id: policy1.id }),
+                    expect.objectContaining({ id: policy2.id }),
                 ]),
                 count: 2,
             });
@@ -136,22 +102,17 @@ describe('PolicyHandlers', () => {
     describe('getPolicy', () => {
         it('should return policy details for valid policy ID', async () => {
             const userId = 'admin-user';
-            const policyId = 'privacy-policy';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            db.seedPolicy(
-                policyId,
-                new PolicyDocumentBuilder().withId(policyId).withPolicyName('Privacy Policy').build(),
-            );
+            const created = await appDriver.createPolicy(userId, {
+                policyName: 'Privacy Policy',
+                text: 'This is the privacy policy',
+            });
 
-            const req = createStubRequest(userId, {}, { id: policyId });
-            const res = createStubResponse();
+            const result = await appDriver.getPolicy(userId, created.id);
 
-            await policyHandlers.getPolicy(req, res);
-
-            const json = (res as any).getJson();
-            expect(json).toMatchObject({
-                id: policyId,
+            expect(result).toMatchObject({
+                id: created.id,
                 policyName: 'Privacy Policy',
                 currentVersionHash: expect.any(String),
                 versions: expect.any(Object),
@@ -161,35 +122,27 @@ describe('PolicyHandlers', () => {
         it('should reject request for non-existent policy', async () => {
             const userId = 'admin-user';
             const policyId = 'non-existent-policy';
-            stubAuth.setUser(userId, { uid: userId });
 
-            const req = createStubRequest(userId, {}, { id: policyId });
-            const res = createStubResponse();
+            appDriver.seedUser(userId, {});
 
-            await expect(policyHandlers.getPolicy(req, res)).rejects.toThrow('Policy not found');
+            await expect(appDriver.getPolicy(userId, policyId)).rejects.toThrow('Policy not found');
         });
     });
 
     describe('getPolicyVersion', () => {
         it('should return specific policy version content', async () => {
             const userId = 'admin-user';
-            const policyId = 'terms-of-service';
-            const versionHash = 'test-hash-123';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            db.seedPolicy(
-                policyId,
-                new PolicyDocumentBuilder().withId(policyId).withVersionText(versionHash, 'Version 1 text').build(),
-            );
+            const created = await appDriver.createPolicy(userId, {
+                policyName: 'Terms of Service',
+                text: 'Version 1 text',
+            });
 
-            const req = createStubRequest(userId, {}, { id: policyId, hash: versionHash });
-            const res = createStubResponse();
+            const result = await appDriver.getPolicyVersion(userId, created.id, created.versionHash);
 
-            await policyHandlers.getPolicyVersion(req, res);
-
-            const json = (res as any).getJson();
-            expect(json).toMatchObject({
-                versionHash,
+            expect(result).toMatchObject({
+                versionHash: created.versionHash,
                 text: 'Version 1 text',
                 createdAt: expect.any(String),
             });
@@ -199,49 +152,43 @@ describe('PolicyHandlers', () => {
             const userId = 'admin-user';
             const policyId = 'non-existent-policy';
             const versionHash = 'some-hash';
-            stubAuth.setUser(userId, { uid: userId });
 
-            const req = createStubRequest(userId, {}, { id: policyId, hash: versionHash });
-            const res = createStubResponse();
+            appDriver.seedUser(userId, {});
 
-            await expect(policyHandlers.getPolicyVersion(req, res)).rejects.toThrow('Policy not found');
+            await expect(appDriver.getPolicyVersion(userId, policyId, versionHash)).rejects.toThrow('Policy not found');
         });
 
         it('should reject request for non-existent version', async () => {
             const userId = 'admin-user';
-            const policyId = 'terms-of-service';
-            const versionHash = 'non-existent-hash';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            db.seedPolicy(policyId, new PolicyDocumentBuilder().withId(policyId).build());
+            const created = await appDriver.createPolicy(userId, {
+                policyName: 'Terms of Service',
+                text: 'Original text',
+            });
 
-            const req = createStubRequest(userId, {}, { id: policyId, hash: versionHash });
-            const res = createStubResponse();
-
-            await expect(policyHandlers.getPolicyVersion(req, res)).rejects.toThrow('Policy version not found');
+            await expect(appDriver.getPolicyVersion(userId, created.id, 'non-existent-hash')).rejects.toThrow(
+                'Policy version not found',
+            );
         });
     });
 
     describe('updatePolicy', () => {
         it('should create new draft version without publishing', async () => {
             const userId = 'admin-user';
-            const policyId = 'privacy-policy';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            db.seedPolicy(policyId, new PolicyDocumentBuilder().withId(policyId).build());
+            const created = await appDriver.createPolicy(userId, {
+                policyName: 'Privacy Policy',
+                text: 'Original text',
+            });
 
-            const updateData = {
+            const result = await appDriver.updatePolicy(userId, created.id, {
                 text: 'Updated policy text',
                 publish: false,
-            };
+            });
 
-            const req = createStubRequest(userId, updateData, { id: policyId });
-            const res = createStubResponse();
-
-            await policyHandlers.updatePolicy(req, res);
-
-            const json = (res as any).getJson();
-            expect(json).toMatchObject({
+            expect(result).toMatchObject({
                 success: true,
                 versionHash: expect.any(String),
                 published: false,
@@ -251,23 +198,19 @@ describe('PolicyHandlers', () => {
 
         it('should create and publish new version when publish is true', async () => {
             const userId = 'admin-user';
-            const policyId = 'privacy-policy';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            db.seedPolicy(policyId, new PolicyDocumentBuilder().withId(policyId).build());
+            const created = await appDriver.createPolicy(userId, {
+                policyName: 'Privacy Policy',
+                text: 'Original text',
+            });
 
-            const updateData = {
+            const result = await appDriver.updatePolicy(userId, created.id, {
                 text: 'Updated and published text',
                 publish: true,
-            };
+            });
 
-            const req = createStubRequest(userId, updateData, { id: policyId });
-            const res = createStubResponse();
-
-            await policyHandlers.updatePolicy(req, res);
-
-            const json = (res as any).getJson();
-            expect(json).toMatchObject({
+            expect(result).toMatchObject({
                 success: true,
                 versionHash: expect.any(String),
                 currentVersionHash: expect.any(String),
@@ -278,136 +221,113 @@ describe('PolicyHandlers', () => {
 
         it('should reject update with missing text', async () => {
             const userId = 'admin-user';
-            const policyId = 'privacy-policy';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            db.seedPolicy(policyId, new PolicyDocumentBuilder().withId(policyId).build());
+            const created = await appDriver.createPolicy(userId, {
+                policyName: 'Privacy Policy',
+                text: 'Original text',
+            });
 
-            const updateData = {
-                publish: false,
-            };
-
-            const req = createStubRequest(userId, updateData, { id: policyId });
-            const res = createStubResponse();
-
-            await expect(policyHandlers.updatePolicy(req, res)).rejects.toThrow('Policy text is required');
+            await expect(
+                appDriver.updatePolicy(userId, created.id, {
+                    text: '',
+                    publish: false,
+                } as any),
+            ).rejects.toThrow();
         });
 
         it('should reject update for non-existent policy', async () => {
             const userId = 'admin-user';
             const policyId = 'non-existent-policy';
-            stubAuth.setUser(userId, { uid: userId });
 
-            const updateData = {
-                text: 'Some updated text',
-            };
+            appDriver.seedUser(userId, {});
 
-            const req = createStubRequest(userId, updateData, { id: policyId });
-            const res = createStubResponse();
-
-            await expect(policyHandlers.updatePolicy(req, res)).rejects.toThrow('Policy not found');
+            await expect(
+                appDriver.updatePolicy(userId, policyId, {
+                    text: 'Some updated text',
+                }),
+            ).rejects.toThrow('Policy not found');
         });
     });
 
     describe('publishPolicy', () => {
         it('should publish an existing draft version', async () => {
             const userId = 'admin-user';
-            const policyId = 'cookie-policy';
-            const versionHash = 'draft-hash-456';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            db.seedPolicy(
-                policyId,
-                new PolicyDocumentBuilder().withId(policyId).withVersionText(versionHash, 'Draft version').build(),
-            );
+            const created = await appDriver.createPolicy(userId, {
+                policyName: 'Cookie Policy',
+                text: 'Original version',
+            });
 
-            const publishData = {
-                versionHash,
-            };
+            const updated = await appDriver.updatePolicy(userId, created.id, {
+                text: 'Draft version',
+                publish: false,
+            });
 
-            const req = createStubRequest(userId, publishData, { id: policyId });
-            const res = createStubResponse();
+            const result = await appDriver.publishPolicy(userId, created.id, updated.versionHash);
 
-            await policyHandlers.publishPolicy(req, res);
-
-            const json = (res as any).getJson();
-            expect(json).toMatchObject({
+            expect(result).toMatchObject({
                 success: true,
                 message: 'Policy published successfully',
-                currentVersionHash: versionHash,
+                currentVersionHash: updated.versionHash,
             });
         });
 
         it('should reject publish with missing version hash', async () => {
             const userId = 'admin-user';
-            const policyId = 'cookie-policy';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            db.seedPolicy(policyId, new PolicyDocumentBuilder().withId(policyId).build());
+            const created = await appDriver.createPolicy(userId, {
+                policyName: 'Cookie Policy',
+                text: 'Original text',
+            });
 
-            const publishData = {};
-
-            const req = createStubRequest(userId, publishData, { id: policyId });
-            const res = createStubResponse();
-
-            await expect(policyHandlers.publishPolicy(req, res)).rejects.toThrow('Version hash is required');
+            await expect(appDriver.publishPolicy(userId, created.id, '' as any)).rejects.toThrow();
         });
 
         it('should reject publish for non-existent policy', async () => {
             const userId = 'admin-user';
             const policyId = 'non-existent-policy';
-            stubAuth.setUser(userId, { uid: userId });
 
-            const publishData = {
-                versionHash: 'some-hash',
-            };
+            appDriver.seedUser(userId, {});
 
-            const req = createStubRequest(userId, publishData, { id: policyId });
-            const res = createStubResponse();
-
-            await expect(policyHandlers.publishPolicy(req, res)).rejects.toThrow('Policy not found');
+            await expect(appDriver.publishPolicy(userId, policyId, 'some-hash')).rejects.toThrow('Policy not found');
         });
 
         it('should reject publish for non-existent version', async () => {
             const userId = 'admin-user';
-            const policyId = 'cookie-policy';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            db.seedPolicy(policyId, new PolicyDocumentBuilder().withId(policyId).build());
+            const created = await appDriver.createPolicy(userId, {
+                policyName: 'Cookie Policy',
+                text: 'Original text',
+            });
 
-            const publishData = {
-                versionHash: 'non-existent-hash',
-            };
-
-            const req = createStubRequest(userId, publishData, { id: policyId });
-            const res = createStubResponse();
-
-            await expect(policyHandlers.publishPolicy(req, res)).rejects.toThrow('Policy version not found');
+            await expect(appDriver.publishPolicy(userId, created.id, 'non-existent-hash')).rejects.toThrow(
+                'Policy version not found',
+            );
         });
     });
 
     describe('deletePolicyVersion', () => {
         it('should delete a non-current version successfully', async () => {
             const userId = 'admin-user';
-            const policyId = 'terms-of-service';
-            const currentHash = 'current-hash';
-            const oldHash = 'old-hash';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            const policy = new PolicyDocumentBuilder().withId(policyId).withVersionText(currentHash, 'Current').build();
-            policy.versions[oldHash] = {
+            const created = await appDriver.createPolicy(userId, {
+                policyName: 'Terms of Service',
+                text: 'Current version',
+            });
+
+            const draft = await appDriver.updatePolicy(userId, created.id, {
                 text: 'Old version',
-                createdAt: new Date().toISOString(),
-            };
-            db.seedPolicy(policyId, policy);
+                publish: false,
+            });
 
-            const req = createStubRequest(userId, {}, { id: policyId, hash: oldHash });
-            const res = createStubResponse();
+            const result = await appDriver.deletePolicyVersion(userId, created.id, draft.versionHash);
 
-            await policyHandlers.deletePolicyVersion(req, res);
-
-            const json = (res as any).getJson();
-            expect(json).toMatchObject({
+            expect(result).toMatchObject({
                 success: true,
                 message: 'Policy version deleted successfully',
             });
@@ -415,44 +335,35 @@ describe('PolicyHandlers', () => {
 
         it('should reject deletion of current version', async () => {
             const userId = 'admin-user';
-            const policyId = 'terms-of-service';
-            const currentHash = 'current-hash';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            db.seedPolicy(
-                policyId,
-                new PolicyDocumentBuilder().withId(policyId).withVersionText(currentHash, 'Current').build(),
-            );
+            const created = await appDriver.createPolicy(userId, {
+                policyName: 'Terms of Service',
+                text: 'Current version',
+            });
 
-            const req = createStubRequest(userId, {}, { id: policyId, hash: currentHash });
-            const res = createStubResponse();
-
-            await expect(policyHandlers.deletePolicyVersion(req, res)).rejects.toThrow(
+            await expect(appDriver.deletePolicyVersion(userId, created.id, created.versionHash)).rejects.toThrow(
                 'Cannot delete the current published version',
             );
         });
 
         it('should reject deletion when it would leave no versions', async () => {
             const userId = 'admin-user';
-            const policyId = 'terms-of-service';
-            const currentHash = 'current-hash';
-            const draftHash = 'draft-hash';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            const policy = new PolicyDocumentBuilder().withId(policyId).withVersionText(currentHash, 'Current').build();
-            policy.versions[draftHash] = {
+            const created = await appDriver.createPolicy(userId, {
+                policyName: 'Terms of Service',
+                text: 'Current version',
+            });
+
+            const draft = await appDriver.updatePolicy(userId, created.id, {
                 text: 'Draft version',
-                createdAt: new Date().toISOString(),
-            };
-            db.seedPolicy(policyId, policy);
+                publish: false,
+            });
 
-            const req = createStubRequest(userId, {}, { id: policyId, hash: draftHash });
-            const res = createStubResponse();
+            const result = await appDriver.deletePolicyVersion(userId, created.id, draft.versionHash);
 
-            await policyHandlers.deletePolicyVersion(req, res);
-
-            const json = (res as any).getJson();
-            expect(json).toMatchObject({
+            expect(result).toMatchObject({
                 success: true,
                 message: 'Policy version deleted successfully',
             });
@@ -462,37 +373,33 @@ describe('PolicyHandlers', () => {
             const userId = 'admin-user';
             const policyId = 'non-existent-policy';
             const versionHash = 'some-hash';
-            stubAuth.setUser(userId, { uid: userId });
 
-            const req = createStubRequest(userId, {}, { id: policyId, hash: versionHash });
-            const res = createStubResponse();
+            appDriver.seedUser(userId, {});
 
-            await expect(policyHandlers.deletePolicyVersion(req, res)).rejects.toThrow('Policy not found');
+            await expect(appDriver.deletePolicyVersion(userId, policyId, versionHash)).rejects.toThrow('Policy not found');
         });
 
         it('should reject deletion for non-existent version', async () => {
             const userId = 'admin-user';
-            const policyId = 'terms-of-service';
-            const currentHash = 'current-hash';
-            const oldHash = 'old-hash';
-            const nonExistentHash = 'non-existent-hash';
-            stubAuth.setUser(userId, { uid: userId });
+            appDriver.seedUser(userId, {});
 
-            const policy = new PolicyDocumentBuilder().withId(policyId).withVersionText(currentHash, 'Current').build();
-            policy.versions[oldHash] = {
+            const created = await appDriver.createPolicy(userId, {
+                policyName: 'Terms of Service',
+                text: 'Current version',
+            });
+
+            await appDriver.updatePolicy(userId, created.id, {
                 text: 'Old version',
-                createdAt: new Date().toISOString(),
-            };
-            db.seedPolicy(policyId, policy);
+                publish: false,
+            });
 
-            const req = createStubRequest(userId, {}, { id: policyId, hash: nonExistentHash });
-            const res = createStubResponse();
-
-            await expect(policyHandlers.deletePolicyVersion(req, res)).rejects.toThrow('Version not found');
+            await expect(appDriver.deletePolicyVersion(userId, created.id, 'non-existent-hash')).rejects.toThrow(
+                'Version not found',
+            );
         });
     });
 
-    describe('static factory method', () => {
+    describe('Static Factory Method', () => {
         it('should create PolicyHandlers instance with default ApplicationBuilder', () => {
             const handlers = PolicyHandlers.createPolicyHandlers();
             expect(handlers).toBeInstanceOf(PolicyHandlers);

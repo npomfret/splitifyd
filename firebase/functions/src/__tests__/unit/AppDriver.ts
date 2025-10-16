@@ -1,7 +1,9 @@
 import {
     CommentDTO,
     CreateExpenseRequest,
+    CreatePolicyResponse,
     CreateSettlementRequest,
+    DeletePolicyVersionResponse,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
     GroupDTO,
@@ -11,11 +13,13 @@ import {
     ListGroupsResponse,
     MessageResponse,
     PreviewGroupResponse,
+    PublishPolicyResponse,
     RegisteredUser,
     SettlementDTO,
     SettlementWithMembers,
     ShareLinkResponse,
     UpdateGroupRequest,
+    UpdatePolicyResponse,
     UpdateSettlementRequest,
 } from '@splitifyd/shared/src';
 import { CreateGroupRequestBuilder, createStubRequest, createStubResponse, StubFirestoreDatabase } from '@splitifyd/test-support';
@@ -24,6 +28,7 @@ import { ExpenseHandlers } from '../../expenses/ExpenseHandlers';
 import { GroupHandlers } from '../../groups/GroupHandlers';
 import { GroupMemberHandlers } from '../../groups/GroupMemberHandlers';
 import { GroupShareHandlers } from '../../groups/GroupShareHandlers';
+import { PolicyHandlers } from '../../policies/PolicyHandlers';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreReader, FirestoreWriter } from '../../services/firestore';
 import { SettlementHandlers } from '../../settlements/SettlementHandlers';
@@ -53,6 +58,7 @@ export class AppDriver {
     private expenseHandlers = new ExpenseHandlers(this.applicationBuilder.buildExpenseService());
     private commentHandlers = new CommentHandlers(this.applicationBuilder.buildCommentService());
     private userHandlers = new UserHandlers(this.applicationBuilder.buildUserService());
+    private policyHandlers = new PolicyHandlers(this.applicationBuilder.buildPolicyService());
 
     seedUser(userId: string, userData: Record<string, any> = {}) {
         const user = this.db.seedUser(userId, userData);
@@ -295,5 +301,68 @@ export class AppDriver {
         await this.userHandlers.changePassword(req, res);
 
         return (res as any).getJson() as MessageResponse;
+    }
+
+    async createPolicy(userId: string, policyData: { policyName: string; text: string }): Promise<CreatePolicyResponse> {
+        const req = createStubRequest(userId, policyData);
+        const res = createStubResponse();
+
+        await this.policyHandlers.createPolicy(req, res);
+
+        return (res as any).getJson() as CreatePolicyResponse;
+    }
+
+    async listPolicies(userId: string): Promise<{ policies: any[]; count: number }> {
+        const req = createStubRequest(userId, {});
+        const res = createStubResponse();
+
+        await this.policyHandlers.listPolicies(req, res);
+
+        return (res as any).getJson() as { policies: any[]; count: number };
+    }
+
+    async getPolicy(userId: string, policyId: string): Promise<any> {
+        const req = createStubRequest(userId, {}, { id: policyId });
+        const res = createStubResponse();
+
+        await this.policyHandlers.getPolicy(req, res);
+
+        return (res as any).getJson();
+    }
+
+    async getPolicyVersion(userId: string, policyId: string, versionHash: string): Promise<any> {
+        const req = createStubRequest(userId, {}, { id: policyId, hash: versionHash });
+        const res = createStubResponse();
+
+        await this.policyHandlers.getPolicyVersion(req, res);
+
+        return (res as any).getJson();
+    }
+
+    async updatePolicy(userId: string, policyId: string, updateData: { text: string; publish?: boolean }): Promise<UpdatePolicyResponse> {
+        const req = createStubRequest(userId, updateData, { id: policyId });
+        const res = createStubResponse();
+
+        await this.policyHandlers.updatePolicy(req, res);
+
+        return (res as any).getJson() as UpdatePolicyResponse;
+    }
+
+    async publishPolicy(userId: string, policyId: string, versionHash: string): Promise<PublishPolicyResponse> {
+        const req = createStubRequest(userId, { versionHash }, { id: policyId });
+        const res = createStubResponse();
+
+        await this.policyHandlers.publishPolicy(req, res);
+
+        return (res as any).getJson() as PublishPolicyResponse;
+    }
+
+    async deletePolicyVersion(userId: string, policyId: string, versionHash: string): Promise<DeletePolicyVersionResponse> {
+        const req = createStubRequest(userId, {}, { id: policyId, hash: versionHash });
+        const res = createStubResponse();
+
+        await this.policyHandlers.deletePolicyVersion(req, res);
+
+        return (res as any).getJson() as DeletePolicyVersionResponse;
     }
 }
