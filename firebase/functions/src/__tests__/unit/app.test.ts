@@ -264,11 +264,7 @@ describe('app tests', () => {
         });
 
         it('should allow percentage split expenses to be updated with new participants, currency, and payer', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
 
@@ -362,12 +358,7 @@ describe('app tests', () => {
         });
 
         it('should allow sharing a group and list membership balances for all users', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Beach Trip Crew')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
 
@@ -401,7 +392,6 @@ describe('app tests', () => {
 
             const summaryForUser1 = listResponseUser1.groups.find((item) => item.id === groupId);
             expect(summaryForUser1).toBeDefined();
-            expect(summaryForUser1!.name).toBe('Beach Trip Crew');
             expect(summaryForUser1!.balance?.balancesByCurrency?.USD?.netBalance).toBe('60.00');
             expect(summaryForUser1!.balance?.balancesByCurrency?.USD?.totalOwed).toBe('60.00');
             expect(summaryForUser1!.balance?.balancesByCurrency?.USD?.totalOwing).toBe('0.00');
@@ -428,12 +418,7 @@ describe('app tests', () => {
         });
 
         it('should allow sequential settlements to clear shared expense balances', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Monthly Bills')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
 
@@ -512,12 +497,7 @@ describe('app tests', () => {
         });
 
         it('should preserve expense metadata and remove it cleanly on deletion', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Weekend Getaway')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
 
@@ -584,12 +564,7 @@ describe('app tests', () => {
         });
 
         it('should allow members to leave and rejoin via share link', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Hiking Crew')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
 
@@ -694,12 +669,7 @@ describe('app tests', () => {
         });
 
         it('should update settlements and reflect the new balances', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Shared Bills')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
 
@@ -752,12 +722,7 @@ describe('app tests', () => {
         });
 
         it('should create and list group/expense comments and fetch expense details', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Comment Testers')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
 
@@ -813,11 +778,7 @@ describe('app tests', () => {
         });
 
         it('should revert balance change after settlement deletion', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
 
@@ -901,12 +862,7 @@ describe('app tests', () => {
 
     describe('edge cases', () => {
         it('should reject expense creation when splits total does not match amount', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Invalid Split Group')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -937,12 +893,7 @@ describe('app tests', () => {
         });
 
         it('should reject expense creation with invalid currency precision', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Invalid Precision Group')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -974,12 +925,7 @@ describe('app tests', () => {
         });
 
         it('should prevent non-owners from deleting a group', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Ownership Test')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -991,12 +937,7 @@ describe('app tests', () => {
         });
 
         it('should reject group comment creation with empty text', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Comment Guard')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1008,12 +949,7 @@ describe('app tests', () => {
         });
 
         it('should reject expense full details access for non-participants', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Private Expenses')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1046,12 +982,7 @@ describe('app tests', () => {
         });
 
         it('should forbid expense creation by non-group members', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Member Only Expenses')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1074,12 +1005,7 @@ describe('app tests', () => {
         });
 
         it('should reject group updates without any fields', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Update Validation')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             await expect(appDriver.updateGroup(user1, group.id, {} as any))
                 .rejects
@@ -1087,12 +1013,7 @@ describe('app tests', () => {
         });
 
         it('should reject settlement updates with invalid amount precision', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Settlement Precision')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1135,12 +1056,7 @@ describe('app tests', () => {
         });
 
         it('should reject removing a member by a non-owner', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Member Removal Guard')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1153,12 +1069,7 @@ describe('app tests', () => {
         });
 
         it('should reject expense comment creation with empty text', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Expense Comment Guard')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1184,12 +1095,7 @@ describe('app tests', () => {
         });
 
         it('should sanitize comment text containing scripts', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Sanitize Comments')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1203,12 +1109,7 @@ describe('app tests', () => {
         });
 
         it('should reject expense creation with invalid receipt URL', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Receipt Validation')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1233,12 +1134,7 @@ describe('app tests', () => {
         });
 
         it('should reject expense updates when participants include non-members', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Participant Validation')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1278,12 +1174,7 @@ describe('app tests', () => {
         });
 
         it('should reject settlement updates by non-creators', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Settlement Ownership')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1325,12 +1216,7 @@ describe('app tests', () => {
         });
 
         it('should reject group member display name updates with empty value', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Display Name Guard')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1342,12 +1228,7 @@ describe('app tests', () => {
         });
 
         it('should reject settlements involving non-members', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Settlement Membership Guard')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1367,12 +1248,7 @@ describe('app tests', () => {
         });
 
         it('should sanitize expense comment text containing scripts', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Expense Comment Sanitize')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1400,12 +1276,7 @@ describe('app tests', () => {
         });
 
         it('should reject share link generation by non-members', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Share Guard')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
 
@@ -1415,12 +1286,7 @@ describe('app tests', () => {
         });
 
         it('should handle JavaScript floating point precision bugs (0.1 + 0.2 != 0.3)', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Float Precision Test')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1524,12 +1390,7 @@ describe('app tests', () => {
             const NUM_OPERATIONS = 100;
             const CURRENCY = 'USD';
 
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Rounding Test Group')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1573,12 +1434,7 @@ describe('app tests', () => {
             const LARGE_AMOUNT = 1234567.88;
             const CURRENCY = 'USD';
 
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Large Amount Test')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1619,12 +1475,7 @@ describe('app tests', () => {
             const FOURTH_SETTLEMENT = '12.50';
             const CURRENCY = 'EUR';
 
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Precise Settlement Test')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1717,12 +1568,7 @@ describe('app tests', () => {
             const CIRCULAR_AMOUNT = 90;
             const CURRENCY = 'USD';
 
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Circular Debt Test')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1781,12 +1627,7 @@ describe('app tests', () => {
         });
 
         it('should maintain balance consistency through complex multi-currency operations', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Multi-Currency Consistency Test')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1880,12 +1721,7 @@ describe('app tests', () => {
         it('should maintain balance consistency through many expense operations', async () => {
             const OPERATIONS_COUNT = 20;
 
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Consistency Test')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1928,12 +1764,7 @@ describe('app tests', () => {
             const AMOUNT = 100;
             const CURRENCY = 'USD';
 
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Percentage Precision Test')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -1977,12 +1808,7 @@ describe('app tests', () => {
             const NUM_OPERATIONS = 100;
             const CURRENCY = 'JPY';
 
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('JPY Precision Test')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -2026,12 +1852,7 @@ describe('app tests', () => {
             const NUM_OPERATIONS = 100;
             const CURRENCY = 'KWD';
 
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('KWD Precision Test')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
@@ -2075,12 +1896,7 @@ describe('app tests', () => {
             const AMOUNT = 100;
             const CURRENCY = 'EUR';
 
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Split Type Conversion Test')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
