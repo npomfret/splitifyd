@@ -103,7 +103,7 @@ export function roundToCurrencyPrecision(amount: Amount | number, currencyCode: 
  * @param totalAmount - Total expense amount
  * @param currencyCode - 3-letter ISO currency code
  * @param participantIds - Array of participant user IDs
- * @param rotationSeed - Optional seed for remainder rotation (default: uses totalUnits for deterministic distribution)
+ * @param rotationSeed - Optional seed for remainder rotation (default: random distribution for fairness)
  * @returns Array of ExpenseSplit objects with currency-aware amounts
  *
  * @example
@@ -111,7 +111,7 @@ export function roundToCurrencyPrecision(amount: Amount | number, currencyCode: 
  * calculateEqualSplits(100, 'JPY', ['user1', 'user2', 'user3'], 0)
  *
  * @example
- * // USD 100 split 3 ways with rotation based on amount (default)
+ * // USD 100 split 3 ways with random remainder distribution (default)
  * calculateEqualSplits(100, 'USD', ['user1', 'user2', 'user3'])
  */
 export function calculateEqualSplits(
@@ -122,6 +122,16 @@ export function calculateEqualSplits(
 ): ExpenseSplit[] {
     if (participantIds.length === 0) {
         return [];
+    }
+
+    // Validate rotationSeed if provided
+    if (rotationSeed !== undefined) {
+        if (!Number.isInteger(rotationSeed)) {
+            throw new Error(`rotationSeed must be an integer, got: ${rotationSeed}`);
+        }
+        if (rotationSeed < 0) {
+            throw new Error(`rotationSeed must be non-negative, got: ${rotationSeed}`);
+        }
     }
 
     const totalAmountNumber = parseMonetaryAmount(totalAmount);
@@ -141,8 +151,8 @@ export function calculateEqualSplits(
     const remainder = totalUnits - baseUnits * numParticipants;
 
     // Determine who gets the remainder
-    // Use rotationSeed if provided (for controlled tests), otherwise use totalUnits (deterministic based on amount)
-    const seed = rotationSeed !== undefined ? rotationSeed : totalUnits;
+    // Use rotationSeed if provided (for controlled tests), otherwise use random (fair distribution)
+    const seed = rotationSeed !== undefined ? rotationSeed : Math.floor(Math.random() * numParticipants);
     const recipientIndex = seed % numParticipants;
 
     // Calculate splits: distribute base + remainder to designated participant
@@ -165,12 +175,13 @@ export function calculateEqualSplits(
  * @param totalAmount - Total expense amount
  * @param currencyCode - 3-letter ISO currency code
  * @param participantIds - Array of participant user IDs
+ * @param rotationSeed - Optional seed for remainder rotation (default: random distribution for fairness)
  * @returns Array of ExpenseSplit objects with equal amounts as starting point
  */
-export function calculateExactSplits(totalAmount: Amount | number, currencyCode: string, participantIds: string[]): ExpenseSplit[] {
+export function calculateExactSplits(totalAmount: Amount | number, currencyCode: string, participantIds: string[], rotationSeed?: number): ExpenseSplit[] {
     // For exact splits, use same logic as equal splits as a starting point
     // User will then manually adjust amounts
-    return calculateEqualSplits(totalAmount, currencyCode, participantIds);
+    return calculateEqualSplits(totalAmount, currencyCode, participantIds, rotationSeed);
 }
 
 /**
@@ -180,12 +191,16 @@ export function calculateExactSplits(totalAmount: Amount | number, currencyCode:
  * @param totalAmount - Total expense amount
  * @param currencyCode - 3-letter ISO currency code
  * @param participantIds - Array of participant user IDs
- * @param rotationSeed - Optional seed for remainder rotation (default: uses totalUnits for deterministic distribution)
+ * @param rotationSeed - Optional seed for remainder rotation (default: random distribution for fairness)
  * @returns Array of ExpenseSplit objects with percentage and calculated amounts
  *
  * @example
  * // 100% split 3 ways: [33.34%, 33.33%, 33.33%] (first person gets remainder with rotationSeed=0)
  * calculatePercentageSplits(100, 'USD', ['user1', 'user2', 'user3'], 0)
+ *
+ * @example
+ * // USD 100 split 3 ways with random remainder distribution (default)
+ * calculatePercentageSplits(100, 'USD', ['user1', 'user2', 'user3'])
  */
 export function calculatePercentageSplits(
     totalAmount: Amount | number,
@@ -195,6 +210,16 @@ export function calculatePercentageSplits(
 ): ExpenseSplit[] {
     if (participantIds.length === 0) {
         return [];
+    }
+
+    // Validate rotationSeed if provided
+    if (rotationSeed !== undefined) {
+        if (!Number.isInteger(rotationSeed)) {
+            throw new Error(`rotationSeed must be an integer, got: ${rotationSeed}`);
+        }
+        if (rotationSeed < 0) {
+            throw new Error(`rotationSeed must be non-negative, got: ${rotationSeed}`);
+        }
     }
 
     const totalAmountNumber = parseMonetaryAmount(totalAmount);
@@ -217,8 +242,8 @@ export function calculatePercentageSplits(
     const remainder = totalUnits - baseUnits * numParticipants;
 
     // Determine who gets the remainder
-    // Use rotationSeed if provided (for controlled tests), otherwise use totalUnits (deterministic based on amount)
-    const seed = rotationSeed !== undefined ? rotationSeed : totalUnits;
+    // Use rotationSeed if provided (for controlled tests), otherwise use random (fair distribution)
+    const seed = rotationSeed !== undefined ? rotationSeed : Math.floor(Math.random() * numParticipants);
     const recipientIndex = seed % numParticipants;
 
     // Calculate splits: distribute base + remainder to designated participant

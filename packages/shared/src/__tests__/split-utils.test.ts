@@ -257,13 +257,31 @@ describe('Split Utils', () => {
                 expect(splits2[1].amount).toBe('33.33');
                 expect(splits2[2].amount).toBe('33.34');
             });
+
+            it('should reject non-integer rotationSeed', () => {
+                expect(() => calculateEqualSplits(100, 'USD', ['user1', 'user2'], 1.5)).toThrow('rotationSeed must be an integer');
+                expect(() => calculateEqualSplits(100, 'USD', ['user1', 'user2'], 2.7)).toThrow('rotationSeed must be an integer');
+                expect(() => calculateEqualSplits(100, 'USD', ['user1', 'user2'], NaN)).toThrow('rotationSeed must be an integer');
+            });
+
+            it('should reject negative rotationSeed', () => {
+                expect(() => calculateEqualSplits(100, 'USD', ['user1', 'user2'], -1)).toThrow('rotationSeed must be non-negative');
+                expect(() => calculateEqualSplits(100, 'USD', ['user1', 'user2'], -5)).toThrow('rotationSeed must be non-negative');
+            });
+
+            it('should accept zero as rotationSeed', () => {
+                const splits = calculateEqualSplits(100, 'USD', ['user1', 'user2', 'user3'], 0);
+                expect(splits[0].amount).toBe('33.34'); // First gets remainder
+            });
         });
     });
 
     describe('calculateExactSplits', () => {
         it('should return same as calculateEqualSplits as starting point', () => {
-            const equalSplits = calculateEqualSplits('100', 'USD', ['user1', 'user2', 'user3']);
-            const exactSplits = calculateExactSplits('100', 'USD', ['user1', 'user2', 'user3']);
+            // Use explicit seed since random distribution would make them different
+            const seed = 0;
+            const equalSplits = calculateEqualSplits('100', 'USD', ['user1', 'user2', 'user3'], seed);
+            const exactSplits = calculateExactSplits('100', 'USD', ['user1', 'user2', 'user3'], seed);
             expect(exactSplits).toEqual(equalSplits);
         });
 
@@ -377,6 +395,26 @@ describe('Split Utils', () => {
                     { uid: 'user1', percentage: 50, amount: '50.00' },
                     { uid: 'user2', percentage: 50, amount: '50.00' },
                 ]);
+            });
+        });
+
+        describe('Rotation Seed Validation', () => {
+            it('should reject non-integer rotationSeed', () => {
+                expect(() => calculatePercentageSplits(100, 'USD', ['user1', 'user2'], 1.5)).toThrow('rotationSeed must be an integer');
+                expect(() => calculatePercentageSplits(100, 'USD', ['user1', 'user2'], 2.7)).toThrow('rotationSeed must be an integer');
+                expect(() => calculatePercentageSplits(100, 'USD', ['user1', 'user2'], NaN)).toThrow('rotationSeed must be an integer');
+            });
+
+            it('should reject negative rotationSeed', () => {
+                expect(() => calculatePercentageSplits(100, 'USD', ['user1', 'user2'], -1)).toThrow('rotationSeed must be non-negative');
+                expect(() => calculatePercentageSplits(100, 'USD', ['user1', 'user2'], -5)).toThrow('rotationSeed must be non-negative');
+            });
+
+            it('should accept zero as rotationSeed', () => {
+                const splits = calculatePercentageSplits(100, 'USD', ['user1', 'user2', 'user3'], 0);
+                expect(splits[0].amount).toBe('33.34'); // First gets remainder
+                // Percentage is still 100/3 even though amount is 33.34 due to rounding
+                expect(splits[0].percentage).toBeCloseTo(33.33, 2);
             });
         });
     });
