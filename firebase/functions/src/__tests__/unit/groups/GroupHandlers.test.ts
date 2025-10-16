@@ -419,7 +419,6 @@ describe('GroupHandlers - Unit Tests', () => {
             expect((res as any).getStatus()).toBeUndefined(); // Default 200
             const json = (res as any).getJson();
             expect(json).toMatchObject({
-                success: true,
                 message: 'Display name updated successfully',
             });
         });

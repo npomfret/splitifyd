@@ -34,10 +34,10 @@ describe('app tests', () => {
     beforeEach(() => {
         appDriver = new AppDriver();
 
-        appDriver.seedUser(user1, { displayName: 'User one' });
-        appDriver.seedUser(user2, { displayName: 'User two' });
-        appDriver.seedUser(user3, { displayName: 'User three' });
-        appDriver.seedUser(user4, { displayName: 'User four' });
+        appDriver.seedUser(user1, {displayName: 'User one'});
+        appDriver.seedUser(user2, {displayName: 'User two'});
+        appDriver.seedUser(user3, {displayName: 'User three'});
+        appDriver.seedUser(user4, {displayName: 'User four'});
     });
 
     describe('happy path tests', async () => {
@@ -46,7 +46,7 @@ describe('app tests', () => {
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -125,7 +125,7 @@ describe('app tests', () => {
             const group = await appDriver.createGroup(user1,);
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
             await appDriver.joinGroupByLink(user3, linkId);
 
@@ -217,16 +217,16 @@ describe('app tests', () => {
             const group = await appDriver.createGroup(user1,);
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
             await appDriver.joinGroupByLink(user3, linkId);
 
             const participants = [user1, user2, user3];
 
             const exactSplits = [
-                { uid: user1, amount: '120.10' },
-                { uid: user2, amount: '80.05' },
-                { uid: user3, amount: '75.10' },
+                {uid: user1, amount: '120.10'},
+                {uid: user2, amount: '80.05'},
+                {uid: user3, amount: '75.10'},
             ];
 
             const createdExpense = await appDriver.createExpense(
@@ -268,7 +268,7 @@ describe('app tests', () => {
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
             await appDriver.joinGroupByLink(user3, linkId);
 
@@ -362,7 +362,7 @@ describe('app tests', () => {
 
             const groupId = group.id;
 
-            const { shareablePath, linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {shareablePath, linkId} = await appDriver.generateShareableLink(user1, groupId);
             expect(shareablePath).toBe(`/join?linkId=${linkId}`);
             expect(linkId).toHaveLength(16);
 
@@ -422,7 +422,7 @@ describe('app tests', () => {
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -501,7 +501,7 @@ describe('app tests', () => {
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -568,7 +568,7 @@ describe('app tests', () => {
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             let preview = await appDriver.previewGroupByLink(user2, linkId);
@@ -598,7 +598,7 @@ describe('app tests', () => {
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             await appDriver.updateGroupMemberDisplayName(user2, groupId, 'UI Specialist');
@@ -623,7 +623,7 @@ describe('app tests', () => {
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
 
             const previewBeforeJoin = await appDriver.previewGroupByLink(user2, linkId);
             expect(previewBeforeJoin.groupId).toBe(groupId);
@@ -673,7 +673,7 @@ describe('app tests', () => {
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -726,7 +726,7 @@ describe('app tests', () => {
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -745,26 +745,24 @@ describe('app tests', () => {
             );
 
             const groupCommentResponse = await appDriver.createGroupComment(user1, groupId, 'Welcome to the group!');
-            expect(groupCommentResponse.success).toBe(true);
-            expect(groupCommentResponse.data.text).toBe('Welcome to the group!');
+            expect(groupCommentResponse.text).toBe('Welcome to the group!');
 
             const secondGroupCommentResponse = await appDriver.createGroupComment(user2, groupId, 'Happy to be here');
-            expect(secondGroupCommentResponse.success).toBe(true);
+            expect(secondGroupCommentResponse.authorId).toBe(user2);
+            expect(secondGroupCommentResponse.text).toBe('Happy to be here');
 
-            const { data: groupComments } = await appDriver.listGroupComments(user1, groupId);
+            const groupComments = await appDriver.listGroupComments(user1, groupId);
             expect(groupComments.hasMore).toBe(false);
             expect(groupComments.comments).toHaveLength(2);
             const groupCommentTexts = groupComments.comments.map((comment) => comment.text);
             expect(groupCommentTexts).toEqual(expect.arrayContaining(['Welcome to the group!', 'Happy to be here']));
 
             const expenseCommentResponse = await appDriver.createExpenseComment(user2, createdExpense.id, 'Thanks for covering this');
-            expect(expenseCommentResponse.success).toBe(true);
-            expect(expenseCommentResponse.data.authorId).toBe(user2);
+            expect(expenseCommentResponse.authorId).toBe(user2);
 
             const secondExpenseComment = await appDriver.createExpenseComment(user1, createdExpense.id, 'Let us split next time');
-            expect(secondExpenseComment.success).toBe(true);
 
-            const { data: expenseComments } = await appDriver.listExpenseComments(user1, createdExpense.id);
+            const expenseComments = await appDriver.listExpenseComments(user1, createdExpense.id);
             expect(expenseComments.hasMore).toBe(false);
             expect(expenseComments.comments).toHaveLength(2);
             const expenseCommentTexts = expenseComments.comments.map((comment) => comment.text);
@@ -782,7 +780,7 @@ describe('app tests', () => {
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -865,7 +863,7 @@ describe('app tests', () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -882,21 +880,21 @@ describe('app tests', () => {
             const invalidExpense = {
                 ...baseExpense,
                 splits: [
-                    { ...baseExpense.splits[0], amount: '80.00' },
-                    { ...baseExpense.splits[1], amount: '30.00' },
+                    {...baseExpense.splits[0], amount: '80.00'},
+                    {...baseExpense.splits[1], amount: '30.00'},
                 ],
             };
 
             await expect(appDriver.createExpense(user1, invalidExpense))
                 .rejects
-                .toMatchObject({ code: 'INVALID_SPLIT_TOTAL' });
+                .toMatchObject({code: 'INVALID_SPLIT_TOTAL'});
         });
 
         it('should reject expense creation with invalid currency precision', async () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -921,38 +919,38 @@ describe('app tests', () => {
 
             await expect(appDriver.createExpense(user1, invalidExpense))
                 .rejects
-                .toMatchObject({ code: 'INVALID_AMOUNT_PRECISION' });
+                .toMatchObject({code: 'INVALID_AMOUNT_PRECISION'});
         });
 
         it('should prevent non-owners from deleting a group', async () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             await expect(appDriver.deleteGroup(user2, groupId))
                 .rejects
-                .toMatchObject({ code: 'FORBIDDEN' });
+                .toMatchObject({code: 'FORBIDDEN'});
         });
 
         it('should reject group comment creation with empty text', async () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             await expect(appDriver.createGroupComment(user1, groupId, ''))
                 .rejects
-                .toMatchObject({ code: 'INVALID_COMMENT_TEXT' });
+                .toMatchObject({code: 'INVALID_COMMENT_TEXT'});
         });
 
         it('should reject expense full details access for non-participants', async () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -972,20 +970,20 @@ describe('app tests', () => {
 
             await expect(appDriver.getExpenseFullDetails(user4, expense.id))
                 .rejects
-                .toMatchObject({ code: 'NOT_AUTHORIZED' });
+                .toMatchObject({code: 'NOT_AUTHORIZED'});
         });
 
         it('should reject share link previews with invalid tokens', async () => {
             await expect(appDriver.previewGroupByLink(user1, 'invalid-token-123'))
                 .rejects
-                .toMatchObject({ code: 'INVALID_LINK' });
+                .toMatchObject({code: 'INVALID_LINK'});
         });
 
         it('should forbid expense creation by non-group members', async () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -1001,7 +999,7 @@ describe('app tests', () => {
 
             await expect(appDriver.createExpense(user3, expenseRequest))
                 .rejects
-                .toMatchObject({ code: 'FORBIDDEN' });
+                .toMatchObject({code: 'FORBIDDEN'});
         });
 
         it('should reject group updates without any fields', async () => {
@@ -1009,14 +1007,14 @@ describe('app tests', () => {
 
             await expect(appDriver.updateGroup(user1, group.id, {} as any))
                 .rejects
-                .toMatchObject({ code: 'INVALID_INPUT' });
+                .toMatchObject({code: 'INVALID_INPUT'});
         });
 
         it('should reject settlement updates with invalid amount precision', async () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -1052,27 +1050,27 @@ describe('app tests', () => {
                 currency: 'USD',
             }))
                 .rejects
-                .toMatchObject({ code: 'VALIDATION_ERROR' });
+                .toMatchObject({code: 'VALIDATION_ERROR'});
         });
 
         it('should reject removing a member by a non-owner', async () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
             await appDriver.joinGroupByLink(user3, linkId);
 
             await expect(appDriver.removeGroupMember(user2, groupId, user3))
                 .rejects
-                .toMatchObject({ code: 'FORBIDDEN' });
+                .toMatchObject({code: 'FORBIDDEN'});
         });
 
         it('should reject expense comment creation with empty text', async () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -1091,20 +1089,20 @@ describe('app tests', () => {
 
             await expect(appDriver.createExpenseComment(user1, expense.id, ''))
                 .rejects
-                .toMatchObject({ code: 'INVALID_COMMENT_TEXT' });
+                .toMatchObject({code: 'INVALID_COMMENT_TEXT'});
         });
 
         it('should sanitize comment text containing scripts', async () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const response = await appDriver.createGroupComment(user1, groupId, '<script>alert(1)</script>Hello');
-            expect(response.data.text).toBe('Hello');
+            expect(response.text).toBe('Hello');
 
-            const { data: comments } = await appDriver.listGroupComments(user1, groupId);
+            const comments = await appDriver.listGroupComments(user1, groupId);
             expect(comments.comments[0].text).toBe('Hello');
         });
 
@@ -1112,7 +1110,7 @@ describe('app tests', () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -1130,14 +1128,14 @@ describe('app tests', () => {
 
             await expect(appDriver.createExpense(user1, expense))
                 .rejects
-                .toMatchObject({ code: 'INVALID_INPUT' });
+                .toMatchObject({code: 'INVALID_INPUT'});
         });
 
         it('should reject expense updates when participants include non-members', async () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const baseExpense = await appDriver.createExpense(
@@ -1170,14 +1168,14 @@ describe('app tests', () => {
                     .build(),
             ))
                 .rejects
-                .toMatchObject({ code: 'INVALID_PARTICIPANT' });
+                .toMatchObject({code: 'INVALID_PARTICIPANT'});
         });
 
         it('should reject settlement updates by non-creators', async () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -1212,26 +1210,26 @@ describe('app tests', () => {
                 amount: '45.00',
             }))
                 .rejects
-                .toMatchObject({ code: 'NOT_SETTLEMENT_CREATOR' });
+                .toMatchObject({code: 'NOT_SETTLEMENT_CREATOR'});
         });
 
         it('should reject group member display name updates with empty value', async () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             await expect(appDriver.updateGroupMemberDisplayName(user2, groupId, ''))
                 .rejects
-                .toMatchObject({ code: 'INVALID_INPUT' });
+                .toMatchObject({code: 'INVALID_INPUT'});
         });
 
         it('should reject settlements involving non-members', async () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const settlement = new CreateSettlementRequestBuilder()
@@ -1244,14 +1242,14 @@ describe('app tests', () => {
 
             await expect(appDriver.createSettlement(user1, settlement))
                 .rejects
-                .toMatchObject({ code: 'MEMBER_NOT_IN_GROUP' });
+                .toMatchObject({code: 'MEMBER_NOT_IN_GROUP'});
         });
 
         it('should sanitize expense comment text containing scripts', async () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -1269,9 +1267,9 @@ describe('app tests', () => {
             );
 
             const response = await appDriver.createExpenseComment(user1, expense.id, '<script>alert(1)</script>Thanks');
-            expect(response.data.text).toBe('Thanks');
+            expect(response.text).toBe('Thanks');
 
-            const { data: comments } = await appDriver.listExpenseComments(user1, expense.id);
+            const comments = await appDriver.listExpenseComments(user1, expense.id);
             expect(comments.comments[0].text).toBe('Thanks');
         });
 
@@ -1282,14 +1280,14 @@ describe('app tests', () => {
 
             await expect(appDriver.generateShareableLink(user2, groupId))
                 .rejects
-                .toMatchObject({ code: 'UNAUTHORIZED' });
+                .toMatchObject({code: 'UNAUTHORIZED'});
         });
 
         it('should handle JavaScript floating point precision bugs (0.1 + 0.2 != 0.3)', async () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -1393,7 +1391,7 @@ describe('app tests', () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
             await appDriver.joinGroupByLink(user3, linkId);
 
@@ -1437,7 +1435,7 @@ describe('app tests', () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -1478,7 +1476,7 @@ describe('app tests', () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const participants = [user1, user2];
@@ -1571,7 +1569,7 @@ describe('app tests', () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
             await appDriver.joinGroupByLink(user3, linkId);
 
@@ -1630,7 +1628,7 @@ describe('app tests', () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
             await appDriver.joinGroupByLink(user3, linkId);
 
@@ -1724,7 +1722,7 @@ describe('app tests', () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
             await appDriver.joinGroupByLink(user3, linkId);
 
@@ -1763,7 +1761,7 @@ describe('app tests', () => {
             // 100 JPY ÷ 3 = 33 + 33 + 34 (1 yen remainder)
             const group = await appDriver.createGroup(user1);
 
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
+            const {linkId} = await appDriver.generateShareableLink(user1, group.id);
             await appDriver.joinGroupByLink(user2, linkId);
             await appDriver.joinGroupByLink(user3, linkId);
 
@@ -1808,7 +1806,7 @@ describe('app tests', () => {
             const group = await appDriver.createGroup(user1,);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
             await appDriver.joinGroupByLink(user3, linkId);
 
@@ -1915,7 +1913,7 @@ describe('app tests', () => {
             const group = await appDriver.createGroup(user1);
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
             await appDriver.joinGroupByLink(user3, linkId);
 
@@ -1944,7 +1942,7 @@ describe('app tests', () => {
                 .rejects
                 .toMatchObject({
                     code: 'INVALID_INPUT',
-                    details: { message: 'Cannot remove member with outstanding balance' },
+                    details: {message: 'Cannot remove member with outstanding balance'},
                 });
         });
 
@@ -1954,7 +1952,7 @@ describe('app tests', () => {
             const group = await appDriver.createGroup(user1);
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const {linkId} = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
             await appDriver.joinGroupByLink(user3, linkId);
 
@@ -1990,15 +1988,15 @@ describe('app tests', () => {
             it('should reject percentage splits not totaling 100%', async () => {
                 const group = await appDriver.createGroup(user1);
                 const groupId = group.id;
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                const {linkId} = await appDriver.generateShareableLink(user1, groupId);
                 await appDriver.joinGroupByLink(user2, linkId);
                 await appDriver.joinGroupByLink(user3, linkId);
 
                 const participants = [user1, user2, user3];
                 const invalidPercentageSplits = [
-                    { uid: user1, amount: '40.00', percentage: 40 },
-                    { uid: user2, amount: '40.00', percentage: 40 },
-                    { uid: user3, amount: '19.00', percentage: 19 },
+                    {uid: user1, amount: '40.00', percentage: 40},
+                    {uid: user2, amount: '40.00', percentage: 40},
+                    {uid: user3, amount: '19.00', percentage: 19},
                 ];
 
                 const expenseRequest = new CreateExpenseRequestBuilder()
@@ -2013,19 +2011,19 @@ describe('app tests', () => {
 
                 await expect(appDriver.createExpense(user1, expenseRequest))
                     .rejects
-                    .toMatchObject({ code: 'INVALID_PERCENTAGE_TOTAL' });
+                    .toMatchObject({code: 'INVALID_PERCENTAGE_TOTAL'});
             });
 
             it('should reject negative percentage in splits', async () => {
                 const group = await appDriver.createGroup(user1);
                 const groupId = group.id;
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                const {linkId} = await appDriver.generateShareableLink(user1, groupId);
                 await appDriver.joinGroupByLink(user2, linkId);
 
                 const participants = [user1, user2];
                 const invalidPercentageSplits = [
-                    { uid: user1, amount: '120.00', percentage: 120 },
-                    { uid: user2, amount: '-20.00', percentage: -20 },
+                    {uid: user1, amount: '120.00', percentage: 120},
+                    {uid: user2, amount: '-20.00', percentage: -20},
                 ];
 
                 const expenseRequest = new CreateExpenseRequestBuilder()
@@ -2040,13 +2038,13 @@ describe('app tests', () => {
 
                 await expect(appDriver.createExpense(user1, expenseRequest))
                     .rejects
-                    .toMatchObject({ code: 'INVALID_INPUT' });
+                    .toMatchObject({code: 'INVALID_INPUT'});
             });
 
             it('should reject expense where payer is not a participant', async () => {
                 const group = await appDriver.createGroup(user1);
                 const groupId = group.id;
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                const {linkId} = await appDriver.generateShareableLink(user1, groupId);
                 await appDriver.joinGroupByLink(user2, linkId);
                 await appDriver.joinGroupByLink(user3, linkId);
 
@@ -2063,7 +2061,7 @@ describe('app tests', () => {
 
                 await expect(appDriver.createExpense(user1, expenseRequest))
                     .rejects
-                    .toMatchObject({ code: 'PAYER_NOT_PARTICIPANT' });
+                    .toMatchObject({code: 'PAYER_NOT_PARTICIPANT'});
             });
 
             it('should handle equal split with single participant', async () => {
@@ -2105,7 +2103,7 @@ describe('app tests', () => {
 
                 const group = await appDriver.createGroup(user1);
                 const groupId = group.id;
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                const {linkId} = await appDriver.generateShareableLink(user1, groupId);
                 await appDriver.joinGroupByLink(user2, linkId);
 
                 const participants = [user1, user2];
@@ -2139,7 +2137,7 @@ describe('app tests', () => {
 
                 const group = await appDriver.createGroup(user1);
                 const groupId = group.id;
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                const {linkId} = await appDriver.generateShareableLink(user1, groupId);
                 await appDriver.joinGroupByLink(user2, linkId);
 
                 const participants = [user1, user2];
@@ -2180,7 +2178,7 @@ describe('app tests', () => {
                     ),
                 )
                     .rejects
-                    .toMatchObject({ code: 'INVALID_INPUT' });
+                    .toMatchObject({code: 'INVALID_INPUT'});
             });
 
             it('should enforce maximum length on expense description', async () => {
@@ -2206,13 +2204,13 @@ describe('app tests', () => {
                     ),
                 )
                     .rejects
-                    .toMatchObject({ code: 'INVALID_DESCRIPTION' });
+                    .toMatchObject({code: 'INVALID_DESCRIPTION'});
             });
 
             it('should handle expense with many participants', async () => {
                 const group = await appDriver.createGroup(user1);
                 const groupId = group.id;
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                const {linkId} = await appDriver.generateShareableLink(user1, groupId);
 
                 // Join initial users to the group
                 await appDriver.joinGroupByLink(user2, linkId);
@@ -2222,7 +2220,7 @@ describe('app tests', () => {
                 const manyUsers = [user1, user2, user3, user4];
                 for (let i = 5; i <= 20; i++) {
                     const userId = `user-${i}`;
-                    appDriver.seedUser(userId, { displayName: `User ${i}` });
+                    appDriver.seedUser(userId, {displayName: `User ${i}`});
                     await appDriver.joinGroupByLink(userId, linkId);
                     manyUsers.push(userId);
                 }
@@ -2278,19 +2276,19 @@ describe('app tests', () => {
                     ),
                 )
                     .rejects
-                    .toMatchObject({ code: 'NOT_FOUND' });
+                    .toMatchObject({code: 'NOT_FOUND'});
             });
 
             it('should reject malformed group ID', async () => {
                 await expect(appDriver.getGroupFullDetails(user1, 'not-a-valid-id'))
                     .rejects
-                    .toMatchObject({ code: 'NOT_FOUND' });
+                    .toMatchObject({code: 'NOT_FOUND'});
             });
 
             it('should reject malformed expense ID', async () => {
                 await expect(appDriver.getExpenseFullDetails(user1, 'not-a-valid-id'))
                     .rejects
-                    .toMatchObject({ code: 'NOT_FOUND' });
+                    .toMatchObject({code: 'NOT_FOUND'});
             });
 
             it('should reject operations on non-existent expense', async () => {
@@ -2300,7 +2298,7 @@ describe('app tests', () => {
 
                 await expect(appDriver.deleteExpense(user1, nonExistentExpenseId))
                     .rejects
-                    .toMatchObject({ code: 'NOT_FOUND' });
+                    .toMatchObject({code: 'NOT_FOUND'});
             });
 
             it('should reject creating expense with zero amount', async () => {
@@ -2318,12 +2316,12 @@ describe('app tests', () => {
                             .withPaidBy(user1)
                             .withParticipants(participants)
                             .withSplitType('equal')
-                            .withSplits([{ uid: user1, amount: '0.00' }])
+                            .withSplits([{uid: user1, amount: '0.00'}])
                             .build(),
                     ),
                 )
                     .rejects
-                    .toMatchObject({ code: 'INVALID_AMOUNT' });
+                    .toMatchObject({code: 'INVALID_AMOUNT'});
             });
 
             it('should reject creating expense with negative amount', async () => {
@@ -2341,18 +2339,18 @@ describe('app tests', () => {
                             .withPaidBy(user1)
                             .withParticipants(participants)
                             .withSplitType('equal')
-                            .withSplits([{ uid: user1, amount: '-100.00' }])
+                            .withSplits([{uid: user1, amount: '-100.00'}])
                             .build(),
                     ),
                 )
                     .rejects
-                    .toMatchObject({ code: 'INVALID_AMOUNT' });
+                    .toMatchObject({code: 'INVALID_AMOUNT'});
             });
 
             it('should reject settlement with zero amount', async () => {
                 const group = await appDriver.createGroup(user1);
                 const groupId = group.id;
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                const {linkId} = await appDriver.generateShareableLink(user1, groupId);
                 await appDriver.joinGroupByLink(user2, linkId);
 
                 const participants = [user1, user2];
@@ -2382,13 +2380,13 @@ describe('app tests', () => {
                     ),
                 )
                     .rejects
-                    .toMatchObject({ code: 'VALIDATION_ERROR' });
+                    .toMatchObject({code: 'VALIDATION_ERROR'});
             });
 
             it('should reject settlement with negative amount', async () => {
                 const group = await appDriver.createGroup(user1);
                 const groupId = group.id;
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                const {linkId} = await appDriver.generateShareableLink(user1, groupId);
                 await appDriver.joinGroupByLink(user2, linkId);
 
                 const participants = [user1, user2];
@@ -2418,7 +2416,7 @@ describe('app tests', () => {
                     ),
                 )
                     .rejects
-                    .toMatchObject({ code: 'VALIDATION_ERROR' });
+                    .toMatchObject({code: 'VALIDATION_ERROR'});
             });
         });
     });

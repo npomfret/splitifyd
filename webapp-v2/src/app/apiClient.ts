@@ -9,25 +9,21 @@ import type {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
     CommentDTO,
-    CreateCommentResponse,
     CreateExpenseRequest,
     CreateGroupRequest,
     CreateSettlementRequest,
-    CreateSettlementResponse,
     CurrentPolicyResponse,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
     GroupDTO,
     GroupFullDetailsDTO,
     JoinGroupResponse,
-    LeaveGroupResponse,
     ListCommentsResponse,
     ListGroupsResponse,
     MessageResponse,
     PolicyAcceptanceStatusDTO,
     PreviewGroupResponse,
     RegisterResponse,
-    RemoveGroupMemberResponse,
     SettlementDTO,
     ShareLinkResponse,
     UpdateGroupRequest,
@@ -590,7 +586,7 @@ class ApiClient {
         });
     }
 
-    async leaveGroup(groupId: string): Promise<LeaveGroupResponse> {
+    async leaveGroup(groupId: string): Promise<MessageResponse> {
         return this.request({
             endpoint: '/groups/:id/leave',
             method: 'POST',
@@ -598,7 +594,7 @@ class ApiClient {
         });
     }
 
-    async removeGroupMember(groupId: string, memberId: string): Promise<RemoveGroupMemberResponse> {
+    async removeGroupMember(groupId: string, memberId: string): Promise<MessageResponse> {
         return this.request({
             endpoint: '/groups/:id/members/:memberId',
             method: 'DELETE',
@@ -662,12 +658,11 @@ class ApiClient {
     }
 
     async createSettlement(data: CreateSettlementRequest): Promise<SettlementDTO> {
-        const response = await this.request<CreateSettlementResponse>({
+        return this.request<SettlementDTO>({
             endpoint: '/settlements',
             method: 'POST',
             body: data,
         });
-        return response.data;
     }
 
     async updateSettlement(settlementId: string, data: UpdateSettlementRequest): Promise<SettlementDTO> {
@@ -785,49 +780,45 @@ class ApiClient {
 
     // Comment methods
     async createGroupComment(groupId: string, text: string): Promise<CommentDTO> {
-        const response = await this.request<CreateCommentResponse>({
+        return this.request<CommentDTO>({
             endpoint: '/groups/:groupId/comments',
             method: 'POST',
             params: { groupId },
             body: { text },
         });
-        return response.data;
     }
 
     async createExpenseComment(expenseId: string, text: string): Promise<CommentDTO> {
-        const response = await this.request<CreateCommentResponse>({
+        return this.request<CommentDTO>({
             endpoint: '/expenses/:expenseId/comments',
             method: 'POST',
             params: { expenseId },
             body: { text },
         });
-        return response.data;
     }
 
     async getGroupComments(groupId: string, cursor?: string): Promise<ListCommentsResponse> {
         const query: Record<string, string> = {};
         if (cursor) query.cursor = cursor;
 
-        const response = await this.request<{ success: boolean; data: ListCommentsResponse; }>({
+        return this.request<ListCommentsResponse>({
             endpoint: '/groups/:groupId/comments',
             method: 'GET',
             params: { groupId },
             query: Object.keys(query).length > 0 ? query : undefined,
         });
-        return response.data;
     }
 
     async getExpenseComments(expenseId: string, cursor?: string): Promise<ListCommentsResponse> {
         const query: Record<string, string> = {};
         if (cursor) query.cursor = cursor;
 
-        const response = await this.request<{ success: boolean; data: ListCommentsResponse; }>({
+        return this.request<ListCommentsResponse>({
             endpoint: '/expenses/:expenseId/comments',
             method: 'GET',
             params: { expenseId },
             query: Object.keys(query).length > 0 ? query : undefined,
         });
-        return response.data;
     }
 }
 

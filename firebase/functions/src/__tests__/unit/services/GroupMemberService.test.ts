@@ -252,7 +252,6 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
             // Assert
             expect(result).toEqual({
-                success: true,
                 message: 'Successfully left the group',
             });
         });
@@ -396,7 +395,6 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
             // Assert
             expect(result).toEqual({
-                success: true,
                 message: 'Member removed successfully',
             });
         });

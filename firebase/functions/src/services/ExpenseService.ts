@@ -1,18 +1,15 @@
-import { CreateExpenseRequest, DELETED_AT_FIELD, ExpenseDTO, ExpenseFullDetailsDTO, GroupDTO, GroupMember, UpdateExpenseRequest } from '@splitifyd/shared';
-import { z } from 'zod';
-import { HTTP_STATUS } from '../constants';
-import { FirestoreCollections } from '../constants';
+import {CreateExpenseRequest, DELETED_AT_FIELD, ExpenseDTO, ExpenseFullDetailsDTO, GroupDTO, GroupMember, UpdateExpenseRequest} from '@splitifyd/shared';
+import {z} from 'zod';
+import {FirestoreCollections, HTTP_STATUS} from '../constants';
 import * as expenseValidation from '../expenses/validation';
-import type { IDocumentReference } from '../firestore-wrapper';
-import { logger, LoggerContext } from '../logger';
+import type {IDocumentReference} from '../firestore-wrapper';
+import {logger, LoggerContext} from '../logger';
 import * as measure from '../monitoring/measure';
-import { PerformanceTimer } from '../monitoring/PerformanceTimer';
-import { PermissionEngineAsync } from '../permissions/permission-engine-async';
-import * as dateHelpers from '../utils/dateHelpers';
-import { ApiError, Errors } from '../utils/errors';
-import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
-import type { IFirestoreReader } from './firestore';
-import type { IFirestoreWriter } from './firestore';
+import {PerformanceTimer} from '../monitoring/PerformanceTimer';
+import {PermissionEngineAsync} from '../permissions/permission-engine-async';
+import {ApiError, Errors} from '../utils/errors';
+import {IncrementalBalanceService} from './balance/IncrementalBalanceService';
+import type {IFirestoreReader, IFirestoreWriter} from './firestore';
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -77,31 +74,6 @@ export class ExpenseService {
         return {
             ...validatedData,
             receiptUrl: validatedData.receiptUrl,
-        };
-    }
-
-    /**
-     * Transform expense document to response format
-     */
-    private transformExpenseToResponse(expense: ExpenseDTO): any {
-        return {
-            id: expense.id,
-            groupId: expense.groupId,
-            createdBy: expense.createdBy,
-            paidBy: expense.paidBy,
-            amount: expense.amount,
-            currency: expense.currency,
-            description: expense.description,
-            category: expense.category,
-            date: expense.date ? dateHelpers.timestampToISO(expense.date) : undefined,
-            splitType: expense.splitType,
-            participants: expense.participants,
-            splits: expense.splits,
-            receiptUrl: expense.receiptUrl,
-            createdAt: expense.createdAt ? dateHelpers.timestampToISO(expense.createdAt) : undefined,
-            updatedAt: expense.updatedAt ? dateHelpers.timestampToISO(expense.updatedAt) : undefined,
-            deletedAt: expense.deletedAt ? dateHelpers.timestampToISO(expense.deletedAt) : null,
-            deletedBy: expense.deletedBy,
         };
     }
 
@@ -186,11 +158,11 @@ export class ExpenseService {
     /**
      * Get a single expense by ID
      */
-    async getExpense(expenseId: string, userId: string): Promise<any> {
+    async getExpense(expenseId: string, userId: string): Promise<ExpenseDTO> {
         return measure.measureDb('ExpenseService.getExpense', async () => this._getExpense(expenseId, userId));
     }
 
-    private async _getExpense(expenseId: string, userId: string): Promise<any> {
+    private async _getExpense(expenseId: string, userId: string): Promise<ExpenseDTO> {
         const timer = new PerformanceTimer();
 
         timer.startPhase('query');
@@ -211,7 +183,7 @@ export class ExpenseService {
         });
 
         return {
-            ...this.transformExpenseToResponse(expense),
+            ...expense,
             isLocked,
         };
     }
@@ -219,11 +191,11 @@ export class ExpenseService {
     /**
      * Create a new expense
      */
-    async createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<any> {
+    async createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<ExpenseDTO> {
         return measure.measureDb('ExpenseService.createExpense', async () => this._createExpense(userId, expenseData));
     }
 
-    private async _createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<any> {
+    private async _createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<ExpenseDTO> {
         const timer = new PerformanceTimer();
 
         // Validate the input data early
@@ -344,18 +316,17 @@ export class ExpenseService {
             timings: timer.getTimings(),
         });
 
-        // Return the expense in response format
-        return this.transformExpenseToResponse(expense);
+        return expense;
     }
 
     /**
      * Update an existing expense
      */
-    async updateExpense(expenseId: string, userId: string, updateData: UpdateExpenseRequest): Promise<any> {
+    async updateExpense(expenseId: string, userId: string, updateData: UpdateExpenseRequest): Promise<ExpenseDTO> {
         return measure.measureDb('ExpenseService.updateExpense', async () => this._updateExpense(expenseId, userId, updateData));
     }
 
-    private async _updateExpense(expenseId: string, userId: string, updateData: UpdateExpenseRequest): Promise<any> {
+    private async _updateExpense(expenseId: string, userId: string, updateData: UpdateExpenseRequest): Promise<ExpenseDTO> {
         const timer = new PerformanceTimer();
 
         // Fetch the existing expense
@@ -388,12 +359,9 @@ export class ExpenseService {
         }
 
         // Group is already a GroupDTO from FirestoreReader
-        const group = groupData;
-
         // Check if user can edit expenses in this group
         // Convert expense to ExpenseData format for permission check
-        const expenseData = this.transformExpenseToResponse(expense);
-        const canEditExpense = PermissionEngineAsync.checkPermission(member!, group, userId, 'expenseEditing', { expense: expenseData });
+        const canEditExpense = PermissionEngineAsync.checkPermission(member!, groupData, userId, 'expenseEditing', { expense: expense });
         if (!canEditExpense) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to edit this expense');
         }
@@ -499,7 +467,7 @@ export class ExpenseService {
         });
 
         // The expense from IFirestoreReader is already validated and includes the ID
-        return this.transformExpenseToResponse(this.normalizeValidatedExpense(updatedExpense));
+        return this.normalizeValidatedExpense(updatedExpense);
     }
 
     /**
@@ -559,8 +527,7 @@ export class ExpenseService {
             );
 
             return {
-                id: validatedExpense.id,
-                ...this.transformExpenseToResponse(this.normalizeValidatedExpense(validatedExpense)),
+                ...(this.normalizeValidatedExpense(validatedExpense)),
                 isLocked,
             };
         });
@@ -608,13 +575,7 @@ export class ExpenseService {
             throw Errors.FORBIDDEN();
         }
 
-        // Group is already a GroupDTO from FirestoreReader
-        const group = groupData;
-
-        // Check if user can delete expenses in this group
-        // Convert expense to ExpenseData format for permission check
-        const expenseData = this.transformExpenseToResponse(expense);
-        const canDeleteExpense = PermissionEngineAsync.checkPermission(member!, group, userId, 'expenseDeletion', { expense: expenseData });
+        const canDeleteExpense = PermissionEngineAsync.checkPermission(member!, groupData, userId, 'expenseDeletion', { expense: expense });
         if (!canDeleteExpense) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to delete this expense');
         }
@@ -724,8 +685,6 @@ export class ExpenseService {
         timer.endPhase();
 
         // Format expense response
-        const expenseResponse = this.transformExpenseToResponse(expense);
-
         logger.info('expense-full-details-retrieved', {
             expenseId,
             groupId: expense.groupId,
@@ -734,7 +693,7 @@ export class ExpenseService {
 
         return {
             expense: {
-                ...expenseResponse,
+                ...(expense),
                 isLocked,
             },
             group,

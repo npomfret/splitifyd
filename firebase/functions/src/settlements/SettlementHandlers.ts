@@ -1,4 +1,4 @@
-import { CreateSettlementRequest, CreateSettlementResponse, DeleteSettlementResponse, UpdateSettlementRequest, UpdateSettlementResponse } from '@splitifyd/shared';
+import { CreateSettlementRequest, UpdateSettlementRequest } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
@@ -40,16 +40,12 @@ export class SettlementHandlers {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT_PRECISION', (error as Error).message);
         }
 
-        const responseData = await this.settlementService.createSettlement(settlementData, userId);
+        const settlement = await this.settlementService.createSettlement(settlementData, userId);
 
-        LoggerContext.setBusinessContext({ settlementId: responseData.id });
-        logger.info('settlement-created', { id: responseData.id });
+        LoggerContext.setBusinessContext({ settlementId: settlement.id });
+        logger.info('settlement-created', { id: settlement.id });
 
-        const response: CreateSettlementResponse = {
-            success: true,
-            data: responseData,
-        };
-        res.status(HTTP_STATUS.CREATED).json(response);
+        res.status(HTTP_STATUS.CREATED).json(settlement);
     };
 
     updateSettlement = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
@@ -78,16 +74,12 @@ export class SettlementHandlers {
             }
         }
 
-        const responseData = await this.settlementService.updateSettlement(settlementId, updateData, userId);
+        const settlement = await this.settlementService.updateSettlement(settlementId, updateData, userId);
 
         LoggerContext.setBusinessContext({ settlementId });
         logger.info('settlement-updated', { id: settlementId });
 
-        const response: UpdateSettlementResponse = {
-            success: true,
-            data: responseData,
-        };
-        res.status(HTTP_STATUS.OK).json(response);
+        res.status(HTTP_STATUS.OK).json(settlement);
     };
 
     deleteSettlement = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
@@ -104,10 +96,6 @@ export class SettlementHandlers {
         LoggerContext.setBusinessContext({ settlementId });
         logger.info('settlement-soft-deleted', { id: settlementId });
 
-        const response: DeleteSettlementResponse = {
-            success: true,
-            message: 'Settlement deleted successfully',
-        };
-        res.status(HTTP_STATUS.OK).json(response);
+        res.status(HTTP_STATUS.OK).json({ message: 'Settlement deleted successfully' });
     };
 }

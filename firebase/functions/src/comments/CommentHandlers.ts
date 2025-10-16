@@ -1,4 +1,4 @@
-import { CommentTargetType, CommentTargetTypes, CreateCommentResponse, ListCommentsResponse } from '@splitifyd/shared';
+import { CommentTargetType, CommentTargetTypes, ListCommentsResponse } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
@@ -41,21 +41,16 @@ export class CommentHandlers {
                 targetId,
             });
 
-            const responseData = await this.commentService.createComment(targetType, targetId, validatedRequest, userId);
-
-            const response: CreateCommentResponse = {
-                success: true,
-                data: responseData,
-            };
+            const comment = await this.commentService.createComment(targetType, targetId, validatedRequest, userId);
 
             logger.info('Comment created successfully', {
-                commentId: responseData.id,
+                commentId: comment.id,
                 targetType,
                 targetId,
                 authorId: userId,
             });
 
-            res.status(HTTP_STATUS.OK).json(response);
+            res.status(HTTP_STATUS.OK).json(comment);
         } catch (error) {
             logger.error('Failed to create comment', error, {
                 userId: req.user?.uid,
@@ -80,7 +75,7 @@ export class CommentHandlers {
 
             const { cursor, limit = 20 } = req.query;
 
-            const responseData = await this.commentService.listComments(
+            const comments = await this.commentService.listComments(
                 CommentTargetTypes.GROUP,
                 groupId,
                 userId,
@@ -90,19 +85,14 @@ export class CommentHandlers {
                 },
             );
 
-            const response: { success: boolean; data: ListCommentsResponse; } = {
-                success: true,
-                data: responseData,
-            };
-
             logger.info('Group comments retrieved successfully', {
                 groupId,
                 userId,
-                commentCount: responseData.comments.length,
-                hasMore: responseData.hasMore,
+                commentCount: comments.comments.length,
+                hasMore: comments.hasMore,
             });
 
-            res.status(HTTP_STATUS.OK).json(response);
+            res.status(HTTP_STATUS.OK).json(comments);
         } catch (error) {
             logger.error('Failed to list group comments', error, {
                 userId: req.user?.uid,
@@ -127,7 +117,7 @@ export class CommentHandlers {
 
             const { cursor, limit = 20 } = req.query;
 
-            const responseData = await this.commentService.listComments(
+            const comments = await this.commentService.listComments(
                 CommentTargetTypes.EXPENSE,
                 expenseId,
                 userId,
@@ -137,19 +127,14 @@ export class CommentHandlers {
                 },
             );
 
-            const response: { success: boolean; data: ListCommentsResponse; } = {
-                success: true,
-                data: responseData,
-            };
-
             logger.info('Expense comments retrieved successfully', {
                 expenseId,
                 userId,
-                commentCount: responseData.comments.length,
-                hasMore: responseData.hasMore,
+                commentCount: comments.comments.length,
+                hasMore: comments.hasMore,
             });
 
-            res.status(HTTP_STATUS.OK).json(response);
+            res.status(HTTP_STATUS.OK).json(comments);
         } catch (error) {
             logger.error('Failed to list expense comments', error, {
                 userId: req.user?.uid,

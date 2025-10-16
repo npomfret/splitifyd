@@ -1,4 +1,4 @@
-import { amountToSmallestUnit, MemberRoles } from '@splitifyd/shared';
+import { amountToSmallestUnit, MemberRoles, MessageResponse } from '@splitifyd/shared';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
@@ -11,11 +11,11 @@ export class GroupMemberService {
         private readonly firestoreWriter: IFirestoreWriter,
     ) {}
 
-    async leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string; }> {
+    async leaveGroup(userId: string, groupId: string): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.leaveGroup', async () => this._removeMemberFromGroup(userId, groupId, userId, true));
     }
 
-    async removeGroupMember(userId: string, groupId: string, memberId: string): Promise<{ success: true; message: string; }> {
+    async removeGroupMember(userId: string, groupId: string, memberId: string): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.removeGroupMember', async () => this._removeMemberFromGroup(userId, groupId, memberId, false));
     }
 
@@ -26,7 +26,7 @@ export class GroupMemberService {
      * @param targetUserId - The user being removed (could be same as requesting user for leave)
      * @param isLeaving - true for self-leave, false for admin removal
      */
-    private async _removeMemberFromGroup(requestingUserId: string, groupId: string, targetUserId: string, isLeaving: boolean): Promise<{ success: true; message: string; }> {
+    private async _removeMemberFromGroup(requestingUserId: string, groupId: string, targetUserId: string, isLeaving: boolean): Promise<MessageResponse> {
         const timer = new PerformanceTimer();
 
         LoggerContext.setBusinessContext({ groupId });
@@ -131,7 +131,6 @@ export class GroupMemberService {
         });
 
         return {
-            success: true,
             message: isLeaving ? 'Successfully left the group' : 'Member removed successfully',
         };
     }

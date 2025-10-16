@@ -59,7 +59,7 @@ describe('Comment API - Integration Tests', () => {
 
             // Verify comment structure
             expect(response.comments[0]).toMatchObject({
-                id: comment3.data.id,
+                id: comment3.id,
                 authorId: users[0].uid,
                 authorName: expect.any(String),
                 text: 'Third comment',
@@ -134,7 +134,7 @@ describe('Comment API - Integration Tests', () => {
 
             // Verify comment structure
             expect(response.comments[0]).toMatchObject({
-                id: comment2.data.id,
+                id: comment2.id,
                 authorId: users[1].uid,
                 authorName: expect.any(String),
                 text: 'Expense comment 2',

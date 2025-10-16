@@ -152,6 +152,6 @@ export class GroupHandlers {
         // Update the display name using FirestoreWriter directly
         await this.firestoreWriter.updateGroupMemberDisplayName(groupId, userId, displayName);
 
-        res.json({ success: true, message: 'Display name updated successfully' });
+        res.json({ message: 'Display name updated successfully' });
     };
 }

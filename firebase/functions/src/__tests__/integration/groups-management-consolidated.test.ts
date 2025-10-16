@@ -751,7 +751,6 @@ describe('Groups Management - Consolidated Tests', () => {
                 const response = await apiDriver.leaveGroup(groupId, memberToLeave.token);
 
                 expect(response).toEqual({
-                    success: true,
                     message: 'Successfully left the group',
                 });
 
@@ -787,7 +786,6 @@ describe('Groups Management - Consolidated Tests', () => {
                 const response = await apiDriver.removeGroupMember(groupId, memberToRemove.uid, creator.token);
 
                 expect(response).toEqual({
-                    success: true,
                     message: 'Member removed successfully',
                 });
 

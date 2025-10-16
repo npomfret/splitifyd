@@ -69,9 +69,8 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             expect((res as any).getStatus()).toBe(HTTP_STATUS.CREATED);
             const json = (res as any).getJson();
-            expect(json).toMatchObject({
-                success: true,
-                data: expect.objectContaining({
+            expect(json).toMatchObject(
+                expect.objectContaining({
                     id: expect.any(String),
                     groupId,
                     payerId: 'payer-user',
@@ -80,7 +79,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                     currency: 'USD',
                     note: 'Test settlement',
                 }),
-            });
+            );
         });
 
         it('should create a settlement without optional note', async () => {
@@ -132,14 +131,11 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             expect((res as any).getStatus()).toBe(HTTP_STATUS.CREATED);
             const json = (res as any).getJson();
-            expect(json).toMatchObject({
-                success: true,
-                data: expect.objectContaining({
-                    amount: '50',
-                }),
-            });
+            expect(json).toMatchObject(expect.objectContaining({
+                amount: '50',
+            }));
             // Verify note field is not present or is undefined
-            expect(json.data.note).toBeUndefined();
+            expect(json.note).toBeUndefined();
         });
 
         it('should reject settlement with invalid amount (zero)', async () => {
@@ -567,13 +563,10 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
             const json = (res as any).getJson();
-            expect(json).toMatchObject({
-                success: true,
-                data: expect.objectContaining({
-                    id: settlementId,
-                    amount: '150.75',
-                }),
-            });
+            expect(json).toMatchObject(expect.objectContaining({
+                id: settlementId,
+                amount: '150.75',
+            }));
         });
 
         it('should update settlement note successfully', async () => {
@@ -630,13 +623,10 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
             const json = (res as any).getJson();
-            expect(json).toMatchObject({
-                success: true,
-                data: expect.objectContaining({
-                    id: settlementId,
-                    note: 'Updated note',
-                }),
-            });
+            expect(json).toMatchObject(expect.objectContaining({
+                id: settlementId,
+                note: 'Updated note',
+            }));
         });
 
         it('should reject update with invalid settlement ID', async () => {
@@ -908,7 +898,6 @@ describe('SettlementHandlers - Unit Tests', () => {
             expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
             const json = (res as any).getJson();
             expect(json).toMatchObject({
-                success: true,
                 message: 'Settlement deleted successfully',
             });
         });
@@ -1000,7 +989,6 @@ describe('SettlementHandlers - Unit Tests', () => {
             expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
             const json = (res as any).getJson();
             expect(json).toMatchObject({
-                success: true,
                 message: 'Settlement deleted successfully',
             });
         });
@@ -1175,7 +1163,6 @@ describe('SettlementHandlers - Unit Tests', () => {
             expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
             const json = (res as any).getJson();
             expect(json).toMatchObject({
-                success: true,
                 message: 'Settlement deleted successfully',
             });
         });

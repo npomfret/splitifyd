@@ -778,16 +778,6 @@ export interface MessageResponse {
     message: string;
 }
 
-export interface LeaveGroupResponse {
-    success: boolean;
-    message: string;
-}
-
-export interface RemoveGroupMemberResponse {
-    success: boolean;
-    message: string;
-}
-
 export interface ShareLinkResponse {
     linkId: string;
     shareablePath: string;
@@ -858,41 +848,6 @@ export interface AcceptPolicyRequest {
     versionHash: string;
 }
 
-export interface CreateSettlementResponse {
-    success: boolean;
-    data: SettlementDTO;
-}
-
-export interface UpdateSettlementResponse {
-    success: boolean;
-    data: SettlementWithMembers;
-}
-
-export interface DeleteSettlementResponse {
-    success: boolean;
-    message: string;
-}
-
-export interface UpdateGroupMemberDisplayNameResponse {
-    success: boolean;
-    message: string;
-}
-
-export interface CreateExpenseResponse {
-    success: boolean;
-    data: ExpenseDTO;
-}
-
-export interface UpdateExpenseResponse {
-    success: boolean;
-    data: ExpenseDTO;
-}
-
-export interface ListCommentsWrapperResponse {
-    success: boolean;
-    data: ListCommentsResponse;
-}
-
 // ========================================================================
 // Balance calculation types
 // ========================================================================
@@ -953,11 +908,6 @@ export interface ListCommentsResponse {
     comments: CommentDTO[];
     hasMore: boolean;
     nextCursor?: string;
-}
-
-export interface CreateCommentResponse {
-    success: boolean;
-    data: CommentDTO;
 }
 
 // ========================================================================

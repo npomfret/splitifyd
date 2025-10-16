@@ -1,6 +1,6 @@
 import {
     AuthenticatedFirebaseUser,
-    CreateCommentResponse,
+    CommentDTO,
     type CreateExpenseRequest,
     type CreateGroupRequest,
     type CreateSettlementRequest,
@@ -11,13 +11,11 @@ import {
     GroupDTO,
     GroupFullDetailsDTO,
     JoinGroupResponse,
-    LeaveGroupResponse,
     ListCommentsResponse,
     ListGroupsResponse,
     MessageResponse,
     PooledTestUser,
     RegisterResponse,
-    RemoveGroupMemberResponse,
     type SettlementDTO,
     SettlementWithMembers,
     ShareLinkResponse,
@@ -165,12 +163,12 @@ export class ApiDriver {
 
     async createSettlement(settlementData: CreateSettlementRequest, token: string): Promise<SettlementDTO> {
         const response = await this.apiRequest('/settlements', 'POST', settlementData, token);
-        return response.data as SettlementDTO;
+        return response as SettlementDTO;
     }
 
     async updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, token: string): Promise<SettlementWithMembers> {
         const response = await this.apiRequest(`/settlements/${settlementId}`, 'PUT', updateData, token);
-        return response.data;
+        return response;
     }
 
     async deleteSettlement(settlementId: string, token: string): Promise<MessageResponse> {
@@ -295,11 +293,11 @@ export class ApiDriver {
         return await this.apiRequest(endpoint, method, body, token);
     }
 
-    async leaveGroup(groupId: string, token: string): Promise<LeaveGroupResponse> {
+    async leaveGroup(groupId: string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/leave`, 'POST', null, token);
     }
 
-    async removeGroupMember(groupId: string, memberId: string, token: string): Promise<RemoveGroupMemberResponse> {
+    async removeGroupMember(groupId: string, memberId: string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}`, 'DELETE', null, token);
     }
 
@@ -315,7 +313,7 @@ export class ApiDriver {
         return await this.apiRequest('/user/profile', 'PUT', profileData, token);
     }
 
-    async createComment(id: string, type: 'group' | 'expense', text: string, token: string): Promise<CreateCommentResponse> {
+    async createComment(id: string, type: 'group' | 'expense', text: string, token: string): Promise<CommentDTO> {
         if (type === 'group') {
             return this.createGroupComment(id, text, token);
         } else {
@@ -324,11 +322,11 @@ export class ApiDriver {
     }
 
     // Comment API methods
-    async createGroupComment(groupId: string, text: string, token: string): Promise<CreateCommentResponse> {
+    async createGroupComment(groupId: string, text: string, token: string): Promise<CommentDTO> {
         return await this.apiRequest(`/groups/${groupId}/comments`, 'POST', { text }, token);
     }
 
-    async createExpenseComment(expenseId: string, text: string, token: string): Promise<CreateCommentResponse> {
+    async createExpenseComment(expenseId: string, text: string, token: string): Promise<CommentDTO> {
         return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', { text }, token);
     }
 
@@ -339,7 +337,7 @@ export class ApiDriver {
         const query = params.toString() ? `?${params.toString()}` : '';
 
         const response = await this.apiRequest(`/groups/${groupId}/comments${query}`, 'GET', null, token);
-        return response.data;
+        return response;
     }
 
     async listExpenseComments(expenseId: string, token: string, cursor?: string, limit?: number): Promise<ListCommentsResponse> {
@@ -349,7 +347,7 @@ export class ApiDriver {
         const query = params.toString() ? `?${params.toString()}` : '';
 
         const response = await this.apiRequest(`/expenses/${expenseId}/comments${query}`, 'GET', null, token);
-        return response.data;
+        return response;
     }
 
     private async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {

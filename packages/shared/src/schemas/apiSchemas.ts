@@ -317,15 +317,11 @@ const ListCommentsResponseSchema = z.object({
     nextCursor: z.string().optional(),
 });
 
-const CreateCommentResponseSchema = z.object({
-    success: z.boolean(),
-    data: CommentSchema,
-});
+// Comment response is now unwrapped - returns CommentDTO directly
+const CreateCommentResponseSchema = CommentSchema;
 
-const ListCommentsApiResponseSchema = z.object({
-    success: z.boolean(),
-    data: ListCommentsResponseSchema,
-});
+// List comments response is now unwrapped - returns ListCommentsResponse directly
+const ListCommentsApiResponseSchema = ListCommentsResponseSchema;
 
 // User profile schemas
 const UserProfileResponseSchema = z.object({
@@ -378,26 +374,11 @@ export const responseSchemas = {
     '/groups/share': ShareableLinkResponseSchema,
     '/groups/join': JoinGroupResponseSchema,
     '/register': RegisterResponseSchema,
-    'POST /settlements': z.object({
-        success: z.boolean(),
-        data: SettlementSchema,
-    }),
-    'PUT /settlements/:settlementId': z.object({
-        success: z.boolean(),
-        data: SettlementListItemSchema,
-    }),
-    'GET /settlements/:settlementId': z.object({
-        success: z.boolean(),
-        data: SettlementListItemSchema,
-    }),
-    'DELETE /settlements/:settlementId': z.object({
-        success: z.boolean(),
-        message: z.string(),
-    }),
-    '/settlements': z.object({
-        success: z.boolean(),
-        data: ListSettlementsResponseSchema,
-    }),
+    'POST /settlements': SettlementSchema,
+    'PUT /settlements/:settlementId': SettlementListItemSchema,
+    'GET /settlements/:settlementId': SettlementListItemSchema,
+    'DELETE /settlements/:settlementId': MessageResponseSchema,
+    '/settlements': ListSettlementsResponseSchema,
     '/settlements/:settlementId': SettlementListItemSchema,
     // Comment endpoints
     'POST /groups/:groupId/comments': CreateCommentResponseSchema,

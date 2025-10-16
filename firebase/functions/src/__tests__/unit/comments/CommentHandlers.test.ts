@@ -48,14 +48,11 @@ describe('CommentHandlers - Unit Tests', () => {
 
             expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
             const json = (res as any).getJson();
-            expect(json).toMatchObject({
-                success: true,
-                data: expect.objectContaining({
-                    id: expect.any(String),
-                    text: 'This is a test comment',
-                    authorId: userId,
-                }),
-            });
+            expect(json).toMatchObject(expect.objectContaining({
+                id: expect.any(String),
+                text: 'This is a test comment',
+                authorId: userId,
+            }));
         });
 
         it('should create a comment with whitespace trimmed', async () => {
@@ -80,7 +77,7 @@ describe('CommentHandlers - Unit Tests', () => {
             await commentHandlers.createComment(req, res);
 
             expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
-            expect((res as any).getJson().data.text).toBe('test comment');
+            expect((res as any).getJson().text).toBe('test comment');
         });
 
         it('should sanitize XSS attempts in comment text', async () => {
@@ -106,8 +103,8 @@ describe('CommentHandlers - Unit Tests', () => {
 
             expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
             const json = (res as any).getJson();
-            expect(json.data.text).not.toContain('<script>');
-            expect(json.data.text).toContain('Safe text');
+            expect(json.text).not.toContain('<script>');
+            expect(json.text).toContain('Safe text');
         });
 
         it('should reject comment with empty text', async () => {
@@ -266,14 +263,11 @@ describe('CommentHandlers - Unit Tests', () => {
 
             expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
             const json = (res as any).getJson();
-            expect(json).toMatchObject({
-                success: true,
-                data: expect.objectContaining({
-                    id: expect.any(String),
-                    text: 'This is an expense comment',
-                    authorId: userId,
-                }),
-            });
+            expect(json).toMatchObject(expect.objectContaining({
+                id: expect.any(String),
+                text: 'This is an expense comment',
+                authorId: userId,
+            }));
         });
 
         it('should reject expense comment when user is not a group member', async () => {
@@ -354,11 +348,8 @@ describe('CommentHandlers - Unit Tests', () => {
             expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
             const json = (res as any).getJson();
             expect(json).toMatchObject({
-                success: true,
-                data: expect.objectContaining({
-                    comments: expect.any(Array),
-                    hasMore: expect.any(Boolean),
-                }),
+                comments: expect.any(Array),
+                hasMore: expect.any(Boolean),
             });
         });
 
@@ -381,8 +372,8 @@ describe('CommentHandlers - Unit Tests', () => {
             await commentHandlers.listGroupComments(req, res);
 
             expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
-            expect((res as any).getJson().data.comments).toEqual([]);
-            expect((res as any).getJson().data.hasMore).toBe(false);
+            expect((res as any).getJson().comments).toEqual([]);
+            expect((res as any).getJson().hasMore).toBe(false);
         });
 
         it('should reject listing comments with invalid group ID', async () => {
@@ -464,11 +455,8 @@ describe('CommentHandlers - Unit Tests', () => {
             expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
             const json = (res as any).getJson();
             expect(json).toMatchObject({
-                success: true,
-                data: expect.objectContaining({
-                    comments: expect.any(Array),
-                    hasMore: expect.any(Boolean),
-                }),
+                comments: expect.any(Array),
+                hasMore: expect.any(Boolean),
             });
         });
     });
@@ -497,11 +485,8 @@ describe('CommentHandlers - Unit Tests', () => {
             expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
             const json = (res as any).getJson();
             expect(json).toMatchObject({
-                success: true,
-                data: expect.objectContaining({
-                    comments: expect.any(Array),
-                    hasMore: expect.any(Boolean),
-                }),
+                comments: expect.any(Array),
+                hasMore: expect.any(Boolean),
             });
         });
 
@@ -526,8 +511,8 @@ describe('CommentHandlers - Unit Tests', () => {
             await commentHandlers.listExpenseComments(req, res);
 
             expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
-            expect((res as any).getJson().data.comments).toEqual([]);
-            expect((res as any).getJson().data.hasMore).toBe(false);
+            expect((res as any).getJson().comments).toEqual([]);
+            expect((res as any).getJson().hasMore).toBe(false);
         });
 
         it('should reject listing comments with invalid expense ID', async () => {
@@ -613,11 +598,8 @@ describe('CommentHandlers - Unit Tests', () => {
             expect((res as any).getStatus()).toBe(HTTP_STATUS.OK);
             const json = (res as any).getJson();
             expect(json).toMatchObject({
-                success: true,
-                data: expect.objectContaining({
-                    comments: expect.any(Array),
-                    hasMore: expect.any(Boolean),
-                }),
+                comments: expect.any(Array),
+                hasMore: expect.any(Boolean),
             });
         });
     });

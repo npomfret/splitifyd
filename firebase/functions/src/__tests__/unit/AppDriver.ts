@@ -1,25 +1,21 @@
 import {
-    CreateCommentResponse,
+    CommentDTO,
     CreateExpenseRequest,
     CreateSettlementRequest,
-    CreateSettlementResponse,
-    DeleteSettlementResponse,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
     GroupDTO,
     GroupFullDetailsDTO,
     JoinGroupResponse,
-    LeaveGroupResponse,
-    ListCommentsWrapperResponse,
+    ListCommentsResponse,
     ListGroupsResponse,
     MessageResponse,
     PreviewGroupResponse,
-    RemoveGroupMemberResponse,
+    SettlementDTO,
+    SettlementWithMembers,
     ShareLinkResponse,
-    UpdateGroupMemberDisplayNameResponse,
     UpdateGroupRequest,
     UpdateSettlementRequest,
-    UpdateSettlementResponse,
 } from '@splitifyd/shared/src';
 import { CreateGroupRequestBuilder, createStubRequest, createStubResponse, StubFirestoreDatabase } from '@splitifyd/test-support';
 import { CommentHandlers } from '../../comments/CommentHandlers';
@@ -146,31 +142,31 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async leaveGroup(userId: string, groupId: string): Promise<LeaveGroupResponse> {
+    async leaveGroup(userId: string, groupId: string): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = createStubResponse();
 
         await this.groupMemberHandlers.leaveGroup(req, res);
 
-        return (res as any).getJson() as LeaveGroupResponse;
+        return (res as any).getJson() as MessageResponse;
     }
 
-    async removeGroupMember(userId: string, groupId: string, memberId: string): Promise<RemoveGroupMemberResponse> {
+    async removeGroupMember(userId: string, groupId: string, memberId: string): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId, memberId });
         const res = createStubResponse();
 
         await this.groupMemberHandlers.removeGroupMember(req, res);
 
-        return (res as any).getJson() as RemoveGroupMemberResponse;
+        return (res as any).getJson() as MessageResponse;
     }
 
-    async updateGroupMemberDisplayName(userId: string, groupId: string, displayName: string): Promise<UpdateGroupMemberDisplayNameResponse> {
+    async updateGroupMemberDisplayName(userId: string, groupId: string, displayName: string): Promise<MessageResponse> {
         const req = createStubRequest(userId, { displayName }, { id: groupId });
         const res = createStubResponse();
 
         await this.groupHandlers.updateGroupMemberDisplayName(req, res);
 
-        return (res as any).getJson() as UpdateGroupMemberDisplayNameResponse;
+        return (res as any).getJson() as MessageResponse;
     }
 
     async createExpense(userId1: string, expenseRequest: CreateExpenseRequest): Promise<ExpenseDTO> {
@@ -211,44 +207,44 @@ export class AppDriver {
         return (res as any).getJson() as ExpenseFullDetailsDTO;
     }
 
-    async createSettlement(userId: string, settlementRequest: CreateSettlementRequest) {
+    async createSettlement(userId: string, settlementRequest: CreateSettlementRequest): Promise<SettlementDTO> {
         const req = createStubRequest(userId, settlementRequest);
         const res = createStubResponse();
 
         await this.settlementHandlers.createSettlement(req, res);
 
-        return (res as any).getJson() as CreateSettlementResponse;
+        return (res as any).getJson() as SettlementDTO;
     }
 
-    async updateSettlement(userId: string, settlementId: string, updateRequest: UpdateSettlementRequest) {
+    async updateSettlement(userId: string, settlementId: string, updateRequest: UpdateSettlementRequest): Promise<SettlementWithMembers> {
         const req = createStubRequest(userId, updateRequest, { settlementId });
         const res = createStubResponse();
 
         await this.settlementHandlers.updateSettlement(req, res);
 
-        return (res as any).getJson() as UpdateSettlementResponse;
+        return (res as any).getJson() as SettlementWithMembers;
     }
 
-    async deleteSettlement(userId: string, settlementId: string) {
+    async deleteSettlement(userId: string, settlementId: string): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { settlementId });
         const res = createStubResponse();
 
         await this.settlementHandlers.deleteSettlement(req, res);
 
-        return (res as any).getJson() as DeleteSettlementResponse;
+        return (res as any).getJson() as MessageResponse;
     }
 
-    async createGroupComment(userId: string, groupId: string, text: string): Promise<CreateCommentResponse> {
+    async createGroupComment(userId: string, groupId: string, text: string): Promise<CommentDTO> {
         const req = createStubRequest(userId, { text }, { groupId });
         req.path = `/groups/${groupId}/comments`;
         const res = createStubResponse();
 
         await this.commentHandlers.createComment(req, res);
 
-        return (res as any).getJson() as CreateCommentResponse;
+        return (res as any).getJson() as CommentDTO;
     }
 
-    async listGroupComments(userId: string, groupId: string): Promise<ListCommentsWrapperResponse> {
+    async listGroupComments(userId: string, groupId: string): Promise<ListCommentsResponse> {
         const req = createStubRequest(userId, {}, { groupId });
         req.path = `/groups/${groupId}/comments`;
         req.query = {};
@@ -256,20 +252,20 @@ export class AppDriver {
 
         await this.commentHandlers.listGroupComments(req, res);
 
-        return (res as any).getJson() as ListCommentsWrapperResponse;
+        return (res as any).getJson() as ListCommentsResponse;
     }
 
-    async createExpenseComment(userId: string, expenseId: string, text: string): Promise<CreateCommentResponse> {
+    async createExpenseComment(userId: string, expenseId: string, text: string): Promise<CommentDTO> {
         const req = createStubRequest(userId, { text }, { expenseId });
         req.path = `/expenses/${expenseId}/comments`;
         const res = createStubResponse();
 
         await this.commentHandlers.createComment(req, res);
 
-        return (res as any).getJson() as CreateCommentResponse;
+        return (res as any).getJson() as CommentDTO;
     }
 
-    async listExpenseComments(userId: string, expenseId: string): Promise<ListCommentsWrapperResponse> {
+    async listExpenseComments(userId: string, expenseId: string): Promise<ListCommentsResponse> {
         const req = createStubRequest(userId, {}, { expenseId });
         req.path = `/expenses/${expenseId}/comments`;
         req.query = {};
@@ -277,6 +273,6 @@ export class AppDriver {
 
         await this.commentHandlers.listExpenseComments(req, res);
 
-        return (res as any).getJson() as ListCommentsWrapperResponse;
+        return (res as any).getJson() as ListCommentsResponse;
     }
 }
