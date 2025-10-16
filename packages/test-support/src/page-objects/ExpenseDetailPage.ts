@@ -167,6 +167,14 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
+     * Verify a comment with specific text is visible
+     */
+    async verifyCommentVisible(text: string): Promise<void> {
+        const comment = this.getCommentByText(text);
+        await expect(comment).toBeVisible();
+    }
+
+    /**
      * Delete the expense via the ExpenseActions component
      */
     async deleteExpense(): Promise<void> {

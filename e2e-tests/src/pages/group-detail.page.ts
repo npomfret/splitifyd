@@ -1087,6 +1087,22 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         const comment = this.getCommentByText(text);
         await expect(comment).toBeVisible();
     }
+
+    /**
+     * Verify leave group button is visible
+     */
+    async verifyLeaveGroupButtonVisible(): Promise<void> {
+        const leaveButton = this.getLeaveGroupButton();
+        await expect(leaveButton).toBeVisible();
+    }
+
+    /**
+     * Verify member count element is visible
+     */
+    async verifyMemberCountElementVisible(): Promise<void> {
+        const memberCount = this.getMemberCountElement();
+        await expect(memberCount).toBeVisible();
+    }
 }
 
 /**

@@ -25,17 +25,17 @@ simpleTest.describe('Member Management - Core Operations', () => {
         const [groupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder());
 
         // Verify Leave Group button is NOT visible for owner
-        await expect(groupDetailPage.getLeaveGroupButton()).not.toBeVisible();
+        await groupDetailPage.verifyLeaveButtonNotVisible();
 
         // But Settings button should be visible
-        await expect(groupDetailPage.getEditGroupButton()).toBeVisible();
+        await groupDetailPage.verifyEditButtonVisible();
 
         // UI Components validation: Member count and expense split options
-        await expect(groupDetailPage.getMemberCountElement()).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
+        await groupDetailPage.verifyMemberCountElementVisible();
 
         // Test member visibility in expense split options
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
-        await expect(expenseFormPage.getSplitBetweenHeading()).toBeVisible();
+        await expenseFormPage.verifySplitBetweenHeadingVisible();
 
         const userCheckbox = expenseFormPage.getSplitOptionsFirstCheckbox();
         await expect(userCheckbox).toBeVisible();
@@ -56,7 +56,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
 
         // Verify member sees Leave Group button
         await groupDetailPage.waitForMemberCount(2); // sanity check
-        await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
+        await memberGroupDetailPage.verifyLeaveGroupButtonVisible();
 
         // Member clicks Leave Group
         const leaveModal = await memberGroupDetailPage.clickLeaveGroupButton();
@@ -121,7 +121,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
         await groupDetailPage.waitForMemberCount(1);
 
         // Group title should still be visible
-        await expect(groupDetailPage.getGroupName()).toHaveText(groupName);
+        await groupDetailPage.verifyGroupNameText(groupName);
     });
 });
 
@@ -158,7 +158,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         await memberGroupDetailPage.verifyDebtRelationship(memberDisplayName, ownerDisplayName, '¥50');
 
         // Member tries to leave group
-        await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
+        await memberGroupDetailPage.verifyLeaveGroupButtonVisible();
         const leaveModalWithBalance = await memberGroupDetailPage.clickLeaveGroupButton();
 
         // Should see error message about outstanding balance
@@ -409,8 +409,8 @@ simpleTest.describe('Group Settings & Management', () => {
         await expect(memberSettingsButton).not.toBeVisible();
 
         // Verify both can see the group name
-        await expect(ownerGroupDetailPage.getGroupName()).toHaveText(groupName);
-        await expect(memberGroupDetailPage.getGroupName()).toHaveText(groupName);
+        await ownerGroupDetailPage.verifyGroupNameText(groupName);
+        await memberGroupDetailPage.verifyGroupNameText(groupName);
     });
 });
 
@@ -503,9 +503,9 @@ simpleTest.describe('Group Comments - Real-time Communication', () => {
         await bobGroupDetailPage.waitForCommentCount(2);
 
         // Verify both comments are visible on both pages
-        await expect(aliceGroupDetailPage.getCommentByText(comment1)).toBeVisible();
-        await expect(aliceGroupDetailPage.getCommentByText(comment2)).toBeVisible();
-        await expect(bobGroupDetailPage.getCommentByText(comment1)).toBeVisible();
-        await expect(bobGroupDetailPage.getCommentByText(comment2)).toBeVisible();
+        await aliceGroupDetailPage.verifyCommentVisible(comment1);
+        await aliceGroupDetailPage.verifyCommentVisible(comment2);
+        await bobGroupDetailPage.verifyCommentVisible(comment1);
+        await bobGroupDetailPage.verifyCommentVisible(comment2);
     });
 });

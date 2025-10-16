@@ -558,10 +558,10 @@ simpleTest.describe('Real-time Comments', () => {
         await aliceExpenseDetailPage.waitForCommentCount(2);
         await bobExpenseDetailPage.waitForCommentCount(2);
 
-        await expect(aliceExpenseDetailPage.getCommentByText(comment1)).toBeVisible();
-        await expect(aliceExpenseDetailPage.getCommentByText(comment2)).toBeVisible();
-        await expect(bobExpenseDetailPage.getCommentByText(comment1)).toBeVisible();
-        await expect(bobExpenseDetailPage.getCommentByText(comment2)).toBeVisible();
+        await aliceExpenseDetailPage.verifyCommentVisible(comment1);
+        await aliceExpenseDetailPage.verifyCommentVisible(comment2);
+        await bobExpenseDetailPage.verifyCommentVisible(comment1);
+        await bobExpenseDetailPage.verifyCommentVisible(comment2);
     });
 });
 
