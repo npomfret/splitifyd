@@ -7,7 +7,7 @@ test.describe('Site Quality - Accessibility', () => {
     test('should not have critical accessibility issues', async ({ newEmptyBrowser }) => {
         const { page } = await newEmptyBrowser();
         const homepagePage = new HomepagePage(page);
-        await homepagePage.navigate();
+        await homepagePage.navigateToHomepage();
         await waitForApp(page);
 
         // Run basic accessibility scan
@@ -28,7 +28,7 @@ test.describe('Site Quality - SEO', () => {
         const pricingPage = new PricingPage(page);
 
         // Part 1: Homepage SEO validation
-        await homepagePage.navigate();
+        await homepagePage.navigateToHomepage();
 
         // Title validation
         const homeTitle = await page.title();
@@ -52,7 +52,7 @@ test.describe('Site Quality - SEO', () => {
         expect(htmlLang).toBe('en');
 
         // Part 2: Pricing page SEO validation
-        await pricingPage.navigate();
+        await pricingPage.navigateToPricing();
 
         // Title validation
         const pricingTitle = await page.title();

@@ -5,10 +5,6 @@ export class HomepagePage extends BasePage {
     constructor(page: Page) {
         super(page);
     }
-    // Navigation
-    async navigate() {
-        await this.navigateToHomepage();
-    }
 
     // Footer links
     getTermsLink() {

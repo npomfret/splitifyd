@@ -5,8 +5,4 @@ export class PricingPage extends BasePage {
     constructor(page: Page) {
         super(page);
     }
-    // Navigation
-    async navigate() {
-        await this.navigateToPricing();
-    }
 }
