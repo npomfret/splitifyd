@@ -1,11 +1,10 @@
-import { StubFirestoreDatabase } from '@splitifyd/test-support';
+import {GroupMemberDocumentBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../../constants';
 import { GroupCommentStrategy } from '../../../../services/comments/GroupCommentStrategy';
 import { FirestoreReader } from '../../../../services/firestore';
 import { FirestoreWriter } from '../../../../services/firestore';
 import { GroupMemberService } from '../../../../services/GroupMemberService';
-import { GroupMemberDocumentBuilder } from '../../../support/GroupMemberDocumentBuilder';
 
 describe('GroupCommentStrategy', () => {
     let strategy: GroupCommentStrategy;

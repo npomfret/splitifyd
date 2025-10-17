@@ -1,11 +1,10 @@
 import { MemberRoles } from '@splitifyd/shared';
-import { GroupBalanceDTOBuilder, GroupDTOBuilder, StubFirestoreDatabase, ThemeBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
+import { GroupMemberDocumentBuilder, GroupBalanceDTOBuilder, GroupDTOBuilder, StubFirestoreDatabase, ThemeBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, test } from 'vitest';
 import { FirestoreReader } from '../../../services/firestore';
 import { FirestoreWriter } from '../../../services/firestore';
 import { GroupMemberService } from '../../../services/GroupMemberService';
-import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {
     let groupMemberService: GroupMemberService;

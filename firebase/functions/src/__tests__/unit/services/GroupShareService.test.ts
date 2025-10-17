@@ -1,5 +1,5 @@
 import { MAX_GROUP_MEMBERS } from '@splitifyd/shared';
-import { GroupDTOBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
+import { GroupDTOBuilder, GroupMemberDocumentBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { FirestoreReader } from '../../../services/firestore';
@@ -7,7 +7,6 @@ import { FirestoreWriter } from '../../../services/firestore';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { GroupShareService } from '../../../services/GroupShareService';
 import { ApiError } from '../../../utils/errors';
-import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
 
 describe('GroupShareService', () => {
     let groupShareService: GroupShareService;

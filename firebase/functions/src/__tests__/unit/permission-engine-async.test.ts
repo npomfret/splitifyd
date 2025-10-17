@@ -1,8 +1,7 @@
 import { GroupDTO, PermissionLevels } from '@splitifyd/shared';
-import { ExpenseDTOBuilder, GroupDTOBuilder } from '@splitifyd/test-support';
+import { ExpenseDTOBuilder, GroupMemberDocumentBuilder, GroupDTOBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { PermissionEngineAsync } from '../../permissions/permission-engine-async';
-import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
 
 describe('PermissionEngineAsync', () => {
     let testGroup: GroupDTO;

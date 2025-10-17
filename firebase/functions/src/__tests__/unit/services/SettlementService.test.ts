@@ -1,10 +1,9 @@
 import { Timestamp } from '@google-cloud/firestore';
-import { CreateSettlementRequestBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
+import { CreateSettlementRequestBuilder, GroupMemberDocumentBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { SettlementService } from '../../../services/SettlementService';
-import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
 import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('SettlementService - Unit Tests', () => {

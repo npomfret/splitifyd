@@ -12,7 +12,7 @@
  * Add new invalid data scenarios here as they're discovered in production.
  */
 
-import { ApiDriver, CreateGroupRequestBuilder, GroupDTOBuilder, NotificationDriver } from '@splitifyd/test-support';
+import { ApiDriver, CreateGroupRequestBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, NotificationDriver } from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { FirestoreCollections } from '../../constants';
@@ -20,7 +20,6 @@ import { getFirestore } from '../../firebase';
 import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { FirestoreReader } from '../../services/firestore';
 import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
-import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
 
 describe('Invalid Data Resilience - API should not break with bad data', () => {
     const firestore = getFirestore();

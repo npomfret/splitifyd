@@ -13,6 +13,7 @@ export { ExpenseFormDataBuilder } from './ExpenseFormDataBuilder';
 export { ExpenseSplitBuilder } from './ExpenseSplitBuilder';
 export { ExpenseUpdateBuilder } from './ExpenseUpdateBuilder';
 export { GroupBalanceDocumentBuilder } from './GroupBalanceDocumentBuilder';
+export { GroupMemberDocumentBuilder } from './GroupMemberDocumentBuilder';
 export { GroupBalanceDTOBuilder } from './GroupBalanceDTOBuilder';
 export { GroupBalancesBuilder } from './GroupBalancesBuilder';
 export { GroupDTOBuilder } from './GroupDTOBuilder';

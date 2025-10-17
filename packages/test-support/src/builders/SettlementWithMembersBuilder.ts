@@ -77,7 +77,8 @@ export class SettlementWithMembersBuilder {
         return this;
     }
 
-    withAmount(amount: Amount | number): this {
+    withAmount(amount: Amount | number, currency: string): this {
+        this.settlement.currency = currency;
         this.settlement.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }

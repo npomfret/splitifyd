@@ -6,12 +6,10 @@
  * firestore-read-encapsulation-report.md
  */
 
-import { StubFirestoreDatabase } from '@splitifyd/test-support';
+import { StubFirestoreDatabase, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getFirestore } from '../../firebase';
-import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreReader } from '../../services/firestore';
-import { GroupMemberDocumentBuilder } from '../support/GroupMemberDocumentBuilder';
 
 describe('FirestoreReader Pagination Performance', () => {
     let db: StubFirestoreDatabase;

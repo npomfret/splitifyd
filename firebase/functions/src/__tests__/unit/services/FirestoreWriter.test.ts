@@ -1,11 +1,10 @@
-import { GroupDTOBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
+import { GroupDTOBuilder, GroupMemberDocumentBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { FirestoreReader } from '../../../services/firestore';
 import type { IFirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
-import { GroupMemberDocumentBuilder } from '../../support/GroupMemberDocumentBuilder';
 import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
