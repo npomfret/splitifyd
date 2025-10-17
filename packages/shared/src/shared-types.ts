@@ -390,11 +390,6 @@ export interface ClientUser {
     preferredLanguage?: string;
 }
 
-interface HasFirebaseMetadatwaFields {
-    createdAt: ISOString;
-    updatedAt: ISOString;
-}
-
 // Base interface for document types with common timestamp fields
 export interface BaseDTO {
     id: string;

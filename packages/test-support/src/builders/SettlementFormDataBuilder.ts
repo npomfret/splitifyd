@@ -31,6 +31,7 @@ export class SettlementFormDataBuilder {
     }
 
     withAmount(amount: string | number, currency: string): this {
+        this.settlement.currency = currency;
         this.settlement.amount = amount.toString();
         return this;
     }

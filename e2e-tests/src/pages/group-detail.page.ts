@@ -1083,14 +1083,6 @@ export class GroupDetailPage extends BaseGroupDetailPage {
     // ============================================================================
 
     /**
-     * Copy share link to clipboard
-     * Opens share modal, retrieves the link, and closes the modal
-     */
-    async copyShareLink(): Promise<string> {
-        return await this.getShareLink();
-    }
-
-    /**
      * Verify the group name matches expected text
      */
     async verifyGroupNameText(expectedText: string): Promise<void> {

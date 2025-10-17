@@ -2344,4 +2344,7 @@ describe('app tests', () => {
             });
         });
     });
+
+    // Policy tests - methods added to AppDriver and ApiDriver for future testing
+    // TODO: Add comprehensive tests once stub database properly supports policy operations
 });

@@ -660,14 +660,6 @@ export class ExpenseFormPage extends BaseExpenseFormPage {
     }
 
     /**
-     * E2E-specific: Verify first checkbox in Split Between section is checked
-     */
-    async verifyFirstCheckboxChecked(): Promise<void> {
-        const firstCheckbox = this.getSplitOptionsFirstCheckbox();
-        await expect(firstCheckbox).toBeChecked();
-    }
-
-    /**
      * E2E-specific: Verify date input value matches expected pattern
      * Uses Playwright's polling to handle async updates
      */
@@ -680,12 +672,4 @@ export class ExpenseFormPage extends BaseExpenseFormPage {
             .toPass({ timeout: 5000 });
     }
 
-    /**
-     * E2E-specific: Verify date input has specific value
-     * Uses Playwright's built-in polling assertion
-     */
-    async verifyDateInputValue(expectedValue: string): Promise<void> {
-        const dateInput = this.getDateInput();
-        await expect(dateInput).toHaveValue(expectedValue);
-    }
 }

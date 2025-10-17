@@ -29,6 +29,8 @@ import { GroupHandlers } from '../../groups/GroupHandlers';
 import { GroupMemberHandlers } from '../../groups/GroupMemberHandlers';
 import { GroupShareHandlers } from '../../groups/GroupShareHandlers';
 import { PolicyHandlers } from '../../policies/PolicyHandlers';
+import { acceptMultiplePolicies, getUserPolicyStatus } from '../../policies/user-handlers';
+import { getCurrentPolicy } from '../../policies/public-handlers';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreWriter } from '../../services/firestore';
 import { SettlementHandlers } from '../../settlements/SettlementHandlers';
@@ -364,5 +366,32 @@ export class AppDriver {
         await this.policyHandlers.deletePolicyVersion(req, res);
 
         return (res as any).getJson() as DeletePolicyVersionResponse;
+    }
+
+    async acceptMultiplePolicies(userId: string, acceptances: Array<{ policyId: string; versionHash: string; }>): Promise<any> {
+        const req = createStubRequest(userId, { acceptances });
+        const res = createStubResponse();
+
+        await acceptMultiplePolicies(req, res);
+
+        return (res as any).getJson();
+    }
+
+    async getUserPolicyStatus(userId: string): Promise<any> {
+        const req = createStubRequest(userId, {});
+        const res = createStubResponse();
+
+        await getUserPolicyStatus(req, res);
+
+        return (res as any).getJson();
+    }
+
+    async getCurrentPolicy(policyId: string): Promise<any> {
+        const req = createStubRequest('', {}, { id: policyId });
+        const res = createStubResponse();
+
+        await getCurrentPolicy(req, res);
+
+        return (res as any).getJson();
     }
 }

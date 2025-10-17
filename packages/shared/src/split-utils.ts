@@ -61,23 +61,6 @@ export function parseMonetaryAmount(amount: string | number): number {
 }
 
 /**
- * Format a number to a string for API transmission.
- * Uses fixed decimal places based on currency to ensure exact representation.
- *
- * @param amount - Numeric amount to format
- * @param currencyCode - 3-letter ISO currency code
- * @returns Formatted string with correct decimal places
- *
- * @example
- * formatMonetaryAmount(123.456, 'USD') // "123.46" (2 decimals)
- * formatMonetaryAmount(123.456, 'JPY') // "123" (0 decimals)
- * formatMonetaryAmount(123.456, 'BHD') // "123.456" (3 decimals)
- */
-export function formatMonetaryAmount(amount: Amount, currencyCode: string): string {
-    return roundToCurrencyPrecision(amount, currencyCode);
-}
-
-/**
  * Round an amount to the correct decimal precision for a currency
  * @param amount - The amount to round
  * @param currencyCode - 3-letter ISO currency code

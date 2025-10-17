@@ -82,10 +82,6 @@ export function randomEmail(): string {
     return `${randomString(8)}@${randomString(5)}.com`;
 }
 
-export function randomCurrency(): string {
-    return randomChoice(['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY']);
-}
-
 // Re-export currency utilities for backward compatibility
 export { getCurrencyDecimals, roundToCurrencyPrecision };
 

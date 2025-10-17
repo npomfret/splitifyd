@@ -305,6 +305,18 @@ export class ApiDriver {
         return await this.apiRequest(`/policies/${policyId}/current`, 'GET', null, null);
     }
 
+    async getCurrentPolicy(policyId: string): Promise<CurrentPolicyResponse> {
+        return this.getPolicy(policyId);
+    }
+
+    async acceptMultiplePolicies(acceptances: Array<{ policyId: string; versionHash: string; }>, token: string): Promise<any> {
+        return await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
+    }
+
+    async getUserPolicyStatus(token: string): Promise<any> {
+        return await this.apiRequest('/user/policies/status', 'GET', null, token);
+    }
+
     async changePassword(token: string | null, currentPassword: string, newPassword: string): Promise<MessageResponse> {
         return await this.apiRequest('/user/change-password', 'POST', { currentPassword, newPassword }, token);
     }

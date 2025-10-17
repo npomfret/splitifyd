@@ -1,5 +1,5 @@
 import type { ExpenseDTO, SettlementDTO, UserBalance } from '@splitifyd/shared';
-import { addAmounts, Amount, amountToSmallestUnit, compareAmounts, isZeroAmount, negateAmount, smallestUnitToAmountString, subtractAmounts, sumAmounts, zeroAmount } from '@splitifyd/shared';
+import { amountToSmallestUnit, negateAmount, smallestUnitToAmountString, subtractAmounts, sumAmounts, zeroAmount } from '@splitifyd/shared';
 import { negateNormalizedAmount } from '@splitifyd/shared';
 import type { ITransaction } from '../../firestore-wrapper';
 import { logger } from '../../logger';
@@ -146,104 +146,6 @@ export class IncrementalBalanceService {
         });
     }
 
-    private mergeBalances(existing: CurrencyBalances, delta: CurrencyBalances): CurrencyBalances {
-        const result: CurrencyBalances = JSON.parse(JSON.stringify(existing));
-
-        for (const currency of Object.keys(delta)) {
-            if (!result[currency]) {
-                result[currency] = {};
-            }
-
-            const existingCurrencyBalances = result[currency];
-            const deltaCurrencyBalances = delta[currency];
-
-            for (const userId of Object.keys(deltaCurrencyBalances)) {
-                const deltaUserBalance = deltaCurrencyBalances[userId];
-
-                if (!existingCurrencyBalances[userId]) {
-                    existingCurrencyBalances[userId] = {
-                        uid: userId,
-                        owes: {},
-                        owedBy: {},
-                        netBalance: zeroAmount(currency),
-                    };
-                }
-
-                const existingUserBalance = existingCurrencyBalances[userId];
-
-                for (const otherUserId of Object.keys(deltaUserBalance.owes)) {
-                    this.adjustOwes(existingUserBalance, otherUserId, deltaUserBalance.owes[otherUserId], currency);
-                }
-
-                for (const otherUserId of Object.keys(deltaUserBalance.owedBy)) {
-                    this.adjustOwedBy(existingUserBalance, otherUserId, deltaUserBalance.owedBy[otherUserId], currency);
-                }
-
-                this.recalculateNetBalance(existingUserBalance, currency);
-            }
-        }
-
-        return result;
-    }
-
-    private adjustOwes(userBalance: UserBalance, otherUserId: string, amount: Amount, currency: string): void {
-        const zero = zeroAmount(currency);
-        let remainder = amount;
-
-        const existingCredit = userBalance.owedBy[otherUserId];
-        if (existingCredit !== undefined) {
-            const creditAfter = addAmounts(existingCredit, negateAmount(remainder, currency), currency);
-            if (compareAmounts(creditAfter, zero, currency) >= 0) {
-                if (isZeroAmount(creditAfter, currency)) {
-                    delete userBalance.owedBy[otherUserId];
-                } else {
-                    userBalance.owedBy[otherUserId] = creditAfter;
-                }
-                return;
-            }
-
-            delete userBalance.owedBy[otherUserId];
-            remainder = negateAmount(creditAfter, currency);
-        }
-
-        const existingOwes = userBalance.owes[otherUserId] ?? zero;
-        const updatedOwes = addAmounts(existingOwes, remainder, currency);
-        if (isZeroAmount(updatedOwes, currency)) {
-            delete userBalance.owes[otherUserId];
-        } else {
-            userBalance.owes[otherUserId] = updatedOwes;
-        }
-    }
-
-    private adjustOwedBy(userBalance: UserBalance, otherUserId: string, amount: Amount, currency: string): void {
-        const zero = zeroAmount(currency);
-        let remainder = amount;
-
-        const existingDebt = userBalance.owes[otherUserId];
-        if (existingDebt !== undefined) {
-            const debtAfter = addAmounts(existingDebt, negateAmount(remainder, currency), currency);
-            if (compareAmounts(debtAfter, zero, currency) >= 0) {
-                if (isZeroAmount(debtAfter, currency)) {
-                    delete userBalance.owes[otherUserId];
-                } else {
-                    userBalance.owes[otherUserId] = debtAfter;
-                }
-                return;
-            }
-
-            delete userBalance.owes[otherUserId];
-            remainder = negateAmount(debtAfter, currency);
-        }
-
-        const existingOwedBy = userBalance.owedBy[otherUserId] ?? zero;
-        const updatedOwedBy = addAmounts(existingOwedBy, remainder, currency);
-        if (isZeroAmount(updatedOwedBy, currency)) {
-            delete userBalance.owedBy[otherUserId];
-        } else {
-            userBalance.owedBy[otherUserId] = updatedOwedBy;
-        }
-    }
-
     private ensureMembersInitialized(balancesByCurrency: CurrencyBalances, currency: string, memberIds: string[]): void {
         if (!balancesByCurrency[currency]) {
             balancesByCurrency[currency] = {};
@@ -259,12 +161,6 @@ export class IncrementalBalanceService {
                 };
             }
         }
-    }
-
-    private recalculateNetBalance(userBalance: UserBalance, currency: string): void {
-        const totalOwed = sumAmounts(Object.values(userBalance.owedBy), currency);
-        const totalOwing = sumAmounts(Object.values(userBalance.owes), currency);
-        userBalance.netBalance = subtractAmounts(totalOwed, totalOwing, currency);
     }
 
     private applyDelta(
@@ -293,7 +189,7 @@ export class IncrementalBalanceService {
             const deltaPairs = this.balancesToPairs(deltaCurrencyBalances, currency);
 
             for (const [pairKey, units] of deltaPairs.entries()) {
-                this.adjustPair(existingPairs, pairKey, units * sign, currency);
+                this.adjustPair(existingPairs, pairKey, units * sign);
             }
 
             result[currency] = this.pairsToBalances(existingPairs, users, currency);
@@ -326,7 +222,7 @@ export class IncrementalBalanceService {
         return pairs;
     }
 
-    private adjustPair(pairs: Map<string, number>, key: string, deltaUnits: number, currency: string): void {
+    private adjustPair(pairs: Map<string, number>, key: string, deltaUnits: number): void {
         if (deltaUnits === 0) {
             return;
         }

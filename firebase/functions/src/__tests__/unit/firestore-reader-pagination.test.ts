@@ -8,7 +8,6 @@
 
 import { StubFirestoreDatabase, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { getFirestore } from '../../firebase';
 import { FirestoreReader } from '../../services/firestore';
 
 describe('FirestoreReader Pagination Performance', () => {
@@ -18,7 +17,6 @@ describe('FirestoreReader Pagination Performance', () => {
 
     beforeEach(() => {
         db = new StubFirestoreDatabase();
-        const firestore = getFirestore();
         firestoreReader = new FirestoreReader(db);
     });
 
