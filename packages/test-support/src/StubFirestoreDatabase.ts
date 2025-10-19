@@ -24,6 +24,7 @@ import type {
     SetOptions,
     WhereFilterOp,
 } from './firestore-types';
+import {GroupId} from "@splitifyd/shared";
 
 export type FirestoreTriggerEventType = 'create' | 'update' | 'delete';
 
@@ -1280,7 +1281,7 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
         return defaultUser;
     }
 
-    seedGroup(groupId: string, overrides: Record<string, any> = {}): void {
+    seedGroup(groupId: GroupId, overrides: Record<string, any> = {}): void {
         const now = Timestamp.now();
 
         // Use buildDocument() to get Firestore format without client-side fields
@@ -1302,7 +1303,7 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
         this.seed(`groups/${groupId}`, firestoreData);
     }
 
-    seedGroupMember(groupId: string, userId: string, memberData: Record<string, any>): void {
+    seedGroupMember(groupId: GroupId, userId: string, memberData: Record<string, any>): void {
         const firestoreData = this.convertDatesToTimestamps(memberData);
         this.seed(`group-memberships/${userId}_${groupId}`, firestoreData);
     }
@@ -1322,7 +1323,7 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
         this.seed(`policies/${policyId}`, firestoreData);
     }
 
-    initializeGroupBalance(groupId: string): void {
+    initializeGroupBalance(groupId: GroupId): void {
         const initialBalance = {
             groupId,
             balancesByCurrency: {},

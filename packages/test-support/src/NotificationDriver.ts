@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * User notification document structure (matches webapp's UserNotificationDetector)
@@ -6,11 +7,11 @@ import * as admin from 'firebase-admin';
 export interface UserNotificationDocument {
     changeVersion: number;
     groups: {
-        [groupId: string]: GroupNotificationState;
+        [groupId: GroupId]: GroupNotificationState;
     };
     lastModified: admin.firestore.Timestamp;
     recentChanges?: Array<{
-        groupId: string;
+        groupId: GroupId;
         type: 'transaction' | 'balance' | 'group' | 'comment';
         timestamp: admin.firestore.Timestamp;
     }>;
@@ -32,7 +33,7 @@ export interface GroupNotificationState {
  */
 export interface NotificationEvent {
     userId: string;
-    groupId: string;
+    groupId: GroupId;
     type: 'transaction' | 'balance' | 'group' | 'comment';
     version: number;
     groupState?: GroupNotificationState;
@@ -223,7 +224,7 @@ export class NotificationListener {
      * Only creates events when a counter actually changes (increments), not just when it exists
      * Uses baseline counters from clearEvents() to avoid counting pre-clear events
      */
-    getGroupEvents(groupId: string, eventType?: 'transaction' | 'balance' | 'group' | 'comment'): NotificationEvent[] {
+    getGroupEvents(groupId: GroupId, eventType?: 'transaction' | 'balance' | 'group' | 'comment'): NotificationEvent[] {
         const events: NotificationEvent[] = [];
         const baseline = this.baselineCounters.get(groupId);
         let previousGroupState: GroupNotificationState | null = baseline ?? null;
@@ -279,7 +280,7 @@ export class NotificationListener {
     /**
      * Wait for a specific number of events of a given type for a group
      */
-    async waitForEventCount(groupId: string, eventType: 'transaction' | 'balance' | 'group' | 'comment', minCount: number, timeoutMs: number = 3000): Promise<NotificationEvent[]> {
+    async waitForEventCount(groupId: GroupId, eventType: 'transaction' | 'balance' | 'group' | 'comment', minCount: number, timeoutMs: number = 3000): Promise<NotificationEvent[]> {
         const startTime = Date.now();
 
         while (true) {
@@ -300,7 +301,7 @@ export class NotificationListener {
     /**
      * Assert exact number of events for a group with detailed error message
      */
-    assertEventCount(groupId: string, expectedCount: number, eventType?: 'transaction' | 'balance' | 'group' | 'comment'): void {
+    assertEventCount(groupId: GroupId, expectedCount: number, eventType?: 'transaction' | 'balance' | 'group' | 'comment'): void {
         const events = this.getGroupEvents(groupId, eventType);
         const actualCount = events.length;
         const typeStr = eventType ? ` ${eventType}` : '';
@@ -340,7 +341,7 @@ export class NotificationListener {
     /**
      * Wait for a group event and validate its structure
      */
-    async waitForGroupEvent(groupId: string, expectedChangeCount: number = 1, timeoutMs: number = 10000): Promise<NotificationEvent> {
+    async waitForGroupEvent(groupId: GroupId, expectedChangeCount: number = 1, timeoutMs: number = 10000): Promise<NotificationEvent> {
         const events = await this.waitForEventCount(groupId, 'group', 1, timeoutMs);
         const event = events[0];
 
@@ -354,7 +355,7 @@ export class NotificationListener {
     /**
      * Wait for a transaction event and validate its structure
      */
-    async waitForTransactionEvent(groupId: string, expectedChangeCount: number = 1, timeoutMs: number = 3000): Promise<NotificationEvent> {
+    async waitForTransactionEvent(groupId: GroupId, expectedChangeCount: number = 1, timeoutMs: number = 3000): Promise<NotificationEvent> {
         const events = await this.waitForEventCount(groupId, 'transaction', 1, timeoutMs);
         const event = events[0];
 
@@ -368,7 +369,7 @@ export class NotificationListener {
     /**
      * Wait for a balance event and validate its structure
      */
-    async waitForBalanceEvent(groupId: string, expectedChangeCount: number = 1, timeoutMs: number = 3000): Promise<NotificationEvent> {
+    async waitForBalanceEvent(groupId: GroupId, expectedChangeCount: number = 1, timeoutMs: number = 3000): Promise<NotificationEvent> {
         const events = await this.waitForEventCount(groupId, 'balance', 1, timeoutMs);
         const event = events[0];
 
@@ -382,7 +383,7 @@ export class NotificationListener {
     /**
      * Wait for a comment event and validate its structure
      */
-    async waitForCommentEvent(groupId: string, expectedChangeCount: number = 1, timeoutMs: number = 3000): Promise<NotificationEvent> {
+    async waitForCommentEvent(groupId: GroupId, expectedChangeCount: number = 1, timeoutMs: number = 3000): Promise<NotificationEvent> {
         const events = await this.waitForEventCount(groupId, 'comment', 1, timeoutMs);
         const event = events[0];
 

@@ -23,6 +23,7 @@ import { measureDb } from '../monitoring/measure';
 import { type CreateUserNotificationDocument } from '../schemas/user-notifications';
 import type { IFirestoreReader } from './firestore';
 import type { BatchWriteResult, IFirestoreWriter, WriteResult } from './firestore/IFirestoreWriter';
+import {GroupId} from "@splitifyd/shared";
 
 export type ChangeType = 'transaction' | 'balance' | 'group' | 'comment';
 
@@ -36,7 +37,7 @@ export class NotificationService {
      * Batch update multiple users' notification documents
      * Delegates to batchUpdateNotificationsMultipleTypes for consistency
      */
-    async batchUpdateNotifications(userIds: string[], groupId: string, changeType: ChangeType): Promise<BatchWriteResult> {
+    async batchUpdateNotifications(userIds: string[], groupId: GroupId, changeType: ChangeType): Promise<BatchWriteResult> {
         return this.batchUpdateNotificationsMultipleTypes(userIds, groupId, [changeType]);
     }
 
@@ -45,7 +46,7 @@ export class NotificationService {
      * Processes multiple change types for each user in a single atomic operation
      * Uses Firestore batch writes for optimal performance (single network round-trip per batch)
      */
-    async batchUpdateNotificationsMultipleTypes(userIds: string[], groupId: string, changeTypes: ChangeType[]): Promise<BatchWriteResult> {
+    async batchUpdateNotificationsMultipleTypes(userIds: string[], groupId: GroupId, changeTypes: ChangeType[]): Promise<BatchWriteResult> {
         return measureDb('NotificationService.batchUpdateNotificationsMultipleTypes', async () => {
             // Map changeType to proper field names
             const fieldMap = {
@@ -125,7 +126,7 @@ export class NotificationService {
      * Remove a user from a group's notification tracking
      * Deletes the group entry from their notification document
      */
-    async removeUserFromGroup(userId: string, groupId: string): Promise<WriteResult> {
+    async removeUserFromGroup(userId: string, groupId: GroupId): Promise<WriteResult> {
         return measureDb('NotificationService.removeUserFromGroup', async () => {
             return await this.firestoreWriter.removeUserNotificationGroup(userId, groupId);
         });

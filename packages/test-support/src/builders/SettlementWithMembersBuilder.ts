@@ -2,6 +2,7 @@ import type { GroupMember, SettlementWithMembers } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
 import { GroupMemberBuilder } from './GroupMemberBuilder';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Builder for creating SettlementWithMembers objects for tests
@@ -46,7 +47,7 @@ export class SettlementWithMembersBuilder {
         return this;
     }
 
-    withGroupId(groupId: string): this {
+    withGroupId(groupId: GroupId): this {
         this.settlement.groupId = groupId;
         return this;
     }

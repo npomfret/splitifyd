@@ -1,7 +1,8 @@
 import { BuilderTimestamp, generateShortId, timestampToISOString } from '../test-helpers';
+import {GroupId} from "@splitifyd/shared";
 
 interface TransactionChangeDocument {
-    groupId: string;
+    groupId: GroupId;
     type: 'expense' | 'settlement' | 'group';
     users: string[];
     createdAt: string; // ISO string for consistency with DTO pattern
@@ -23,7 +24,7 @@ export class TransactionChangeDocumentBuilder {
         };
     }
 
-    withGroupId(groupId: string): this {
+    withGroupId(groupId: GroupId): this {
         this.document.groupId = groupId;
         return this;
     }

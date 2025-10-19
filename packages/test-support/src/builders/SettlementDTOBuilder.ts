@@ -1,6 +1,7 @@
 import type { SettlementDTO } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair, timestampToISOString } from '../test-helpers';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Builder for creating Settlement objects for tests
@@ -8,7 +9,7 @@ import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPai
  */
 export class SettlementDTOBuilder {
     // Core settlement data (from CreateSettlementRequest)
-    private groupId: string;
+    private groupId: GroupId;
     private payerId: string;
     private payeeId: string;
     private amount: Amount;
@@ -49,7 +50,7 @@ export class SettlementDTOBuilder {
     }
 
     // CreateSettlementRequest builder methods
-    withGroupId(groupId: string): SettlementDTOBuilder {
+    withGroupId(groupId: GroupId): SettlementDTOBuilder {
         this.groupId = groupId;
         return this;
     }

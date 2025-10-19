@@ -1,5 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Shared base class for Settlement Form page object.
@@ -60,7 +61,7 @@ export class SettlementFormPage extends BasePage {
     /**
      * Navigate to group page and open settlement form modal
      */
-    async navigateAndOpen(groupId: string): Promise<void> {
+    async navigateAndOpen(groupId: GroupId): Promise<void> {
         await this.page.goto(`/groups/${groupId}`);
         const openButton = this.page.getByRole('button', { name: /settle up/i });
         await openButton.click();

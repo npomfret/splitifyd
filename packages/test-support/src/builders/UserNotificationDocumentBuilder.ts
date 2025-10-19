@@ -5,6 +5,7 @@
  * Note: This is a simplified version adapted for browser tests.
  * The server version uses Firestore Timestamps from firebase-admin.
  */
+import {GroupId} from "@splitifyd/shared";
 
 // Browser-safe type definitions (using Date instead of Timestamp)
 interface UserNotificationGroupDocument {
@@ -19,7 +20,7 @@ interface UserNotificationGroupDocument {
 }
 
 interface RecentChangeDocument {
-    groupId: string;
+    groupId: GroupId;
     type: 'transaction' | 'balance' | 'group' | 'comment';
     timestamp: Date;
 }
@@ -52,12 +53,12 @@ export class UserNotificationDocumentBuilder {
         return this;
     }
 
-    withGroup(groupId: string, groupData: UserNotificationGroupDocument): this {
+    withGroup(groupId: GroupId, groupData: UserNotificationGroupDocument): this {
         this.document.groups[groupId] = groupData;
         return this;
     }
 
-    withGroupDetails(groupId: string, changeCount: number = 1): this {
+    withGroupDetails(groupId: GroupId, changeCount: number = 1): this {
         const existing = this.document.groups[groupId] || this.createDefaultGroupData();
         this.document.groups[groupId] = {
             ...existing,
@@ -68,7 +69,7 @@ export class UserNotificationDocumentBuilder {
     }
 
     withGroupChangeCounts(
-        groupId: string,
+        groupId: GroupId,
         counts: {
             groupDetailsChangeCount?: number;
             transactionChangeCount?: number;
@@ -117,7 +118,7 @@ export class UserNotificationDocumentBuilder {
         };
     }
 
-    static withBaseline(groupId: string, changeVersion: number = 1): UserNotificationDocumentBuilder {
+    static withBaseline(groupId: GroupId, changeVersion: number = 1): UserNotificationDocumentBuilder {
         return new UserNotificationDocumentBuilder()
             .withChangeVersion(changeVersion)
             .withGroupChangeCounts(groupId, {
@@ -128,7 +129,7 @@ export class UserNotificationDocumentBuilder {
             });
     }
 
-    static withGroupDetailsChange(groupId: string, changeVersion: number = 2): UserNotificationDocumentBuilder {
+    static withGroupDetailsChange(groupId: GroupId, changeVersion: number = 2): UserNotificationDocumentBuilder {
         return UserNotificationDocumentBuilder
             .withBaseline(groupId, changeVersion)
             .withGroupDetails(groupId, 2);

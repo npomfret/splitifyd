@@ -41,6 +41,8 @@ export type ISOString = string;
 export type Amount = string;
 export const ZERO: Amount = '0';
 
+export type GroupId = string;
+
 /**
  * Zod schema for expense splits
  */
@@ -440,7 +442,7 @@ export interface CurrencyBalance {
  */
 export interface GroupMembership {
     uid: string;
-    groupId: string; // For collectionGroup queries
+    groupId: GroupId; // For collectionGroup queries
     memberRole: MemberRole;
     memberStatus: MemberStatus;
     joinedAt: ISOString;
@@ -632,7 +634,7 @@ export interface ExpenseSplit {
  * Expense business fields (without metadata)
  */
 interface Expense extends SoftDeletable {
-    groupId: string;
+    groupId: GroupId;
     createdBy: string;
     paidBy: string;
     amount: Amount;
@@ -658,7 +660,7 @@ export interface ExpenseDTO extends Expense, BaseDTO {
 }
 
 export interface CreateExpenseRequest {
-    groupId: string;
+    groupId: GroupId;
     description: string;
     amount: Amount;
     currency: string;
@@ -681,7 +683,7 @@ export type UpdateExpenseRequest = Partial<Omit<CreateExpenseRequest, 'groupId'>
  * Settlement business fields (without metadata)
  */
 interface Settlement extends SoftDeletable {
-    groupId: string;
+    groupId: GroupId;
     payerId: string;
     payeeId: string;
     amount: Amount;
@@ -703,7 +705,7 @@ export interface SettlementDTO extends Settlement, BaseDTO {
 }
 
 export interface CreateSettlementRequest {
-    groupId: string;
+    groupId: GroupId;
     payerId: string;
     payeeId: string;
     amount: Amount;
@@ -736,7 +738,7 @@ export type UpdateSettlementRequest = Partial<Omit<CreateSettlementRequest, 'gro
  */
 export interface SettlementWithMembers extends SoftDeletable {
     id: string;
-    groupId: string;
+    groupId: GroupId;
     payer: GroupMember;
     payee: GroupMember;
     amount: Amount;
@@ -779,7 +781,7 @@ export interface ShareLinkResponse {
 }
 
 export interface PreviewGroupResponse {
-    groupId: string;
+    groupId: GroupId;
     groupName: string;
     groupDescription: string;
     memberCount: number;
@@ -787,7 +789,7 @@ export interface PreviewGroupResponse {
 }
 
 export interface JoinGroupResponse {
-    groupId: string;
+    groupId: GroupId;
     groupName: string;
     success: boolean;
     displayNameConflict: boolean; // True if user's display name conflicts with existing member
@@ -859,7 +861,7 @@ export interface SimplifiedDebt {
 }
 
 export interface GroupBalances {
-    groupId: string;
+    groupId: GroupId;
     userBalances: Record<string, UserBalance>;
     simplifiedDebts: SimplifiedDebt[];
     lastUpdated: ISOString;

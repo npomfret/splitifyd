@@ -1,4 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Document structure for top-level group memberships collection: group-memberships/{userId}_{groupId}
@@ -13,7 +14,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 export interface TopLevelGroupMemberDocument {
     // Standard membership fields (from GroupMembershipDTO but with Timestamps)
     uid: string;
-    groupId: string; // For collectionGroup queries
+    groupId: GroupId; // For collectionGroup queries
     memberRole: string; // MemberRole enum value
     memberStatus: string; // MemberStatus enum value
     theme: {

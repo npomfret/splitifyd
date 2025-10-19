@@ -1,8 +1,9 @@
 import { Amount } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, timestampToISOString } from '../test-helpers';
+import {GroupId} from "@splitifyd/shared";
 
 interface GroupBalanceDocument {
-    groupId: string;
+    groupId: GroupId;
     balances: Record<string, Record<string, Amount>>;
     lastUpdated: string; // ISO string for consistency with DTO pattern
 }
@@ -23,7 +24,7 @@ export class GroupBalanceDocumentBuilder {
         };
     }
 
-    withGroupId(groupId: string): this {
+    withGroupId(groupId: GroupId): this {
         this.document.groupId = groupId;
         return this;
     }

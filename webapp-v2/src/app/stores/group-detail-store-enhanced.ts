@@ -4,6 +4,7 @@ import { UserNotificationDetector, userNotificationDetector } from '@/utils/user
 import { batch, signal } from '@preact/signals';
 import { ExpenseDTO, GroupBalances, GroupDTO, GroupMember, SettlementWithMembers } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
+import {GroupId} from "@splitifyd/shared";
 
 interface EnhancedGroupDetailStore {
     // State accessors (wrap these in useComputed() in components)
@@ -30,9 +31,9 @@ interface EnhancedGroupDetailStore {
 
     refreshAll(): Promise<void>;
 
-    registerComponent(groupId: string, userId: string): Promise<void>;
+    registerComponent(groupId: GroupId, userId: string): Promise<void>;
 
-    deregisterComponent(groupId: string): void;
+    deregisterComponent(groupId: GroupId): void;
 
     loadMoreExpenses(): Promise<void>;
 
@@ -135,7 +136,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         this.#showDeletedSettlementsSignal.value = value;
     }
 
-    async loadGroup(groupId: string): Promise<void> {
+    async loadGroup(groupId: GroupId): Promise<void> {
         this.#loadingSignal.value = true;
         this.#errorSignal.value = null;
         this.currentGroupId = groupId;
@@ -240,7 +241,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 
     // Reference-counted registration - single detector approach
-    async registerComponent(groupId: string, userId: string): Promise<void> {
+    async registerComponent(groupId: GroupId, userId: string): Promise<void> {
         // Registering component for group (routine)
         const currentCount = this.#subscriberCounts.get(groupId) || 0;
         this.#subscriberCounts.set(groupId, currentCount + 1);
@@ -285,7 +286,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         permissionsStore.registerComponent(groupId, userId);
     }
 
-    deregisterComponent(groupId: string): void {
+    deregisterComponent(groupId: GroupId): void {
         // Deregistering component for group (routine)
         const currentCount = this.#subscriberCounts.get(groupId) || 0;
 

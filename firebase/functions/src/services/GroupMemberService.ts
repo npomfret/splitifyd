@@ -4,6 +4,7 @@ import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { ApiError, Errors } from '../utils/errors';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import {GroupId} from "@splitifyd/shared";
 
 export class GroupMemberService {
     constructor(
@@ -11,11 +12,11 @@ export class GroupMemberService {
         private readonly firestoreWriter: IFirestoreWriter,
     ) {}
 
-    async leaveGroup(userId: string, groupId: string): Promise<MessageResponse> {
+    async leaveGroup(userId: string, groupId: GroupId): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.leaveGroup', async () => this._removeMemberFromGroup(userId, groupId, userId, true));
     }
 
-    async removeGroupMember(userId: string, groupId: string, memberId: string): Promise<MessageResponse> {
+    async removeGroupMember(userId: string, groupId: GroupId, memberId: string): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.removeGroupMember', async () => this._removeMemberFromGroup(userId, groupId, memberId, false));
     }
 
@@ -26,7 +27,7 @@ export class GroupMemberService {
      * @param targetUserId - The user being removed (could be same as requesting user for leave)
      * @param isLeaving - true for self-leave, false for admin removal
      */
-    private async _removeMemberFromGroup(requestingUserId: string, groupId: string, targetUserId: string, isLeaving: boolean): Promise<MessageResponse> {
+    private async _removeMemberFromGroup(requestingUserId: string, groupId: GroupId, targetUserId: string, isLeaving: boolean): Promise<MessageResponse> {
         const timer = new PerformanceTimer();
 
         LoggerContext.setBusinessContext({ groupId });
@@ -135,12 +136,12 @@ export class GroupMemberService {
         };
     }
 
-    async isGroupMemberAsync(groupId: string, userId: string): Promise<boolean> {
+    async isGroupMemberAsync(groupId: GroupId, userId: string): Promise<boolean> {
         const member = await this.firestoreReader.getGroupMember(groupId, userId);
         return member !== null;
     }
 
-    async isGroupOwnerAsync(groupId: string, userId: string): Promise<boolean> {
+    async isGroupOwnerAsync(groupId: GroupId, userId: string): Promise<boolean> {
         const member = await this.firestoreReader.getGroupMember(groupId, userId);
         return member?.memberRole === MemberRoles.ADMIN || false;
     }

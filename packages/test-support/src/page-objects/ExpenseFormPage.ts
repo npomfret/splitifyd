@@ -1,6 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Expense Form Page Object Model for Playwright tests
@@ -183,7 +184,7 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Navigate to the add expense page for a group
      */
-    async navigateToAddExpense(groupId: string): Promise<void> {
+    async navigateToAddExpense(groupId: GroupId): Promise<void> {
         await this.page.goto(`/groups/${groupId}/add-expense`, { waitUntil: 'domcontentloaded' });
         await this.waitForPageToLoad();
     }

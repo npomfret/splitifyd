@@ -9,7 +9,7 @@ import {
     ExpenseDTO,
     ExpenseFullDetailsDTO,
     GroupDTO,
-    GroupFullDetailsDTO,
+    GroupFullDetailsDTO, GroupId,
     JoinGroupResponse,
     ListCommentsResponse,
     ListGroupsResponse,
@@ -24,7 +24,7 @@ import {
     UpdatePolicyResponse,
     UpdateSettlementRequest,
     UserPolicyStatusResponse,
-} from '@splitifyd/shared/src';
+} from '@splitifyd/shared';
 import { CreateGroupRequestBuilder, createStubRequest, createStubResponse, StubFirestoreDatabase } from '@splitifyd/test-support';
 import { CommentHandlers } from '../../comments/CommentHandlers';
 import { ExpenseHandlers } from '../../expenses/ExpenseHandlers';
@@ -93,7 +93,7 @@ export class AppDriver {
         return (res as any).getJson() as ListGroupsResponse;
     }
 
-    async getGroupFullDetails(userId1: string, groupId: string) {
+    async getGroupFullDetails(userId1: string, groupId: GroupId) {
         const req = createStubRequest(userId1, {}, { id: groupId });
         req.query = {};
         const res = createStubResponse();
@@ -112,7 +112,7 @@ export class AppDriver {
         return (res as any).getJson() as GroupDTO;
     }
 
-    async generateShareableLink(userId1: string, groupId: string): Promise<ShareLinkResponse> {
+    async generateShareableLink(userId1: string, groupId: GroupId): Promise<ShareLinkResponse> {
         const req = createStubRequest(userId1, { groupId });
         const res = createStubResponse();
 
@@ -139,7 +139,7 @@ export class AppDriver {
         return (res as any).getJson() as PreviewGroupResponse;
     }
 
-    async updateGroup(userId: string, groupId: string, updates: Partial<UpdateGroupRequest>) {
+    async updateGroup(userId: string, groupId: GroupId, updates: Partial<UpdateGroupRequest>) {
         const req = createStubRequest(userId, updates, { id: groupId });
         const res = createStubResponse();
 
@@ -148,7 +148,7 @@ export class AppDriver {
         return (res as any).getJson() as GroupDTO;
     }
 
-    async deleteGroup(userId: string, groupId: string) {
+    async deleteGroup(userId: string, groupId: GroupId) {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = createStubResponse();
 
@@ -157,7 +157,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async leaveGroup(userId: string, groupId: string): Promise<MessageResponse> {
+    async leaveGroup(userId: string, groupId: GroupId): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = createStubResponse();
 
@@ -166,7 +166,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async removeGroupMember(userId: string, groupId: string, memberId: string): Promise<MessageResponse> {
+    async removeGroupMember(userId: string, groupId: GroupId, memberId: string): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId, memberId });
         const res = createStubResponse();
 
@@ -175,7 +175,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async updateGroupMemberDisplayName(userId: string, groupId: string, displayName: string): Promise<MessageResponse> {
+    async updateGroupMemberDisplayName(userId: string, groupId: GroupId, displayName: string): Promise<MessageResponse> {
         const req = createStubRequest(userId, { displayName }, { id: groupId });
         const res = createStubResponse();
 
@@ -249,7 +249,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async createGroupComment(userId: string, groupId: string, text: string): Promise<CommentDTO> {
+    async createGroupComment(userId: string, groupId: GroupId, text: string): Promise<CommentDTO> {
         const req = createStubRequest(userId, { text }, { groupId });
         req.path = `/groups/${groupId}/comments`;
         const res = createStubResponse();
@@ -259,7 +259,7 @@ export class AppDriver {
         return (res as any).getJson() as CommentDTO;
     }
 
-    async listGroupComments(userId: string, groupId: string): Promise<ListCommentsResponse> {
+    async listGroupComments(userId: string, groupId: GroupId): Promise<ListCommentsResponse> {
         const req = createStubRequest(userId, {}, { groupId });
         req.path = `/groups/${groupId}/comments`;
         req.query = {};

@@ -13,6 +13,7 @@ import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '..
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import type { GroupMemberService } from './GroupMemberService';
+import {GroupId} from "@splitifyd/shared";
 
 export class GroupShareService {
     constructor(
@@ -43,7 +44,7 @@ export class GroupShareService {
         };
     }
 
-    private async findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ShareLinkDTO; }> {
+    private async findShareLinkByToken(token: string): Promise<{ groupId: GroupId; shareLink: ShareLinkDTO; }> {
         const result = await this.firestoreReader.findShareLinkByToken(token);
 
         if (!result) {
@@ -66,7 +67,7 @@ export class GroupShareService {
 
     async generateShareableLink(
         userId: string,
-        groupId: string,
+        groupId: GroupId,
     ): Promise<{
         shareablePath: string;
         linkId: string;
@@ -76,7 +77,7 @@ export class GroupShareService {
 
     private async _generateShareableLink(
         userId: string,
-        groupId: string,
+        groupId: GroupId,
     ): Promise<{
         shareablePath: string;
         linkId: string;
@@ -151,7 +152,7 @@ export class GroupShareService {
         userId: string,
         linkId: string,
     ): Promise<{
-        groupId: string;
+        groupId: GroupId;
         groupName: string;
         groupDescription: string;
         memberCount: number;

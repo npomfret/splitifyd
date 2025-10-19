@@ -12,6 +12,7 @@ import { afterEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { FirestoreReader } from '../../services/firestore';
+import {GroupId} from "@splitifyd/shared";
 
 describe('FirestoreReader Integration Tests', () => {
     const apiDriver = new ApiDriver();
@@ -84,7 +85,7 @@ describe('FirestoreReader Integration Tests', () => {
 
             // Create multiple groups
             const groupNames = ['Group A', 'Group B', 'Group C'];
-            const groupIds: string[] = [];
+            const groupIds: GroupId[] = [];
 
             for (const name of groupNames) {
                 const groupRequest = new CreateGroupRequestBuilder()

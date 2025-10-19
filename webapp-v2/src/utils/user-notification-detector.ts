@@ -1,17 +1,18 @@
 import { Timestamp } from 'firebase/firestore';
 import { FirebaseService, firebaseService } from '../app/firebase';
 import { logError, logInfo } from './browser-logger';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * User notification detector callbacks
  * These match the ChangeDetector interface for backward compatibility
  */
 interface NotificationCallbacks {
-    onGroupChange?: (groupId: string) => void;
-    onTransactionChange?: (groupId: string) => void;
-    onBalanceChange?: (groupId: string) => void;
+    onGroupChange?: (groupId: GroupId) => void;
+    onTransactionChange?: (groupId: GroupId) => void;
+    onBalanceChange?: (groupId: GroupId) => void;
     onCommentChange?: (targetType: 'group' | 'expense', targetId: string) => void;
-    onGroupRemoved?: (groupId: string) => void;
+    onGroupRemoved?: (groupId: GroupId) => void;
 }
 
 /**
@@ -43,11 +44,11 @@ interface GroupNotificationState {
 interface UserNotificationDocument {
     changeVersion: number;
     groups: {
-        [groupId: string]: GroupNotificationState;
+        [groupId: GroupId]: GroupNotificationState;
     };
     lastModified: Timestamp;
     recentChanges?: Array<{
-        groupId: string;
+        groupId: GroupId;
         type: 'transaction' | 'balance' | 'group' | 'comment';
         timestamp: Timestamp;
     }>;
@@ -273,7 +274,7 @@ export class UserNotificationDetector {
     /**
      * Check if transactions have changed
      */
-    private hasTransactionChanged(groupId: string, current: GroupNotificationState, last: GroupNotificationState | undefined): boolean {
+    private hasTransactionChanged(groupId: GroupId, current: GroupNotificationState, last: GroupNotificationState | undefined): boolean {
         if (!last) {
             // First time seeing this group in our tracking map
             // Set baseline for comparison and check if this is a new change
@@ -309,7 +310,7 @@ export class UserNotificationDetector {
     /**
      * Check if balances have changed
      */
-    private hasBalanceChanged(groupId: string, current: GroupNotificationState, last: GroupNotificationState | undefined): boolean {
+    private hasBalanceChanged(groupId: GroupId, current: GroupNotificationState, last: GroupNotificationState | undefined): boolean {
         if (!last) {
             // First time seeing this group in our tracking map
             // Set baseline for comparison and check if this is a new change
@@ -334,7 +335,7 @@ export class UserNotificationDetector {
     /**
      * Check if comments have changed
      */
-    private hasCommentChanged(groupId: string, current: GroupNotificationState, last: GroupNotificationState | undefined): boolean {
+    private hasCommentChanged(groupId: GroupId, current: GroupNotificationState, last: GroupNotificationState | undefined): boolean {
         if (!last) {
             // First time seeing this group in our tracking map
             // Set baseline for comparison and check if this is a new change

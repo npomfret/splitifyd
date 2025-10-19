@@ -1,11 +1,12 @@
 import { GroupDTOBuilder, GroupMemberBuilder, SettlementWithMembersBuilder, ThemeBuilder } from '@splitifyd/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Helper function to mock the group full-details API endpoint with settlements
  */
-async function mockGroupFullDetailsApi(page: any, groupId: string, response: any): Promise<void> {
+async function mockGroupFullDetailsApi(page: any, groupId: GroupId, response: any): Promise<void> {
     await page.route(`/api/groups/${groupId}/full-details*`, async (route: any) => {
         route.fulfill({
             status: 200,

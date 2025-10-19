@@ -18,6 +18,7 @@ import type { CommentDTO, CommentTargetType, RegisteredUser, ShareLinkDTO } from
 import type { IDocumentReference, ITransaction, IWriteBatch } from '../../firestore-wrapper';
 import type { GroupBalanceDTO } from '../../schemas';
 import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
+import {GroupId} from "@splitifyd/shared";
 
 export interface WriteResult {
     id: string;
@@ -62,7 +63,7 @@ export interface IFirestoreWriter {
      * @param groupId - The group ID
      * @param transactionOrBatch - Optional transaction or batch to perform update within
      */
-    touchGroup(groupId: string, transactionOrBatch?: ITransaction | IWriteBatch): Promise<void>;
+    touchGroup(groupId: GroupId, transactionOrBatch?: ITransaction | IWriteBatch): Promise<void>;
 
     /**
      * Update a member's group-specific display name with uniqueness validation
@@ -73,7 +74,7 @@ export interface IFirestoreWriter {
      * @throws ApiError with code 'GROUP_NOT_FOUND' if group doesn't exist
      * @throws ApiError with code 'DISPLAY_NAME_TAKEN' if name is already in use by another member
      */
-    updateGroupMemberDisplayName(groupId: string, userId: string, newDisplayName: string): Promise<void>;
+    updateGroupMemberDisplayName(groupId: GroupId, userId: string, newDisplayName: string): Promise<void>;
 
     // ========================================================================
     // Expense Write Operations
@@ -103,7 +104,7 @@ export interface IFirestoreWriter {
      * @param shareLinkData - The share link data
      * @returns Document reference
      */
-    createShareLinkInTransaction(transaction: ITransaction, groupId: string, shareLinkData: Omit<ShareLinkDTO, 'id'>): IDocumentReference;
+    createShareLinkInTransaction(transaction: ITransaction, groupId: GroupId, shareLinkData: Omit<ShareLinkDTO, 'id'>): IDocumentReference;
 
     // ========================================================================
     // Policy Operations
@@ -187,7 +188,7 @@ export interface IFirestoreWriter {
      * @param groupId - The group ID to remove
      * @returns Write result
      */
-    removeUserNotificationGroup(userId: string, groupId: string): Promise<WriteResult>;
+    removeUserNotificationGroup(userId: string, groupId: GroupId): Promise<WriteResult>;
 
     /**
      * Batch set user notifications using Firestore batch writes for optimal performance
@@ -246,7 +247,7 @@ export interface IFirestoreWriter {
      * @param groupId - The group ID
      * @param balance - The balance data to set
      */
-    setGroupBalanceInTransaction(transaction: ITransaction, groupId: string, balance: GroupBalanceDTO): void;
+    setGroupBalanceInTransaction(transaction: ITransaction, groupId: GroupId, balance: GroupBalanceDTO): void;
 
     /**
      * Get group balance within a transaction (must be called before any writes)
@@ -255,7 +256,7 @@ export interface IFirestoreWriter {
      * @returns The current group balance
      * @throws ApiError if balance not found
      */
-    getGroupBalanceInTransaction(transaction: ITransaction, groupId: string): Promise<GroupBalanceDTO>;
+    getGroupBalanceInTransaction(transaction: ITransaction, groupId: GroupId): Promise<GroupBalanceDTO>;
 
     /**
      * Update group balance within a transaction (requires balance to be read first)
@@ -265,7 +266,7 @@ export interface IFirestoreWriter {
      * @param currentBalance - The current balance (already read in transaction)
      * @param updater - Function that takes current balance and returns updated balance
      */
-    updateGroupBalanceInTransaction(transaction: ITransaction, groupId: string, currentBalance: GroupBalanceDTO, updater: (current: GroupBalanceDTO) => GroupBalanceDTO): void;
+    updateGroupBalanceInTransaction(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, updater: (current: GroupBalanceDTO) => GroupBalanceDTO): void;
 
     // ========================================================================
     // Transaction Helper Methods (Phase 1 - Transaction Foundation)
@@ -298,5 +299,5 @@ export interface IFirestoreWriter {
      * @param userId - The user ID to remove from notifications
      * @returns Batch write result
      */
-    leaveGroupAtomic(groupId: string, userId: string): Promise<BatchWriteResult>;
+    leaveGroupAtomic(groupId: GroupId, userId: string): Promise<BatchWriteResult>;
 }

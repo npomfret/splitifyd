@@ -1,5 +1,6 @@
 import { CommentTargetTypes } from '@splitifyd/shared';
 import type { CreateCommentRequest } from '@splitifyd/shared';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Builder for creating comment request objects for testing
@@ -35,7 +36,7 @@ export class CommentRequestBuilder {
         return this;
     }
 
-    withExpenseTarget(targetId: string, groupId: string): this {
+    withExpenseTarget(targetId: string, groupId: GroupId): this {
         this.request.targetType = CommentTargetTypes.EXPENSE;
         this.request.targetId = targetId;
         this.request.groupId = groupId;
@@ -47,7 +48,7 @@ export class CommentRequestBuilder {
         return this;
     }
 
-    withGroupId(groupId: string | undefined): this {
+    withGroupId(groupId: GroupId | undefined): this {
         this.request.groupId = groupId;
         return this;
     }

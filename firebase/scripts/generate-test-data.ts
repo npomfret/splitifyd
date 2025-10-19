@@ -2,7 +2,7 @@
 
 import type { Amount, GroupDTO } from '@splitifyd/shared';
 import { AuthenticatedFirebaseUser, compareAmounts, isZeroAmount, minAmount, normalizeAmount, PREDEFINED_EXPENSE_CATEGORIES, subtractAmounts, UserRegistration, zeroAmount } from '@splitifyd/shared';
-import type { CreateSettlementRequest } from '@splitifyd/shared/src';
+import type { CreateSettlementRequest } from '@splitifyd/shared';
 import { ApiDriver, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 
 // Initialize ApiDriver which handles all configuration
@@ -425,7 +425,7 @@ async function joinGroupsRandomly(users: AuthenticatedFirebaseUser[], groups: Gr
     return groupMemberships;
 }
 
-async function createTestExpenseTemplate(groupId: string, expense: TestExpenseTemplate, participants: AuthenticatedFirebaseUser[], createdBy: AuthenticatedFirebaseUser): Promise<any> {
+async function createTestExpenseTemplate(groupId: GroupId, expense: TestExpenseTemplate, participants: AuthenticatedFirebaseUser[], createdBy: AuthenticatedFirebaseUser): Promise<any> {
     const participantIds = participants.map((p) => p.uid);
 
     // Randomly choose between GBP and EUR

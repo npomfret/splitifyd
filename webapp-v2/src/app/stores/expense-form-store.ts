@@ -19,6 +19,7 @@ import {
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
+import {GroupId} from "@splitifyd/shared";
 
 interface ExpenseFormStore {
     // Form fields
@@ -63,14 +64,14 @@ interface ExpenseFormStore {
     updateSplitAmount(uid: string, amount: Amount): void;
     updateSplitPercentage(uid: string, percentage: number): void;
     validateForm(): boolean;
-    saveExpense(groupId: string): Promise<ExpenseDTO>;
-    updateExpense(groupId: string, expenseId: string): Promise<ExpenseDTO>;
+    saveExpense(groupId: GroupId): Promise<ExpenseDTO>;
+    updateExpense(groupId: GroupId, expenseId: string): Promise<ExpenseDTO>;
     clearError(): void;
     reset(): void;
     hasUnsavedChanges(): boolean;
-    saveDraft(groupId: string): void;
-    loadDraft(groupId: string): boolean;
-    clearDraft(groupId: string): void;
+    saveDraft(groupId: GroupId): void;
+    loadDraft(groupId: GroupId): boolean;
+    clearDraft(groupId: GroupId): void;
 
     // Storage management
     setStorage(storage: UserScopedStorage): void;
@@ -174,7 +175,7 @@ class ExpenseStorageManager {
         }
     }
 
-    saveDraft(groupId: string, draftData: any): void {
+    saveDraft(groupId: GroupId, draftData: any): void {
         if (!this.storage) return;
 
         try {
@@ -185,7 +186,7 @@ class ExpenseStorageManager {
         }
     }
 
-    loadDraft(groupId: string): any | null {
+    loadDraft(groupId: GroupId): any | null {
         if (!this.storage) return null;
 
         try {
@@ -198,7 +199,7 @@ class ExpenseStorageManager {
         }
     }
 
-    clearDraft(groupId: string): void {
+    clearDraft(groupId: GroupId): void {
         if (!this.storage) return;
 
         try {
@@ -814,7 +815,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         return isValid;
     }
 
-    async saveExpense(groupId: string): Promise<ExpenseDTO> {
+    async saveExpense(groupId: GroupId): Promise<ExpenseDTO> {
         if (!this.validateForm()) {
             const errors = this.#validationErrorsSignal.value;
             logWarning('[ExpenseForm] Cannot submit form due to validation errors', { errors });
@@ -868,7 +869,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         }
     }
 
-    async updateExpense(groupId: string, expenseId: string): Promise<ExpenseDTO> {
+    async updateExpense(groupId: GroupId, expenseId: string): Promise<ExpenseDTO> {
         if (!this.validateForm()) {
             throw new Error('Please fix validation errors');
         }
@@ -962,7 +963,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         storageManager.clearStorage();
     }
 
-    saveDraft(groupId: string): void {
+    saveDraft(groupId: GroupId): void {
         const draftData = {
             description: this.#descriptionSignal.value,
             amount: this.#amountSignal.value,
@@ -980,7 +981,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         storageManager.saveDraft(groupId, draftData);
     }
 
-    loadDraft(groupId: string): boolean {
+    loadDraft(groupId: GroupId): boolean {
         try {
             const draftData = storageManager.loadDraft(groupId);
 
@@ -1014,7 +1015,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         }
     }
 
-    clearDraft(groupId: string): void {
+    clearDraft(groupId: GroupId): void {
         storageManager.clearDraft(groupId);
     }
 

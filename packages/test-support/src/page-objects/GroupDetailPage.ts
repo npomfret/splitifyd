@@ -5,6 +5,7 @@ import { EditGroupModalPage } from './EditGroupModalPage';
 import { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
 import { loadTranslation } from './translation-loader';
+import {GroupId} from "@splitifyd/shared";
 
 const translation = loadTranslation();
 
@@ -25,7 +26,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Navigate to group detail page by ID
      */
-    async navigateToGroup(groupId: string): Promise<void> {
+    async navigateToGroup(groupId: GroupId): Promise<void> {
         await this.page.goto(`/groups/${groupId}`);
         await this.waitForNetworkIdle();
     }

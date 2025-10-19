@@ -1,3 +1,5 @@
+import {GroupId} from "@splitifyd/shared";
+
 export const ROUTES = {
     // Main Routes
     HOME: '/',
@@ -32,9 +34,9 @@ export const ROUTES = {
 // Helper functions for dynamic routes
 export const routes = {
     groupDetail: (id: string) => `/groups/${id}`,
-    addExpense: (groupId: string) => `/groups/${groupId}/add-expense`,
-    expenseDetail: (groupId: string, expenseId: string) => `/groups/${groupId}/expenses/${expenseId}`,
-    editExpense: (groupId: string, expenseId: string) => `/groups/${groupId}/add-expense?id=${expenseId}&edit=true`,
-    copyExpense: (groupId: string, sourceId: string) => `/groups/${groupId}/add-expense?copy=true&sourceId=${sourceId}`,
+    addExpense: (groupId: GroupId) => `/groups/${groupId}/add-expense`,
+    expenseDetail: (groupId: GroupId, expenseId: string) => `/groups/${groupId}/expenses/${expenseId}`,
+    editExpense: (groupId: GroupId, expenseId: string) => `/groups/${groupId}/add-expense?id=${expenseId}&edit=true`,
+    copyExpense: (groupId: GroupId, sourceId: string) => `/groups/${groupId}/add-expense?copy=true&sourceId=${sourceId}`,
     loginWithReturnUrl: (returnUrl: string) => `/login?returnUrl=${encodeURIComponent(returnUrl)}`,
 } as const;

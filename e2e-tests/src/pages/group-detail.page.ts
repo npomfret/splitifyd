@@ -9,6 +9,7 @@ import { LeaveGroupModalPage } from './leave-group-modal.page';
 import { RemoveMemberModalPage } from './remove-member-modal.page';
 import { SettlementFormPage } from './settlement-form.page';
 import { ShareGroupModalPage } from './share-group-modal.page';
+import {GroupId} from "@splitifyd/shared";
 
 export class GroupDetailPage extends BaseGroupDetailPage {
     private _header?: HeaderPage;
@@ -228,7 +229,7 @@ export class GroupDetailPage extends BaseGroupDetailPage {
      * This method waits for the balance section to be visible but doesn't rely on generic loading states.
      * For specific debt verification, use verifyDebtRelationship() or waitForSettledUpMessage().
      */
-    async waitForBalancesSection(groupId: string): Promise<void> {
+    async waitForBalancesSection(groupId: GroupId): Promise<void> {
         // Assert we're on the correct group page
         const currentUrl = this.page.url();
         if (!currentUrl.includes(`/groups/${groupId}`)) {
@@ -247,7 +248,7 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         }
     }
 
-    async waitForPage(groupId: string, expectedMemberCount: number) {
+    async waitForPage(groupId: GroupId, expectedMemberCount: number) {
         const targetGroupUrl = `/groups/${groupId}`;
         await this.sanityCheckPageUrl(this.page.url(), targetGroupUrl);
 
@@ -869,7 +870,7 @@ export class GroupDetailPage extends BaseGroupDetailPage {
      * Verify that all members in the group are settled up (no outstanding balances)
      * @param groupId - The group ID for context (used for better error messages)
      */
-    async verifyAllSettledUp(groupId: string): Promise<void> {
+    async verifyAllSettledUp(groupId: GroupId): Promise<void> {
         // Assert we're on the correct group page
         const currentUrl = this.page.url();
         if (!currentUrl.includes(`/groups/${groupId}`)) {
@@ -899,7 +900,7 @@ export class GroupDetailPage extends BaseGroupDetailPage {
      * Ensures group page is fully loaded before proceeding with expense operations.
      * This should be called after creating a group or navigating to a group page.
      */
-    async ensureNewGroupPageReadyWithOneMember(groupId: string): Promise<void> {
+    async ensureNewGroupPageReadyWithOneMember(groupId: GroupId): Promise<void> {
         await this.waitForDomContentLoaded();
         await this.waitForMemberCount(1); // Wait for at least the creator to show
         await this.waitForBalancesSection(groupId);
@@ -938,7 +939,7 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         return leaveModal;
     }
 
-    async waitForRedirectAwayFromGroup(groupId: string): Promise<void> {
+    async waitForRedirectAwayFromGroup(groupId: GroupId): Promise<void> {
         // Use proper web-first assertion to wait for URL change
         await expect(this.page).not.toHaveURL(new RegExp(`/groups/${groupId}`), { timeout: 5000 });
     }

@@ -10,6 +10,7 @@ import { PermissionEngineAsync } from '../permissions/permission-engine-async';
 import { ApiError, Errors } from '../utils/errors';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -82,7 +83,7 @@ export class ExpenseService {
      * Handles both current members and departed members (who have left the group)
      * to allow viewing historical transaction data
      */
-    private async fetchParticipantData(groupId: string, userId: string): Promise<GroupMember> {
+    private async fetchParticipantData(groupId: GroupId, userId: string): Promise<GroupMember> {
         const [userData, memberData] = await Promise.all([
             this.firestoreReader.getUser(userId),
             this.firestoreReader.getGroupMember(groupId, userId),
@@ -474,7 +475,7 @@ export class ExpenseService {
      * List expenses for a group with pagination
      */
     async listGroupExpenses(
-        groupId: string,
+        groupId: GroupId,
         userId: string,
         options: {
             limit?: number;
@@ -491,7 +492,7 @@ export class ExpenseService {
     }
 
     private async _listGroupExpenses(
-        groupId: string,
+        groupId: GroupId,
         userId: string,
         options: {
             limit?: number;

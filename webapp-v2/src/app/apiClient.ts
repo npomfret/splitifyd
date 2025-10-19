@@ -34,6 +34,7 @@ import { ApiErrorResponseSchema, responseSchemas } from '@splitifyd/shared';
 import type { UpdateSettlementRequest } from '@splitifyd/shared';
 import { z } from 'zod';
 import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';
+import {GroupId} from "@splitifyd/shared";
 
 // All types are now imported from shared-types
 
@@ -586,7 +587,7 @@ class ApiClient {
         });
     }
 
-    async leaveGroup(groupId: string): Promise<MessageResponse> {
+    async leaveGroup(groupId: GroupId): Promise<MessageResponse> {
         return this.request({
             endpoint: '/groups/:id/leave',
             method: 'POST',
@@ -594,7 +595,7 @@ class ApiClient {
         });
     }
 
-    async removeGroupMember(groupId: string, memberId: string): Promise<MessageResponse> {
+    async removeGroupMember(groupId: GroupId, memberId: string): Promise<MessageResponse> {
         return this.request({
             endpoint: '/groups/:id/members/:memberId',
             method: 'DELETE',
@@ -682,7 +683,7 @@ class ApiClient {
         });
     }
 
-    async generateShareLink(groupId: string): Promise<ShareLinkResponse> {
+    async generateShareLink(groupId: GroupId): Promise<ShareLinkResponse> {
         return this.request({
             endpoint: '/groups/share',
             method: 'POST',
@@ -779,7 +780,7 @@ class ApiClient {
     }
 
     // Comment methods
-    async createGroupComment(groupId: string, text: string): Promise<CommentDTO> {
+    async createGroupComment(groupId: GroupId, text: string): Promise<CommentDTO> {
         return this.request<CommentDTO>({
             endpoint: '/groups/:groupId/comments',
             method: 'POST',
@@ -797,7 +798,7 @@ class ApiClient {
         });
     }
 
-    async getGroupComments(groupId: string, cursor?: string): Promise<ListCommentsResponse> {
+    async getGroupComments(groupId: GroupId, cursor?: string): Promise<ListCommentsResponse> {
         const query: Record<string, string> = {};
         if (cursor) query.cursor = cursor;
 

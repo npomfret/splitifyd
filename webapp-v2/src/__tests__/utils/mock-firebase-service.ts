@@ -1,6 +1,7 @@
 import { FirebaseService } from '@/app/firebase.ts';
 import { Page } from '@playwright/test';
 import { ClientUser, ListGroupsResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
+import {GroupId} from "@splitifyd/shared";
 
 interface AuthError {
     code: string;
@@ -482,7 +483,7 @@ export async function mockApiFailure(
  */
 export async function mockGroupDetailApi(
     page: Page,
-    groupId: string,
+    groupId: GroupId,
     group: any,
     options: { delayMs?: number; } = {},
 ): Promise<void> {
@@ -506,7 +507,7 @@ export async function mockGroupDetailApi(
  */
 export async function mockGroupCommentsApi(
     page: Page,
-    groupId: string,
+    groupId: GroupId,
     comments: any[] = [],
     options: { delayMs?: number; } = {},
 ): Promise<void> {
@@ -533,7 +534,7 @@ export async function mockGroupCommentsApi(
  */
 export async function mockGenerateShareLinkApi(
     page: Page,
-    groupId: string,
+    groupId: GroupId,
     shareToken: string = 'test-share-token-123',
     options: { delayMs?: number; } = {},
 ): Promise<void> {

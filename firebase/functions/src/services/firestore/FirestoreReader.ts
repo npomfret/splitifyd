@@ -52,6 +52,7 @@ import { FirestoreCollections } from '../../constants';
 import type { TopLevelGroupMemberDocument } from '../../types';
 import type { FirestoreOrderField, IFirestoreReader } from './IFirestoreReader';
 import type { BatchGroupFetchOptions, GroupsPaginationCursor, OrderBy, PaginatedResult, QueryOptions } from './IFirestoreReader';
+import {GroupId} from "@splitifyd/shared";
 
 export class FirestoreReader implements IFirestoreReader {
     constructor(private readonly db: IFirestoreDatabase) {}
@@ -162,7 +163,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getGroup(groupId: string): Promise<GroupDTO | null> {
+    async getGroup(groupId: GroupId): Promise<GroupDTO | null> {
         try {
             const groupDoc = await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).get();
 
@@ -190,7 +191,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getGroupBalance(groupId: string): Promise<GroupBalanceDTO> {
+    async getGroupBalance(groupId: GroupId): Promise<GroupBalanceDTO> {
         try {
             const doc = await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance').get();
 
@@ -358,7 +359,7 @@ export class FirestoreReader implements IFirestoreReader {
      * @param options - Options for ordering and limiting results
      * @returns Array of group documents, limited and ordered as specified
      */
-    private async getGroupsByIds(groupIds: string[], options: BatchGroupFetchOptions): Promise<GroupDTO[]> {
+    private async getGroupsByIds(groupIds: GroupId[], options: BatchGroupFetchOptions): Promise<GroupDTO[]> {
         if (groupIds.length === 0) return [];
 
         const allGroups: GroupDTO[] = [];
@@ -531,7 +532,7 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
-    async getGroupMember(groupId: string, userId: string): Promise<GroupMembershipDTO | null> {
+    async getGroupMember(groupId: GroupId, userId: string): Promise<GroupMembershipDTO | null> {
         return measureDb('GET_MEMBER', async () => {
             // Use top-level collection instead of subcollection
             const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
@@ -555,7 +556,7 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
-    async getAllGroupMemberIds(groupId: string): Promise<string[]> {
+    async getAllGroupMemberIds(groupId: GroupId): Promise<string[]> {
         return measureDb('GET_MEMBER_IDS', async () => {
             // Optimized: Only fetch uid field from Firestore
             const membersQuery = this
@@ -577,7 +578,7 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
-    async getAllGroupMembers(groupId: string): Promise<GroupMembershipDTO[]> {
+    async getAllGroupMembers(groupId: GroupId): Promise<GroupMembershipDTO[]> {
         return measureDb('GET_MEMBERS', async () => {
             // Use top-level collection instead of subcollection
             // Fetch one extra to detect overflow
@@ -667,7 +668,7 @@ export class FirestoreReader implements IFirestoreReader {
      * Builds base query for settlements filtering out soft-deleted items
      * @private
      */
-    private buildBaseSettlementQuery(groupId: string, includeDeleted: boolean = false): IQuery {
+    private buildBaseSettlementQuery(groupId: GroupId, includeDeleted: boolean = false): IQuery {
         let query = this.db.collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId);
 
         if (!includeDeleted) {
@@ -700,7 +701,7 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     async getSettlementsForGroup(
-        groupId: string,
+        groupId: GroupId,
         options: QueryOptions,
     ): Promise<{
         settlements: SettlementDTO[];
@@ -785,7 +786,7 @@ export class FirestoreReader implements IFirestoreReader {
     // Share Link Operations
     // ========================================================================
 
-    async findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ParsedShareLink; } | null> {
+    async findShareLinkByToken(token: string): Promise<{ groupId: GroupId; shareLink: ParsedShareLink; } | null> {
         try {
             const snapshot = await this.db.collectionGroup('shareLinks').where('token', '==', token).where('isActive', '==', true).limit(1).get();
 
@@ -924,7 +925,7 @@ export class FirestoreReader implements IFirestoreReader {
     // New Methods for Centralizing Firestore Access
     // ========================================================================
 
-    async getGroupDeletionData(groupId: string): Promise<{
+    async getGroupDeletionData(groupId: GroupId): Promise<{
         expenses: IQuerySnapshot;
         settlements: IQuerySnapshot;
         shareLinks: IQuerySnapshot;
@@ -960,7 +961,7 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     async getExpensesForGroupPaginated(
-        groupId: string,
+        groupId: GroupId,
         options?: {
             limit?: number;
             cursor?: string;
@@ -1054,7 +1055,7 @@ export class FirestoreReader implements IFirestoreReader {
     // New Methods Implementation
     // ========================================================================
 
-    async verifyGroupMembership(groupId: string, userId: string): Promise<boolean> {
+    async verifyGroupMembership(groupId: GroupId, userId: string): Promise<boolean> {
         try {
             // Check if user is a member using top-level collection lookup
             const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
@@ -1081,7 +1082,7 @@ export class FirestoreReader implements IFirestoreReader {
      * Get a group DTO in a transaction (with Timestamp → ISO conversion)
      * Use this for optimistic locking instead of getRawGroupDocumentInTransaction
      */
-    async getGroupInTransaction(transaction: ITransaction, groupId: string): Promise<GroupDTO | null> {
+    async getGroupInTransaction(transaction: ITransaction, groupId: GroupId): Promise<GroupDTO | null> {
         try {
             const docRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
             const doc = await transaction.get(docRef);
@@ -1111,7 +1112,7 @@ export class FirestoreReader implements IFirestoreReader {
      * @deprecated Use getGroupInTransaction instead - returns DTO with ISO strings
      * Raw methods leak Firestore Timestamps into application layer
      */
-    async getRawGroupDocumentInTransaction(transaction: ITransaction, groupId: string): Promise<IDocumentSnapshot | null> {
+    async getRawGroupDocumentInTransaction(transaction: ITransaction, groupId: GroupId): Promise<IDocumentSnapshot | null> {
         try {
             const docRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
             const doc = await transaction.get(docRef);
@@ -1188,7 +1189,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getGroupMembershipsInTransaction(transaction: ITransaction, groupId: string): Promise<IQuerySnapshot> {
+    async getGroupMembershipsInTransaction(transaction: ITransaction, groupId: GroupId): Promise<IQuerySnapshot> {
         try {
             const query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('groupId', '==', groupId);
             return await transaction.get(query);

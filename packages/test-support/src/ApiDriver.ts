@@ -25,6 +25,7 @@ import {
     UserProfileResponse,
     UserRegistration,
     UserToken,
+    GroupId
 } from '@splitifyd/shared';
 
 import { UserRegistrationBuilder } from './builders';
@@ -175,15 +176,15 @@ export class ApiDriver {
         return await this.apiRequest(`/settlements/${settlementId}`, 'DELETE', null, token);
     }
 
-    async pollGroupBalancesUntil(groupId: string, token: string, matcher: Matcher<GroupBalances>, options?: PollOptions): Promise<GroupBalances> {
+    async pollGroupBalancesUntil(groupId: GroupId, token: string, matcher: Matcher<GroupBalances>, options?: PollOptions): Promise<GroupBalances> {
         return pollUntil(() => this.getGroupBalances(groupId, token), matcher, { errorMsg: `Group ${groupId} balance condition not met`, ...options });
     }
 
-    async waitForBalanceUpdate(groupId: string, token: string, timeoutMs: number = 1000): Promise<GroupBalances> {
+    async waitForBalanceUpdate(groupId: GroupId, token: string, timeoutMs: number = 1000): Promise<GroupBalances> {
         return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), { timeout: timeoutMs });
     }
 
-    async generateShareLink(groupId: string, token: string): Promise<ShareLinkResponse> {
+    async generateShareLink(groupId: GroupId, token: string): Promise<ShareLinkResponse> {
         return await this.apiRequest('/groups/share', 'POST', { groupId }, token);
     }
 
@@ -204,7 +205,7 @@ export class ApiDriver {
         return updatedGroup;
     }
 
-    async addMembersViaShareLink(groupId: string, toAdd: UserToken[], creatorToken: string) {
+    async addMembersViaShareLink(groupId: GroupId, toAdd: UserToken[], creatorToken: string) {
         if (toAdd.length > 0) {
             const { linkId } = await this.generateShareLink(groupId, creatorToken);
 
@@ -219,13 +220,13 @@ export class ApiDriver {
         return (await this.apiRequest('/groups', 'POST', groupData, token)) as GroupDTO;
     }
 
-    async getGroup(groupId: string, token: string): Promise<GroupDTO> {
+    async getGroup(groupId: GroupId, token: string): Promise<GroupDTO> {
         const res = await this.getGroupFullDetails(groupId, token);
         return res.group;
     }
 
     async getGroupFullDetails(
-        groupId: string,
+        groupId: GroupId,
         token: string,
         options?: {
             expenseLimit?: number;
@@ -261,11 +262,11 @@ export class ApiDriver {
         return await this.apiRequest(`/expenses/${expenseId}/full-details`, 'GET', null, token);
     }
 
-    async updateGroup(groupId: string, data: UpdateGroupRequest, token: string): Promise<MessageResponse> {
+    async updateGroup(groupId: GroupId, data: UpdateGroupRequest, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}`, 'PUT', data, token);
     }
 
-    async deleteGroup(groupId: string, token: string): Promise<MessageResponse> {
+    async deleteGroup(groupId: GroupId, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}`, 'DELETE', null, token);
     }
 
@@ -293,11 +294,11 @@ export class ApiDriver {
         return await this.apiRequest(endpoint, method, body, token);
     }
 
-    async leaveGroup(groupId: string, token: string): Promise<MessageResponse> {
+    async leaveGroup(groupId: GroupId, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/leave`, 'POST', null, token);
     }
 
-    async removeGroupMember(groupId: string, memberId: string, token: string): Promise<MessageResponse> {
+    async removeGroupMember(groupId: GroupId, memberId: string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}`, 'DELETE', null, token);
     }
 
@@ -334,7 +335,7 @@ export class ApiDriver {
     }
 
     // Comment API methods
-    async createGroupComment(groupId: string, text: string, token: string): Promise<CommentDTO> {
+    async createGroupComment(groupId: GroupId, text: string, token: string): Promise<CommentDTO> {
         return await this.apiRequest(`/groups/${groupId}/comments`, 'POST', { text }, token);
     }
 
@@ -342,7 +343,7 @@ export class ApiDriver {
         return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', { text }, token);
     }
 
-    async listGroupComments(groupId: string, token: string, cursor?: string, limit?: number): Promise<ListCommentsResponse> {
+    async listGroupComments(groupId: GroupId, token: string, cursor?: string, limit?: number): Promise<ListCommentsResponse> {
         const params = new URLSearchParams();
         if (cursor) params.append('cursor', cursor);
         if (limit) params.append('limit', limit.toString());
@@ -404,17 +405,17 @@ export class ApiDriver {
         }
     }
 
-    async getGroupBalances(groupId: string, token: string) {
+    async getGroupBalances(groupId: GroupId, token: string) {
         const res = await this.getGroupFullDetails(groupId, token);
         return res.balances;
     }
 
-    async getGroupExpenses(groupId: string, token: string) {
+    async getGroupExpenses(groupId: GroupId, token: string) {
         const res = await this.getGroupFullDetails(groupId, token);
         return res.expenses;
     }
 
-    async getSettlement(groupId: string, settlementId: string, token: string) {
+    async getSettlement(groupId: GroupId, settlementId: string, token: string) {
         let res;
 
         try {

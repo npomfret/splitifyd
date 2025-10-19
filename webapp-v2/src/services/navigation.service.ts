@@ -1,6 +1,7 @@
 import { ROUTES, routes } from '@/constants/routes';
 import { logUserAction } from '@/utils/browser-logger';
 import { route } from 'preact-router';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Centralized navigation service for consistent routing throughout the application.
@@ -139,35 +140,35 @@ class NavigationService {
     /**
      * Navigate to group detail page
      */
-    goToGroup(groupId: string): Promise<void> {
+    goToGroup(groupId: GroupId): Promise<void> {
         return this.navigateTo(routes.groupDetail(groupId));
     }
 
     /**
      * Navigate to add expense page
      */
-    goToAddExpense(groupId: string): Promise<void> {
+    goToAddExpense(groupId: GroupId): Promise<void> {
         return this.navigateTo(routes.addExpense(groupId));
     }
 
     /**
      * Navigate to edit expense page
      */
-    goToEditExpense(groupId: string, expenseId: string): Promise<void> {
+    goToEditExpense(groupId: GroupId, expenseId: string): Promise<void> {
         return this.navigateTo(routes.editExpense(groupId, expenseId));
     }
 
     /**
      * Navigate to copy expense page
      */
-    goToCopyExpense(groupId: string, sourceId: string): Promise<void> {
+    goToCopyExpense(groupId: GroupId, sourceId: string): Promise<void> {
         return this.navigateTo(routes.copyExpense(groupId, sourceId));
     }
 
     /**
      * Navigate to expense detail page
      */
-    goToExpenseDetail(groupId: string, expenseId: string): Promise<void> {
+    goToExpenseDetail(groupId: GroupId, expenseId: string): Promise<void> {
         return this.navigateTo(routes.expenseDetail(groupId, expenseId));
     }
 

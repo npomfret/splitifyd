@@ -36,6 +36,7 @@ import {
 import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
 import { UserNotificationDocumentSchema } from '../../schemas/user-notifications';
 import type { BatchWriteResult, IFirestoreWriter, WriteResult } from './IFirestoreWriter';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Validation metrics for monitoring validation coverage and effectiveness
@@ -672,7 +673,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    async touchGroup(groupId: string, transactionOrBatch?: ITransaction | IWriteBatch): Promise<void> {
+    async touchGroup(groupId: GroupId, transactionOrBatch?: ITransaction | IWriteBatch): Promise<void> {
         const now = Timestamp.now();
         const groupRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
 
@@ -685,7 +686,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         }
     }
 
-    async updateGroupMemberDisplayName(groupId: string, userId: string, newDisplayName: string): Promise<void> {
+    async updateGroupMemberDisplayName(groupId: GroupId, userId: string, newDisplayName: string): Promise<void> {
         return measureDb('FirestoreWriter.updateGroupMemberDisplayName', async () => {
             // Validate display name before transaction
             if (!newDisplayName || newDisplayName.trim().length === 0) {
@@ -745,7 +746,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     // Group Balance Operations
     // ========================================================================
 
-    setGroupBalanceInTransaction(transaction: ITransaction, groupId: string, balance: GroupBalanceDTO): void {
+    setGroupBalanceInTransaction(transaction: ITransaction, groupId: GroupId, balance: GroupBalanceDTO): void {
         const balanceRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance');
 
         // Convert DTO to Firestore document (ISO strings → Timestamps)
@@ -759,7 +760,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         logger.info('Group balance document created/updated in transaction', { groupId });
     }
 
-    async getGroupBalanceInTransaction(transaction: ITransaction, groupId: string) {
+    async getGroupBalanceInTransaction(transaction: ITransaction, groupId: GroupId) {
         const balanceRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance');
 
         const doc = await transaction.get(balanceRef);
@@ -778,7 +779,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         return this.convertTimestampsToISO(validated) as any as GroupBalanceDTO;
     }
 
-    updateGroupBalanceInTransaction(transaction: ITransaction, groupId: string, currentBalance: GroupBalanceDTO, updater: (current: GroupBalanceDTO) => GroupBalanceDTO): void {
+    updateGroupBalanceInTransaction(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, updater: (current: GroupBalanceDTO) => GroupBalanceDTO): void {
         const balanceRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance');
 
         // Apply update function
@@ -958,7 +959,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    async removeUserNotificationGroup(userId: string, groupId: string): Promise<WriteResult> {
+    async removeUserNotificationGroup(userId: string, groupId: GroupId): Promise<WriteResult> {
         return measureDb('FirestoreWriter.removeUserNotificationGroup', async () => {
             try {
                 const updates = {
@@ -1078,7 +1079,7 @@ export class FirestoreWriter implements IFirestoreWriter {
      * @param shareLinkData - The share link data
      * @returns Document reference
      */
-    createShareLinkInTransaction(transaction: ITransaction, groupId: string, shareLinkData: Omit<ShareLinkDTO, 'id'>) {
+    createShareLinkInTransaction(transaction: ITransaction, groupId: GroupId, shareLinkData: Omit<ShareLinkDTO, 'id'>) {
         const shareLinksCollection = this
             .db
             .collection(FirestoreCollections.GROUPS)
@@ -1381,7 +1382,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         return this.db.collection(collection).doc(documentId);
     }
 
-    async leaveGroupAtomic(groupId: string, userId: string): Promise<BatchWriteResult> {
+    async leaveGroupAtomic(groupId: GroupId, userId: string): Promise<BatchWriteResult> {
         return measureDb('FirestoreWriter.leaveGroupAtomic', async () => {
             try {
                 // Use a transaction for transactional correctness

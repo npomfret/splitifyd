@@ -12,6 +12,7 @@ import { LoggerContext } from '../utils/logger-context';
 import type { IAuthService } from './auth';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import { NotificationService } from './notification-service';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Result of a successful user registration
@@ -282,7 +283,7 @@ export class UserService {
         }
     }
 
-    async getGroupMembersResponseFromSubcollection(groupId: string): Promise<GroupMembersResponse> {
+    async getGroupMembersResponseFromSubcollection(groupId: GroupId): Promise<GroupMembersResponse> {
         const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
         const memberIds = memberDocs.map((doc) => doc.uid);
 

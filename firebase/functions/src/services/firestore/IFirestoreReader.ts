@@ -73,6 +73,7 @@ export interface GetGroupsForUserOptions extends Pick<PaginationOptions, 'limit'
 import { CommentTargetType } from '@splitifyd/shared';
 import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, RegisteredUser, SettlementDTO } from '@splitifyd/shared';
 import type { GroupBalanceDTO, ParsedShareLink } from '../../schemas';
+import {GroupId} from "@splitifyd/shared";
 
 export interface IFirestoreReader {
     // ========================================================================
@@ -91,7 +92,7 @@ export interface IFirestoreReader {
      * @param groupId - The group ID
      * @returns Group document or null if not found
      */
-    getGroup(groupId: string): Promise<GroupDTO | null>;
+    getGroup(groupId: GroupId): Promise<GroupDTO | null>;
 
     /**
      * Get an expense document by ID
@@ -139,16 +140,16 @@ export interface IFirestoreReader {
      * @param userId - The user ID to find
      * @returns Group membership DTO or null if not found
      */
-    getGroupMember(groupId: string, userId: string): Promise<GroupMembershipDTO | null>;
+    getGroupMember(groupId: GroupId, userId: string): Promise<GroupMembershipDTO | null>;
 
     /**
      * Get all members for a group (simplified method)
      * @param groupId - The group ID
      * @returns Array of group membership DTOs
      */
-    getAllGroupMembers(groupId: string): Promise<GroupMembershipDTO[]>;
+    getAllGroupMembers(groupId: GroupId): Promise<GroupMembershipDTO[]>;
 
-    getAllGroupMemberIds(groupId: string): Promise<string[]>;
+    getAllGroupMemberIds(groupId: GroupId): Promise<string[]>;
 
     // ========================================================================
     // Collection Read Operations - Expense-related
@@ -161,7 +162,7 @@ export interface IFirestoreReader {
      * @returns Object with expenses array, hasMore flag, and nextCursor
      */
     getExpensesForGroupPaginated(
-        groupId: string,
+        groupId: GroupId,
         options?: {
             limit?: number;
             cursor?: string;
@@ -209,7 +210,7 @@ export interface IFirestoreReader {
      * });
      */
     getSettlementsForGroup(
-        groupId: string,
+        groupId: GroupId,
         options: QueryOptions,
     ): Promise<{
         settlements: SettlementDTO[];
@@ -229,7 +230,7 @@ export interface IFirestoreReader {
      * @param token - The share link token
      * @returns Object with groupId and share link, or null if not found
      */
-    findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ParsedShareLink; } | null>;
+    findShareLinkByToken(token: string): Promise<{ groupId: GroupId; shareLink: ParsedShareLink; } | null>;
 
     // ========================================================================
     // Comment Operations
@@ -271,7 +272,7 @@ export interface IFirestoreReader {
      * @param groupId - The group ID
      * @returns Object containing all related collections data
      */
-    getGroupDeletionData(groupId: string): Promise<{
+    getGroupDeletionData(groupId: GroupId): Promise<{
         expenses: IQuerySnapshot;
         settlements: IQuerySnapshot;
         shareLinks: IQuerySnapshot;
@@ -293,7 +294,7 @@ export interface IFirestoreReader {
      * @returns GroupBalanceDTO with ISO string dates
      * @throws ApiError if balance not found or read fails
      */
-    getGroupBalance(groupId: string): Promise<GroupBalanceDTO>;
+    getGroupBalance(groupId: GroupId): Promise<GroupBalanceDTO>;
 
     // ========================================================================
     // System Document Operations
@@ -309,7 +310,7 @@ export interface IFirestoreReader {
      * @param userId - The user ID
      * @returns True if user is a member, false otherwise
      */
-    verifyGroupMembership(groupId: string, userId: string): Promise<boolean>;
+    verifyGroupMembership(groupId: GroupId, userId: string): Promise<boolean>;
 
     // ========================================================================
     // Subcollection Operations
@@ -333,7 +334,7 @@ export interface IFirestoreReader {
      * @param groupId - The group ID
      * @returns Group DTO with ISO string dates or null if not found
      */
-    getGroupInTransaction(transaction: ITransaction, groupId: string): Promise<GroupDTO | null>;
+    getGroupInTransaction(transaction: ITransaction, groupId: GroupId): Promise<GroupDTO | null>;
 
     /**
      * Get expense DTO in a transaction with Timestamp → ISO conversion
@@ -360,7 +361,7 @@ export interface IFirestoreReader {
      * @param groupId - The group ID
      * @returns Raw document snapshot or null if not found
      */
-    getRawGroupDocumentInTransaction(transaction: ITransaction, groupId: string): Promise<IDocumentSnapshot | null>;
+    getRawGroupDocumentInTransaction(transaction: ITransaction, groupId: GroupId): Promise<IDocumentSnapshot | null>;
 
     /**
      * Get group membership documents in a transaction
@@ -368,5 +369,5 @@ export interface IFirestoreReader {
      * @param groupId - The group ID to query memberships for
      * @returns Array of raw document snapshots
      */
-    getGroupMembershipsInTransaction(transaction: ITransaction, groupId: string): Promise<IQuerySnapshot>;
+    getGroupMembershipsInTransaction(transaction: ITransaction, groupId: GroupId): Promise<IQuerySnapshot>;
 }

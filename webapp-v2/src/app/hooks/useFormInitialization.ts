@@ -9,9 +9,10 @@ import { apiClient } from '../apiClient';
 import { expenseFormStore } from '../stores/expense-form-store';
 import { enhancedGroupDetailStore } from '../stores/group-detail-store-enhanced';
 import { useAuth } from './useAuth';
+import {GroupId} from "@splitifyd/shared";
 
 interface UseFormInitializationOptions {
-    groupId: string;
+    groupId: GroupId;
     expenseId?: string | null;
     isEditMode: boolean;
     isCopyMode?: boolean;

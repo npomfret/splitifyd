@@ -2,13 +2,14 @@ import type { SimplifiedDebt, UserBalance } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { negateNormalizedAmount, ZERO } from '@splitifyd/shared';
 import { generateShortId } from '../test-helpers';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Group balance DTO structure for testing
  * Matches the GroupBalanceDTO type from firebase/functions/src/schemas
  */
 interface GroupBalanceDTO {
-    groupId: string;
+    groupId: GroupId;
     balancesByCurrency: Record<string, Record<string, UserBalance>>;
     simplifiedDebts: SimplifiedDebt[];
     lastUpdatedAt: string;
@@ -32,7 +33,7 @@ export class GroupBalanceDTOBuilder {
         };
     }
 
-    withGroupId(groupId: string): this {
+    withGroupId(groupId: GroupId): this {
         this.balance.groupId = groupId;
         return this;
     }

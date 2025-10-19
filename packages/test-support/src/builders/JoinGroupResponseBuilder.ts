@@ -1,5 +1,6 @@
 import type { JoinGroupResponse } from '@splitifyd/shared';
 import { generateShortId } from '../test-helpers';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Builder for creating JoinGroupResponse objects for tests
@@ -12,7 +13,7 @@ export class JoinGroupResponseBuilder {
         displayNameConflict: false,
     };
 
-    withGroupId(groupId: string): this {
+    withGroupId(groupId: GroupId): this {
         this.fields.groupId = groupId;
         return this;
     }

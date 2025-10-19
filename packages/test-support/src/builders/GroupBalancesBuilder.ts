@@ -1,6 +1,7 @@
 import type { GroupBalances, SimplifiedDebt, UserBalance } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { negateNormalizedAmount, ZERO } from '@splitifyd/shared';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Extended UserBalance with optional displayName and balances fields
@@ -59,7 +60,7 @@ export class GroupBalancesBuilder {
     /**
      * Set the group ID
      */
-    withGroupId(groupId: string): this {
+    withGroupId(groupId: GroupId): this {
         this.balances.groupId = groupId;
         return this;
     }

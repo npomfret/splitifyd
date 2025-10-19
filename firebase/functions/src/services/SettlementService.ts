@@ -10,6 +10,7 @@ import { ApiError, Errors } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -35,7 +36,7 @@ export class SettlementService {
      * Handles both current members and departed members (who have left the group)
      * to allow viewing historical transaction data
      */
-    private async fetchGroupMemberData(groupId: string, userId: string): Promise<GroupMember> {
+    private async fetchGroupMemberData(groupId: GroupId, userId: string): Promise<GroupMember> {
         const [userData, memberData] = await Promise.all([this.firestoreReader.getUser(userId), this.firestoreReader.getGroupMember(groupId, userId)]);
 
         if (!userData) {
@@ -100,7 +101,7 @@ export class SettlementService {
      * Check if settlement is locked due to departed members
      * A settlement is locked if payer or payee is no longer in the group
      */
-    private async isSettlementLocked(settlement: SettlementDTO, groupId: string): Promise<boolean> {
+    private async isSettlementLocked(settlement: SettlementDTO, groupId: GroupId): Promise<boolean> {
         const currentMemberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
         return !currentMemberIds.includes(settlement.payerId)
             || !currentMemberIds.includes(settlement.payeeId);
@@ -110,7 +111,7 @@ export class SettlementService {
      * List settlements for a group with pagination and filtering
      */
     async listSettlements(
-        groupId: string,
+        groupId: GroupId,
         userId: string,
         options: {
             limit?: number;
@@ -130,7 +131,7 @@ export class SettlementService {
     }
 
     private async _listSettlements(
-        groupId: string,
+        groupId: GroupId,
         userId: string,
         options: {
             limit?: number;
@@ -518,7 +519,7 @@ export class SettlementService {
      * Used by both the public listSettlements method and consolidated endpoints
      */
     async _getGroupSettlementsData(
-        groupId: string,
+        groupId: GroupId,
         options: {
             limit?: number;
             cursor?: string;

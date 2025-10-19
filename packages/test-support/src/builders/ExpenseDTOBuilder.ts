@@ -1,6 +1,7 @@
 import type { ExpenseDTO } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair, timestampToISOString } from '../test-helpers';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Builder for creating ExpenseDTO objects for tests
@@ -63,7 +64,7 @@ export class ExpenseDTOBuilder {
     }
 
     // Business field methods
-    withGroupId(groupId: string): this {
+    withGroupId(groupId: GroupId): this {
         this.expense.groupId = groupId;
         return this;
     }

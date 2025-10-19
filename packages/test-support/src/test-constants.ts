@@ -2,6 +2,7 @@
  * Test Constants
  * Standardized timeout values and magic strings for Playwright tests
  */
+import {GroupId} from "@splitifyd/shared";
 
 export const TEST_TIMEOUTS = {
     /** Standard navigation timeout - page transitions, route changes */
@@ -46,7 +47,7 @@ export const TEST_ROUTES = {
     GROUP_DETAIL_PATTERN: /\/groups\/[a-zA-Z0-9\-_]+/,
 
     /** Group detail page builder */
-    groupDetail: (groupId: string) => `/groups/${groupId}`,
+    groupDetail: (groupId: GroupId) => `/groups/${groupId}`,
 
     /** Join group page */
     joinGroup: (token: string) => `/join/${token}`,

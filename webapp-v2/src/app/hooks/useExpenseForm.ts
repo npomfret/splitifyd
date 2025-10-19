@@ -3,9 +3,10 @@ import { getRecentAmounts } from '../stores/expense-form-store';
 import { useFormInitialization } from './useFormInitialization';
 import { useFormState } from './useFormState';
 import { useFormSubmission } from './useFormSubmission';
+import {GroupId} from "@splitifyd/shared";
 
 interface UseExpenseFormOptions {
-    groupId: string;
+    groupId: GroupId;
     expenseId?: string | null;
     isEditMode: boolean;
     isCopyMode?: boolean;

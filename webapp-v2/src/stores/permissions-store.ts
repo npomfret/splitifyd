@@ -1,5 +1,6 @@
 import { computed, signal } from '@preact/signals';
 import { GroupDTO, GroupMember, GroupPermissions, MemberRole } from '@splitifyd/shared';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Permission cache with TTL
@@ -128,7 +129,7 @@ class PermissionsStore {
      * Register a component that needs permissions for this group.
      * Uses reference counting to manage state efficiently.
      */
-    registerComponent(groupId: string, userId: string): void {
+    registerComponent(groupId: GroupId, userId: string): void {
         const currentCount = this.#subscriberCounts.get(groupId) || 0;
         this.#subscriberCounts.set(groupId, currentCount + 1);
 
@@ -141,7 +142,7 @@ class PermissionsStore {
     /**
      * Deregister a component that no longer needs permissions for this group.
      */
-    deregisterComponent(groupId: string): void {
+    deregisterComponent(groupId: GroupId): void {
         const currentCount = this.#subscriberCounts.get(groupId) || 0;
 
         if (currentCount <= 1) {

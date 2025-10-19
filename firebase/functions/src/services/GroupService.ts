@@ -30,6 +30,7 @@ import { GroupShareService } from './GroupShareService';
 import { NotificationService } from './notification-service';
 import { SettlementService } from './SettlementService';
 import { UserService } from './UserService2';
+import {GroupId} from "@splitifyd/shared";
 
 /**
  * Service for managing group operations
@@ -108,7 +109,7 @@ export class GroupService {
     /**
      * Fetch a group and verify user access
      */
-    private async fetchGroupWithAccess(groupId: string, userId: string, requireWriteAccess: boolean = false): Promise<{ group: GroupDTO; }> {
+    private async fetchGroupWithAccess(groupId: GroupId, userId: string, requireWriteAccess: boolean = false): Promise<{ group: GroupDTO; }> {
         const group = await this.firestoreReader.getGroup(groupId);
 
         if (!group) {
@@ -395,7 +396,7 @@ export class GroupService {
      * Update an existing group
      * Only the owner can update a group
      */
-    async updateGroup(groupId: string, userId: string, updates: UpdateGroupRequest): Promise<MessageResponse> {
+    async updateGroup(groupId: GroupId, userId: string, updates: UpdateGroupRequest): Promise<MessageResponse> {
         const timer = new PerformanceTimer();
 
         // Fetch group with write access check
@@ -472,7 +473,7 @@ export class GroupService {
      * @param groupId - The ID of the group to mark for deletion
      * @returns Promise<void>
      */
-    private async markGroupForDeletion(groupId: string): Promise<void> {
+    private async markGroupForDeletion(groupId: GroupId): Promise<void> {
         await this.firestoreWriter.runTransaction(async (transaction) => {
             const groupRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUPS, groupId);
             const groupSnap = await transaction.get(groupRef);
@@ -520,7 +521,7 @@ export class GroupService {
      * @param documentPaths - Array of document paths to delete
      * @returns Promise<void>
      */
-    private async deleteBatch(collectionType: string, groupId: string, documentPaths: string[]): Promise<void> {
+    private async deleteBatch(collectionType: string, groupId: GroupId, documentPaths: string[]): Promise<void> {
         if (documentPaths.length === 0) {
             return;
         }
@@ -584,7 +585,7 @@ export class GroupService {
      * @param groupId - The group ID
      * @param errorMessage - The error that caused the failure
      */
-    private async markGroupDeletionFailed(groupId: string, errorMessage: string): Promise<void> {
+    private async markGroupDeletionFailed(groupId: GroupId, errorMessage: string): Promise<void> {
         try {
             await this.firestoreWriter.runTransaction(async (transaction) => {
                 const groupRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUPS, groupId);
@@ -613,7 +614,7 @@ export class GroupService {
      * @param groupId - The group ID to finalize deletion for
      * @returns Promise<void>
      */
-    private async finalizeGroupDeletion(groupId: string): Promise<void> {
+    private async finalizeGroupDeletion(groupId: GroupId): Promise<void> {
         await this.firestoreWriter.runTransaction(async (transaction) => {
             const groupRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUPS, groupId);
             const groupSnap = await transaction.get(groupRef);
@@ -637,7 +638,7 @@ export class GroupService {
         });
     }
 
-    async deleteGroup(groupId: string, userId: string): Promise<MessageResponse> {
+    async deleteGroup(groupId: GroupId, userId: string): Promise<MessageResponse> {
         // Fetch group with write access check
         await this.fetchGroupWithAccess(groupId, userId, true);
 
@@ -767,7 +768,7 @@ export class GroupService {
      * @returns Complete group details
      */
     async getGroupFullDetails(
-        groupId: string,
+        groupId: GroupId,
         userId: string,
         options: {
             expenseLimit?: number;
