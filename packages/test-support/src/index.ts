@@ -20,7 +20,13 @@ export * from './http-stubs';
 export * from './NotificationDriver';
 export * from './page-objects';
 export * from './Polling';
-export { StubFirestoreDatabase } from './StubFirestoreDatabase';
+export {
+    StubFirestoreDatabase,
+    type FirestoreTriggerChange,
+    type FirestoreTriggerEventType,
+    type FirestoreTriggerHandler,
+    type FirestoreTriggerHandlers,
+} from './StubFirestoreDatabase';
 export * from './test-constants';
 export * from './test-helpers';
 export * from './test-pool-helpers';

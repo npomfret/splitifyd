@@ -5,8 +5,12 @@
  * It runs the same operations against both implementations and compares results.
  */
 
-import { type IFirestoreDatabase, StubFirestoreDatabase } from '@splitifyd/test-support';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import {
+    type FirestoreTriggerChange,
+    type IFirestoreDatabase,
+    StubFirestoreDatabase,
+} from '@splitifyd/test-support';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getFirestore } from '../../firebase';
 import { createFirestoreDatabase, Timestamp } from '../../firestore-wrapper';
 
@@ -1365,6 +1369,77 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
                 // Doc2 should have incremented counter
                 expect(snap2.data()?.groups?.['group-1']?.count, `Doc2 group-1 incremented (${isStub ? 'stub' : 'real'})`).toBe(15);
             });
+        });
+    });
+
+    describe('Trigger behaviour (stub only)', () => {
+        it('should deliver create/update/delete events in stub database', async () => {
+            const events: FirestoreTriggerChange[] = [];
+            const handler = vi.fn((change: FirestoreTriggerChange) => {
+                events.push(change);
+            });
+
+            const unregister = stubDb.registerTrigger('trigger-tests/{docId}', {
+                onCreate: handler,
+                onUpdate: handler,
+                onDelete: handler,
+            });
+
+            const docRef = stubDb.collection('trigger-tests').doc('abc');
+
+            await docRef.set({ value: 1 });
+            await docRef.update({ value: 2 });
+            await docRef.delete();
+
+            unregister();
+
+            expect(handler).toHaveBeenCalledTimes(3);
+
+            expect(events[0].type).toBe('create');
+            expect(events[0].after.data()).toEqual({ value: 1 });
+            expect(events[0].params).toEqual({ docId: 'abc' });
+
+            expect(events[1].type).toBe('update');
+            expect(events[1].before.data()).toEqual({ value: 1 });
+            expect(events[1].after.data()).toEqual({ value: 2 });
+
+            expect(events[2].type).toBe('delete');
+            expect(events[2].before.data()).toEqual({ value: 2 });
+        });
+
+        it('should defer trigger delivery until transaction commit', async () => {
+            const handler = vi.fn();
+
+            const unregister = stubDb.registerTrigger('txn-tests/{docId}', {
+                onUpdate: handler,
+            });
+
+            const docRef = stubDb.collection('txn-tests').doc('buffered');
+            await docRef.set({ count: 0 });
+
+            await stubDb.runTransaction(async (transaction) => {
+                const snapshot = await transaction.get(docRef);
+                const current = snapshot.data()?.count ?? 0;
+                transaction.update(docRef, { count: current + 1 });
+
+                expect(handler).not.toHaveBeenCalled();
+            });
+
+            expect(handler).toHaveBeenCalledTimes(1);
+            const change = handler.mock.calls[0][0] as FirestoreTriggerChange;
+            expect(change.before.data()).toEqual({ count: 0 });
+            expect(change.after.data()).toEqual({ count: 1 });
+
+            await expect(
+                stubDb.runTransaction(async (transaction) => {
+                    transaction.update(docRef, { count: 999 });
+                    throw new Error('rollback');
+                }),
+            ).rejects.toThrow('rollback');
+
+            expect(handler).toHaveBeenCalledTimes(1);
+
+            unregister();
         });
     });
 

@@ -25,6 +25,107 @@ import type {
     WhereFilterOp,
 } from './firestore-types';
 
+export type FirestoreTriggerEventType = 'create' | 'update' | 'delete';
+
+export interface FirestoreTriggerChange {
+    before: IDocumentSnapshot;
+    after: IDocumentSnapshot;
+    params: Record<string, string>;
+    path: string;
+    type: FirestoreTriggerEventType;
+}
+
+export type FirestoreTriggerHandler = (change: FirestoreTriggerChange) => void | Promise<void>;
+
+export interface FirestoreTriggerHandlers {
+    onCreate?: FirestoreTriggerHandler;
+    onUpdate?: FirestoreTriggerHandler;
+    onDelete?: FirestoreTriggerHandler;
+}
+
+interface TriggerRegistration {
+    pattern: string;
+    regex: RegExp;
+    paramNames: string[];
+    handlers: FirestoreTriggerHandlers;
+}
+
+interface TriggerEventRecord {
+    type: FirestoreTriggerEventType;
+    path: string;
+    before: IDocumentSnapshot;
+    after: IDocumentSnapshot;
+}
+
+const PATH_PARAM_REGEX = /^\{(.+)\}$/;
+
+function escapeRegex(segment: string): string {
+    return segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function compilePathPattern(pattern: string): { regex: RegExp; paramNames: string[]; } {
+    const segments = pattern.split('/').filter((segment) => segment.length > 0);
+    const paramNames: string[] = [];
+
+    const regexSegments = segments.map((segment) => {
+        if (segment === '**') {
+            return '(.*)';
+        }
+
+        const paramMatch = segment.match(PATH_PARAM_REGEX);
+        if (paramMatch) {
+            paramNames.push(paramMatch[1]);
+            return '([^/]+)';
+        }
+
+        if (segment === '*') {
+            return '([^/]+)';
+        }
+
+        return escapeRegex(segment);
+    });
+
+    const regex = new RegExp(`^${regexSegments.join('/')}$`);
+    return { regex, paramNames };
+}
+
+function cloneValue<T>(value: T): T {
+    if (value instanceof Timestamp) {
+        return new Timestamp(value.seconds, value.nanoseconds) as T;
+    }
+
+    if (value instanceof Date) {
+        return new Date(value.getTime()) as T;
+    }
+
+    if (Array.isArray(value)) {
+        return value.map((item) => cloneValue(item)) as T;
+    }
+
+    if (value && typeof value === 'object') {
+        const cloned: Record<string, any> = {};
+        for (const [key, val] of Object.entries(value)) {
+            cloned[key] = cloneValue(val);
+        }
+        return cloned as T;
+    }
+
+    return value;
+}
+
+function cloneStoredDocument(doc: StoredDocument | null): StoredDocument | null {
+    if (!doc) {
+        return null;
+    }
+
+    return {
+        id: doc.id,
+        path: doc.path,
+        exists: doc.exists,
+        data: cloneValue(doc.data),
+    };
+}
+
 /**
  * In-memory document storage
  */
@@ -58,6 +159,33 @@ class StubDocumentSnapshot implements IDocumentSnapshot {
 
     data(): any | undefined {
         return this.document?.exists ? this.document.data : undefined;
+    }
+}
+
+class StaticDocumentSnapshot implements IDocumentSnapshot {
+    constructor(
+        private readonly docRef: IDocumentReference,
+        private readonly existsValue: boolean,
+        private readonly dataValue: any | undefined,
+    ) {}
+
+    get exists(): boolean {
+        return this.existsValue;
+    }
+
+    get id(): string {
+        return this.docRef.id;
+    }
+
+    get ref(): IDocumentReference {
+        return this.docRef;
+    }
+
+    data(): any | undefined {
+        if (!this.existsValue) {
+            return undefined;
+        }
+        return cloneValue(this.dataValue);
     }
 }
 
@@ -273,6 +401,7 @@ class StubDocumentReference implements IDocumentReference {
 
     async set(data: any, options?: SetOptions): Promise<void> {
         const existingDoc = this.storage.get(this.documentPath);
+        const beforeClone = cloneStoredDocument(existingDoc ?? null);
 
         if (options?.merge && existingDoc) {
             // Process FieldValue operations with existing data
@@ -310,6 +439,11 @@ class StubDocumentReference implements IDocumentReference {
                 exists: true,
             });
         }
+
+        const storedDoc = this.storage.get(this.documentPath);
+        const afterClone = cloneStoredDocument(storedDoc ?? null);
+        const eventType: FirestoreTriggerEventType = beforeClone?.exists ? 'update' : 'create';
+        await this.db.recordTrigger(eventType, this.documentPath, beforeClone, afterClone);
     }
 
     /**
@@ -394,6 +528,8 @@ class StubDocumentReference implements IDocumentReference {
             throw new Error(`Document ${this.documentPath} does not exist`);
         }
 
+        const beforeClone = cloneStoredDocument(existingDoc);
+
         // Apply dot notation updates and process FieldValue operations
         const updatedData = this.applyDotNotationUpdates(existingDoc.data, data);
 
@@ -406,10 +542,24 @@ class StubDocumentReference implements IDocumentReference {
             data: processedData,
             exists: true,
         });
+
+        const storedDoc = this.storage.get(this.documentPath);
+        const afterClone = cloneStoredDocument(storedDoc ?? null);
+        await this.db.recordTrigger('update', this.documentPath, beforeClone, afterClone);
     }
 
     async delete(): Promise<void> {
+        const existingDoc = this.storage.get(this.documentPath);
+        if (!existingDoc || !existingDoc.exists) {
+            this.storage.delete(this.documentPath);
+            return;
+        }
+
+        const beforeClone = cloneStoredDocument(existingDoc);
+
         this.storage.delete(this.documentPath);
+
+        await this.db.recordTrigger('delete', this.documentPath, beforeClone, null);
     }
 }
 
@@ -763,7 +913,10 @@ class StubTransaction implements ITransaction {
     private reads = new Map<string, StoredDocument | null>();
     private writes: Array<{ type: 'set' | 'update' | 'delete' | 'create'; ref: IDocumentReference; data?: any; options?: SetOptions; }> = [];
 
-    constructor(private readonly storage: Map<string, StoredDocument>) {}
+    constructor(
+        private readonly storage: Map<string, StoredDocument>,
+        private readonly db: StubFirestoreDatabase,
+    ) {}
 
     async get(documentRef: IDocumentReference): Promise<IDocumentSnapshot>;
     async get(query: IQuery): Promise<IQuerySnapshot>;
@@ -800,33 +953,40 @@ class StubTransaction implements ITransaction {
     }
 
     async commit(): Promise<void> {
-        for (const [path, readDoc] of this.reads.entries()) {
-            const currentDoc = this.storage.get(path);
-            if (JSON.stringify(readDoc) !== JSON.stringify(currentDoc ?? null)) {
-                throw new Error(`Transaction failed: document ${path} was modified`);
+        this.db.beginAtomicOperation();
+        let success = false;
+        try {
+            for (const [path, readDoc] of this.reads.entries()) {
+                const currentDoc = this.storage.get(path);
+                if (JSON.stringify(readDoc) !== JSON.stringify(currentDoc ?? null)) {
+                    throw new Error(`Transaction failed: document ${path} was modified`);
+                }
             }
-        }
 
-        for (const write of this.writes) {
-            const ref = write.ref as StubDocumentReference;
-            switch (write.type) {
-                case 'set':
-                    await ref.set(write.data!, write.options);
-                    break;
-                case 'update':
-                    await ref.update(write.data!);
-                    break;
-                case 'delete':
-                    await ref.delete();
-                    break;
-                case 'create':
-                    const existing = this.storage.get(ref.path);
-                    if (existing?.exists) {
-                        throw new Error(`Document ${ref.path} already exists`);
-                    }
-                    await ref.set(write.data!);
-                    break;
+            for (const write of this.writes) {
+                const ref = write.ref as StubDocumentReference;
+                switch (write.type) {
+                    case 'set':
+                        await ref.set(write.data!, write.options);
+                        break;
+                    case 'update':
+                        await ref.update(write.data!);
+                        break;
+                    case 'delete':
+                        await ref.delete();
+                        break;
+                    case 'create':
+                        const existing = this.storage.get(ref.path);
+                        if (existing?.exists) {
+                            throw new Error(`Document ${ref.path} already exists`);
+                        }
+                        await ref.set(write.data!);
+                        break;
+                }
             }
+            success = true;
+        } finally {
+            await this.db.endAtomicOperation(success);
         }
     }
 }
@@ -837,7 +997,10 @@ class StubTransaction implements ITransaction {
 class StubWriteBatch implements IWriteBatch {
     private operations: Array<() => Promise<void>> = [];
 
-    constructor(private readonly storage: Map<string, StoredDocument>) {}
+    constructor(
+        private readonly storage: Map<string, StoredDocument>,
+        private readonly db: StubFirestoreDatabase,
+    ) {}
 
     set(documentRef: IDocumentReference, data: any, options?: SetOptions): IWriteBatch {
         this.operations.push(async () => {
@@ -861,8 +1024,15 @@ class StubWriteBatch implements IWriteBatch {
     }
 
     async commit(): Promise<void> {
-        for (const operation of this.operations) {
-            await operation();
+        this.db.beginAtomicOperation();
+        let success = false;
+        try {
+            for (const operation of this.operations) {
+                await operation();
+            }
+            success = true;
+        } finally {
+            await this.db.endAtomicOperation(success);
         }
     }
 }
@@ -872,6 +1042,8 @@ class StubWriteBatch implements IWriteBatch {
  */
 export class StubFirestoreDatabase implements IFirestoreDatabase {
     private storage = new Map<string, StoredDocument>();
+    private triggerRegistrations: TriggerRegistration[] = [];
+    private triggerBuffers: TriggerEventRecord[][] = [];
 
     collection(collectionPath: string): ICollectionReference {
         return new StubCollectionReference(this.storage, collectionPath, this);
@@ -883,6 +1055,113 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
 
     collectionGroup(collectionId: string): IQuery {
         return new StubQuery(this.storage, collectionId, this);
+    }
+
+    registerTrigger(pattern: string, handlers: FirestoreTriggerHandlers): () => void {
+        const { regex, paramNames } = compilePathPattern(pattern);
+        const registration: TriggerRegistration = {
+            pattern,
+            regex,
+            paramNames,
+            handlers,
+        };
+
+        this.triggerRegistrations.push(registration);
+
+        return () => {
+            this.triggerRegistrations = this.triggerRegistrations.filter((entry) => entry !== registration);
+        };
+    }
+
+    clearTriggers(): void {
+        this.triggerRegistrations = [];
+    }
+
+    beginAtomicOperation(): void {
+        this.triggerBuffers.push([]);
+    }
+
+    async endAtomicOperation(success: boolean): Promise<void> {
+        const buffer = this.triggerBuffers.pop() ?? [];
+
+        if (!success) {
+            return;
+        }
+
+        if (this.triggerBuffers.length > 0) {
+            this.triggerBuffers[this.triggerBuffers.length - 1].push(...buffer);
+            return;
+        }
+
+        for (const event of buffer) {
+            await this.dispatchTrigger(event);
+        }
+    }
+
+    async recordTrigger(type: FirestoreTriggerEventType, path: string, beforeDoc: StoredDocument | null, afterDoc: StoredDocument | null): Promise<void> {
+        if (this.triggerRegistrations.length === 0) {
+            return;
+        }
+
+        const beforeSnapshot = this.createStaticSnapshot(path, beforeDoc);
+        const afterSnapshot = this.createStaticSnapshot(path, afterDoc);
+        const event: TriggerEventRecord = {
+            type,
+            path,
+            before: beforeSnapshot,
+            after: afterSnapshot,
+        };
+
+        if (this.triggerBuffers.length > 0) {
+            this.triggerBuffers[this.triggerBuffers.length - 1].push(event);
+            return;
+        }
+
+        await this.dispatchTrigger(event);
+    }
+
+    private createStaticSnapshot(path: string, doc: StoredDocument | null): IDocumentSnapshot {
+        const reference = new StubDocumentReference(this.storage, path, this);
+        if (!doc || !doc.exists) {
+            return new StaticDocumentSnapshot(reference, false, undefined);
+        }
+
+        return new StaticDocumentSnapshot(reference, true, cloneValue(doc.data));
+    }
+
+    private async dispatchTrigger(event: TriggerEventRecord): Promise<void> {
+        for (const registration of this.triggerRegistrations) {
+            const match = registration.regex.exec(event.path);
+            if (!match) {
+                continue;
+            }
+
+            const params: Record<string, string> = {};
+            registration.paramNames.forEach((name, index) => {
+                params[name] = match[index + 1];
+            });
+
+            const change: FirestoreTriggerChange = {
+                before: event.before,
+                after: event.after,
+                params,
+                path: event.path,
+                type: event.type,
+            };
+
+            let handler: FirestoreTriggerHandler | undefined;
+            if (event.type === 'create') {
+                handler = registration.handlers.onCreate;
+            } else if (event.type === 'update') {
+                handler = registration.handlers.onUpdate;
+            } else {
+                handler = registration.handlers.onDelete;
+            }
+
+            if (handler) {
+                await handler(change);
+            }
+        }
     }
 
     async listCollections(): Promise<ICollectionReference[]> {
@@ -899,14 +1178,14 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
     }
 
     async runTransaction<T>(updateFunction: (transaction: ITransaction) => Promise<T>): Promise<T> {
-        const transaction = new StubTransaction(this.storage);
+        const transaction = new StubTransaction(this.storage, this);
         const result = await updateFunction(transaction);
         await transaction.commit();
         return result;
     }
 
     batch(): IWriteBatch {
-        return new StubWriteBatch(this.storage);
+        return new StubWriteBatch(this.storage, this);
     }
 
     seed(documentPath: string, data: any): void {

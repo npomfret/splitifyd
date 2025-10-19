@@ -1075,4 +1075,83 @@ describe('StubFirestoreDatabase - Example Usage', () => {
             expect(data?.lastModified).toBeInstanceOf(Timestamp);
         });
     });
+
+    describe('Trigger simulation', () => {
+        it('should invoke registered handlers for create, update, and delete', async () => {
+            const events: Array<{ type: string; before?: any; after?: any; params: Record<string, string>; }> = [];
+
+            db.registerTrigger('users/{userId}', {
+                onCreate: (change) => {
+                    events.push({
+                        type: change.type,
+                        after: change.after.data(),
+                        params: change.params,
+                    });
+                },
+                onUpdate: (change) => {
+                    events.push({
+                        type: change.type,
+                        before: change.before.data(),
+                        after: change.after.data(),
+                        params: change.params,
+                    });
+                },
+                onDelete: (change) => {
+                    events.push({
+                        type: change.type,
+                        before: change.before.data(),
+                        params: change.params,
+                    });
+                },
+            });
+
+            const docRef = db.collection('users').doc('user-42');
+
+            await docRef.set({ name: 'Alice' });
+            await docRef.update({ name: 'Alice Updated' });
+            await docRef.delete();
+
+            expect(events.map((event) => event.type)).toEqual(['create', 'update', 'delete']);
+            expect(events[0].after).toEqual({ name: 'Alice' });
+            expect(events[1].before).toEqual({ name: 'Alice' });
+            expect(events[1].after).toEqual({ name: 'Alice Updated' });
+            expect(events[2].before).toEqual({ name: 'Alice Updated' });
+            expect(events[0].params).toEqual({ userId: 'user-42' });
+        });
+
+        it('should defer triggers until transaction commit', async () => {
+            const updates: number[] = [];
+            const docRef = db.collection('counters').doc('counter-1');
+
+            await docRef.set({ count: 0 });
+
+            db.registerTrigger('counters/{counterId}', {
+                onUpdate: (change) => {
+                    updates.push(change.after.data()?.count);
+                },
+            });
+
+            await db.runTransaction(async (transaction) => {
+                const snapshot = await transaction.get(docRef);
+                const current = snapshot.data()?.count ?? 0;
+                transaction.update(docRef, { count: current + 1 });
+
+                expect(updates).toEqual([]);
+            });
+
+            expect(updates).toEqual([1]);
+
+            await expect(
+                db.runTransaction(async (transaction) => {
+                    transaction.update(docRef, { count: 999 });
+                    throw new Error('abort');
+                }),
+            ).rejects.toThrow('abort');
+
+            expect(updates).toEqual([1]);
+
+            const snapshot = await docRef.get();
+            expect(snapshot.data()).toEqual({ count: 1 });
+        });
+    });
 });
