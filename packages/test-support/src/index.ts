@@ -24,6 +24,4 @@ export { StubFirestoreDatabase } from './StubFirestoreDatabase';
 export * from './test-constants';
 export * from './test-helpers';
 export * from './test-pool-helpers';
-export * from './TestExpenseManager';
-export * from './TestGroupManager';
 export * from './utils/page-state-collector';

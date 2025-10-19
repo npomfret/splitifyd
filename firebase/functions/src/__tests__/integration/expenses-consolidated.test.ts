@@ -10,7 +10,6 @@ import {
     ExpenseUpdateBuilder,
     generateShortId,
     NotificationDriver,
-    TestGroupManager,
 } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
@@ -23,7 +22,7 @@ describe('Expenses Management - Consolidated Tests', () => {
 
     beforeEach(async () => {
         users = await borrowTestUsers(4);
-        testGroup = await TestGroupManager.getOrCreateGroup(users, { memberCount: 3 });
+        testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 3), users[0].token);
     });
 
     afterEach(async () => {
@@ -474,10 +473,11 @@ describe('Expenses Management - Consolidated Tests', () => {
         test('should view expense details after a participant leaves the group', async () => {
             // Create group with 3 users
             const departedTestUsers = users.slice(0, 3);
-            const departedTestGroup = await TestGroupManager.getOrCreateGroup(departedTestUsers, {
-                memberCount: 3,
-                fresh: true,
-            });
+            const departedTestGroup = await apiDriver.createGroupWithMembers(
+                generateShortId(),
+                departedTestUsers.slice(0, 3),
+                departedTestUsers[0].token,
+            );
 
             // Create expense with all 3 participants (user 0 pays, user 1 and 2 owe money)
             const expense = await apiDriver.createExpense(

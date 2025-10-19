@@ -1,6 +1,11 @@
 import { PooledTestUser } from '@splitifyd/shared';
-import { borrowTestUsers, NotificationDriver } from '@splitifyd/test-support';
-import { ApiDriver, TestExpenseManager } from '@splitifyd/test-support';
+import {
+    ApiDriver,
+    borrowTestUsers,
+    CreateExpenseRequestBuilder,
+    generateShortId,
+    NotificationDriver,
+} from '@splitifyd/test-support';
 import { v4 as uuidv4 } from 'uuid';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
@@ -19,8 +24,22 @@ describe('Comments Integration Tests (Essential Firebase Behavior)', () => {
     beforeEach(async () => {
         users = await borrowTestUsers(3);
         const members = users.slice(0, 2);
-        const setup = await TestExpenseManager.getGroupWithExpenseForComments(members);
-        testGroup = setup.group;
+
+        // Create group
+        testGroup = await apiDriver.createGroupWithMembers(generateShortId(), members, members[0].token);
+
+        // Create expense for comment testing
+        const expenseData = new CreateExpenseRequestBuilder()
+            .withGroupId(testGroup.id)
+            .withDescription(`Expense for comment testing ${generateShortId()}`)
+            .withAmount(50.0, 'USD')
+            .withPaidBy(members[0].uid)
+            .withParticipants(members.map((u) => u.uid))
+            .withCategory('test')
+            .withSplitType('equal')
+            .build();
+
+        await apiDriver.createExpense(expenseData, members[0].token);
     });
 
     afterEach(async () => {

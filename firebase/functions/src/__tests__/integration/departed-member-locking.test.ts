@@ -7,10 +7,10 @@ import {
     borrowTestUsers,
     CreateExpenseRequestBuilder,
     CreateSettlementRequestBuilder,
-    ExpenseUpdateBuilder, generateShortId,
+    ExpenseUpdateBuilder,
+    generateShortId,
     NotificationDriver,
     SettlementUpdateBuilder,
-    TestGroupManager,
 } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
@@ -32,10 +32,7 @@ describe('Departed Member Transaction Locking', () => {
     describe('Expense Locking - Read Operations', () => {
         test('should include isLocked=false for expenses with all current members', async () => {
             // Create group with 3 members
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 3), {
-                memberCount: 3,
-                fresh: true,
-            });
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 3), users[0].token);
 
             // Create expense with all current members
             const expense = await apiDriver.createExpense(
@@ -59,10 +56,7 @@ describe('Departed Member Transaction Locking', () => {
 
         test('should include isLocked=true for expenses when a participant has left', async () => {
             // Create group with 3 members
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 3), {
-                memberCount: 3,
-                fresh: true,
-            });
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 3), users[0].token);
 
             // Create expense with all participants
             const expense = await apiDriver.createExpense(
@@ -100,10 +94,7 @@ describe('Departed Member Transaction Locking', () => {
 
         test('should include isLocked flag in expense list responses', async () => {
             // Create group
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 3), {
-                memberCount: 3,
-                fresh: true,
-            });
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 3), users[0].token);
 
             // Create two expenses
             const lockedExpense = await apiDriver.createExpense(
@@ -158,10 +149,7 @@ describe('Departed Member Transaction Locking', () => {
 
         test('should include isLocked flag in full details response', async () => {
             // Create group
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 3), {
-                memberCount: 3,
-                fresh: true,
-            });
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 3), users[0].token);
 
             // Create expense
             const expense = await apiDriver.createExpense(
@@ -199,10 +187,7 @@ describe('Departed Member Transaction Locking', () => {
     describe('Expense Locking - Write Operations', () => {
         test('should prevent editing expense when any participant has left', async () => {
             // Create group
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 3), {
-                memberCount: 3,
-                fresh: true,
-            });
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 3), users[0].token);
 
             // Create expense
             const expense = await apiDriver.createExpense(
@@ -243,10 +228,7 @@ describe('Departed Member Transaction Locking', () => {
 
         test('should allow editing expense when no participants have left', async () => {
             // Create group
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 3), {
-                memberCount: 3,
-                fresh: true,
-            });
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 3), users[0].token);
 
             // Create expense
             const expense = await apiDriver.createExpense(
@@ -278,10 +260,7 @@ describe('Departed Member Transaction Locking', () => {
 
         test('should prevent creating expense with departed member', async () => {
             // Create group
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 3), {
-                memberCount: 3,
-                fresh: true,
-            });
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 3), users[0].token);
 
             // User 1 leaves (with settled balance)
             await apiDriver.leaveGroup(testGroup.id, users[1].token);
@@ -302,10 +281,7 @@ describe('Departed Member Transaction Locking', () => {
 
         test('should allow creating expense with only current members', async () => {
             // Create group
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 3), {
-                memberCount: 3,
-                fresh: true,
-            });
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 3), users[0].token);
 
             // User 1 leaves
             await apiDriver.leaveGroup(testGroup.id, users[1].token);
@@ -326,10 +302,7 @@ describe('Departed Member Transaction Locking', () => {
     describe('Settlement Locking - Read Operations', () => {
         test('should include isLocked=false for settlements with current members', async () => {
             // Create group
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 3), {
-                memberCount: 3,
-                fresh: true,
-            });
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 3), users[0].token);
 
             // Create expense so there's a balance
             await apiDriver.createExpense(
@@ -367,10 +340,7 @@ describe('Departed Member Transaction Locking', () => {
 
         test('should include isLocked=true when payer has left', async () => {
             // Create group
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 3), {
-                memberCount: 3,
-                fresh: true,
-            });
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 3), users[0].token);
 
             // Create expense
             await apiDriver.createExpense(
@@ -412,10 +382,7 @@ describe('Departed Member Transaction Locking', () => {
 
         test('should include isLocked=true when payee has left', async () => {
             // Create group with 4 users so we have more flexibility
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 4), {
-                memberCount: 4,
-                fresh: true,
-            });
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 4), users[0].token);
 
             // Create expense so user 1 owes user 3 money
             await apiDriver.createExpense(
@@ -459,10 +426,7 @@ describe('Departed Member Transaction Locking', () => {
     describe('Settlement Locking - Write Operations', () => {
         test('should prevent editing settlement when payer has left', async () => {
             // Create group
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 3), {
-                memberCount: 3,
-                fresh: true,
-            });
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 3), users[0].token);
 
             // Create expense
             await apiDriver.createExpense(
@@ -502,10 +466,7 @@ describe('Departed Member Transaction Locking', () => {
 
         test('should prevent editing settlement when payee has left', async () => {
             // Create group with 4 users so we have more flexibility
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 4), {
-                memberCount: 4,
-                fresh: true,
-            });
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 4), users[0].token);
 
             // Create expense so user 1 owes user 3 money
             await apiDriver.createExpense(
@@ -592,10 +553,7 @@ describe('Departed Member Transaction Locking', () => {
 
         test('should prevent creating settlement with departed payer', async () => {
             // Create group
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 3), {
-                memberCount: 3,
-                fresh: true,
-            });
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 3), users[0].token);
 
             // User 1 leaves
             await apiDriver.leaveGroup(testGroup.id, users[1].token);
@@ -617,10 +575,7 @@ describe('Departed Member Transaction Locking', () => {
 
         test('should prevent creating settlement with departed payee', async () => {
             // Create group
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 3), {
-                memberCount: 3,
-                fresh: true,
-            });
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 3), users[0].token);
 
             // User 2 leaves
             await apiDriver.leaveGroup(testGroup.id, users[2].token);
@@ -644,10 +599,7 @@ describe('Departed Member Transaction Locking', () => {
     describe('Edge Cases and Race Conditions', () => {
         test('should handle expense locking when multiple participants leave', async () => {
             // Create group with 4 members
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 4), {
-                memberCount: 4,
-                fresh: true,
-            });
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 4), users[0].token);
 
             // Create expense with all 4 participants
             const expense = await apiDriver.createExpense(
@@ -708,10 +660,7 @@ describe('Departed Member Transaction Locking', () => {
 
         test('should compute lock status dynamically on each read', async () => {
             // Create group
-            const testGroup = await TestGroupManager.getOrCreateGroup(users.slice(0, 3), {
-                memberCount: 3,
-                fresh: true,
-            });
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), users.slice(0, 3), users[0].token);
 
             // Create expense
             const expense = await apiDriver.createExpense(

@@ -5,9 +5,9 @@ import {
     CreateExpenseRequestBuilder,
     CreateGroupRequestBuilder,
     CreateSettlementRequestBuilder,
+    generateShortId,
     NotificationDriver,
     SettlementUpdateBuilder,
-    TestGroupManager,
 } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
@@ -103,7 +103,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
         beforeEach(async () => {
             settlementUsers = users.slice(0, 2);
-            testGroup = await TestGroupManager.getOrCreateGroup(settlementUsers, { memberCount: 2, fresh: true });
+            testGroup = await apiDriver.createGroupWithMembers(generateShortId(), settlementUsers.slice(0, 2), settlementUsers[0].token);
         });
 
         // REMOVED: Settlement Creation tests that duplicate unit test coverage
@@ -272,10 +272,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             test('should view settlements after a member leaves the group', async () => {
                 // Setup: Create group with 2 members
                 const testUsers = users.slice(0, 2);
-                const group = await TestGroupManager.getOrCreateGroup(testUsers, {
-                    memberCount: 2,
-                    fresh: true,
-                });
+                const group = await apiDriver.createGroupWithMembers(generateShortId(), testUsers.slice(0, 2), testUsers[0].token);
 
                 // Create expense where user 0 pays
                 await apiDriver.createExpense(
@@ -327,7 +324,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
         beforeEach(async () => {
             settlementUsers = users.slice(0, 3);
-            testGroup = await TestGroupManager.getOrCreateGroup(settlementUsers, { memberCount: 3, fresh: true });
+            testGroup = await apiDriver.createGroupWithMembers(generateShortId(), settlementUsers.slice(0, 3), settlementUsers[0].token);
         });
 
         test('should soft delete settlement and preserve metadata', async () => {
