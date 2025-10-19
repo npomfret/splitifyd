@@ -1,20 +1,21 @@
-import { DocumentSnapshot } from 'firebase-admin/firestore';
-import { ParamsOf } from 'firebase-functions';
-import { Change, FirestoreEvent, onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { getAuth, getFirestore } from '../firebase';
-import { logger } from '../logger';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
-import type { IFirestoreReader } from '../services/firestore/IFirestoreReader';
-import type { NotificationService } from '../services/notification-service';
-import { ChangeType } from '../utils/change-detection';
-import { FirestoreCollections } from '../constants';
-import { measureTrigger } from '../monitoring/measure';
+import {DocumentSnapshot} from 'firebase-admin/firestore';
+import {ParamsOf} from 'firebase-functions';
+import {Change, FirestoreEvent, onDocumentWritten} from 'firebase-functions/v2/firestore';
+import {getAuth, getFirestore} from '../firebase';
+import {logger} from '../logger';
+import {ApplicationBuilder} from '../services/ApplicationBuilder';
+import type {IFirestoreReader} from '../services/firestore/IFirestoreReader';
+import type {NotificationService} from '../services/notification-service';
+import {ChangeType} from '../utils/change-detection';
+import {FirestoreCollections} from '../constants';
+import {measureTrigger} from '../monitoring/measure';
 
 export class ChangeTrackerHandlers {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly notificationService: NotificationService,
-    ) {}
+    ) {
+    }
 
     static createChangeTrackerHandlers(
         applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth()),
@@ -24,12 +25,12 @@ export class ChangeTrackerHandlers {
         return new ChangeTrackerHandlers(firestoreReader, notificationService);
     }
 
-    handleGroupChange = async (event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<string>>) => {
+    async handleGroupChange(event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<string>>) {
         const groupId = event.params.groupId;
-        const { changeType } = this.extractDataChange(event);
+        const {changeType} = this.extractDataChange(event);
 
         if (changeType === 'deleted') {
-            logger.info('group-deleted', { groupId });
+            logger.info('group-deleted', {groupId});
             return;
         }
 
@@ -39,7 +40,7 @@ export class ChangeTrackerHandlers {
             await this.notificationService.batchUpdateNotifications(affectedUsers, groupId, 'group');
         }
 
-        logger.info('group-changed', { id: groupId, groupId, usersNotified: affectedUsers.length });
+        logger.info('group-changed', {id: groupId, groupId, usersNotified: affectedUsers.length});
     };
 
     getTrackGroupChanges = () =>
@@ -55,11 +56,9 @@ export class ChangeTrackerHandlers {
             },
         );
 
-    handleExpenseChange = async (
-        event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<string>>,
-    ) => {
+    async handleExpenseChange(event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<string>>) {
         const expenseId = event.params.expenseId;
-        const { after } = this.extractDataChange(event);
+        const {after} = this.extractDataChange(event);
 
         const afterData = after?.data();
 
@@ -74,7 +73,7 @@ export class ChangeTrackerHandlers {
             'balance',
         ]);
 
-        logger.info('expense-changed', { id: expenseId, groupId, usersNotified: affectedUsers.length });
+        logger.info('expense-changed', {id: expenseId, groupId, usersNotified: affectedUsers.length});
     };
 
     getTrackExpenseChanges = () =>
@@ -90,11 +89,9 @@ export class ChangeTrackerHandlers {
             },
         );
 
-    handleSettlementChange = async (
-        event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<string>>,
-    ) => {
+    handleSettlementChange = async (event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<string>>) => {
         const settlementId = event.params.settlementId;
-        const { after } = this.extractDataChange(event);
+        const {after} = this.extractDataChange(event);
 
         const afterData = after?.data();
 
@@ -109,9 +106,9 @@ export class ChangeTrackerHandlers {
             'balance',
         ]);
 
-        logger.info('settlement-changed', { id: settlementId, groupId, usersNotified: affectedUsers.length });
+        logger.info('settlement-changed', {id: settlementId, groupId, usersNotified: affectedUsers.length});
 
-        return { groupId, affectedUserCount: affectedUsers.length };
+        return {groupId, affectedUserCount: affectedUsers.length};
     };
 
     getTrackSettlementChanges = () =>
@@ -127,9 +124,7 @@ export class ChangeTrackerHandlers {
             },
         );
 
-    handleGroupCommentChange = async (
-        event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<string>>,
-    ) => {
+    async handleGroupCommentChange(event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<string>>) {
         const groupId = event.params.groupId;
         const commentId = event.params.commentId;
 
@@ -139,7 +134,7 @@ export class ChangeTrackerHandlers {
             await this.notificationService.batchUpdateNotifications(affectedUsers, groupId, 'comment');
         }
 
-        logger.info('group-comment-changed', { id: commentId, groupId, usersNotified: affectedUsers.length });
+        logger.info('group-comment-changed', {id: commentId, groupId, usersNotified: affectedUsers.length});
     };
 
     getTrackGroupCommentChanges = () =>
@@ -155,9 +150,7 @@ export class ChangeTrackerHandlers {
             },
         );
 
-    handleExpenseCommentChange = async (
-        event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<string>>,
-    ) => {
+    async handleExpenseCommentChange(event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<string>>) {
         const expenseId = event.params.expenseId;
         const commentId = event.params.commentId;
 
@@ -205,6 +198,6 @@ export class ChangeTrackerHandlers {
             changeType = 'updated';
         }
 
-        return { before, after, changeType };
+        return {before, after, changeType};
     }
 }
