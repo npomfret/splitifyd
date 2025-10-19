@@ -2,9 +2,19 @@
 
 ## Implementation Status 📝
 
-**Last Updated**: 2025-01-11
+**Last Updated**: 2025-01-13
 
-**Current Phase**: Backend Foundation & Join Flow Complete
+**Current Phase**: Backend verified; shared schemas & client/UI pending
+
+### Recent Changes (2025-01-13)
+
+1. **Server surface audited**:
+   - Confirmed `updateGroupMemberDisplayName` handler is wired with shared Zod validation (`firebase/functions/src/groups/GroupHandlers.ts`)
+   - Verified transaction-based rename logic and conflict handling tests (`firebase/functions/src/services/firestore/FirestoreWriter.ts`, `firebase/functions/src/__tests__/unit/services/FirestoreWriter.test.ts`)
+2. **Join flow conflict flag**:
+   - Service returns `displayNameConflict` and unit coverage exists, but runtime schema in `@splitifyd/shared` still omits the flag (needs update)
+3. **Gaps documented**:
+   - No Firebase rule changes yet; web client still uses global names and lacks rename UI
 
 ### Recent Changes (2025-01-11)
 
@@ -27,15 +37,23 @@
 
 ### Next Steps
 
-- **Priority 1**: Write unit tests for API endpoint validation (`groups/handlers.test.ts`)
-- **Priority 2**: Update Firebase Security Rules to prevent unauthorized display name updates
-- **Priority 3**: Implement client-side UI (modal, settings component, API integration)
-- **Priority 4**: Write E2E tests for complete user flows
+1. **Shared contracts & client plumbing**
+   - Add `displayNameConflict` to `JoinGroupResponseSchema` in `packages/shared/src/schemas/apiSchemas.ts`
+   - Expose `updateGroupMemberDisplayName` via the webapp API client and shared typings
+2. **Security hardening**
+   - Extend Firestore rules so members can only update their own `groupDisplayName`
+   - Add regression coverage for rule expectations if required
+3. **UI implementation**
+   - Conflict modal on join + settings surface for editing names
+   - Introduce `getGroupDisplayName` helper and swap all UI usages to it
+4. **End-to-end validation**
+   - Playwright coverage for join conflict, rename flow, and real-time propagation
+   - Confirm accessibility (focus, keyboard paths, `role="alert"` messaging)
 
 ### Known Issues
 
 - Firebase Security Rules not yet implemented
-- API handler unit tests not yet written
+- Shared `JoinGroupResponseSchema` still missing the `displayNameConflict` flag, so clients cannot consume it
 - Client-side UI components not yet implemented
 
 ## Plan Completeness Review ✅
@@ -1023,7 +1041,7 @@ multiUserTest(
    - [x] Add API route in `index.ts`
    - [ ] Update Firebase Security Rules
    - [x] Write unit tests for FirestoreWriter
-   - [ ] Write unit tests for API handler
+   - [x] Write unit tests for API handler (`firebase/functions/src/__tests__/unit/groups/GroupHandlers.test.ts`)
 
 2. **Join Flow Conflict Detection** (Day 1-2) ✅ COMPLETED
    - [x] Update `joinGroup` handler to detect conflicts
@@ -1112,7 +1130,7 @@ multiUserTest(
 
 ### Testing
 - [x] Unit tests for FirestoreWriter transaction logic (FirestoreWriter.test.ts)
-- [ ] Unit tests for API endpoint validation - NOT YET WRITTEN
+- [x] Unit tests for API endpoint validation (`firebase/functions/src/__tests__/unit/groups/GroupHandlers.test.ts`)
 - [x] Unit tests for conflict detection (GroupShareService.test.ts - 3 test cases added)
 - [ ] Integration tests for race conditions - NOT YET WRITTEN
 - [ ] E2E tests for join flow, settings flow, and multi-user real-time propagation - NOT YET WRITTEN
