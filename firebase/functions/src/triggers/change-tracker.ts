@@ -1,17 +1,10 @@
-import { DocumentSnapshot } from 'firebase-admin/firestore';
-import { ParamsOf } from 'firebase-functions';
-import { Change, FirestoreEvent, onDocumentWritten } from 'firebase-functions/v2/firestore';
+import { onDocumentWritten } from 'firebase-functions/v2/firestore';
+import { getAppBuilder } from '../ApplicationBuilderSingleton';
 import { FirestoreCollections } from '../constants';
-import { getAuth, getFirestore } from '../firebase';
-import { logger } from '../logger';
 import { measureTrigger } from '../monitoring/measure';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
-import { ChangeType } from '../utils/change-detection';
+import { ChangeTrackerHandlers } from './ChangeTrackerHandlers';
 
-const firestore = getFirestore();
-const appBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
-const firestoreReader = appBuilder.buildFirestoreReader();
-const notificationService = appBuilder.buildNotificationService();
+const changeTrackerHandlers = ChangeTrackerHandlers.createChangeTrackerHandlers(getAppBuilder());
 
 export const trackGroupChanges = onDocumentWritten(
     {
@@ -19,22 +12,8 @@ export const trackGroupChanges = onDocumentWritten(
         region: 'us-central1',
     },
     async (event) => {
-        const groupId = event.params.groupId;
-        const { changeType } = extractDataChange(event);
-
-        if (changeType === 'deleted') {
-            logger.info('group-deleted', { groupId });
-            return;
-        }
-
         return measureTrigger('trackGroupChanges', async () => {
-            const affectedUsers = await firestoreReader.getAllGroupMemberIds(groupId);
-
-            if (affectedUsers.length > 0) {
-                await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'group');
-            }
-
-            logger.info('group-changed', { id: groupId, groupId, usersNotified: affectedUsers.length });
+            await changeTrackerHandlers.handleGroupChange(event);
         });
     },
 );
@@ -45,21 +24,8 @@ export const trackExpenseChanges = onDocumentWritten(
         region: 'us-central1',
     },
     async (event) => {
-        const expenseId = event.params.expenseId;
-        const { after } = extractDataChange(event);
-
         return measureTrigger('trackExpenseChanges', async () => {
-            const afterData = after?.data();
-
-            const groupId = afterData?.groupId;
-            if (!groupId) {
-                throw Error(`groupId missing from expense ${expenseId}`);
-            }
-
-            const affectedUsers = await firestoreReader.getAllGroupMemberIds(groupId);
-            await notificationService.batchUpdateNotificationsMultipleTypes(affectedUsers, groupId, ['transaction', 'balance']);
-
-            logger.info('expense-changed', { id: expenseId, groupId, usersNotified: affectedUsers.length });
+            await changeTrackerHandlers.handleExpenseChange(event);
         });
     },
 );
@@ -70,39 +36,32 @@ export const trackSettlementChanges = onDocumentWritten(
         region: 'us-central1',
     },
     async (event) => {
-        const settlementId = event.params.settlementId;
-        const { after } = extractDataChange(event);
-
         return measureTrigger('trackSettlementChanges', async () => {
-            const afterData = after?.data();
-
-            const groupId = afterData?.groupId;
-            if (!groupId) {
-                throw Error(`groupId missing from ${JSON.stringify(event)}`);
-            }
-
-            const affectedUsers = await firestoreReader.getAllGroupMemberIds(groupId);
-            await notificationService.batchUpdateNotificationsMultipleTypes(affectedUsers, groupId, ['transaction', 'balance']);
-
-            logger.info('settlement-changed', { id: settlementId, groupId, usersNotified: affectedUsers.length });
-
-            return { groupId, affectedUserCount: affectedUsers.length };
+            await changeTrackerHandlers.handleSettlementChange(event);
         });
     },
 );
 
-function extractDataChange(event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<string>>) {
-    const before = event.data?.before;
-    const after = event.data?.after;
+export const trackGroupCommentChanges = onDocumentWritten(
+    {
+        document: `${FirestoreCollections.GROUPS}/{groupId}/comments/{commentId}`,
+        region: 'us-central1',
+    },
+    async (event) => {
+        return measureTrigger('trackGroupCommentChanges', async () => {
+            await changeTrackerHandlers.handleGroupCommentChange(event);
+        });
+    },
+);
 
-    let changeType: ChangeType;
-    if (!before?.exists && after?.exists) {
-        changeType = 'created';
-    } else if (before?.exists && !after?.exists) {
-        changeType = 'deleted';
-    } else {
-        changeType = 'updated';
-    }
-
-    return { before, after, changeType };
-}
+export const trackExpenseCommentChanges = onDocumentWritten(
+    {
+        document: `${FirestoreCollections.EXPENSES}/{expenseId}/comments/{commentId}`,
+        region: 'us-central1',
+    },
+    async (event) => {
+        return measureTrigger('trackExpenseCommentChanges', async () => {
+            await changeTrackerHandlers.handleExpenseCommentChange(event);
+        });
+    },
+);

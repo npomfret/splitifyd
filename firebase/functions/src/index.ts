@@ -36,8 +36,13 @@ import { APP_VERSION } from './utils/version';
 import { getAppBuilder } from './ApplicationBuilderSingleton';
 import { FirestoreCollections } from './constants';
 import { logMetrics } from './scheduled/metrics-logger';
-import { trackExpenseChanges, trackGroupChanges, trackSettlementChanges } from './triggers/change-tracker';
-import { trackExpenseCommentChanges, trackGroupCommentChanges } from './triggers/comment-tracker';
+import {
+    trackExpenseChanges,
+    trackExpenseCommentChanges,
+    trackGroupChanges,
+    trackGroupCommentChanges,
+    trackSettlementChanges,
+} from './triggers/change-tracker';
 
 // Removed emulator connection test at module level to prevent connection creation
 // The emulator connection will be tested lazily when first needed
