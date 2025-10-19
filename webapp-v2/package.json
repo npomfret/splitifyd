@@ -39,7 +39,6 @@
     "@splitifyd/test-support": "*",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/preact": "^3.2.4",
-    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20.11.5",
     "@types/uuid": "^10.0.0",
     "@vitest/coverage-v8": "^3.2.4",
