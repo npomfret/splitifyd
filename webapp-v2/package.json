@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "npm run build:check && vite build",
     "build:check": "tsc --project tsconfig.build.json --noEmit",
-    "build:prod": "tsc && vite build",
+    "build:prod": "npm run build:check && vite build",
     "watch": "vite build --watch",
     "preview": "vite preview",
     "typecheck": "npm run build:check",
