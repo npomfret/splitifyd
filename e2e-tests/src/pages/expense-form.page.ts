@@ -361,13 +361,18 @@ export class ExpenseFormPage extends BaseExpenseFormPage {
         const searchInput = this.page.getByPlaceholder('Search by symbol, code, or country...');
         await expect(searchInput).toBeVisible({ timeout: 2000 });
 
-        // Type in search to filter currencies (optional but helpful for finding specific currency)
+        // Type in search to filter currencies - this will set focus to the search input
         await this.fillPreactInput(searchInput, currencyCode);
 
-        // Find and click the currency option using role=option (as base class does)
-        const currencyOption = this.page.getByRole('option', { name: new RegExp(currencyCode, 'i') });
-        await expect(currencyOption).toBeVisible({ timeout: 3000 });
-        await this.clickButton(currencyOption, { buttonName: `Select ${currencyCode}` });
+        // CRITICAL: Wait for debounced search to complete (200ms debounce)
+        await this.page.waitForTimeout(350);
+
+        // Use ArrowDown to highlight the first filtered option (typing resets highlightedIndex to -1)
+        // This is required because Enter only works when highlightedIndex >= 0
+        await searchInput.press('ArrowDown');
+
+        // Press Enter to select the highlighted option
+        await searchInput.press('Enter');
 
         // Verify dropdown closed by checking search input is no longer visible
         await expect(searchInput).not.toBeVisible({ timeout: 2000 });

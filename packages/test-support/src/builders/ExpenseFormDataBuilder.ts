@@ -28,6 +28,7 @@ export class ExpenseFormDataBuilder {
     }
 
     withAmount(amount: Amount | number, currency: string): this {
+        this.expense.currency = currency;
         this.expense.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
