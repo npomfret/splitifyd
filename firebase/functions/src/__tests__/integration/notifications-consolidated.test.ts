@@ -1713,7 +1713,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
-                    .withAmount(100, "USD")
+                    .withAmount(100, 'USD')
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid, user2.uid])
                     .withCurrency('USD')

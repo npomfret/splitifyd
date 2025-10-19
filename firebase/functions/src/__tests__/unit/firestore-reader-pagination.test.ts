@@ -6,7 +6,7 @@
  * firestore-read-encapsulation-report.md
  */
 
-import { StubFirestoreDatabase, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { GroupMemberDocumentBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { FirestoreReader } from '../../services/firestore';
 

@@ -1,4 +1,4 @@
-import {GroupMemberDocumentBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
+import { GroupMemberDocumentBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../../constants';
 import { GroupCommentStrategy } from '../../../../services/comments/GroupCommentStrategy';

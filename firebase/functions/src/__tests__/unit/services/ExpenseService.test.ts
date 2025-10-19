@@ -199,7 +199,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
             const mockExpense = new ExpenseDTOBuilder()
                 .withId(expenseId)
-                .withAmount(100.33, "USD")
+                .withAmount(100.33, 'USD')
                 .withParticipants([userId])
                 .withSplits([{ uid: userId, amount: '100.33' }])
                 .withCreatedAt(FirestoreTimestamp.now())
@@ -223,7 +223,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const mockExpenseRequest = new CreateExpenseRequestBuilder()
                 .withGroupId('test-group')
                 .withDescription('Negative amount test')
-                .withAmount(-50, "USD") // Invalid negative amount                .withCurrency('USD')
+                .withAmount(-50, 'USD') // Invalid negative amount                .withCurrency('USD')
                 .withCategory('Food')
                 .withPaidBy('user1')
                 .withParticipants(['user1'])

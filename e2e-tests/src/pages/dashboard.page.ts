@@ -205,7 +205,6 @@ export class DashboardPage extends BaseDashboardPage {
         await this.waitForDomContentLoaded();
     }
 
-
     /**
      * E2E-specific: Click on a group card and navigate to group detail page
      *

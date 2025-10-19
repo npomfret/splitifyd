@@ -507,7 +507,7 @@ describe('Departed Member Transaction Locking', () => {
         test('should allow editing settlement when both parties are current members', async () => {
             // Create group
             const groupMembers = users.slice(0, 3);
-            const testGroup= await apiDriver.createGroupWithMembers(generateShortId(), groupMembers, groupMembers[0].token);
+            const testGroup = await apiDriver.createGroupWithMembers(generateShortId(), groupMembers, groupMembers[0].token);
 
             // Create expense
             await apiDriver.createExpense(

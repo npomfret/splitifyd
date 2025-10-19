@@ -75,7 +75,7 @@ describe('Input Validation Unit Tests', () => {
                         { uid: 'user1', amount: '25' },
                         { uid: 'user2', amount: '25' },
                     ])
-                    .withAmount(-50, "USD")
+                    .withAmount(-50, 'USD')
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -90,7 +90,7 @@ describe('Input Validation Unit Tests', () => {
                         { uid: 'user1', amount: '0.01' },
                         { uid: 'user2', amount: '0.01' },
                     ])
-                    .withAmount(-0.01, "USD")
+                    .withAmount(-0.01, 'USD')
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -103,7 +103,7 @@ describe('Input Validation Unit Tests', () => {
                     .withParticipants(['user1'])
                     .withPaidBy('user1')
                     .withSplits([{ uid: 'user1', amount: '1' }])
-                    .withAmount(Number.NEGATIVE_INFINITY, "USD")
+                    .withAmount(Number.NEGATIVE_INFINITY, 'USD')
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -116,7 +116,7 @@ describe('Input Validation Unit Tests', () => {
                     .withParticipants(['user1'])
                     .withPaidBy('user1')
                     .withSplits([{ uid: 'user1', amount: '1' }])
-                    .withAmount(NaN, "USD")
+                    .withAmount(NaN, 'USD')
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);

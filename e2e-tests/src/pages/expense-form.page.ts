@@ -671,5 +671,4 @@ export class ExpenseFormPage extends BaseExpenseFormPage {
         })
             .toPass({ timeout: 5000 });
     }
-
 }
