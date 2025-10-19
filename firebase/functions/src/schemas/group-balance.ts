@@ -29,7 +29,7 @@ export const GroupBalanceDocumentSchema = GroupBalanceBaseSchema.extend({
     lastUpdatedAt: FirestoreTimestampSchema,
 });
 
-export const GroupBalanceDTOSchema = GroupBalanceBaseSchema.extend({
+const GroupBalanceDTOSchema = GroupBalanceBaseSchema.extend({
     lastUpdatedAt: z.string().datetime(),
 });
 

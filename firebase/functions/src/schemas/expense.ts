@@ -8,7 +8,7 @@ const FirestoreExpenseSplitSchema = z.object({
     percentage: z.number().min(0).max(100).optional(),
 });
 
-export const BaseExpenseSchema = z
+const BaseExpenseSchema = z
     .object({
         groupId: GroupIdSchema,
         createdBy: UserIdSchema,

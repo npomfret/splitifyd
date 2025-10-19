@@ -2,7 +2,7 @@ import { PositiveAmountStringSchema } from '@splitifyd/shared';
 import { z } from 'zod';
 import { AuditFieldsSchema, createDocumentSchemas, CurrencyCodeSchema, FirestoreTimestampSchema, GroupIdSchema, SoftDeletionFieldsSchema, UserIdSchema } from './common';
 
-export const BaseSettlementSchema = z
+const BaseSettlementSchema = z
     .object({
         groupId: GroupIdSchema,
         payerId: UserIdSchema,

@@ -60,7 +60,7 @@ export type FirestoreAuditMetadata = z.infer<typeof FirestoreAuditMetadataSchema
 /**
  * Common audit fields that appear in most documents
  */
-export const DocumentIdSchema = z.object({
+const DocumentIdSchema = z.object({
     id: z.string().min(1),
 });
 
