@@ -586,7 +586,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     // User Write Operations
     // ========================================================================
 
-    async createUser(userId: string, userData: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified'>): Promise<WriteResult> {
+    async createUser(userId: string, userData: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified' | 'photoURL'>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.createUser', async () => {
             try {
                 // Remove undefined values (Firestore doesn't accept them)
@@ -631,7 +631,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    async updateUser(userId: string, updates: Partial<Omit<RegisteredUser, 'id'>>): Promise<WriteResult> {
+    async updateUser(userId: string, updates: Partial<Omit<RegisteredUser, 'id' | 'photoURL'>>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.updateUser', async () => {
             try {
                 // LENIENT: Convert ISO strings to Timestamps in the updates

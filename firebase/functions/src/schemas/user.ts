@@ -38,7 +38,6 @@ const BaseUserSchema = z
         termsAcceptedAt: FirestoreTimestampSchema.optional(),
         cookiePolicyAcceptedAt: FirestoreTimestampSchema.optional(),
         passwordChangedAt: FirestoreTimestampSchema.optional(),
-        photoURL: z.string().nullable().optional(), // Photo URL can be null or undefined
     })
     .merge(OptionalAuditFieldsSchema);
 

@@ -17,10 +17,9 @@ describe('UserHandlers - Unit Tests', () => {
         it('should update display name successfully', async () => {
             const userId = 'test-user-123';
 
-            const { uid, emailVerified, ...firestoreUser } = new RegisteredUserBuilder()
+            const { uid, emailVerified, photoURL, ...firestoreUser } = new RegisteredUserBuilder()
                 .withUid(userId)
                 .withDisplayName('Original Name')
-                .withPhotoURL('https://example.com/photo.jpg')
                 .withPreferredLanguage('en')
                 .build();
 
@@ -37,30 +36,10 @@ describe('UserHandlers - Unit Tests', () => {
             });
         });
 
-        it('should update photoURL successfully', async () => {
-            const userId = 'test-user-123';
-
-            const { uid, emailVerified, ...firestoreUser } = new RegisteredUserBuilder()
-                .withUid(userId)
-                .withDisplayName('Test User')
-                .withPhotoURL('https://example.com/old-photo.jpg')
-                .build();
-
-            appDriver.seedUser(userId, firestoreUser);
-
-            const updateRequest = new UserUpdateBuilder()
-                .withPhotoURL('https://example.com/new-photo.jpg')
-                .build();
-
-            const result = await appDriver.updateUserProfile(userId, updateRequest);
-
-            expect(result.displayName).toBe('Test User');
-        });
-
         it('should update preferredLanguage successfully', async () => {
             const userId = 'test-user-123';
 
-            const { uid, emailVerified, ...firestoreUser } = new RegisteredUserBuilder()
+            const { uid, emailVerified, photoURL, ...firestoreUser } = new RegisteredUserBuilder()
                 .withUid(userId)
                 .withDisplayName('Test User')
                 .withPreferredLanguage('en')
@@ -78,10 +57,9 @@ describe('UserHandlers - Unit Tests', () => {
         it('should update multiple fields at once', async () => {
             const userId = 'test-user-123';
 
-            const { uid, emailVerified, ...firestoreUser } = new RegisteredUserBuilder()
+            const { uid, emailVerified, photoURL, ...firestoreUser } = new RegisteredUserBuilder()
                 .withUid(userId)
                 .withDisplayName('Original Name')
-                .withPhotoURL('https://example.com/old-photo.jpg')
                 .withPreferredLanguage('en')
                 .build();
 
@@ -89,7 +67,6 @@ describe('UserHandlers - Unit Tests', () => {
 
             const updateRequest = new UserUpdateBuilder()
                 .withDisplayName('New Name')
-                .withPhotoURL('https://example.com/new-photo.jpg')
                 .withPreferredLanguage('en')
                 .build();
 
@@ -100,41 +77,9 @@ describe('UserHandlers - Unit Tests', () => {
             });
         });
 
-        it('should set photoURL to null (clear photo)', async () => {
-            const userId = 'test-user-123';
-
-            const { uid, emailVerified, ...firestoreUser } = new RegisteredUserBuilder()
-                .withUid(userId)
-                .withDisplayName('Test User')
-                .withPhotoURL('https://example.com/photo.jpg')
-                .build();
-
-            appDriver.seedUser(userId, firestoreUser);
-
-            const updateRequest = new UserUpdateBuilder()
-                .withPhotoURL(null)
-                .build();
-
-            await appDriver.updateUserProfile(userId, updateRequest);
-        });
-
         it('should reject update with no fields provided', async () => {
             const userId = 'test-user-123';
             const updateRequest = {};
-
-            await expect(appDriver.updateUserProfile(userId, updateRequest)).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
-                }),
-            );
-        });
-
-        it('should reject update with invalid photoURL format', async () => {
-            const userId = 'test-user-123';
-            const updateRequest = new UserUpdateBuilder()
-                .withPhotoURL('not-a-valid-url')
-                .build();
 
             await expect(appDriver.updateUserProfile(userId, updateRequest)).rejects.toThrow(
                 expect.objectContaining({
@@ -192,7 +137,7 @@ describe('UserHandlers - Unit Tests', () => {
         it('should change password successfully with valid current password', async () => {
             const userId = 'test-user-123';
 
-            const { uid, emailVerified, ...firestoreUser } = new RegisteredUserBuilder()
+            const { uid, emailVerified, photoURL, ...firestoreUser } = new RegisteredUserBuilder()
                 .withUid(userId)
                 .withDisplayName('Test User')
                 .build();

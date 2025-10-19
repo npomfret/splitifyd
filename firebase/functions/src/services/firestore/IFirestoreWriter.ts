@@ -42,7 +42,7 @@ export interface IFirestoreWriter {
      * @param userData - The user data to write (DTO with ISO strings, excluding uid/emailVerified which are not stored in Firestore)
      * @returns Write result with document ID
      */
-    createUser(userId: string, userData: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified'>): Promise<WriteResult>;
+    createUser(userId: string, userData: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified' | 'photoURL'>): Promise<WriteResult>;
 
     /**
      * Update an existing user document
@@ -50,7 +50,7 @@ export interface IFirestoreWriter {
      * @param updates - Partial user data to update (DTO with ISO strings)
      * @returns Write result
      */
-    updateUser(userId: string, updates: Partial<Omit<RegisteredUser, 'id'>>): Promise<WriteResult>;
+    updateUser(userId: string, updates: Partial<Omit<RegisteredUser, 'id' | 'photoURL'>>): Promise<WriteResult>;
 
     // ========================================================================
     // Group Write Operations

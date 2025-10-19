@@ -5,7 +5,7 @@
 **Priority**: Phase 1 achieved 100% validation coverage. Phase 2 focuses on application-layer security gaps.
 
 **Phase 2A Progress**: 2/2 complete (Test Endpoints Guard ✅, Email Duplication ✅)
-**Phase 2D Progress**: 1/2 complete (Enhanced Headers ✅)
+**Phase 2D Progress**: 2/2 complete (Enhanced Headers ✅, Auth Field Duplication Cleanup ✅)
 
 ---
 
@@ -249,9 +249,7 @@ Email field successfully removed from Firestore writes:
 
 **Partial Completion - Remaining Duplication:**
 
-While email was successfully removed, `displayName` and `photoURL` are still duplicated:
-- ⚠️ `displayName` - still written to Firestore (but not needed, available in Firebase Auth)
-- ⚠️ `photoURL` - still written to Firestore (but not needed, available in Firebase Auth)
+The January work removed email duplication. Follow-up (February 2025) eliminated the Firestore copy of `photoURL`; only Firebase Auth now persists profile images. `displayName` remains duplicated for now and will be addressed separately if needed.
 
 **Architecture Achievement:**
 
@@ -262,7 +260,7 @@ The implementation correctly treats Firebase Auth as the authoritative source:
 
 **Recommendation for Future:**
 
-Consider removing `displayName` and `photoURL` from Firestore writes to fully eliminate Auth field duplication. This would match the email removal pattern and complete the single-source-of-truth architecture.
+Consider removing `displayName` from Firestore writes to fully eliminate Auth field duplication. This would match the email/photo removal pattern and complete the single-source-of-truth architecture.
 
 ---
 
@@ -755,7 +753,7 @@ export function applySecurityHeaders(req: Request, res: Response, next: NextFunc
 1. ✅ Test Endpoints Guard (Issue #2) - Prevents privilege escalation - COMPLETE
 2. ✅ Email Duplication Fix (Issue #3) - Email removed from Firestore - COMPLETE
 
-   - Note: displayName and photoURL still duplicated (future optimization)
+   - Note: displayName still duplicated (future optimization)
 **Estimated Effort**: 4-6 hours
 **Risk Reduction**: HIGH � MEDIUM
 

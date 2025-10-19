@@ -198,16 +198,15 @@ export class UserService {
             if (validatedData.displayName !== undefined) {
                 firestoreUpdate.displayName = validatedData.displayName;
             }
-            if (validatedData.photoURL !== undefined) {
-                firestoreUpdate.photoURL = validatedData.photoURL;
-            }
             if (validatedData.preferredLanguage !== undefined) {
                 firestoreUpdate.preferredLanguage = validatedData.preferredLanguage;
             }
 
             // Update Firestore user document
             // FirestoreWriter handles: ISO→Timestamp conversion, updatedAt injection, and validation
-            await this.firestoreWriter.updateUser(userId, firestoreUpdate);
+            if (Object.keys(firestoreUpdate).length > 0) {
+                await this.firestoreWriter.updateUser(userId, firestoreUpdate);
+            }
 
             // Return the updated profile
             const registeredUser = await this.getUser(userId);
@@ -389,9 +388,8 @@ export class UserService {
             // Create user document in Firestore (only fields that belong in the document)
             // Note: uid is the document ID, not a field. emailVerified is managed by Firebase Auth.
             const now = new Date().toISOString();
-            const userDoc: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified'> = {
+            const userDoc: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified' | 'photoURL'> = {
                 displayName: userRegistration.displayName,
-                photoURL: userRecord.photoURL,
                 role: SystemUserRoles.SYSTEM_USER, // Default role for new users
                 createdAt: now,
                 updatedAt: now,

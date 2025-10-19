@@ -4,6 +4,10 @@ import { generateShortId, randomBoolean, randomChoice, randomString, randomUrl }
 /**
  * Builder for creating RegisteredUser objects for testing
  * Used for creating mock user data in balance calculation and other tests
+ *
+ * Note: photoURL is managed by Firebase Auth and is NOT stored in Firestore.
+ * It is included in the RegisteredUser type for completeness when reading from Auth,
+ * but should be excluded when seeding Firestore test data.
  */
 export class RegisteredUserBuilder {
     private user: RegisteredUser = {
@@ -32,6 +36,11 @@ export class RegisteredUserBuilder {
         return this;
     }
 
+    /**
+     * Sets photoURL for the user.
+     * NOTE: When seeding Firestore data, destructure to exclude photoURL:
+     * const { uid, emailVerified, photoURL, ...firestoreUser } = builder.build();
+     */
     withPhotoURL(photoURL: string | null): RegisteredUserBuilder {
         this.user.photoURL = photoURL;
         return this;
