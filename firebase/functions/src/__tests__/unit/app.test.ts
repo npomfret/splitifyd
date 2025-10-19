@@ -2345,6 +2345,356 @@ describe('app tests', () => {
         });
     });
 
-    // Policy tests - methods added to AppDriver and ApiDriver for future testing
-    // TODO: Add comprehensive tests once stub database properly supports policy operations
+    describe('policy acceptance and status', () => {
+        describe('acceptMultiplePolicies - happy path', () => {
+            it('should accept a single policy', async () => {
+                const policy1 = await appDriver.createPolicy(user1, {
+                    policyName: 'terms',
+                    text: 'Terms of Service v1',
+                });
+
+                const result = await appDriver.acceptMultiplePolicies(user1, [
+                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                ]);
+
+                expect(result.success).toBe(true);
+                expect(result.acceptedPolicies).toHaveLength(1);
+                expect(result.acceptedPolicies[0].policyId).toBe(policy1.id);
+                expect(result.acceptedPolicies[0].versionHash).toBe(policy1.versionHash);
+                expect(result.acceptedPolicies[0].acceptedAt).toBeDefined();
+            });
+
+            it('should accept multiple policies at once', async () => {
+                const policy1 = await appDriver.createPolicy(user1, {
+                    policyName: 'terms',
+                    text: 'Terms of Service v1',
+                });
+
+                const policy2 = await appDriver.createPolicy(user1, {
+                    policyName: 'privacy',
+                    text: 'Privacy Policy v1',
+                });
+
+                const policy3 = await appDriver.createPolicy(user1, {
+                    policyName: 'cookies',
+                    text: 'Cookie Policy v1',
+                });
+
+                const result = await appDriver.acceptMultiplePolicies(user1, [
+                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                    { policyId: policy2.id, versionHash: policy2.versionHash },
+                    { policyId: policy3.id, versionHash: policy3.versionHash },
+                ]);
+
+                expect(result.success).toBe(true);
+                expect(result.acceptedPolicies).toHaveLength(3);
+                expect(result.acceptedPolicies[0].policyId).toBe(policy1.id);
+                expect(result.acceptedPolicies[1].policyId).toBe(policy2.id);
+                expect(result.acceptedPolicies[2].policyId).toBe(policy3.id);
+            });
+
+            it('should persist policy acceptance in user document', async () => {
+                const policy1 = await appDriver.createPolicy(user1, {
+                    policyName: 'terms',
+                    text: 'Terms of Service v1',
+                });
+
+                await appDriver.acceptMultiplePolicies(user2, [
+                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                ]);
+
+                const status = await appDriver.getUserPolicyStatus(user2);
+
+                expect(status.policies).toHaveLength(1);
+                expect(status.policies[0].userAcceptedHash).toBe(policy1.versionHash);
+                expect(status.policies[0].needsAcceptance).toBe(false);
+            });
+        });
+
+        describe('acceptMultiplePolicies - validation and errors', () => {
+            it('should reject empty acceptances array', async () => {
+                await expect(appDriver.acceptMultiplePolicies(user1, []))
+                    .rejects
+                    .toMatchObject({ code: 'INVALID_ACCEPTANCES' });
+            });
+
+            it('should reject when policyId is missing', async () => {
+                await expect(
+                    appDriver.acceptMultiplePolicies(user1, [
+                        { policyId: '', versionHash: 'some-hash' },
+                    ]),
+                )
+                    .rejects
+                    .toMatchObject({ code: 'INVALID_ACCEPTANCES' });
+            });
+
+            it('should reject when versionHash is missing', async () => {
+                await expect(
+                    appDriver.acceptMultiplePolicies(user1, [
+                        { policyId: 'some-policy', versionHash: '' },
+                    ]),
+                )
+                    .rejects
+                    .toMatchObject({ code: 'INVALID_ACCEPTANCES' });
+            });
+
+            it('should reject when policy does not exist', async () => {
+                await expect(
+                    appDriver.acceptMultiplePolicies(user1, [
+                        { policyId: 'non-existent-policy', versionHash: 'some-hash' },
+                    ]),
+                )
+                    .rejects
+                    .toMatchObject({ code: 'POLICY_NOT_FOUND' });
+            });
+
+            it('should reject when version hash is invalid for existing policy', async () => {
+                const policy1 = await appDriver.createPolicy(user1, {
+                    policyName: 'terms',
+                    text: 'Terms of Service v1',
+                });
+
+                await expect(
+                    appDriver.acceptMultiplePolicies(user1, [
+                        { policyId: policy1.id, versionHash: 'invalid-version-hash' },
+                    ]),
+                )
+                    .rejects
+                    .toMatchObject({ code: 'INVALID_VERSION_HASH' });
+            });
+
+            it('should reject entire batch if any policy is invalid', async () => {
+                const policy1 = await appDriver.createPolicy(user1, {
+                    policyName: 'terms',
+                    text: 'Terms of Service v1',
+                });
+
+                await expect(
+                    appDriver.acceptMultiplePolicies(user1, [
+                        { policyId: policy1.id, versionHash: policy1.versionHash },
+                        { policyId: 'non-existent', versionHash: 'some-hash' },
+                    ]),
+                )
+                    .rejects
+                    .toMatchObject({ code: 'POLICY_NOT_FOUND' });
+
+                const status = await appDriver.getUserPolicyStatus(user1);
+                expect(status.policies[0].userAcceptedHash).toBeUndefined();
+            });
+        });
+
+        describe('getUserPolicyStatus - happy path', () => {
+            it('should show all policies as pending when user has not accepted any', async () => {
+                const policy1 = await appDriver.createPolicy(user1, {
+                    policyName: 'terms',
+                    text: 'Terms of Service v1',
+                });
+
+                const policy2 = await appDriver.createPolicy(user1, {
+                    policyName: 'privacy',
+                    text: 'Privacy Policy v1',
+                });
+
+                const status = await appDriver.getUserPolicyStatus(user2);
+
+                expect(status.needsAcceptance).toBe(true);
+                expect(status.totalPending).toBe(2);
+                expect(status.policies).toHaveLength(2);
+
+                const termsPolicy = status.policies.find((p) => p.policyId === policy1.id);
+                expect(termsPolicy).toBeDefined();
+                expect(termsPolicy!.needsAcceptance).toBe(true);
+                expect(termsPolicy!.userAcceptedHash).toBeUndefined();
+
+                const privacyPolicy = status.policies.find((p) => p.policyId === policy2.id);
+                expect(privacyPolicy).toBeDefined();
+                expect(privacyPolicy!.needsAcceptance).toBe(true);
+                expect(privacyPolicy!.userAcceptedHash).toBeUndefined();
+            });
+
+            it('should show no pending policies when user has accepted current versions', async () => {
+                const policy1 = await appDriver.createPolicy(user1, {
+                    policyName: 'terms',
+                    text: 'Terms of Service v1',
+                });
+
+                const policy2 = await appDriver.createPolicy(user1, {
+                    policyName: 'privacy',
+                    text: 'Privacy Policy v1',
+                });
+
+                await appDriver.acceptMultiplePolicies(user2, [
+                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                    { policyId: policy2.id, versionHash: policy2.versionHash },
+                ]);
+
+                const status = await appDriver.getUserPolicyStatus(user2);
+
+                expect(status.needsAcceptance).toBe(false);
+                expect(status.totalPending).toBe(0);
+                expect(status.policies).toHaveLength(2);
+
+                status.policies.forEach((policy) => {
+                    expect(policy.needsAcceptance).toBe(false);
+                    expect(policy.userAcceptedHash).toBe(policy.currentVersionHash);
+                });
+            });
+
+            it('should show pending when user has accepted old versions', async () => {
+                const policy1 = await appDriver.createPolicy(user1, {
+                    policyName: 'terms',
+                    text: 'Terms of Service v1',
+                });
+
+                await appDriver.acceptMultiplePolicies(user2, [
+                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                ]);
+
+                const oldVersionHash = policy1.versionHash;
+
+                const updatedPolicy = await appDriver.updatePolicy(user1, policy1.id, {
+                    text: 'Terms of Service v2 - updated',
+                    publish: true,
+                });
+
+                const status = await appDriver.getUserPolicyStatus(user2);
+
+                expect(status.needsAcceptance).toBe(true);
+                expect(status.totalPending).toBe(1);
+                expect(status.policies).toHaveLength(1);
+
+                const termsPolicy = status.policies.find((p) => p.policyId === policy1.id);
+                expect(termsPolicy).toBeDefined();
+                expect(termsPolicy!.needsAcceptance).toBe(true);
+                expect(termsPolicy!.userAcceptedHash).toBe(oldVersionHash);
+                expect(termsPolicy!.currentVersionHash).toBe(updatedPolicy.versionHash);
+                expect(termsPolicy!.currentVersionHash).not.toBe(oldVersionHash);
+            });
+
+            it('should show mixed acceptance state across multiple policies', async () => {
+                const policy1 = await appDriver.createPolicy(user1, {
+                    policyName: 'terms',
+                    text: 'Terms of Service v1',
+                });
+
+                const policy2 = await appDriver.createPolicy(user1, {
+                    policyName: 'privacy',
+                    text: 'Privacy Policy v1',
+                });
+
+                const policy3 = await appDriver.createPolicy(user1, {
+                    policyName: 'cookies',
+                    text: 'Cookie Policy v1',
+                });
+
+                await appDriver.acceptMultiplePolicies(user2, [
+                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                    { policyId: policy2.id, versionHash: policy2.versionHash },
+                ]);
+
+                await appDriver.updatePolicy(user1, policy1.id, {
+                    text: 'Terms of Service v2',
+                    publish: true,
+                });
+
+                const status = await appDriver.getUserPolicyStatus(user2);
+
+                expect(status.needsAcceptance).toBe(true);
+                expect(status.totalPending).toBe(2);
+
+                const termsPolicy = status.policies.find((p) => p.policyId === policy1.id);
+                expect(termsPolicy!.needsAcceptance).toBe(true);
+
+                const privacyPolicy = status.policies.find((p) => p.policyId === policy2.id);
+                expect(privacyPolicy!.needsAcceptance).toBe(false);
+
+                const cookiePolicy = status.policies.find((p) => p.policyId === policy3.id);
+                expect(cookiePolicy!.needsAcceptance).toBe(true);
+            });
+        });
+
+        describe('getUserPolicyStatus - data integrity', () => {
+            it('should return correct response structure', async () => {
+                const policy1 = await appDriver.createPolicy(user1, {
+                    policyName: 'terms',
+                    text: 'Terms of Service v1',
+                });
+
+                const status = await appDriver.getUserPolicyStatus(user2);
+
+                expect(status).toHaveProperty('needsAcceptance');
+                expect(status).toHaveProperty('policies');
+                expect(status).toHaveProperty('totalPending');
+
+                expect(typeof status.needsAcceptance).toBe('boolean');
+                expect(Array.isArray(status.policies)).toBe(true);
+                expect(typeof status.totalPending).toBe('number');
+            });
+
+            it('should include all required fields in each policy', async () => {
+                const policy1 = await appDriver.createPolicy(user1, {
+                    policyName: 'terms',
+                    text: 'Terms of Service v1',
+                });
+
+                await appDriver.acceptMultiplePolicies(user2, [
+                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                ]);
+
+                const status = await appDriver.getUserPolicyStatus(user2);
+
+                expect(status.policies).toHaveLength(1);
+
+                const policyStatus = status.policies[0];
+                expect(policyStatus).toHaveProperty('policyId');
+                expect(policyStatus).toHaveProperty('currentVersionHash');
+                expect(policyStatus).toHaveProperty('userAcceptedHash');
+                expect(policyStatus).toHaveProperty('needsAcceptance');
+                expect(policyStatus).toHaveProperty('policyName');
+
+                expect(typeof policyStatus.policyId).toBe('string');
+                expect(typeof policyStatus.currentVersionHash).toBe('string');
+                expect(typeof policyStatus.userAcceptedHash).toBe('string');
+                expect(typeof policyStatus.needsAcceptance).toBe('boolean');
+                expect(typeof policyStatus.policyName).toBe('string');
+            });
+
+            it('should correctly count totalPending', async () => {
+                const policy1 = await appDriver.createPolicy(user1, {
+                    policyName: 'terms',
+                    text: 'Terms of Service v1',
+                });
+
+                const policy2 = await appDriver.createPolicy(user1, {
+                    policyName: 'privacy',
+                    text: 'Privacy Policy v1',
+                });
+
+                const policy3 = await appDriver.createPolicy(user1, {
+                    policyName: 'cookies',
+                    text: 'Cookie Policy v1',
+                });
+
+                await appDriver.acceptMultiplePolicies(user2, [
+                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                ]);
+
+                const status = await appDriver.getUserPolicyStatus(user2);
+
+                expect(status.totalPending).toBe(2);
+
+                const pendingPolicies = status.policies.filter((p) => p.needsAcceptance);
+                expect(pendingPolicies).toHaveLength(2);
+            });
+
+            it('should return empty policies array when no policies exist', async () => {
+                const status = await appDriver.getUserPolicyStatus(user1);
+
+                expect(status.needsAcceptance).toBe(false);
+                expect(status.totalPending).toBe(0);
+                expect(status.policies).toHaveLength(0);
+            });
+        });
+    });
+
 });

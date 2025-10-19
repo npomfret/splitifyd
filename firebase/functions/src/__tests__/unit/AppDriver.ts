@@ -1,8 +1,10 @@
 import {
+    AcceptMultiplePoliciesResponse,
     CommentDTO,
     CreateExpenseRequest,
     CreatePolicyResponse,
     CreateSettlementRequest,
+    CurrentPolicyResponse,
     DeletePolicyVersionResponse,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
@@ -21,6 +23,7 @@ import {
     UpdateGroupRequest,
     UpdatePolicyResponse,
     UpdateSettlementRequest,
+    UserPolicyStatusResponse,
 } from '@splitifyd/shared/src';
 import { CreateGroupRequestBuilder, createStubRequest, createStubResponse, StubFirestoreDatabase } from '@splitifyd/test-support';
 import { CommentHandlers } from '../../comments/CommentHandlers';
@@ -29,8 +32,8 @@ import { GroupHandlers } from '../../groups/GroupHandlers';
 import { GroupMemberHandlers } from '../../groups/GroupMemberHandlers';
 import { GroupShareHandlers } from '../../groups/GroupShareHandlers';
 import { PolicyHandlers } from '../../policies/PolicyHandlers';
+import { UserHandlers as PolicyUserHandlers } from '../../policies/UserHandlers';
 import { getCurrentPolicy } from '../../policies/public-handlers';
-import { acceptMultiplePolicies, getUserPolicyStatus } from '../../policies/user-handlers';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreWriter } from '../../services/firestore';
 import { SettlementHandlers } from '../../settlements/SettlementHandlers';
@@ -61,6 +64,7 @@ export class AppDriver {
     private commentHandlers = new CommentHandlers(this.applicationBuilder.buildCommentService());
     private userHandlers = new UserHandlers(this.applicationBuilder.buildUserService());
     private policyHandlers = new PolicyHandlers(this.applicationBuilder.buildPolicyService());
+    private policyUserHandlers = new PolicyUserHandlers(this.applicationBuilder.buildUserPolicyService());
 
     seedUser(userId: string, userData: Record<string, any> = {}) {
         const user = this.db.seedUser(userId, userData);
@@ -368,30 +372,30 @@ export class AppDriver {
         return (res as any).getJson() as DeletePolicyVersionResponse;
     }
 
-    async acceptMultiplePolicies(userId: string, acceptances: Array<{ policyId: string; versionHash: string; }>): Promise<any> {
+    async acceptMultiplePolicies(userId: string, acceptances: Array<{ policyId: string; versionHash: string; }>): Promise<AcceptMultiplePoliciesResponse> {
         const req = createStubRequest(userId, { acceptances });
         const res = createStubResponse();
 
-        await acceptMultiplePolicies(req, res);
+        await this.policyUserHandlers.acceptMultiplePolicies(req, res);
 
-        return (res as any).getJson();
+        return (res as any).getJson() as AcceptMultiplePoliciesResponse;
     }
 
-    async getUserPolicyStatus(userId: string): Promise<any> {
+    async getUserPolicyStatus(userId: string): Promise<UserPolicyStatusResponse> {
         const req = createStubRequest(userId, {});
         const res = createStubResponse();
 
-        await getUserPolicyStatus(req, res);
+        await this.policyUserHandlers.getUserPolicyStatus(req, res);
 
-        return (res as any).getJson();
+        return (res as any).getJson() as UserPolicyStatusResponse;
     }
 
-    async getCurrentPolicy(policyId: string): Promise<any> {
+    async getCurrentPolicy(policyId: string): Promise<CurrentPolicyResponse> {
         const req = createStubRequest('', {}, { id: policyId });
         const res = createStubResponse();
 
         await getCurrentPolicy(req, res);
 
-        return (res as any).getJson();
+        return (res as any).getJson() as CurrentPolicyResponse;
     }
 }

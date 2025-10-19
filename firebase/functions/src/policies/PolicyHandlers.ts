@@ -9,7 +9,9 @@ import { PolicyService } from '../services/PolicyService';
 import { validateCreatePolicy, validatePublishPolicy, validateUpdatePolicy } from './validation';
 
 export class PolicyHandlers {
-    constructor(private readonly policyService: PolicyService) {
+    constructor(
+        private readonly policyService: PolicyService,
+    ) {
     }
 
     static createPolicyHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth())) {
