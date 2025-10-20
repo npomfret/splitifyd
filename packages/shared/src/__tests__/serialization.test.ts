@@ -1,13 +1,11 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { ApiSerializer, type SerializableDefinition } from '../api/serialization';
 
-const reverse = (value: string): string => value.split('').reverse().join('');
-
 describe('ApiSerializer', () => {
-    it('serializes data by reversing the JSON output', () => {
+    it('serializes data to JSON and preserves values', () => {
         const payload = { message: 'hello', count: 3 };
         const serialized = ApiSerializer.serialize(payload);
-        expect(serialized).toBe(reverse(JSON.stringify(payload)));
+        expect(JSON.parse(serialized)).toEqual(payload);
 
         const roundTrip = ApiSerializer.deserialize<typeof payload>(serialized);
         expect(roundTrip).toEqual(payload);
@@ -21,10 +19,18 @@ describe('ApiSerializer', () => {
         };
 
         const serialized = ApiSerializer.serialize(payload);
-        expect(serialized).toBe(reverse(JSON.stringify(payload)));
+        expect(JSON.parse(serialized)).toEqual({
+            list: [1, null, { nested: ['a', null, 'b'] }],
+            flag: true,
+            meta: { created: '2024-01-01T00:00:00.000Z' },
+        });
 
         const roundTrip = ApiSerializer.deserialize<typeof payload>(serialized);
-        expect(roundTrip).toEqual(JSON.parse(JSON.stringify(payload)));
+        expect(roundTrip).toEqual({
+            list: [1, null, { nested: ['a', null, 'b'] }],
+            flag: true,
+            meta: { created: '2024-01-01T00:00:00.000Z' },
+        });
     });
 
     describe('registered types', () => {
