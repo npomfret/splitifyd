@@ -287,10 +287,21 @@ export class AppDriver {
         return (res as any).getJson() as CommentDTO;
     }
 
-    async listGroupComments(userId: string, groupId: GroupId): Promise<ListCommentsResponse> {
+    async listGroupComments(
+        userId: string,
+        groupId: GroupId,
+        options: { cursor?: string; limit?: number; } = {},
+    ): Promise<ListCommentsResponse> {
         const req = createStubRequest(userId, {}, { groupId });
         req.path = `/groups/${groupId}/comments`;
-        req.query = {};
+        const query: Record<string, string> = {};
+        if (options.limit !== undefined) {
+            query.limit = String(options.limit);
+        }
+        if (options.cursor !== undefined) {
+            query.cursor = options.cursor;
+        }
+        req.query = query;
         const res = createStubResponse();
 
         await this.commentHandlers.listGroupComments(req, res);
@@ -308,10 +319,21 @@ export class AppDriver {
         return (res as any).getJson() as CommentDTO;
     }
 
-    async listExpenseComments(userId: string, expenseId: ExpenseId): Promise<ListCommentsResponse> {
+    async listExpenseComments(
+        userId: string,
+        expenseId: ExpenseId,
+        options: { cursor?: string; limit?: number; } = {},
+    ): Promise<ListCommentsResponse> {
         const req = createStubRequest(userId, {}, { expenseId });
         req.path = `/expenses/${expenseId}/comments`;
-        req.query = {};
+        const query: Record<string, string> = {};
+        if (options.limit !== undefined) {
+            query.limit = String(options.limit);
+        }
+        if (options.cursor !== undefined) {
+            query.cursor = options.cursor;
+        }
+        req.query = query;
         const res = createStubResponse();
 
         await this.commentHandlers.listExpenseComments(req, res);

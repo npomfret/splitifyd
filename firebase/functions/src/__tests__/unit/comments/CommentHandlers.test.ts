@@ -1,8 +1,11 @@
+import { CommentDTO } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CommentHandlers } from '../../../comments/CommentHandlers';
 import { HTTP_STATUS } from '../../../constants';
 import { AppDriver } from '../AppDriver';
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 describe('CommentHandlers - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -236,6 +239,83 @@ describe('CommentHandlers - Unit Tests', () => {
                 }),
             );
         });
+
+        it('should return newest comments first with full metadata', async () => {
+            const userId = 'group-comment-user';
+            appDriver.seedUser(userId, {});
+
+            const group = await appDriver.createGroup(userId);
+
+            const first = await appDriver.createGroupComment(userId, group.id, 'First comment');
+            await sleep(2);
+            const second = await appDriver.createGroupComment(userId, group.id, 'Second comment');
+            await sleep(2);
+            const third = await appDriver.createGroupComment(userId, group.id, 'Third comment');
+
+            const result = await appDriver.listGroupComments(userId, group.id);
+
+            expect(result.comments.map((c) => c.id)).toEqual([third.id, second.id, first.id]);
+            expect(result.hasMore).toBe(false);
+            expect(result.comments[0]).toMatchObject({
+                id: third.id,
+                authorId: userId,
+                text: 'Third comment',
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+            });
+        });
+
+        it('should paginate group comments using cursor and limit', async () => {
+            const userId = 'group-comment-pagination-user';
+            appDriver.seedUser(userId, {});
+
+            const group = await appDriver.createGroup(userId);
+
+            const created: CommentDTO[] = [];
+            for (let i = 1; i <= 5; i++) {
+                created.push(await appDriver.createGroupComment(userId, group.id, `Comment ${i}`));
+                await sleep(2);
+            }
+
+            const firstPage = await appDriver.listGroupComments(userId, group.id, { limit: 2 });
+            expect(firstPage.comments).toHaveLength(2);
+            expect(firstPage.comments.map((c) => c.id)).toEqual([created[4].id, created[3].id]);
+            expect(firstPage.hasMore).toBe(true);
+            expect(firstPage.nextCursor).toBeDefined();
+
+            const secondPage = await appDriver.listGroupComments(userId, group.id, {
+                limit: 2,
+                cursor: firstPage.nextCursor!,
+            });
+            expect(secondPage.comments).toHaveLength(2);
+            expect(secondPage.comments.map((c) => c.id)).toEqual([created[2].id, created[1].id]);
+            expect(secondPage.hasMore).toBe(true);
+            expect(secondPage.nextCursor).toBeDefined();
+
+            const thirdPage = await appDriver.listGroupComments(userId, group.id, {
+                limit: 2,
+                cursor: secondPage.nextCursor!,
+            });
+            expect(thirdPage.comments).toHaveLength(1);
+            expect(thirdPage.comments[0].id).toBe(created[0].id);
+            expect(thirdPage.hasMore).toBe(false);
+            expect(thirdPage.nextCursor).toBeUndefined();
+        });
+
+        it('should ignore invalid pagination parameters gracefully', async () => {
+            const userId = 'group-comment-invalid-pagination-user';
+            appDriver.seedUser(userId, {});
+
+            const group = await appDriver.createGroup(userId);
+
+            await appDriver.createGroupComment(userId, group.id, 'Validation comment');
+
+            const limitResult = await appDriver.listGroupComments(userId, group.id, { limit: 0 });
+            expect(limitResult.comments.length).toBeGreaterThanOrEqual(1);
+
+            const cursorResult = await appDriver.listGroupComments(userId, group.id, { cursor: 'invalid-cursor' });
+            expect(cursorResult.comments.length).toBeGreaterThanOrEqual(1);
+        });
     });
 
     describe('listExpenseComments', () => {
@@ -319,6 +399,99 @@ describe('CommentHandlers - Unit Tests', () => {
                     statusCode: HTTP_STATUS.NOT_FOUND,
                 }),
             );
+        });
+
+        it('should return newest expense comments first with expected metadata', async () => {
+            const userId = 'expense-comment-user';
+            appDriver.seedUser(userId, {});
+
+            const group = await appDriver.createGroup(userId);
+
+            const expense = await appDriver.createExpense(
+                userId,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+            );
+
+            const first = await appDriver.createExpenseComment(userId, expense.id, 'Expense comment 1');
+            await sleep(2);
+            const second = await appDriver.createExpenseComment(userId, expense.id, 'Expense comment 2');
+
+            const result = await appDriver.listExpenseComments(userId, expense.id);
+
+            expect(result.comments.map((c) => c.id)).toEqual([second.id, first.id]);
+            expect(result.hasMore).toBe(false);
+            expect(result.comments[0]).toMatchObject({
+                id: second.id,
+                authorId: userId,
+                text: 'Expense comment 2',
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+            });
+        });
+
+        it('should paginate expense comments via cursor and limit', async () => {
+            const userId = 'expense-comment-pagination-user';
+            appDriver.seedUser(userId, {});
+
+            const group = await appDriver.createGroup(userId);
+
+            const expense = await appDriver.createExpense(
+                userId,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+            );
+
+            const created: CommentDTO[] = [];
+            for (let i = 1; i <= 4; i++) {
+                created.push(await appDriver.createExpenseComment(userId, expense.id, `Expense comment ${i}`));
+                await sleep(2);
+            }
+
+            const firstPage = await appDriver.listExpenseComments(userId, expense.id, { limit: 2 });
+            expect(firstPage.comments).toHaveLength(2);
+            expect(firstPage.comments.map((c) => c.id)).toEqual([created[3].id, created[2].id]);
+            expect(firstPage.hasMore).toBe(true);
+            expect(firstPage.nextCursor).toBeDefined();
+
+            const secondPage = await appDriver.listExpenseComments(userId, expense.id, {
+                limit: 2,
+                cursor: firstPage.nextCursor!,
+            });
+            expect(secondPage.comments).toHaveLength(2);
+            expect(secondPage.comments.map((c) => c.id)).toEqual([created[1].id, created[0].id]);
+            expect(secondPage.hasMore).toBe(false);
+            expect(secondPage.nextCursor).toBeUndefined();
+        });
+
+        it('should ignore invalid pagination inputs for expense comments', async () => {
+            const userId = 'expense-comment-invalid-pagination-user';
+            appDriver.seedUser(userId, {});
+
+            const group = await appDriver.createGroup(userId);
+
+            const expense = await appDriver.createExpense(
+                userId,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+            );
+
+            await appDriver.createExpenseComment(userId, expense.id, 'Expense validation comment');
+
+            const limitResult = await appDriver.listExpenseComments(userId, expense.id, { limit: 0 });
+            expect(limitResult.comments.length).toBeGreaterThanOrEqual(1);
+
+            const cursorResult = await appDriver.listExpenseComments(userId, expense.id, { cursor: 'invalid-cursor' });
+            expect(cursorResult.comments.length).toBeGreaterThanOrEqual(1);
         });
     });
 
