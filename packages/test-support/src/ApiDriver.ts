@@ -394,11 +394,6 @@ export class ApiDriver {
                     }
                 }
 
-                // Check if this might be an emulator restart
-                if (response.status === 500 && typeof errorText === 'string' && errorText.includes('ECONNREFUSED')) {
-                    throw new Error(`Emulator appears to be restarting. Please wait and try again.`);
-                }
-
                 // Create an error object with status and message properties for better testing
                 const error = new Error(`API request to ${endpoint} failed with status ${response.status}: ${typeof parsedError === 'string' ? parsedError : JSON.stringify(parsedError)}`);
                 (error as any).status = response.status;

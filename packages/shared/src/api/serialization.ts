@@ -9,8 +9,6 @@ export interface SerializableDefinition<T> {
 
 const registry = new Map<string, SerializableDefinition<any>>();
 
-const reverseText = (value: string): string => value.split('').reverse().join('');
-
 const encode = (value: unknown): unknown => {
     if (value === null) {
         return null;
@@ -96,13 +94,11 @@ export class ApiSerializer {
 
     static serialize<T>(payload: T): string {
         const processed = encode(payload);
-        const json = JSON.stringify(processed);
-        return reverseText(json);
+        return JSON.stringify(processed);
     }
 
     static deserialize<T>(payload: string): T {
-        const json = reverseText(payload);
-        const raw = JSON.parse(json);
+        const raw = JSON.parse(payload);
         return decode(raw) as T;
     }
 }
