@@ -20,7 +20,6 @@ describe('PolicyService - Integration Tests (Essential Firebase Operations Only)
     let firestoreReader: FirestoreReader;
     let firestoreWriter: FirestoreWriter;
     let firestore: FirebaseFirestore.Firestore;
-    const notificationDriver = new NotificationDriver(getFirestore());
 
     // Helper to generate unique policy names for each test
     const uniquePolicyName = (baseName: string) => `${baseName} ${generateShortId()}`;
@@ -34,12 +33,6 @@ describe('PolicyService - Integration Tests (Essential Firebase Operations Only)
 
         // Create service with real dependencies
         policyService = new PolicyService(firestoreReader, firestoreWriter);
-    });
-
-    afterEach(async () => {
-        // Wait for system to settle before stopping listeners
-        await notificationDriver.waitForQuiet();
-        await notificationDriver.stopAllListeners();
     });
 
     describe('Essential Firebase Operations', () => {
