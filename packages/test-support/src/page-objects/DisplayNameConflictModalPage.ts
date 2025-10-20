@@ -66,8 +66,8 @@ export class DisplayNameConflictModalPage extends BasePage {
 
     async waitForOpen(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
         await expect(this.getModalContainer()).toBeVisible({ timeout });
-        await expect(this.getTitle()).toBeVisible();
-        await expect(this.getDisplayNameInput()).toBeVisible();
+        await expect(this.getTitle()).toBeVisible({ timeout });
+        await expect(this.getDisplayNameInput()).toBeVisible({ timeout });
     }
 
     async waitForClose(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {

@@ -1,4 +1,5 @@
 import { CreateGroupFormDataBuilder, ExpenseFormDataBuilder, generateShortId } from '@splitifyd/test-support';
+import { DashboardPage as E2EDashboardPage } from '../../pages/dashboard.page';
 import { expect, simpleTest } from '../../fixtures';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 
@@ -436,7 +437,7 @@ simpleTest.describe('Group Deletion', () => {
         // Delete the group
         const editModal1 = await ownerGroupDetailPage.openEditGroupModal();
         await editModal1.clickDeleteGroup();
-        ownerDashboardPage = await editModal1.handleDeleteConfirmDialog(groupName1);
+        ownerDashboardPage = await editModal1.handleDeleteConfirmDialog(groupName1, (page) => new E2EDashboardPage(page));
 
         // CRITICAL TEST: Both dashboards should update in real-time WITHOUT reload
         await ownerDashboardPage.waitForGroupToDisappear(groupName1);
@@ -458,7 +459,7 @@ simpleTest.describe('Group Deletion', () => {
         // Owner deletes the group while member is still viewing it
         const editModal2 = await ownerGroupDetailPage2.openEditGroupModal();
         await editModal2.clickDeleteGroup();
-        ownerDashboardPage = await editModal2.handleDeleteConfirmDialog(groupName2);
+        ownerDashboardPage = await editModal2.handleDeleteConfirmDialog(groupName2, (page) => new E2EDashboardPage(page));
 
         // CRITICAL TEST: Member should be redirected away when group is deleted
         await member2GroupDetailPage.waitForRedirectAwayFromGroup(groupId2);

@@ -180,9 +180,9 @@ export class CreateGroupModalPage extends BasePage {
      */
     async waitForModalToOpen(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
         await expect(this.getModalContainer()).toBeVisible({ timeout });
-        await expect(this.getModalTitle()).toBeVisible();
-        await expect(this.getGroupNameInput()).toBeVisible();
-        await expect(this.getSubmitButton()).toBeVisible();
+        await expect(this.getModalTitle()).toBeVisible({ timeout });
+        await expect(this.getGroupNameInput()).toBeVisible({ timeout });
+        await expect(this.getSubmitButton()).toBeVisible({ timeout });
     }
 
     /**

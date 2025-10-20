@@ -132,28 +132,11 @@ export class DashboardPage extends BaseDashboardPage {
     }
 
     /**
-     * E2E-specific modal opening that returns e2e CreateGroupModalPage
-     *
-     * OVERRIDE RATIONALE:
-     * Uses base class click method but returns e2e-specific CreateGroupModalPage.
-     * This allows e2e tests to access e2e-specific modal methods if they exist.
-     * Currently just wraps the base implementation, but maintains consistency
-     * with other e2e overrides for future extensibility.
+     * Open the create group modal
+     * Delegates to base class which handles all modal opening and waiting logic
      */
-    async openCreateGroupModal() {
-        // Use base class method to click the button
-        await super.clickCreateGroup();
-
-        // Create e2e-specific modal page instance
-        const createGroupModalPage = new CreateGroupModalPage(this.page);
-
-        // Wait for the modal to appear using the base class container selector
-        // Increased timeout to 3000ms and use expect for better error messages
-        await expect(createGroupModalPage.getModalContainer()).toBeVisible({
-            timeout: 3000,
-        });
-
-        return createGroupModalPage;
+    async openCreateGroupModal(): Promise<CreateGroupModalPage> {
+        return await super.clickCreateGroup();
     }
 
     /**

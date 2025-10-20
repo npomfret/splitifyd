@@ -118,9 +118,9 @@ export class LeaveGroupDialogPage extends BasePage {
      */
     async waitForDialogToOpen(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
         await expect(this.getDialogContainer()).toBeVisible({ timeout });
-        await expect(this.getConfirmationDialog()).toBeVisible();
-        await expect(this.getConfirmButton()).toBeVisible();
-        await expect(this.getCancelButton()).toBeVisible();
+        await expect(this.getConfirmationDialog()).toBeVisible({ timeout });
+        await expect(this.getConfirmButton()).toBeVisible({ timeout });
+        await expect(this.getCancelButton()).toBeVisible({ timeout });
     }
 
     /**

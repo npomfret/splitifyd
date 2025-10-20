@@ -2,6 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
 import { translationEn } from '../translations/translation-en';
+import { DashboardPage } from './DashboardPage';
 
 const translation = translationEn;
 
@@ -155,8 +156,8 @@ export class EditGroupModalPage extends BasePage {
      */
     async waitForModalToOpen(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
         await expect(this.getModalContainer()).toBeVisible({ timeout });
-        await expect(this.getGroupNameInput()).toBeVisible();
-        await expect(this.getSaveButton()).toBeVisible();
+        await expect(this.getGroupNameInput()).toBeVisible({ timeout });
+        await expect(this.getSaveButton()).toBeVisible({ timeout });
     }
 
     /**
@@ -174,6 +175,38 @@ export class EditGroupModalPage extends BasePage {
     }
 
     /**
+     * Edit group name with additional stability checks to guard against
+     * real-time updates overwriting user input.
+     */
+    async editGroupName(name: string): Promise<void> {
+        const nameInput = this.getGroupNameInput();
+        await this.fillPreactInput(nameInput, name);
+
+        await expect(async () => {
+            const currentValue = await nameInput.inputValue();
+            if (currentValue !== name) {
+                throw new Error('Form value still changing');
+            }
+        }).toPass({ timeout: 500, intervals: [50, 100] });
+
+        const currentValue = await nameInput.inputValue();
+        if (currentValue !== name) {
+            throw new Error(
+                `Form field was reset! Expected name "${name}" but got "${currentValue}". This indicates a real-time update bug where the modal resets user input.`,
+            );
+        }
+    }
+
+    /**
+     * Clear group name with proper Preact handling.
+     */
+    async clearGroupName(): Promise<void> {
+        const nameInput = this.getGroupNameInput();
+        await this.fillPreactInput(nameInput, '');
+        await nameInput.blur();
+    }
+
+    /**
      * Fill group description field
      */
     async fillGroupDescription(description: string): Promise<void> {
@@ -182,6 +215,28 @@ export class EditGroupModalPage extends BasePage {
         await input.fill(description);
         await input.dispatchEvent('input');
         await input.blur();
+    }
+
+    /**
+     * Edit description with stability verification to detect real-time resets.
+     */
+    async editDescription(description: string): Promise<void> {
+        const descriptionInput = this.getGroupDescriptionInput();
+        await this.fillPreactInput(descriptionInput, description);
+
+        await expect(async () => {
+            const currentValue = await descriptionInput.inputValue();
+            if (currentValue !== description) {
+                throw new Error('Form value still changing');
+            }
+        }).toPass({ timeout: 500, intervals: [50, 100] });
+
+        const currentValue = await descriptionInput.inputValue();
+        if (currentValue !== description) {
+            throw new Error(
+                `Form field was reset! Expected description "${description}" but got "${currentValue}". This indicates a real-time update bug where the modal resets user input.`,
+            );
+        }
     }
 
     /**
@@ -200,6 +255,51 @@ export class EditGroupModalPage extends BasePage {
     async submitForm(): Promise<void> {
         const saveButton = this.getSaveButton();
         await this.clickButton(saveButton, { buttonName: 'Save Changes' });
+    }
+
+    /**
+     * Save changes with additional stability checks suited for e2e flows.
+     */
+    async saveChanges(): Promise<void> {
+        const nameInput = this.getGroupNameInput();
+        const descriptionInput = this.getGroupDescriptionInput();
+        const saveButton = this.getSaveButton();
+
+        const finalName = await nameInput.inputValue();
+        const finalDesc = await descriptionInput.inputValue();
+
+        if (!finalName || finalName.trim().length < 2) {
+            throw new Error(
+                `Invalid form state before save: name="${finalName}" (minimum 2 characters required). The form may have been reset by a real-time update.`,
+            );
+        }
+
+        await expect(saveButton).toBeEnabled({ timeout: 2000 });
+
+        await expect(async () => {
+            if (!(await saveButton.isEnabled())) {
+                throw new Error('Save button became disabled - race condition detected');
+            }
+        }).toPass({ timeout: 200, intervals: [25, 50] });
+
+        if (!(await saveButton.isEnabled())) {
+            throw new Error(
+                `Save button became disabled after stability check. This indicates a race condition. Form values at time of failure: name="${finalName}", description="${finalDesc}"`,
+            );
+        }
+
+        await saveButton.click();
+
+        const modal = this.getModalContainer();
+        await expect(modal).not.toBeVisible({ timeout: 2000 });
+        await this.waitForDomContentLoaded();
+
+        const spinner = this.page.locator('.animate-spin');
+        if ((await spinner.count()) > 0) {
+            await expect(spinner.first()).not.toBeVisible({ timeout: 5000 });
+        }
+
+        await expect(modal).not.toBeVisible({ timeout: 1000 });
     }
 
     /**
@@ -387,5 +487,87 @@ export class EditGroupModalPage extends BasePage {
      */
     async clickCancelButton(): Promise<void> {
         await this.clickCancel();
+    }
+
+    /**
+     * Alias for compatibility with older e2e tests.
+     */
+    async cancel(): Promise<void> {
+        await this.clickCancel();
+    }
+
+    /**
+     * Convenience wrapper matching the old e2e API.
+     */
+    async clickDeleteGroup(): Promise<void> {
+        const deleteButton = this.getDeleteButton();
+        await deleteButton.click();
+    }
+
+    /**
+     * Handle hard-delete confirmation dialog and navigate back to dashboard.
+     * Accepts an optional factory to produce a custom dashboard page object.
+     */
+    async handleDeleteConfirmDialog<T = DashboardPage>(
+        groupName: string,
+        createDashboardPage?: (page: Page) => T,
+    ): Promise<T> {
+        await this.waitForDomContentLoaded();
+
+        const confirmTitle = this.page.getByRole('heading', { name: 'Delete Group' });
+        await expect(confirmTitle).toBeVisible({ timeout: 5000 });
+
+        const confirmDialog = confirmTitle.locator('..').locator('..');
+        const confirmationInput = confirmDialog.locator('input[type="text"]');
+        await expect(confirmationInput).toBeVisible();
+
+        await this.fillPreactInput(confirmationInput, groupName);
+        await expect(confirmationInput).toHaveValue(groupName);
+
+        const deleteButton = confirmDialog.getByRole('button', { name: 'Delete' });
+        await expect(deleteButton).toBeVisible();
+        await expect(deleteButton).toBeEnabled({ timeout: 2000 });
+        await deleteButton.click();
+
+        // Verify confirmation dialog closes after deletion
+        await expect(confirmDialog).not.toBeVisible({ timeout: 3000 });
+
+        // Verify navigation to dashboard after group deletion
+        await expect(this.page).toHaveURL(/\/dashboard/, { timeout: 5000 });
+
+        const dashboardPage = (createDashboardPage
+            ? createDashboardPage(this.page)
+            : (new DashboardPage(this.page) as unknown as T));
+
+        const dashboardGuards = dashboardPage as unknown as {
+            waitForDashboard?: () => Promise<void>;
+            verifyDashboardPageLoaded?: () => Promise<void>;
+        };
+
+        if (typeof dashboardGuards.waitForDashboard === 'function') {
+            await dashboardGuards.waitForDashboard();
+        } else if (typeof dashboardGuards.verifyDashboardPageLoaded === 'function') {
+            await dashboardGuards.verifyDashboardPageLoaded();
+        }
+
+        // Verify loading spinner is gone (group deletion complete)
+        const spinner = this.page.locator('.animate-spin');
+        await expect(spinner).not.toBeVisible({ timeout: 5000 });
+
+        return dashboardPage;
+    }
+
+    /**
+     * Alias for waitForModalToOpen to preserve e2e API surface.
+     */
+    async waitForModalVisible(): Promise<void> {
+        await this.waitForModalToOpen();
+    }
+
+    /**
+     * Alias returning the primary modal container (legacy API).
+     */
+    getModal(): Locator {
+        return this.getModalContainer();
     }
 }
