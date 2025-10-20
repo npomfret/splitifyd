@@ -887,6 +887,22 @@
     "groupSettings": "Group Settings",
     "leaveGroup": "Leave Group"
   },
+  "groupDisplayNameSettings": {
+    "title": "Group display name",
+    "description": "Choose how other members see you in this group.",
+    "inputLabel": "Display name in this group",
+    "inputPlaceholder": "Enter a unique display name",
+    "save": "Save display name",
+    "saving": "Saving...",
+    "success": "Group display name updated.",
+    "errors": {
+      "required": "Enter a display name.",
+      "tooLong": "Display name must be 50 characters or fewer.",
+      "notChanged": "Enter a different display name before saving.",
+      "taken": "That name is already in use in this group.",
+      "unknown": "Failed to update display name. Try again."
+    }
+  },
   "membersList": {
     "title": "Members",
     "admin": "Admin",
@@ -964,6 +980,21 @@
       "alreadyMember": "You are already a member of this group",
       "joinFailed": "Failed to join group",
       "loadFailed": "Failed to load group information"
+    },
+    "displayNameConflict": {
+      "title": "Choose a display name for {{groupName}}",
+      "description": "Your name \"{{currentName}}\" is already in use in this group. Pick a unique name so everyone knows who's who.",
+      "currentNameLabel": "Current name",
+      "inputLabel": "New group display name",
+      "inputPlaceholder": "Enter a unique display name",
+      "submit": "Save name & join",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "errors": {
+        "required": "Enter a display name.",
+        "tooLong": "Display name must be 50 characters or fewer.",
+        "sameAsCurrent": "Choose a different name than your current one."
+      }
     }
   },
   "dashboardComponents": {

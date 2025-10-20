@@ -704,10 +704,10 @@ export class FirestoreWriter implements IFirestoreWriter {
                 }
 
                 // Check if display name is already taken by another user
-                // Check both groupDisplayName and fallback displayName for conflicts
                 // Note: member documents use 'uid' field to store the user ID
+                // Every member MUST have groupDisplayName set (no fallbacks)
                 const members = membershipsSnapshot.docs.map((doc) => doc.data());
-                const nameTaken = members.some((m) => m.uid !== userId && (m.groupDisplayName || m.displayName) === newDisplayName);
+                const nameTaken = members.some((m) => m.uid !== userId && m.groupDisplayName === newDisplayName);
 
                 if (nameTaken) {
                     throw new ApiError(HTTP_STATUS.CONFLICT, 'DISPLAY_NAME_TAKEN', `Display name "${newDisplayName}" is already in use in this group`);

@@ -5,10 +5,11 @@
  */
 
 import { navigationService } from '@/services/navigation.service';
+import { useComputed } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { joinGroupStore } from '../app/stores/join-group-store';
-// import { useAuthRequired } from '../app/hooks/useAuthRequired';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { Card } from '@/components/ui';
 import { Stack } from '@/components/ui';
 import { Button } from '@/components/ui';
@@ -17,6 +18,7 @@ import { GroupPreview } from '../components/join-group/GroupPreview';
 import { JoinButton } from '../components/join-group/JoinButton';
 import { MembersPreview } from '../components/join-group/MembersPreview';
 import { BaseLayout } from '../components/layout/BaseLayout';
+import { DisplayNameConflictModal } from '../components/join-group/DisplayNameConflictModal';
 
 interface JoinGroupPageProps {
     linkId?: string;
@@ -25,9 +27,14 @@ interface JoinGroupPageProps {
 
 export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     const { t } = useTranslation();
-    // const authStore = useAuthRequired();
+    const authStore = useAuthRequired();
+    const currentUser = useComputed(() => authStore.user);
     // Note: Since this route is now protected by ProtectedRoute, user is guaranteed to be authenticated
     const { group, memberCount, loadingPreview, joining, joinSuccess, error, isAlreadyMember } = joinGroupStore;
+    const displayNameConflict = joinGroupStore.displayNameConflict;
+    const joinedGroupId = joinGroupStore.joinedGroupId;
+    const displayNameUpdateError = joinGroupStore.displayNameUpdateError;
+    const updatingDisplayName = joinGroupStore.updatingDisplayName;
 
     // Get linkId from URL query parameters if not provided as prop
     const urlParams = new URLSearchParams(window.location.search);
@@ -56,6 +63,15 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
         if (joinedGroup) {
             // Success handled by useEffect above
         }
+    };
+
+    const handleResolveDisplayName = async (newName: string) => {
+        if (!joinedGroupId) return;
+        await joinGroupStore.resolveDisplayNameConflict(newName);
+    };
+
+    const handleCancelConflict = () => {
+        joinGroupStore.markConflictCancelled();
     };
 
     // Show error if no link ID provided
@@ -139,6 +155,16 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                         </div>
                     </Card>
                 </div>
+                <DisplayNameConflictModal
+                    isOpen={displayNameConflict}
+                    groupName={group.name}
+                    currentName={currentUser.value?.displayName || ''}
+                    loading={updatingDisplayName}
+                    error={displayNameUpdateError}
+                    onSubmit={handleResolveDisplayName}
+                    onCancel={handleCancelConflict}
+                    onClearError={() => joinGroupStore.clearDisplayNameError()}
+                />
             </BaseLayout>
         );
     }
@@ -197,6 +223,16 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                         </Stack>
                     </div>
                 </div>
+                <DisplayNameConflictModal
+                    isOpen={displayNameConflict}
+                    groupName={group.name}
+                    currentName={currentUser.value?.displayName || ''}
+                    loading={updatingDisplayName}
+                    error={displayNameUpdateError}
+                    onSubmit={handleResolveDisplayName}
+                    onCancel={handleCancelConflict}
+                    onClearError={() => joinGroupStore.clearDisplayNameError()}
+                />
             </BaseLayout>
         );
     }

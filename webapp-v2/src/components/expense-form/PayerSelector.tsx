@@ -1,10 +1,12 @@
 import { useTranslation } from 'react-i18next';
+import { getGroupDisplayName } from '@/utils/displayName';
 import { Avatar, Card } from '../ui';
 import { Stack } from '../ui/Stack';
 
 interface Member {
     uid: string;
     displayName: string;
+    groupDisplayName: string;
 }
 
 interface PayerSelectorProps {
@@ -42,8 +44,8 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                                 onChange={() => updateField('paidBy', member.uid)}
                                 className='text-blue-600 focus:ring-blue-500'
                             />
-                            <Avatar displayName={member.displayName} userId={member.uid} size='sm' />
-                            <span className='text-sm font-medium text-gray-900 dark:text-white'>{member.displayName}</span>
+                            <Avatar displayName={getGroupDisplayName(member)} userId={member.uid} size='sm' />
+                            <span className='text-sm font-medium text-gray-900 dark:text-white'>{getGroupDisplayName(member)}</span>
                         </label>
                     ))}
                 </div>

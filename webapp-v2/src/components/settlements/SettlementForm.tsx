@@ -3,6 +3,7 @@ import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { CurrencyService } from '@/app/services/currencyService.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { formatCurrency } from '@/utils/currency';
+import { getGroupDisplayName } from '@/utils/displayName';
 import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
 import { amountToSmallestUnit, CreateSettlementRequest, getCurrencyDecimals, GroupMember, isZeroAmount, normalizeAmount, SettlementWithMembers, SimplifiedDebt, ZERO } from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
@@ -108,7 +109,10 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     // Helper functions - defined before useEffects that use them
     const getMemberName = (userId: string): string => {
         const member = members.find((m: GroupMember) => m.uid === userId);
-        return member?.displayName || t('common.unknownUser');
+        if (!member) {
+            throw new Error(`SettlementForm: member ${userId} not found`);
+        }
+        return getGroupDisplayName(member);
     };
 
     const getCurrentDebt = (): string => {
@@ -339,7 +343,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 <option value=''>{t('settlementForm.selectPersonPlaceholder')}</option>
                                 {members.map((member: GroupMember) => (
                                     <option key={member.uid} value={member.uid}>
-                                        {member.displayName}
+                                        {getGroupDisplayName(member)}
                                         {member.uid === currentUser?.uid && t('settlementForm.youSuffix')}
                                     </option>
                                 ))}
@@ -364,7 +368,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                     .filter((m: GroupMember) => m.uid !== payerId)
                                     .map((member: GroupMember) => (
                                         <option key={member.uid} value={member.uid}>
-                                            {member.displayName}
+                                            {getGroupDisplayName(member)}
                                             {member.uid === currentUser?.uid && t('settlementForm.youSuffix')}
                                         </option>
                                     ))}

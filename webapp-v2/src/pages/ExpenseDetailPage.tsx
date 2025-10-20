@@ -3,6 +3,7 @@ import { Avatar, Button, Card, LoadingSpinner } from '@/components/ui';
 import { Stack } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { formatCurrency } from '@/utils/currency';
+import { getGroupDisplayName } from '@/utils/displayName';
 import { batch, useComputed, useSignal } from '@preact/signals';
 import { ExpenseDTO, GroupDTO, GroupMember } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
@@ -185,6 +186,10 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
     }
 
     const payer = memberMap.value[expense.value.paidBy];
+    if (!payer) {
+        throw new Error(`ExpenseDetailPage: payer ${expense.value.paidBy} not found`);
+    }
+    const payerName = getGroupDisplayName(payer);
 
     return (
         <BaseLayout
@@ -265,9 +270,9 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                                     <div>
                                         <p className='text-sm text-gray-500 dark:text-gray-400 mb-2'>{t('pages.expenseDetailPage.paidBy')}</p>
                                         <div className='flex items-center gap-2'>
-                                            <Avatar displayName={payer?.displayName || 'Unknown'} userId={expense.value.paidBy} size='sm' />
+                                            <Avatar displayName={payerName} userId={expense.value.paidBy} size='sm' />
                                             <div>
-                                                <p className='font-medium text-gray-900 dark:text-white text-sm'>{payer?.displayName || t('pages.expenseDetailPage.unknown')}</p>
+                                                <p className='font-medium text-gray-900 dark:text-white text-sm'>{payerName}</p>
                                             </div>
                                         </div>
                                     </div>

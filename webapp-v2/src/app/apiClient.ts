@@ -27,6 +27,7 @@ import type {
     SettlementDTO,
     ShareLinkResponse,
     UpdateGroupRequest,
+    UpdateDisplayNameRequest,
     UserPolicyStatusResponse,
     UserProfileResponse,
 } from '@splitifyd/shared';
@@ -699,34 +700,14 @@ class ApiClient {
         });
     }
 
-    async joinGroupByLink(linkId: string): Promise<GroupDTO> {
-        const response = await this.request<JoinGroupResponse>({
+    async joinGroupByLink(linkId: string): Promise<JoinGroupResponse> {
+        return this.request<JoinGroupResponse>({
             endpoint: '/groups/join',
             method: 'POST',
             body: { linkId },
             // Override: This POST is safe to retry because joining a group is idempotent
             skipRetry: false,
         });
-
-        // Transform the response to match GroupDTO interface
-        return {
-            id: response.groupId,
-            name: response.groupName,
-            description: '',
-            createdBy: '', // Will be populated from server
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            securityPreset: 'open',
-            permissions: {
-                expenseEditing: 'anyone',
-                expenseDeletion: 'owner-and-admin',
-                memberInvitation: 'anyone',
-                memberApproval: 'automatic',
-                settingsManagement: 'admin-only',
-            },
-            balance: {},
-            lastActivity: 'just now',
-        } as GroupDTO;
     }
 
     async register(email: string, password: string, displayName: string, termsAccepted: boolean, cookiePolicyAccepted: boolean): Promise<RegisterResponse> {
@@ -759,6 +740,15 @@ class ApiClient {
             method: 'GET',
             params: { id: policyId },
             skipAuth: true, // Public endpoint
+        });
+    }
+
+    async updateGroupMemberDisplayName(groupId: string, displayName: UpdateDisplayNameRequest['displayName']): Promise<MessageResponse> {
+        return this.request({
+            endpoint: '/groups/:id/members/display-name',
+            method: 'PUT',
+            params: { id: groupId },
+            body: { displayName },
         });
     }
 

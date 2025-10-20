@@ -1,10 +1,12 @@
 import { useTranslation } from 'react-i18next';
+import { getGroupDisplayName } from '@/utils/displayName';
 import { Avatar, Button, Card } from '../ui';
 import { Stack } from '../ui/Stack';
 
 interface Member {
     uid: string;
     displayName: string;
+    groupDisplayName: string;
 }
 
 interface ParticipantSelectorProps {
@@ -59,9 +61,9 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
                                     disabled={isPayer}
                                     className='text-blue-600 focus:ring-blue-500 disabled:opacity-50'
                                 />
-                                <Avatar displayName={member.displayName} userId={member.uid} size='sm' />
+                                <Avatar displayName={getGroupDisplayName(member)} userId={member.uid} size='sm' />
                                 <span className='text-sm font-medium text-gray-900 dark:text-white flex-1'>
-                                    {member.displayName}
+                                    {getGroupDisplayName(member)}
                                     {isPayer && <span className='text-green-600 dark:text-green-400 ml-1'>{t('expenseComponents.participantSelector.payerSuffix')}</span>}
                                 </span>
                             </label>

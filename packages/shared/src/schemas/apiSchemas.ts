@@ -180,6 +180,9 @@ const GroupMemberDTOSchema = z.object({
     memberStatus: z.enum(['active', 'pending']),
     joinedAt: z.string().datetime(),
     invitedBy: z.string().optional(),
+
+    // Group-specific display name (required)
+    groupDisplayName: z.string().min(1),
 });
 
 // Group members response schema
@@ -199,6 +202,7 @@ const JoinGroupResponseSchema = z.object({
     groupId: z.string(),
     groupName: z.string(),
     success: z.boolean(),
+    displayNameConflict: z.boolean(),
 });
 
 // Health check schemas
@@ -270,6 +274,8 @@ const SettlementMemberSchema = z.object({
     initials: z.string().min(1),
     photoURL: z.string().url().nullable().optional(),
     themeColor: UserThemeColorSchema,
+    // Group-specific display name (required)
+    groupDisplayName: z.string().min(1),
     // Optional membership fields that may or may not be present
     memberRole: z.enum(['admin', 'member', 'viewer']).optional(),
     memberStatus: z.enum(['active', 'pending']).optional(),
@@ -331,19 +337,7 @@ const UserProfileResponseSchema = z.object({
 // Group full details schema - combines multiple endpoint responses
 const GroupFullDetailsSchema = z.object({
     group: GroupSchema,
-    members: z.object({
-        members: z.array(
-            z.object({
-                uid: z.string().min(1),
-                displayName: z.string().min(1),
-                role: z.enum(['system_admin', 'system_user']).optional(),
-                termsAcceptedAt: z.any().optional(),
-                cookiePolicyAcceptedAt: z.any().optional(),
-                acceptedPolicies: z.record(z.string(), z.string()).optional(),
-                themeColor: UserThemeColorSchema.optional(),
-            }),
-        ),
-    }),
+    members: GroupMembersResponseSchema, // Reuse the standard member response schema
     expenses: z.object({
         expenses: z.array(ExpenseDataSchema),
         hasMore: z.boolean(),
@@ -393,6 +387,7 @@ export const responseSchemas = {
     // Group member endpoints
     'POST /groups/:id/leave': MessageResponseSchema,
     'DELETE /groups/:id/members/:memberId': MessageResponseSchema,
+    'PUT /groups/:id/members/display-name': MessageResponseSchema,
 } as const;
 
 // Schema for the currency-specific balance data used in GroupService.addComputedFields

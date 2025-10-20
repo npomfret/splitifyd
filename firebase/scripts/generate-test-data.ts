@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import type { Amount, GroupDTO } from '@splitifyd/shared';
+import type { Amount, GroupDTO, GroupId } from '@splitifyd/shared';
 import { AuthenticatedFirebaseUser, compareAmounts, isZeroAmount, minAmount, normalizeAmount, PREDEFINED_EXPENSE_CATEGORIES, subtractAmounts, UserRegistration, zeroAmount } from '@splitifyd/shared';
 import type { CreateSettlementRequest } from '@splitifyd/shared';
 import { ApiDriver, CreateExpenseRequestBuilder } from '@splitifyd/test-support';

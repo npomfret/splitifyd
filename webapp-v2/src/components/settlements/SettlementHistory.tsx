@@ -3,6 +3,7 @@ import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { formatCurrency } from '@/utils/currency';
 import { formatDistanceToNow } from '@/utils/dateUtils.ts';
+import { getGroupDisplayName } from '@/utils/displayName';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useComputed } from '@preact/signals';
 import type { SettlementWithMembers } from '@splitifyd/shared';
@@ -133,15 +134,16 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                 const isCurrentUserPayee = settlement.payee.uid === currentUser?.uid;
                 const isDeleted = settlement.deletedAt !== null && settlement.deletedAt !== undefined;
                 const deletedByUser = settlement.deletedBy ? members.value.find((m) => m.uid === settlement.deletedBy) : null;
+                const deletedByName = deletedByUser ? getGroupDisplayName(deletedByUser) : t('common.unknown');
 
                 return (
                     <div key={settlement.id} class='p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow' data-testid='settlement-item'>
                         <div class='flex justify-between items-start'>
                             <div class='flex-1'>
                                 <p class='text-sm font-medium text-gray-900'>
-                                    <span class='font-semibold'>{settlement.payer.displayName}</span>
+                                    <span class='font-semibold'>{getGroupDisplayName(settlement.payer)}</span>
                                     {' → '}
-                                    <span class='font-semibold'>{settlement.payee.displayName}</span>
+                                    <span class='font-semibold'>{getGroupDisplayName(settlement.payee)}</span>
                                 </p>
 
                                 {settlement.note && <p class='mt-1 text-sm text-gray-500'>{settlement.note}</p>}
@@ -150,7 +152,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                                     {formatDate(settlement.date)}
                                     {isDeleted && settlement.deletedAt && (
                                         <span class='ml-2 text-red-600' data-financial-amount='deleted'>
-                                            • {t('settlementHistory.deletedBy')} {deletedByUser?.displayName || t('common.unknown')} {formatDistanceToNow(new Date(settlement.deletedAt))}
+                                            • {t('settlementHistory.deletedBy')} {deletedByName} {formatDistanceToNow(new Date(settlement.deletedAt))}
                                         </span>
                                     )}
                                 </p>
@@ -209,8 +211,8 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                     title={t('settlementHistory.deletePaymentTitle')}
                     message={t('settlementHistory.deletePaymentMessage', {
                         amount: formatCurrency(settlementToDelete.amount, settlementToDelete.currency),
-                        payer: settlementToDelete.payer.displayName,
-                        payee: settlementToDelete.payee.displayName,
+                        payer: getGroupDisplayName(settlementToDelete.payer),
+                        payee: getGroupDisplayName(settlementToDelete.payee),
                     })}
                     confirmText={t('settlementHistory.deleteButton')}
                     cancelText={t('settlementHistory.cancelButton')}

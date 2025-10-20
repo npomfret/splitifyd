@@ -5,6 +5,7 @@ import { LoadingSpinner } from '@/components/ui';
 import { ConfirmDialog } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger';
+import { getGroupDisplayName } from '@/utils/displayName';
 import { UserMinusIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
 import { GroupMember } from '@splitifyd/shared';
@@ -137,14 +138,14 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                     key={member.uid}
                     className='flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50'
                     data-testid='member-item'
-                    data-member-name={member.displayName}
+                    data-member-name={getGroupDisplayName(member)}
                     data-member-id={member.uid}
                 >
                     <div className='flex items-center gap-3'>
-                        <Avatar displayName={member.displayName || t('common.user')} userId={member.uid} size='sm' />
+                        <Avatar displayName={getGroupDisplayName(member)} userId={member.uid} size='sm' />
                         <div className='flex flex-col'>
                             <span className='font-medium text-gray-900 text-sm'>
-                                {member.displayName}
+                                {getGroupDisplayName(member)}
                                 {member.uid === currentUserId && <span className='text-gray-500 ml-1'>({t('common.you')})</span>}
                             </span>
                             {getMemberRole(member) && <span className='text-xs text-gray-500'>{getMemberRole(member)}</span>}
@@ -225,9 +226,11 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                 }}
                 onConfirm={handleRemoveMember}
                 title={t('membersList.removeMemberDialog.title')}
-                message={memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid)
-                    ? t('membersList.removeMemberDialog.messageWithBalance', { name: memberToRemove.value.displayName || t('membersList.thisMember') })
-                    : t('membersList.removeMemberDialog.messageConfirm', { name: memberToRemove.value?.displayName || t('membersList.thisMember') })}
+                message={memberToRemove.value
+                    ? (memberHasOutstandingBalance(memberToRemove.value.uid)
+                        ? t('membersList.removeMemberDialog.messageWithBalance', { name: getGroupDisplayName(memberToRemove.value) })
+                        : t('membersList.removeMemberDialog.messageConfirm', { name: getGroupDisplayName(memberToRemove.value) }))
+                    : ''}
                 confirmText={memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid) ? t('common.understood') : t('membersList.removeMemberDialog.confirmText')}
                 cancelText={t('membersList.leaveGroupDialog.cancelText')}
                 variant={memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid) ? 'info' : 'warning'}

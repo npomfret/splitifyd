@@ -1,4 +1,5 @@
 import { formatCurrency, getCurrency } from '@/utils/currency';
+import { getGroupDisplayName } from '@/utils/displayName';
 import { Amount, amountToSmallestUnit, smallestUnitToAmountString, ZERO } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
 import { Avatar } from '../ui';
@@ -6,6 +7,7 @@ import { Avatar } from '../ui';
 interface Member {
     uid: string;
     displayName: string;
+    groupDisplayName: string;
 }
 
 interface Split {
@@ -47,12 +49,16 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                 <p className='text-sm text-gray-600 dark:text-gray-400'>{t('expenseComponents.splitAmountInputs.exactAmountsInstruction')}</p>
                 {participants.map((participantId) => {
                     const member = memberMap[participantId];
+                    if (!member) {
+                        throw new Error(`SplitAmountInputs: participant ${participantId} not found`);
+                    }
+                    const memberName = getGroupDisplayName(member);
                     const split = splits.find((s) => s.uid === participantId);
                     return (
                         <div key={participantId} className='flex items-center justify-between gap-3'>
                             <div className='flex items-center gap-2 flex-1'>
-                                <Avatar displayName={member?.displayName || t('expenseComponents.splitAmountInputs.unknown')} userId={participantId} size='sm' />
-                                <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>{member?.displayName || t('expenseComponents.splitAmountInputs.unknown')}</span>
+                                <Avatar displayName={memberName} userId={participantId} size='sm' />
+                                <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>{memberName}</span>
                             </div>
                             <div className='flex items-center gap-2'>
                                 <span className='text-gray-500'>{getCurrency(currency)!.symbol}</span>
@@ -100,12 +106,16 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                 <p className='text-sm text-gray-600 dark:text-gray-400'>{t('expenseComponents.splitAmountInputs.percentageInstruction')}</p>
                 {participants.map((participantId) => {
                     const member = memberMap[participantId];
+                    if (!member) {
+                        throw new Error(`SplitAmountInputs: participant ${participantId} not found`);
+                    }
+                    const memberName = getGroupDisplayName(member);
                     const split = splits.find((s) => s.uid === participantId);
                     return (
                         <div key={participantId} className='flex items-center justify-between gap-3'>
                             <div className='flex items-center gap-2 flex-1'>
-                                <Avatar displayName={member?.displayName || t('expenseComponents.splitAmountInputs.unknown')} userId={participantId} size='sm' />
-                                <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>{member?.displayName || t('expenseComponents.splitAmountInputs.unknown')}</span>
+                                <Avatar displayName={memberName} userId={participantId} size='sm' />
+                                <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>{memberName}</span>
                             </div>
                             <div className='flex items-center gap-2'>
                                 <input
@@ -149,11 +159,15 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                 <div className='space-y-1'>
                     {splits.map((split) => {
                         const member = memberMap[split.uid];
+                        if (!member) {
+                            throw new Error(`SplitAmountInputs: member ${split.uid} not found`);
+                        }
+                        const memberName = getGroupDisplayName(member);
                         return (
                             <div key={split.uid} className='flex items-center justify-between gap-2'>
                                 <div className='flex items-center gap-2'>
-                                    <Avatar displayName={member?.displayName || t('expenseComponents.splitAmountInputs.unknown')} userId={split.uid} size='sm' />
-                                    <span className='text-sm text-gray-600 dark:text-gray-400'>{member?.displayName || t('expenseComponents.splitAmountInputs.unknown')}</span>
+                                    <Avatar displayName={memberName} userId={split.uid} size='sm' />
+                                    <span className='text-sm text-gray-600 dark:text-gray-400'>{memberName}</span>
                                 </div>
                                 <span className='text-sm font-medium text-gray-900 dark:text-white'>{formatCurrency(split.amount, currency)}</span>
                             </div>

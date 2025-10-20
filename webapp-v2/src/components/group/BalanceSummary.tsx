@@ -1,6 +1,7 @@
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import { SidebarCard } from '@/components/ui';
 import { formatCurrency } from '@/utils/currency';
+import { getGroupDisplayName } from '@/utils/displayName';
 import { useComputed } from '@preact/signals';
 import type { SimplifiedDebt } from '@splitifyd/shared';
 import { useMemo } from 'preact/hooks';
@@ -21,7 +22,10 @@ export function BalanceSummary({ variant = 'default' }: BalanceSummaryProps) {
     // Helper to get user display name
     const getUserName = (userId: string) => {
         const member = members.value.find((m) => m.uid === userId);
-        return member?.displayName || t('unknown');
+        if (!member) {
+            throw new Error(`BalanceSummary: member ${userId} not found`);
+        }
+        return getGroupDisplayName(member);
     };
 
     // Group debts by currency for proper display - memoized to avoid recalculation

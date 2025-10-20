@@ -1,3 +1,4 @@
+import type { Ref } from 'preact';
 import { useCallback } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 
@@ -17,6 +18,7 @@ interface InputProps {
     className?: string;
     autoComplete?: string;
     'data-testid'?: string;
+    inputRef?: Ref<HTMLInputElement>;
 }
 
 export function Input({
@@ -35,6 +37,7 @@ export function Input({
     className = '',
     autoComplete,
     'data-testid': dataTestId,
+    inputRef,
 }: InputProps) {
     const { t } = useTranslation();
     const inputId = id || name || `input-${Math.random().toString(36).substr(2, 9)}`;
@@ -100,6 +103,7 @@ export function Input({
                     aria-invalid={!!error}
                     aria-describedby={error ? `${inputId}-error` : undefined}
                     data-testid={dataTestId}
+                    ref={inputRef as Ref<HTMLInputElement>}
                 />
             </div>
             {error && (

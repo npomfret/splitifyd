@@ -5,7 +5,7 @@
  */
 
 import { ReadonlySignal, signal } from '@preact/signals';
-import { GroupDTO } from '@splitifyd/shared';
+import { GroupDTO, JoinGroupResponse } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
 
 class JoinGroupStore {
@@ -18,6 +18,10 @@ class JoinGroupStore {
     readonly #errorSignal = signal<string | null>(null);
     readonly #linkIdSignal = signal<string | null>(null);
     readonly #isAlreadyMemberSignal = signal<boolean>(false);
+    readonly #displayNameConflictSignal = signal<boolean>(false);
+    readonly #joinedGroupIdSignal = signal<string | null>(null);
+    readonly #updatingDisplayNameSignal = signal<boolean>(false);
+    readonly #displayNameUpdateErrorSignal = signal<string | null>(null);
 
     // State getters - readonly values for external consumers
     get group() {
@@ -43,6 +47,18 @@ class JoinGroupStore {
     }
     get isAlreadyMember() {
         return this.#isAlreadyMemberSignal.value;
+    }
+    get displayNameConflict() {
+        return this.#displayNameConflictSignal.value;
+    }
+    get joinedGroupId() {
+        return this.#joinedGroupIdSignal.value;
+    }
+    get updatingDisplayName() {
+        return this.#updatingDisplayNameSignal.value;
+    }
+    get displayNameUpdateError() {
+        return this.#displayNameUpdateErrorSignal.value;
     }
 
     get errorSignal(): ReadonlySignal<string | null> {
@@ -99,16 +115,55 @@ class JoinGroupStore {
         }
     }
 
-    async joinGroup(linkId: string): Promise<GroupDTO | null> {
+    async joinGroup(linkId: string): Promise<JoinGroupResponse | null> {
         this.#joiningSignal.value = true;
         this.#errorSignal.value = null;
+        this.#displayNameConflictSignal.value = false;
+        this.#displayNameUpdateErrorSignal.value = null;
 
         try {
-            const group = await apiClient.joinGroupByLink(linkId);
-            this.#groupSignal.value = group;
+            const response = await apiClient.joinGroupByLink(linkId);
+            this.#joinedGroupIdSignal.value = response.groupId;
+            this.#displayNameConflictSignal.value = response.displayNameConflict;
             this.#joiningSignal.value = false;
+            if (response.displayNameConflict) {
+                // Conflict will be handled by UI prompting for a new name
+                this.#joinSuccessSignal.value = false;
+                return response;
+            }
+
+            // Preserve existing preview details but ensure IDs/names match response
+            if (this.#groupSignal.value) {
+                this.#groupSignal.value = {
+                    ...this.#groupSignal.value,
+                    id: response.groupId,
+                    name: response.groupName,
+                };
+            } else {
+                this.#groupSignal.value = {
+                    id: response.groupId,
+                    name: response.groupName,
+                    description: '',
+                    createdBy: '',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    securityPreset: 'open',
+                    permissions: {
+                        expenseEditing: 'anyone',
+                        expenseDeletion: 'anyone',
+                        memberInvitation: 'anyone',
+                        memberApproval: 'automatic',
+                        settingsManagement: 'anyone',
+                    },
+                    balance: {
+                        balancesByCurrency: {},
+                    },
+                    lastActivity: 'Never',
+                };
+            }
+
             this.#joinSuccessSignal.value = true;
-            return group;
+            return response;
         } catch (error: any) {
             let errorMessage = 'Failed to join group';
 
@@ -139,10 +194,46 @@ class JoinGroupStore {
         this.#errorSignal.value = null;
         this.#linkIdSignal.value = null;
         this.#isAlreadyMemberSignal.value = false;
+        this.#displayNameConflictSignal.value = false;
+        this.#joinedGroupIdSignal.value = null;
+        this.#updatingDisplayNameSignal.value = false;
+        this.#displayNameUpdateErrorSignal.value = null;
     }
 
     clearError() {
         this.#errorSignal.value = null;
+    }
+
+    async resolveDisplayNameConflict(displayName: string): Promise<void> {
+        if (!this.#joinedGroupIdSignal.value) {
+            throw new Error('No group joined yet');
+        }
+
+        this.#updatingDisplayNameSignal.value = true;
+        this.#displayNameUpdateErrorSignal.value = null;
+
+        try {
+            await apiClient.updateGroupMemberDisplayName(this.#joinedGroupIdSignal.value, displayName);
+
+            this.#displayNameConflictSignal.value = false;
+            this.#joinSuccessSignal.value = true;
+        } catch (error: any) {
+            this.#displayNameUpdateErrorSignal.value = error?.message || 'Failed to update display name';
+            throw error;
+        } finally {
+            this.#updatingDisplayNameSignal.value = false;
+        }
+    }
+
+    markConflictCancelled() {
+        this.#displayNameConflictSignal.value = false;
+        this.#joinSuccessSignal.value = true;
+        this.#updatingDisplayNameSignal.value = false;
+        this.#displayNameUpdateErrorSignal.value = null;
+    }
+
+    clearDisplayNameError() {
+        this.#displayNameUpdateErrorSignal.value = null;
     }
 }
 

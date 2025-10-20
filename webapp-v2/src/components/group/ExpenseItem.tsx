@@ -1,5 +1,6 @@
 import { themeStore } from '@/app/stores/theme-store.ts';
 import { formatCurrency } from '@/utils/currency';
+import { getGroupDisplayName } from '@/utils/displayName';
 import { formatDistanceToNow, formatExpenseDateTime } from '@/utils/dateUtils.ts';
 import { ExpenseDTO, GroupMember } from '@splitifyd/shared';
 import { DELETED_AT_FIELD } from '@splitifyd/shared';
@@ -17,8 +18,13 @@ interface ExpenseItemProps {
 export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemProps) {
     const { t } = useTranslation();
     const paidByUser = members.find((m) => m.uid === expense.paidBy);
+    if (!paidByUser) {
+        throw new Error(`ExpenseItem: member ${expense.paidBy} not found`);
+    }
+    const payerName = getGroupDisplayName(paidByUser);
     const isDeleted = expense[DELETED_AT_FIELD] !== null && expense[DELETED_AT_FIELD] !== undefined;
     const deletedByUser = expense.deletedBy ? members.find((m) => m.uid === expense.deletedBy) : null;
+    const deletedByName = deletedByUser ? getGroupDisplayName(deletedByUser) : t('common.unknown');
 
     // Get theme colors for the payer
     const paidByTheme = paidByUser?.themeColor || themeStore.getThemeForUser(expense.paidBy);
@@ -48,7 +54,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                 <div className='flex-1'>
                     <div className='flex items-center gap-3'>
                         {/* User avatar */}
-                        <Avatar displayName={paidByUser?.displayName || t('common.unknown')} userId={expense.paidBy} size='sm' themeColor={paidByUser?.themeColor} />
+                        <Avatar displayName={payerName} userId={expense.paidBy} size='sm' themeColor={paidByTheme} />
 
                         <div className='flex-1'>
                             <div className='flex items-center gap-2'>
@@ -62,12 +68,12 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                             <p className='text-sm text-gray-600'>
                                 {t('expenseItem.paidBy')}{' '}
                                 <span className='font-medium' style={{ color: isDeleted ? '' : themeColor }}>
-                                    {paidByUser?.displayName || t('common.unknown')}
+                                    {payerName}
                                 </span>{' '}
                                 • {formatExpenseDateTime(expense.date)}
                                 {isDeleted && expense.deletedAt && (
                                     <span className='ml-2 text-red-600'>
-                                        • {t('expenseItem.deletedBy')} {deletedByUser?.displayName || t('common.unknown')} {formatDistanceToNow(new Date(expense.deletedAt))}
+                                        • {t('expenseItem.deletedBy')} {deletedByName} {formatDistanceToNow(new Date(expense.deletedAt))}
                                     </span>
                                 )}
                             </p>
@@ -85,7 +91,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                             <div
                                 className='w-2 h-2 rounded-full mt-1 ml-auto'
                                 style={{ backgroundColor: themeColor }}
-                                title={`${paidByUser?.displayName || t('common.unknown')} (${paidByTheme.name})`}
+                                title={`${payerName} (${paidByTheme.name})`}
                             />
                         )}
                     </div>

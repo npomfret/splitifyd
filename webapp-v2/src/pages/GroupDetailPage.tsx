@@ -1,5 +1,5 @@
 import { CommentsSection } from '@/components/comments';
-import { BalanceSummary, EditGroupModal, ExpensesList, GroupActions, GroupHeader, LeaveGroupDialog, MembersListWithManagement, ShareGroupModal } from '@/components/group';
+import { BalanceSummary, EditGroupModal, ExpensesList, GroupActions, GroupHeader, GroupDisplayNameSettings, LeaveGroupDialog, MembersListWithManagement, ShareGroupModal } from '@/components/group';
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
 import { Button, Card, LoadingSpinner } from '@/components/ui';
 import { Stack } from '@/components/ui';
@@ -270,6 +270,8 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                 }
                 rightSidebar={
                     <>
+                        <GroupDisplayNameSettings groupId={groupId!} />
+
                         <BalanceSummary variant='sidebar' />
 
                         {/* Comments Section */}
