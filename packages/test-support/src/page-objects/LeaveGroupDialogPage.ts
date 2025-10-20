@@ -1,6 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
+import { DashboardPage } from './DashboardPage';
 
 /**
  * Leave Group Dialog Page Object Model for Playwright tests
@@ -166,15 +167,47 @@ export class LeaveGroupDialogPage extends BasePage {
     // ============================================================================
 
     /**
+     * Confirm leaving the group and return a dashboard page object.
+     * Provides optional factory to construct custom dashboard implementations.
+     */
+    async confirmLeaveGroup<T = DashboardPage>(createDashboardPage?: (page: Page) => T): Promise<T> {
+        await expect(this.getConfirmButton()).toBeVisible({ timeout: 2000 });
+
+        const buttonText = await this.getConfirmButtonText();
+        if (buttonText?.includes('Understood')) {
+            throw new Error('Cannot leave group with outstanding balance. Use attemptLeaveWithBalance() instead.');
+        }
+
+        await this.clickConfirm();
+        await this.waitForDialogToClose();
+        await expect(this.page).toHaveURL(/\/dashboard/, { timeout: 5000 });
+
+        const dashboardPage = createDashboardPage
+            ? createDashboardPage(this.page)
+            : ((new DashboardPage(this.page)) as unknown as T);
+
+        if (dashboardPage) {
+            const guards = dashboardPage as unknown as {
+                waitForDashboard?: () => Promise<void>;
+                verifyDashboardPageLoaded?: () => Promise<void>;
+            };
+
+            if (typeof guards.waitForDashboard === 'function') {
+                await guards.waitForDashboard();
+            } else if (typeof guards.verifyDashboardPageLoaded === 'function') {
+                await guards.verifyDashboardPageLoaded();
+            }
+        }
+
+        return dashboardPage;
+    }
+
+    /**
      * Complete leave group workflow: confirm and wait for redirect
      * Use when expecting successful leave (no outstanding balance)
      */
     async confirmLeaveAndWaitForRedirect(): Promise<void> {
-        await this.clickConfirm();
-        // Wait for dialog to close (indicates successful leave)
-        await this.waitForDialogToClose();
-        // Wait for URL change to dashboard
-        await expect(this.page).toHaveURL(/\/dashboard/, { timeout: 5000 });
+        await this.confirmLeaveGroup<void>(() => undefined);
     }
 
     /**
@@ -192,6 +225,13 @@ export class LeaveGroupDialogPage extends BasePage {
         await expect(this.getDialogContainer()).toBeVisible();
     }
 
+    /**
+     * Alias for cancel action with legacy naming.
+     */
+    async cancelLeaveGroup(): Promise<void> {
+        await this.clickCancel();
+    }
+
     // ============================================================================
     // VERIFICATION METHODS
     // ============================================================================
@@ -206,6 +246,13 @@ export class LeaveGroupDialogPage extends BasePage {
         await expect(this.getDialogMessage()).toBeVisible();
         await expect(this.getConfirmButton()).toBeVisible();
         await expect(this.getCancelButton()).toBeVisible();
+    }
+
+    /**
+     * Alias for wait method used by legacy e2e helpers.
+     */
+    async waitForDialogVisible(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
+        await this.waitForDialogToOpen(timeout);
     }
 
     /**
@@ -282,5 +329,12 @@ export class LeaveGroupDialogPage extends BasePage {
         } else {
             await expect(this.getConfirmButton()).toBeDisabled();
         }
+    }
+
+    /**
+     * Wait for the outstanding balance error message to appear.
+     */
+    async verifyLeaveErrorMessage(timeout: number = 10000): Promise<void> {
+        await expect(this.getBalanceWarningMessage()).toBeVisible({ timeout });
     }
 }

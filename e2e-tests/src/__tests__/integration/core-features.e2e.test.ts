@@ -62,7 +62,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
         const leaveModal = await memberGroupDetailPage.clickLeaveGroupButton();
 
         // Confirm in the dialog
-        const memberDashboardPage = await leaveModal.confirmLeaveGroup();
+        const memberDashboardPage = await leaveModal.confirmLeaveGroup((page) => new E2EDashboardPage(page));
         await expect(memberDashboardPage.page).toHaveURL(/\/dashboard/);
 
         // Owner should see updated member count (only 1 member now)

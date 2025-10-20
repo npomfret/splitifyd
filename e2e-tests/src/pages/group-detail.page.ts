@@ -4,8 +4,8 @@ import { DashboardPage } from './dashboard.page.ts';
 import { EditGroupModalPage } from '@splitifyd/test-support';
 import { ExpenseDetailPage } from './expense-detail.page';
 import { ExpenseFormPage } from './expense-form.page';
-import { LeaveGroupModalPage } from './leave-group-modal.page';
-import { RemoveMemberModalPage } from './remove-member-modal.page';
+import { LeaveGroupDialogPage } from '@splitifyd/test-support';
+import { RemoveMemberDialogPage } from '@splitifyd/test-support';
 import { SettlementFormPage } from './settlement-form.page';
 import { ShareGroupModalPage } from '@splitifyd/test-support';
 import {GroupId} from "@splitifyd/shared";
@@ -917,12 +917,12 @@ export class GroupDetailPage extends BaseGroupDetailPage {
      * The shared base has clickLeaveGroup() that returns void
      * This version is for e2e workflows that need the page object
      */
-    async clickLeaveGroupButton(): Promise<LeaveGroupModalPage> {
+    async clickLeaveGroupButton(): Promise<LeaveGroupDialogPage> {
         const leaveButton = this.getLeaveGroupButton();
         await this.clickButton(leaveButton, { buttonName: 'Leave Group' });
 
-        // Create and return the LeaveGroupModalPage instance
-        const leaveModal = new LeaveGroupModalPage(this.page);
+        // Create and return the LeaveGroup dialog instance
+        const leaveModal = new LeaveGroupDialogPage(this.page);
         await leaveModal.waitForDialogVisible();
 
         return leaveModal;
@@ -933,7 +933,7 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         await expect(this.page).not.toHaveURL(new RegExp(`/groups/${groupId}`), { timeout: 5000 });
     }
 
-    async clickRemoveMember(memberName: string): Promise<RemoveMemberModalPage> {
+    async clickRemoveMember(memberName: string): Promise<RemoveMemberDialogPage> {
         const memberItem = this.getMemberItem(memberName);
         try {
             await expect(memberItem).toBeVisible({ timeout: 5000 });
@@ -954,7 +954,7 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         await this.clickButton(removeButton, { buttonName: `Remove ${memberName}` });
 
         // Create and return the RemoveMemberModalPage instance
-        const removeModal = new RemoveMemberModalPage(this.page);
+        const removeModal = new RemoveMemberDialogPage(this.page);
         await removeModal.waitForDialogVisible();
         return removeModal;
     }
