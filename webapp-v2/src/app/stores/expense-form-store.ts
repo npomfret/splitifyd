@@ -769,9 +769,18 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                         return `Split amounts must equal the total expense amount`;
                     }
                 } else if (this.#splitTypeSignal.value === SplitTypes.PERCENTAGE) {
+                    const currencyRequired = this.getActiveCurrency();
+                    if (!currencyRequired) {
+                        return 'Currency must be selected before configuring splits';
+                    }
                     const totalPercentage = this.#splitsSignal.value.reduce((sum, split) => sum + (split.percentage || 0), 0);
-                    if (Math.abs(totalPercentage - 100) > 0.01) {
+                    if (Math.round(totalPercentage * 1000) !== 100 * 1000) {
                         return 'Percentages must add up to 100%';
+                    }
+                    const totalSplitUnits = this.#splitsSignal.value.reduce((sum, split) => sum + amountToSmallestUnit(split.amount, currencyRequired), 0);
+                    const amountUnits = amountToSmallestUnit(this.#amountSignal.value, currencyRequired);
+                    if (totalSplitUnits !== amountUnits) {
+                        return 'Split amounts must equal the total expense amount';
                     }
                 }
                 break;

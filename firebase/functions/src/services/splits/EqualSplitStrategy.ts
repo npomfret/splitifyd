@@ -1,6 +1,5 @@
-import { Amount, amountToSmallestUnit, compareAmounts, ExpenseSplit, getCurrencyDecimals, normalizeAmount } from '@splitifyd/shared';
+import { Amount, amountToSmallestUnit, compareAmounts, ExpenseSplit, normalizeAmount } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../../constants';
-import { getCurrencyTolerance } from '../../utils/amount-validation';
 import { ApiError } from '../../utils/errors';
 import { ISplitStrategy } from './ISplitStrategy';
 
@@ -28,13 +27,7 @@ export class EqualSplitStrategy implements ISplitStrategy {
         const totalUnits = amountToSmallestUnit(normalizedTotal, currencyCode);
         const splitUnits = normalizedSplits.reduce((sum, split) => sum + amountToSmallestUnit(split.amount, currencyCode), 0);
 
-        // Use currency-specific tolerance, fallback to 0.01 if currency not provided
-        const tolerance = currencyCode ? getCurrencyTolerance(currencyCode) : 0.01;
-        const decimals = currencyCode ? getCurrencyDecimals(currencyCode) : 2;
-        const multiplier = Math.pow(10, decimals);
-        const toleranceUnits = Math.round(tolerance * multiplier);
-
-        if (Math.abs(splitUnits - totalUnits) > toleranceUnits) {
+        if (splitUnits !== totalUnits) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount');
         }
 
@@ -63,6 +56,16 @@ export class EqualSplitStrategy implements ISplitStrategy {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EQUAL_SPLITS', 'For equal split type, all participants should have equal amounts');
         }
 
+        const participantCount = participants.length;
+        const remainderUnits = participantCount === 0 ? 0 : totalUnits % participantCount;
+
+        if (remainderUnits === 0) {
+            if (uniqueAmounts.length !== 1) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EQUAL_SPLITS', 'For equal split type, all participants should have equal amounts');
+            }
+            return;
+        }
+
         // If there are 2 unique amounts, verify that only one person gets the larger amount
         if (uniqueAmounts.length === 2) {
             const [smallerAmount, largerAmount] = uniqueAmounts.sort((a, b) => compareAmounts(a, b, currencyCode));
@@ -70,18 +73,19 @@ export class EqualSplitStrategy implements ISplitStrategy {
                 amountToSmallestUnit(largerAmount, currencyCode) - amountToSmallestUnit(smallerAmount, currencyCode),
             );
 
-            // Count how many people get the larger amount
-            const largerCount = amounts.filter((a) => a === largerAmount).length;
-
-            // Only one person should get the larger amount (the remainder)
-            if (largerCount !== 1) {
+            if (diffUnits === 0) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EQUAL_SPLITS', 'For equal split type, all participants should have equal amounts');
             }
 
-            // The difference should be small (less than number of participants * tolerance)
-            // This allows for rounding remainders to go to one person
-            const maxDiffUnits = toleranceUnits * participants.length;
-            if (diffUnits > maxDiffUnits) {
+            // Count how many people get the larger amount
+            const largerCount = amounts.filter((a) => a === largerAmount).length;
+
+            if (largerCount === 0) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EQUAL_SPLITS', 'For equal split type, all participants should have equal amounts');
+            }
+
+            // The extra units distributed must exactly match the remainder produced by integer division
+            if (largerCount * diffUnits !== remainderUnits) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EQUAL_SPLITS', 'For equal split type, all participants should have equal amounts');
             }
         }

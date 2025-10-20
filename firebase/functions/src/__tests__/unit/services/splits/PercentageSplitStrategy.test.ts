@@ -34,5 +34,16 @@ describe('PercentageSplitStrategy', () => {
                 .build();
             expect(() => strategy.validateSplits('100', participants, splits, 'USD')).toThrow(new ApiError(400, 'INVALID_PERCENTAGE_TOTAL', 'Percentages must add up to 100'));
         });
+
+        it('should allow high precision percentages that still sum to 100', () => {
+            const splits = ExpenseSplitBuilder
+                .percentageSplit(100, [
+                    { uid: 'user1', percentage: 33.333 },
+                    { uid: 'user2', percentage: 33.333 },
+                    { uid: 'user3', percentage: 33.334 },
+                ])
+                .build();
+            expect(() => strategy.validateSplits('100', participants, splits, 'USD')).not.toThrow();
+        });
     });
 });

@@ -101,6 +101,9 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
     }
 
     if (splitType === 'percentage') {
+        const totalPercentage = splits.reduce((sum, s) => sum + (s.percentage || 0), 0);
+        const totalPercentageUnits = Math.round(totalPercentage * 1000);
+        const percentagesValid = totalPercentageUnits === 100 * 1000;
         return (
             <div className='space-y-3'>
                 <p className='text-sm text-gray-600 dark:text-gray-400'>{t('expenseComponents.splitAmountInputs.percentageInstruction')}</p>
@@ -139,12 +142,10 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                     <div className='flex justify-between text-sm'>
                         <span className='font-medium text-gray-700 dark:text-gray-300'>{t('expenseComponents.splitAmountInputs.total')}</span>
                         <span
-                            className={`font-medium ${
-                                Math.abs(splits.reduce((sum, s) => sum + (s.percentage || 0), 0) - 100) < 0.01 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                            }`}
+                            className={`font-medium ${percentagesValid ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
                             data-financial-amount='percentage-total'
                         >
-                            {splits.reduce((sum, s) => sum + (s.percentage || 0), 0).toFixed(1)}%
+                            {totalPercentage.toFixed(2)}% / 100%
                         </span>
                     </div>
                 </div>

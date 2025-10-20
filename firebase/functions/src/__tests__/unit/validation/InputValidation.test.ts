@@ -140,7 +140,7 @@ describe('Input Validation Unit Tests', () => {
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
-            it('should accept splits with minor rounding differences (within tolerance)', () => {
+            it('should accept splits that allocate the exact remainder in smallest units', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
                     .withAmount(100, 'USD')
                     .withSplitType('exact')
@@ -158,7 +158,7 @@ describe('Input Validation Unit Tests', () => {
                 expect(result.splits).toHaveLength(3);
             });
 
-            it('should reject splits with differences greater than tolerance', () => {
+            it('should reject splits that do not account for the full total', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
                     .withAmount(100, 'USD')
                     .withSplitType('exact')
@@ -258,7 +258,7 @@ describe('Input Validation Unit Tests', () => {
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
 
-            it('should accept percentages with minor rounding differences (within tolerance)', () => {
+            it('should accept percentages that sum to 100 exactly after normalization', () => {
                 const expenseData = new CreateExpenseRequestBuilder()
                     .withAmount(100, 'USD')
                     .withSplitType('percentage')

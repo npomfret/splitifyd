@@ -11,18 +11,6 @@ function getMaxDecimalPlaces(currencyCode: string): number {
 }
 
 /**
- * Get the tolerance for amount comparisons based on currency precision
- * - 0 decimals: tolerance = 1 (e.g., JPY, KRW)
- * - 1 decimal: tolerance = 0.1 (e.g., MGA, MRU)
- * - 2 decimals: tolerance = 0.01 (e.g., USD, EUR)
- * - 3 decimals: tolerance = 0.001 (e.g., BHD, KWD)
- */
-export function getCurrencyTolerance(currencyCode: string): number {
-    const decimalPlaces = getMaxDecimalPlaces(currencyCode);
-    return Math.pow(10, -decimalPlaces);
-}
-
-/**
  * Count decimal places in an amount string (or numeric) without relying on floating-point math
  */
 function countDecimalPlaces(value: Amount | number): number {

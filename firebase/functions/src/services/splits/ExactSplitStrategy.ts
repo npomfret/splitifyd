@@ -1,6 +1,5 @@
-import { Amount, amountToSmallestUnit, ExpenseSplit, getCurrencyDecimals, normalizeAmount } from '@splitifyd/shared';
+import { Amount, amountToSmallestUnit, ExpenseSplit, normalizeAmount } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../../constants';
-import { getCurrencyTolerance } from '../../utils/amount-validation';
 import { ApiError } from '../../utils/errors';
 import { ISplitStrategy } from './ISplitStrategy';
 
@@ -30,13 +29,7 @@ export class ExactSplitStrategy implements ISplitStrategy {
             0,
         );
 
-        // Use currency-specific tolerance, fallback to 0.01 if currency not provided
-        const tolerance = currencyCode ? getCurrencyTolerance(currencyCode) : 0.01;
-        const decimals = currencyCode ? getCurrencyDecimals(currencyCode) : 2;
-        const multiplier = Math.pow(10, decimals);
-        const toleranceUnits = Math.round(tolerance * multiplier);
-
-        if (Math.abs(splitUnits - totalUnits) > toleranceUnits) {
+        if (splitUnits !== totalUnits) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount');
         }
 

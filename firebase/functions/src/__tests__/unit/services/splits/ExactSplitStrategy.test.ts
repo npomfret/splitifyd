@@ -50,24 +50,23 @@ describe('ExactSplitStrategy', () => {
             expect(() => strategy.validateSplits('100', participants, splits, 'USD')).toThrow(new ApiError(400, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount'));
         });
 
-        it('should allow rounding differences within 0.01 tolerance', () => {
-            // Test floating point precision case
+        it('should allow remainder distribution that still sums exactly to the total', () => {
             const splits = ExpenseSplitBuilder
                 .exactSplit([
                     { uid: 'user1', amount: '33.33' },
                     { uid: 'user2', amount: '33.33' },
-                    { uid: 'user3', amount: '33.34' }, // Total = 100.00 (within tolerance)
+                    { uid: 'user3', amount: '33.34' }, // Total = 100.00 exactly
                 ])
                 .build();
             expect(() => strategy.validateSplits('100', participants, splits, 'USD')).not.toThrow();
         });
 
-        it('should reject rounding differences outside 0.01 tolerance', () => {
+        it('should reject splits that leave part of the total unassigned', () => {
             const splits = ExpenseSplitBuilder
                 .exactSplit([
                     { uid: 'user1', amount: '33.33' },
                     { uid: 'user2', amount: '33.33' },
-                    { uid: 'user3', amount: '33.32' }, // Total = 99.98 (outside tolerance)
+                    { uid: 'user3', amount: '33.32' }, // Total = 99.98 (missing remainder)
                 ])
                 .build();
             expect(() => strategy.validateSplits('100', participants, splits, 'USD')).toThrow(new ApiError(400, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount'));
@@ -182,12 +181,12 @@ describe('ExactSplitStrategy', () => {
             expect(() => strategy.validateSplits('1000000', largeParticipants, splits, 'USD')).not.toThrow();
         });
 
-        it('should handle very small amounts correctly', () => {
+        it('should handle very small amounts with proper rounding correctly', () => {
             const smallParticipants = ['user1', 'user2'];
             const splits = ExpenseSplitBuilder
                 .exactSplit([
-                    { uid: 'user1', amount: '0.005' },
-                    { uid: 'user2', amount: '0.005' },
+                    { uid: 'user1', amount: '0.01' },
+                    { uid: 'user2', amount: '0.00' },
                 ])
                 .build();
             expect(() => strategy.validateSplits('0.01', smallParticipants, splits, 'USD')).not.toThrow();
@@ -266,8 +265,6 @@ describe('ExactSplitStrategy', () => {
         });
 
         it('should reject fractional amounts that would be invalid for zero-decimal currencies', () => {
-            // This test shows that the validation doesn't enforce currency rules,
-            // but documents expected behavior for fractional amounts in JPY context
             const jpyParticipants = ['user1', 'user2'];
             const fractionalSplits = ExpenseSplitBuilder
                 .exactSplit([
@@ -275,12 +272,10 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user2', amount: '99.5' },
                 ])
                 .build();
-            // Note: The strategy allows fractional amounts - currency-specific validation
-            // would need to be handled at a higher level
-            expect(() => strategy.validateSplits('200', jpyParticipants, fractionalSplits, 'JPY')).not.toThrow();
+            expect(() => strategy.validateSplits('200', jpyParticipants, fractionalSplits, 'JPY')).toThrowError(ApiError);
         });
 
-        it('should reject splits with amounts that are barely outside tolerance', () => {
+        it('should reject splits that depend on fractional rounding for currency precision', () => {
             const splits = ExpenseSplitBuilder
                 .exactSplit([
                     { uid: 'user1', amount: '33.333' },
@@ -288,13 +283,13 @@ describe('ExactSplitStrategy', () => {
                     { uid: 'user3', amount: '33.333' }, // Total = 99.999, which is 0.001 off
                 ])
                 .build();
-            expect(() => strategy.validateSplits('100', participants, splits, 'USD')).not.toThrow();
+            expect(() => strategy.validateSplits('100', participants, splits, 'USD')).toThrow(new ApiError(400, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount'));
 
             const splitsOutsideTolerance = ExpenseSplitBuilder
                 .exactSplit([
                     { uid: 'user1', amount: '33.32' },
                     { uid: 'user2', amount: '33.32' },
-                    { uid: 'user3', amount: '33.32' }, // Total = 99.96, which is 0.04 off (outside 0.01 tolerance)
+                    { uid: 'user3', amount: '33.32' }, // Total = 99.96, which is 0.04 off
                 ])
                 .build();
             expect(() => strategy.validateSplits('100', participants, splitsOutsideTolerance, 'USD')).toThrow(new ApiError(400, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount'));

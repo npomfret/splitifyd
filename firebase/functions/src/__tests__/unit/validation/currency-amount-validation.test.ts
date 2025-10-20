@@ -171,8 +171,8 @@ describe('Currency-Aware Amount Validation', () => {
         });
     });
 
-    describe('Split Strategy Currency Tolerance', () => {
-        it('should use correct tolerance for JPY exact splits (tolerance: 1)', () => {
+    describe('Split Strategy Currency Precision', () => {
+        it('should validate remainder distribution for JPY exact splits', () => {
             const expenseData = new CreateExpenseRequestBuilder()
                 .withAmount(1000, 'JPY')
                 .withSplitType('exact')
@@ -181,7 +181,7 @@ describe('Currency-Aware Amount Validation', () => {
                 .withSplits([
                     { uid: 'user1', amount: '334' },
                     { uid: 'user2', amount: '333' },
-                    { uid: 'user3', amount: '333' }, // Total: 1000 (within tolerance)
+                    { uid: 'user3', amount: '333' }, // Total: 1000
                 ])
                 .build();
 
@@ -189,7 +189,7 @@ describe('Currency-Aware Amount Validation', () => {
             expect(result.amount).toBe('1000');
         });
 
-        it('should use correct tolerance for USD exact splits (tolerance: 0.01)', () => {
+        it('should validate remainder distribution for USD exact splits', () => {
             const expenseData = new CreateExpenseRequestBuilder()
                 .withAmount(100.0, 'USD')
                 .withSplitType('exact')
@@ -198,7 +198,7 @@ describe('Currency-Aware Amount Validation', () => {
                 .withSplits([
                     { uid: 'user1', amount: '33.34' },
                     { uid: 'user2', amount: '33.33' },
-                    { uid: 'user3', amount: '33.33' }, // Total: 100.00 (within tolerance)
+                    { uid: 'user3', amount: '33.33' }, // Total: 100.00
                 ])
                 .build();
 
@@ -206,7 +206,7 @@ describe('Currency-Aware Amount Validation', () => {
             expect(result.amount).toBe('100');
         });
 
-        it('should use correct tolerance for BHD exact splits (tolerance: 0.001)', () => {
+        it('should validate remainder distribution for BHD exact splits', () => {
             const expenseData = new CreateExpenseRequestBuilder()
                 .withAmount(10.0, 'BHD')
                 .withSplitType('exact')
@@ -215,7 +215,7 @@ describe('Currency-Aware Amount Validation', () => {
                 .withSplits([
                     { uid: 'user1', amount: '3.334' },
                     { uid: 'user2', amount: '3.333' },
-                    { uid: 'user3', amount: '3.333' }, // Total: 10.000 (within tolerance)
+                    { uid: 'user3', amount: '3.333' }, // Total: 10.000
                 ])
                 .build();
 

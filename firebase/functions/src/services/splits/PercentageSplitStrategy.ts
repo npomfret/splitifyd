@@ -1,5 +1,4 @@
-import { ExpenseSplit } from '@splitifyd/shared';
-import { Amount } from '@splitifyd/shared';
+import { Amount, amountToSmallestUnit, ExpenseSplit, normalizeAmount } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../../constants';
 import { ApiError } from '../../utils/errors';
 import { ISplitStrategy } from './ISplitStrategy';
@@ -15,14 +14,31 @@ export class PercentageSplitStrategy implements ISplitStrategy {
             if (split.percentage === undefined || split.percentage === null) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_SPLIT_PERCENTAGE', 'Split percentage is required for percentage splits');
             }
+            if (typeof split.percentage !== 'number' || Number.isNaN(split.percentage)) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_PERCENTAGE', 'Split percentage must be a valid number');
+            }
+            if (split.percentage < 0 || split.percentage > 100) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_PERCENTAGE', 'Split percentage must be between 0 and 100');
+            }
         }
 
-        // Validate that percentages sum to 100%
-        const totalPercentage = splits.reduce((sum: number, split: ExpenseSplit) => {
-            return sum + split.percentage!;
-        }, 0);
+        // Validate that percentages sum to 100 (within thousandths to account for rounding)
+        const totalPercentage = splits.reduce((sum, split) => sum + split.percentage!, 0);
+        const totalPercentageUnits = Math.round(totalPercentage * 1000);
+        const expectedPercentageUnits = 100 * 1000;
+        if (totalPercentageUnits !== expectedPercentageUnits) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PERCENTAGE_TOTAL', 'Percentages must add up to 100');
+        }
 
-        if (Math.abs(totalPercentage - 100) > 0.01) {
+        // Validate that monetary amounts represented by the percentages cover the full total
+        const normalizedTotal = normalizeAmount(totalAmount, currencyCode);
+        const totalUnits = amountToSmallestUnit(normalizedTotal, currencyCode);
+        const normalizedSplits = splits.map((split) => ({
+            ...split,
+            amount: normalizeAmount(split.amount, currencyCode),
+        }));
+        const splitUnits = normalizedSplits.reduce((sum, split) => sum + amountToSmallestUnit(split.amount, currencyCode), 0);
+        if (splitUnits !== totalUnits) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PERCENTAGE_TOTAL', 'Percentages must add up to 100');
         }
 

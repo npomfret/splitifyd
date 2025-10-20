@@ -105,5 +105,16 @@ describe('EqualSplitStrategy', () => {
 
             expect(() => strategy.validateSplits('100', participants, splits, 'USD')).not.toThrow();
         });
+
+        it('should allow remainder distribution across multiple participants', () => {
+            const participants = ['user1', 'user2', 'user3'];
+            const splits = [
+                { uid: 'user1', amount: '0.01' },
+                { uid: 'user2', amount: '0.01' },
+                { uid: 'user3', amount: '0.00' },
+            ];
+
+            expect(() => strategy.validateSplits('0.02', participants, splits, 'USD')).not.toThrow();
+        });
     });
 });
