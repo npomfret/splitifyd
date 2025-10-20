@@ -1,6 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
-import {GroupId} from "@splitifyd/shared";
+import {GroupId, ExpenseId} from "@splitifyd/shared";
 
 /**
  * Shared base class for Expense Detail page object.
@@ -96,7 +96,7 @@ export class ExpenseDetailPage extends BasePage {
     /**
      * Navigate to a specific expense detail page
      */
-    async navigate(groupId: GroupId, expenseId: string): Promise<void> {
+    async navigate(groupId: GroupId, expenseId: ExpenseId): Promise<void> {
         await this.page.goto(`/groups/${groupId}/expenses/${expenseId}`);
         await this.waitForDomContentLoaded();
     }

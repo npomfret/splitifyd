@@ -1,4 +1,4 @@
-import {GroupId} from "@splitifyd/shared";
+import {GroupId, ExpenseId} from "@splitifyd/shared";
 
 export const ROUTES = {
     // Main Routes
@@ -35,8 +35,8 @@ export const ROUTES = {
 export const routes = {
     groupDetail: (id: string) => `/groups/${id}`,
     addExpense: (groupId: GroupId) => `/groups/${groupId}/add-expense`,
-    expenseDetail: (groupId: GroupId, expenseId: string) => `/groups/${groupId}/expenses/${expenseId}`,
-    editExpense: (groupId: GroupId, expenseId: string) => `/groups/${groupId}/add-expense?id=${expenseId}&edit=true`,
+    expenseDetail: (groupId: GroupId, expenseId: ExpenseId) => `/groups/${groupId}/expenses/${expenseId}`,
+    editExpense: (groupId: GroupId, expenseId: ExpenseId) => `/groups/${groupId}/add-expense?id=${expenseId}&edit=true`,
     copyExpense: (groupId: GroupId, sourceId: string) => `/groups/${groupId}/add-expense?copy=true&sourceId=${sourceId}`,
     loginWithReturnUrl: (returnUrl: string) => `/login?returnUrl=${encodeURIComponent(returnUrl)}`,
 } as const;

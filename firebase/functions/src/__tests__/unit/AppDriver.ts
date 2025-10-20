@@ -39,6 +39,7 @@ import { FirestoreWriter } from '../../services/firestore';
 import { SettlementHandlers } from '../../settlements/SettlementHandlers';
 import { UserHandlers } from '../../user/UserHandlers';
 import { StubAuthService } from './mocks/StubAuthService';
+import {ExpenseId} from "@splitifyd/shared";
 
 /**
  * Thin façade around the public HTTP handlers.
@@ -193,7 +194,7 @@ export class AppDriver {
         return (res as any).getJson() as ExpenseDTO;
     }
 
-    async updateExpense(userId: string, expenseId: string, updateBody: any): Promise<ExpenseDTO> {
+    async updateExpense(userId: string, expenseId: ExpenseId, updateBody: any): Promise<ExpenseDTO> {
         const req = createStubRequest(userId, updateBody);
         req.query = { id: expenseId };
         const res = createStubResponse();
@@ -203,7 +204,7 @@ export class AppDriver {
         return (res as any).getJson() as ExpenseDTO;
     }
 
-    async deleteExpense(userId: string, expenseId: string) {
+    async deleteExpense(userId: string, expenseId: ExpenseId) {
         const req = createStubRequest(userId, {});
         req.query = { id: expenseId };
         const res = createStubResponse();
@@ -213,7 +214,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async getExpenseFullDetails(userId: string, expenseId: string) {
+    async getExpenseFullDetails(userId: string, expenseId: ExpenseId) {
         const req = createStubRequest(userId, {}, { id: expenseId });
         const res = createStubResponse();
 
@@ -270,7 +271,7 @@ export class AppDriver {
         return (res as any).getJson() as ListCommentsResponse;
     }
 
-    async createExpenseComment(userId: string, expenseId: string, text: string): Promise<CommentDTO> {
+    async createExpenseComment(userId: string, expenseId: ExpenseId, text: string): Promise<CommentDTO> {
         const req = createStubRequest(userId, { text }, { expenseId });
         req.path = `/expenses/${expenseId}/comments`;
         const res = createStubResponse();
@@ -280,7 +281,7 @@ export class AppDriver {
         return (res as any).getJson() as CommentDTO;
     }
 
-    async listExpenseComments(userId: string, expenseId: string): Promise<ListCommentsResponse> {
+    async listExpenseComments(userId: string, expenseId: ExpenseId): Promise<ListCommentsResponse> {
         const req = createStubRequest(userId, {}, { expenseId });
         req.path = `/expenses/${expenseId}/comments`;
         req.query = {};

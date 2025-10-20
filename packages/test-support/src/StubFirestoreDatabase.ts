@@ -25,6 +25,7 @@ import type {
     WhereFilterOp,
 } from './firestore-types';
 import {GroupId} from "@splitifyd/shared";
+import {ExpenseId} from "@splitifyd/shared";
 
 export type FirestoreTriggerEventType = 'create' | 'update' | 'delete';
 
@@ -1308,7 +1309,7 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
         this.seed(`group-memberships/${userId}_${groupId}`, firestoreData);
     }
 
-    seedExpense(expenseId: string, expenseData: Record<string, any>): void {
+    seedExpense(expenseId: ExpenseId, expenseData: Record<string, any>): void {
         const firestoreData = this.convertDatesToTimestamps(expenseData);
         this.seed(`expenses/${expenseId}`, firestoreData);
     }

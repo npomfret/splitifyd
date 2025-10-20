@@ -21,6 +21,7 @@ import {
     type PolicyDTO,
     type RegisteredUser,
     SecurityPresets,
+    ExpenseId,
     type SettlementDTO,
 } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../../constants';
@@ -215,7 +216,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getExpense(expenseId: string): Promise<ExpenseDTO | null> {
+    async getExpense(expenseId: ExpenseId): Promise<ExpenseDTO | null> {
         try {
             const expenseDoc = await this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId).get();
 
@@ -1127,7 +1128,7 @@ export class FirestoreReader implements IFirestoreReader {
      * Get an expense DTO in a transaction (with Timestamp → ISO conversion)
      * Use this for optimistic locking instead of getRawExpenseDocumentInTransaction
      */
-    async getExpenseInTransaction(transaction: ITransaction, expenseId: string): Promise<ExpenseDTO | null> {
+    async getExpenseInTransaction(transaction: ITransaction, expenseId: ExpenseId): Promise<ExpenseDTO | null> {
         try {
             const docRef = this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId);
             const doc = await transaction.get(docRef);

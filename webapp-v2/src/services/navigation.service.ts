@@ -1,7 +1,7 @@
 import { ROUTES, routes } from '@/constants/routes';
 import { logUserAction } from '@/utils/browser-logger';
 import { route } from 'preact-router';
-import {GroupId} from "@splitifyd/shared";
+import {GroupId, ExpenseId} from "@splitifyd/shared";
 
 /**
  * Centralized navigation service for consistent routing throughout the application.
@@ -154,7 +154,7 @@ class NavigationService {
     /**
      * Navigate to edit expense page
      */
-    goToEditExpense(groupId: GroupId, expenseId: string): Promise<void> {
+    goToEditExpense(groupId: GroupId, expenseId: ExpenseId): Promise<void> {
         return this.navigateTo(routes.editExpense(groupId, expenseId));
     }
 
@@ -168,7 +168,7 @@ class NavigationService {
     /**
      * Navigate to expense detail page
      */
-    goToExpenseDetail(groupId: GroupId, expenseId: string): Promise<void> {
+    goToExpenseDetail(groupId: GroupId, expenseId: ExpenseId): Promise<void> {
         return this.navigateTo(routes.expenseDetail(groupId, expenseId));
     }
 

@@ -35,7 +35,7 @@ import { ApiErrorResponseSchema, responseSchemas } from '@splitifyd/shared';
 import type { UpdateSettlementRequest } from '@splitifyd/shared';
 import { z } from 'zod';
 import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';
-import {GroupId} from "@splitifyd/shared";
+import {GroupId, ExpenseId} from "@splitifyd/shared";
 
 // All types are now imported from shared-types
 
@@ -635,7 +635,7 @@ class ApiClient {
         });
     }
 
-    async updateExpense(expenseId: string, data: CreateExpenseRequest): Promise<ExpenseDTO> {
+    async updateExpense(expenseId: ExpenseId, data: CreateExpenseRequest): Promise<ExpenseDTO> {
         return this.request({
             endpoint: '/expenses',
             method: 'PUT',
@@ -644,7 +644,7 @@ class ApiClient {
         });
     }
 
-    async deleteExpense(expenseId: string): Promise<MessageResponse> {
+    async deleteExpense(expenseId: ExpenseId): Promise<MessageResponse> {
         return this.request({
             endpoint: '/expenses',
             method: 'DELETE',
@@ -652,7 +652,7 @@ class ApiClient {
         });
     }
 
-    async getExpenseFullDetails(expenseId: string): Promise<ExpenseFullDetailsDTO> {
+    async getExpenseFullDetails(expenseId: ExpenseId): Promise<ExpenseFullDetailsDTO> {
         return this.request({
             endpoint: `/expenses/${expenseId}/full-details`,
             method: 'GET',
@@ -779,7 +779,7 @@ class ApiClient {
         });
     }
 
-    async createExpenseComment(expenseId: string, text: string): Promise<CommentDTO> {
+    async createExpenseComment(expenseId: ExpenseId, text: string): Promise<CommentDTO> {
         return this.request<CommentDTO>({
             endpoint: '/expenses/:expenseId/comments',
             method: 'POST',
@@ -800,7 +800,7 @@ class ApiClient {
         });
     }
 
-    async getExpenseComments(expenseId: string, cursor?: string): Promise<ListCommentsResponse> {
+    async getExpenseComments(expenseId: ExpenseId, cursor?: string): Promise<ListCommentsResponse> {
         const query: Record<string, string> = {};
         if (cursor) query.cursor = cursor;
 

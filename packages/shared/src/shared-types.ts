@@ -42,6 +42,7 @@ export type Amount = string;
 export const ZERO: Amount = '0';
 
 export type GroupId = string;
+export type ExpenseId = string;
 
 /**
  * Zod schema for expense splits
@@ -755,7 +756,7 @@ export interface SettlementWithMembers extends SoftDeletable {
 
 export interface GroupFullDetailsDTO {
     group: GroupDTO;
-    members: { members: GroupMember[]; };
+    members: { members: GroupMember[]; hasMore: boolean; nextCursor?: string; };
     expenses: { expenses: ExpenseDTO[]; hasMore: boolean; nextCursor?: string; };
     balances: GroupBalances;
     settlements: { settlements: SettlementWithMembers[]; hasMore: boolean; nextCursor?: string; };

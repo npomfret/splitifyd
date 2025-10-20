@@ -19,7 +19,7 @@ import {
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
-import {GroupId} from "@splitifyd/shared";
+import {GroupId, ExpenseId} from "@splitifyd/shared";
 
 interface ExpenseFormStore {
     // Form fields
@@ -65,7 +65,7 @@ interface ExpenseFormStore {
     updateSplitPercentage(uid: string, percentage: number): void;
     validateForm(): boolean;
     saveExpense(groupId: GroupId): Promise<ExpenseDTO>;
-    updateExpense(groupId: GroupId, expenseId: string): Promise<ExpenseDTO>;
+    updateExpense(groupId: GroupId, expenseId: ExpenseId): Promise<ExpenseDTO>;
     clearError(): void;
     reset(): void;
     hasUnsavedChanges(): boolean;
@@ -869,7 +869,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         }
     }
 
-    async updateExpense(groupId: GroupId, expenseId: string): Promise<ExpenseDTO> {
+    async updateExpense(groupId: GroupId, expenseId: ExpenseId): Promise<ExpenseDTO> {
         if (!this.validateForm()) {
             throw new Error('Please fix validation errors');
         }

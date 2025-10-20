@@ -1,11 +1,12 @@
 import { ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
+import { ExpenseId } from "@splitifyd/shared";
 
 /**
  * Helper function to mock the expense full-details API endpoint
  */
-async function mockExpenseDetailApi(page: any, expenseId: string, response: any): Promise<void> {
+async function mockExpenseDetailApi(page: any, expenseId: ExpenseId, response: any): Promise<void> {
     await page.route(`/api/expenses/${expenseId}/full-details`, async (route: any) => {
         route.fulfill({
             status: 200,
@@ -18,7 +19,7 @@ async function mockExpenseDetailApi(page: any, expenseId: string, response: any)
 /**
  * Helper function to mock the expense comments API endpoint
  */
-async function mockExpenseCommentsApi(page: any, expenseId: string, comments: any[] = []): Promise<void> {
+async function mockExpenseCommentsApi(page: any, expenseId: ExpenseId, comments: any[] = []): Promise<void> {
     await page.route(`/api/expenses/${expenseId}/comments`, async (route: any) => {
         route.fulfill({
             status: 200,

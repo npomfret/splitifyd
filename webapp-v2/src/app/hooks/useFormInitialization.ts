@@ -9,7 +9,7 @@ import { apiClient } from '../apiClient';
 import { expenseFormStore } from '../stores/expense-form-store';
 import { enhancedGroupDetailStore } from '../stores/group-detail-store-enhanced';
 import { useAuth } from './useAuth';
-import {GroupId} from "@splitifyd/shared";
+import {GroupId, ExpenseId} from "@splitifyd/shared";
 
 interface UseFormInitializationOptions {
     groupId: GroupId;
@@ -39,7 +39,7 @@ export function useFormInitialization({ groupId, expenseId, isEditMode, isCopyMo
     });
 
     // Load expense data for edit mode
-    const loadExpenseForEdit = async (expenseId: string) => {
+    const loadExpenseForEdit = async (expenseId: ExpenseId) => {
         const expenseDetails = await apiClient.getExpenseFullDetails(expenseId);
         const expense = expenseDetails.expense;
 

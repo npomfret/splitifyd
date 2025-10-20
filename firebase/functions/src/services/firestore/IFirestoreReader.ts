@@ -13,7 +13,7 @@
  * - Real-time subscription management
  */
 
-import type { ISOString } from '@splitifyd/shared';
+import type { ISOString, ExpenseId } from '@splitifyd/shared';
 import type { IDocumentSnapshot, IQuerySnapshot, ITransaction } from '../../firestore-wrapper';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 
@@ -99,7 +99,7 @@ export interface IFirestoreReader {
      * @param expenseId - The expense ID
      * @returns Expense document or null if not found
      */
-    getExpense(expenseId: string): Promise<ExpenseDTO | null>;
+    getExpense(expenseId: ExpenseId): Promise<ExpenseDTO | null>;
 
     /**
      * Get a settlement document by ID
@@ -343,7 +343,7 @@ export interface IFirestoreReader {
      * @param expenseId - The expense ID
      * @returns Expense DTO with ISO string dates or null if not found
      */
-    getExpenseInTransaction(transaction: ITransaction, expenseId: string): Promise<ExpenseDTO | null>;
+    getExpenseInTransaction(transaction: ITransaction, expenseId: ExpenseId): Promise<ExpenseDTO | null>;
 
     /**
      * Get settlement DTO in a transaction with Timestamp → ISO conversion

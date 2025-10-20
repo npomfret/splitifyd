@@ -10,7 +10,7 @@ import { PermissionEngineAsync } from '../permissions/permission-engine-async';
 import { ApiError, Errors } from '../utils/errors';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
-import {GroupId} from "@splitifyd/shared";
+import {GroupId, ExpenseId} from "@splitifyd/shared";
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -36,7 +36,7 @@ export class ExpenseService {
     /**
      * Fetch and validate an expense document
      */
-    private async fetchExpense(expenseId: string): Promise<ExpenseDTO> {
+    private async fetchExpense(expenseId: ExpenseId): Promise<ExpenseDTO> {
         // Use FirestoreReader for read operation
         const expenseData = await this.firestoreReader.getExpense(expenseId);
 
@@ -159,11 +159,11 @@ export class ExpenseService {
     /**
      * Get a single expense by ID
      */
-    async getExpense(expenseId: string, userId: string): Promise<ExpenseDTO> {
+    async getExpense(expenseId: ExpenseId, userId: string): Promise<ExpenseDTO> {
         return measure.measureDb('ExpenseService.getExpense', async () => this._getExpense(expenseId, userId));
     }
 
-    private async _getExpense(expenseId: string, userId: string): Promise<ExpenseDTO> {
+    private async _getExpense(expenseId: ExpenseId, userId: string): Promise<ExpenseDTO> {
         const timer = new PerformanceTimer();
 
         timer.startPhase('query');
@@ -323,11 +323,11 @@ export class ExpenseService {
     /**
      * Update an existing expense
      */
-    async updateExpense(expenseId: string, userId: string, updateData: UpdateExpenseRequest): Promise<ExpenseDTO> {
+    async updateExpense(expenseId: ExpenseId, userId: string, updateData: UpdateExpenseRequest): Promise<ExpenseDTO> {
         return measure.measureDb('ExpenseService.updateExpense', async () => this._updateExpense(expenseId, userId, updateData));
     }
 
-    private async _updateExpense(expenseId: string, userId: string, updateData: UpdateExpenseRequest): Promise<ExpenseDTO> {
+    private async _updateExpense(expenseId: ExpenseId, userId: string, updateData: UpdateExpenseRequest): Promise<ExpenseDTO> {
         const timer = new PerformanceTimer();
 
         // Fetch the existing expense
@@ -550,11 +550,11 @@ export class ExpenseService {
     /**
      * Delete an expense (soft delete)
      */
-    async deleteExpense(expenseId: string, userId: string): Promise<void> {
+    async deleteExpense(expenseId: ExpenseId, userId: string): Promise<void> {
         return measure.measureDb('ExpenseService.deleteExpense', async () => this._deleteExpense(expenseId, userId));
     }
 
-    private async _deleteExpense(expenseId: string, userId: string): Promise<void> {
+    private async _deleteExpense(expenseId: ExpenseId, userId: string): Promise<void> {
         const timer = new PerformanceTimer();
 
         // Fetch the existing expense
@@ -641,7 +641,7 @@ export class ExpenseService {
      * Get consolidated expense details (expense + group + members)
      * Eliminates race conditions by providing all needed data in one request
      */
-    async getExpenseFullDetails(expenseId: string, userId: string): Promise<ExpenseFullDetailsDTO> {
+    async getExpenseFullDetails(expenseId: ExpenseId, userId: string): Promise<ExpenseFullDetailsDTO> {
         const timer = new PerformanceTimer();
 
         // Fetch the expense
