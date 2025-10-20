@@ -87,3 +87,5 @@ directives
 .claude/commands/commit.md
 .claude/commands/comment.md
 .claude/commands/un-commit.md
+.claude/agents/firebase-security-reviewer.md
+.claude/agents/generic-webapp-security-reviewer.md
