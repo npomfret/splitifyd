@@ -1,6 +1,5 @@
 import { Page } from '@playwright/test';
-import { LoginPage as BaseLoginPage } from '@splitifyd/test-support';
-import { RegisterPage } from './register.page.ts';
+import { LoginPage as BaseLoginPage, RegisterPage } from '@splitifyd/test-support';
 
 export class LoginPage extends BaseLoginPage {
     constructor(page: Page) {

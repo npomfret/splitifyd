@@ -214,10 +214,8 @@ export class RegisterPage extends BasePage {
      */
     async checkTermsCheckbox(): Promise<void> {
         const checkbox = this.getTermsCheckbox();
-        const isChecked = await checkbox.isChecked();
-        if (!isChecked) {
-            await checkbox.click();
-        }
+        await expect(checkbox).toBeVisible();
+        await checkbox.check();
     }
 
     /**
@@ -225,10 +223,8 @@ export class RegisterPage extends BasePage {
      */
     async uncheckTermsCheckbox(): Promise<void> {
         const checkbox = this.getTermsCheckbox();
-        const isChecked = await checkbox.isChecked();
-        if (isChecked) {
-            await checkbox.click();
-        }
+        await expect(checkbox).toBeVisible();
+        await checkbox.uncheck();
     }
 
     /**
@@ -243,10 +239,8 @@ export class RegisterPage extends BasePage {
      */
     async checkCookieCheckbox(): Promise<void> {
         const checkbox = this.getCookiesCheckbox();
-        const isChecked = await checkbox.isChecked();
-        if (!isChecked) {
-            await checkbox.click();
-        }
+        await expect(checkbox).toBeVisible();
+        await checkbox.check();
     }
 
     /**
@@ -254,10 +248,8 @@ export class RegisterPage extends BasePage {
      */
     async uncheckCookieCheckbox(): Promise<void> {
         const checkbox = this.getCookiesCheckbox();
-        const isChecked = await checkbox.isChecked();
-        if (isChecked) {
-            await checkbox.click();
-        }
+        await expect(checkbox).toBeVisible();
+        await checkbox.uncheck();
     }
 
     /**
@@ -548,7 +540,7 @@ export class RegisterPage extends BasePage {
      * Check if loading spinner is visible (for registration process)
      */
     async isLoadingSpinnerVisible(): Promise<boolean> {
-        const spinner = this.page.locator('.animate-spin');
+        const spinner = this.page.locator('button[type="submit"] svg.animate-spin');
         return await spinner.isVisible().catch(() => false);
     }
 
@@ -556,16 +548,35 @@ export class RegisterPage extends BasePage {
      * Wait for form to be ready (all inputs visible and enabled)
      */
     async waitForFormReady(): Promise<void> {
-        await this.verifyRegisterPageLoaded();
-        await this.verifyFormEnabled();
+        const currentUrl = this.page.url();
+        if (!/\/register/.test(currentUrl)) {
+            throw new Error(`Register form URL validation failed - expected /register, got ${currentUrl}`);
+        }
+
+        await this.waitForDomContentLoaded();
+
+        await expect(this.getSubmitButton()).toBeVisible({ timeout: 5000 });
+        await expect(this.getNameInput()).toBeVisible({ timeout: 5000 });
+        await expect(this.getEmailInput()).toBeVisible({ timeout: 5000 });
     }
 
     /**
      * Wait for registration response with specific status code
      */
-    async waitForRegistrationResponse(expectedStatusCode: number): Promise<void> {
+    async waitForRegistrationResponse(expectedStatusCode?: number): Promise<void> {
         await this.page.waitForResponse(
-            (response) => response.url().includes('/auth/register') && response.status() === expectedStatusCode,
+            (response) => {
+                const url = response.url();
+                if (!url.includes('/register')) {
+                    return false;
+                }
+
+                if (expectedStatusCode !== undefined) {
+                    return response.status() === expectedStatusCode;
+                }
+
+                return response.status() >= 400;
+            },
             { timeout: TEST_TIMEOUTS.API_RESPONSE },
         );
     }

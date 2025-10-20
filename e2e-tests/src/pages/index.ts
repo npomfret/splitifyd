@@ -5,5 +5,5 @@ export { GroupDetailPage } from './group-detail.page';
 export { HomepagePage } from './homepage.page';
 export { LoginPage } from './login.page';
 export { PricingPage } from './pricing.page';
-export { RegisterPage } from './register.page';
+export { RegisterPage } from '@splitifyd/test-support';
 export { SettingsPage } from './settings.page';
