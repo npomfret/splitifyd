@@ -1,13 +1,11 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, simpleTest as test } from '../../fixtures/simple-test.fixture';
-import { waitForApp } from '../../helpers';
-import { HomepagePage, PricingPage } from '../../pages';
+import { EMULATOR_URL, waitForApp } from '../../helpers';
 
 test.describe('Site Quality - Accessibility', () => {
     test('should not have critical accessibility issues', async ({ newEmptyBrowser }) => {
         const { page } = await newEmptyBrowser();
-        const homepagePage = new HomepagePage(page);
-        await homepagePage.navigateToHomepage();
+        await page.goto(EMULATOR_URL);
         await waitForApp(page);
 
         // Run basic accessibility scan
@@ -24,11 +22,9 @@ test.describe('Site Quality - Accessibility', () => {
 test.describe('Site Quality - SEO', () => {
     test('should have proper SEO elements across all pages', async ({ newEmptyBrowser }) => {
         const { page } = await newEmptyBrowser();
-        const homepagePage = new HomepagePage(page);
-        const pricingPage = new PricingPage(page);
 
         // Part 1: Homepage SEO validation
-        await homepagePage.navigateToHomepage();
+        await page.goto(EMULATOR_URL);
 
         // Title validation
         const homeTitle = await page.title();
@@ -52,7 +48,7 @@ test.describe('Site Quality - SEO', () => {
         expect(htmlLang).toBe('en');
 
         // Part 2: Pricing page SEO validation
-        await pricingPage.navigateToPricing();
+        await page.goto(`${EMULATOR_URL}/pricing`);
 
         // Title validation
         const pricingTitle = await page.title();

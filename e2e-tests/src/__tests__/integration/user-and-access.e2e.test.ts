@@ -4,8 +4,9 @@ import { ApiDriver } from '@splitifyd/test-support';
 import { JoinGroupPage } from '@splitifyd/test-support';
 import { simpleTest } from '../../fixtures';
 import { getUserPool } from '../../fixtures/user-pool.fixture';
-import { DashboardPage, GroupDetailPage, HomepagePage, LoginPage, RegisterPage, SettingsPage } from '../../pages';
+import { DashboardPage, GroupDetailPage, LoginPage, RegisterPage, SettingsPage } from '../../pages';
 import { PolicyAcceptanceModalPage } from '../../pages/policy-acceptance-modal.page';
+import { EMULATOR_URL } from '../../helpers';
 
 type DashboardNavigable = SettingsPage | GroupDetailPage;
 
@@ -240,7 +241,6 @@ simpleTest.describe('Policy Acceptance', () => {
     simpleTest.describe('Policy Page Navigation', () => {
         simpleTest('should load and navigate between policy pages without errors', async ({ newEmptyBrowser }) => {
             const { page } = await newEmptyBrowser();
-            const homepagePage = new HomepagePage(page);
 
             // Test all three policy pages load properly
             const policyPages = [
@@ -250,21 +250,21 @@ simpleTest.describe('Policy Acceptance', () => {
             ];
 
             for (const { path, heading } of policyPages) {
-                await homepagePage.navigateToStaticPath(path);
+                await page.goto(`${EMULATOR_URL}${path}`);
                 await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-                await homepagePage.getHeadingByLevel(1).filter({ hasText: heading }).first().waitFor();
+                await page.locator('h1').filter({ hasText: heading }).first().waitFor();
 
                 // Wait for policy content to fully load - the loading spinner should disappear
-                await homepagePage.verifyLoadingSpinnerHidden();
+                await expect(page.locator('.animate-spin')).toBeHidden({ timeout: 5000 });
             }
 
             // Test footer navigation from login page
-            await page.goto('/login');
-            await homepagePage.clickTermsLink();
+            await page.goto(`${EMULATOR_URL}/login`);
+            await page.getByText('Terms of Service').first().click();
             await expect(page).toHaveURL(/\/terms/);
 
-            await page.goto('/login');
-            await homepagePage.clickPrivacyLink();
+            await page.goto(`${EMULATOR_URL}/login`);
+            await page.getByText('Privacy Policy').first().click();
             await expect(page).toHaveURL(/\/privacy/);
         });
     });
@@ -546,7 +546,8 @@ simpleTest.describe('Share Link Access Management', () => {
             expect(unauthPage.url()).toContain('returnUrl');
 
             // Click on Sign Up link to go to registration
-            const registerPage = await loginPage.navigateToRegisterPage();
+            await loginPage.clickSignUp();
+            const registerPage = new RegisterPage(unauthPage);
 
             // Register new user
             const { displayName: newUserName, email: newUserEmail, password: newUserPassword } = new TestUserBuilder()

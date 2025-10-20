@@ -538,7 +538,7 @@ export class GroupDetailPage extends BasePage {
     async clickAddExpense(): Promise<void> {
         const button = this.getAddExpenseButton();
         await this.clickButton(button, { buttonName: 'Add Expense' });
-        await this.waitForNetworkIdle();
+        // Note: No waitForNetworkIdle() here - the form's waitForFormReady() handles page load
     }
 
     /**
