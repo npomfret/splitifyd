@@ -25,18 +25,16 @@
 
 ## Track B — MSW Network Mocking
 1. **Baseline MSW setup** — ✅ landed  
-   - Install MSW browser bundle and create `webapp-v2/src/test/msw/handlers.ts` describing REST endpoints (policies, groups, join, etc).  
-   - Generate the worker script during `npm run test:playwright` (e.g. via `msw init public --save`).
-2. **Boot worker in tests** — ✅ landed  
-   - In Playwright’s `page.addInitScript`, register the worker before navigation, then enable it within fixtures (`await window.__mswTestApi.start()`).  
-   - Provide helper utilities for overriding handlers per test (`msw.use(...)`).
-3. **Port existing mocks** — 🔄 in progress  
-   - Translate helpers like `mockGroupsApi`, `mockJoinGroupFailure` into MSW handler factories that return `rest.get/rest.post` handlers.  
-   - Replace direct `page.route` usage with `await msw.use(handler)` calls in tests.  
-   - ✅ Dashboard stats/pagination/auth suites plus join-group and expense-locking specs now rely solely on MSW helpers (groups metadata, share/join flows, display-name updates, expense/group detail/comments).  
-   - ⚠️ Remaining `page.route` usage is confined to the legacy register helpers inside `MockFirebase`; plan follow-up to migrate those once we have MSW coverage for auth/register endpoints.
-4. **Firestore simulation**  
-   - Keep Firestore stubs within `MockFirebase` but emit snapshots via dedicated helper (`mockFirestoreSnapshot(collection, docId, payload)`) to reduce manual `page.evaluate` calls.
+   - Created `webapp-v2/src/test/msw/handlers.ts` and `types.ts` to describe REST endpoints (policies, groups, join, etc).  
+   - Instead of shipping a browser worker we now translate these handler definitions into Playwright `page.route` interceptors so no service-worker registration is required.
+2. **Boot worker in tests** — ✅ landed *(replaced by route controller)*  
+   - The Playwright fixture wires the handler controller during `test.extend`, exposing `msw` helpers that mirror the MSW API (`start`, `use`, `resetHandlers`, `stop`).  
+   - Tests call `await msw.use(...)` to register handlers; the fixture automatically clears them between runs.
+3. **Port existing mocks** — ✅ landed  
+   - Helpers such as `mockGroupsApi`, `mockJoinGroupFailure`, and the registration flows now feed `SerializedMswHandler`s into the Playwright route controller.  
+   - All Playwright suites have been converted to `await msw.use(...)`; there are no lingering direct `page.route` hooks in tests or fixtures.
+4. **Firestore simulation** — ✅ landed  
+   - Added `MockFirebase.emitFirestoreSnapshot()` and rewired `triggerNotificationUpdate()` to use it, so tests no longer call `page.evaluate` directly when emitting snapshot updates.
 5. **Teardown**  
    - Ensure each fixture/test resets MSW handlers (`msw.resetHandlers()`), and stop the worker on fixture disposal to avoid cross-test leakage.
 
@@ -48,6 +46,8 @@
 ## Validation
 - ✅ `npm test` (2025-10-20) — passes with the new DI bridge in place.
 - ⚠️ `npm run test:unit --workspace webapp-v2` (2025-10-20) — Vite dev server failed to bind to ::1 inside the sandbox (EPERM); rerun locally outside the restricted environment.
+- ✅ `npx playwright test src/__tests__/unit/playwright/dashboard-auth-navigation.test.ts --project=chromium --workers=1` (2025-10-20) — green after adopting the MSW-backed route controller.
+- ✅ `./run-test.sh src/__tests__/unit/playwright/register-authentication.test.ts` (2025-10-20) — repeated runs green with the MSW-driven registration handlers.
 - Continue running the full Playwright suite locally to confirm end-to-end coverage.
 - Verify no console warnings about missing provider or duplicate MSW registrations.
 - Run `npm run lint` (or `dprint`) to confirm typing and formatting remain intact.

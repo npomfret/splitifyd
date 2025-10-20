@@ -8,7 +8,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.navigate();
 
         // Configure mock Firebase for registration failure
-        mockFirebase.mockRegisterFailure({
+        await mockFirebase.mockRegisterFailure({
             code: 'auth/email-already-in-use',
             message: 'An account with this email already exists.',
         });
@@ -32,7 +32,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.navigate();
 
         // First registration attempt with error
-        mockFirebase.mockRegisterFailure({
+        await mockFirebase.mockRegisterFailure({
             code: 'auth/email-already-in-use',
             message: 'An account with this email already exists.',
         });
@@ -49,7 +49,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
             .withDisplayName('John Doe')
             .withEmail('newemail@example.com')
             .build();
-        mockFirebase.mockRegisterSuccess(testUser);
+        await mockFirebase.mockRegisterSuccess(testUser);
 
         // Refill email and submit again
         await registerPage.fillEmail('newemail@example.com');
@@ -206,7 +206,7 @@ test.describe('Registration Form Error Display and Recovery', () => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
-        mockFirebase.mockRegisterFailure({
+        await mockFirebase.mockRegisterFailure({
             code: 'auth/passwords-mismatch',
             message: 'Passwords do not match',
         });
@@ -230,7 +230,7 @@ test.describe('Registration Form Error Display and Recovery', () => {
         // Test 1: Short password error
         await registerPage.navigate();
 
-        mockFirebase.mockRegisterFailure({
+        await mockFirebase.mockRegisterFailure({
             code: 'auth/weak-password',
             message: 'Password must be at least 6 characters',
         });
@@ -257,7 +257,7 @@ test.describe('Registration Form Error Display and Recovery', () => {
         await registerPage.navigate();
 
         // Configure mock to return email-already-in-use error
-        mockFirebase.mockRegisterFailure({
+        await mockFirebase.mockRegisterFailure({
             code: 'auth/email-already-in-use',
             message: 'This email is already registered.',
         });
@@ -281,7 +281,7 @@ test.describe('Registration Form Loading States', () => {
         const registerPage = new RegisterPage(page);
 
         // Mock registration with delay to see loading state
-        mockFirebase.mockRegisterWithDelay(testUser, 1000);
+        await mockFirebase.mockRegisterWithDelay(testUser, 1000);
 
         await registerPage.navigate();
 
@@ -306,7 +306,7 @@ test.describe('Registration Form Loading States', () => {
             .build();
         const registerPage = new RegisterPage(page);
 
-        mockFirebase.mockRegisterWithDelay(testUser, 1000);
+        await mockFirebase.mockRegisterWithDelay(testUser, 1000);
 
         await registerPage.navigate();
 
@@ -332,7 +332,7 @@ test.describe('Registration Form Loading States', () => {
         await registerPage.navigate();
 
         // Configure mock for failure
-        mockFirebase.mockRegisterFailure({
+        await mockFirebase.mockRegisterFailure({
             code: 'auth/network-request-failed',
             message: 'Network error occurred.',
         });

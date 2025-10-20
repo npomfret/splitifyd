@@ -1,7 +1,8 @@
 import { FirebaseService } from '@/app/firebase.ts';
-import type { Page, Route } from '@playwright/test';
+import type { Page, Response, Route } from '@playwright/test';
 import { ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
 import {
+    firebaseInitConfigHandler,
     acceptedPoliciesHandler,
     createJsonHandler,
     generateShareLinkHandler,
@@ -10,6 +11,8 @@ import {
     groupPreviewHandler,
     groupsMetadataHandler,
     joinGroupHandler,
+    registerFailureHandler,
+    registerSuccessHandler,
     policiesStatusHandler,
 } from '@/test/msw/handlers.ts';
 import type { SerializedMswHandler } from '@/test/msw/types.ts';
@@ -117,22 +120,20 @@ export class MockFirebase {
         this.initialized = true;
     }
 
+    private async updateAuthState(user: ClientUser | null): Promise<void> {
+        this.state.currentUser = user;
+        await this.page.evaluate((nextUser) => {
+            window.__TEST_ENV__!.firebase.currentUser = nextUser;
+            if (window.__TEST_ENV__!.firebase.authCallback) {
+                const token = nextUser ? `mock-token-for-${nextUser.uid}` : null;
+                window.__TEST_ENV__!.firebase.authCallback(nextUser, token);
+            }
+        }, user);
+    }
+
     private async createBrowserGlobals(initialUser: ClientUser | null): Promise<void> {
         // Mock Firebase config endpoint to prevent "Failed to fetch config" errors
-        await this.page.route('**/__/firebase/init.json*', (route) => {
-            route.fulfill({
-                status: 200,
-                contentType: 'application/x-serialized-json',
-                body: ApiSerializer.serialize({
-                    apiKey: 'mock-api-key',
-                    authDomain: 'mock-project.firebaseapp.com',
-                    projectId: 'mock-project',
-                    storageBucket: 'mock-project.appspot.com',
-                    messagingSenderId: '123456789',
-                    appId: '1:123456789:web:abcdef',
-                }),
-            });
-        });
+        await registerMswHandlers(this.page, firebaseInitConfigHandler());
 
         await this.page.addInitScript((initialUser: any) => {
             const mockService: FirebaseService = {
@@ -216,16 +217,7 @@ export class MockFirebase {
                 await new Promise((resolve) => setTimeout(resolve, this.state.delayMs));
             }
 
-            this.state.currentUser = this.state.successUser;
-
-            // Trigger auth state change with the logged-in user
-            await this.page.evaluate((user) => {
-                window.__TEST_ENV__!.firebase.currentUser = user;
-                if (window.__TEST_ENV__!.firebase.authCallback) {
-                    const token = user ? `mock-token-for-${user.uid}` : null;
-                    window.__TEST_ENV__!.firebase.authCallback(user, token);
-                }
-            }, this.state.currentUser);
+            await this.updateAuthState(this.state.successUser);
             return;
         }
 
@@ -233,13 +225,7 @@ export class MockFirebase {
     }
 
     private async handleSignOut(): Promise<void> {
-        this.state.currentUser = null;
-        await this.page.evaluate(() => {
-            window.__TEST_ENV__!.firebase.currentUser = null;
-            if (window.__TEST_ENV__!.firebase.authCallback) {
-                window.__TEST_ENV__!.firebase.authCallback(null, null);
-            }
-        });
+        await this.updateAuthState(null);
     }
 
     public mockLoginSuccess(user: ClientUser): void {
@@ -265,89 +251,34 @@ export class MockFirebase {
      * Mock successful registration - sets up /register API endpoint to succeed
      * and automatically triggers authentication after success
      */
-    public mockRegisterSuccess(user: ClientUser): void {
-        this.page.route('/api/register', async (route) => {
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/x-serialized-json',
-                body: ApiSerializer.serialize({
-                    success: true,
-                    user: {
-                        uid: user.uid,
-                        email: user.email,
-                        displayName: user.displayName,
-                    },
-                }),
-            });
-
-            // After successful registration, trigger auth state change
-            this.state.currentUser = user;
-            await this.page.evaluate((user) => {
-                window.__TEST_ENV__!.firebase.currentUser = user;
-                if (window.__TEST_ENV__!.firebase.authCallback) {
-                    const token = user ? `mock-token-for-${user.uid}` : null;
-                    window.__TEST_ENV__!.firebase.authCallback(user, token);
-                }
-            }, user);
-        });
+    public async mockRegisterSuccess(user: ClientUser): Promise<void> {
+        await this.registerSuccessHandler(user, {});
     }
 
     /**
      * Mock failed registration - sets up /register API endpoint to fail with error
      */
-    public mockRegisterFailure(error: AuthError): void {
-        this.page.route('/api/register', (route) => {
-            route.fulfill({
-                status: 400,
-                contentType: 'application/x-serialized-json',
-                body: ApiSerializer.serialize({
-                    error: error.message,
-                    code: error.code,
-                }),
-            });
-        });
+    public async mockRegisterFailure(error: AuthError): Promise<void> {
+        await registerMswHandlers(this.page, registerFailureHandler(error, { once: true }));
     }
 
     /**
      * Mock registration with delay - useful for testing loading states
      */
-    public mockRegisterWithDelay(user: ClientUser, delayMs: number): void {
-        this.page.route('/api/register', async (route) => {
-            // Wait for specified delay
-            await this.page.waitForTimeout(delayMs);
-
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/x-serialized-json',
-                body: ApiSerializer.serialize({
-                    success: true,
-                    user: {
-                        uid: user.uid,
-                        email: user.email,
-                        displayName: user.displayName,
-                    },
-                }),
-            });
-
-            // After successful registration, trigger auth state change
-            this.state.currentUser = user;
-            await this.page.evaluate((user) => {
-                window.__TEST_ENV__!.firebase.currentUser = user;
-                if (window.__TEST_ENV__!.firebase.authCallback) {
-                    const token = user ? `mock-token-for-${user.uid}` : null;
-                    window.__TEST_ENV__!.firebase.authCallback(user, token);
-                }
-            }, user);
-        });
+    public async mockRegisterWithDelay(user: ClientUser, delayMs: number): Promise<void> {
+        await this.registerSuccessHandler(user, { delayMs });
     }
 
     public async triggerNotificationUpdate(userId: string, data: any): Promise<void> {
+        await this.emitFirestoreSnapshot('user-notifications', userId, data);
+    }
+
+    public async emitFirestoreSnapshot(collection: string, documentId: string, data: any): Promise<void> {
         await this.page.evaluate(
-            ({ userId, data }) => {
-                const path = `user-notifications/${userId}`;
+            ({ collection, documentId, data }) => {
+                const path = `${collection}/${documentId}`;
                 const listener = window.__TEST_ENV__!.firebase.firestoreListeners.get(path);
                 if (listener) {
-                    // Create a mock snapshot with the notification data
                     const mockSnapshot = {
                         exists: () => data !== null,
                         data: () => data,
@@ -355,8 +286,35 @@ export class MockFirebase {
                     listener(mockSnapshot);
                 }
             },
-            { userId, data },
+            { collection, documentId, data },
         );
+    }
+
+    private async registerSuccessHandler(user: ClientUser, options: { delayMs?: number; }): Promise<void> {
+        this.state.loginBehavior = 'success';
+        this.state.successUser = user;
+        this.state.failureError = null;
+
+        await registerMswHandlers(
+            this.page,
+            registerSuccessHandler(user, {
+                once: true,
+                delayMs: options.delayMs,
+            }),
+        );
+
+        const registerUrl = '/api/register';
+        const listener = async (response: Response) => {
+            try {
+                if (response.url().endsWith(registerUrl) && response.request().method() === 'POST' && response.status() === 200) {
+                    await this.updateAuthState(user);
+                }
+            } finally {
+                this.page.off('response', listener);
+            }
+        };
+
+        this.page.on('response', listener);
     }
 
     public async dispose(): Promise<void> {

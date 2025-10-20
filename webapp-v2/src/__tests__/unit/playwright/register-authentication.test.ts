@@ -13,7 +13,7 @@ test.describe('Registration Authentication Flow', () => {
         const registerPage = new RegisterPage(page);
 
         // 2. Configure mock Firebase for successful registration
-        mockFirebase.mockRegisterSuccess(testUser);
+        await mockFirebase.mockRegisterSuccess(testUser);
 
         // 3. Navigate to register page and verify it loaded
         await registerPage.navigate();
@@ -33,7 +33,7 @@ test.describe('Registration Authentication Flow', () => {
         await registerPage.navigate();
 
         // 2. Configure mock Firebase for duplicate email error
-        mockFirebase.mockRegisterFailure({
+        await mockFirebase.mockRegisterFailure({
             code: 'auth/email-already-in-use',
             message: 'An account with this email already exists.',
         });
@@ -52,7 +52,7 @@ test.describe('Registration Authentication Flow', () => {
         await registerPage.navigate();
 
         // 2. Configure mock Firebase for network error
-        mockFirebase.mockRegisterFailure({
+        await mockFirebase.mockRegisterFailure({
             code: 'auth/network-request-failed',
             message: 'Network error. Please check your connection.',
         });
@@ -70,7 +70,7 @@ test.describe('Registration Authentication Flow', () => {
         await registerPage.navigate();
 
         // Configure mock Firebase for weak password error
-        mockFirebase.mockRegisterFailure({
+        await mockFirebase.mockRegisterFailure({
             code: 'auth/weak-password',
             message: 'Password is too weak. Please choose a stronger password.',
         });
@@ -88,7 +88,7 @@ test.describe('Registration Authentication Flow', () => {
         await registerPage.navigate();
 
         // Configure mock Firebase for invalid email error from backend
-        mockFirebase.mockRegisterFailure({
+        await mockFirebase.mockRegisterFailure({
             code: 'auth/invalid-email',
             message: 'This email address is invalid.',
         });
@@ -133,7 +133,7 @@ test.describe('Registration Flow - Already Authenticated', () => {
             .build();
         const registerPage = new RegisterPage(page);
 
-        mockFirebase.mockRegisterSuccess(testUser);
+        await mockFirebase.mockRegisterSuccess(testUser);
 
         const returnUrl = '/groups/test-group-id';
         await page.goto(`/register?returnUrl=${encodeURIComponent(returnUrl)}`);
@@ -154,7 +154,7 @@ test.describe('Registration Flow - Already Authenticated', () => {
             .build();
         const registerPage = new RegisterPage(page);
 
-        mockFirebase.mockRegisterSuccess(testUser);
+        await mockFirebase.mockRegisterSuccess(testUser);
 
         await registerPage.navigate();
 
@@ -174,7 +174,7 @@ test.describe('Registration Form - Loading and Disabled States', () => {
         const registerPage = new RegisterPage(page);
 
         // Configure mock with delayed response to test loading state
-        mockFirebase.mockRegisterWithDelay(testUser, 1000);
+        await mockFirebase.mockRegisterWithDelay(testUser, 1000);
 
         await registerPage.navigate();
 
@@ -227,7 +227,7 @@ test.describe('Registration Form - Loading and Disabled States', () => {
             .validUser()
             .build();
         const registerPage = new RegisterPage(page);
-        mockFirebase.mockRegisterWithDelay(testUser, 1000);
+        await mockFirebase.mockRegisterWithDelay(testUser, 1000);
 
         await registerPage.navigate();
 

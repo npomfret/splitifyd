@@ -1,5 +1,4 @@
-import type { GroupId } from '@splitifyd/shared';
-import type { ListGroupsResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
+import type { ClientUser, GroupId, ListGroupsResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
 import type { HttpMethod, SerializedBodyMatcher, SerializedMswHandler, UrlMatchKind } from './types.ts';
 
 export interface HandlerOptions {
@@ -122,4 +121,59 @@ export function joinGroupHandler(
     options: HandlerOptions = {},
 ): SerializedMswHandler {
     return createJsonHandler('POST', '/api/groups/join', response, options);
+}
+
+export function registerSuccessHandler(
+    user: ClientUser,
+    options: HandlerOptions = {},
+): SerializedMswHandler {
+    return createJsonHandler(
+        'POST',
+        '/api/register',
+        {
+            success: true,
+            message: 'Registration successful',
+            user: {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+            },
+        },
+        options,
+    );
+}
+
+export function registerFailureHandler(
+    error: { code: string; message: string; },
+    options: HandlerOptions = {},
+): SerializedMswHandler {
+    const { status = 400, ...rest } = options;
+    return createJsonHandler(
+        'POST',
+        '/api/register',
+        {
+            error: error.message,
+            code: error.code,
+        },
+        {
+            status,
+            ...rest,
+        },
+    );
+}
+
+export function firebaseInitConfigHandler(options: HandlerOptions = {}): SerializedMswHandler {
+    return createJsonHandler(
+        'GET',
+        '/__/firebase/init.json',
+        {
+            apiKey: 'mock-api-key',
+            authDomain: 'mock-project.firebaseapp.com',
+            projectId: 'mock-project',
+            storageBucket: 'mock-project.appspot.com',
+            messagingSenderId: '123456789',
+            appId: '1:123456789:web:abcdef',
+        },
+        options,
+    );
 }

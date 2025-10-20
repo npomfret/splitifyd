@@ -63,7 +63,7 @@ test.describe('Registration Form Validation', () => {
 
         await registerPage.navigate();
 
-        mockFirebase.mockRegisterFailure({
+        await mockFirebase.mockRegisterFailure({
             code: 'auth/passwords-mismatch',
             message: 'Passwords do not match',
         });
@@ -80,7 +80,7 @@ test.describe('Registration Form Validation', () => {
 
         await registerPage.navigate();
 
-        mockFirebase.mockRegisterFailure({
+        await mockFirebase.mockRegisterFailure({
             code: 'auth/weak-password',
             message: 'Password must be at least 6 characters',
         });

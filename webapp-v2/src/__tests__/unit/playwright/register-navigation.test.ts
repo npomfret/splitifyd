@@ -67,7 +67,7 @@ test.describe('Registration Success Navigation', () => {
             .build();
         const registerPage = new RegisterPage(page);
 
-        mockFirebase.mockRegisterSuccess(testUser);
+        await mockFirebase.mockRegisterSuccess(testUser);
 
         await registerPage.navigate();
 
@@ -85,7 +85,7 @@ test.describe('Registration Success Navigation', () => {
         const registerPage = new RegisterPage(page);
         const returnUrl = '/groups/target-group';
 
-        mockFirebase.mockRegisterSuccess(testUser);
+        await mockFirebase.mockRegisterSuccess(testUser);
 
         // Navigate to register with returnUrl
         await page.goto(`/register?returnUrl=${encodeURIComponent(returnUrl)}`);
@@ -107,7 +107,7 @@ test.describe('Registration Success Navigation', () => {
         const registerPage = new RegisterPage(page);
         const returnUrl = '/groups/test-group-id?tab=expenses';
 
-        mockFirebase.mockRegisterSuccess(testUser);
+        await mockFirebase.mockRegisterSuccess(testUser);
 
         // Navigate with encoded returnUrl
         await page.goto(`/register?returnUrl=${encodeURIComponent(returnUrl)}`);
@@ -128,7 +128,7 @@ test.describe('Registration Success Navigation', () => {
             .build();
         const registerPage = new RegisterPage(page);
 
-        mockFirebase.mockRegisterSuccess(testUser);
+        await mockFirebase.mockRegisterSuccess(testUser);
 
         // Navigate with empty returnUrl parameter
         await page.goto('/register?returnUrl=');
@@ -176,7 +176,7 @@ test.describe('Registration Page State Persistence', () => {
             .build();
         const registerPage = new RegisterPage(page);
 
-        mockFirebase.mockRegisterSuccess(testUser);
+        await mockFirebase.mockRegisterSuccess(testUser);
 
         await registerPage.navigate();
 
@@ -196,7 +196,7 @@ test.describe('Registration Page State Persistence', () => {
             .build();
         const registerPage = new RegisterPage(page);
 
-        mockFirebase.mockRegisterSuccess(testUser);
+        await mockFirebase.mockRegisterSuccess(testUser);
 
         await registerPage.navigate();
 
@@ -219,7 +219,7 @@ test.describe('Registration Page Error Recovery', () => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
-        mockFirebase.mockRegisterFailure({
+        await mockFirebase.mockRegisterFailure({
             code: 'auth/passwords-mismatch',
             message: 'Passwords do not match',
         });
@@ -240,7 +240,7 @@ test.describe('Registration Page Error Recovery', () => {
         await registerPage.navigate();
 
         // Configure network error
-        mockFirebase.mockRegisterFailure({
+        await mockFirebase.mockRegisterFailure({
             code: 'auth/network-request-failed',
             message: 'Network error occurred.',
         });
@@ -264,7 +264,7 @@ test.describe('Registration Page Error Recovery', () => {
         await registerPage.navigate();
 
         // First attempt fails
-        mockFirebase.mockRegisterFailure({
+        await mockFirebase.mockRegisterFailure({
             code: 'auth/email-already-in-use',
             message: 'Email already registered.',
         });
@@ -280,7 +280,7 @@ test.describe('Registration Page Error Recovery', () => {
             .withDisplayName('John Doe')
             .withEmail('newemail@example.com')
             .build();
-        mockFirebase.mockRegisterSuccess(testUser);
+        await mockFirebase.mockRegisterSuccess(testUser);
 
         // Retry with different email
         await registerPage.fillEmail('newemail@example.com');
