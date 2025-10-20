@@ -1,35 +1,7 @@
 import { ExpenseDTOBuilder, ExpenseFullDetailsBuilder, GroupDTOBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
-import { ExpenseId } from "@splitifyd/shared";
-import { fulfillWithSerialization } from '../../utils/mock-firebase-service';
-
-/**
- * Helper function to mock the expense full-details API endpoint
- */
-async function mockExpenseDetailApi(page: any, expenseId: ExpenseId, response: any): Promise<void> {
-    await page.route(`/api/expenses/${expenseId}/full-details`, async (route: any) => {
-        await fulfillWithSerialization(route, { body: response });
-    });
-}
-
-/**
- * Helper function to mock the expense comments API endpoint
- */
-async function mockExpenseCommentsApi(page: any, expenseId: ExpenseId, comments: any[] = []): Promise<void> {
-    await page.route(`/api/expenses/${expenseId}/comments`, async (route: any) => {
-        await fulfillWithSerialization(route, {
-            body: {
-                success: true,
-                data: {
-                    comments,
-                    count: comments.length,
-                    hasMore: false,
-                },
-            },
-        });
-    });
-}
+import { mockExpenseCommentsApi, mockExpenseDetailApi } from '../../utils/mock-firebase-service';
 
 test.describe('Expense Detail - Locked Expense UI', () => {
     test('should display lock warning banner when expense is locked', async ({ authenticatedPage }) => {

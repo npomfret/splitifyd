@@ -103,7 +103,50 @@ else
 fi
 
 # Build the command
-CMD="PLAYWRIGHT_HTML_OPEN=never npx playwright test \"${TEST_PATH}\" --project=chromium --workers=1"
+HOST="${PLAYWRIGHT_DEV_HOST:-127.0.0.1}"
+if [ -n "${PLAYWRIGHT_DEV_PORT}" ]; then
+    DEV_PORT="${PLAYWRIGHT_DEV_PORT}"
+else
+    DEV_PORT=$(( (RANDOM % 10000) + 40000 ))
+fi
+
+SERVER_LOG=$(mktemp -t playwright-dev-XXXX.log)
+SERVER_PID=""
+
+cleanup() {
+    if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then
+        kill "$SERVER_PID" >/dev/null 2>&1 || true
+        wait "$SERVER_PID" 2>/dev/null || true
+    fi
+    if [ -f "$SERVER_LOG" ]; then
+        rm -f "$SERVER_LOG"
+    fi
+}
+
+start_dev_server() {
+    npm run dev -- --host "$HOST" --port "$DEV_PORT" >"$SERVER_LOG" 2>&1 &
+    SERVER_PID=$!
+
+    ATTEMPTS=0
+    MAX_ATTEMPTS=120
+    until curl -s "http://${HOST}:${DEV_PORT}/" >/dev/null 2>&1; do
+        ATTEMPTS=$((ATTEMPTS + 1))
+        if [ "$ATTEMPTS" -ge "$MAX_ATTEMPTS" ]; then
+            echo -e "${RED}Failed to start dev server on http://${HOST}:${DEV_PORT}/${NC}"
+            echo -e "${YELLOW}Server log:${NC}"
+            cat "$SERVER_LOG"
+            cleanup
+            exit 1
+        fi
+        sleep 0.25
+    done
+}
+
+trap cleanup EXIT
+
+start_dev_server
+
+CMD="PLAYWRIGHT_EXTERNAL_SERVER=1 PLAYWRIGHT_DEV_PORT=${DEV_PORT} PLAYWRIGHT_HTML_OPEN=never npx playwright test \"${TEST_PATH}\" --project=chromium --workers=1"
 
 # Add test name filter if provided
 if [ -n "$TEST_NAME" ]; then

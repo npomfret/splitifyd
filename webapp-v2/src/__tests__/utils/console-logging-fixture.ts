@@ -1,7 +1,9 @@
 import { Page, test as base } from '@playwright/test';
-import { ClientUser } from '@splitifyd/shared';
+import type { Request as PlaywrightRequest, Route } from '@playwright/test';
+import { ApiSerializer, ClientUser } from '@splitifyd/shared';
 import { ClientUserBuilder } from '@splitifyd/test-support';
 import * as fs from 'fs';
+import type { ActiveHandlerSummary, SerializedBodyMatcher, SerializedMswHandler } from '@/test/msw/types.ts';
 import { createMockFirebase, MockFirebase, mockFullyAcceptedPoliciesApi } from './mock-firebase-service';
 import { createConsoleLogPath, createScreenshotPath, createTestDirectory, logTestArtifactPaths } from './test-utils';
 
@@ -9,12 +11,250 @@ import { createConsoleLogPath, createScreenshotPath, createTestDirectory, logTes
  * Extended test fixture that provides automatic console logging and enhanced failure handling
  */
 
+type MswController = {
+    start(): Promise<void>;
+    use(handler: SerializedMswHandler | SerializedMswHandler[]): Promise<void>;
+    resetHandlers(): Promise<void>;
+    stop(): Promise<void>;
+    listHandlers(): Promise<ActiveHandlerSummary[]>;
+};
+
 type ConsoleLoggingFixtures = {
     pageWithLogging: Page;
     mockFirebase: MockFirebase;
     authenticatedMockFirebase: (user: ClientUser) => Promise<MockFirebase>;
     authenticatedPage: { page: Page; user: ClientUser; mockFirebase: MockFirebase; };
+    msw: MswController;
 };
+
+type ActiveHandler = SerializedMswHandler & { id: string; remainingUses: number };
+
+let handlerSequence = 0;
+
+function ensureArray<T>(value: T | T[]): T[] {
+    return Array.isArray(value) ? value : [value];
+}
+
+function deepEqual(a: unknown, b: unknown): boolean {
+    if (Object.is(a, b)) {
+        return true;
+    }
+
+    if (typeof a !== typeof b) {
+        return false;
+    }
+
+    if (Array.isArray(a) && Array.isArray(b)) {
+        if (a.length !== b.length) {
+            return false;
+        }
+        return a.every((value, index) => deepEqual(value, b[index]));
+    }
+
+    if (typeof a === 'object' && a !== null && b !== null && !Array.isArray(a) && !Array.isArray(b)) {
+        const aEntries = Object.entries(a as Record<string, unknown>);
+        const bEntries = Object.entries(b as Record<string, unknown>);
+
+        if (aEntries.length !== bEntries.length) {
+            return false;
+        }
+
+        for (const [key, value] of aEntries) {
+            if (!deepEqual(value, (b as Record<string, unknown>)[key])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    return false;
+}
+
+function matchesJsonSubset(candidate: unknown, subset: Record<string, unknown>): boolean {
+    if (typeof candidate !== 'object' || candidate === null) {
+        return false;
+    }
+
+    for (const [key, value] of Object.entries(subset)) {
+        if (!(key in candidate) || !deepEqual((candidate as Record<string, unknown>)[key], value)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+async function matchesBody(request: PlaywrightRequest, matcher?: SerializedBodyMatcher): Promise<boolean> {
+    if (!matcher) {
+        return true;
+    }
+
+    const payload = request.postData();
+    if (payload === null) {
+        return false;
+    }
+
+    try {
+        switch (matcher.type) {
+            case 'json-equals': {
+                const json = request.postDataJSON();
+                return deepEqual(json, matcher.value);
+            }
+            case 'json-subset': {
+                const json = request.postDataJSON();
+                return matchesJsonSubset(json, matcher.subset);
+            }
+            case 'text-equals':
+                return payload === matcher.value;
+            default:
+                return false;
+        }
+    } catch {
+        return false;
+    }
+}
+
+function matchesQuery(url: URL, query?: Record<string, string>): boolean {
+    if (!query) {
+        return true;
+    }
+
+    for (const [key, value] of Object.entries(query)) {
+        if (url.searchParams.get(key) !== value) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function shouldHandleUrl(url: URL, handler: SerializedMswHandler): boolean {
+    const target = handler.url;
+    const kind = handler.urlKind ?? 'exact';
+
+    switch (kind) {
+        case 'regex':
+            return new RegExp(target).test(url.pathname);
+        case 'prefix':
+            return url.pathname.startsWith(target);
+        default:
+            return url.pathname === target;
+    }
+}
+
+function normalizeHandler(handler: SerializedMswHandler): ActiveHandler {
+    const id = handler.id ?? `msw-handler-${++handlerSequence}`;
+    return {
+        ...handler,
+        id,
+        urlKind: handler.urlKind ?? 'exact',
+        remainingUses: handler.once ? 1 : Number.POSITIVE_INFINITY,
+        response: {
+            contentType: 'application/x-serialized-json',
+            ...handler.response,
+        },
+    };
+}
+
+function buildFulfillOptions(handler: SerializedMswHandler) {
+    const status = handler.response.status ?? 200;
+    const headers = { ...(handler.response.headers ?? {}) };
+    const contentType = handler.response.contentType ?? 'application/x-serialized-json';
+
+    if (!headers['content-type']) {
+        headers['content-type'] = contentType;
+    }
+
+    if (handler.response.rawBody !== undefined) {
+        return { status, headers, body: handler.response.rawBody };
+    }
+
+    const body = handler.response.body !== undefined ? ApiSerializer.serialize(handler.response.body) : '';
+    return { status, headers, body };
+}
+
+function createMswController(page: Page): MswController {
+    const handlers: ActiveHandler[] = [];
+    let routeHandler: ((route: Route, request: PlaywrightRequest) => Promise<void>) | null = null;
+
+    return {
+        async start() {
+            if (routeHandler) {
+                return;
+            }
+
+            routeHandler = async (route, request) => {
+                const url = new URL(request.url());
+
+                for (let index = 0; index < handlers.length; index++) {
+                    const handler = handlers[index];
+
+                    if (handler.method !== request.method()) {
+                        continue;
+                    }
+
+                    if (!shouldHandleUrl(url, handler) || !matchesQuery(url, handler.query)) {
+                        continue;
+                    }
+
+                    if (!(await matchesBody(request, handler.bodyMatcher))) {
+                        continue;
+                    }
+
+                    if (handler.delayMs && handler.delayMs > 0) {
+                        await new Promise((resolve) => setTimeout(resolve, handler.delayMs));
+                    }
+
+                    const fulfillOptions = buildFulfillOptions(handler);
+                    await route.fulfill(fulfillOptions);
+
+                    if (handler.remainingUses !== Number.POSITIVE_INFINITY) {
+                        handler.remainingUses -= 1;
+                        if (handler.remainingUses <= 0) {
+                            handlers.splice(index, 1);
+                        }
+                    }
+
+                    return;
+                }
+
+                await route.continue();
+            };
+
+            await page.route('**', routeHandler);
+        },
+        async use(handler) {
+            const normalizedHandlers = ensureArray(handler).map(normalizeHandler);
+            for (const normalized of normalizedHandlers) {
+                handlers.unshift(normalized);
+            }
+        },
+        async resetHandlers() {
+            handlers.length = 0;
+        },
+        async stop() {
+            handlers.length = 0;
+
+            if (!routeHandler) {
+                return;
+            }
+
+            await page.unroute('**', routeHandler);
+            routeHandler = null;
+        },
+        async listHandlers() {
+            const summaries: ActiveHandlerSummary[] = [];
+            for (const handler of handlers) {
+                summaries.push({
+                    id: handler.id ?? 'unknown',
+                    method: handler.method,
+                    url: handler.url,
+                    urlKind: handler.urlKind ?? 'exact',
+                });
+            }
+            return summaries;
+        },
+    };
+}
 
 // Add an afterEach hook to handle final reporting
 base.afterEach(async ({}, testInfo) => {
@@ -80,6 +320,22 @@ base.afterEach(async ({}, testInfo) => {
 });
 
 export const test = base.extend<ConsoleLoggingFixtures>({
+    msw: async ({ page }, use) => {
+        const controller = createMswController(page);
+        (page as any).__mswController = controller;
+
+        await controller.start();
+        await controller.resetHandlers();
+
+        try {
+            await use(controller);
+        } finally {
+            await controller.resetHandlers();
+            await controller.stop();
+            delete (page as any).__mswController;
+        }
+    },
+
     /**
      * Mock Firebase fixture - automatically disposed after each test
      * Starts with no authenticated user (logged out state)
@@ -135,7 +391,9 @@ export const test = base.extend<ConsoleLoggingFixtures>({
         await mockFirebase.dispose();
     },
 
-    pageWithLogging: async ({ page }, use, testInfo) => {
+    pageWithLogging: async ({ page, msw }, use, testInfo) => {
+        await msw.resetHandlers();
+
         // Create test-specific directory
         const testDir = createTestDirectory(testInfo);
         const consoleLogPath = createConsoleLogPath(testDir);

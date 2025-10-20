@@ -1,27 +1,18 @@
 import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { fulfillWithSerialization, mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
+import { mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
 test.describe('Dashboard Stats Display', () => {
     test('should display loading skeleton while groups are loading', async ({ authenticatedPage }) => {
         const { page } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
-        // Mock delayed API response to see loading state - use function-based routing to match all variants
-        await page.route(
-            (routeUrl) => {
-                if (routeUrl.pathname !== '/api/groups') return false;
-                const searchParams = new URL(routeUrl.href).searchParams;
-                return searchParams.get('includeMetadata') === 'true';
-            },
-            async (route) => {
-                await page.waitForTimeout(1000);
-                await fulfillWithSerialization(route, {
-                    body: ListGroupsResponseBuilder
-                        .responseWithMetadata([])
-                        .build(),
-                });
-            },
+        await mockGroupsApi(
+            page,
+            ListGroupsResponseBuilder
+                .responseWithMetadata([])
+                .build(),
+            { delayMs: 1000 },
         );
 
         await dashboardPage.navigate();
@@ -136,11 +127,6 @@ test.describe('Dashboard Stats Display', () => {
             .build();
         const updatedGroups = [...initialGroups, newGroup];
 
-        await page.unroute((routeUrl) => {
-            if (routeUrl.pathname !== '/api/groups') return false;
-            const searchParams = new URL(routeUrl.href).searchParams;
-            return searchParams.get('includeMetadata') === 'true';
-        });
         await mockGroupsApi(
             page,
             ListGroupsResponseBuilder
@@ -213,11 +199,6 @@ test.describe('Dashboard Stats Display', () => {
         // Simulate removing a group
         const remainingGroups = initialGroups.slice(0, 2);
 
-        await page.unroute((routeUrl) => {
-            if (routeUrl.pathname !== '/api/groups') return false;
-            const searchParams = new URL(routeUrl.href).searchParams;
-            return searchParams.get('includeMetadata') === 'true';
-        });
         await mockGroupsApi(
             page,
             ListGroupsResponseBuilder

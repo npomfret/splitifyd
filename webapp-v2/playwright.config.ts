@@ -1,5 +1,17 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const DEV_SERVER_HOST = '127.0.0.1';
+const ASSIGNED_PORT =
+    process.env.PLAYWRIGHT_DEV_PORT ??
+    process.env.PLAYWRIGHT_ASSIGNED_PORT ??
+    String(40000 + Math.floor(Math.random() * 10000));
+
+process.env.PLAYWRIGHT_ASSIGNED_PORT = ASSIGNED_PORT;
+
+const DEV_SERVER_PORT = Number(ASSIGNED_PORT);
+const USE_EXTERNAL_SERVER = process.env.PLAYWRIGHT_EXTERNAL_SERVER === '1';
+const DEV_SERVER_BASE_URL = `http://${DEV_SERVER_HOST}:${DEV_SERVER_PORT}`;
+
 /**
  * Playwright configuration for webapp-v2 unit tests
  * Separate from e2e-tests to allow faster individual test execution
@@ -40,8 +52,7 @@ export default defineConfig({
 
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {
-        /* Base URL will be set automatically by webServer random port */
-
+        baseURL: DEV_SERVER_BASE_URL,
         /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
         trace: 'on-first-retry',
 
@@ -52,11 +63,6 @@ export default defineConfig({
         headless: true,
         actionTimeout: 1000,
         navigationTimeout: 3000,
-
-        /* Expect timeout to match action timeout */
-        expect: {
-            timeout: 1000,
-        },
 
         /* Clean browser state between tests for isolation */
         storageState: undefined, // No persistent storage across tests
@@ -75,10 +81,12 @@ export default defineConfig({
     ],
 
     /* Run your local dev server before starting the tests */
-    webServer: {
-        command: 'npm run dev',
-        port: 5173, // Will auto-increment if port is taken
-        reuseExistingServer: !process.env.CI, // Only reuse in local development
-        timeout: 120 * 1000, // 2 minutes to start server
-    },
+    webServer: USE_EXTERNAL_SERVER
+        ? undefined
+        : {
+            command: `npm run dev -- --host ${DEV_SERVER_HOST} --port ${DEV_SERVER_PORT}`,
+            url: DEV_SERVER_BASE_URL,
+            reuseExistingServer: !process.env.CI, // Only reuse in local development
+            timeout: 120 * 1000, // 2 minutes to start server
+        },
 });

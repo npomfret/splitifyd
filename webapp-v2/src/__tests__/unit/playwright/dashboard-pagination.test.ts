@@ -1,6 +1,6 @@
 import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { fulfillWithSerialization, mockGroupsApi } from '../../utils/mock-firebase-service';
+import { mockCreateGroupApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
 test.describe('Dashboard Groups Pagination', () => {
     test('should not show pagination controls when groups fit on one page', async ({ authenticatedPage }) => {
@@ -89,10 +89,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .withName(`Page 2 Group ${i + 1}`)
                 .build());
 
-        // Unroute all previous handlers
-        await page.unroute('**/api/groups*');
-
-        // Setup new route for page 2
+        // Setup new handler for page 2
         await mockGroupsApi(
             page,
             ListGroupsResponseBuilder
@@ -141,10 +138,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .withName(`Page 2 Group ${i + 1}`)
                 .build());
 
-        // Unroute all previous handlers
-        await page.unroute('**/api/groups*');
-
-        // Setup route for page 2
+        // Setup new handler for page 2
         await mockGroupsApi(
             page,
             ListGroupsResponseBuilder
@@ -158,10 +152,7 @@ test.describe('Dashboard Groups Pagination', () => {
         await dashboardPage.verifyGroupDisplayed('Page 2 Group 1');
         await dashboardPage.verifyGroupsDisplayed(5);
 
-        // Unroute all previous handlers
-        await page.unroute('**/api/groups*');
-
-        // Setup route for going back to page 1
+        // Setup new handler for going back to page 1
         await mockGroupsApi(
             page,
             ListGroupsResponseBuilder
@@ -237,10 +228,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .withName(`Page 2 Group ${i + 1}`)
                 .build());
 
-        // Unroute all previous handlers
-        await page.unroute('**/api/groups*');
-
-        // Setup delayed route for page 2 to test loading state
+        // Setup delayed handler for page 2 to test loading state
         await mockGroupsApi(
             page,
             ListGroupsResponseBuilder
@@ -296,10 +284,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .withName(`Page 2 Group ${i + 1}`)
                 .build());
 
-        // Unroute all previous handlers
-        await page.unroute('**/api/groups*');
-
-        // Setup route for page 2
+        // Setup handler for page 2
         await mockGroupsApi(
             page,
             ListGroupsResponseBuilder
@@ -319,10 +304,7 @@ test.describe('Dashboard Groups Pagination', () => {
 
         const updatedPage1Groups = [newGroup, ...page1Groups];
 
-        // Unroute all previous handlers
-        await page.unroute('**/api/groups*');
-
-        // Setup route for refreshed page 1 with new group
+        // Setup handler for refreshed page 1 with new group
         await mockGroupsApi(
             page,
             ListGroupsResponseBuilder
@@ -332,18 +314,8 @@ test.describe('Dashboard Groups Pagination', () => {
                 .build(),
         );
 
-        // Route for the create group API call (without metadata query param)
-        await page.route('**/api/groups', async (route) => {
-            // Only handle POST requests without query params
-            if (route.request().method() === 'POST' && !route.request().url().includes('?')) {
-                await fulfillWithSerialization(route, {
-                    body: newGroup,
-                });
-            } else {
-                // Let mockGroupsApi handle GET requests
-                await route.continue();
-            }
-        });
+        // Mock the create group API call (without metadata query param)
+        await mockCreateGroupApi(page, newGroup);
 
         const createGroupModal = await dashboardPage.clickCreateGroup();
         await createGroupModal.fillGroupForm('New Group');

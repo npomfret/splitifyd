@@ -1,6 +1,6 @@
 import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { fulfillWithSerialization, mockGroupsApi } from '../../utils/mock-firebase-service';
+import { mockApiFailure, mockGroupsApi } from '../../utils/mock-firebase-service';
 
 // Test for browser reuse - using fixture-based approach with proper infrastructure
 test.describe('Browser Reuse Test', () => {
@@ -64,20 +64,7 @@ test.describe('Dashboard Groups Display and Loading States', () => {
         const groupsResponse = ListGroupsResponseBuilder
             .responseWithMetadata([], 0)
             .build();
-        await page.route(
-            (routeUrl) => {
-                if (routeUrl.pathname !== '/api/groups') return false;
-                const searchParams = new URL(routeUrl.href).searchParams;
-                return searchParams.get('includeMetadata') === 'true';
-            },
-            async (route) => {
-                // Delay response to show loading state
-                await page.waitForTimeout(1000);
-                await fulfillWithSerialization(route, {
-                    body: groupsResponse,
-                });
-            },
-        );
+        await mockGroupsApi(page, groupsResponse, { delayMs: 1000 });
 
         // Navigate and verify loading state appears
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
@@ -184,19 +171,7 @@ test.describe('Dashboard Error Handling', () => {
         const dashboardPage = new DashboardPage(page);
 
         // Mock API failure - matches all groups API requests with includeMetadata=true
-        await page.route(
-            (routeUrl) => {
-                if (routeUrl.pathname !== '/api/groups') return false;
-                const searchParams = new URL(routeUrl.href).searchParams;
-                return searchParams.get('includeMetadata') === 'true';
-            },
-            async (route) => {
-                await fulfillWithSerialization(route, {
-                    status: 500,
-                    body: { error: 'Internal Server Error' },
-                });
-            },
-        );
+        await mockApiFailure(page, '/api/groups?includeMetadata=true', 500, { error: 'Internal Server Error' });
 
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
@@ -209,19 +184,7 @@ test.describe('Dashboard Error Handling', () => {
         const dashboardPage = new DashboardPage(page);
 
         // Mock initial API failure - matches all groups API requests with includeMetadata=true
-        await page.route(
-            (routeUrl) => {
-                if (routeUrl.pathname !== '/api/groups') return false;
-                const searchParams = new URL(routeUrl.href).searchParams;
-                return searchParams.get('includeMetadata') === 'true';
-            },
-            async (route) => {
-                await fulfillWithSerialization(route, {
-                    status: 500,
-                    body: { error: 'Server temporarily unavailable' },
-                });
-            },
-        );
+        await mockApiFailure(page, '/api/groups?includeMetadata=true', 500, { error: 'Server temporarily unavailable' });
 
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
@@ -249,19 +212,7 @@ test.describe('Dashboard Error Handling', () => {
         const dashboardPage = new DashboardPage(page);
 
         // Mock network timeout - matches all groups API requests with includeMetadata=true
-        await page.route(
-            (routeUrl) => {
-                if (routeUrl.pathname !== '/api/groups') return false;
-                const searchParams = new URL(routeUrl.href).searchParams;
-                return searchParams.get('includeMetadata') === 'true';
-            },
-            async (route) => {
-                await fulfillWithSerialization(route, {
-                    status: 408,
-                    body: { error: 'Request timeout' },
-                });
-            },
-        );
+        await mockApiFailure(page, '/api/groups?includeMetadata=true', 408, { error: 'Request timeout' });
 
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 

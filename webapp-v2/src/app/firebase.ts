@@ -5,6 +5,14 @@ import { Auth, connectAuthEmulator, getAuth, onAuthStateChanged, sendPasswordRes
 import { connectFirestoreEmulator, doc, Firestore, getFirestore, onSnapshot } from 'firebase/firestore';
 import { firebaseConfigManager } from './firebase-config';
 
+declare global {
+    interface Window {
+        __firebaseServiceOverride?: FirebaseService;
+        __provideFirebaseForTests?: (service: FirebaseService) => void;
+        __resetFirebaseForTests?: () => void;
+    }
+}
+
 export interface FirebaseService {
     connect(): Promise<void>;
     performTokenRefresh(): Promise<string>;
@@ -119,16 +127,53 @@ class FirebaseServiceImpl implements FirebaseService {
     }
 }
 
-// Conditionally export either the real service or a mock for testing
-let serviceInstance: FirebaseService;
+const isBrowser = typeof window !== 'undefined';
+const devMode = Boolean((import.meta as any)?.env?.DEV);
+let overrideService: FirebaseService | null = isBrowser ? window.__firebaseServiceOverride ?? null : null;
+let defaultService: FirebaseService | null = null;
 
-if (typeof window !== 'undefined' && (window as any).__MOCK_FIREBASE_SERVICE__) {
-    /* MONKEY PATCH!!! */
-    // Use the mock service provided by Playwright tests
-    serviceInstance = (window as any).__MOCK_FIREBASE_SERVICE__;
-} else {
-    // Use the real implementation in production
-    serviceInstance = new FirebaseServiceImpl();
+function ensureDefaultService(): FirebaseService {
+    if (!defaultService) {
+        defaultService = new FirebaseServiceImpl();
+    }
+    return defaultService;
 }
 
-export const firebaseService: FirebaseService = serviceInstance;
+function applyOverride(service: FirebaseService | null) {
+    overrideService = service;
+    if (!service) {
+        defaultService = null;
+    }
+    if (isBrowser) {
+        if (service) {
+            window.__firebaseServiceOverride = service;
+        } else {
+            delete window.__firebaseServiceOverride;
+        }
+    }
+}
+
+export function getFirebaseService(): FirebaseService {
+    return overrideService ?? ensureDefaultService();
+}
+
+export function setFirebaseService(service: FirebaseService): void {
+    if (!devMode) {
+        console.warn('Ignoring attempt to override Firebase service outside development mode.');
+        return;
+    }
+    applyOverride(service);
+}
+
+export function resetFirebaseService(): void {
+    if (!devMode) {
+        console.warn('Ignoring attempt to reset Firebase service outside development mode.');
+        return;
+    }
+    applyOverride(null);
+}
+
+if (isBrowser && devMode) {
+    window.__provideFirebaseForTests = setFirebaseService;
+    window.__resetFirebaseForTests = resetFirebaseService;
+}

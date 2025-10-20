@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase/firestore';
-import { FirebaseService, firebaseService } from '../app/firebase';
+import { FirebaseService, getFirebaseService } from '../app/firebase';
 import { logError, logInfo } from './browser-logger';
 import {GroupId} from "@splitifyd/shared";
 
@@ -491,4 +491,4 @@ export class UserNotificationDetector {
     }
 }
 
-export const userNotificationDetector = new UserNotificationDetector(firebaseService);
+export const userNotificationDetector = new UserNotificationDetector(getFirebaseService());

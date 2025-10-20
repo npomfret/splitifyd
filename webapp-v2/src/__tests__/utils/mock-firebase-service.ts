@@ -1,7 +1,18 @@
 import { FirebaseService } from '@/app/firebase.ts';
 import type { Page, Route } from '@playwright/test';
-import { ApiSerializer, ClientUser, ListGroupsResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
-import {GroupId} from "@splitifyd/shared";
+import { ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
+import {
+    acceptedPoliciesHandler,
+    createJsonHandler,
+    generateShareLinkHandler,
+    groupCommentsHandler,
+    groupDetailHandler,
+    groupPreviewHandler,
+    groupsMetadataHandler,
+    joinGroupHandler,
+    policiesStatusHandler,
+} from '@/test/msw/handlers.ts';
+import type { SerializedMswHandler } from '@/test/msw/types.ts';
 
 interface AuthError {
     code: string;
@@ -54,6 +65,18 @@ export async function fulfillWithSerialization(
         headers: options.headers,
         body: ApiSerializer.serialize(options.body),
     });
+}
+
+async function registerMswHandlers(page: Page, handlers: SerializedMswHandler | SerializedMswHandler[]): Promise<void> {
+    const controller = (page as any).__mswController as {
+        use(handler: SerializedMswHandler | SerializedMswHandler[]): Promise<void>;
+    } | undefined;
+
+    if (!controller) {
+        throw new Error('MSW controller is not initialized. Ensure the msw fixture is enabled.');
+    }
+
+    await controller.use(handlers);
 }
 
 /**
@@ -130,10 +153,10 @@ export class MockFirebase {
                     };
                 },
                 signInWithEmailAndPassword: async (email, password) => {
-                    return (window as any).__splitifydMockSignIn(email, password);
+                    return (window as any).__testHarnessMockSignIn(email, password);
                 },
                 signOut: async () => {
-                    return (window as any).__splitifydMockSignOut();
+                    return (window as any).__testHarnessMockSignOut();
                 },
                 onDocumentSnapshot: (collection, documentId, onData, onError) => {
                     const path = `${collection}/${documentId}`;
@@ -156,18 +179,24 @@ export class MockFirebase {
                 },
                 cleanup: () => {
                     delete window.__TEST_ENV__;
-                    delete (window as any).__MOCK_FIREBASE_SERVICE__;
+                    delete (window as any).__firebaseServiceOverride;
+                    if (typeof (window as any).__resetFirebaseForTests === 'function') {
+                        (window as any).__resetFirebaseForTests();
+                    }
                 },
             };
 
-            // Global that firebase.ts checks to use mock instead of real Firebase
-            (window as any).__MOCK_FIREBASE_SERVICE__ = mockService;
+            // Global override consumed by firebase.ts before the app bootstraps
+            (window as any).__firebaseServiceOverride = mockService;
+            if (typeof (window as any).__provideFirebaseForTests === 'function') {
+                (window as any).__provideFirebaseForTests(mockService);
+            }
         }, initialUser);
 
         // Expose sign in/out functions (check if already exposed for browser reuse)
         try {
-            await this.page.exposeFunction('__splitifydMockSignIn', this.handleSignIn.bind(this));
-            await this.page.exposeFunction('__splitifydMockSignOut', this.handleSignOut.bind(this));
+            await this.page.exposeFunction('__testHarnessMockSignIn', this.handleSignIn.bind(this));
+            await this.page.exposeFunction('__testHarnessMockSignOut', this.handleSignOut.bind(this));
         } catch (error) {
             // Functions already exposed (browser reuse) - this is expected and safe to ignore
             if (error instanceof Error && !error.message?.includes('has been already registered')) {
@@ -368,16 +397,13 @@ export async function mockApiRoute(
     const { status = 200, delayMs } = options;
     const delay = getApiDelay(delayMs);
 
-    await page.route(url, async (route: any) => {
-        if (delay > 0) {
-            await new Promise((resolve) => setTimeout(resolve, delay));
-        }
-        route.fulfill({
+    await registerMswHandlers(
+        page,
+        createJsonHandler('GET', url, response, {
             status,
-            contentType: 'application/x-serialized-json',
-            body: ApiSerializer.serialize(response),
-        });
-    });
+            delayMs: delay,
+        }),
+    );
 }
 
 /**
@@ -389,30 +415,11 @@ export async function mockPoliciesApi(
     response: UserPolicyStatusResponse,
     options: { delayMs?: number; } = {},
 ): Promise<void> {
-    await mockApiRoute(page, '/api/user/policies/status', response, options);
+    await registerMswHandlers(page, policiesStatusHandler(response, { delayMs: options.delayMs }));
 }
 
 export async function mockFullyAcceptedPoliciesApi(page: Page) {
-    await mockPoliciesApi(page, {
-        needsAcceptance: false,
-        policies: [
-            {
-                policyId: 'terms-of-service',
-                currentVersionHash: 'hash123',
-                userAcceptedHash: 'hash123',
-                needsAcceptance: false,
-                policyName: 'Terms of Service',
-            },
-            {
-                policyId: 'cookie-policy',
-                currentVersionHash: 'hash456',
-                userAcceptedHash: 'hash456',
-                needsAcceptance: false,
-                policyName: 'Cookie Policy',
-            },
-        ],
-        totalPending: 0,
-    });
+    await registerMswHandlers(page, acceptedPoliciesHandler());
 }
 
 /**
@@ -426,27 +433,7 @@ export async function mockGroupsApi(
     options: { delayMs?: number; } = {},
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
-
-    await page.route(
-        (routeUrl) => {
-            if (routeUrl.pathname !== '/api/groups') {
-                return false;
-            }
-            // Match if includeMetadata=true is present in query params
-            const searchParams = new URL(routeUrl.href).searchParams;
-            return searchParams.get('includeMetadata') === 'true';
-        },
-        async (route: any) => {
-            if (delay > 0) {
-                await new Promise((resolve) => setTimeout(resolve, delay));
-            }
-            route.fulfill({
-                status: 200,
-                contentType: 'application/x-serialized-json',
-                body: ApiSerializer.serialize(response),
-            });
-        },
-    );
+    await registerMswHandlers(page, groupsMetadataHandler(response, { delayMs: delay }));
 }
 
 /**
@@ -463,39 +450,22 @@ export async function mockApiFailure(
     options: { delayMs?: number; } = {},
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
-
-    // Parse the URL to separate path and query params
-    const urlObj = new URL(url, 'http://dummy'); // Use dummy base for parsing
+    const urlObj = new URL(url, 'http://dummy');
     const targetPath = urlObj.pathname;
-    const targetSearchParams = urlObj.searchParams;
+    const queryParams = Object.fromEntries(urlObj.searchParams.entries());
+    const hasQuery = Object.keys(queryParams).length > 0;
 
-    await page.route(
-        (routeUrl) => {
-            // Check if pathname matches
-            if (routeUrl.pathname !== targetPath) {
-                return false;
-            }
+    const methods: Array<'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'> = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
 
-            // If the mock URL has query params, they must match exactly
-            if (targetSearchParams.toString()) {
-                const routeSearchParams = new URL(routeUrl.href).searchParams;
-                return targetSearchParams.toString() === routeSearchParams.toString();
-            }
-
-            // If mock URL has no query params, match any request to that path
-            return true;
-        },
-        async (route: any) => {
-            if (delay > 0) {
-                await new Promise((resolve) => setTimeout(resolve, delay));
-            }
-            route.fulfill({
-                status,
-                contentType: 'application/x-serialized-json',
-                body: ApiSerializer.serialize(error),
-            });
-        },
+    const handlers = methods.map((method) =>
+        createJsonHandler(method, targetPath, error, {
+            status,
+            delayMs: delay,
+            query: hasQuery ? queryParams : undefined,
+        }),
     );
+
+    await registerMswHandlers(page, handlers);
 }
 
 /**
@@ -511,16 +481,12 @@ export async function mockGroupDetailApi(
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
 
-    await page.route(new RegExp(`/api/groups/${groupId}/full-details(\\?.*)?$`), async (route: any) => {
-        if (delay > 0) {
-            await new Promise((resolve) => setTimeout(resolve, delay));
-        }
-        route.fulfill({
-            status: 200,
-            contentType: 'application/x-serialized-json',
-            body: ApiSerializer.serialize(group),
-        });
-    });
+    await registerMswHandlers(
+        page,
+        groupDetailHandler(groupId, group, {
+            delayMs: delay,
+        }),
+    );
 }
 
 /**
@@ -533,18 +499,102 @@ export async function mockGroupCommentsApi(
     comments: any[] = [],
     options: { delayMs?: number; } = {},
 ): Promise<void> {
-    await mockApiRoute(
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
         page,
-        `/api/groups/${groupId}/comments`,
-        {
-            success: true,
-            data: {
-                comments,
-                count: comments.length,
-                hasMore: false,
+        groupCommentsHandler(
+            groupId,
+            {
+                success: true,
+                data: {
+                    comments,
+                    count: comments.length,
+                    hasMore: false,
+                },
             },
-        },
-        options,
+            {
+                delayMs: delay,
+            },
+        ),
+    );
+}
+
+export async function mockExpenseDetailApi(
+    page: Page,
+    expenseId: ExpenseId,
+    response: any,
+    options: { delayMs?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler('GET', `/api/expenses/${expenseId}/full-details`, response, {
+            delayMs: delay,
+        }),
+    );
+}
+
+export async function mockExpenseCommentsApi(
+    page: Page,
+    expenseId: ExpenseId,
+    comments: any[] = [],
+    options: { delayMs?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler(
+            'GET',
+            `/api/expenses/${expenseId}/comments`,
+            {
+                success: true,
+                data: {
+                    comments,
+                    count: comments.length,
+                    hasMore: false,
+                },
+            },
+            {
+                delayMs: delay,
+            },
+        ),
+    );
+}
+
+export async function mockCreateGroupApi(
+    page: Page,
+    response: any,
+    options: { delayMs?: number; status?: number; once?: boolean; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler('POST', '/api/groups', response, {
+            delayMs: delay,
+            status: options.status ?? 200,
+            once: options.once ?? true,
+        }),
+    );
+}
+
+export async function mockUpdateGroupDisplayNameApi(
+    page: Page,
+    groupId: GroupId,
+    response: any,
+    options: { delayMs?: number; status?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler('PUT', `/api/groups/${groupId}/members/display-name`, response, {
+            delayMs: delay,
+            status: options.status ?? 200,
+        }),
     );
 }
 
@@ -562,27 +612,22 @@ export async function mockGenerateShareLinkApi(
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
 
-    await page.route('/api/groups/share', async (route) => {
-        const request = route.request();
-        const postData = request.postDataJSON();
-
-        // Only respond if the groupId matches
-        if (postData?.groupId === groupId) {
-            if (delay > 0) {
-                await new Promise((resolve) => setTimeout(resolve, delay));
-            }
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/x-serialized-json',
-                body: ApiSerializer.serialize({
-                    linkId: shareToken,
-                    shareablePath: `/join/${shareToken}`,
-                }),
-            });
-        } else {
-            await route.continue();
-        }
-    });
+    await registerMswHandlers(
+        page,
+        generateShareLinkHandler(
+            {
+                linkId: shareToken,
+                shareablePath: `/join/${shareToken}`,
+            },
+            {
+                delayMs: delay,
+                bodyMatcher: {
+                    type: 'json-subset',
+                    subset: { groupId },
+                },
+            },
+        ),
+    );
 }
 
 /**
@@ -598,21 +643,12 @@ export async function mockGroupPreviewApi(
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
 
-    await page.route('/api/groups/preview', async (route) => {
-        const request = route.request();
-        if (request.method() === 'POST') {
-            if (delay > 0) {
-                await new Promise((resolve) => setTimeout(resolve, delay));
-            }
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/x-serialized-json',
-                body: ApiSerializer.serialize(response),
-            });
-        } else {
-            await route.continue();
-        }
-    });
+    await registerMswHandlers(
+        page,
+        groupPreviewHandler(response, {
+            delayMs: delay,
+        }),
+    );
 }
 
 /**
@@ -628,21 +664,12 @@ export async function mockJoinGroupApi(
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
 
-    await page.route('/api/groups/join', async (route) => {
-        const request = route.request();
-        if (request.method() === 'POST') {
-            if (delay > 0) {
-                await new Promise((resolve) => setTimeout(resolve, delay));
-            }
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/x-serialized-json',
-                body: ApiSerializer.serialize(response),
-            });
-        } else {
-            await route.continue();
-        }
-    });
+    await registerMswHandlers(
+        page,
+        joinGroupHandler(response, {
+            delayMs: delay,
+        }),
+    );
 }
 
 /**
@@ -659,21 +686,13 @@ export async function mockGroupPreviewFailure(
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
 
-    await page.route('/api/groups/preview', async (route) => {
-        const request = route.request();
-        if (request.method() === 'POST') {
-            if (delay > 0) {
-                await new Promise((resolve) => setTimeout(resolve, delay));
-            }
-            await route.fulfill({
-                status,
-                contentType: 'application/x-serialized-json',
-                body: ApiSerializer.serialize(error),
-            });
-        } else {
-            await route.continue();
-        }
-    });
+    await registerMswHandlers(
+        page,
+        groupPreviewHandler(error, {
+            status,
+            delayMs: delay,
+        }),
+    );
 }
 
 /**
@@ -690,21 +709,13 @@ export async function mockJoinGroupFailure(
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
 
-    await page.route('/api/groups/join', async (route) => {
-        const request = route.request();
-        if (request.method() === 'POST') {
-            if (delay > 0) {
-                await new Promise((resolve) => setTimeout(resolve, delay));
-            }
-            await route.fulfill({
-                status,
-                contentType: 'application/x-serialized-json',
-                body: ApiSerializer.serialize(error),
-            });
-        } else {
-            await route.continue();
-        }
-    });
+    await registerMswHandlers(
+        page,
+        joinGroupHandler(error, {
+            status,
+            delayMs: delay,
+        }),
+    );
 }
 
 /**

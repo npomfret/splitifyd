@@ -1,6 +1,6 @@
 import { JoinGroupPage, JoinGroupResponseBuilder, PreviewGroupResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { fulfillWithSerialization, mockGroupPreviewApi, mockGroupPreviewFailure, mockJoinGroupApi, mockJoinGroupFailure, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
+import { mockGroupPreviewApi, mockGroupPreviewFailure, mockJoinGroupApi, mockJoinGroupFailure, mockUpdateGroupDisplayNameApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 
 test.describe('Join Group Page - Preview Loading', () => {
     test('should display group preview after loading', async ({ authenticatedPage }) => {
@@ -205,10 +205,8 @@ test.describe('Join Group Page - Display Name Conflict', () => {
         await mockJoinGroupApi(page, conflictResponse);
 
         // Mock the update display name API to succeed
-        await page.route('**/api/groups/*/members/display-name', async (route) => {
-            await fulfillWithSerialization(route, {
-                body: { message: 'Display name updated successfully' },
-            });
+        await mockUpdateGroupDisplayNameApi(page, 'group-456', {
+            message: 'Display name updated successfully',
         });
 
         await page.goto('/join?linkId=test-link-123');

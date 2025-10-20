@@ -21,7 +21,9 @@ export default defineConfig(() => ({
         },
     },
     server: {
-        // Only used for temporary development
+        host: '127.0.0.1',
+        port: 0, // Ask OS for a free port each run
+        strictPort: false,
         open: false,
     },
     build: {

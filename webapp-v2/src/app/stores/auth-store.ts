@@ -6,7 +6,7 @@ import type { ClientUser } from '@splitifyd/shared';
 import { AuthErrors } from '@splitifyd/shared';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { apiClient } from '../apiClient';
-import { firebaseService } from '../firebase';
+import { getFirebaseService } from '../firebase';
 import { CurrencyService } from '../services/currencyService';
 import { expenseFormStore } from './expense-form-store';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
@@ -91,6 +91,10 @@ class AuthStoreImpl implements AuthStore {
         // Private constructor - use static create() method instead
     }
 
+    private get firebase() {
+        return getFirebaseService();
+    }
+
     static async create(): Promise<AuthStoreImpl> {
         const store = new AuthStoreImpl();
         await store.initializeAuth();
@@ -99,7 +103,8 @@ class AuthStoreImpl implements AuthStore {
 
     private async initializeAuth() {
         try {
-            await firebaseService.connect();
+            const firebase = this.firebase;
+            await firebase.connect();
 
             // Set up API client auth callbacks to avoid circular dependencies
             apiClient.setAuthCallbacks(
@@ -110,7 +115,7 @@ class AuthStoreImpl implements AuthStore {
             );
 
             // Set up auth state listener
-            firebaseService.onAuthStateChanged(async (user, idToken) => {
+            firebase.onAuthStateChanged(async (user, idToken) => {
                 if (user) {
                     this.#userSignal.value = user;
 
@@ -163,7 +168,7 @@ class AuthStoreImpl implements AuthStore {
         this.#errorSignal.value = null;
 
         try {
-            await firebaseService.signInWithEmailAndPassword(email, password);
+            await this.firebase.signInWithEmailAndPassword(email, password);
             // User state will be updated by onAuthStateChanged listener
         } catch (error: any) {
             this.#errorSignal.value = this.getAuthErrorMessage(error);
@@ -201,7 +206,7 @@ class AuthStoreImpl implements AuthStore {
             // Clear user-scoped storage before signing out
             this.userStorage.clear();
 
-            await firebaseService.signOut();
+            await this.firebase.signOut();
             apiClient.setAuthToken(null);
             localStorage.removeItem(USER_ID_KEY);
 
@@ -226,7 +231,7 @@ class AuthStoreImpl implements AuthStore {
         this.#errorSignal.value = null;
 
         try {
-            await firebaseService.sendPasswordResetEmail(email);
+            await this.firebase.sendPasswordResetEmail(email);
         } catch (error: any) {
             this.#errorSignal.value = this.getAuthErrorMessage(error);
             throw error;
@@ -250,7 +255,7 @@ class AuthStoreImpl implements AuthStore {
             }
 
             // Also update the Firebase Auth user object to keep it in sync
-            firebaseService.performUserRefresh();
+            void this.firebase.performUserRefresh();
         } catch (error: any) {
             this.#errorSignal.value = this.getAuthErrorMessage(error);
             throw error;
@@ -281,7 +286,7 @@ class AuthStoreImpl implements AuthStore {
 
     private async performTokenRefresh(): Promise<string> {
         try {
-            const freshToken = await firebaseService.performTokenRefresh();
+            const freshToken = await this.firebase.performTokenRefresh();
             apiClient.setAuthToken(freshToken);
             this.scheduleNextRefresh(freshToken);
             return freshToken;

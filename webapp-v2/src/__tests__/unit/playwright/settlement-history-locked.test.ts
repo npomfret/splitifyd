@@ -2,13 +2,7 @@ import { GroupDTOBuilder, GroupDetailPage, GroupFullDetailsBuilder, GroupMemberB
 import type { GroupId } from '@splitifyd/shared';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
-import { fulfillWithSerialization } from '../../utils/mock-firebase-service';
-
-async function mockGroupFullDetailsApi(page: any, groupId: GroupId, response: any): Promise<void> {
-    await page.route(`/api/groups/${groupId}/full-details*`, async (route: any) => {
-        await fulfillWithSerialization(route, { body: response });
-    });
-}
+import { mockGroupDetailApi } from '../../utils/mock-firebase-service';
 
 test.describe('Settlement History - Locked Settlement UI', () => {
     test('should display disabled edit button when settlement is locked', async ({ authenticatedPage }) => {
@@ -51,7 +45,7 @@ test.describe('Settlement History - Locked Settlement UI', () => {
             .withSettlements([lockedSettlement])
             .build();
 
-        await mockGroupFullDetailsApi(page, groupId, fullDetails);
+        await mockGroupDetailApi(page, groupId, fullDetails);
 
         const groupDetailPage = new GroupDetailPage(page);
         await page.goto(`/groups/${groupId}`, { waitUntil: 'domcontentloaded', timeout: 10000 });
@@ -100,7 +94,7 @@ test.describe('Settlement History - Locked Settlement UI', () => {
             .withSettlements([unlockedSettlement])
             .build();
 
-        await mockGroupFullDetailsApi(page, groupId, fullDetails);
+        await mockGroupDetailApi(page, groupId, fullDetails);
 
         const groupDetailPage = new GroupDetailPage(page);
         await page.goto(`/groups/${groupId}`, { waitUntil: 'domcontentloaded', timeout: 10000 });
@@ -144,7 +138,7 @@ test.describe('Settlement History - Locked Settlement UI', () => {
             .withName('Test Group')
             .build();
 
-        await mockGroupFullDetailsApi(
+        await mockGroupDetailApi(
             page,
             groupId,
             new GroupFullDetailsBuilder()
@@ -162,7 +156,7 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         await groupDetailPage.verifySettlementEditEnabled('Reactive Test Payment', translationEn.settlementHistory.editPaymentTooltip);
 
         const lockedSettlement = { ...initialSettlement, isLocked: true };
-        await mockGroupFullDetailsApi(
+        await mockGroupDetailApi(
             page,
             groupId,
             new GroupFullDetailsBuilder()
