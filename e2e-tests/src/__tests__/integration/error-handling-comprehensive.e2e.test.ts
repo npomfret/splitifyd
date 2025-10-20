@@ -2,7 +2,16 @@ import { CreateGroupFormDataBuilder, generateTestGroupName } from '@splitifyd/te
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../config/timeouts';
 import { SELECTORS } from '../../constants/selectors';
 import { expect, simpleTest as test } from '../../fixtures/simple-test.fixture';
-import { CreateGroupModalPage, LoginPage } from '../../pages';
+import { CreateGroupModalPage, DashboardPage, LoginPage } from '../../pages';
+import type { GroupDetailPage } from '../../pages';
+import { ExpenseFormPage as E2EExpenseFormPage } from '../../pages/expense-form.page';
+
+async function navigateToDashboardFromGroupPage(groupDetailPage: GroupDetailPage): Promise<DashboardPage> {
+    await groupDetailPage.header.navigateToDashboard();
+    const dashboardPage = new DashboardPage(groupDetailPage.page);
+    await dashboardPage.waitForDashboard();
+    return dashboardPage;
+}
 
 /**
  * Comprehensive Error Handling E2E Tests
@@ -42,7 +51,7 @@ test.describe('Network & Server Error Handling', () => {
         });
 
         // Open modal and fill form
-        const createGroupModal = await dashboardPage.openCreateGroupModal();
+        const createGroupModal = await dashboardPage.clickCreateGroup();
         await expect(createGroupModal.getModalContainer()).toBeVisible();
         await createGroupModal.fillGroupForm('Network Test Group', 'Testing network error handling');
 
@@ -118,7 +127,7 @@ test.describe('Network & Server Error Handling', () => {
         });
 
         // Test 1: Server error (500)
-        await dashboardPage.openCreateGroupModal();
+        await dashboardPage.clickCreateGroup();
         await dashboardPage.waitForDomContentLoaded();
 
         // Intercept API calls to simulate server error
@@ -160,7 +169,7 @@ test.describe('Network & Server Error Handling', () => {
 
         // Close current modal and open new one for timeout test
         await createGroupModalPage.clickCancel();
-        await dashboardPage.openCreateGroupModal();
+        await dashboardPage.clickCreateGroup();
         await createGroupModalPage.fillGroupForm('Timeout Test Group');
 
         // Start submission and wait for expected UI state changes
@@ -194,7 +203,7 @@ test.describe('Network & Server Error Handling', () => {
         const createGroupModalPage = new CreateGroupModalPage(page);
 
         // Test 1: Client-side validation
-        await dashboardPage.openCreateGroupModal();
+        await dashboardPage.clickCreateGroup();
         await expect(createGroupModalPage.getModalContainer()).toBeVisible();
 
         // Try to submit empty form
@@ -278,7 +287,11 @@ test.describe('Form Validation & UI Error Handling', () => {
 
         const [groupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder()
             .build());
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
+        const memberNames = await groupDetailPage.getMemberNames();
+        const expenseFormPage = await groupDetailPage.clickAddExpenseAndOpenForm(
+            memberNames,
+            (page) => new E2EExpenseFormPage(page),
+        );
         const submitButton = expenseFormPage.getSaveButtonForValidation();
 
         // Test validation sequence
@@ -307,7 +320,11 @@ test.describe('Form Validation & UI Error Handling', () => {
 
         const [groupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder()
             .build());
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
+        const memberNames = await groupDetailPage.getMemberNames();
+        const expenseFormPage = await groupDetailPage.clickAddExpenseAndOpenForm(
+            memberNames,
+            (page) => new E2EExpenseFormPage(page),
+        );
 
         // Create invalid form state that passes client validation but fails server validation
         await expenseFormPage.fillDescription('Test expense');
@@ -355,7 +372,7 @@ test.describe('Security & Access Control Errors', () => {
         const groupId = groupDetailPage.inferGroupId();
 
         // Navigate back to dashboard and log out
-        dashboardPage = await groupDetailPage.navigateToDashboard();
+        dashboardPage = await navigateToDashboardFromGroupPage(groupDetailPage);
         await dashboardPage.header.logout();
 
         // Try to access the group page directly while logged out

@@ -1,13 +1,9 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { GroupDetailPage as BaseGroupDetailPage, HeaderPage } from '@splitifyd/test-support';
-import { DashboardPage } from './dashboard.page.ts';
-import { EditGroupModalPage } from '@splitifyd/test-support';
 import { ExpenseDetailPage } from '@splitifyd/test-support';
-import { ExpenseFormPage } from './expense-form.page';
 import { LeaveGroupDialogPage } from '@splitifyd/test-support';
 import { RemoveMemberDialogPage } from '@splitifyd/test-support';
 import { SettlementFormPage } from './settlement-form.page';
-import { ShareGroupModalPage } from '@splitifyd/test-support';
 import {GroupId} from "@splitifyd/shared";
 
 export class GroupDetailPage extends BaseGroupDetailPage {
@@ -29,16 +25,6 @@ export class GroupDetailPage extends BaseGroupDetailPage {
             this._header = new HeaderPage(this.page);
         }
         return this._header;
-    }
-
-    /**
-     * Navigate to dashboard (e2e-specific workflow)
-     */
-    async navigateToDashboard() {
-        await this.header.navigateToDashboard();
-        const dashboardPage = new DashboardPage(this.page);
-        await dashboardPage.waitForDashboard();
-        return dashboardPage;
     }
 
     /**
@@ -87,50 +73,6 @@ export class GroupDetailPage extends BaseGroupDetailPage {
 
         await settlementFormPage.waitForFormReady(expectedMemberCount);
         return settlementFormPage;
-    }
-
-    async clickAddExpenseButton(): Promise<ExpenseFormPage> {
-        const expectedMemberCount = await this.getCurrentMemberCount();
-        const memberNames = await this.getMemberNames();
-        expect(memberNames.length).toBeGreaterThan(0); // sanity check
-        expect(memberNames.length).toBe(expectedMemberCount); // sanity check
-
-        const addButton = this.getAddExpenseButton();
-
-        await this.clickButton(addButton, { buttonName: 'Add Expense' });
-
-        // Wait for navigation to expense form
-        const expectedUrlPattern = /\/groups\/[a-zA-Z0-9]+\/add-expense/;
-        await expect(this.page).toHaveURL(expectedUrlPattern);
-        await this.waitForDomContentLoaded();
-
-        // Verify we're on the correct page
-        const currentUrl = this.page.url();
-        if (!currentUrl.match(expectedUrlPattern)) {
-            throw new Error(`Navigation failed - expected URL pattern ${expectedUrlPattern}, got ${currentUrl}`);
-        }
-
-        // Wait for any loading spinner to disappear
-        const loadingSpinner = this.page.locator('.animate-spin');
-        const loadingText = this.page.getByText('Loading expense form...');
-
-        if ((await loadingSpinner.count()) > 0 || (await loadingText.count()) > 0) {
-            await expect(loadingSpinner).not.toBeVisible({ timeout: 5000 });
-            await expect(loadingText).not.toBeVisible({ timeout: 5000 });
-        }
-
-        // Verify we're still on the correct page
-        if (!this.page.url().match(expectedUrlPattern)) {
-            throw new Error(`Navigation failed after loading - expected URL pattern ${expectedUrlPattern}, got ${this.page.url()}`);
-        }
-
-        // Create and validate the expense form page
-        const expenseFormPage = new ExpenseFormPage(this.page);
-
-        // Wait for form to be ready
-        await expenseFormPage.waitForFormReady(memberNames);
-
-        return expenseFormPage;
     }
 
     // ============================================================================
@@ -201,7 +143,7 @@ export class GroupDetailPage extends BaseGroupDetailPage {
             }
 
             // Check actual member items
-            const actualItems = await this.getActualMemberItems().count();
+            const actualItems = await this.getMemberCards().count();
 
             // Both must match expected count
             if (textCount !== expectedCount || actualItems !== expectedCount) {
@@ -308,13 +250,6 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         return expenseDetailPage;
     }
 
-    getExpenseByDescription(description: string) {
-        // Simply look for the expense description text within the expenses container
-        // This matches what users actually see on the page
-        const expensesContainer = this.getExpensesContainer();
-        return expensesContainer.getByText(description);
-    }
-
     /**
      * Verify that a currency amount is visible for a specific user within the expenses section
      * Properly scoped to the Expenses container by its heading
@@ -390,35 +325,6 @@ export class GroupDetailPage extends BaseGroupDetailPage {
             .toPass({ timeout: 5000 });
     }
 
-    // ============================================================================
-    // MODAL OPENING METHODS (Share, Edit)
-    // ============================================================================
-
-    /**
-     * Opens the share group modal and returns the shared ShareGroupModalPage instance.
-     */
-    async openShareGroupModal(): Promise<ShareGroupModalPage> {
-        const shareButton = this.getShareGroupButton();
-        await this.clickButton(shareButton, { buttonName: 'Invite Others' });
-
-        // Create and return the shared ShareGroupModalPage instance
-        const shareModal = new ShareGroupModalPage(this.page);
-        await shareModal.waitForModalToOpen();
-
-        return shareModal;
-    }
-
-    /**
-     * Gets the share link from the group page.
-     * Assumes the app works perfectly - no retries or workarounds.
-     */
-    async getShareLink(): Promise<string> {
-        const shareModal = await this.openShareGroupModal();
-        const shareLink = await shareModal.getShareLink();
-        await shareModal.closeModal();
-        return shareLink;
-    }
-
     /**
      * Gets debt information from balances section
      */
@@ -428,38 +334,16 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         return balancesSection.getByText(`${debtorName} → ${creditorName}`).or(balancesSection.getByText(`${debtorName} owes ${creditorName}`));
     }
 
-    /**
-     * Opens the edit group modal by clicking the settings button
-     * E2E-specific version that returns e2e EditGroupModalPage
-     */
-    async openEditGroupModal(): Promise<EditGroupModalPage> {
-        const settingsButton = this.getEditGroupButton();
-        await this.clickButton(settingsButton, { buttonName: 'Group Settings' });
-
-        // Create and return the e2e EditGroupModalPage instance
-        const editModal = new EditGroupModalPage(this.page);
-        await editModal.waitForModalVisible();
-
-        return editModal;
-    }
-
     // ============================================================================
     // MEMBER COUNT AND ITEMS
     // ============================================================================
-
-    /**
-     * Get member count text element using data-testid
-     */
-    getMemberCountElement() {
-        return this.page.getByTestId('member-count');
-    }
 
     /**
      * Get the actual member count as a number by parsing the UI text
      * Waits for the API-loaded member count to be available
      */
     async getCurrentMemberCount(): Promise<number> {
-        const memberCountElement = this.getMemberCountElement();
+        const memberCountElement = this.getMemberCount();
         await expect(memberCountElement).toBeVisible({ timeout: 1000 });
 
         const memberText = await memberCountElement.textContent();
@@ -479,15 +363,8 @@ export class GroupDetailPage extends BaseGroupDetailPage {
     /**
      * Get actual member items displayed in the members list
      */
-    getActualMemberItems() {
-        return this.getMembersContainer().locator('[data-testid="member-item"]:visible');
-    }
-
-    /**
-     * Get all visible member names for debugging purposes
-     */
     async getMemberNames(): Promise<string[]> {
-        const memberItems = this.getActualMemberItems();
+        const memberItems = this.getMemberCards();
         const count = await memberItems.count();
         const names: string[] = [];
 
@@ -1116,7 +993,7 @@ export class GroupDetailPage extends BaseGroupDetailPage {
      * Verify member count element is visible
      */
     async verifyMemberCountElementVisible(): Promise<void> {
-        const memberCount = this.getMemberCountElement();
+        const memberCount = this.getMemberCount();
         await expect(memberCount).toBeVisible();
     }
 }

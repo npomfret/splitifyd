@@ -2,7 +2,6 @@ import { expect, Page } from '@playwright/test';
 import type { CreateGroupFormData } from '@splitifyd/shared';
 import { DashboardPage as BaseDashboardPage, HeaderPage, JoinGroupPage } from '@splitifyd/test-support';
 import { CreateGroupFormDataBuilder, generateShortId, randomString } from '@splitifyd/test-support';
-import { CreateGroupModalPage } from '@splitifyd/test-support';
 import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
 
 let i = 0;
@@ -54,7 +53,9 @@ export class DashboardPage extends BaseDashboardPage {
         const groupDetailPages = [groupDetailPage];
 
         if (dashboardPages.length) {
-            const shareLink = await groupDetailPage.getShareLink();
+            const shareModal = await groupDetailPage.clickShareGroupAndOpenModal();
+            const shareLink = await shareModal.getShareLink();
+            await shareModal.closeModal();
 
             for (const dashboardPage of dashboardPages) {
                 // Join using new POM from test-support
@@ -106,8 +107,8 @@ export class DashboardPage extends BaseDashboardPage {
         }
         await this.waitForDashboard();
 
-        // Open modal using e2e-specific method that returns e2e CreateGroupModalPage
-        const createGroupModal = await this.openCreateGroupModal();
+        // Open modal using shared helper that returns CreateGroupModalPage
+        const createGroupModal = await this.clickCreateGroup();
         await createGroupModal.createGroup(name, description);
 
         // Wait for navigation and verify URL
@@ -129,14 +130,6 @@ export class DashboardPage extends BaseDashboardPage {
      */
     getBaseUrl() {
         return this.page.url().split('/dashboard')[0];
-    }
-
-    /**
-     * Open the create group modal
-     * Delegates to base class which handles all modal opening and waiting logic
-     */
-    async openCreateGroupModal(): Promise<CreateGroupModalPage> {
-        return await super.clickCreateGroup();
     }
 
     /**

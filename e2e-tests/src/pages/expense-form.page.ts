@@ -17,8 +17,8 @@ export class ExpenseFormPage extends BaseExpenseFormPage {
 
     /**
      * E2E-specific: Waits for the expense form to be fully ready with all members loaded.
-     * This is called automatically by clickAddExpenseButton() so forms are always ready.
-     * Note: Loading spinner check is handled in clickAddExpenseButton() before this method is called.
+     * This is called automatically by clickAddExpenseAndOpenForm() so forms are always ready.
+     * Note: Loading spinner check is handled in clickAddExpenseAndOpenForm() before this method is called.
      * @param expectedMemberNames - The expected display names of members in the group
      */
     async waitForFormReady(expectedMemberNames: string[]): Promise<void> {

@@ -1,7 +1,16 @@
 import { CreateGroupFormDataBuilder, ExpenseFormDataBuilder, generateShortId } from '@splitifyd/test-support';
 import { DashboardPage as E2EDashboardPage } from '../../pages/dashboard.page';
+import { ExpenseFormPage as E2EExpenseFormPage } from '../../pages/expense-form.page';
 import { expect, simpleTest } from '../../fixtures';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page';
+import type { GroupDetailPage as E2EGroupDetailPage } from '../../pages/group-detail.page';
+
+async function navigateToDashboardFromGroup(groupDetailPage: E2EGroupDetailPage): Promise<E2EDashboardPage> {
+    await groupDetailPage.header.navigateToDashboard();
+    const dashboardPage = new E2EDashboardPage(groupDetailPage.page);
+    await dashboardPage.waitForDashboard();
+    return dashboardPage;
+}
 
 /**
  * Consolidated Core Features E2E Tests
@@ -33,15 +42,18 @@ simpleTest.describe('Member Management - Core Operations', () => {
         // UI Components validation: Member count and expense split options
         await groupDetailPage.verifyMemberCountElementVisible();
 
+        const currentUserDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
+
         // Test member visibility in expense split options
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
+        const expenseFormPage = await groupDetailPage.clickAddExpenseAndOpenForm(
+            await groupDetailPage.getMemberNames(),
+            (page) => new E2EExpenseFormPage(page),
+        );
         await expenseFormPage.verifySplitBetweenHeadingVisible();
 
         const userCheckbox = expenseFormPage.getSplitOptionsFirstCheckbox();
         await expect(userCheckbox).toBeVisible();
         await expect(userCheckbox).toBeChecked();
-
-        const currentUserDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
         const isUserInSplit = await expenseFormPage.isUserInSplitOptions(currentUserDisplayName);
         expect(isUserInSplit).toBe(true);
     });
@@ -108,7 +120,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
         const groupId = groupDetailPage.inferGroupId();
         const groupName = await groupDetailPage.getGroupNameText();
 
-        await groupDetailPage2.navigateToDashboard(); // move away from the page to avoid 404 errors in console after the removal happens
+        await navigateToDashboardFromGroup(groupDetailPage2); // move away from the page to avoid 404 errors in console after the removal happens
 
         // Owner removes the only other member
         const removeMemberModal = await groupDetailPage.clickRemoveMember(memberDisplayName);
@@ -137,7 +149,10 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         const [groupDetailPage, memberGroupDetailPage] = await user1DashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), user2DashboardPage);
 
         // Owner adds an expense that creates a balance
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
+        const expenseFormPage = await groupDetailPage.clickAddExpenseAndOpenForm(
+            await groupDetailPage.getMemberNames(),
+            (page) => new E2EExpenseFormPage(page),
+        );
         const expenseDescription = 'Test expense for balance';
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
@@ -182,7 +197,10 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         const groupId = groupDetailPage.inferGroupId();
 
         // Create expense that creates a balance
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton();
+        const expenseFormPage = await groupDetailPage.clickAddExpenseAndOpenForm(
+            await groupDetailPage.getMemberNames(),
+            (page) => new E2EExpenseFormPage(page),
+        );
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription('Test expense for balance validation')
@@ -266,6 +284,7 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
 
         const creatorDisplayName = await creatorDashboardPage.header.getCurrentUserDisplayName();
         const leavingDisplayName = await leavingDashboardPage.header.getCurrentUserDisplayName();
+        const watchingDisplayName = await watchingDashboardPage.header.getCurrentUserDisplayName();
 
         // Setup group
         const [creatorGroupDetailPage, leavingGroupDetailPage, watchingGroupDetailPage] = await creatorDashboardPage.createMultiUserGroup(
@@ -284,7 +303,10 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
         await watchingGroupDetailPage.waitForPage(groupId, 2);
 
         // Creator creates expense after user has left
-        const expenseFormPage = await creatorGroupDetailPage.clickAddExpenseButton();
+        const expenseFormPage = await creatorGroupDetailPage.clickAddExpenseAndOpenForm(
+            await creatorGroupDetailPage.getMemberNames(),
+            (page) => new E2EExpenseFormPage(page),
+        );
         const expenseDescription = `Edge Leave Test ${generateShortId()}`;
 
         await expenseFormPage.submitExpense(
@@ -328,7 +350,7 @@ simpleTest.describe('Group Settings & Management', () => {
         await expect(settingsButton).toBeVisible();
 
         // === Test 1: Basic editing functionality ===
-        let editModal = await groupDetailPage.openEditGroupModal();
+        let editModal = await groupDetailPage.clickEditGroupAndOpenModal();
 
         // Edit the group name and description
         await editModal.editGroupName('Updated Group Name');
@@ -345,7 +367,7 @@ simpleTest.describe('Group Settings & Management', () => {
         await groupDetailPage.waitForGroupDescription('Updated description text');
 
         // === Test 2: Validation scenarios ===
-        editModal = await groupDetailPage.openEditGroupModal();
+        editModal = await groupDetailPage.clickEditGroupAndOpenModal();
 
         // Try to save with empty name
         await editModal.clearGroupName();
@@ -424,8 +446,8 @@ simpleTest.describe('Group Deletion', () => {
         const groupName1 = await ownerGroupDetailPage.getGroupNameText();
 
         // Both users navigate to dashboard to see the group
-        ownerDashboardPage = await ownerGroupDetailPage.navigateToDashboard();
-        memberDashboardPage1 = await member1GroupDetailPage.navigateToDashboard();
+        ownerDashboardPage = await navigateToDashboardFromGroup(ownerGroupDetailPage);
+        memberDashboardPage1 = await navigateToDashboardFromGroup(member1GroupDetailPage);
 
         // Verify both users can see the group on dashboard
         await ownerDashboardPage.waitForGroupToAppear(groupName1);
@@ -435,7 +457,7 @@ simpleTest.describe('Group Deletion', () => {
         ownerGroupDetailPage = await ownerDashboardPage.clickGroupCard(groupName1);
 
         // Delete the group
-        const editModal1 = await ownerGroupDetailPage.openEditGroupModal();
+        const editModal1 = await ownerGroupDetailPage.clickEditGroupAndOpenModal();
         await editModal1.clickDeleteGroup();
         ownerDashboardPage = await editModal1.handleDeleteConfirmDialog(groupName1, (page) => new E2EDashboardPage(page));
 
@@ -449,7 +471,7 @@ simpleTest.describe('Group Deletion', () => {
         const groupName2 = await ownerGroupDetailPage2.getGroupNameText();
 
         // Owner navigates to dashboard to delete the group
-        ownerDashboardPage = await ownerGroupDetailPage2.navigateToDashboard();
+        ownerDashboardPage = await navigateToDashboardFromGroup(ownerGroupDetailPage2);
         await ownerDashboardPage.waitForDashboard();
         await ownerDashboardPage.waitForGroupToAppear(groupName2);
 
@@ -457,7 +479,7 @@ simpleTest.describe('Group Deletion', () => {
         ownerGroupDetailPage2 = await ownerDashboardPage.clickGroupCard(groupName2);
 
         // Owner deletes the group while member is still viewing it
-        const editModal2 = await ownerGroupDetailPage2.openEditGroupModal();
+        const editModal2 = await ownerGroupDetailPage2.clickEditGroupAndOpenModal();
         await editModal2.clickDeleteGroup();
         ownerDashboardPage = await editModal2.handleDeleteConfirmDialog(groupName2, (page) => new E2EDashboardPage(page));
 

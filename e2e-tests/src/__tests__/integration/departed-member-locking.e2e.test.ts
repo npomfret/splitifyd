@@ -1,5 +1,6 @@
 import { CreateGroupFormDataBuilder, ExpenseFormDataBuilder, generateShortId } from '@splitifyd/test-support';
 import { expect, simpleTest } from '../../fixtures';
+import { ExpenseFormPage as E2EExpenseFormPage } from '../../pages/expense-form.page';
 
 simpleTest.describe('Departed Member Transaction Locking', () => {
     simpleTest('should lock expense when participant leaves group', async ({ createLoggedInBrowsers }, testInfo) => {
@@ -32,7 +33,10 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
 
         // Alice creates expense with all 3 participants ($90 split equally)
         const expenseDescription = `Departed Member Test ${generateShortId()}`;
-        const expenseFormPage = await aliceGroupDetailPage.clickAddExpenseButton();
+        const expenseFormPage = await aliceGroupDetailPage.clickAddExpenseAndOpenForm(
+            await aliceGroupDetailPage.getMemberNames(),
+            (page) => new E2EExpenseFormPage(page),
+        );
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(expenseDescription)
@@ -111,7 +115,10 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
 
         // Alice creates expense with both participants ($100 split equally)
         const expenseDescription = `Settlement Lock Test ${generateShortId()}`;
-        const expenseFormPage = await aliceGroupDetailPage.clickAddExpenseButton();
+        const expenseFormPage = await aliceGroupDetailPage.clickAddExpenseAndOpenForm(
+            await aliceGroupDetailPage.getMemberNames(),
+            (page) => new E2EExpenseFormPage(page),
+        );
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(expenseDescription)
@@ -208,7 +215,10 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
 
         // Bob creates expense with both participants ($100 split equally)
         const expenseDescription = `Payee Lock Test ${generateShortId()}`;
-        const expenseFormPage = await bobGroupDetailPage.clickAddExpenseButton();
+        const expenseFormPage = await bobGroupDetailPage.clickAddExpenseAndOpenForm(
+            await bobGroupDetailPage.getMemberNames(),
+            (page) => new E2EExpenseFormPage(page),
+        );
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(expenseDescription)
@@ -310,7 +320,10 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
 
         // Alice creates initial expense with all 3 participants ($90 split equally)
         const initialExpenseDescription = `Initial Expense ${generateShortId()}`;
-        const expenseFormPage = await aliceGroupDetailPage.clickAddExpenseButton();
+        const expenseFormPage = await aliceGroupDetailPage.clickAddExpenseAndOpenForm(
+            await aliceGroupDetailPage.getMemberNames(),
+            (page) => new E2EExpenseFormPage(page),
+        );
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
                 .withDescription(initialExpenseDescription)
@@ -349,7 +362,10 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
 
         // VERIFY DEPARTED MEMBER NOT IN PARTICIPANT DROPDOWN
         // Alice opens expense form
-        const newExpenseFormPage = await aliceGroupDetailPage.clickAddExpenseButton();
+        const newExpenseFormPage = await aliceGroupDetailPage.clickAddExpenseAndOpenForm(
+            await aliceGroupDetailPage.getMemberNames(),
+            (page) => new E2EExpenseFormPage(page),
+        );
 
         // Verify Bob is NOT in the participant dropdown
         await newExpenseFormPage.verifyMemberNotInParticipantDropdown(bobDisplayName);

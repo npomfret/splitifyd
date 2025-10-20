@@ -7,6 +7,15 @@ import { getUserPool } from '../../fixtures/user-pool.fixture';
 import { DashboardPage, GroupDetailPage, HomepagePage, LoginPage, RegisterPage, SettingsPage } from '../../pages';
 import { PolicyAcceptanceModalPage } from '../../pages/policy-acceptance-modal.page';
 
+type DashboardNavigable = SettingsPage | GroupDetailPage;
+
+async function navigateToDashboardFromPage(pageObject: DashboardNavigable): Promise<DashboardPage> {
+    await pageObject.header.navigateToDashboard();
+    const dashboardPage = new DashboardPage(pageObject.page);
+    await dashboardPage.waitForDashboard();
+    return dashboardPage;
+}
+
 /**
  * Consolidated User Management and Access E2E Tests
  *
@@ -65,7 +74,7 @@ simpleTest.describe('User Profile Management', () => {
         await settingsPage.verifyDisplayNameInputValue(newDisplayName);
 
         // Verify persistence when navigating to dashboard and back
-        await settingsPage.navigateToDashboard();
+        await navigateToDashboardFromPage(settingsPage);
         await settingsPage.header.verifyUserMenuButtonContainsText(newDisplayName);
         await settingsPage.navigate();
         await settingsPage.verifyProfileEmailText(user.email);
@@ -441,7 +450,9 @@ simpleTest.describe('Share Link Access Management', () => {
                     .withDescription('Testing already member scenario'),
             );
             const groupId = groupDetailPage.inferGroupId();
-            const shareLink = await groupDetailPage.getShareLink();
+            const shareModal = await groupDetailPage.clickShareGroupAndOpenModal();
+            const shareLink = await shareModal.getShareLink();
+            await shareModal.closeModal();
 
             // User2 joins first time
             const joinGroupPage2 = new JoinGroupPage(page2);
@@ -450,7 +461,7 @@ simpleTest.describe('Share Link Access Management', () => {
 
             const user2GroupDetailPage = new GroupDetailPage(page2);
             await user2GroupDetailPage.waitForPage(groupId, 2);
-            const user2Dashboard = await user2GroupDetailPage.navigateToDashboard();
+            const user2Dashboard = await navigateToDashboardFromPage(user2GroupDetailPage);
             await user2Dashboard.waitForDashboard();
             await user2Dashboard.waitForGroupToAppear(groupName);
 
@@ -478,7 +489,9 @@ simpleTest.describe('Share Link Access Management', () => {
             const groupName = await groupDetailPage.getGroupNameText();
 
             // Get share link from the group
-            const shareLink = await groupDetailPage.getShareLink();
+            const shareModal = await groupDetailPage.clickShareGroupAndOpenModal();
+            const shareLink = await shareModal.getShareLink();
+            await shareModal.closeModal();
 
             // Navigate to share link with unauthenticated user - should redirect to login
             const joinGroupPage = new JoinGroupPage(unauthPage);
@@ -520,7 +533,9 @@ simpleTest.describe('Share Link Access Management', () => {
             const groupId = groupDetailPage.inferGroupId();
 
             // Get share link from the group
-            const shareLink = await groupDetailPage.getShareLink();
+            const shareModal = await groupDetailPage.clickShareGroupAndOpenModal();
+            const shareLink = await shareModal.getShareLink();
+            await shareModal.closeModal();
 
             // Navigate to share link with unauthenticated user
             await unauthPage.goto(shareLink);
@@ -572,7 +587,9 @@ simpleTest.describe('Share Link Access Management', () => {
             const groupId = groupDetailPage.inferGroupId();
 
             // Get share link from the group
-            const shareLink = await groupDetailPage.getShareLink();
+            const shareModal = await groupDetailPage.clickShareGroupAndOpenModal();
+            const shareLink = await shareModal.getShareLink();
+            await shareModal.closeModal();
 
             // Get a second user to login with
             const [{ user: secondUser }] = await createLoggedInBrowsers(1);
@@ -679,7 +696,7 @@ simpleTest.describe('Share Link Access Management', () => {
             const [groupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder());
 
             // Open the share modal
-            const shareModalPage = await groupDetailPage.openShareGroupModal();
+            const shareModalPage = await groupDetailPage.clickShareGroupAndOpenModal();
             await shareModalPage.waitForModalToOpen();
 
             // Get the initial share link

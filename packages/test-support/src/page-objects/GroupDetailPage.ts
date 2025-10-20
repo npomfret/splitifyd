@@ -4,6 +4,7 @@ import { BasePage } from './BasePage';
 import { EditGroupModalPage } from './EditGroupModalPage';
 import { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
+import { ExpenseFormPage } from './ExpenseFormPage';
 import { translationEn } from '../translations/translation-en';
 import { GroupId } from '@splitifyd/shared';
 
@@ -531,13 +532,36 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Click Add Expense button
-     * Non-fluent version - clicks without verification
-     * TODO: Add fluent version that returns ExpenseFormPage when it exists
+     * Non-fluent version - clicks without verification.
+     * Prefer clickAddExpenseAndOpenForm for end-to-end flows when possible.
      */
     async clickAddExpense(): Promise<void> {
         const button = this.getAddExpenseButton();
         await this.clickButton(button, { buttonName: 'Add Expense' });
         await this.waitForNetworkIdle();
+    }
+
+    /**
+     * Click Add Expense and return an expense form page object.
+     */
+    async clickAddExpenseAndOpenForm<T = ExpenseFormPage>(
+        expectedMemberNames: string[],
+        createExpenseFormPage?: (page: Page) => T,
+    ): Promise<T> {
+        await this.clickAddExpense();
+        const formPage = createExpenseFormPage
+            ? createExpenseFormPage(this.page)
+            : ((new ExpenseFormPage(this.page)) as unknown as T);
+
+        const guards = formPage as unknown as {
+            waitForFormReady?: (expectedMemberNames: string[]) => Promise<void>;
+        };
+
+        if (typeof guards.waitForFormReady === 'function') {
+            await guards.waitForFormReady(expectedMemberNames);
+        }
+
+        return formPage;
     }
 
     // ============================================================================
