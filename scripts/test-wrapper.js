@@ -57,6 +57,12 @@ function getTestCommand(scriptType, packageName) {
             'test:unit': 'vitest run src/__tests__/',
             'test:integration': 'echo \'No integration tests for test-support package\'',
         },
+        '@splitifyd/firebase-simulator': {
+            test: 'npm run test:unit && npm run test:integration',
+            'test:unit': 'vitest run --config vitest.config.ts src/__tests__/unit/',
+            'test:integration':
+                'vitest run --config vitest.config.ts src/__tests__/integration/ --test-timeout 5000 --hook-timeout 5000 --teardown-timeout 5000',
+        },
         backend: {
             test: 'cd functions && npm test',
             'test:unit': 'cd functions && npm run test:unit',

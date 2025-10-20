@@ -1,5 +1,5 @@
 import { CommentTargetTypes } from '@splitifyd/shared';
-import { StubFirestoreDatabase } from '@splitifyd/test-support';
+import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CommentStrategyFactory } from '../../../../services/comments/CommentStrategyFactory';
 import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCommentStrategy';

@@ -1,4 +1,4 @@
-import { StubFirestoreDatabase } from '@splitifyd/test-support';
+import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { UserNotificationDocument } from '../../../schemas/user-notifications';
 import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';

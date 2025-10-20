@@ -1,5 +1,6 @@
 import { Timestamp } from '@google-cloud/firestore';
-import { CreateSettlementRequestBuilder, GroupMemberDocumentBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
+import { CreateSettlementRequestBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';

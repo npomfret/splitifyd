@@ -1,0 +1,40 @@
+{
+  "name": "@splitifyd/firebase-simulator",
+  "version": "0.0.1",
+  "description": "In-memory Firebase simulation utilities for unit testing",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npm run build:check && node scripts/conditional-build.js",
+    "build:check": "tsc --project tsconfig.build.json --noEmit",
+    "watch": "tsup --watch",
+    "clean": "rm -rf dist",
+    "super-clean": "npm run clean && rm -rf node_modules",
+    "test": "ORIGINAL_TEST_SCRIPT=test node ../../scripts/test-wrapper.js",
+    "test:unit": "ORIGINAL_TEST_SCRIPT=test:unit node ../../scripts/test-wrapper.js",
+    "test:integration": "ORIGINAL_TEST_SCRIPT=test:integration node ../../scripts/test-wrapper.js"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.14",
+    "tsup": "^8.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.5.0",
+    "firebase-functions": "^6.4.0"
+  }
+}

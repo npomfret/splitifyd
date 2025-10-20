@@ -15,7 +15,7 @@ export type {
     OrderByDirection,
     SetOptions,
     WhereFilterOp,
-} from './firestore-types';
+} from '@splitifyd/firebase-simulator';
 export * from './http-stubs';
 export * from './NotificationDriver';
 export * from './page-objects';
@@ -24,9 +24,10 @@ export {
     StubFirestoreDatabase,
     type FirestoreTriggerChange,
     type FirestoreTriggerEventType,
-    type FirestoreTriggerHandler,
+    type FirestoreTriggerChangeHandler,
     type FirestoreTriggerHandlers,
-} from './StubFirestoreDatabase';
+} from '@splitifyd/firebase-simulator';
+export type { FirestoreTriggerChangeHandler as FirestoreTriggerHandler } from '@splitifyd/firebase-simulator';
 export * from './test-constants';
 export * from './test-helpers';
 export * from './test-pool-helpers';

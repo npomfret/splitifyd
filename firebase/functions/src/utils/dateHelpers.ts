@@ -1,4 +1,4 @@
-import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from '../firestore-wrapper';
 
 /**
  * Date handling utilities for consistent timestamp management across the application.

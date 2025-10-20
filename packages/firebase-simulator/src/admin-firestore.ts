@@ -1,9 +1,9 @@
 /**
  * Firestore Wrapper Implementations
  *
- * This module provides concrete implementations of wrapper interfaces that delegate
- * to actual Firestore objects. This creates an abstraction layer that hides Firestore
- * implementation details from the rest of the codebase.
+ * Provides concrete implementations of the shared Firestore interfaces that
+ * delegate to firebase-admin's Firestore. This gives consumers a consistent
+ * abstraction regardless of whether they run against the real database or the stub.
  */
 
 import type * as FirebaseAdmin from 'firebase-admin/firestore';
@@ -21,12 +21,8 @@ import type {
     OrderByDirection,
     SetOptions,
     WhereFilterOp,
-} from './types';
+} from './firestore-types';
 
-/**
- * Wrapper for Firestore DocumentSnapshot
- * Internal implementation - use via IFirestoreDatabase interface
- */
 class DocumentSnapshotWrapper implements IDocumentSnapshot {
     constructor(private readonly snapshot: FirebaseAdmin.DocumentSnapshot) {}
 
@@ -47,10 +43,6 @@ class DocumentSnapshotWrapper implements IDocumentSnapshot {
     }
 }
 
-/**
- * Wrapper for Firestore QuerySnapshot
- * Internal implementation - use via IFirestoreDatabase interface
- */
 class QuerySnapshotWrapper implements IQuerySnapshot {
     constructor(private readonly snapshot: FirebaseAdmin.QuerySnapshot) {}
 
@@ -71,10 +63,6 @@ class QuerySnapshotWrapper implements IQuerySnapshot {
     }
 }
 
-/**
- * Wrapper for Firestore AggregateQuerySnapshot
- * Internal implementation - use via IFirestoreDatabase interface
- */
 class AggregateQuerySnapshotWrapper implements IAggregateQuerySnapshot {
     constructor(private readonly snapshot: FirebaseAdmin.AggregateQuerySnapshot<{ count: FirebaseAdmin.AggregateField<number>; }>) {}
 
@@ -83,10 +71,6 @@ class AggregateQuerySnapshotWrapper implements IAggregateQuerySnapshot {
     }
 }
 
-/**
- * Wrapper for Firestore AggregateQuery
- * Internal implementation - use via IFirestoreDatabase interface
- */
 class AggregateQueryWrapper implements IAggregateQuery {
     constructor(private readonly aggregateQuery: FirebaseAdmin.AggregateQuery<{ count: FirebaseAdmin.AggregateField<number>; }>) {}
 
@@ -96,21 +80,14 @@ class AggregateQueryWrapper implements IAggregateQuery {
     }
 }
 
-/**
- * Wrapper for Firestore Query
- * Internal implementation - use via IFirestoreDatabase interface
- */
 class QueryWrapper implements IQuery {
     constructor(protected readonly query: FirebaseAdmin.Query) {}
 
     where(fieldPath: string | any, opStr?: WhereFilterOp | any, value?: any): IQuery {
-        // Support both traditional where(field, op, value) and new Filter-based where(filter)
         if (opStr !== undefined && value !== undefined) {
             return new QueryWrapper(this.query.where(fieldPath, opStr, value));
-        } else {
-            // Single argument form - pass through (for Filter or FieldPath)
-            return new QueryWrapper(this.query.where(fieldPath));
         }
+        return new QueryWrapper(this.query.where(fieldPath));
     }
 
     orderBy(fieldPath: string, directionStr?: OrderByDirection): IQuery {
@@ -126,10 +103,8 @@ class QueryWrapper implements IQuery {
     }
 
     startAfter(...fieldValues: any[]): IQuery {
-        // Handle both DocumentSnapshot and field values
         const unwrappedValues = fieldValues.map((value) => {
             if (value && typeof value === 'object' && 'snapshot' in value) {
-                // If it's a wrapped DocumentSnapshot, unwrap it
                 return (value as DocumentSnapshotWrapper)['snapshot'];
             }
             return value;
@@ -151,10 +126,6 @@ class QueryWrapper implements IQuery {
     }
 }
 
-/**
- * Wrapper for Firestore CollectionReference
- * Internal implementation - use via IFirestoreDatabase interface
- */
 class CollectionReferenceWrapper extends QueryWrapper implements ICollectionReference {
     constructor(private readonly collectionRef: FirebaseAdmin.CollectionReference) {
         super(collectionRef);
@@ -165,15 +136,10 @@ class CollectionReferenceWrapper extends QueryWrapper implements ICollectionRefe
     }
 
     doc(documentId?: string): IDocumentReference {
-        // Firebase accepts undefined for auto-generated IDs
         return new DocumentReferenceWrapper(documentId ? this.collectionRef.doc(documentId) : this.collectionRef.doc());
     }
 }
 
-/**
- * Wrapper for Firestore DocumentReference
- * Internal implementation - use via IFirestoreDatabase interface
- */
 class DocumentReferenceWrapper implements IDocumentReference {
     constructor(private readonly docRef: FirebaseAdmin.DocumentReference) {}
 
@@ -199,7 +165,7 @@ class DocumentReferenceWrapper implements IDocumentReference {
     }
 
     async set(data: any, options?: SetOptions): Promise<void> {
-        if (options !== undefined) {
+        if (options) {
             await this.docRef.set(data, options as FirebaseAdmin.SetOptions);
         } else {
             await this.docRef.set(data);
@@ -213,96 +179,30 @@ class DocumentReferenceWrapper implements IDocumentReference {
     async delete(): Promise<void> {
         await this.docRef.delete();
     }
-
-    /**
-     * Internal method to get the underlying Firestore DocumentReference
-     * Used by Transaction and WriteBatch wrappers
-     */
-    getUnderlyingRef(): FirebaseAdmin.DocumentReference {
-        return this.docRef;
-    }
 }
 
-/**
- * Wrapper for Firestore Transaction
- * Internal implementation - use via IFirestoreDatabase interface
- */
-class TransactionWrapper implements ITransaction {
-    constructor(private readonly transaction: FirebaseAdmin.Transaction) {}
-
-    // Overload signatures to match interface
-    async get(documentRef: IDocumentReference): Promise<IDocumentSnapshot>;
-    async get(query: IQuery): Promise<IQuerySnapshot>;
-    // Implementation signature
-    async get(documentRefOrQuery: IDocumentReference | IQuery): Promise<IDocumentSnapshot | IQuerySnapshot> {
-        if ('getUnderlyingRef' in documentRefOrQuery) {
-            // It's a document reference
-            const docRef = (documentRefOrQuery as DocumentReferenceWrapper).getUnderlyingRef();
-            const snapshot = await this.transaction.get(docRef);
-            return new DocumentSnapshotWrapper(snapshot);
-        } else {
-            // It's a query
-            const query = (documentRefOrQuery as QueryWrapper)['query'];
-            const snapshot = await this.transaction.get(query);
-            return new QuerySnapshotWrapper(snapshot);
-        }
-    }
-
-    set(documentRef: IDocumentReference, data: any, options?: SetOptions): ITransaction {
-        const underlyingRef = (documentRef as DocumentReferenceWrapper).getUnderlyingRef();
-        if (options !== undefined) {
-            this.transaction.set(underlyingRef, data, options as FirebaseAdmin.SetOptions);
-        } else {
-            this.transaction.set(underlyingRef, data);
-        }
-        return this;
-    }
-
-    update(documentRef: IDocumentReference, data: any): ITransaction {
-        const underlyingRef = (documentRef as DocumentReferenceWrapper).getUnderlyingRef();
-        this.transaction.update(underlyingRef, data);
-        return this;
-    }
-
-    delete(documentRef: IDocumentReference): ITransaction {
-        const underlyingRef = (documentRef as DocumentReferenceWrapper).getUnderlyingRef();
-        this.transaction.delete(underlyingRef);
-        return this;
-    }
-
-    create(documentRef: IDocumentReference, data: any): ITransaction {
-        const underlyingRef = (documentRef as DocumentReferenceWrapper).getUnderlyingRef();
-        this.transaction.create(underlyingRef, data);
-        return this;
-    }
-}
-
-/**
- * Wrapper for Firestore WriteBatch
- * Internal implementation - use via IFirestoreDatabase interface
- */
 class WriteBatchWrapper implements IWriteBatch {
     constructor(private readonly batch: FirebaseAdmin.WriteBatch) {}
 
     set(documentRef: IDocumentReference, data: any, options?: SetOptions): IWriteBatch {
-        const underlyingRef = (documentRef as DocumentReferenceWrapper).getUnderlyingRef();
-        if (options !== undefined) {
-            this.batch.set(underlyingRef, data, options as FirebaseAdmin.SetOptions);
+        const ref = (documentRef as DocumentReferenceWrapper)['docRef'];
+        if (options) {
+            this.batch.set(ref, data, options as FirebaseAdmin.SetOptions);
         } else {
-            this.batch.set(underlyingRef, data);
+            this.batch.set(ref, data);
         }
         return this;
     }
 
     update(documentRef: IDocumentReference, data: any): IWriteBatch {
-        const underlyingRef = (documentRef as DocumentReferenceWrapper).getUnderlyingRef();
-        this.batch.update(underlyingRef, data);
+        const ref = (documentRef as DocumentReferenceWrapper)['docRef'];
+        this.batch.update(ref, data);
         return this;
     }
 
     delete(documentRef: IDocumentReference): IWriteBatch {
-        const underlyingRef = (documentRef as DocumentReferenceWrapper).getUnderlyingRef();
-        this.batch.delete(underlyingRef);
+        const ref = (documentRef as DocumentReferenceWrapper)['docRef'];
+        this.batch.delete(ref);
         return this;
     }
 
@@ -311,12 +211,63 @@ class WriteBatchWrapper implements IWriteBatch {
     }
 }
 
-/**
- * Wrapper for Firestore Database
- * This is the main entry point that creates the abstraction layer
- * Internal implementation - use via createFirestoreDatabase factory function
- */
-class FirestoreDatabase implements IFirestoreDatabase {
+class TransactionWrapper implements ITransaction {
+    constructor(private readonly transaction: FirebaseAdmin.Transaction) {}
+
+    async get(documentRef: IDocumentReference): Promise<IDocumentSnapshot>;
+    async get(query: IQuery): Promise<IQuerySnapshot>;
+    async get(refOrQuery: IDocumentReference | IQuery): Promise<IDocumentSnapshot | IQuerySnapshot> {
+        if (refOrQuery instanceof DocumentReferenceWrapper) {
+            const snapshot = await this.transaction.get(refOrQuery['docRef']);
+            return new DocumentSnapshotWrapper(snapshot);
+        }
+
+        if (refOrQuery instanceof QueryWrapper) {
+            const snapshot = await this.transaction.get(refOrQuery['query']);
+            return new QuerySnapshotWrapper(snapshot);
+        }
+
+        throw new Error('Unsupported reference type for transaction.get');
+    }
+
+    set(documentRef: IDocumentReference, data: any, options?: SetOptions): ITransaction {
+        if (!(documentRef instanceof DocumentReferenceWrapper)) {
+            throw new Error('Unsupported document reference for transaction.set');
+        }
+        if (options) {
+            this.transaction.set(documentRef['docRef'], data, options as FirebaseAdmin.SetOptions);
+        } else {
+            this.transaction.set(documentRef['docRef'], data);
+        }
+        return this;
+    }
+
+    update(documentRef: IDocumentReference, data: any): ITransaction {
+        if (!(documentRef instanceof DocumentReferenceWrapper)) {
+            throw new Error('Unsupported document reference for transaction.update');
+        }
+        this.transaction.update(documentRef['docRef'], data);
+        return this;
+    }
+
+    delete(documentRef: IDocumentReference): ITransaction {
+        if (!(documentRef instanceof DocumentReferenceWrapper)) {
+            throw new Error('Unsupported document reference for transaction.delete');
+        }
+        this.transaction.delete(documentRef['docRef']);
+        return this;
+    }
+
+    create(documentRef: IDocumentReference, data: any): ITransaction {
+        if (!(documentRef instanceof DocumentReferenceWrapper)) {
+            throw new Error('Unsupported document reference for transaction.create');
+        }
+        this.transaction.create(documentRef['docRef'], data);
+        return this;
+    }
+}
+
+class FirestoreDatabaseWrapper implements IFirestoreDatabase {
     constructor(private readonly firestore: FirebaseAdmin.Firestore) {}
 
     collection(collectionPath: string): ICollectionReference {
@@ -331,28 +282,56 @@ class FirestoreDatabase implements IFirestoreDatabase {
         return new QueryWrapper(this.firestore.collectionGroup(collectionId));
     }
 
-    async listCollections(): Promise<ICollectionReference[]> {
-        const collections = await this.firestore.listCollections();
-        return collections.map((col) => new CollectionReferenceWrapper(col));
-    }
-
-    async runTransaction<T>(updateFunction: (transaction: ITransaction) => Promise<T>): Promise<T> {
-        return this.firestore.runTransaction(async (firestoreTransaction) => {
-            const wrappedTransaction = new TransactionWrapper(firestoreTransaction);
-            return await updateFunction(wrappedTransaction);
-        });
-    }
-
     batch(): IWriteBatch {
         return new WriteBatchWrapper(this.firestore.batch());
     }
+
+    async runTransaction<T>(updateFunction: (transaction: ITransaction) => Promise<T>): Promise<T> {
+        return this.firestore.runTransaction(async (transaction) => {
+            const wrapper = new TransactionWrapper(transaction);
+            return updateFunction(wrapper);
+        });
+    }
+
+    async listCollections(): Promise<ICollectionReference[]> {
+        const collections = await this.firestore.listCollections();
+        return collections.map((collection) => new CollectionReferenceWrapper(collection));
+    }
+
+    registerTrigger(): () => void {
+        throw new Error('registerTrigger is not supported on real Firestore');
+    }
+
+    clearTriggers(): void {
+        // no-op for real Firestore
+    }
+
+    beginAtomicOperation(): void {
+        // no-op for real Firestore
+    }
+
+    endAtomicOperation(): Promise<void> {
+        // no-op for real Firestore
+        return Promise.resolve();
+    }
+
+    seed(): void {
+        throw new Error('seed is only available on StubFirestoreDatabase');
+    }
+
+    clear(): void {
+        throw new Error('clear is only available on StubFirestoreDatabase');
+    }
+
+    getAllDocuments(): Map<string, any> {
+        throw new Error('getAllDocuments is only available on StubFirestoreDatabase');
+    }
+
+    recordTrigger(): Promise<void> {
+        throw new Error('recordTrigger is only available on StubFirestoreDatabase');
+    }
 }
 
-/**
- * Factory function to create a wrapped Firestore database
- * @param firestore - The Firebase Admin Firestore instance
- * @returns Wrapped Firestore database
- */
 export function createFirestoreDatabase(firestore: FirebaseAdmin.Firestore): IFirestoreDatabase {
-    return new FirestoreDatabase(firestore);
+    return new FirestoreDatabaseWrapper(firestore);
 }

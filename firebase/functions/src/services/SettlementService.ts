@@ -1,5 +1,4 @@
 import { CreateSettlementRequest, GroupMember, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest } from '@splitifyd/shared';
-import { FieldValue } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import { FirestoreCollections, HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
@@ -12,6 +11,7 @@ import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import {GroupId} from "@splitifyd/shared";
 import {SettlementId} from "@splitifyd/shared";
+import { FieldValue } from '../firestore-wrapper';
 
 /**
  * Zod schema for User document - ensures critical fields are present

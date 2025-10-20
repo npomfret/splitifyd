@@ -11,12 +11,19 @@
  * directly from firebase-admin/firestore as they don't require wrapping.
  */
 
-// Export only used wrapper interfaces
-export type { IDocumentReference, IDocumentSnapshot, IFirestoreDatabase, IQuery, IQuerySnapshot, ITransaction, IWriteBatch } from './types';
+export type {
+    IDocumentReference,
+    IDocumentSnapshot,
+    IFirestoreDatabase,
+    IQuery,
+    IQuerySnapshot,
+    ITransaction,
+    IWriteBatch,
+    OrderByDirection,
+    SetOptions,
+    WhereFilterOp,
+    IAggregateQuery,
+    IAggregateQuerySnapshot,
+} from '@splitifyd/firebase-simulator';
 
-// Export only the factory function - wrapper implementations are internal
-export { createFirestoreDatabase } from './FirestoreDatabase';
-
-// Re-export static utilities from firebase-admin/firestore
-// These don't need wrapping as they're pure functions/constants
-export { FieldPath, FieldValue, Filter, Timestamp } from 'firebase-admin/firestore';
+export { createFirestoreDatabase, FieldPath, FieldValue, Filter, Timestamp } from '@splitifyd/firebase-simulator';

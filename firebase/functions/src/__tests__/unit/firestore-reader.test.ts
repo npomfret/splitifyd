@@ -5,7 +5,8 @@
  */
 
 import { SecurityPresets } from '@splitifyd/shared';
-import { GroupDTOBuilder, StubFirestoreDatabase } from '@splitifyd/test-support';
+import { GroupDTOBuilder } from '@splitifyd/test-support';
+import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore } from '../../firebase';
 import { Timestamp } from '../../firestore-wrapper';

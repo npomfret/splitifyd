@@ -25,7 +25,8 @@ import {
     UpdateSettlementRequest,
     UserPolicyStatusResponse,
 } from '@splitifyd/shared';
-import { CreateGroupRequestBuilder, createStubRequest, createStubResponse, StubFirestoreDatabase } from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder, createStubRequest, createStubResponse } from '@splitifyd/test-support';
+import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { CommentHandlers } from '../../comments/CommentHandlers';
 import { ExpenseHandlers } from '../../expenses/ExpenseHandlers';
 import { GroupHandlers } from '../../groups/GroupHandlers';
@@ -39,8 +40,10 @@ import { FirestoreWriter } from '../../services/firestore';
 import { SettlementHandlers } from '../../settlements/SettlementHandlers';
 import { UserHandlers } from '../../user/UserHandlers';
 import { StubAuthService } from './mocks/StubAuthService';
-import {ExpenseId} from "@splitifyd/shared";
-import {SettlementId} from "@splitifyd/shared";
+import { ExpenseId, SettlementId } from '@splitifyd/shared';
+import { expect } from 'vitest';
+import { registerChangeTrackerTriggers } from './ChangeTrackerTestHarness';
+import {ChangeTrackerHandlers} from "../../triggers/ChangeTrackerHandlers";
 
 /**
  * Thin façade around the public HTTP handlers.
@@ -67,6 +70,12 @@ export class AppDriver {
     private userHandlers = new UserHandlers(this.applicationBuilder.buildUserService());
     private policyHandlers = new PolicyHandlers(this.applicationBuilder.buildPolicyService());
     private policyUserHandlers = new PolicyUserHandlers(this.applicationBuilder.buildUserPolicyService());
+    private disposeTriggers?: () => void;
+
+    constructor() {
+        const handlers = ChangeTrackerHandlers.createChangeTrackerHandlers(this.applicationBuilder);
+        this.disposeTriggers = registerChangeTrackerTriggers(this.db, handlers);
+    }
 
     seedUser(userId: string, userData: Record<string, any> = {}) {
         const user = this.db.seedUser(userId, userData);
@@ -83,6 +92,23 @@ export class AppDriver {
             email: user.email,
             displayName: user.displayName,
         });
+    }
+
+    /**
+     * Exposes the underlying test infrastructure so specialized harnesses
+     * (e.g. Firestore trigger simulators) can hook into the same stubbed
+     * database and application container.
+     */
+    getTestHarness() {
+        return {
+            db: this.db,
+            applicationBuilder: this.applicationBuilder,
+        };
+    }
+
+    dispose() {
+        this.disposeTriggers?.();
+        this.disposeTriggers = undefined;
     }
 
     async listGroups(userId1: string) {
@@ -399,5 +425,47 @@ export class AppDriver {
         await getCurrentPolicy(req, res);
 
         return (res as any).getJson() as CurrentPolicyResponse;
+    }
+
+    async getUserNotifications(userId: string) {
+        const doc = await this.db.collection('user-notifications').doc(userId).get();
+        return doc.exists ? doc.data() : null;
+    }
+
+    async expectNotificationUpdate(
+        userId: string,
+        groupId: GroupId,
+        expectedChanges: {
+            transactionChangeCount?: number;
+            balanceChangeCount?: number;
+            groupDetailsChangeCount?: number;
+            commentChangeCount?: number;
+        }
+    ) {
+        const notif = await this.getUserNotifications(userId);
+        expect(notif, `Expected notifications for user ${userId}`).toBeDefined();
+        expect(notif.groups[groupId], `Expected group ${groupId} in notifications`).toBeDefined();
+
+        const groupNotif = notif.groups[groupId];
+
+        if (expectedChanges.transactionChangeCount !== undefined) {
+            expect(groupNotif.transactionChangeCount).toBe(expectedChanges.transactionChangeCount);
+            expect(groupNotif.lastTransactionChange).toBeDefined();
+        }
+
+        if (expectedChanges.balanceChangeCount !== undefined) {
+            expect(groupNotif.balanceChangeCount).toBe(expectedChanges.balanceChangeCount);
+            expect(groupNotif.lastBalanceChange).toBeDefined();
+        }
+
+        if (expectedChanges.groupDetailsChangeCount !== undefined) {
+            expect(groupNotif.groupDetailsChangeCount).toBe(expectedChanges.groupDetailsChangeCount);
+            expect(groupNotif.lastGroupDetailsChange).toBeDefined();
+        }
+
+        if (expectedChanges.commentChangeCount !== undefined) {
+            expect(groupNotif.commentChangeCount).toBe(expectedChanges.commentChangeCount);
+            expect(groupNotif.lastCommentChange).toBeDefined();
+        }
     }
 }

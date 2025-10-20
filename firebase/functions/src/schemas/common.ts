@@ -1,5 +1,5 @@
 import { isValidCurrency } from '@splitifyd/shared';
-import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from '../firestore-wrapper';
 import { z } from 'zod';
 
 /**

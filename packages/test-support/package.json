@@ -19,6 +19,7 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@splitifyd/firebase-simulator": "0.0.1",
     "@playwright/test": "^1.55.1",
     "@splitifyd/shared": "^1.0.0",
     "firebase-admin": "^13.5.0"

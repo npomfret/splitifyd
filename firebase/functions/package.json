@@ -5,7 +5,6 @@
   "scripts": {
     "build": "npm run build:check && node scripts/conditional-build.js",
     "build:check": "tsc --project tsconfig.build.json --noEmit",
-    "build:prod": "npm run build:check && tsc && npm run copy:locales && node scripts/inject-build-info.js",
     "clean": "rm -rf lib coverage",
     "super-clean": "npm run clean && rm -rf node_modules",
     "copy:locales": "cp -r src/locales lib/ || mkdir -p lib/locales && cp -r src/locales/* lib/locales/",
@@ -23,6 +22,7 @@
   },
   "main": "lib/index.js",
   "dependencies": {
+    "@splitifyd/firebase-simulator": "*",
     "@splitifyd/shared": "*",
     "express": "^5.1.0",
     "firebase-admin": "^13.4.0",

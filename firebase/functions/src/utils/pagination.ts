@@ -1,5 +1,5 @@
-import { Query } from 'firebase-admin/firestore';
 import { Errors } from './errors';
+import type { IQuery } from '../firestore-wrapper';
 
 export interface CursorData {
     updatedAt: string;
@@ -25,7 +25,7 @@ export function encodeCursor(data: CursorData): string {
     return Buffer.from(JSON.stringify(data)).toString('base64');
 }
 
-export function buildPaginatedQuery<T>(baseQuery: Query<T>, cursor: string | undefined, order: 'asc' | 'desc', limit: number): Query<T> {
+export function buildPaginatedQuery(baseQuery: IQuery, cursor: string | undefined, order: 'asc' | 'desc', limit: number): IQuery {
     const queryWithOrder = baseQuery.orderBy('updatedAt', order).limit(limit);
 
     if (!cursor) {

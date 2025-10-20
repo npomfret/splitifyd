@@ -1,5 +1,6 @@
 import { MemberRoles } from '@splitifyd/shared';
-import { GroupBalanceDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, StubFirestoreDatabase, ThemeBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
+import { GroupBalanceDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, ThemeBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
+import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, test } from 'vitest';
 import { FirestoreReader } from '../../../services/firestore';

@@ -1,6 +1,6 @@
 import { amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, PolicyAcceptanceStatusDTO, smallestUnitToAmountString, UserBalance, UserPolicyStatusResponse } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
-import { beforeEach, describe, it } from 'vitest';
+import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from './AppDriver';
 
 const amountFor = (splits: Array<{ uid: string; amount: string; }>, uid: string) => splits.find((split) => split.uid === uid)!.amount;
@@ -38,6 +38,10 @@ describe('app tests', () => {
         appDriver.seedUser(user2, { displayName: 'User two' });
         appDriver.seedUser(user3, { displayName: 'User three' });
         appDriver.seedUser(user4, { displayName: 'User four' });
+    });
+
+    afterEach(() => {
+        appDriver.dispose();
     });
 
     describe('happy path tests', async () => {
@@ -2693,6 +2697,142 @@ describe('app tests', () => {
                 expect(status.needsAcceptance).toBe(false);
                 expect(status.totalPending).toBe(0);
                 expect(status.policies).toHaveLength(0);
+            });
+        });
+    });
+
+    describe('notification system', () => {
+        it('should update user notifications when expense is created', async () => {
+            const group = await appDriver.createGroup(user1);
+            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, linkId);
+
+            await appDriver.createExpense(
+                user1,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants([user1, user2])
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
+                    .build()
+            );
+
+            await appDriver.expectNotificationUpdate(user1, group.id, {
+                transactionChangeCount: 1,
+                balanceChangeCount: 1,
+            });
+
+            await appDriver.expectNotificationUpdate(user2, group.id, {
+                transactionChangeCount: 1,
+                balanceChangeCount: 1,
+            });
+        });
+
+        it('should update notifications when settlement is created', async () => {
+            const group = await appDriver.createGroup(user1);
+            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, linkId);
+
+            await appDriver.createSettlement(
+                user2,
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(50, 'USD')
+                    .build()
+            );
+
+            await appDriver.expectNotificationUpdate(user1, group.id, {
+                transactionChangeCount: 1,
+                balanceChangeCount: 1,
+            });
+
+            await appDriver.expectNotificationUpdate(user2, group.id, {
+                transactionChangeCount: 1,
+                balanceChangeCount: 1,
+            });
+        });
+
+        it('should update notifications when group comment is added', async () => {
+            const group = await appDriver.createGroup(user1);
+            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, linkId);
+
+            await appDriver.createGroupComment(user1, group.id, 'Test comment');
+
+            await appDriver.expectNotificationUpdate(user1, group.id, {
+                commentChangeCount: 1,
+            });
+
+            await appDriver.expectNotificationUpdate(user2, group.id, {
+                commentChangeCount: 1,
+            });
+        });
+
+        it('should update notifications when expense comment is added', async () => {
+            const group = await appDriver.createGroup(user1);
+            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, linkId);
+
+            const expense = await appDriver.createExpense(
+                user1,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants([user1, user2])
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
+                    .build()
+            );
+
+            await appDriver.createExpenseComment(user1, expense.id, 'Expense comment');
+
+            await appDriver.expectNotificationUpdate(user1, group.id, {
+                commentChangeCount: 1,
+            });
+
+            await appDriver.expectNotificationUpdate(user2, group.id, {
+                commentChangeCount: 1,
+            });
+        });
+
+        it('should increment changeVersion on multiple operations', async () => {
+            const group = await appDriver.createGroup(user1);
+            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, linkId);
+
+            await appDriver.createExpense(
+                user1,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants([user1, user2])
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
+                    .build()
+            );
+
+            let notif = await appDriver.getUserNotifications(user1);
+            expect(notif.changeVersion).toBe(5);
+
+            await appDriver.createGroupComment(user1, group.id, 'Comment');
+
+            notif = await appDriver.getUserNotifications(user1);
+            expect(notif.changeVersion).toBe(6);
+        });
+
+        it('should handle group updates', async () => {
+            const group = await appDriver.createGroup(user1);
+
+            await appDriver.updateGroup(user1, group.id, { name: 'Updated Name' });
+
+            await appDriver.expectNotificationUpdate(user1, group.id, {
+                groupDetailsChangeCount: 2,
             });
         });
     });

@@ -1,10 +1,12 @@
 import { getAppBuilder } from '../ApplicationBuilderSingleton';
 import { ChangeTrackerHandlers } from './ChangeTrackerHandlers';
+import { createChangeTrackerTriggerExports } from './ChangeTrackerTriggerRegistry';
 
 const changeTrackerHandlers = ChangeTrackerHandlers.createChangeTrackerHandlers(getAppBuilder());
+const triggerExports = createChangeTrackerTriggerExports(changeTrackerHandlers);
 
-export const trackGroupChanges = changeTrackerHandlers.getTrackGroupChanges();
-export const trackExpenseChanges = changeTrackerHandlers.getTrackExpenseChanges();
-export const trackSettlementChanges = changeTrackerHandlers.getTrackSettlementChanges();
-export const trackGroupCommentChanges = changeTrackerHandlers.getTrackGroupCommentChanges();
-export const trackExpenseCommentChanges = changeTrackerHandlers.getTrackExpenseCommentChanges();
+export const trackGroupChanges = triggerExports.trackGroupChanges;
+export const trackExpenseChanges = triggerExports.trackExpenseChanges;
+export const trackSettlementChanges = triggerExports.trackSettlementChanges;
+export const trackGroupCommentChanges = triggerExports.trackGroupCommentChanges;
+export const trackExpenseCommentChanges = triggerExports.trackExpenseCommentChanges;

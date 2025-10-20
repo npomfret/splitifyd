@@ -8,7 +8,6 @@
 
 import type { UserRecord } from 'firebase-admin/auth';
 import { Timestamp } from 'firebase-admin/firestore';
-import { GroupDTOBuilder } from './builders';
 import type {
     IAggregateQuery,
     IAggregateQuerySnapshot,
@@ -24,9 +23,16 @@ import type {
     SetOptions,
     WhereFilterOp,
 } from './firestore-types';
-import {GroupId} from "@splitifyd/shared";
-import {ExpenseId} from "@splitifyd/shared";
-import {SettlementId} from "@splitifyd/shared";
+
+type GroupId = string;
+type ExpenseId = string;
+type SettlementId = string;
+
+const SecurityPresets = {
+    OPEN: 'open',
+    MANAGED: 'managed',
+    CUSTOM: 'custom',
+} as const;
 
 export type FirestoreTriggerEventType = 'create' | 'update' | 'delete';
 
@@ -38,12 +44,12 @@ export interface FirestoreTriggerChange {
     type: FirestoreTriggerEventType;
 }
 
-export type FirestoreTriggerHandler = (change: FirestoreTriggerChange) => void | Promise<void>;
+export type FirestoreTriggerChangeHandler = (change: FirestoreTriggerChange) => void | Promise<void>;
 
 export interface FirestoreTriggerHandlers {
-    onCreate?: FirestoreTriggerHandler;
-    onUpdate?: FirestoreTriggerHandler;
-    onDelete?: FirestoreTriggerHandler;
+    onCreate?: FirestoreTriggerChangeHandler;
+    onUpdate?: FirestoreTriggerChangeHandler;
+    onDelete?: FirestoreTriggerChangeHandler;
 }
 
 interface TriggerRegistration {
@@ -1152,7 +1158,7 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
                 type: event.type,
             };
 
-            let handler: FirestoreTriggerHandler | undefined;
+            let handler: FirestoreTriggerChangeHandler | undefined;
             if (event.type === 'create') {
                 handler = registration.handlers.onCreate;
             } else if (event.type === 'update') {
@@ -1285,20 +1291,30 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
 
     seedGroup(groupId: GroupId, overrides: Record<string, any> = {}): void {
         const now = Timestamp.now();
+        const { permissions: overridePermissions, ...restOverrides } = overrides;
 
-        // Use buildDocument() to get Firestore format without client-side fields
-        const groupDocument = new GroupDTOBuilder()
-            .withName(overrides.name || 'Test Group')
-            .withDescription(overrides.description || 'A test group')
-            .withCreatedBy(overrides.createdBy || 'test-creator')
-            .buildDocument();
+        const defaultPermissions = {
+            expenseEditing: 'anyone',
+            expenseDeletion: 'anyone',
+            memberInvitation: 'anyone',
+            memberApproval: 'automatic',
+            settingsManagement: 'admin-only',
+        };
 
         const groupData = {
-            ...groupDocument,
             id: groupId,
+            name: restOverrides.name ?? 'Test Group',
+            description: restOverrides.description ?? 'A test group',
+            createdBy: restOverrides.createdBy ?? 'test-creator',
+            securityPreset: restOverrides.securityPreset ?? SecurityPresets.OPEN,
+            presetAppliedAt: restOverrides.presetAppliedAt ?? now.toDate().toISOString(),
+            permissions: {
+                ...defaultPermissions,
+                ...(overridePermissions ?? {}),
+            },
             createdAt: now,
             updatedAt: now,
-            ...overrides,
+            ...restOverrides,
         };
 
         const firestoreData = this.convertDatesToTimestamps(groupData);

@@ -1,4 +1,4 @@
-import { Timestamp } from 'firebase-admin/firestore';
+import { Timestamp } from '../firestore-wrapper';
 import {GroupId} from "@splitifyd/shared";
 
 /**
