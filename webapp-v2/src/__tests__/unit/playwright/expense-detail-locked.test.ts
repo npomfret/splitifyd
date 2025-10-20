@@ -1,4 +1,4 @@
-import { ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
+import { ExpenseDTOBuilder, ExpenseFullDetailsBuilder, GroupDTOBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
 import { ExpenseId } from "@splitifyd/shared";
@@ -43,33 +43,33 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         const groupId = 'test-group-456';
 
         // Mock the expense detail API response with a locked expense
-        const fullDetails = {
-            expense: new ExpenseDTOBuilder()
+        const expense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withGroupId(groupId)
                 .withDescription('Locked Expense')
                 .withAmount(100.0, 'EUR')
                 .withPaidBy(testUser.uid)
                 .withParticipants([testUser.uid])
-                .withCategory('food')
-                .withSplitType('equal')
                 .withIsLocked(true) // Mark as locked
+                .build();
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withId(groupId)
+            .withName('Test Group')
+            .build();
+        const members = [
+            new GroupMemberBuilder()
+                .withUid(testUser.uid)
+                .withDisplayName(testUser.displayName)
+                .withGroupDisplayName(testUser.displayName)
                 .build(),
-            group: GroupDTOBuilder
-                .groupForUser(testUser.uid)
-                .withId(groupId)
-                .withName('Test Group')
-                .build(),
-            members: {
-                members: [
-                    new GroupMemberBuilder()
-                        .withUid(testUser.uid)
-                        .withDisplayName(testUser.displayName)
-                        .withGroupDisplayName(testUser.displayName)
-                        .build(),
-                ],
-            },
-        };
+        ];
+
+        const fullDetails = new ExpenseFullDetailsBuilder()
+            .withExpense(expense)
+            .withGroup(group)
+            .withMembers(members)
+            .build();
 
         await mockExpenseDetailApi(page, expenseId, fullDetails);
         await mockExpenseCommentsApi(page, expenseId);
@@ -99,8 +99,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         const expenseId = 'locked-expense-123';
         const groupId = 'test-group-456';
 
-        const fullDetails = {
-            expense: new ExpenseDTOBuilder()
+        const expense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withGroupId(groupId)
                 .withDescription('Locked Expense')
@@ -108,21 +107,24 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                 .withPaidBy(testUser.uid)
                 .withParticipants([testUser.uid])
                 .withIsLocked(true) // Mark as locked
+                .build();
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withId(groupId)
+            .build();
+        const members = [
+            new GroupMemberBuilder()
+                .withUid(testUser.uid)
+                .withDisplayName(testUser.displayName)
+                .withGroupDisplayName(testUser.displayName)
                 .build(),
-            group: GroupDTOBuilder
-                .groupForUser(testUser.uid)
-                .withId(groupId)
-                .build(),
-            members: {
-                members: [
-                    new GroupMemberBuilder()
-                        .withUid(testUser.uid)
-                        .withDisplayName(testUser.displayName)
-                        .withGroupDisplayName(testUser.displayName)
-                        .build(),
-                ],
-            },
-        };
+        ];
+
+        const fullDetails = new ExpenseFullDetailsBuilder()
+            .withExpense(expense)
+            .withGroup(group)
+            .withMembers(members)
+            .build();
 
         await mockExpenseDetailApi(page, expenseId, fullDetails);
         await mockExpenseCommentsApi(page, expenseId);
@@ -150,30 +152,31 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         const groupId = 'test-group-456';
 
         // Mock the expense detail API response with a normal (unlocked) expense
-        const fullDetails = {
-            expense: new ExpenseDTOBuilder()
+        const expense = new ExpenseDTOBuilder()
                 .withId(expenseId)
                 .withGroupId(groupId)
                 .withDescription('Normal Expense')
                 .withAmount(50.0, 'EUR')
                 .withPaidBy(testUser.uid)
                 .withParticipants([testUser.uid])
-                .withSplitType('equal')
+                .build();
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withId(groupId)
+            .build();
+        const members = [
+            new GroupMemberBuilder()
+                .withUid(testUser.uid)
+                .withDisplayName(testUser.displayName)
+                .withGroupDisplayName(testUser.displayName)
                 .build(),
-            group: GroupDTOBuilder
-                .groupForUser(testUser.uid)
-                .withId(groupId)
-                .build(),
-            members: {
-                members: [
-                    new GroupMemberBuilder()
-                        .withUid(testUser.uid)
-                        .withDisplayName(testUser.displayName)
-                        .withGroupDisplayName(testUser.displayName)
-                        .build(),
-                ],
-            },
-        };
+        ];
+
+        const fullDetails = new ExpenseFullDetailsBuilder()
+            .withExpense(expense)
+            .withGroup(group)
+            .withMembers(members)
+            .build();
 
         await mockExpenseDetailApi(page, expenseId, fullDetails);
         await mockExpenseCommentsApi(page, expenseId);

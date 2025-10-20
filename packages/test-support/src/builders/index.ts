@@ -9,6 +9,7 @@ export { CreateGroupRequestBuilder } from './CreateGroupRequestBuilder';
 export { CreateSettlementRequestBuilder } from './CreateSettlementRequestBuilder';
 export { ExpenseDraftBuilder } from './ExpenseDraftBuilder';
 export { ExpenseDTOBuilder } from './ExpenseDTOBuilder';
+export { ExpenseFullDetailsBuilder } from './ExpenseFullDetailsBuilder';
 export { ExpenseFormDataBuilder } from './ExpenseFormDataBuilder';
 export { ExpenseSplitBuilder } from './ExpenseSplitBuilder';
 export { ExpenseUpdateBuilder } from './ExpenseUpdateBuilder';

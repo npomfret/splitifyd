@@ -1,4 +1,4 @@
-import { GroupDTOBuilder, GroupMemberBuilder, SettlementWithMembersBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import { GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementWithMembersBuilder, ThemeBuilder } from '@splitifyd/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
 import {GroupId} from "@splitifyd/shared";
@@ -56,19 +56,11 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         const members = [testUserMember, otherUser];
 
         // Mock the group full-details API response with locked settlement
-        const fullDetails = {
-            group: group,
-            members: { members, hasMore: false },
-            expenses: { expenses: [], hasMore: false },
-            balances: {
-                groupId: groupId,
-                userBalances: {},
-                simplifiedDebts: [],
-                lastUpdated: new Date().toISOString(),
-                balancesByCurrency: {},
-            },
-            settlements: { settlements: [lockedSettlement], hasMore: false },
-        };
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members)
+            .withSettlements([lockedSettlement])
+            .build();
 
         await mockGroupFullDetailsApi(page, groupId, fullDetails);
 
@@ -140,19 +132,11 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         const members = [testUserMember, otherUser];
 
         // Mock the group full-details API response with unlocked settlement
-        const fullDetails = {
-            group: group,
-            members: { members, hasMore: false },
-            expenses: { expenses: [], hasMore: false },
-            balances: {
-                groupId: groupId,
-                userBalances: {},
-                simplifiedDebts: [],
-                lastUpdated: new Date().toISOString(),
-                balancesByCurrency: {},
-            },
-            settlements: { settlements: [unlockedSettlement], hasMore: false },
-        };
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members)
+            .withSettlements([unlockedSettlement])
+            .build();
 
         await mockGroupFullDetailsApi(page, groupId, fullDetails);
 
@@ -224,21 +208,15 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         const members = [testUserMember, otherUser];
 
         // Initial response with unlocked settlement
-        let fullDetails = {
-            group: group,
-            members: { members, hasMore: false },
-            expenses: { expenses: [], hasMore: false },
-            balances: {
-                groupId: groupId,
-                userBalances: {},
-                simplifiedDebts: [],
-                lastUpdated: new Date().toISOString(),
-                balancesByCurrency: {},
-            },
-            settlements: { settlements: [settlement], hasMore: false },
-        };
-
-        await mockGroupFullDetailsApi(page, groupId, fullDetails);
+        await mockGroupFullDetailsApi(
+            page,
+            groupId,
+            new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .withSettlements([settlement])
+                .build(),
+        );
 
         // Navigate to group detail page
         await page.goto(`/groups/${groupId}`, { waitUntil: 'domcontentloaded', timeout: 10000 });
@@ -262,13 +240,15 @@ test.describe('Settlement History - Locked Settlement UI', () => {
 
         // Update the mock to return locked settlement
         const lockedSettlement = { ...settlement, isLocked: true };
-        fullDetails = {
-            ...fullDetails,
-            settlements: { settlements: [lockedSettlement], hasMore: false },
-        };
-
-        // Update the route to return new data
-        await mockGroupFullDetailsApi(page, groupId, fullDetails);
+        await mockGroupFullDetailsApi(
+            page,
+            groupId,
+            new GroupFullDetailsBuilder()
+                .withGroup(group)
+                .withMembers(members)
+                .withSettlements([lockedSettlement])
+                .build(),
+        );
 
         // Trigger a refresh by navigating away and back
         await page.goto('/dashboard');
