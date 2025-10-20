@@ -1,18 +1,15 @@
 import { ExpenseDTOBuilder, ExpenseFullDetailsBuilder, GroupDTOBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
-import { ApiSerializer, ExpenseId } from "@splitifyd/shared";
+import { ExpenseId } from "@splitifyd/shared";
+import { fulfillWithSerialization } from '../../utils/mock-firebase-service';
 
 /**
  * Helper function to mock the expense full-details API endpoint
  */
 async function mockExpenseDetailApi(page: any, expenseId: ExpenseId, response: any): Promise<void> {
     await page.route(`/api/expenses/${expenseId}/full-details`, async (route: any) => {
-        route.fulfill({
-            status: 200,
-            contentType: 'application/x-serialized-json',
-            body: ApiSerializer.serialize(response),
-        });
+        await fulfillWithSerialization(route, { body: response });
     });
 }
 
@@ -21,17 +18,15 @@ async function mockExpenseDetailApi(page: any, expenseId: ExpenseId, response: a
  */
 async function mockExpenseCommentsApi(page: any, expenseId: ExpenseId, comments: any[] = []): Promise<void> {
     await page.route(`/api/expenses/${expenseId}/comments`, async (route: any) => {
-        route.fulfill({
-            status: 200,
-            contentType: 'application/x-serialized-json',
-            body: ApiSerializer.serialize({
+        await fulfillWithSerialization(route, {
+            body: {
                 success: true,
                 data: {
                     comments,
                     count: comments.length,
                     hasMore: false,
                 },
-            }),
+            },
         });
     });
 }

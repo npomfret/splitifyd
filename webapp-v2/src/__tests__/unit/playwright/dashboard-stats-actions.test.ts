@@ -1,7 +1,6 @@
 import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
-import { ApiSerializer } from '@splitifyd/shared';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
+import { fulfillWithSerialization, mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
 test.describe('Dashboard Stats Display', () => {
     test('should display loading skeleton while groups are loading', async ({ authenticatedPage }) => {
@@ -17,14 +16,10 @@ test.describe('Dashboard Stats Display', () => {
             },
             async (route) => {
                 await page.waitForTimeout(1000);
-                await route.fulfill({
-                    status: 200,
-                    contentType: 'application/x-serialized-json',
-                    body: ApiSerializer.serialize(
-                        ListGroupsResponseBuilder
-                            .responseWithMetadata([])
-                            .build(),
-                    ),
+                await fulfillWithSerialization(route, {
+                    body: ListGroupsResponseBuilder
+                        .responseWithMetadata([])
+                        .build(),
                 });
             },
         );

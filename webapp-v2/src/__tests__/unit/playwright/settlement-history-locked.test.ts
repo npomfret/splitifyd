@@ -1,18 +1,15 @@
 import { GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementWithMembersBuilder, ThemeBuilder } from '@splitifyd/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
-import { ApiSerializer, GroupId } from "@splitifyd/shared";
+import { GroupId } from "@splitifyd/shared";
+import { fulfillWithSerialization } from '../../utils/mock-firebase-service';
 
 /**
  * Helper function to mock the group full-details API endpoint with settlements
  */
 async function mockGroupFullDetailsApi(page: any, groupId: GroupId, response: any): Promise<void> {
     await page.route(`/api/groups/${groupId}/full-details*`, async (route: any) => {
-        route.fulfill({
-            status: 200,
-            contentType: 'application/x-serialized-json',
-            body: ApiSerializer.serialize(response),
-        });
+        await fulfillWithSerialization(route, { body: response });
     });
 }
 

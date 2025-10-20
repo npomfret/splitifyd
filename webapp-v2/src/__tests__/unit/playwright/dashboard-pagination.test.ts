@@ -1,7 +1,6 @@
 import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
-import { ApiSerializer } from '@splitifyd/shared';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { mockGroupsApi } from '../../utils/mock-firebase-service';
+import { fulfillWithSerialization, mockGroupsApi } from '../../utils/mock-firebase-service';
 
 test.describe('Dashboard Groups Pagination', () => {
     test('should not show pagination controls when groups fit on one page', async ({ authenticatedPage }) => {
@@ -361,10 +360,8 @@ test.describe('Dashboard Groups Pagination', () => {
         await page.route('**/api/groups', async (route) => {
             // Only handle POST requests without query params
             if (route.request().method() === 'POST' && !route.request().url().includes('?')) {
-                await route.fulfill({
-                    status: 200,
-                    contentType: 'application/x-serialized-json',
-                    body: ApiSerializer.serialize(newGroup),
+                await fulfillWithSerialization(route, {
+                    body: newGroup,
                 });
             } else {
                 // Let mockGroupsApi handle GET requests

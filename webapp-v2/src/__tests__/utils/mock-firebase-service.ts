@@ -1,5 +1,5 @@
 import { FirebaseService } from '@/app/firebase.ts';
-import { Page } from '@playwright/test';
+import type { Page, Route } from '@playwright/test';
 import { ApiSerializer, ClientUser, ListGroupsResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
 import {GroupId} from "@splitifyd/shared";
 
@@ -32,6 +32,28 @@ declare global {
             cleanup: () => void;
         };
     }
+}
+
+/**
+ * Fulfills a Playwright route with automatic API response serialization
+ * This helper eliminates duplication and fragility from inline test mocks
+ * @param route - Playwright route object from route handler
+ * @param options - Response options (status, body, optional headers)
+ */
+export async function fulfillWithSerialization(
+    route: Route,
+    options: {
+        status?: number;
+        body: unknown;
+        headers?: Record<string, string>;
+    },
+): Promise<void> {
+    await route.fulfill({
+        status: options.status ?? 200,
+        contentType: 'application/x-serialized-json',
+        headers: options.headers,
+        body: ApiSerializer.serialize(options.body),
+    });
 }
 
 /**

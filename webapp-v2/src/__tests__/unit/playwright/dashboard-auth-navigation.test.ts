@@ -1,7 +1,6 @@
 import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
-import { ApiSerializer } from '@splitifyd/shared';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { mockGroupsApi } from '../../utils/mock-firebase-service';
+import { fulfillWithSerialization, mockGroupsApi } from '../../utils/mock-firebase-service';
 
 // Test for browser reuse - using fixture-based approach with proper infrastructure
 test.describe('Browser Reuse Test', () => {
@@ -74,10 +73,8 @@ test.describe('Dashboard Groups Display and Loading States', () => {
             async (route) => {
                 // Delay response to show loading state
                 await page.waitForTimeout(1000);
-                await route.fulfill({
-                    status: 200,
-                    contentType: 'application/x-serialized-json',
-                    body: ApiSerializer.serialize(groupsResponse),
+                await fulfillWithSerialization(route, {
+                    body: groupsResponse,
                 });
             },
         );
@@ -194,10 +191,9 @@ test.describe('Dashboard Error Handling', () => {
                 return searchParams.get('includeMetadata') === 'true';
             },
             async (route) => {
-                await route.fulfill({
+                await fulfillWithSerialization(route, {
                     status: 500,
-                    contentType: 'application/x-serialized-json',
-                    body: ApiSerializer.serialize({ error: 'Internal Server Error' }),
+                    body: { error: 'Internal Server Error' },
                 });
             },
         );
@@ -220,10 +216,9 @@ test.describe('Dashboard Error Handling', () => {
                 return searchParams.get('includeMetadata') === 'true';
             },
             async (route) => {
-                await route.fulfill({
+                await fulfillWithSerialization(route, {
                     status: 500,
-                    contentType: 'application/x-serialized-json',
-                    body: ApiSerializer.serialize({ error: 'Server temporarily unavailable' }),
+                    body: { error: 'Server temporarily unavailable' },
                 });
             },
         );
@@ -261,10 +256,9 @@ test.describe('Dashboard Error Handling', () => {
                 return searchParams.get('includeMetadata') === 'true';
             },
             async (route) => {
-                await route.fulfill({
+                await fulfillWithSerialization(route, {
                     status: 408,
-                    contentType: 'application/x-serialized-json',
-                    body: ApiSerializer.serialize({ error: 'Request timeout' }),
+                    body: { error: 'Request timeout' },
                 });
             },
         );
