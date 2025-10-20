@@ -1,10 +1,9 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { GroupDetailPage as BaseGroupDetailPage } from '@splitifyd/test-support';
+import { GroupDetailPage as BaseGroupDetailPage, HeaderPage } from '@splitifyd/test-support';
 import { DashboardPage } from './dashboard.page.ts';
 import { EditGroupModalPage } from './edit-group-modal.page';
 import { ExpenseDetailPage } from './expense-detail.page';
 import { ExpenseFormPage } from './expense-form.page';
-import { HeaderPage } from './header.page';
 import { LeaveGroupModalPage } from './leave-group-modal.page';
 import { RemoveMemberModalPage } from './remove-member-modal.page';
 import { SettlementFormPage } from './settlement-form.page';
