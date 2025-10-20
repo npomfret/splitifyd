@@ -117,9 +117,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                 user1.token,
             );
 
-            await userListener.waitForTransactionEvent(group.id, 1);
-            userListener.assertEventCount(group.id, 1, 'transaction');
-            notificationDriver.clearEvents();
+            const firstEvent = await userListener.waitForTransactionEvent(group.id, 1);
 
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
@@ -131,8 +129,9 @@ describe('Notifications Management - Consolidated Tests', () => {
                 user1.token,
             );
 
-            await userListener.waitForTransactionEvent(group.id, 1);
-            userListener.assertEventCount(group.id, 1, 'transaction');
+            const events = await userListener.waitForEventCount(group.id, 'transaction', 2);
+            const secondEvent = events[events.length - 1];
+            expect(secondEvent.groupState?.transactionChangeCount).toBeGreaterThan(firstEvent.groupState?.transactionChangeCount ?? 0);
         });
     });
 
