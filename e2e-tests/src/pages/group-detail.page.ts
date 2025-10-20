@@ -7,7 +7,7 @@ import { ExpenseFormPage } from './expense-form.page';
 import { LeaveGroupModalPage } from './leave-group-modal.page';
 import { RemoveMemberModalPage } from './remove-member-modal.page';
 import { SettlementFormPage } from './settlement-form.page';
-import { ShareGroupModalPage } from './share-group-modal.page';
+import { ShareGroupModalPage } from '@splitifyd/test-support';
 import {GroupId} from "@splitifyd/shared";
 
 export class GroupDetailPage extends BaseGroupDetailPage {
@@ -395,14 +395,13 @@ export class GroupDetailPage extends BaseGroupDetailPage {
     // ============================================================================
 
     /**
-     * Opens the share group modal and returns the ShareGroupModalPage instance.
-     * E2E-specific version that returns e2e ShareGroupModalPage
+     * Opens the share group modal and returns the shared ShareGroupModalPage instance.
      */
     async openShareGroupModal(): Promise<ShareGroupModalPage> {
         const shareButton = this.getShareGroupButton();
         await this.clickButton(shareButton, { buttonName: 'Invite Others' });
 
-        // Create and return the e2e ShareGroupModalPage instance
+        // Create and return the shared ShareGroupModalPage instance
         const shareModal = new ShareGroupModalPage(this.page);
         await shareModal.waitForModalToOpen();
 
