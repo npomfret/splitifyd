@@ -26,6 +26,7 @@ import type {
 } from './firestore-types';
 import {GroupId} from "@splitifyd/shared";
 import {ExpenseId} from "@splitifyd/shared";
+import {SettlementId} from "@splitifyd/shared";
 
 export type FirestoreTriggerEventType = 'create' | 'update' | 'delete';
 
@@ -1314,7 +1315,7 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
         this.seed(`expenses/${expenseId}`, firestoreData);
     }
 
-    seedSettlement(settlementId: string, settlementData: Record<string, any>): void {
+    seedSettlement(settlementId: SettlementId, settlementData: Record<string, any>): void {
         const firestoreData = this.convertDatesToTimestamps(settlementData);
         this.seed(`settlements/${settlementId}`, firestoreData);
     }

@@ -43,6 +43,7 @@ export const ZERO: Amount = '0';
 
 export type GroupId = string;
 export type ExpenseId = string;
+export type SettlementId = string;
 
 /**
  * Zod schema for expense splits

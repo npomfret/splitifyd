@@ -36,6 +36,7 @@ import type { UpdateSettlementRequest } from '@splitifyd/shared';
 import { z } from 'zod';
 import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';
 import {GroupId, ExpenseId} from "@splitifyd/shared";
+import {SettlementId} from "@splitifyd/shared";
 
 // All types are now imported from shared-types
 
@@ -667,7 +668,7 @@ class ApiClient {
         });
     }
 
-    async updateSettlement(settlementId: string, data: UpdateSettlementRequest): Promise<SettlementDTO> {
+    async updateSettlement(settlementId: SettlementId, data: UpdateSettlementRequest): Promise<SettlementDTO> {
         return this.request({
             endpoint: '/settlements/:settlementId',
             method: 'PUT',
@@ -676,7 +677,7 @@ class ApiClient {
         });
     }
 
-    async deleteSettlement(settlementId: string): Promise<MessageResponse> {
+    async deleteSettlement(settlementId: SettlementId): Promise<MessageResponse> {
         return this.request({
             endpoint: '/settlements/:settlementId',
             method: 'DELETE',

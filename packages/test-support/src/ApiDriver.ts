@@ -32,6 +32,7 @@ import { UserRegistrationBuilder } from './builders';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';
 import {ExpenseId} from "@splitifyd/shared";
+import {SettlementId} from "@splitifyd/shared";
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
@@ -168,12 +169,12 @@ export class ApiDriver {
         return response as SettlementDTO;
     }
 
-    async updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, token: string): Promise<SettlementWithMembers> {
+    async updateSettlement(settlementId: SettlementId, updateData: UpdateSettlementRequest, token: string): Promise<SettlementWithMembers> {
         const response = await this.apiRequest(`/settlements/${settlementId}`, 'PUT', updateData, token);
         return response;
     }
 
-    async deleteSettlement(settlementId: string, token: string): Promise<MessageResponse> {
+    async deleteSettlement(settlementId: SettlementId, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/settlements/${settlementId}`, 'DELETE', null, token);
     }
 
@@ -416,7 +417,7 @@ export class ApiDriver {
         return res.expenses;
     }
 
-    async getSettlement(groupId: GroupId, settlementId: string, token: string) {
+    async getSettlement(groupId: GroupId, settlementId: SettlementId, token: string) {
         let res;
 
         try {

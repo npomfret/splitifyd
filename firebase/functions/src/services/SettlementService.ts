@@ -11,6 +11,7 @@ import { LoggerContext } from '../utils/logger-context';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import {GroupId} from "@splitifyd/shared";
+import {SettlementId} from "@splitifyd/shared";
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -286,11 +287,11 @@ export class SettlementService {
     /**
      * Update an existing settlement
      */
-    async updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementWithMembers> {
+    async updateSettlement(settlementId: SettlementId, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementWithMembers> {
         return measure.measureDb('SettlementService.updateSettlement', async () => this._updateSettlement(settlementId, updateData, userId));
     }
 
-    private async _updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementWithMembers> {
+    private async _updateSettlement(settlementId: SettlementId, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementWithMembers> {
         const timer = new PerformanceTimer();
 
         LoggerContext.setBusinessContext({ settlementId });
@@ -433,11 +434,11 @@ export class SettlementService {
      * @throws {ApiError} INSUFFICIENT_PERMISSIONS if user lacks permission to delete
      * @throws {ApiError} CONFLICT if concurrent update detected
      */
-    async softDeleteSettlement(settlementId: string, userId: string): Promise<void> {
+    async softDeleteSettlement(settlementId: SettlementId, userId: string): Promise<void> {
         return measure.measureDb('SettlementService.softDeleteSettlement', async () => this._softDeleteSettlement(settlementId, userId));
     }
 
-    private async _softDeleteSettlement(settlementId: string, userId: string): Promise<void> {
+    private async _softDeleteSettlement(settlementId: SettlementId, userId: string): Promise<void> {
         const timer = new PerformanceTimer();
 
         LoggerContext.setBusinessContext({ settlementId });

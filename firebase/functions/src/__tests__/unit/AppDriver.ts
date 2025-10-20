@@ -40,6 +40,7 @@ import { SettlementHandlers } from '../../settlements/SettlementHandlers';
 import { UserHandlers } from '../../user/UserHandlers';
 import { StubAuthService } from './mocks/StubAuthService';
 import {ExpenseId} from "@splitifyd/shared";
+import {SettlementId} from "@splitifyd/shared";
 
 /**
  * Thin façade around the public HTTP handlers.
@@ -232,7 +233,7 @@ export class AppDriver {
         return (res as any).getJson() as SettlementDTO;
     }
 
-    async updateSettlement(userId: string, settlementId: string, updateRequest: UpdateSettlementRequest): Promise<SettlementWithMembers> {
+    async updateSettlement(userId: string, settlementId: SettlementId, updateRequest: UpdateSettlementRequest): Promise<SettlementWithMembers> {
         const req = createStubRequest(userId, updateRequest, { settlementId });
         const res = createStubResponse();
 
@@ -241,7 +242,7 @@ export class AppDriver {
         return (res as any).getJson() as SettlementWithMembers;
     }
 
-    async deleteSettlement(userId: string, settlementId: string): Promise<MessageResponse> {
+    async deleteSettlement(userId: string, settlementId: SettlementId): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { settlementId });
         const res = createStubResponse();
 

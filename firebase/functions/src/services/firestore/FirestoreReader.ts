@@ -54,6 +54,7 @@ import type { TopLevelGroupMemberDocument } from '../../types';
 import type { FirestoreOrderField, IFirestoreReader } from './IFirestoreReader';
 import type { BatchGroupFetchOptions, GroupsPaginationCursor, OrderBy, PaginatedResult, QueryOptions } from './IFirestoreReader';
 import {GroupId} from "@splitifyd/shared";
+import {SettlementId} from "@splitifyd/shared";
 
 export class FirestoreReader implements IFirestoreReader {
     constructor(private readonly db: IFirestoreDatabase) {}
@@ -634,7 +635,7 @@ export class FirestoreReader implements IFirestoreReader {
      * - Reduces resource usage by 90%+ for users with many groups
      */
 
-    async getSettlement(settlementId: string): Promise<SettlementDTO | null> {
+    async getSettlement(settlementId: SettlementId): Promise<SettlementDTO | null> {
         try {
             const settlementDoc = await this.db.collection(FirestoreCollections.SETTLEMENTS).doc(settlementId).get();
 
@@ -1158,7 +1159,7 @@ export class FirestoreReader implements IFirestoreReader {
      * Get a settlement DTO in a transaction (with Timestamp → ISO conversion)
      * Use this for optimistic locking instead of getRawSettlementDocumentInTransaction
      */
-    async getSettlementInTransaction(transaction: ITransaction, settlementId: string): Promise<SettlementDTO | null> {
+    async getSettlementInTransaction(transaction: ITransaction, settlementId: SettlementId): Promise<SettlementDTO | null> {
         try {
             const docRef = this.db.collection(FirestoreCollections.SETTLEMENTS).doc(settlementId);
             const doc = await transaction.get(docRef);

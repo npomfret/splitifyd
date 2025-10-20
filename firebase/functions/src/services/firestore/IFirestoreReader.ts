@@ -74,6 +74,7 @@ import { CommentTargetType } from '@splitifyd/shared';
 import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, RegisteredUser, SettlementDTO } from '@splitifyd/shared';
 import type { GroupBalanceDTO, ParsedShareLink } from '../../schemas';
 import {GroupId} from "@splitifyd/shared";
+import {SettlementId} from "@splitifyd/shared";
 
 export interface IFirestoreReader {
     // ========================================================================
@@ -106,7 +107,7 @@ export interface IFirestoreReader {
      * @param settlementId - The settlement ID
      * @returns Settlement document or null if not found
      */
-    getSettlement(settlementId: string): Promise<SettlementDTO | null>;
+    getSettlement(settlementId: SettlementId): Promise<SettlementDTO | null>;
 
     /**
      * Get a policy document by ID
@@ -352,7 +353,7 @@ export interface IFirestoreReader {
      * @param settlementId - The settlement ID
      * @returns Settlement DTO with ISO string dates or null if not found
      */
-    getSettlementInTransaction(transaction: ITransaction, settlementId: string): Promise<SettlementDTO | null>;
+    getSettlementInTransaction(transaction: ITransaction, settlementId: SettlementId): Promise<SettlementDTO | null>;
 
     /**
      * @deprecated Use getGroupInTransaction instead - returns DTO with ISO strings
