@@ -15,10 +15,12 @@ test.describe('Settlement Form Validation', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
+                .withGroupDisplayName(testUser.displayName)
                 .build(),
             new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('User 2')
+                .withGroupDisplayName('User 2')
                 .build(),
         ];
         const fullDetails = new GroupFullDetailsBuilder()
@@ -47,10 +49,12 @@ test.describe('Settlement Form Validation', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
+                .withGroupDisplayName(testUser.displayName)
                 .build(),
             new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('User 2')
+                .withGroupDisplayName('User 2')
                 .build(),
         ];
         const fullDetails = new GroupFullDetailsBuilder()
@@ -82,10 +86,12 @@ test.describe('Settlement Form Validation', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
+                .withGroupDisplayName(testUser.displayName)
                 .build(),
             new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('User 2')
+                .withGroupDisplayName('User 2')
                 .build(),
         ];
         const fullDetails = new GroupFullDetailsBuilder()
@@ -117,10 +123,12 @@ test.describe('Settlement Form Validation', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
+                .withGroupDisplayName(testUser.displayName)
                 .build(),
             new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('User 2')
+                .withGroupDisplayName('User 2')
                 .build(),
         ];
         const fullDetails = new GroupFullDetailsBuilder()
@@ -151,10 +159,12 @@ test.describe('Settlement Form Validation', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
+                .withGroupDisplayName(testUser.displayName)
                 .build(),
             new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('User 2')
+                .withGroupDisplayName('User 2')
                 .build(),
         ];
         const fullDetails = new GroupFullDetailsBuilder()
@@ -193,10 +203,12 @@ test.describe('Settlement Form Validation', () => {
             new GroupMemberBuilder()
                 .withUid(testUser.uid)
                 .withDisplayName(testUser.displayName)
+                .withGroupDisplayName(testUser.displayName)
                 .build(),
             new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('User 2')
+                .withGroupDisplayName('User 2')
                 .build(),
         ];
         const fullDetails = new GroupFullDetailsBuilder()

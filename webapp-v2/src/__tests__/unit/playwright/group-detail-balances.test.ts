@@ -18,6 +18,7 @@ test.describe('Group Detail - Balance Display: All Settled Up', () => {
             new GroupMemberBuilder()
                 .withUid(user.uid)
                 .withDisplayName(user.displayName)
+                .withGroupDisplayName(user.displayName)
                 .withTheme(ThemeBuilder.blue().build())
                 .build(),
         ];
@@ -52,16 +53,19 @@ test.describe('Group Detail - Balance Display: All Settled Up', () => {
             new GroupMemberBuilder()
                 .withUid(user.uid)
                 .withDisplayName(user.displayName)
+                .withGroupDisplayName(user.displayName)
                 .withTheme(ThemeBuilder.blue().build())
                 .build(),
             new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('Alice')
+                .withGroupDisplayName('Alice')
                 .withTheme(ThemeBuilder.red().build())
                 .build(),
             new GroupMemberBuilder()
                 .withUid('user-3')
                 .withDisplayName('Bob')
+                .withGroupDisplayName('Bob')
                 .withTheme(
                     new ThemeBuilder()
                         .withName('green')
@@ -105,11 +109,13 @@ test.describe('Group Detail - Balance Display: With Debts', () => {
             new GroupMemberBuilder()
                 .withUid(user.uid)
                 .withDisplayName(user.displayName)
+                .withGroupDisplayName(user.displayName)
                 .withTheme(ThemeBuilder.blue().build())
                 .build(),
             new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('Alice')
+                .withGroupDisplayName('Alice')
                 .withTheme(ThemeBuilder.red().build())
                 .build(),
         ];
@@ -150,11 +156,13 @@ test.describe('Group Detail - Balance Display: With Debts', () => {
             new GroupMemberBuilder()
                 .withUid(user.uid)
                 .withDisplayName(user.displayName)
+                .withGroupDisplayName(user.displayName)
                 .withTheme(ThemeBuilder.blue().build())
                 .build(),
             new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('Alice')
+                .withGroupDisplayName('Alice')
                 .withTheme(ThemeBuilder.red().build())
                 .build(),
         ];
@@ -198,16 +206,19 @@ test.describe('Group Detail - Balance Display: Complex Multi-Person Debts', () =
             new GroupMemberBuilder()
                 .withUid(user.uid)
                 .withDisplayName(user.displayName)
+                .withGroupDisplayName(user.displayName)
                 .withTheme(ThemeBuilder.blue().build())
                 .build(),
             new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('Alice')
+                .withGroupDisplayName('Alice')
                 .withTheme(ThemeBuilder.red().build())
                 .build(),
             new GroupMemberBuilder()
                 .withUid('user-3')
                 .withDisplayName('Bob')
+                .withGroupDisplayName('Bob')
                 .withTheme(
                     new ThemeBuilder()
                         .withName('green')
@@ -257,16 +268,19 @@ test.describe('Group Detail - Balance Display: Complex Multi-Person Debts', () =
             new GroupMemberBuilder()
                 .withUid(user.uid)
                 .withDisplayName(user.displayName)
+                .withGroupDisplayName(user.displayName)
                 .withTheme(ThemeBuilder.blue().build())
                 .build(),
             new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('Alice')
+                .withGroupDisplayName('Alice')
                 .withTheme(ThemeBuilder.red().build())
                 .build(),
             new GroupMemberBuilder()
                 .withUid('user-3')
                 .withDisplayName('Bob')
+                .withGroupDisplayName('Bob')
                 .withTheme(
                     new ThemeBuilder()
                         .withName('green')
@@ -315,6 +329,7 @@ test.describe('Group Detail - Balance Display: Loading States', () => {
             new GroupMemberBuilder()
                 .withUid(user.uid)
                 .withDisplayName(user.displayName)
+                .withGroupDisplayName(user.displayName)
                 .withTheme(ThemeBuilder.blue().build())
                 .build(),
         ];
@@ -353,11 +368,13 @@ test.describe('Group Detail - Balance Display: With Expenses', () => {
             new GroupMemberBuilder()
                 .withUid(user.uid)
                 .withDisplayName(user.displayName)
+                .withGroupDisplayName(user.displayName)
                 .withTheme(ThemeBuilder.blue().build())
                 .build(),
             new GroupMemberBuilder()
                 .withUid('user-2')
                 .withDisplayName('Alice')
+                .withGroupDisplayName('Alice')
                 .withTheme(ThemeBuilder.red().build())
                 .build(),
         ];

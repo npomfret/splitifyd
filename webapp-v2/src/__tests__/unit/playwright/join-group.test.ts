@@ -165,3 +165,163 @@ test.describe('Join Group Page - Navigation', () => {
         await expect(page).toHaveURL('/dashboard', { timeout: TEST_TIMEOUTS.NAVIGATION });
     });
 });
+
+test.describe('Join Group Page - Display Name Conflict', () => {
+    test('should show conflict modal when display name is already taken', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
+        const joinGroupPage = new JoinGroupPage(page);
+
+        await setupSuccessfulApiMocks(page);
+
+        const previewResponse = PreviewGroupResponseBuilder.newMember()
+            .withGroupName('Design Team')
+            .build();
+        await mockGroupPreviewApi(page, previewResponse);
+
+        const joinResponse = new JoinGroupResponseBuilder()
+            .withGroupId('group-123')
+            .withGroupName('Design Team')
+            .withDisplayNameConflict(true)
+            .build();
+        await mockJoinGroupApi(page, joinResponse);
+
+        await page.goto('/join?linkId=test-link-123');
+
+        await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
+
+        const joinButton = joinGroupPage.getJoinGroupButton();
+        await expect(joinButton).toBeEnabled();
+        await joinButton.click();
+
+        // Modal should appear
+        const modal = page.locator('[role="dialog"][aria-modal="true"]');
+        await expect(modal).toBeVisible({ timeout: TEST_TIMEOUTS.API_RESPONSE });
+
+        // Verify modal content
+        await expect(page.getByText(/Choose a display name/i)).toBeVisible();
+        await expect(page.getByText(/already in use/i)).toBeVisible();
+    });
+
+    test('should successfully resolve conflict and join group', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
+        const joinGroupPage = new JoinGroupPage(page);
+
+        await setupSuccessfulApiMocks(page);
+
+        const previewResponse = PreviewGroupResponseBuilder.newMember()
+            .withGroupName('Engineering Squad')
+            .build();
+        await mockGroupPreviewApi(page, previewResponse);
+
+        const conflictResponse = new JoinGroupResponseBuilder()
+            .withGroupId('group-456')
+            .withGroupName('Engineering Squad')
+            .withDisplayNameConflict(true)
+            .build();
+        await mockJoinGroupApi(page, conflictResponse);
+
+        // Mock the update display name API to succeed
+        await page.route('**/api/groups/*/members/display-name', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ message: 'Display name updated successfully' }),
+            });
+        });
+
+        await page.goto('/join?linkId=test-link-123');
+        await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
+
+        const joinButton = joinGroupPage.getJoinGroupButton();
+        await joinButton.click();
+
+        // Modal should appear
+        const modal = page.locator('[role="dialog"][aria-modal="true"]');
+        await expect(modal).toBeVisible({ timeout: TEST_TIMEOUTS.API_RESPONSE });
+
+        // Enter new display name
+        const input = page.getByTestId('display-name-conflict-input');
+        await input.fill('Senior Engineer');
+
+        // Submit the form
+        const submitButton = page.getByRole('button', { name: /save name/i });
+        await submitButton.click();
+
+        // Modal should close and success message should appear
+        await expect(modal).not.toBeVisible({ timeout: TEST_TIMEOUTS.API_RESPONSE });
+        await expect(page.locator('[data-join-success="true"]')).toBeVisible({ timeout: TEST_TIMEOUTS.API_RESPONSE });
+    });
+
+    test('should show validation error in modal for empty name', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
+        const joinGroupPage = new JoinGroupPage(page);
+
+        await setupSuccessfulApiMocks(page);
+
+        const previewResponse = PreviewGroupResponseBuilder.newMember().build();
+        await mockGroupPreviewApi(page, previewResponse);
+
+        const conflictResponse = new JoinGroupResponseBuilder()
+            .withGroupId('group-789')
+            .withGroupName('Project Alpha')
+            .withDisplayNameConflict(true)
+            .build();
+        await mockJoinGroupApi(page, conflictResponse);
+
+        await page.goto('/join?linkId=test-link-123');
+        await joinGroupPage.getJoinGroupButton().click();
+
+        const modal = page.locator('[role="dialog"][aria-modal="true"]');
+        await expect(modal).toBeVisible({ timeout: TEST_TIMEOUTS.API_RESPONSE });
+
+        // Try to submit with empty name
+        const input = page.getByTestId('display-name-conflict-input');
+        await input.fill('');
+
+        const submitButton = page.getByRole('button', { name: /save name/i });
+        await submitButton.click();
+
+        // Validation error should appear
+        await expect(page.getByText(/enter a display name/i)).toBeVisible({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
+
+        // Modal should still be visible
+        await expect(modal).toBeVisible();
+    });
+
+    test('should allow canceling from conflict modal and show success', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
+        const joinGroupPage = new JoinGroupPage(page);
+
+        await setupSuccessfulApiMocks(page);
+
+        const previewResponse = PreviewGroupResponseBuilder.newMember()
+            .withGroupName('Art Collective')
+            .build();
+        await mockGroupPreviewApi(page, previewResponse);
+
+        const conflictResponse = new JoinGroupResponseBuilder()
+            .withGroupId('group-999')
+            .withGroupName('Art Collective')
+            .withDisplayNameConflict(true)
+            .build();
+        await mockJoinGroupApi(page, conflictResponse);
+
+        await page.goto('/join?linkId=test-link-123');
+        await joinGroupPage.getJoinGroupButton().click();
+
+        const modal = page.locator('[role="dialog"][aria-modal="true"]');
+        await expect(modal).toBeVisible({ timeout: TEST_TIMEOUTS.API_RESPONSE });
+
+        // Click cancel
+        const cancelButton = page.getByRole('button', { name: /cancel/i }).last();
+        await cancelButton.click();
+
+        // Modal should close
+        await expect(modal).not.toBeVisible();
+
+        // Should show success message (user has joined despite not resolving conflict)
+        await expect(page).toHaveURL(/\/join/);
+        await expect(page.locator('[data-join-success="true"]')).toBeVisible();
+        await expect(page.getByRole('heading', { name: /Welcome to Art Collective/i })).toBeVisible();
+    });
+});

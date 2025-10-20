@@ -50,6 +50,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                 .withDescription('Locked Expense')
                 .withAmount(100.0, 'EUR')
                 .withPaidBy(testUser.uid)
+                .withParticipants([testUser.uid])
                 .withCategory('food')
                 .withSplitType('equal')
                 .withIsLocked(true) // Mark as locked
@@ -64,6 +65,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                     new GroupMemberBuilder()
                         .withUid(testUser.uid)
                         .withDisplayName(testUser.displayName)
+                        .withGroupDisplayName(testUser.displayName)
                         .build(),
                 ],
             },
@@ -104,6 +106,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                 .withDescription('Locked Expense')
                 .withAmount(100.0, 'EUR')
                 .withPaidBy(testUser.uid)
+                .withParticipants([testUser.uid])
                 .withIsLocked(true) // Mark as locked
                 .build(),
             group: GroupDTOBuilder
@@ -114,6 +117,8 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                 members: [
                     new GroupMemberBuilder()
                         .withUid(testUser.uid)
+                        .withDisplayName(testUser.displayName)
+                        .withGroupDisplayName(testUser.displayName)
                         .build(),
                 ],
             },
@@ -152,6 +157,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                 .withDescription('Normal Expense')
                 .withAmount(50.0, 'EUR')
                 .withPaidBy(testUser.uid)
+                .withParticipants([testUser.uid])
                 .withSplitType('equal')
                 .build(),
             group: GroupDTOBuilder
@@ -163,6 +169,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
                     new GroupMemberBuilder()
                         .withUid(testUser.uid)
                         .withDisplayName(testUser.displayName)
+                        .withGroupDisplayName(testUser.displayName)
                         .build(),
                 ],
             },

@@ -25,12 +25,14 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         const testUserMember = new GroupMemberBuilder()
             .withUid(testUser.uid)
             .withDisplayName(testUser.displayName)
+                .withGroupDisplayName(testUser.displayName)
             .withTheme(ThemeBuilder.blue().build())
             .build();
 
         const otherUser = new GroupMemberBuilder()
             .withUid('other-user-123')
             .withDisplayName('Other User')
+            .withGroupDisplayName('Other User')
             .withTheme(ThemeBuilder.red().build())
             .build();
 
@@ -56,7 +58,7 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         // Mock the group full-details API response with locked settlement
         const fullDetails = {
             group: group,
-            members: { members },
+            members: { members, hasMore: false },
             expenses: { expenses: [], hasMore: false },
             balances: {
                 groupId: groupId,
@@ -71,7 +73,7 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         await mockGroupFullDetailsApi(page, groupId, fullDetails);
 
         // Navigate to group detail page
-        await page.goto(`/groups/${groupId}`, { waitUntil: 'domcontentloaded' });
+        await page.goto(`/groups/${groupId}`, { waitUntil: 'domcontentloaded', timeout: 10000 });
 
         // Wait for group to load
         await expect(page.getByRole('heading', { name: 'Test Group' })).toBeVisible();
@@ -107,12 +109,14 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         const testUserMember = new GroupMemberBuilder()
             .withUid(testUser.uid)
             .withDisplayName(testUser.displayName)
+                .withGroupDisplayName(testUser.displayName)
             .withTheme(ThemeBuilder.blue().build())
             .build();
 
         const otherUser = new GroupMemberBuilder()
             .withUid('other-user-456')
             .withDisplayName('Other User')
+            .withGroupDisplayName('Other User')
             .withTheme(ThemeBuilder.red().build())
             .build();
 
@@ -138,7 +142,7 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         // Mock the group full-details API response with unlocked settlement
         const fullDetails = {
             group: group,
-            members: { members },
+            members: { members, hasMore: false },
             expenses: { expenses: [], hasMore: false },
             balances: {
                 groupId: groupId,
@@ -153,7 +157,7 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         await mockGroupFullDetailsApi(page, groupId, fullDetails);
 
         // Navigate to group detail page
-        await page.goto(`/groups/${groupId}`, { waitUntil: 'domcontentloaded' });
+        await page.goto(`/groups/${groupId}`, { waitUntil: 'domcontentloaded', timeout: 10000 });
 
         // Wait for group to load
         await expect(page.getByRole('heading', { name: 'Test Group' })).toBeVisible();
@@ -189,12 +193,14 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         const testUserMember = new GroupMemberBuilder()
             .withUid(testUser.uid)
             .withDisplayName(testUser.displayName)
+                .withGroupDisplayName(testUser.displayName)
             .withTheme(ThemeBuilder.blue().build())
             .build();
 
         const otherUser = new GroupMemberBuilder()
             .withUid('other-user-789')
             .withDisplayName('Other User')
+            .withGroupDisplayName('Other User')
             .withTheme(ThemeBuilder.red().build())
             .build();
 
@@ -220,7 +226,7 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         // Initial response with unlocked settlement
         let fullDetails = {
             group: group,
-            members: { members },
+            members: { members, hasMore: false },
             expenses: { expenses: [], hasMore: false },
             balances: {
                 groupId: groupId,
@@ -235,7 +241,7 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         await mockGroupFullDetailsApi(page, groupId, fullDetails);
 
         // Navigate to group detail page
-        await page.goto(`/groups/${groupId}`, { waitUntil: 'domcontentloaded' });
+        await page.goto(`/groups/${groupId}`, { waitUntil: 'domcontentloaded', timeout: 10000 });
 
         // Wait for group to load
         await expect(page.getByRole('heading', { name: 'Test Group' })).toBeVisible();
@@ -266,7 +272,7 @@ test.describe('Settlement History - Locked Settlement UI', () => {
 
         // Trigger a refresh by navigating away and back
         await page.goto('/dashboard');
-        await page.goto(`/groups/${groupId}`);
+        await page.goto(`/groups/${groupId}`, { timeout: 10000 });
 
         // Wait for group to load again
         await expect(page.getByRole('heading', { name: 'Test Group' })).toBeVisible();

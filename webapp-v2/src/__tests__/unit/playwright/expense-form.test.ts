@@ -15,6 +15,8 @@ test.describe('Expense Form', () => {
             const members = [
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
+                    .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -45,14 +47,17 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-3')
                     .withDisplayName('User 3')
+                    .withGroupDisplayName('User 3')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -96,10 +101,12 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -136,18 +143,22 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-3')
                     .withDisplayName('User 3')
+                    .withGroupDisplayName('User 3')
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-4')
                     .withDisplayName('User 4')
+                    .withGroupDisplayName('User 4')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -186,10 +197,12 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -230,10 +243,12 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -273,10 +288,12 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -318,10 +335,12 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -364,14 +383,17 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-3')
                     .withDisplayName('User 3')
+                    .withGroupDisplayName('User 3')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -409,10 +431,12 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -455,10 +479,12 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -500,10 +526,12 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -546,10 +574,12 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -585,14 +615,17 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-3')
                     .withDisplayName('User 3')
+                    .withGroupDisplayName('User 3')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -631,10 +664,12 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -672,22 +707,27 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-3')
                     .withDisplayName('User 3')
+                    .withGroupDisplayName('User 3')
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-4')
                     .withDisplayName('User 4')
+                    .withGroupDisplayName('User 4')
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-5')
                     .withDisplayName('User 5')
+                    .withGroupDisplayName('User 5')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -726,10 +766,12 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -777,10 +819,12 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -838,14 +882,17 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-3')
                     .withDisplayName('User 3')
+                    .withGroupDisplayName('User 3')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -883,10 +930,12 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -924,10 +973,12 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
@@ -965,10 +1016,12 @@ test.describe('Expense Form', () => {
                 new GroupMemberBuilder()
                     .withUid(testUser.uid)
                     .withDisplayName(testUser.displayName)
+                    .withGroupDisplayName(testUser.displayName)
                     .build(),
                 new GroupMemberBuilder()
                     .withUid('user-2')
                     .withDisplayName('User 2')
+                    .withGroupDisplayName('User 2')
                     .build(),
             ];
             const fullDetails = new GroupFullDetailsBuilder()
