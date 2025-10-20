@@ -1,6 +1,7 @@
 import { CreateGroupFormDataBuilder, ExpenseFormDataBuilder, generateShortId, SettlementFormDataBuilder } from '@splitifyd/test-support';
 import { expect, simpleTest } from '../../fixtures';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page';
+import { ExpenseFormPage as E2EExpenseFormPage } from '../../pages/expense-form.page';
 
 /**
  * Consolidated Expense and Balance Lifecycle E2E Tests
@@ -57,7 +58,10 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // Step 3: Edit the expense and verify balance updates
         const expenseDetailPage = await groupDetailPage1.clickExpenseToView(expenseDescription);
-        const editFormPage = await expenseDetailPage.clickEditExpenseButton([user1DisplayName, user2DisplayName]);
+        const editFormPage = await expenseDetailPage.clickEditExpenseAndReturnForm(
+            [user1DisplayName, user2DisplayName],
+            (page) => new E2EExpenseFormPage(page),
+        );
         const updatedDescription = `Updated ${generateShortId()}`;
 
         await editFormPage.fillDescription(updatedDescription);
@@ -754,7 +758,10 @@ simpleTest.describe('Copy Expense Feature', () => {
         const expenseDetailPage = await groupDetailPage1.clickExpenseToView(originalDescription);
 
         // Step 3: Click "Copy expense" button
-        const copyExpenseFormPage = await expenseDetailPage.clickCopyExpenseButton([user1DisplayName, user2DisplayName]);
+        const copyExpenseFormPage = await expenseDetailPage.clickCopyExpenseAndReturnForm(
+            [user1DisplayName, user2DisplayName],
+            (page) => new E2EExpenseFormPage(page),
+        );
 
         // Step 4: Verify copy mode UI
         await copyExpenseFormPage.verifyCopyMode();
@@ -827,7 +834,10 @@ simpleTest.describe('Copy Expense Feature', () => {
 
         // User3 clicks to view and copy the expense
         const expenseDetailPage = await groupDetailPage3.clickExpenseToView(originalDescription);
-        const copyExpenseFormPage = await expenseDetailPage.clickCopyExpenseButton([user1DisplayName, user2DisplayName, user3DisplayName]);
+        const copyExpenseFormPage = await expenseDetailPage.clickCopyExpenseAndReturnForm(
+            [user1DisplayName, user2DisplayName, user3DisplayName],
+            (page) => new E2EExpenseFormPage(page),
+        );
 
         // Modify the copied expense (different payer and amount)
         const copiedDescription = `Multi-user Copied ${generateShortId()}`;

@@ -1,6 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
-import {GroupId, ExpenseId} from "@splitifyd/shared";
+import { GroupId, ExpenseId } from '@splitifyd/shared';
+import { ExpenseFormPage } from './ExpenseFormPage';
 
 /**
  * Shared base class for Expense Detail page object.
@@ -99,6 +100,78 @@ export class ExpenseDetailPage extends BasePage {
     async navigate(groupId: GroupId, expenseId: ExpenseId): Promise<void> {
         await this.page.goto(`/groups/${groupId}/expenses/${expenseId}`);
         await this.waitForDomContentLoaded();
+    }
+
+    /**
+     * Wait for the expense detail page to be fully loaded.
+     */
+    async waitForPageReady(): Promise<void> {
+        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+$/);
+        await this.waitForDomContentLoaded();
+        const expenseHeading = this.page.getByRole('heading', { level: 1 }).first();
+        await expect(expenseHeading).toBeVisible();
+    }
+
+    /**
+     * Click the edit expense button and navigate to the expense form.
+     */
+    async clickEditExpenseButton(): Promise<void> {
+        const editButton = this.getEditButton();
+        await this.clickButton(editButton, { buttonName: 'Edit Expense' });
+        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense\?.*edit=true/);
+        await this.waitForDomContentLoaded();
+    }
+
+    /**
+     * Click the edit button and return an `ExpenseFormPage` ready for interaction.
+     */
+    async clickEditExpenseAndReturnForm<T = ExpenseFormPage>(
+        expectedUsers: string[],
+        createFormPage?: (page: Page) => T,
+    ): Promise<T> {
+        await this.clickEditExpenseButton();
+        const formPage = createFormPage
+            ? createFormPage(this.page)
+            : ((new ExpenseFormPage(this.page)) as unknown as T);
+
+        await this.ensureExpenseFormReady(formPage, expectedUsers);
+        return formPage;
+    }
+
+    /**
+     * Click the copy expense button and navigate to the copy form.
+     */
+    async clickCopyExpenseButton(): Promise<void> {
+        const copyButton = this.getCopyButton();
+        await this.clickButton(copyButton, { buttonName: 'Copy Expense' });
+        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense\?.*copy=true.*sourceId=/);
+        await this.waitForDomContentLoaded();
+    }
+
+    /**
+     * Click the copy button and return an `ExpenseFormPage` ready for interaction.
+     */
+    async clickCopyExpenseAndReturnForm<T = ExpenseFormPage>(
+        expectedUsers: string[],
+        createFormPage?: (page: Page) => T,
+    ): Promise<T> {
+        await this.clickCopyExpenseButton();
+        const formPage = createFormPage
+            ? createFormPage(this.page)
+            : ((new ExpenseFormPage(this.page)) as unknown as T);
+
+        await this.ensureExpenseFormReady(formPage, expectedUsers);
+        return formPage;
+    }
+
+    private async ensureExpenseFormReady<T>(formPage: T, expectedUsers: string[]): Promise<void> {
+        const guards = formPage as unknown as {
+            waitForFormReady?: (expectedUsers: string[]) => Promise<void>;
+        };
+
+        if (typeof guards.waitForFormReady === 'function') {
+            await guards.waitForFormReady(expectedUsers);
+        }
     }
 
     /**
