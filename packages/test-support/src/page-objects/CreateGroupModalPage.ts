@@ -152,6 +152,25 @@ export class CreateGroupModalPage extends BasePage {
         });
     }
 
+    /**
+     * Error locator helper that mirrors the legacy e2e implementation by
+     * scanning common alert patterns inside the modal. Useful when network
+     * failures render messages outside the standard container.
+     */
+    getErrorMessage(pattern?: string | RegExp): Locator {
+        const allErrors = this.page.locator(
+            [
+                '[data-testid="create-group-error-message"]',
+                '[role="alert"]',
+                '[data-testid*="error"]',
+                '.error-message',
+                '[role="dialog"] [role="alert"]',
+            ].join(', '),
+        );
+
+        return pattern ? allErrors.filter({ hasText: pattern }) : allErrors;
+    }
+
     // ============================================================================
     // ACTION METHODS
     // ============================================================================

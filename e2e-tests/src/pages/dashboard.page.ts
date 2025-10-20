@@ -2,7 +2,7 @@ import { expect, Page } from '@playwright/test';
 import type { CreateGroupFormData } from '@splitifyd/shared';
 import { DashboardPage as BaseDashboardPage, HeaderPage, JoinGroupPage } from '@splitifyd/test-support';
 import { CreateGroupFormDataBuilder, generateShortId, randomString } from '@splitifyd/test-support';
-import { CreateGroupModalPage } from './create-group-modal.page.ts';
+import { CreateGroupModalPage } from '@splitifyd/test-support';
 import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
 
 let i = 0;

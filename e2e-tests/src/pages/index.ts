@@ -1,5 +1,5 @@
 // Page objects are imported directly in test files, no re-exports needed
-export { CreateGroupModalPage } from './create-group-modal.page';
+export { CreateGroupModalPage } from '@splitifyd/test-support';
 export { DashboardPage } from './dashboard.page';
 export { GroupDetailPage } from './group-detail.page';
 export { HomepagePage } from './homepage.page';
