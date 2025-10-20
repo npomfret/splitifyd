@@ -1,4 +1,5 @@
 import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
+import { ApiSerializer } from '@splitifyd/shared';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
@@ -18,8 +19,8 @@ test.describe('Dashboard Stats Display', () => {
                 await page.waitForTimeout(1000);
                 await route.fulfill({
                     status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify(
+                    contentType: 'application/x-serialized-json',
+                    body: ApiSerializer.serialize(
                         ListGroupsResponseBuilder
                             .responseWithMetadata([])
                             .build(),

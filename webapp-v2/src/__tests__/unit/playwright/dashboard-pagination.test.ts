@@ -1,4 +1,5 @@
 import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
+import { ApiSerializer } from '@splitifyd/shared';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupsApi } from '../../utils/mock-firebase-service';
 
@@ -362,8 +363,8 @@ test.describe('Dashboard Groups Pagination', () => {
             if (route.request().method() === 'POST' && !route.request().url().includes('?')) {
                 await route.fulfill({
                     status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify(newGroup),
+                    contentType: 'application/x-serialized-json',
+                    body: ApiSerializer.serialize(newGroup),
                 });
             } else {
                 // Let mockGroupsApi handle GET requests

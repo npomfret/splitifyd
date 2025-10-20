@@ -297,7 +297,7 @@ const ListSettlementsResponseSchema = z.object({
     settlements: z.array(SettlementListItemSchema),
     count: z.number(),
     hasMore: z.boolean(),
-    nextCursor: z.string().optional(),
+    nextCursor: z.string().nullable().optional(),
 });
 
 // Comment schemas
@@ -335,13 +335,13 @@ const GroupFullDetailsSchema = z.object({
     expenses: z.object({
         expenses: z.array(ExpenseDataSchema),
         hasMore: z.boolean(),
-        nextCursor: z.string().optional(),
+        nextCursor: z.string().nullable().optional(),
     }),
     balances: GroupBalancesSchema,
     settlements: z.object({
         settlements: z.array(SettlementListItemSchema),
         hasMore: z.boolean(),
-        nextCursor: z.string().optional(),
+        nextCursor: z.string().nullable().optional(),
     }),
 });
 

@@ -1,4 +1,5 @@
 import {
+    ApiSerializer,
     AuthenticatedFirebaseUser,
     CommentDTO,
     type CreateExpenseRequest,
@@ -371,6 +372,7 @@ export class ApiDriver {
             method,
             headers: {
                 'Content-Type': 'application/json',
+                Accept: 'application/x-serialized-json',
                 ...(token && { Authorization: `Bearer ${token}` }),
             },
         };
@@ -383,21 +385,29 @@ export class ApiDriver {
             const response = await fetch(url, options);
             if (!response.ok) {
                 const errorText = await response.text();
+                let parsedError: unknown = errorText;
+                if (errorText) {
+                    try {
+                        parsedError = ApiSerializer.deserialize(errorText);
+                    } catch {
+                        parsedError = errorText;
+                    }
+                }
 
                 // Check if this might be an emulator restart
-                if (response.status === 500 && errorText.includes('ECONNREFUSED')) {
+                if (response.status === 500 && typeof errorText === 'string' && errorText.includes('ECONNREFUSED')) {
                     throw new Error(`Emulator appears to be restarting. Please wait and try again.`);
                 }
 
                 // Create an error object with status and message properties for better testing
-                const error = new Error(`API request to ${endpoint} failed with status ${response.status}: ${errorText}`);
+                const error = new Error(`API request to ${endpoint} failed with status ${response.status}: ${typeof parsedError === 'string' ? parsedError : JSON.stringify(parsedError)}`);
                 (error as any).status = response.status;
-                (error as any).response = errorText;
+                (error as any).response = parsedError;
                 throw error;
             }
             // Handle cases where the response might be empty
             const responseText = await response.text();
-            return responseText ? JSON.parse(responseText) : {};
+            return responseText ? ApiSerializer.deserialize(responseText) : {};
         } catch (error) {
             // Check for connection errors that might indicate emulator restart
             if (error instanceof TypeError && error.message.includes('fetch')) {

@@ -1,5 +1,11 @@
+import { ApiSerializer } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
 import { afterEach, describe, expect, test } from 'vitest';
+
+const deserializeConfig = async <T>(response: Response): Promise<T> => {
+    const raw = await response.text();
+    return ApiSerializer.deserialize<T>(raw);
+};
 
 describe('Config Endpoint Integration Tests', () => {
     const apiDriver = new ApiDriver();
@@ -17,7 +23,7 @@ describe('Config Endpoint Integration Tests', () => {
 
         test('should return JSON content type', async () => {
             const response = await fetch(configUrl);
-            expect(response.headers.get('content-type')).toContain('application/json');
+            expect(response.headers.get('content-type')).toContain('application/x-serialized-json');
         });
 
         test('should not require authentication', async () => {
@@ -28,7 +34,7 @@ describe('Config Endpoint Integration Tests', () => {
 
         test('should return valid JSON', async () => {
             const response = await fetch(configUrl);
-            const data = await response.json();
+            const data = await deserializeConfig<any>(response);
             expect(data).toBeDefined();
             expect(typeof data).toBe('object');
         });
@@ -37,7 +43,7 @@ describe('Config Endpoint Integration Tests', () => {
     describe('Response Structure', () => {
         test('should have all required top-level fields', async () => {
             const response = await fetch(configUrl);
-            const config = await response.json();
+            const config = await deserializeConfig<any>(response);
 
             expect(config).toHaveProperty('firebase');
             expect(config).toHaveProperty('environment');
@@ -47,7 +53,7 @@ describe('Config Endpoint Integration Tests', () => {
 
         test('should have valid firebase configuration', async () => {
             const response = await fetch(configUrl);
-            const config = await response.json();
+            const config = await deserializeConfig<any>(response);
 
             expect(config.firebase).toHaveProperty('apiKey');
             expect(config.firebase).toHaveProperty('authDomain');
@@ -72,7 +78,7 @@ describe('Config Endpoint Integration Tests', () => {
 
         test('should have valid firebaseAuthUrl in development', async () => {
             const response = await fetch(configUrl);
-            const config = await response.json();
+            const config = await deserializeConfig<any>(response);
 
             // In development, should have firebaseAuthUrl and firebaseFirestoreUrl
             if (config.firebaseAuthUrl) {
@@ -88,7 +94,7 @@ describe('Config Endpoint Integration Tests', () => {
 
         test('should have valid environment configuration', async () => {
             const response = await fetch(configUrl);
-            const config = await response.json();
+            const config = await deserializeConfig<any>(response);
 
             expect(config.environment).toBeDefined();
             expect(typeof config.environment).toBe('object');
@@ -100,7 +106,7 @@ describe('Config Endpoint Integration Tests', () => {
 
         test('should have valid formDefaults configuration', async () => {
             const response = await fetch(configUrl);
-            const config = await response.json();
+            const config = await deserializeConfig<any>(response);
 
             expect(config.formDefaults).toHaveProperty('displayName');
             expect(config.formDefaults).toHaveProperty('email');
@@ -114,7 +120,7 @@ describe('Config Endpoint Integration Tests', () => {
 
         test('should have emulator URLs in development environment', async () => {
             const response = await fetch(configUrl);
-            const config = await response.json();
+            const config = await deserializeConfig<any>(response);
 
             // This test is running in the emulator, so these should be present
             expect(config.firebaseAuthUrl).toBeDefined();
@@ -132,7 +138,7 @@ describe('Config Endpoint Integration Tests', () => {
     describe('Schema Validation', () => {
         test('should have valid config structure (development uses minimal values)', async () => {
             const response = await fetch(configUrl);
-            const config = await response.json();
+            const config = await deserializeConfig<any>(response);
 
             // In development, validation is skipped because we use minimal/empty values
             // Just verify the structure is correct
@@ -143,7 +149,7 @@ describe('Config Endpoint Integration Tests', () => {
 
         test('should have firebase.measurementId as optional', async () => {
             const response = await fetch(configUrl);
-            const config = await response.json();
+            const config = await deserializeConfig<any>(response);
 
             // measurementId is optional, but if present should be a string
             if (config.firebase.measurementId !== undefined) {
@@ -155,7 +161,7 @@ describe('Config Endpoint Integration Tests', () => {
     describe('Security', () => {
         test('should not expose sensitive information', async () => {
             const response = await fetch(configUrl);
-            const config = await response.json();
+            const config = await deserializeConfig<any>(response);
             const jsonString = JSON.stringify(config);
 
             // Should not contain private keys or service account info
@@ -170,7 +176,7 @@ describe('Config Endpoint Integration Tests', () => {
 
         test('should not expose internal configuration paths', async () => {
             const response = await fetch(configUrl);
-            const config = await response.json();
+            const config = await deserializeConfig<any>(response);
             const jsonString = JSON.stringify(config);
 
             // Should not contain file system paths
@@ -180,7 +186,7 @@ describe('Config Endpoint Integration Tests', () => {
 
         test('should not expose process environment details', async () => {
             const response = await fetch(configUrl);
-            const config = await response.json();
+            const config = await deserializeConfig<any>(response);
             const jsonString = JSON.stringify(config);
 
             expect(jsonString).not.toMatch(/process\.env/);
@@ -220,7 +226,7 @@ describe('Config Endpoint Integration Tests', () => {
         test('should support HEAD method', async () => {
             const response = await fetch(configUrl, { method: 'HEAD' });
             expect(response.status).toBe(200);
-            expect(response.headers.get('content-type')).toContain('application/json');
+            expect(response.headers.get('content-type')).toContain('application/x-serialized-json');
         });
 
         test('should reject POST method', async () => {
@@ -250,10 +256,10 @@ describe('Config Endpoint Integration Tests', () => {
     describe('Response Consistency', () => {
         test('should return identical config on multiple requests', async () => {
             const response1 = await fetch(configUrl);
-            const config1 = await response1.json();
+            const config1 = await deserializeConfig<any>(response1);
 
             const response2 = await fetch(configUrl);
-            const config2 = await response2.json();
+            const config2 = await deserializeConfig<any>(response2);
 
             // Core config should be identical
             expect(config1.firebase).toEqual(config2.firebase);
@@ -271,7 +277,7 @@ describe('Config Endpoint Integration Tests', () => {
             }
 
             // All should return valid JSON
-            const configs = await Promise.all(responses.map((r) => r.json()));
+            const configs = await Promise.all(responses.map((r) => deserializeConfig<any>(r)));
             for (const config of configs) {
                 expect(config).toHaveProperty('firebase');
                 expect(config).toHaveProperty('environment');

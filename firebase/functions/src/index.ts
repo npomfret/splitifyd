@@ -387,12 +387,19 @@ function setupRoutes(app: express.Application): void {
     });
 
     app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-        // Check if response was already sent
-        if (res.headersSent) {
-            return next(err);
-        }
-
         const correlationId = req.headers['x-correlation-id'] as string;
+
+        // Check if response was already sent - this is a critical error
+        if (res.headersSent) {
+            logger.error('Error occurred after headers were sent - client may have received partial/corrupted data', err, {
+                correlationId,
+                method: req.method,
+                path: req.path,
+                errorType: err.constructor.name,
+            });
+            // Cannot recover - client already received headers and possibly partial body
+            return;
+        }
 
         // Handle ApiError objects properly
         if (err instanceof ApiError) {

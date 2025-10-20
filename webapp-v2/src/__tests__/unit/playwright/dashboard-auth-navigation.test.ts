@@ -1,4 +1,5 @@
 import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
+import { ApiSerializer } from '@splitifyd/shared';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupsApi } from '../../utils/mock-firebase-service';
 
@@ -75,8 +76,8 @@ test.describe('Dashboard Groups Display and Loading States', () => {
                 await page.waitForTimeout(1000);
                 await route.fulfill({
                     status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify(groupsResponse),
+                    contentType: 'application/x-serialized-json',
+                    body: ApiSerializer.serialize(groupsResponse),
                 });
             },
         );
@@ -195,8 +196,8 @@ test.describe('Dashboard Error Handling', () => {
             async (route) => {
                 await route.fulfill({
                     status: 500,
-                    contentType: 'application/json',
-                    body: JSON.stringify({ error: 'Internal Server Error' }),
+                    contentType: 'application/x-serialized-json',
+                    body: ApiSerializer.serialize({ error: 'Internal Server Error' }),
                 });
             },
         );
@@ -221,8 +222,8 @@ test.describe('Dashboard Error Handling', () => {
             async (route) => {
                 await route.fulfill({
                     status: 500,
-                    contentType: 'application/json',
-                    body: JSON.stringify({ error: 'Server temporarily unavailable' }),
+                    contentType: 'application/x-serialized-json',
+                    body: ApiSerializer.serialize({ error: 'Server temporarily unavailable' }),
                 });
             },
         );
@@ -262,8 +263,8 @@ test.describe('Dashboard Error Handling', () => {
             async (route) => {
                 await route.fulfill({
                     status: 408,
-                    contentType: 'application/json',
-                    body: JSON.stringify({ error: 'Request timeout' }),
+                    contentType: 'application/x-serialized-json',
+                    body: ApiSerializer.serialize({ error: 'Request timeout' }),
                 });
             },
         );

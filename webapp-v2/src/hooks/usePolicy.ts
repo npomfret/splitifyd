@@ -16,7 +16,7 @@ export function usePolicy(policyId: keyof typeof PolicyIds) {
             try {
                 setLoading(true);
                 setError(null);
-                const policyData = await apiClient.getCurrentPolicy(policyId, controller.signal);
+                const policyData = await apiClient.getCurrentPolicy(PolicyIds[policyId], controller.signal);
 
                 if (!controller.signal.aborted) {
                     setPolicy(policyData);

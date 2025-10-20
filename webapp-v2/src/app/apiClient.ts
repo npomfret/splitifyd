@@ -5,6 +5,7 @@
  * This ensures the server response matches our expected types
  */
 
+import { ApiSerializer } from '@splitifyd/shared';
 import type {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -360,10 +361,24 @@ class ApiClient {
         try {
             const response = await fetch(url, fetchOptions);
             const duration = performance.now() - startTime;
+            const rawBody = await response.text();
 
             // Handle non-2xx responses
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
+                let errorData: unknown = {};
+                if (rawBody) {
+                    try {
+                        errorData = ApiSerializer.deserialize(rawBody);
+                    } catch (error) {
+                        logWarning('Failed to deserialize error payload', {
+                            url,
+                            method: options.method,
+                            status: response.status,
+                            rawBody,
+                            error,
+                        });
+                    }
+                }
 
                 // Log error response
                 logApiResponse(options.method, endpoint, response.status, {
@@ -413,12 +428,31 @@ class ApiClient {
             }
 
             // Parse response
-            const data = await response.json();
+            let data: T | undefined;
+            if (rawBody) {
+                try {
+                    data = ApiSerializer.deserialize<T>(rawBody);
+                } catch (error) {
+                    logError('Failed to deserialize API response', {
+                        url,
+                        method: options.method,
+                        status: response.status,
+                        rawBody,
+                        error,
+                    });
+                    throw new ApiError('Unable to deserialize response payload', 'DESERIALIZATION_ERROR', { rawBody }, {
+                        url,
+                        method: options.method,
+                        status: response.status,
+                        statusText: response.statusText,
+                    });
+                }
+            }
 
             // Log successful response
             logApiResponse(options.method, endpoint, response.status, {
                 duration,
-                dataSize: JSON.stringify(data).length,
+                dataSize: rawBody.length,
                 retryAttempt: attemptNumber > 1 ? attemptNumber : undefined,
             });
 

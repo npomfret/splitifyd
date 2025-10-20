@@ -1,7 +1,7 @@
 import { ExpenseDTOBuilder, ExpenseFullDetailsBuilder, GroupDTOBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
-import { ExpenseId } from "@splitifyd/shared";
+import { ApiSerializer, ExpenseId } from "@splitifyd/shared";
 
 /**
  * Helper function to mock the expense full-details API endpoint
@@ -10,8 +10,8 @@ async function mockExpenseDetailApi(page: any, expenseId: ExpenseId, response: a
     await page.route(`/api/expenses/${expenseId}/full-details`, async (route: any) => {
         route.fulfill({
             status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(response),
+            contentType: 'application/x-serialized-json',
+            body: ApiSerializer.serialize(response),
         });
     });
 }
@@ -23,8 +23,8 @@ async function mockExpenseCommentsApi(page: any, expenseId: ExpenseId, comments:
     await page.route(`/api/expenses/${expenseId}/comments`, async (route: any) => {
         route.fulfill({
             status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({
+            contentType: 'application/x-serialized-json',
+            body: ApiSerializer.serialize({
                 success: true,
                 data: {
                     comments,

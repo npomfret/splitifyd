@@ -1,6 +1,12 @@
+import { ApiSerializer } from '@splitifyd/shared';
 import { ApiDriver, NotificationDriver, RegisterRequestBuilder } from '@splitifyd/test-support';
 import { afterEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
+
+const deserializeResponse = async <T>(response: Response): Promise<T> => {
+    const raw = await response.text();
+    return ApiSerializer.deserialize<T>(raw);
+};
 
 describe('Public Endpoints Tests', () => {
     const apiDriver = new ApiDriver();
@@ -29,7 +35,7 @@ describe('Public Endpoints Tests', () => {
 
             expect(response.status).toBe(200);
 
-            const data = (await response.json()) as any;
+            const data = await deserializeResponse<any>(response);
             expect(data).toHaveProperty('timestamp');
             expect(data).toHaveProperty('checks');
             expect(data.checks).toHaveProperty('firestore');
@@ -43,7 +49,7 @@ describe('Public Endpoints Tests', () => {
         test('should include proper headers', async () => {
             const response = await fetch(healthUrl);
 
-            expect(response.headers.get('content-type')).toContain('application/json');
+            expect(response.headers.get('content-type')).toContain('application/x-serialized-json');
             expect(response.headers.get('x-content-type-options')).toBeDefined();
             expect(response.headers.get('x-frame-options')).toBeDefined();
         });
@@ -52,7 +58,7 @@ describe('Public Endpoints Tests', () => {
             const response = await fetch(healthUrl, { method: 'HEAD' });
 
             expect(response.status).toBe(200);
-            expect(response.headers.get('content-type')).toContain('application/json');
+            expect(response.headers.get('content-type')).toContain('application/x-serialized-json');
         });
     });
 
@@ -62,7 +68,7 @@ describe('Public Endpoints Tests', () => {
 
             expect(response.status).toBe(200);
 
-            const data = (await response.json()) as any;
+            const data = await deserializeResponse<any>(response);
             expect(data).toHaveProperty('timestamp');
             expect(data).toHaveProperty('uptime');
             expect(data).toHaveProperty('memory');
@@ -85,7 +91,7 @@ describe('Public Endpoints Tests', () => {
 
         test('should not expose sensitive information', async () => {
             const response = await fetch(`${apiDriver.getBaseUrl()}/status`);
-            const data = await response.json();
+            const data = await deserializeResponse<any>(response);
 
             // Should not contain sensitive keys, tokens, or internal paths
             const jsonString = JSON.stringify(data);
@@ -101,7 +107,7 @@ describe('Public Endpoints Tests', () => {
 
             expect(response.status).toBe(200);
 
-            const data = (await response.json()) as any;
+            const data = await deserializeResponse<any>(response);
             expect(data).toHaveProperty('firebase');
             expect(data.firebase).toHaveProperty('apiKey');
             expect(data.firebase).toHaveProperty('authDomain');
@@ -125,7 +131,7 @@ describe('Public Endpoints Tests', () => {
 
         test('should not expose sensitive configuration', async () => {
             const response = await fetch(`${apiDriver.getBaseUrl()}/config`);
-            const data = (await response.json()) as any;
+            const data = await deserializeResponse<any>(response);
 
             const jsonString = JSON.stringify(data);
             // Should not contain sensitive keys or internal configuration
@@ -219,7 +225,7 @@ describe('Public Endpoints Tests', () => {
 
             expect(response.status).toBe(200);
 
-            const data = (await response.json()) as any;
+            const data = await deserializeResponse<any>(response);
             expect(data).toHaveProperty('timestamp');
             expect(data).toHaveProperty('samplingRate');
             expect(data).toHaveProperty('bufferSize');
@@ -246,7 +252,7 @@ describe('Public Endpoints Tests', () => {
 
         test('should not expose sensitive performance data', async () => {
             const response = await fetch(`${apiDriver.getBaseUrl()}/metrics`);
-            const data = await response.json();
+            const data = await deserializeResponse<any>(response);
 
             const jsonString = JSON.stringify(data);
             // Should not contain sensitive keys, user data, or internal paths
@@ -261,7 +267,7 @@ describe('Public Endpoints Tests', () => {
 
             expect(response.status).toBe(200);
 
-            const data = (await response.json()) as any;
+            const data = await deserializeResponse<any>(response);
             expect(data).toHaveProperty('env');
             expect(data).toHaveProperty('build');
             expect(data).toHaveProperty('runtime');
@@ -292,7 +298,7 @@ describe('Public Endpoints Tests', () => {
 
         test('should handle filesystem access errors gracefully', async () => {
             const response = await fetch(`${apiDriver.getBaseUrl()}/env`);
-            const data = (await response.json()) as any;
+            const data = await deserializeResponse<any>(response);
 
             // If filesystem access fails, should still return valid structure
             expect(data.filesystem).toBeDefined();
@@ -308,7 +314,7 @@ describe('Public Endpoints Tests', () => {
 
             expect(response.status).toBe(200);
 
-            const policy = await response.json();
+            const policy = await deserializeResponse<any>(response);
             expect(policy).toHaveProperty('id');
             expect(policy).toHaveProperty('policyName');
             expect(policy).toHaveProperty('currentVersionHash');
@@ -321,7 +327,7 @@ describe('Public Endpoints Tests', () => {
 
             expect(response.status).toBe(404);
 
-            const data = (await response.json()) as any;
+            const data = await deserializeResponse<any>(response);
             expect(data).toHaveProperty('error');
             expect(data.error).toHaveProperty('code');
             expect(data.error).toHaveProperty('message');
@@ -505,7 +511,7 @@ describe('Public Endpoints Tests', () => {
 
             expect(response.status).toBe(404);
 
-            const data = (await response.json()) as any;
+            const data = await deserializeResponse<any>(response);
             expect(data).toHaveProperty('error');
             expect(data.error).toHaveProperty('code');
             expect(data.error).toHaveProperty('message');

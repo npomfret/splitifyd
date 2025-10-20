@@ -1,4 +1,5 @@
 import { JoinGroupPage, JoinGroupResponseBuilder, PreviewGroupResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
+import { ApiSerializer } from '@splitifyd/shared';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupPreviewApi, mockGroupPreviewFailure, mockJoinGroupApi, mockJoinGroupFailure, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 
@@ -224,8 +225,8 @@ test.describe('Join Group Page - Display Name Conflict', () => {
         await page.route('**/api/groups/*/members/display-name', async (route) => {
             await route.fulfill({
                 status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({ message: 'Display name updated successfully' }),
+                contentType: 'application/x-serialized-json',
+                body: ApiSerializer.serialize({ message: 'Display name updated successfully' }),
             });
         });
 

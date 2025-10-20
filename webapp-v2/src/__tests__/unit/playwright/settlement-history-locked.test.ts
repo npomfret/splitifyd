@@ -1,7 +1,7 @@
 import { GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementWithMembersBuilder, ThemeBuilder } from '@splitifyd/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
-import {GroupId} from "@splitifyd/shared";
+import { ApiSerializer, GroupId } from "@splitifyd/shared";
 
 /**
  * Helper function to mock the group full-details API endpoint with settlements
@@ -10,8 +10,8 @@ async function mockGroupFullDetailsApi(page: any, groupId: GroupId, response: an
     await page.route(`/api/groups/${groupId}/full-details*`, async (route: any) => {
         route.fulfill({
             status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(response),
+            contentType: 'application/x-serialized-json',
+            body: ApiSerializer.serialize(response),
         });
     });
 }

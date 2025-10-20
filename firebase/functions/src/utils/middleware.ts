@@ -1,3 +1,4 @@
+import { ApiSerializer } from '@splitifyd/shared';
 import { randomUUID } from 'crypto';
 import express from 'express';
 import type { AuthenticatedRequest } from '../auth/middleware';
@@ -49,6 +50,23 @@ export const applyStandardMiddleware = (app: express.Application) => {
     // Parse JSON with size limit
     app.use(express.json({ limit: getConfig().requestBodyLimit }));
 
+    // Serialize all JSON responses through the API serializer
+    app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+        res.json = (body?: unknown): express.Response => {
+            if (res.headersSent) {
+                throw new Error('Cannot send JSON response: headers already sent. This is a programming error - responses must go through the serializer.');
+            }
+
+            const payload = body === undefined ? null : body;
+            const serialized = ApiSerializer.serialize(payload);
+
+            res.setHeader('Content-Type', 'application/x-serialized-json; charset=utf-8');
+            return res.send(serialized);
+        };
+
+        next();
+    });
+
     // Add i18n middleware to detect language and add translation function to requests
     app.use(i18nMiddleware());
 
@@ -83,7 +101,7 @@ export const applyStandardMiddleware = (app: express.Application) => {
  * Middleware to add translation capabilities to requests
  */
 function i18nMiddleware() {
-    return async (req: LocalizedRequest & Partial<AuthenticatedRequest>, res: express.Response, next: express.NextFunction) => {
+    return async (req: LocalizedRequest & Partial<AuthenticatedRequest>, _res: express.Response, next: express.NextFunction) => {
         try {
             // Ensure i18n is initialized
             await initializeI18n();

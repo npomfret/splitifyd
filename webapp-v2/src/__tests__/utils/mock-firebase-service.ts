@@ -1,6 +1,6 @@
 import { FirebaseService } from '@/app/firebase.ts';
 import { Page } from '@playwright/test';
-import { ClientUser, ListGroupsResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
+import { ApiSerializer, ClientUser, ListGroupsResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
 import {GroupId} from "@splitifyd/shared";
 
 interface AuthError {
@@ -77,8 +77,8 @@ export class MockFirebase {
         await this.page.route('**/__/firebase/init.json*', (route) => {
             route.fulfill({
                 status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({
+                contentType: 'application/x-serialized-json',
+                body: ApiSerializer.serialize({
                     apiKey: 'mock-api-key',
                     authDomain: 'mock-project.firebaseapp.com',
                     projectId: 'mock-project',
@@ -218,8 +218,8 @@ export class MockFirebase {
         this.page.route('/api/register', async (route) => {
             await route.fulfill({
                 status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({
+                contentType: 'application/x-serialized-json',
+                body: ApiSerializer.serialize({
                     success: true,
                     user: {
                         uid: user.uid,
@@ -248,8 +248,8 @@ export class MockFirebase {
         this.page.route('/api/register', (route) => {
             route.fulfill({
                 status: 400,
-                contentType: 'application/json',
-                body: JSON.stringify({
+                contentType: 'application/x-serialized-json',
+                body: ApiSerializer.serialize({
                     error: error.message,
                     code: error.code,
                 }),
@@ -267,8 +267,8 @@ export class MockFirebase {
 
             await route.fulfill({
                 status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({
+                contentType: 'application/x-serialized-json',
+                body: ApiSerializer.serialize({
                     success: true,
                     user: {
                         uid: user.uid,
@@ -352,8 +352,8 @@ export async function mockApiRoute(
         }
         route.fulfill({
             status,
-            contentType: 'application/json',
-            body: JSON.stringify(response),
+            contentType: 'application/x-serialized-json',
+            body: ApiSerializer.serialize(response),
         });
     });
 }
@@ -420,8 +420,8 @@ export async function mockGroupsApi(
             }
             route.fulfill({
                 status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify(response),
+                contentType: 'application/x-serialized-json',
+                body: ApiSerializer.serialize(response),
             });
         },
     );
@@ -469,8 +469,8 @@ export async function mockApiFailure(
             }
             route.fulfill({
                 status,
-                contentType: 'application/json',
-                body: JSON.stringify(error),
+                contentType: 'application/x-serialized-json',
+                body: ApiSerializer.serialize(error),
             });
         },
     );
@@ -495,8 +495,8 @@ export async function mockGroupDetailApi(
         }
         route.fulfill({
             status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(group),
+            contentType: 'application/x-serialized-json',
+            body: ApiSerializer.serialize(group),
         });
     });
 }
@@ -551,8 +551,8 @@ export async function mockGenerateShareLinkApi(
             }
             await route.fulfill({
                 status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({
+                contentType: 'application/x-serialized-json',
+                body: ApiSerializer.serialize({
                     linkId: shareToken,
                     shareablePath: `/join/${shareToken}`,
                 }),
@@ -584,8 +584,8 @@ export async function mockGroupPreviewApi(
             }
             await route.fulfill({
                 status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify(response),
+                contentType: 'application/x-serialized-json',
+                body: ApiSerializer.serialize(response),
             });
         } else {
             await route.continue();
@@ -614,8 +614,8 @@ export async function mockJoinGroupApi(
             }
             await route.fulfill({
                 status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify(response),
+                contentType: 'application/x-serialized-json',
+                body: ApiSerializer.serialize(response),
             });
         } else {
             await route.continue();
@@ -645,8 +645,8 @@ export async function mockGroupPreviewFailure(
             }
             await route.fulfill({
                 status,
-                contentType: 'application/json',
-                body: JSON.stringify(error),
+                contentType: 'application/x-serialized-json',
+                body: ApiSerializer.serialize(error),
             });
         } else {
             await route.continue();
@@ -676,8 +676,8 @@ export async function mockJoinGroupFailure(
             }
             await route.fulfill({
                 status,
-                contentType: 'application/json',
-                body: JSON.stringify(error),
+                contentType: 'application/x-serialized-json',
+                body: ApiSerializer.serialize(error),
             });
         } else {
             await route.continue();
