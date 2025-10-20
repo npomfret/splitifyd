@@ -539,15 +539,6 @@ export class GroupDetailPage extends BaseGroupDetailPage {
     }
 
     /**
-     * Get edit button for a specific settlement by identifying the settlement container
-     * Properly scoped to the payment history container
-     */
-    private getSettlementEditButton(settlementNote: string): Locator {
-        const settlementItem = this.getSettlementHistoryEntry(settlementNote);
-        return settlementItem.locator('[data-testid="edit-settlement-button"]');
-    }
-
-    /**
      * Get delete button for a specific settlement by identifying the settlement container
      * Properly scoped to the payment history container
      */

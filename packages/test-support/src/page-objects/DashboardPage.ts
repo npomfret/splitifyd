@@ -4,9 +4,9 @@ import { BasePage } from './BasePage';
 import { CreateGroupModalPage } from './CreateGroupModalPage';
 import { GroupDetailPage } from './GroupDetailPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
-import { loadTranslation } from './translation-loader';
+import { translationEn } from '../translations/translation-en';
 
-const translation = loadTranslation();
+const translation = translationEn;
 
 /**
  * Dashboard Page Object Model for Playwright tests

@@ -4,10 +4,10 @@ import { BasePage } from './BasePage';
 import { EditGroupModalPage } from './EditGroupModalPage';
 import { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
-import { loadTranslation } from './translation-loader';
-import {GroupId} from "@splitifyd/shared";
+import { translationEn } from '../translations/translation-en';
+import { GroupId } from '@splitifyd/shared';
 
-const translation = loadTranslation();
+const translation = translationEn;
 
 /**
  * Group Detail Page Object Model for Playwright tests
@@ -107,7 +107,7 @@ export class GroupDetailPage extends BasePage {
         });
     }
 
-    private getSettlementEditButton(note: string): Locator {
+    protected getSettlementEditButton(note: string): Locator {
         return this.getSettlementItem(note).getByTestId('edit-settlement-button');
     }
 

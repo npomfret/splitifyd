@@ -3,9 +3,9 @@ import { TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
 import { DisplayNameConflictModalPage } from './DisplayNameConflictModalPage';
 import { HeaderPage } from './HeaderPage';
-import { loadTranslation } from './translation-loader';
+import { translationEn } from '../translations/translation-en';
 
-const translation = loadTranslation();
+const translation = translationEn;
 
 /**
  * Page Object Model for join group functionality via share links.

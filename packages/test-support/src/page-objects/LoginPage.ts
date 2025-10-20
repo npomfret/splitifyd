@@ -2,9 +2,9 @@ import { expect, Locator, Page } from '@playwright/test';
 import { TEST_ROUTES, TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
 import { DashboardPage } from './DashboardPage';
-import { loadTranslation } from './translation-loader';
+import { translationEn } from '../translations/translation-en';
 
-const translation = loadTranslation();
+const translation = translationEn;
 
 /**
  * Login Page Object Model for Playwright tests

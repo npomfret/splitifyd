@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
-import translationEn from '../../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
+import { translationEn } from '../translations/translation-en';
 
 /**
  * Page Object Model for the Display Name Conflict modal shown during the join group flow.

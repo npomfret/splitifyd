@@ -1,9 +1,9 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
-import { loadTranslation } from './translation-loader';
+import { translationEn } from '../translations/translation-en';
 
-const translation = loadTranslation();
+const translation = translationEn;
 
 /**
  * Edit Group Modal Page Object Model for Playwright tests
