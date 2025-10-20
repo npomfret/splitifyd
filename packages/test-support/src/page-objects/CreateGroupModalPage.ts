@@ -177,6 +177,9 @@ export class CreateGroupModalPage extends BasePage {
      * Fill the group name field using proper Preact handling
      */
     async fillGroupName(name: string): Promise<void> {
+        // Defensive check: Verify modal is open before interacting
+        // This will fail early with a clear error if modal is not visible
+        await expect(this.getModalContainer()).toBeVisible({ timeout: 2000 });
         await this.fillPreactInput(this.getGroupNameInput(), name);
     }
 
@@ -216,6 +219,14 @@ export class CreateGroupModalPage extends BasePage {
      * Does NOT wait for modal to close - caller should handle that
      */
     async createGroup(name: string, description?: string): Promise<void> {
+        // Defensive check: Verify modal is open at the start of the operation
+        // This will fail early with clear error if modal is not visible
+        // Error will include the group name being created for debugging context
+        try {
+            await expect(this.getModalContainer()).toBeVisible({ timeout: 2000 });
+        } catch (error) {
+            throw new Error(`Create Group Modal must be open before calling createGroup("${name}"). Modal not found or already closed.`);
+        }
         await this.fillGroupForm(name, description);
         await this.submitForm();
     }

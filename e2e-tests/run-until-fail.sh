@@ -17,8 +17,8 @@
 #   open -a "Google Chrome" "e2e-tests/playwright-report/ad-hoc/index.html"
 
 # edit these to pick your test cases
-TEST_FILE="src/__tests__/integration/error-handling-comprehensive.e2e.test.ts"
-TEST_FILTER="should handle login page resilience to network failures"
+TEST_FILE="src/__tests__/integration/core-features.e2e.test.ts"
+TEST_FILTER="non-owner member should be able to leave group"
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

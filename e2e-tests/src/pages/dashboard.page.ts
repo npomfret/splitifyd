@@ -148,9 +148,9 @@ export class DashboardPage extends BaseDashboardPage {
         const createGroupModalPage = new CreateGroupModalPage(this.page);
 
         // Wait for the modal to appear using the base class container selector
-        await createGroupModalPage.getModalContainer().waitFor({
-            state: 'visible',
-            timeout: 1000,
+        // Increased timeout to 3000ms and use expect for better error messages
+        await expect(createGroupModalPage.getModalContainer()).toBeVisible({
+            timeout: 3000,
         });
 
         return createGroupModalPage;
