@@ -66,6 +66,17 @@ interface TriggerEventRecord {
     after: IDocumentSnapshot;
 }
 
+interface DocumentWatcher {
+    callback: (snapshot: IDocumentSnapshot) => void;
+    error?: (error: Error) => void;
+}
+
+interface QueryWatcher {
+    query: StubQuery;
+    callback: (snapshot: IQuerySnapshot) => void;
+    error?: (error: Error) => void;
+}
+
 const PATH_PARAM_REGEX = /^\{(.+)\}$/;
 
 function escapeRegex(segment: string): string {
@@ -276,6 +287,14 @@ class StubDocumentReference implements IDocumentReference {
         return new StubCollectionReference(this.storage, fullPath, this.db);
     }
 
+    onSnapshot(onNext: (snapshot: IDocumentSnapshot) => void, onError?: (error: Error) => void): () => void {
+        const listener: DocumentWatcher = {
+            callback: onNext,
+            error: onError,
+        };
+        return this.db.addDocumentWatcher(this.documentPath, listener);
+    }
+
     async get(): Promise<IDocumentSnapshot> {
         const doc = this.storage.get(this.documentPath);
         return new StubDocumentSnapshot(doc ?? null, this);
@@ -453,6 +472,7 @@ class StubDocumentReference implements IDocumentReference {
         const afterClone = cloneStoredDocument(storedDoc ?? null);
         const eventType: FirestoreTriggerEventType = beforeClone?.exists ? 'update' : 'create';
         await this.db.recordTrigger(eventType, this.documentPath, beforeClone, afterClone);
+        this.db.emitDocumentChange(this.documentPath);
     }
 
     /**
@@ -555,6 +575,7 @@ class StubDocumentReference implements IDocumentReference {
         const storedDoc = this.storage.get(this.documentPath);
         const afterClone = cloneStoredDocument(storedDoc ?? null);
         await this.db.recordTrigger('update', this.documentPath, beforeClone, afterClone);
+        this.db.emitDocumentChange(this.documentPath);
     }
 
     async delete(): Promise<void> {
@@ -569,6 +590,7 @@ class StubDocumentReference implements IDocumentReference {
         this.storage.delete(this.documentPath);
 
         await this.db.recordTrigger('delete', this.documentPath, beforeClone, null);
+        this.db.emitDocumentChange(this.documentPath);
     }
 }
 
@@ -654,6 +676,15 @@ class StubQuery implements IQuery {
         const newQuery = this.clone();
         newQuery.selectedFields = fieldPaths;
         return newQuery;
+    }
+
+    onSnapshot(onNext: (snapshot: IQuerySnapshot) => void, onError?: (error: Error) => void): () => void {
+        const watcher: QueryWatcher = {
+            query: this.clone(),
+            callback: onNext,
+            error: onError,
+        };
+        return this.db.addQueryWatcher(watcher);
     }
 
     count(): IAggregateQuery {
@@ -1053,6 +1084,10 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
     private storage = new Map<string, StoredDocument>();
     private triggerRegistrations: TriggerRegistration[] = [];
     private triggerBuffers: TriggerEventRecord[][] = [];
+    private docWatchers = new Map<string, Set<DocumentWatcher>>();
+    private docWatchBuffers: Array<Set<string>> = [];
+    private queryWatchers = new Set<QueryWatcher>();
+    private queryWatchBuffers: boolean[] = [];
 
     collection(collectionPath: string): ICollectionReference {
         return new StubCollectionReference(this.storage, collectionPath, this);
@@ -1064,6 +1099,119 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
 
     collectionGroup(collectionId: string): IQuery {
         return new StubQuery(this.storage, collectionId, this);
+    }
+
+    addDocumentWatcher(path: string, listener: DocumentWatcher): () => void {
+        let listeners = this.docWatchers.get(path);
+        if (!listeners) {
+            listeners = new Set();
+            this.docWatchers.set(path, listeners);
+        }
+        listeners.add(listener);
+
+        queueMicrotask(() => {
+            try {
+                const snapshot = this.createStaticSnapshot(path, this.storage.get(path) ?? null);
+                listener.callback(snapshot);
+            } catch (error) {
+                if (listener.error) {
+                    listener.error(error as Error);
+                }
+            }
+        });
+
+        return () => {
+            const current = this.docWatchers.get(path);
+            if (!current) {
+                return;
+            }
+            current.delete(listener);
+            if (current.size === 0) {
+                this.docWatchers.delete(path);
+            }
+        };
+    }
+
+    addQueryWatcher(watcher: QueryWatcher): () => void {
+        this.queryWatchers.add(watcher);
+
+        Promise.resolve().then(async () => {
+            try {
+                const snapshot = await watcher.query.get();
+                watcher.callback(snapshot);
+            } catch (error) {
+                if (watcher.error) {
+                    watcher.error(error as Error);
+                }
+            }
+        });
+
+        return () => {
+            this.queryWatchers.delete(watcher);
+        };
+    }
+
+    emitDocumentChange(path: string): void {
+        this.queueDocumentNotification(path);
+        this.markQueryWatchersDirty();
+    }
+
+    private queueDocumentNotification(path: string): void {
+        if (this.docWatchBuffers.length > 0) {
+            this.docWatchBuffers[this.docWatchBuffers.length - 1].add(path);
+            return;
+        }
+        this.deliverDocumentSnapshot(path);
+    }
+
+    private deliverDocumentSnapshot(path: string): void {
+        const listeners = this.docWatchers.get(path);
+        if (!listeners || listeners.size === 0) {
+            return;
+        }
+
+        const snapshot = this.createStaticSnapshot(path, this.storage.get(path) ?? null);
+        for (const listener of Array.from(listeners)) {
+            try {
+                listener.callback(snapshot);
+            } catch (error) {
+                if (listener.error) {
+                    listener.error(error as Error);
+                }
+            }
+        }
+    }
+
+    private markQueryWatchersDirty(): void {
+        if (this.queryWatchers.size === 0) {
+            return;
+        }
+
+        if (this.queryWatchBuffers.length > 0) {
+            this.queryWatchBuffers[this.queryWatchBuffers.length - 1] = true;
+            return;
+        }
+
+        this.runAllQueryWatchers();
+    }
+
+    private runAllQueryWatchers(): void {
+        if (this.queryWatchers.size === 0) {
+            return;
+        }
+
+        for (const watcher of Array.from(this.queryWatchers)) {
+            void (async () => {
+                try {
+                    const snapshot = await watcher.query.get();
+                    watcher.callback(snapshot);
+                } catch (error) {
+                    if (watcher.error) {
+                        watcher.error(error as Error);
+                    }
+                }
+            })();
+        }
     }
 
     registerTrigger(pattern: string, handlers: FirestoreTriggerHandlers): () => void {
@@ -1088,22 +1236,37 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
 
     beginAtomicOperation(): void {
         this.triggerBuffers.push([]);
+        this.docWatchBuffers.push(new Set());
+        this.queryWatchBuffers.push(false);
     }
 
     async endAtomicOperation(success: boolean): Promise<void> {
-        const buffer = this.triggerBuffers.pop() ?? [];
+        const triggerBuffer = this.triggerBuffers.pop() ?? [];
+        const docBuffer = this.docWatchBuffers.pop() ?? new Set<string>();
+        const queryDirty = this.queryWatchBuffers.pop() ?? false;
 
         if (!success) {
             return;
         }
 
         if (this.triggerBuffers.length > 0) {
-            this.triggerBuffers[this.triggerBuffers.length - 1].push(...buffer);
+            this.triggerBuffers[this.triggerBuffers.length - 1].push(...triggerBuffer);
+            const parentDocBuffer = this.docWatchBuffers[this.docWatchBuffers.length - 1];
+            docBuffer.forEach((path) => parentDocBuffer.add(path));
+            if (queryDirty) {
+                this.queryWatchBuffers[this.queryWatchBuffers.length - 1] = true;
+            }
             return;
         }
 
-        for (const event of buffer) {
+        for (const event of triggerBuffer) {
             await this.dispatchTrigger(event);
+        }
+
+        docBuffer.forEach((path) => this.deliverDocumentSnapshot(path));
+
+        if (queryDirty) {
+            this.runAllQueryWatchers();
         }
     }
 
@@ -1207,6 +1370,8 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
             data: { ...data },
             exists: true,
         });
+
+        this.emitDocumentChange(documentPath);
     }
 
     clear(): void {

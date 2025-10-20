@@ -7,6 +7,7 @@ import { StubFirestoreDatabase } from '../../StubFirestoreDatabase';
 
 describe('StubFirestoreDatabase - Example Usage', () => {
     let db: StubFirestoreDatabase;
+    const waitForUpdates = () => new Promise((resolve) => setTimeout(resolve, 0));
 
     beforeEach(() => {
         db = new StubFirestoreDatabase();
@@ -1152,6 +1153,118 @@ describe('StubFirestoreDatabase - Example Usage', () => {
 
             const snapshot = await docRef.get();
             expect(snapshot.data()).toEqual({ count: 1 });
+        });
+    });
+
+    describe('Realtime listeners', () => {
+        it('should emit document snapshots on lifecycle changes', async () => {
+            const docRef = db.collection('users').doc('user-1');
+            const snapshots: Array<{ exists: boolean; data: any | undefined; }> = [];
+
+            const unsubscribe = docRef.onSnapshot((snapshot) => {
+                snapshots.push({ exists: snapshot.exists, data: snapshot.data() });
+            });
+
+            await waitForUpdates();
+
+            await docRef.set({ name: 'Alice' });
+            await waitForUpdates();
+
+            await docRef.update({ age: 30 });
+            await waitForUpdates();
+
+            await docRef.delete();
+            await waitForUpdates();
+
+            unsubscribe();
+
+            expect(snapshots).toHaveLength(4);
+            expect(snapshots[0].exists).toBe(false);
+            expect(snapshots[1].data).toEqual({ name: 'Alice' });
+            expect(snapshots[2].data).toEqual({ name: 'Alice', age: 30 });
+            expect(snapshots[3].exists).toBe(false);
+        });
+
+        it('should only notify document listeners after successful transaction commit', async () => {
+            const docRef = db.collection('items').doc('item-1');
+            await docRef.set({ value: 1 });
+
+            const values: number[] = [];
+            const unsubscribe = docRef.onSnapshot((snapshot) => {
+                if (snapshot.exists) {
+                    values.push(snapshot.data()?.value ?? 0);
+                }
+            });
+
+            await waitForUpdates();
+
+            await db.runTransaction(async (transaction) => {
+                const snap = await transaction.get(docRef);
+                const current = snap.data()?.value ?? 0;
+                transaction.update(docRef, { value: current + 1 });
+            });
+
+            await waitForUpdates();
+
+            expect(values).toEqual([1, 2]);
+
+            unsubscribe();
+        });
+
+        it('should not notify document listeners when transaction rolls back', async () => {
+            const docRef = db.collection('items').doc('item-2');
+            await docRef.set({ value: 5 });
+
+            const values: number[] = [];
+            const unsubscribe = docRef.onSnapshot((snapshot) => {
+                if (snapshot.exists) {
+                    values.push(snapshot.data()?.value ?? 0);
+                }
+            });
+
+            await waitForUpdates();
+
+            await expect(db.runTransaction(async (transaction) => {
+                const snap = await transaction.get(docRef);
+                const current = snap.data()?.value ?? 0;
+                transaction.update(docRef, { value: current + 10 });
+                throw new Error('rollback');
+            })).rejects.toThrow('rollback');
+
+            await waitForUpdates();
+
+            expect(values).toEqual([5]);
+
+            unsubscribe();
+        });
+
+        it('should emit query snapshots when matching documents change', async () => {
+            const users = db.collection('users');
+            await users.doc('user-1').set({ name: 'Alice', city: 'NYC' });
+            await users.doc('user-2').set({ name: 'Bob', city: 'LA' });
+
+            const snapshots: string[][] = [];
+            const unsubscribe = users
+                .where('city', '==', 'NYC')
+                .onSnapshot((snapshot) => {
+                    snapshots.push(snapshot.docs.map((doc) => doc.data().name));
+                });
+
+            await waitForUpdates();
+
+            await users.doc('user-3').set({ name: 'Charlie', city: 'NYC' });
+            await waitForUpdates();
+
+            await users.doc('user-1').update({ city: 'LA' });
+            await waitForUpdates();
+
+            unsubscribe();
+
+            expect(snapshots).toEqual([
+                ['Alice'],
+                ['Alice', 'Charlie'],
+                ['Charlie'],
+            ]);
         });
     });
 });

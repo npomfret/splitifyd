@@ -99,6 +99,10 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
         await testFn(stubDb, true);
     }
 
+    function waitForListenerFlush(isStub: boolean, delayMs: number = 60): Promise<void> {
+        return new Promise((resolve) => setTimeout(resolve, isStub ? 0 : delayMs));
+    }
+
     describe('Basic Document Operations', () => {
         it('should create and read documents identically', async () => {
             await testBothImplementations('create and read', async (db, isStub) => {
@@ -595,19 +599,95 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
             await childRef.set({value: 1});
             await childRef.delete();
 
-            expect(events).toEqual([
-                {name: 'parentCreate', type: 'create', params: {docId: 'parent-1'}},
-                {name: 'childLifecycle', type: 'create', params: {parent: 'parent-1', child: 'child-1'}},
-                {name: 'childLifecycle', type: 'delete', params: {parent: 'parent-1', child: 'child-1'}},
-            ]);
+        expect(events).toEqual([
+            {name: 'parentCreate', type: 'create', params: {docId: 'parent-1'}},
+            {name: 'childLifecycle', type: 'create', params: {parent: 'parent-1', child: 'child-1'}},
+            {name: 'childLifecycle', type: 'delete', params: {parent: 'parent-1', child: 'child-1'}},
+        ]);
 
-            events.length = 0;
-            detach();
+        events.length = 0;
+        detach();
 
-            await parentRef.set({foo: 'baz'});
-            await childRef.set({value: 2});
+        await parentRef.set({foo: 'baz'});
+        await childRef.set({value: 2});
 
-            expect(events).toHaveLength(0);
+        expect(events).toHaveLength(0);
+    });
+
+    describe('Realtime listeners', () => {
+        it('should stream document snapshots identically', async () => {
+            await testBothImplementations('document listener', async (db, isStub) => {
+                const docRef = db.collection(`${testCollectionPrefix}-listeners`).doc('doc-stream');
+                const snapshots: Array<{ exists: boolean; data: any | undefined; }> = [];
+                const errors: Error[] = [];
+
+                const unsubscribe = docRef.onSnapshot(
+                    (snapshot) => snapshots.push({ exists: snapshot.exists, data: snapshot.data() }),
+                    (error) => errors.push(error),
+                );
+
+                await waitForListenerFlush(isStub);
+
+                await docRef.set({ stage: 'created', value: 1 });
+                await waitForListenerFlush(isStub);
+
+                await docRef.update({ stage: 'updated', value: 2 });
+                await waitForListenerFlush(isStub);
+
+                await docRef.delete();
+                await waitForListenerFlush(isStub);
+
+                unsubscribe();
+
+                expect(errors, `Listener errors (${isStub ? 'stub' : 'real'})`).toHaveLength(0);
+                expect(snapshots.length, `Snapshot count (${isStub ? 'stub' : 'real'})`).toBe(4);
+                expect(snapshots[0].exists).toBe(false);
+                expect(snapshots[1].data).toEqual({ stage: 'created', value: 1 });
+                expect(snapshots[2].data).toEqual({ stage: 'updated', value: 2 });
+                expect(snapshots[3].exists).toBe(false);
+            });
+        });
+
+        it('should stream filtered query snapshots identically', async () => {
+            await testBothImplementations('query listener', async (db, isStub) => {
+                const collection = db.collection(`${testCollectionPrefix}-listener-queries`);
+
+                await collection.doc('user-1').set({ name: 'Alice', city: 'NYC' });
+                await collection.doc('user-2').set({ name: 'Bob', city: 'LA' });
+
+                const results: string[][] = [];
+                const errors: Error[] = [];
+
+                const unsubscribe = collection
+                    .where('city', '==', 'NYC')
+                    .orderBy('name')
+                    .onSnapshot(
+                        (snapshot) => results.push(snapshot.docs.map((doc) => doc.data().name)),
+                        (error) => errors.push(error),
+                    );
+
+                await waitForListenerFlush(isStub);
+
+                await collection.doc('user-3').set({ name: 'Charlie', city: 'NYC' });
+                await waitForListenerFlush(isStub);
+
+                await collection.doc('user-1').update({ city: 'SF' });
+                await waitForListenerFlush(isStub);
+
+                await collection.doc('user-2').set({ name: 'Bob', city: 'NYC' });
+                await waitForListenerFlush(isStub);
+
+                unsubscribe();
+
+                expect(errors, `Query listener errors (${isStub ? 'stub' : 'real'})`).toHaveLength(0);
+                expect(results, `Query snapshot evolution (${isStub ? 'stub' : 'real'})`).toEqual([
+                    ['Alice'],
+                    ['Alice', 'Charlie'],
+                    ['Charlie'],
+                    ['Bob', 'Charlie'],
+                ]);
+            });
         });
     });
+});
 });

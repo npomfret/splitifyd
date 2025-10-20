@@ -116,6 +116,14 @@ class QueryWrapper implements IQuery {
         return new QueryWrapper(this.query.select(...fieldPaths));
     }
 
+    onSnapshot(onNext: (snapshot: IQuerySnapshot) => void, onError?: (error: Error) => void): () => void {
+        const unsubscribe = this.query.onSnapshot(
+            (snapshot) => onNext(new QuerySnapshotWrapper(snapshot)),
+            onError,
+        );
+        return unsubscribe;
+    }
+
     async get(): Promise<IQuerySnapshot> {
         const snapshot = await this.query.get();
         return new QuerySnapshotWrapper(snapshot);
@@ -157,6 +165,14 @@ class DocumentReferenceWrapper implements IDocumentReference {
 
     collection(collectionPath: string): ICollectionReference {
         return new CollectionReferenceWrapper(this.docRef.collection(collectionPath));
+    }
+
+    onSnapshot(onNext: (snapshot: IDocumentSnapshot) => void, onError?: (error: Error) => void): () => void {
+        const unsubscribe = this.docRef.onSnapshot(
+            (snapshot) => onNext(new DocumentSnapshotWrapper(snapshot)),
+            onError,
+        );
+        return unsubscribe;
     }
 
     async get(): Promise<IDocumentSnapshot> {

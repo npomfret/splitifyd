@@ -131,6 +131,14 @@ export interface IDocumentReference {
      */
     delete(): Promise<void>;
 
+    /**
+     * Listen for realtime updates to the document.
+     * @param onNext - callback invoked with each snapshot
+     * @param onError - optional error handler
+     * @returns unsubscribe function
+     */
+    onSnapshot(onNext: (snapshot: IDocumentSnapshot) => void, onError?: (error: Error) => void): () => void;
+
     /** Access to the parent property for path traversal */
     readonly parent: ICollectionReference | null;
 }
@@ -196,6 +204,14 @@ export interface IQuery {
      * @returns Aggregate query for counting
      */
     count(): IAggregateQuery;
+
+    /**
+     * Listen for realtime updates to the query results.
+     * @param onNext - callback invoked with each snapshot
+     * @param onError - optional error handler
+     * @returns unsubscribe function
+     */
+    onSnapshot(onNext: (snapshot: IQuerySnapshot) => void, onError?: (error: Error) => void): () => void;
 }
 
 /**
