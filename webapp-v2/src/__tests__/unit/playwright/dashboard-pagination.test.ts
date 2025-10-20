@@ -26,9 +26,7 @@ test.describe('Dashboard Groups Pagination', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         await dashboardPage.verifyGroupsDisplayed(5);
-
-        const pagination = page.getByRole('navigation', { name: 'Pagination' });
-        await expect(pagination).not.toBeVisible();
+        await dashboardPage.verifyPaginationHidden();
     });
 
     test('should show pagination controls when hasMore is true', async ({ authenticatedPage }) => {
@@ -55,14 +53,9 @@ test.describe('Dashboard Groups Pagination', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         await dashboardPage.verifyGroupsDisplayed(8);
-
-        const nextButton = page.getByTestId('pagination-next');
-        await expect(nextButton).toBeVisible();
-        await expect(nextButton).toBeEnabled();
-
-        const previousButton = page.getByTestId('pagination-previous');
-        await expect(previousButton).toBeVisible();
-        await expect(previousButton).toBeDisabled();
+        await dashboardPage.verifyPaginationVisible();
+        await dashboardPage.verifyPaginationNextEnabled();
+        await dashboardPage.verifyPaginationPreviousDisabled();
     });
 
     test('should navigate to next page when next button is clicked', async ({ authenticatedPage }) => {
@@ -108,19 +101,14 @@ test.describe('Dashboard Groups Pagination', () => {
                 .build(),
         );
 
-        const nextButton = page.getByTestId('pagination-next');
-        await nextButton.click();
+        await dashboardPage.clickPaginationNext();
 
         await dashboardPage.verifyGroupDisplayed('Page 2 Group 1');
         await dashboardPage.verifyGroupsDisplayed(8);
 
-        const previousButton = page.getByTestId('pagination-previous');
-        await expect(previousButton).toBeEnabled();
-        await expect(nextButton).toBeDisabled();
-
-        // Verify page indicator shows "Page 2" (exact match to avoid matching group names)
-        const pageIndicator = page.getByText('Page 2', { exact: true });
-        await expect(pageIndicator).toBeVisible();
+        await dashboardPage.verifyPaginationPreviousEnabled();
+        await dashboardPage.verifyPaginationNextDisabled();
+        await dashboardPage.verifyPaginationIndicatorEquals('Page 2');
     });
 
     test('should navigate back to previous page when previous button is clicked', async ({ authenticatedPage }) => {
@@ -165,8 +153,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .build(),
         );
 
-        const nextButton = page.getByTestId('pagination-next');
-        await nextButton.click();
+        await dashboardPage.clickPaginationNext();
 
         await dashboardPage.verifyGroupDisplayed('Page 2 Group 1');
         await dashboardPage.verifyGroupsDisplayed(5);
@@ -184,18 +171,14 @@ test.describe('Dashboard Groups Pagination', () => {
                 .build(),
         );
 
-        const previousButton = page.getByTestId('pagination-previous');
-        await previousButton.click();
+        await dashboardPage.clickPaginationPrevious();
 
         await dashboardPage.verifyGroupDisplayed('Page 1 Group 1');
         await dashboardPage.verifyGroupsDisplayed(8);
 
-        await expect(previousButton).toBeDisabled();
-        await expect(nextButton).toBeEnabled();
-
-        // Verify page indicator shows "Page 1" (exact match to avoid matching group names)
-        const pageIndicator = page.getByText('Page 1', { exact: true });
-        await expect(pageIndicator).toBeVisible();
+        await dashboardPage.verifyPaginationPreviousDisabled();
+        await dashboardPage.verifyPaginationNextEnabled();
+        await dashboardPage.verifyPaginationIndicatorEquals('Page 1');
     });
 
     test('should disable next button on last page', async ({ authenticatedPage }) => {
@@ -221,9 +204,7 @@ test.describe('Dashboard Groups Pagination', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         await dashboardPage.verifyGroupsDisplayed(3);
-
-        const pagination = page.getByRole('navigation', { name: 'Pagination' });
-        await expect(pagination).not.toBeVisible();
+        await dashboardPage.verifyPaginationHidden();
     });
 
     test('should show loading state while fetching next page', async ({ authenticatedPage }) => {
@@ -269,18 +250,14 @@ test.describe('Dashboard Groups Pagination', () => {
             { delayMs: 500 },
         );
 
-        const nextButton = page.getByTestId('pagination-next');
-
-        // Click next button - loading state should appear during delay
-        const clickPromise = nextButton.click();
+        const clickPromise = dashboardPage.clickPaginationNextWithoutWait();
 
         // Give time for the click handler to start (but not complete due to delayed response)
         await page.waitForTimeout(100);
 
         // Now buttons should be disabled during loading
-        await expect(nextButton).toBeDisabled();
-        const previousButton = page.getByTestId('pagination-previous');
-        await expect(previousButton).toBeDisabled();
+        await dashboardPage.verifyPaginationNextDisabled();
+        await dashboardPage.verifyPaginationPreviousDisabled();
 
         // Wait for click to complete
         await clickPromise;
@@ -331,8 +308,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .build(),
         );
 
-        const nextButton = page.getByTestId('pagination-next');
-        await nextButton.click();
+        await dashboardPage.clickPaginationNext();
         await dashboardPage.verifyGroupDisplayed('Page 2 Group 1');
 
         const newGroup = GroupDTOBuilder
@@ -377,9 +353,7 @@ test.describe('Dashboard Groups Pagination', () => {
         await page.goBack();
 
         await dashboardPage.verifyGroupDisplayed('New Group');
-        // Verify page indicator shows "Page 1" (exact match to avoid matching group names)
-        const pageIndicator = page.getByText('Page 1', { exact: true });
-        await expect(pageIndicator).toBeVisible();
+        await dashboardPage.verifyPaginationIndicatorEquals('Page 1');
     });
 
     test('should handle empty state after filtering leaves no results on current page', async ({ authenticatedPage }) => {
@@ -397,8 +371,7 @@ test.describe('Dashboard Groups Pagination', () => {
 
         await dashboardPage.verifyEmptyGroupsState();
 
-        const pagination = page.getByRole('navigation', { name: 'Pagination' });
-        await expect(pagination).not.toBeVisible();
+        await dashboardPage.verifyPaginationHidden();
     });
 });
 
@@ -428,12 +401,7 @@ test.describe('Dashboard Pagination Mobile View', () => {
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
 
-        const mobileNextButton = page.getByTestId('pagination-next-mobile');
-        await expect(mobileNextButton).toBeVisible();
-        await expect(mobileNextButton).toBeEnabled();
-
-        const mobilePreviousButton = page.getByTestId('pagination-previous-mobile');
-        await expect(mobilePreviousButton).toBeVisible();
-        await expect(mobilePreviousButton).toBeDisabled();
+        await dashboardPage.verifyPaginationNextMobileEnabled();
+        await dashboardPage.verifyPaginationPreviousMobileDisabled();
     });
 });

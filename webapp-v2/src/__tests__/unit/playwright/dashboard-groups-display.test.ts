@@ -1,4 +1,4 @@
-import { DashboardPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ListGroupsResponseBuilder, ThemeBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
+import { DashboardPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, HeaderPage, ListGroupsResponseBuilder, ThemeBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupCommentsApi, mockGroupDetailApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
@@ -6,6 +6,7 @@ test.describe('Dashboard User Interface and Responsiveness', () => {
     test('should display user menu and allow interaction', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
+        const headerPage = new HeaderPage(page);
 
         await mockGroupsApi(
             page,
@@ -22,10 +23,10 @@ test.describe('Dashboard User Interface and Responsiveness', () => {
         // Open user menu
         await dashboardPage.openUserMenu();
 
-        // Verify menu items are displayed
-        await expect(page.getByRole('menuitem', { name: /dashboard/i })).toBeVisible();
-        await expect(page.getByRole('menuitem', { name: /settings/i })).toBeVisible();
-        await expect(page.getByRole('menuitem', { name: /sign.*out/i })).toBeVisible();
+        await headerPage.verifyUserDropdownVisible();
+        await headerPage.verifyDashboardMenuItemVisible();
+        await headerPage.verifySettingsMenuItemVisible();
+        await headerPage.verifySignOutMenuItemVisible();
     });
 });
 
@@ -53,17 +54,11 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         // Verify grid layout
-        const grid = dashboardPage.getGroupsGrid();
-        await expect(grid).toBeVisible();
-        await expect(grid).toHaveClass(/grid/);
+        await dashboardPage.verifyGroupsGridVisible();
+        await dashboardPage.verifyGroupsGridResponsiveLayout();
 
         // Verify all groups are displayed
         await dashboardPage.verifyGroupsDisplayed(6);
-
-        // Check responsive classes
-        await expect(grid).toHaveClass(/grid-cols-1/); // Mobile first
-        await expect(grid).toHaveClass(/md:grid-cols-2/); // Tablet
-        await expect(grid).toHaveClass(/xl:grid-cols-3/); // Desktop
     });
 
     test('should handle group card hover and click interactions', async ({ authenticatedPage }) => {
@@ -106,11 +101,8 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
 
-        const groupCard = dashboardPage.getGroupCard('Interactive Group');
-        await expect(groupCard).toBeVisible();
-
-        // Test hover state
-        await groupCard.hover();
+        await dashboardPage.verifyGroupDisplayed('Interactive Group');
+        await dashboardPage.hoverGroupCard('Interactive Group');
 
         // Test click interaction and verify navigation using fluent method
         // The fluent method automatically verifies URL and page load

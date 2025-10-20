@@ -13,7 +13,7 @@ test.describe('Registration Form Validation', () => {
         await registerPage.acceptAllPolicies();
 
         // Submit should be disabled because name is empty
-        await expect(registerPage.getSubmitButton()).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
     });
 
     test('should show validation error for empty email field', async ({ pageWithLogging: page }) => {
@@ -27,7 +27,7 @@ test.describe('Registration Form Validation', () => {
         await registerPage.acceptAllPolicies();
 
         // Submit should be disabled because email is empty
-        await expect(registerPage.getSubmitButton()).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
     });
 
     test('should show validation error for empty password field', async ({ pageWithLogging: page }) => {
@@ -41,7 +41,7 @@ test.describe('Registration Form Validation', () => {
         await registerPage.acceptAllPolicies();
 
         // Submit should be disabled because password is empty
-        await expect(registerPage.getSubmitButton()).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
     });
 
     test('should show validation error for empty confirm password field', async ({ pageWithLogging: page }) => {
@@ -55,7 +55,7 @@ test.describe('Registration Form Validation', () => {
         await registerPage.acceptAllPolicies();
 
         // Submit should be disabled because confirm password is empty
-        await expect(registerPage.getSubmitButton()).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
     });
 
     test('should show validation error when passwords do not match', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -104,7 +104,7 @@ test.describe('Registration Form Validation', () => {
         await registerPage.toggleCookiesCheckbox(); // Only check cookies
 
         // Submit should be disabled
-        await expect(registerPage.getSubmitButton()).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Verify terms checkbox is not checked
         await registerPage.verifyCheckboxStates(false, true);
@@ -122,7 +122,7 @@ test.describe('Registration Form Validation', () => {
         await registerPage.toggleTermsCheckbox(); // Only check terms
 
         // Submit should be disabled
-        await expect(registerPage.getSubmitButton()).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Verify cookies checkbox is not checked
         await registerPage.verifyCheckboxStates(true, false);
@@ -139,7 +139,7 @@ test.describe('Registration Form Validation', () => {
         await registerPage.fillConfirmPassword('Password123');
 
         // Submit should be disabled
-        await expect(registerPage.getSubmitButton()).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Verify both checkboxes are not checked
         await registerPage.verifyCheckboxStates(false, false);
@@ -157,95 +157,89 @@ test.describe('Registration Form Validation', () => {
         await registerPage.acceptAllPolicies();
 
         // Submit should be enabled
-        await expect(registerPage.getSubmitButton()).toBeEnabled();
+        await registerPage.verifySubmitButtonEnabled();
     });
 
     test('should enable submit when all validation requirements are met', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
-        const submitButton = registerPage.getSubmitButton();
-
         // Initially disabled
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Fill name
         await registerPage.fillName('John Doe');
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Fill email
         await registerPage.fillEmail('john@example.com');
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Fill password
         await registerPage.fillPassword('Password123');
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Fill confirm password
         await registerPage.fillConfirmPassword('Password123');
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Check terms
         await registerPage.toggleTermsCheckbox();
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Check cookies - should now be enabled
         await registerPage.toggleCookiesCheckbox();
-        await expect(submitButton).toBeEnabled();
+        await registerPage.verifySubmitButtonEnabled();
     });
 
     test('should disable submit when required field is cleared', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
-        const submitButton = registerPage.getSubmitButton();
-
         // Fill entire form - button should be enabled
         await registerPage.fillName('John Doe');
         await registerPage.fillEmail('john@example.com');
         await registerPage.fillPassword('Password123');
         await registerPage.fillConfirmPassword('Password123');
         await registerPage.acceptAllPolicies();
-        await expect(submitButton).toBeEnabled();
+        await registerPage.verifySubmitButtonEnabled();
 
         // Clear name field - should disable submit
         await registerPage.fillName('');
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Refill name - should enable submit
         await registerPage.fillName('John Doe');
-        await expect(submitButton).toBeEnabled();
+        await registerPage.verifySubmitButtonEnabled();
 
         // Clear email - should disable submit
         await registerPage.fillEmail('');
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
     });
 
     test('should disable submit when checkbox is unchecked', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
-        const submitButton = registerPage.getSubmitButton();
-
         // Fill entire form - button should be enabled
         await registerPage.fillName('John Doe');
         await registerPage.fillEmail('john@example.com');
         await registerPage.fillPassword('Password123');
         await registerPage.fillConfirmPassword('Password123');
         await registerPage.acceptAllPolicies();
-        await expect(submitButton).toBeEnabled();
+        await registerPage.verifySubmitButtonEnabled();
 
         // Uncheck terms - should disable submit
         await registerPage.toggleTermsCheckbox();
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Check terms again - should enable submit
         await registerPage.toggleTermsCheckbox();
-        await expect(submitButton).toBeEnabled();
+        await registerPage.verifySubmitButtonEnabled();
 
         // Uncheck cookies - should disable submit
         await registerPage.toggleCookiesCheckbox();
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
     });
 
     test('should validate whitespace-only name as invalid', async ({ pageWithLogging: page }) => {
@@ -260,7 +254,7 @@ test.describe('Registration Form Validation', () => {
         await registerPage.acceptAllPolicies();
 
         // Submit should be disabled because name is effectively empty
-        await expect(registerPage.getSubmitButton()).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
     });
 
     // NOTE: Whitespace-only email test removed because HTML5 input[type="email"]
@@ -275,16 +269,16 @@ test.describe('Registration Form Field Interactions', () => {
 
         // Type in all fields and verify values
         await registerPage.fillName('Jane Doe');
-        await expect(registerPage.getNameInput()).toHaveValue('Jane Doe');
+        await registerPage.verifyNameInputValue('Jane Doe');
 
         await registerPage.fillEmail('jane@example.com');
-        await expect(registerPage.getEmailInput()).toHaveValue('jane@example.com');
+        await registerPage.verifyEmailInputValue('jane@example.com');
 
         await registerPage.fillPassword('SecurePass123');
-        await expect(registerPage.getPasswordInput()).toHaveValue('SecurePass123');
+        await registerPage.verifyPasswordInputValue('SecurePass123');
 
         await registerPage.fillConfirmPassword('SecurePass123');
-        await expect(registerPage.getConfirmPasswordInput()).toHaveValue('SecurePass123');
+        await registerPage.verifyConfirmPasswordInputValue('SecurePass123');
     });
 
     test('should allow changing field values', async ({ pageWithLogging: page }) => {
@@ -297,10 +291,10 @@ test.describe('Registration Form Field Interactions', () => {
 
         // Change values
         await registerPage.fillName('Jane Smith');
-        await expect(registerPage.getNameInput()).toHaveValue('Jane Smith');
+        await registerPage.verifyNameInputValue('Jane Smith');
 
         await registerPage.fillEmail('jane@example.com');
-        await expect(registerPage.getEmailInput()).toHaveValue('jane@example.com');
+        await registerPage.verifyEmailInputValue('jane@example.com');
     });
 
     test('should allow toggling checkboxes multiple times', async ({ pageWithLogging: page }) => {

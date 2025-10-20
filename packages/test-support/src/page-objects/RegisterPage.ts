@@ -293,6 +293,14 @@ export class RegisterPage extends BasePage {
     }
 
     /**
+     * Attempt to click submit button even when disabled (used for defensive tests).
+     */
+    async attemptSubmitWhileDisabled(): Promise<void> {
+        const submitButton = this.getSubmitButton();
+        await submitButton.click({ force: true }).catch(() => undefined);
+    }
+
+    /**
      * Complete registration process with all fields
      * Non-fluent version - does not verify navigation or return page object
      */
@@ -379,7 +387,8 @@ export class RegisterPage extends BasePage {
     // ============================================================================
 
     /**
-     * Verify all form elements are enabled (not in loading state)
+     * Verify all form inputs are enabled (not in loading/disabled state)
+     * Note: Does not check submit button as its state depends on form validation
      */
     async verifyFormEnabled(): Promise<void> {
         await expect(this.getNameInput()).toBeEnabled();
@@ -388,7 +397,6 @@ export class RegisterPage extends BasePage {
         await expect(this.getConfirmPasswordInput()).toBeEnabled();
         await expect(this.getTermsCheckbox()).toBeEnabled();
         await expect(this.getCookiesCheckbox()).toBeEnabled();
-        await expect(this.getSubmitButton()).toBeEnabled();
     }
 
     /**
@@ -496,6 +504,25 @@ export class RegisterPage extends BasePage {
         await expect(this.getCookiePolicyLink()).toBeVisible();
     }
 
+    async verifyTermsLinkAttributes(expectedHref: string, expectedTarget: string = '_blank'): Promise<void> {
+        const link = this.getTermsLink();
+        await expect(link).toHaveAttribute('href', expectedHref);
+        await expect(link).toHaveAttribute('target', expectedTarget);
+    }
+
+    async verifyCookiePolicyLinkAttributes(expectedHref: string, expectedTarget: string = '_blank'): Promise<void> {
+        const link = this.getCookiePolicyLink();
+        await expect(link).toHaveAttribute('href', expectedHref);
+        await expect(link).toHaveAttribute('target', expectedTarget);
+    }
+
+    /**
+     * Verify the register page heading contains expected text
+     */
+    async verifyPageHeadingContains(expectedText: string): Promise<void> {
+        await expect(this.getPageHeading()).toContainText(expectedText);
+    }
+
     /**
      * Verify submit button is enabled
      */
@@ -569,6 +596,20 @@ export class RegisterPage extends BasePage {
      */
     async verifyPasswordInputVisible(): Promise<void> {
         await expect(this.getPasswordInput()).toBeVisible();
+    }
+
+    /**
+     * Verify password input has expected value
+     */
+    async verifyPasswordInputValue(expectedValue: string): Promise<void> {
+        await expect(this.getPasswordInput()).toHaveValue(expectedValue);
+    }
+
+    /**
+     * Verify confirm password input has expected value
+     */
+    async verifyConfirmPasswordInputValue(expectedValue: string): Promise<void> {
+        await expect(this.getConfirmPasswordInput()).toHaveValue(expectedValue);
     }
 
     /**

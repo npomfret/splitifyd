@@ -1,6 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
+import { DisplayNameConflictModalPage } from './DisplayNameConflictModalPage';
 import { HeaderPage } from './HeaderPage';
 import { loadTranslation } from './translation-loader';
 
@@ -73,7 +74,7 @@ export class JoinGroupPage extends BasePage {
     }
 
     getErrorMessage(): Locator {
-        return this.page.locator('[data-testid="invalid-link-warning"], [data-testid="unable-join-warning"], [role="alert"]');
+        return this.page.locator('[data-testid="invalid-link-warning"], [data-testid="unable-join-warning"]');
     }
 
     getBackToDashboardButton(): Locator {
@@ -82,6 +83,26 @@ export class JoinGroupPage extends BasePage {
 
     getOkButton(): Locator {
         return this.page.getByRole('button', { name: translation.joinGroupPage.goToGroup });
+    }
+
+    private getCancelButton(): Locator {
+        return this.page.getByRole('button', { name: /cancel/i });
+    }
+
+    private getInvalidLinkWarning(): Locator {
+        return this.page.locator('[data-testid="invalid-link-warning"]');
+    }
+
+    private getUnableToJoinWarning(): Locator {
+        return this.page.locator('[data-testid="unable-join-warning"]');
+    }
+
+    private getJoinSuccessContainer(): Locator {
+        return this.page.locator('[data-join-success="true"]');
+    }
+
+    private getSuccessIcon(): Locator {
+        return this.page.getByText('✅');
     }
 
     // ============================================================================
@@ -288,7 +309,7 @@ export class JoinGroupPage extends BasePage {
             const currentUrl = this.page.url();
             const isOnGroupPage = currentUrl.match(JoinGroupPage.groupDetailUrlPattern());
             const hasError = await this.getErrorMessage().isVisible().catch(() => false);
-            const hasSuccessScreen = await this.page.locator('[data-join-success="true"]').isVisible().catch(() => false);
+            const hasSuccessScreen = await this.getJoinSuccessContainer().isVisible().catch(() => false);
 
             if (isOnGroupPage) {
                 return; // Success - direct navigation
@@ -314,6 +335,30 @@ export class JoinGroupPage extends BasePage {
     // ============================================================================
     // VERIFICATION METHODS - For test verification
     // ============================================================================
+
+    async verifyJoinGroupHeadingVisible(timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
+        await expect(this.getJoinGroupHeading()).toBeVisible({ timeout });
+    }
+
+    async verifyGroupNameHeadingContains(expectedText: string, timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
+        await expect(this.getGroupNameHeading()).toContainText(expectedText, { timeout });
+    }
+
+    async verifyJoinButtonVisible(): Promise<void> {
+        await expect(this.getJoinGroupButton()).toBeVisible();
+    }
+
+    async verifyJoinButtonEnabled(): Promise<void> {
+        await expect(this.getJoinGroupButton()).toBeEnabled();
+    }
+
+    async verifyJoinButtonDisabled(): Promise<void> {
+        await expect(this.getJoinGroupButton()).toBeDisabled();
+    }
+
+    async clickJoinGroupButton(): Promise<void> {
+        await this.clickJoinGroup();
+    }
 
     /**
      * Verify join button is not visible (user already a member)
@@ -347,6 +392,36 @@ export class JoinGroupPage extends BasePage {
         await expect(errorMessage).toBeVisible();
     }
 
+    async verifyInvalidLinkWarningVisible(): Promise<void> {
+        await expect(this.getInvalidLinkWarning()).toBeVisible({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
+    }
+
+    async verifyUnableToJoinWarningVisible(): Promise<void> {
+        await expect(this.getUnableToJoinWarning()).toBeVisible({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
+    }
+
+    async verifyErrorMessageContains(expectedText: string): Promise<void> {
+        const inlineError = this.page.getByTestId('join-group-error-message');
+        const headingError = this.page.getByRole('heading', { name: expectedText });
+
+        await expect(async () => {
+            const inlineVisible = await inlineError.isVisible().catch(() => false);
+            const headingVisible = await headingError.isVisible().catch(() => false);
+
+            if (inlineVisible) {
+                await expect(inlineError).toContainText(expectedText);
+                return;
+            }
+
+            if (headingVisible) {
+                await expect(headingError).toBeVisible();
+                return;
+            }
+
+            throw new Error(`Expected error message "${expectedText}" not found in inline error or heading`);
+        }).toPass({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
+    }
+
     /**
      * Verify group name matches expected text
      * Uses Playwright's polling to handle async content loading
@@ -371,5 +446,36 @@ export class JoinGroupPage extends BasePage {
      */
     async expectUrl(pattern: RegExp): Promise<void> {
         await expect(this.page).toHaveURL(pattern);
+    }
+
+    async verifyJoinSuccessIndicatorVisible(): Promise<void> {
+        await expect(this.getJoinSuccessContainer()).toBeVisible({ timeout: TEST_TIMEOUTS.API_RESPONSE });
+    }
+
+    async verifySuccessIconVisible(): Promise<void> {
+        await expect(this.getSuccessIcon()).toBeVisible({ timeout: TEST_TIMEOUTS.API_RESPONSE });
+    }
+
+    async verifySuccessHeadingContains(expectedText: string): Promise<void> {
+        await expect(this.page.getByRole('heading', { name: expectedText, exact: false })).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+    }
+
+    async verifyGoToGroupButtonVisible(): Promise<void> {
+        await expect(this.getOkButton()).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+    }
+
+    async clickGoToGroupButton(): Promise<void> {
+        await this.clickOkButton();
+    }
+
+    async clickCancelButton(): Promise<void> {
+        const cancelButton = this.getCancelButton();
+        await this.clickButton(cancelButton, { buttonName: 'Cancel Join Group' });
+    }
+
+    async openDisplayNameConflictModal(): Promise<DisplayNameConflictModalPage> {
+        const modal = new DisplayNameConflictModalPage(this.page);
+        await modal.waitForOpen(TEST_TIMEOUTS.API_RESPONSE);
+        return modal;
     }
 }

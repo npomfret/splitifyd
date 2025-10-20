@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -30,6 +30,14 @@ export function DisplayNameConflictModal({
     const [displayName, setDisplayName] = useState(currentName);
     const [validationError, setValidationError] = useState<string | null>(null);
 
+    const clearErrorRef = useRef(onClearError);
+    const cancelRef = useRef(onCancel);
+
+    useEffect(() => {
+        clearErrorRef.current = onClearError;
+        cancelRef.current = onCancel;
+    }, [onClearError, onCancel]);
+
     useEffect(() => {
         if (!isOpen) {
             return;
@@ -37,12 +45,12 @@ export function DisplayNameConflictModal({
 
         setDisplayName(currentName);
         setValidationError(null);
-        onClearError();
+        clearErrorRef.current();
 
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
                 event.preventDefault();
-                onCancel();
+                cancelRef.current();
             }
         };
 
@@ -56,7 +64,7 @@ export function DisplayNameConflictModal({
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
         };
-    }, [isOpen, currentName, onCancel, onClearError]);
+    }, [isOpen, currentName]);
 
     if (!isOpen) {
         return null;
@@ -64,7 +72,7 @@ export function DisplayNameConflictModal({
 
     const handleBackdropClick = (event: Event) => {
         if (event.target === event.currentTarget) {
-            onCancel();
+            cancelRef.current();
         }
     };
 
@@ -102,7 +110,7 @@ export function DisplayNameConflictModal({
             setValidationError(null);
         }
         if (error) {
-            onClearError();
+            clearErrorRef.current();
         }
     };
 

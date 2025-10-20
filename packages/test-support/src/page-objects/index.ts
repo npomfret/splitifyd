@@ -4,6 +4,7 @@ export { DashboardPage } from './DashboardPage';
 export { EditGroupModalPage } from './EditGroupModalPage';
 export { ExpenseDetailPage } from './ExpenseDetailPage';
 export { ExpenseFormPage } from './ExpenseFormPage';
+export { DisplayNameConflictModalPage } from './DisplayNameConflictModalPage';
 export { GroupDetailPage } from './GroupDetailPage';
 export { HeaderPage } from './HeaderPage';
 export { JoinGroupPage } from './JoinGroupPage';

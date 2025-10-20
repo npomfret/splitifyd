@@ -136,6 +136,143 @@ export class DashboardPage extends BasePage {
     }
 
     /**
+     * Verify groups grid is visible
+     */
+    async verifyGroupsGridVisible(): Promise<void> {
+        await expect(this.getGroupsGrid()).toBeVisible();
+    }
+
+    /**
+     * Verify responsive layout classes are applied to the groups grid
+     */
+    async verifyGroupsGridResponsiveLayout(): Promise<void> {
+        const grid = this.getGroupsGrid();
+        await expect(grid).toHaveClass(/grid/);
+        await expect(grid).toHaveClass(/grid-cols-1/);
+        await expect(grid).toHaveClass(/md:grid-cols-2/);
+        await expect(grid).toHaveClass(/xl:grid-cols-3/);
+    }
+
+    /**
+     * Hover a specific group card by name
+     */
+    async hoverGroupCard(groupName: string): Promise<void> {
+        const card = this.getGroupCard(groupName);
+        await expect(card).toBeVisible();
+        await card.hover();
+    }
+
+    private getPaginationContainer(): Locator {
+        return this.page.getByRole('navigation', { name: 'Pagination' });
+    }
+
+    private getPaginationNextButton(): Locator {
+        return this.page.getByTestId('pagination-next');
+    }
+
+    private getPaginationPreviousButton(): Locator {
+        return this.page.getByTestId('pagination-previous');
+    }
+
+    private getPaginationNextButtonMobile(): Locator {
+        return this.page.getByTestId('pagination-next-mobile');
+    }
+
+    private getPaginationPreviousButtonMobile(): Locator {
+        return this.page.getByTestId('pagination-previous-mobile');
+    }
+
+    async verifyPaginationHidden(): Promise<void> {
+        await expect(this.getPaginationContainer()).not.toBeVisible();
+    }
+
+    async verifyPaginationVisible(): Promise<void> {
+        await expect(this.getPaginationContainer()).toBeVisible();
+    }
+
+    async verifyPaginationVisibleMobile(): Promise<void> {
+        // Mobile pagination doesn't have a nav container, check for mobile buttons directly
+        const nextButton = this.getPaginationNextButtonMobile();
+        const prevButton = this.getPaginationPreviousButtonMobile();
+        await expect(nextButton.or(prevButton)).toBeVisible();
+    }
+
+    async verifyPaginationNextEnabled(): Promise<void> {
+        await expect(this.getPaginationNextButton()).toBeEnabled();
+    }
+
+    async verifyPaginationNextDisabled(): Promise<void> {
+        await expect(this.getPaginationNextButton()).toBeDisabled();
+    }
+
+    async verifyPaginationPreviousEnabled(): Promise<void> {
+        await expect(this.getPaginationPreviousButton()).toBeEnabled();
+    }
+
+    async verifyPaginationPreviousDisabled(): Promise<void> {
+        await expect(this.getPaginationPreviousButton()).toBeDisabled();
+    }
+
+    async clickPaginationNext(): Promise<void> {
+        const button = this.getPaginationNextButton();
+        await this.clickButton(button, { buttonName: 'Pagination Next' });
+    }
+
+    async clickPaginationPrevious(): Promise<void> {
+        const button = this.getPaginationPreviousButton();
+        await this.clickButton(button, { buttonName: 'Pagination Previous' });
+    }
+
+    clickPaginationNextWithoutWait(): Promise<void> {
+        const button = this.getPaginationNextButton();
+        return (async () => {
+            await expect(button).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+            await this.expectButtonEnabled(button, 'Pagination Next');
+            await button.click();
+        })();
+    }
+
+    clickPaginationPreviousWithoutWait(): Promise<void> {
+        const button = this.getPaginationPreviousButton();
+        return (async () => {
+            await expect(button).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+            await this.expectButtonEnabled(button, 'Pagination Previous');
+            await button.click();
+        })();
+    }
+
+    async verifyPaginationIndicatorEquals(expectedText: string): Promise<void> {
+        // Search entire page for exact text match (page indicator may be outside nav container)
+        await expect(this.page.getByText(expectedText, { exact: true })).toBeVisible();
+    }
+
+    async verifyPaginationNextMobileEnabled(): Promise<void> {
+        await expect(this.getPaginationNextButtonMobile()).toBeEnabled();
+    }
+
+    async verifyPaginationNextMobileDisabled(): Promise<void> {
+        await expect(this.getPaginationNextButtonMobile()).toBeDisabled();
+    }
+
+    async verifyPaginationPreviousMobileEnabled(): Promise<void> {
+        await expect(this.getPaginationPreviousButtonMobile()).toBeEnabled();
+    }
+
+    async verifyPaginationPreviousMobileDisabled(): Promise<void> {
+        await expect(this.getPaginationPreviousButtonMobile()).toBeDisabled();
+    }
+
+    async clickPaginationNextMobile(): Promise<void> {
+        const button = this.getPaginationNextButtonMobile();
+        await this.clickButton(button, { buttonName: 'Pagination Next Mobile' });
+    }
+
+    async clickPaginationPreviousMobile(): Promise<void> {
+        const button = this.getPaginationPreviousButtonMobile();
+        await this.clickButton(button, { buttonName: 'Pagination Previous Mobile' });
+    }
+
+    /**
      * Empty state container when no groups exist
      */
     getEmptyGroupsState(): Locator {

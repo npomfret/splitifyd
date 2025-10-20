@@ -1,4 +1,4 @@
-import { ClientUserBuilder, RegisterPage, TEST_TIMEOUTS } from '@splitifyd/test-support';
+import { ClientUserBuilder, LoginPage, RegisterPage, TEST_TIMEOUTS } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 
 test.describe('Registration Navigation Flows', () => {
@@ -13,7 +13,8 @@ test.describe('Registration Navigation Flows', () => {
         await expect(page).toHaveURL(/\/login/, { timeout: TEST_TIMEOUTS.NAVIGATION });
 
         // Verify login page elements are visible
-        await expect(page.getByRole('heading', { name: /sign.*in/i })).toBeVisible();
+        const loginPage = new LoginPage(page);
+        await loginPage.verifyLoginPageLoaded();
     });
 
     // NOTE: returnUrl preservation test removed because the application doesn't currently
@@ -30,6 +31,9 @@ test.describe('Registration Navigation Flows', () => {
 
         // Verify navigation to login without returnUrl
         await expect(page).toHaveURL('/login');
+
+        const loginPage = new LoginPage(page);
+        await loginPage.verifyLoginPageLoaded();
     });
 
     test('should handle direct URL navigation to register page', async ({ pageWithLogging: page }) => {
@@ -71,7 +75,7 @@ test.describe('Registration Success Navigation', () => {
         const dashboardPage = await registerPage.registerAndNavigateToDashboard(testUser.displayName, testUser.email, 'Password123');
 
         await expect(page).toHaveURL('/dashboard');
-        await expect(dashboardPage.getUserMenuButton()).toContainText(testUser.displayName);
+        await dashboardPage.verifyAuthenticatedUser(testUser.displayName);
     });
 
     test('should navigate to returnUrl after successful registration when specified', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -151,19 +155,19 @@ test.describe('Registration Page State Persistence', () => {
         await registerPage.fillPassword('Password123');
 
         // Verify state is maintained
-        await expect(registerPage.getNameInput()).toHaveValue('Jane Doe');
-        await expect(registerPage.getEmailInput()).toHaveValue('jane@example.com');
-        await expect(registerPage.getPasswordInput()).toHaveValue('Password123');
+        await registerPage.verifyNameInputValue('Jane Doe');
+        await registerPage.verifyEmailInputValue('jane@example.com');
+        await registerPage.verifyPasswordInputValue('Password123');
 
         // Continue filling
         await registerPage.fillConfirmPassword('Password123');
         await registerPage.acceptAllPolicies();
 
         // All values should still be present
-        await expect(registerPage.getNameInput()).toHaveValue('Jane Doe');
-        await expect(registerPage.getEmailInput()).toHaveValue('jane@example.com');
-        await expect(registerPage.getPasswordInput()).toHaveValue('Password123');
-        await expect(registerPage.getConfirmPasswordInput()).toHaveValue('Password123');
+        await registerPage.verifyNameInputValue('Jane Doe');
+        await registerPage.verifyEmailInputValue('jane@example.com');
+        await registerPage.verifyPasswordInputValue('Password123');
+        await registerPage.verifyConfirmPasswordInputValue('Password123');
     });
 
     test('should clear form state after successful registration', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -293,16 +297,7 @@ test.describe('Registration Page Accessibility and Focus', () => {
         await registerPage.navigate();
 
         // Verify form fields are keyboard accessible
-        const nameInput = registerPage.getNameInput();
-        const emailInput = registerPage.getEmailInput();
-        const passwordInput = registerPage.getPasswordInput();
-        const confirmPasswordInput = registerPage.getConfirmPasswordInput();
-
-        // All inputs should be visible and enabled
-        await expect(nameInput).toBeVisible();
-        await expect(emailInput).toBeVisible();
-        await expect(passwordInput).toBeVisible();
-        await expect(confirmPasswordInput).toBeVisible();
+        await registerPage.verifyFormEnabled();
     });
 
     test('should display page heading for screen readers', async ({ pageWithLogging: page }) => {
@@ -310,8 +305,6 @@ test.describe('Registration Page Accessibility and Focus', () => {
         await registerPage.navigate();
 
         // Verify main heading is present
-        const heading = registerPage.getPageHeading();
-        await expect(heading).toBeVisible();
-        await expect(heading).toContainText('Create Account');
+        await registerPage.verifyPageHeadingContains('Create Account');
     });
 });

@@ -121,4 +121,32 @@ export class HeaderPage extends BasePage {
         const userMenuButton = this.getUserMenuButton();
         await expect(userMenuButton).toContainText(expectedText);
     }
+
+    async verifyUserMenuButtonVisible(): Promise<void> {
+        await expect(this.getUserMenuButton()).toBeVisible();
+    }
+
+    async verifyUserDropdownHidden(): Promise<void> {
+        await expect(this.getUserDropdownMenu()).not.toBeVisible();
+    }
+
+    async verifyUserDropdownVisible(): Promise<void> {
+        await expect(this.getUserDropdownMenu()).toBeVisible();
+    }
+
+    async verifyDashboardLinkVisible(): Promise<void> {
+        await expect(this.getDashboardLink()).toBeVisible();
+    }
+
+    async verifyDashboardMenuItemVisible(): Promise<void> {
+        await expect(this.getUserDropdownMenu().getByTestId('user-menu-dashboard-link')).toBeVisible();
+    }
+
+    async verifySettingsMenuItemVisible(): Promise<void> {
+        await expect(this.getUserDropdownMenu().getByTestId('user-menu-settings-link')).toBeVisible();
+    }
+
+    async verifySignOutMenuItemVisible(): Promise<void> {
+        await expect(this.getUserDropdownMenu().getByTestId('sign-out-button')).toBeVisible();
+    }
 }

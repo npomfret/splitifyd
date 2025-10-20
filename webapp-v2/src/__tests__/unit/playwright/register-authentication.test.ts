@@ -22,8 +22,8 @@ test.describe('Registration Authentication Flow', () => {
         const dashboardPage = await registerPage.registerAndNavigateToDashboard(testUser.displayName, testUser.email, 'SecurePassword123');
 
         // 5. Verify successful registration and navigation
-        await expect(dashboardPage.getUserMenuButton()).toContainText(testUser.displayName);
-        await expect(dashboardPage.getYourGroupsHeading()).toBeVisible();
+        await dashboardPage.verifyAuthenticatedUser(testUser.displayName);
+        await dashboardPage.verifyDashboardPageLoaded();
     });
 
     test('should show error message for duplicate email', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -121,7 +121,8 @@ test.describe('Registration Flow - Already Authenticated', () => {
 
         // Should be redirected to dashboard
         await expect(page).toHaveURL(/\/dashboard/);
-        await expect(dashboardPage.getUserMenuButton()).toContainText('Existing User');
+        await dashboardPage.verifyAuthenticatedUser('Existing User');
+        await dashboardPage.verifyDashboardPageLoaded();
     });
 
     test('should redirect to returnUrl after registration when present', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -161,7 +162,7 @@ test.describe('Registration Flow - Already Authenticated', () => {
         const dashboardPage = await registerPage.registerAndNavigateToDashboard(testUser.displayName, testUser.email, 'Password123');
 
         await expect(page).toHaveURL(/\/dashboard/);
-        await expect(dashboardPage.getUserMenuButton()).toContainText(testUser.displayName);
+        await dashboardPage.verifyAuthenticatedUser(testUser.displayName);
     });
 });
 
@@ -196,31 +197,29 @@ test.describe('Registration Form - Loading and Disabled States', () => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
-        const submitButton = registerPage.getSubmitButton();
-
         // Initially disabled (empty form)
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Fill only some fields - should still be disabled
         await registerPage.fillName('John Doe');
         await registerPage.fillEmail('john@example.com');
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Fill password but not confirm password
         await registerPage.fillPassword('Password123');
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Fill confirm password but don't accept policies
         await registerPage.fillConfirmPassword('Password123');
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Accept only one policy checkbox
         await registerPage.toggleTermsCheckbox();
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Accept both policies - should now be enabled
         await registerPage.toggleCookiesCheckbox();
-        await expect(submitButton).toBeEnabled();
+        await registerPage.verifySubmitButtonEnabled();
     });
 
     test('should disable all interactive elements during loading state', async ({ pageWithLogging: page, mockFirebase }) => {

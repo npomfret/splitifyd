@@ -88,9 +88,27 @@ export class GroupDetailPage extends BasePage {
             .page
             .locator('div')
             .filter({
-                has: this.page.getByRole('heading').filter({ hasText: /settlement/i }),
+                has: this.page.getByRole('heading').filter({ hasText: /payment history|settlement/i }),
             })
             .first();
+    }
+
+    private getSettlementHistoryToggle(): Locator {
+        return this.getSettlementContainer().getByRole('button', { name: /history/i });
+    }
+
+    private getSettlementItems(): Locator {
+        return this.getSettlementContainer().locator('[data-testid="settlement-item"]');
+    }
+
+    private getSettlementItem(note: string): Locator {
+        return this.getSettlementItems().filter({
+            has: this.page.getByText(note, { exact: false }),
+        });
+    }
+
+    private getSettlementEditButton(note: string): Locator {
+        return this.getSettlementItem(note).getByTestId('edit-settlement-button');
     }
 
     /**
@@ -468,6 +486,47 @@ export class GroupDetailPage extends BasePage {
                 timeout: 3000,
                 intervals: [50, 100, 200, 500],
             });
+    }
+
+    /**
+     * Open settlement history if the toggle is visible
+     */
+    async openSettlementHistory(): Promise<void> {
+        const toggle = this.getSettlementHistoryToggle();
+        if (await toggle.isVisible()) {
+            await toggle.click();
+        }
+    }
+
+    /**
+     * Verify settlement with specific note is visible
+     */
+    async verifySettlementVisible(note: string): Promise<void> {
+        await expect(this.getSettlementItem(note)).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+    }
+
+    /**
+     * Verify settlement edit button is disabled
+     */
+    async verifySettlementEditDisabled(note: string, expectedTooltip?: string): Promise<void> {
+        const button = this.getSettlementEditButton(note);
+        await expect(button).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+        await expect(button).toBeDisabled();
+        if (expectedTooltip) {
+            await expect(button).toHaveAttribute('title', expectedTooltip);
+        }
+    }
+
+    /**
+     * Verify settlement edit button is enabled
+     */
+    async verifySettlementEditEnabled(note: string, expectedTooltip?: string): Promise<void> {
+        const button = this.getSettlementEditButton(note);
+        await expect(button).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+        await expect(button).toBeEnabled();
+        if (expectedTooltip) {
+            await expect(button).toHaveAttribute('title', expectedTooltip);
+        }
     }
 
     /**

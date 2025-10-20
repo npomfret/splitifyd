@@ -63,38 +63,36 @@ test.describe('Registration Form Reactivity and UI States', () => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
-        const submitButton = registerPage.getSubmitButton();
-
         // Initially disabled
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Fill fields one by one, verify button stays disabled until complete
         await registerPage.fillName('John Doe');
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         await registerPage.fillEmail('john@example.com');
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         await registerPage.fillPassword('Password123');
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         await registerPage.fillConfirmPassword('Password123');
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         await registerPage.toggleTermsCheckbox();
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // After all fields filled and policies accepted, should be enabled
         await registerPage.toggleCookiesCheckbox();
-        await expect(submitButton).toBeEnabled();
+        await registerPage.verifySubmitButtonEnabled();
 
         // Clear one field - should become disabled again
         await registerPage.fillName('');
-        await expect(submitButton).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Refill field - should become enabled again
         await registerPage.fillName('John Doe');
-        await expect(submitButton).toBeEnabled();
+        await registerPage.verifySubmitButtonEnabled();
     });
 
     test('should maintain form state while modal/page is open', async ({ pageWithLogging: page }) => {
@@ -109,17 +107,17 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.acceptAllPolicies();
 
         // Verify state persists
-        await expect(registerPage.getNameInput()).toHaveValue('Jane Smith');
-        await expect(registerPage.getEmailInput()).toHaveValue('jane@example.com');
-        await expect(registerPage.getPasswordInput()).toHaveValue('SecurePassword123');
-        await expect(registerPage.getConfirmPasswordInput()).toHaveValue('SecurePassword123');
+        await registerPage.verifyNameInputValue('Jane Smith');
+        await registerPage.verifyEmailInputValue('jane@example.com');
+        await registerPage.verifyPasswordInputValue('SecurePassword123');
+        await registerPage.verifyConfirmPasswordInputValue('SecurePassword123');
         await registerPage.verifyCheckboxStates(true, true);
         await registerPage.verifySubmitButtonState(true);
 
         // State should still persist after a short wait
         await page.waitForTimeout(100);
-        await expect(registerPage.getNameInput()).toHaveValue('Jane Smith');
-        await expect(registerPage.getEmailInput()).toHaveValue('jane@example.com');
+        await registerPage.verifyNameInputValue('Jane Smith');
+        await registerPage.verifyEmailInputValue('jane@example.com');
     });
 
     test('should handle multiple field updates correctly', async ({ pageWithLogging: page }) => {
@@ -131,15 +129,15 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.verifySubmitButtonState(false);
 
         await registerPage.fillName('Second Name');
-        await expect(registerPage.getNameInput()).toHaveValue('Second Name');
+        await registerPage.verifyNameInputValue('Second Name');
         await registerPage.verifySubmitButtonState(false);
 
         // Update email multiple times
         await registerPage.fillEmail('first@example.com');
-        await expect(registerPage.getEmailInput()).toHaveValue('first@example.com');
+        await registerPage.verifyEmailInputValue('first@example.com');
 
         await registerPage.fillEmail('second@example.com');
-        await expect(registerPage.getEmailInput()).toHaveValue('second@example.com');
+        await registerPage.verifyEmailInputValue('second@example.com');
 
         // Fill remaining fields with final values
         await registerPage.fillPassword('FinalPassword123');
@@ -147,9 +145,9 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.acceptAllPolicies();
 
         // Final values should be latest
-        await expect(registerPage.getNameInput()).toHaveValue('Second Name');
-        await expect(registerPage.getEmailInput()).toHaveValue('second@example.com');
-        await expect(registerPage.getPasswordInput()).toHaveValue('FinalPassword123');
+        await registerPage.verifyNameInputValue('Second Name');
+        await registerPage.verifyEmailInputValue('second@example.com');
+        await registerPage.verifyPasswordInputValue('FinalPassword123');
         await registerPage.verifySubmitButtonState(true);
     });
 
@@ -193,13 +191,13 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.acceptAllPolicies();
 
         // Button should be enabled (validation happens on submit)
-        await expect(registerPage.getSubmitButton()).toBeEnabled();
+        await registerPage.verifySubmitButtonEnabled();
 
         // Correct the confirm password to match
         await registerPage.fillConfirmPassword('Password123');
 
         // Button should remain enabled
-        await expect(registerPage.getSubmitButton()).toBeEnabled();
+        await registerPage.verifySubmitButtonEnabled();
     });
 });
 
@@ -251,7 +249,7 @@ test.describe('Registration Form Error Display and Recovery', () => {
         await registerPage.fillConfirmPassword('Password123');
         await registerPage.toggleCookiesCheckbox(); // Only check cookies, not terms
         // Submit button should be disabled, so we can't submit
-        await expect(registerPage.getSubmitButton()).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
     });
 
     test('should handle email clearing to remove email-related errors', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -319,13 +317,10 @@ test.describe('Registration Form Loading States', () => {
         await registerPage.submitForm();
 
         // Verify button is disabled during loading
-        await expect(registerPage.getSubmitButton()).toBeDisabled();
+        await registerPage.verifySubmitButtonDisabled();
 
         // Attempting to click again should have no effect (button is disabled)
-        const submitButton = registerPage.getSubmitButton();
-        await submitButton.click({ force: true }).catch(() => {
-            // Expected to fail or be ignored because button is disabled
-        });
+        await registerPage.attemptSubmitWhileDisabled();
 
         // Should still complete successfully
         await expect(page).toHaveURL('/dashboard', { timeout: 3000 });
@@ -360,19 +355,15 @@ test.describe('Registration Form Policy Links', () => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
-        const termsLink = registerPage.getTermsLink();
-        await expect(termsLink).toBeVisible();
-        await expect(termsLink).toHaveAttribute('href', '/terms');
-        await expect(termsLink).toHaveAttribute('target', '_blank');
+        await registerPage.verifyTermsLinkVisible();
+        await registerPage.verifyTermsLinkAttributes('/terms');
     });
 
     test('should display Cookie Policy link', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
-        const cookieLink = registerPage.getCookiePolicyLink();
-        await expect(cookieLink).toBeVisible();
-        await expect(cookieLink).toHaveAttribute('href', '/cookies');
-        await expect(cookieLink).toHaveAttribute('target', '_blank');
+        await registerPage.verifyCookiePolicyLinkVisible();
+        await registerPage.verifyCookiePolicyLinkAttributes('/cookies');
     });
 });

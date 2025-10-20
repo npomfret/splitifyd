@@ -20,8 +20,8 @@ test.describe('Authentication Flow', () => {
         const dashboardPage = await loginPage.loginAndNavigateToDashboard(testUser.email, 'password123');
 
         // 5. Verify successful login and navigation
-        await expect(dashboardPage.getUserMenuButton()).toContainText(testUser.displayName);
-        await expect(dashboardPage.getYourGroupsHeading()).toBeVisible();
+        await dashboardPage.verifyAuthenticatedUser(testUser.displayName);
+        await dashboardPage.verifyDashboardPageLoaded();
     });
 
     test('should show error message for invalid credentials', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -83,7 +83,8 @@ test.describe('Authentication Flow - Already Authenticated', () => {
 
         // Should be redirected to dashboard
         await expect(page).toHaveURL(/\/dashboard/);
-        await expect(dashboardPage.getUserMenuButton()).toContainText('Test User');
+        await dashboardPage.verifyAuthenticatedUser('Test User');
+        await dashboardPage.verifyDashboardPageLoaded();
     });
 });
 
@@ -146,58 +147,43 @@ test.describe('LoginPage Reactivity and UI States', () => {
         const loginPage = new LoginPage(page);
         await loginPage.navigate();
 
-        const submitButton = loginPage.getSubmitButton();
-
         // Initially disabled (empty form)
-        await expect(submitButton).toBeDisabled();
+        await loginPage.verifySubmitButtonState(false);
     });
 
     test('should disable submit button when only one field is filled', async ({ pageWithLogging: page }) => {
         const loginPage = new LoginPage(page);
         await loginPage.navigate();
 
-        const submitButton = loginPage.getSubmitButton();
-        const emailInput = loginPage.getEmailInput();
-
         // Fill only email - should still be disabled
-        await loginPage.fillPreactInput(emailInput, 'test@example.com');
-        await expect(submitButton).toBeDisabled();
+        await loginPage.fillEmail('test@example.com');
+        await loginPage.verifySubmitButtonState(false);
     });
 
     test('should enable submit button when both email and password are filled', async ({ pageWithLogging: page }) => {
         const loginPage = new LoginPage(page);
         await loginPage.navigate();
 
-        const submitButton = loginPage.getSubmitButton();
-        const emailInput = loginPage.getEmailInput();
-        const passwordInput = loginPage.getPasswordInput();
-
         // Fill both fields - should become enabled
-        await loginPage.fillPreactInput(emailInput, 'test@example.com');
-        await loginPage.fillPreactInput(passwordInput, 'password123');
-        await expect(submitButton).toBeEnabled();
+        await loginPage.fillCredentials('test@example.com', 'password123');
+        await loginPage.verifySubmitButtonState(true);
     });
 
     test('should reactively disable submit button when required field is cleared', async ({ pageWithLogging: page }) => {
         const loginPage = new LoginPage(page);
         await loginPage.navigate();
 
-        const submitButton = loginPage.getSubmitButton();
-        const emailInput = loginPage.getEmailInput();
-        const passwordInput = loginPage.getPasswordInput();
-
         // Fill both fields - button should be enabled
-        await loginPage.fillPreactInput(emailInput, 'test@example.com');
-        await loginPage.fillPreactInput(passwordInput, 'password123');
-        await expect(submitButton).toBeEnabled();
+        await loginPage.fillCredentials('test@example.com', 'password123');
+        await loginPage.verifySubmitButtonState(true);
 
         // Clear email - should become disabled again
-        await loginPage.fillPreactInput(emailInput, '');
-        await expect(submitButton).toBeDisabled();
+        await loginPage.fillEmail('');
+        await loginPage.verifySubmitButtonState(false);
 
         // Fill valid email again - should become enabled
-        await loginPage.fillPreactInput(emailInput, 'test@example.com');
-        await expect(submitButton).toBeEnabled();
+        await loginPage.fillEmail('test@example.com');
+        await loginPage.verifySubmitButtonState(true);
     });
 
     test('should handle error state changes reactively', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -297,20 +283,16 @@ test.describe('LoginPage Reactivity and UI States', () => {
         const loginPage = new LoginPage(page);
         await loginPage.navigate();
 
-        const submitButton = loginPage.getSubmitButton();
-        const emailInput = loginPage.getEmailInput();
-        const passwordInput = loginPage.getPasswordInput();
-
         // Try to submit empty form
-        await expect(submitButton).toBeDisabled();
+        await loginPage.verifySubmitButtonState(false);
 
         // Fill only email and verify submit is still disabled
-        await loginPage.fillPreactInput(emailInput, 'test@example.com');
-        await expect(submitButton).toBeDisabled();
+        await loginPage.fillEmail('test@example.com');
+        await loginPage.verifySubmitButtonState(false);
 
         // Fill only password and clear email
-        await loginPage.fillPreactInput(emailInput, '');
-        await loginPage.fillPreactInput(passwordInput, 'password123');
-        await expect(submitButton).toBeDisabled();
+        await loginPage.fillEmail('');
+        await loginPage.fillPassword('password123');
+        await loginPage.verifySubmitButtonState(false);
     });
 });

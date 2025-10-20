@@ -16,12 +16,10 @@ test.describe('Join Group Page - Preview Loading', () => {
 
         await page.goto('/join?linkId=test-link-123');
 
-        await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible({ timeout: TEST_TIMEOUTS.LOADING_COMPLETE });
-        await expect(joinGroupPage.getGroupNameHeading()).toContainText('Weekend Trip Fund');
-
-        const joinButton = joinGroupPage.getJoinGroupButton();
-        await expect(joinButton).toBeVisible();
-        await expect(joinButton).toBeEnabled();
+        await joinGroupPage.verifyJoinGroupHeadingVisible(TEST_TIMEOUTS.LOADING_COMPLETE);
+        await joinGroupPage.verifyGroupNameHeadingContains('Weekend Trip Fund');
+        await joinGroupPage.verifyJoinButtonVisible();
+        await joinGroupPage.verifyJoinButtonEnabled();
     });
 });
 
@@ -31,11 +29,12 @@ test.describe('Join Group Page - Error States', () => {
 
         await setupSuccessfulApiMocks(page);
 
+        const joinGroupPage = new JoinGroupPage(page);
+
         await page.goto('/join');
 
-        const errorWarning = page.locator('[data-testid="invalid-link-warning"]');
-        await expect(errorWarning).toBeVisible();
-        await expect(page.getByText('Invalid Link')).toBeVisible();
+        await joinGroupPage.verifyInvalidLinkWarningVisible();
+        await joinGroupPage.verifyErrorMessageContains('Invalid Link');
     });
 
     test('should show error when preview API fails', async ({ authenticatedPage }) => {
@@ -49,8 +48,8 @@ test.describe('Join Group Page - Error States', () => {
 
         await page.goto('/join?linkId=invalid-link');
 
-        const errorWarning = page.locator('[data-testid="unable-join-warning"]');
-        await expect(errorWarning).toBeVisible({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
+        const joinGroupPage = new JoinGroupPage(page);
+        await joinGroupPage.verifyUnableToJoinWarningVisible();
     });
 });
 
@@ -69,10 +68,10 @@ test.describe('Join Group Page - Already a Member', () => {
 
         await page.goto('/join?linkId=test-link-123');
 
-        await expect(joinGroupPage.getGroupNameHeading()).toContainText('Existing Group', { timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
-        await expect(page.getByText(/already a member/i)).toBeVisible();
+        await joinGroupPage.verifyGroupNameHeadingContains('Existing Group', TEST_TIMEOUTS.ELEMENT_VISIBLE);
+        await joinGroupPage.verifyAlreadyMemberMessageVisible();
         await joinGroupPage.verifyJoinGroupButtonNotVisible();
-        await expect(page.getByRole('button', { name: 'Go to Group' })).toBeVisible();
+        await joinGroupPage.verifyGoToGroupButtonVisible();
     });
 });
 
@@ -94,15 +93,13 @@ test.describe('Join Group Page - Successful Join', () => {
 
         await page.goto('/join?linkId=test-link-123');
 
-        await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
+        await joinGroupPage.verifyJoinGroupHeadingVisible();
+        await joinGroupPage.verifyJoinButtonEnabled();
+        await joinGroupPage.clickJoinGroupButton();
 
-        const joinButton = joinGroupPage.getJoinGroupButton();
-        await expect(joinButton).toBeEnabled();
-        await joinButton.click();
-
-        await expect(page.locator('[data-join-success="true"]')).toBeVisible({ timeout: TEST_TIMEOUTS.API_RESPONSE });
-        await expect(page.getByText('✅')).toBeVisible();
-        await expect(page.getByRole('heading', { name: /Welcome to New Group/i })).toBeVisible();
+        await joinGroupPage.verifyJoinSuccessIndicatorVisible();
+        await joinGroupPage.verifySuccessIconVisible();
+        await joinGroupPage.verifySuccessHeadingContains('Welcome to New Group');
     });
 
     test('should show error when join fails', async ({ authenticatedPage }) => {
@@ -120,12 +117,9 @@ test.describe('Join Group Page - Successful Join', () => {
 
         await page.goto('/join?linkId=test-link-123');
 
-        await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
-        await joinGroupPage.getJoinGroupButton().click();
-
-        const errorMessage = page.locator('[data-testid="join-group-error-message"]');
-        await expect(errorMessage).toBeVisible({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
-        await expect(errorMessage).toContainText('You do not have permission to join this group');
+        await joinGroupPage.verifyJoinGroupHeadingVisible();
+        await joinGroupPage.clickJoinGroupButton();
+        await joinGroupPage.verifyErrorMessageContains('You do not have permission to join this group');
     });
 });
 
@@ -141,10 +135,8 @@ test.describe('Join Group Page - Navigation', () => {
 
         await page.goto('/join?linkId=test-link-123');
 
-        await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
-
-        const cancelButton = page.getByRole('button', { name: 'Cancel' });
-        await cancelButton.click();
+        await joinGroupPage.verifyJoinGroupHeadingVisible();
+        await joinGroupPage.clickCancelButton();
 
         await expect(page).toHaveURL('/dashboard', { timeout: TEST_TIMEOUTS.NAVIGATION });
     });
@@ -157,10 +149,8 @@ test.describe('Join Group Page - Navigation', () => {
 
         await page.goto('/join');
 
-        await expect(page.locator('[data-testid="invalid-link-warning"]')).toBeVisible();
-
-        const goToDashboardButton = joinGroupPage.getBackToDashboardButton();
-        await goToDashboardButton.click();
+        await joinGroupPage.verifyInvalidLinkWarningVisible();
+        await joinGroupPage.clickBackToDashboard();
 
         await expect(page).toHaveURL('/dashboard', { timeout: TEST_TIMEOUTS.NAVIGATION });
     });
@@ -187,19 +177,13 @@ test.describe('Join Group Page - Display Name Conflict', () => {
 
         await page.goto('/join?linkId=test-link-123');
 
-        await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
+        await joinGroupPage.verifyJoinGroupHeadingVisible();
+        await joinGroupPage.verifyJoinButtonEnabled();
+        await joinGroupPage.clickJoinGroupButton();
 
-        const joinButton = joinGroupPage.getJoinGroupButton();
-        await expect(joinButton).toBeEnabled();
-        await joinButton.click();
-
-        // Modal should appear
-        const modal = page.locator('[role="dialog"][aria-modal="true"]');
-        await expect(modal).toBeVisible({ timeout: TEST_TIMEOUTS.API_RESPONSE });
-
-        // Verify modal content
-        await expect(page.getByText(/Choose a display name/i)).toBeVisible();
-        await expect(page.getByText(/already in use/i)).toBeVisible();
+        const conflictModal = await joinGroupPage.openDisplayNameConflictModal();
+        await conflictModal.verifyTitleContains('Choose a display name');
+        await conflictModal.verifyDescriptionContains('already in use');
     });
 
     test('should successfully resolve conflict and join group', async ({ authenticatedPage }) => {
@@ -228,26 +212,16 @@ test.describe('Join Group Page - Display Name Conflict', () => {
         });
 
         await page.goto('/join?linkId=test-link-123');
-        await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
+        await joinGroupPage.verifyJoinGroupHeadingVisible();
 
-        const joinButton = joinGroupPage.getJoinGroupButton();
-        await joinButton.click();
+        await joinGroupPage.clickJoinGroupButton();
 
-        // Modal should appear
-        const modal = page.locator('[role="dialog"][aria-modal="true"]');
-        await expect(modal).toBeVisible({ timeout: TEST_TIMEOUTS.API_RESPONSE });
+        const conflictModal = await joinGroupPage.openDisplayNameConflictModal();
+        await conflictModal.fillDisplayName('Senior Engineer');
+        await conflictModal.submit();
+        await conflictModal.waitForClose(TEST_TIMEOUTS.API_RESPONSE);
 
-        // Enter new display name
-        const input = page.getByTestId('display-name-conflict-input');
-        await input.fill('Senior Engineer');
-
-        // Submit the form
-        const submitButton = page.getByRole('button', { name: /save name/i });
-        await submitButton.click();
-
-        // Modal should close and success message should appear
-        await expect(modal).not.toBeVisible({ timeout: TEST_TIMEOUTS.API_RESPONSE });
-        await expect(page.locator('[data-join-success="true"]')).toBeVisible({ timeout: TEST_TIMEOUTS.API_RESPONSE });
+        await joinGroupPage.verifyJoinSuccessIndicatorVisible();
     });
 
     test('should show validation error in modal for empty name', async ({ authenticatedPage }) => {
@@ -267,23 +241,17 @@ test.describe('Join Group Page - Display Name Conflict', () => {
         await mockJoinGroupApi(page, conflictResponse);
 
         await page.goto('/join?linkId=test-link-123');
-        await joinGroupPage.getJoinGroupButton().click();
+        await joinGroupPage.clickJoinGroupButton();
 
-        const modal = page.locator('[role="dialog"][aria-modal="true"]');
-        await expect(modal).toBeVisible({ timeout: TEST_TIMEOUTS.API_RESPONSE });
+        const conflictModal = await joinGroupPage.openDisplayNameConflictModal();
 
         // Try to submit with empty name
-        const input = page.getByTestId('display-name-conflict-input');
-        await input.fill('');
+        await conflictModal.fillDisplayName('');
+        await conflictModal.submit();
 
-        const submitButton = page.getByRole('button', { name: /save name/i });
-        await submitButton.click();
-
-        // Validation error should appear
-        await expect(page.getByText(/enter a display name/i)).toBeVisible({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
-
-        // Modal should still be visible
-        await expect(modal).toBeVisible();
+        // Validation error should appear and modal remains open
+        await conflictModal.verifyValidationErrorContains('Enter a display name');
+        await conflictModal.verifyTitleContains('Choose');
     });
 
     test('should allow canceling from conflict modal and show success', async ({ authenticatedPage }) => {
@@ -305,21 +273,17 @@ test.describe('Join Group Page - Display Name Conflict', () => {
         await mockJoinGroupApi(page, conflictResponse);
 
         await page.goto('/join?linkId=test-link-123');
-        await joinGroupPage.getJoinGroupButton().click();
+        await joinGroupPage.clickJoinGroupButton();
 
-        const modal = page.locator('[role="dialog"][aria-modal="true"]');
-        await expect(modal).toBeVisible({ timeout: TEST_TIMEOUTS.API_RESPONSE });
+        const conflictModal = await joinGroupPage.openDisplayNameConflictModal();
 
         // Click cancel
-        const cancelButton = page.getByRole('button', { name: /cancel/i }).last();
-        await cancelButton.click();
-
-        // Modal should close
-        await expect(modal).not.toBeVisible();
+        await conflictModal.clickCancel();
+        await conflictModal.waitForClose();
 
         // Should show success message (user has joined despite not resolving conflict)
         await expect(page).toHaveURL(/\/join/);
-        await expect(page.locator('[data-join-success="true"]')).toBeVisible();
-        await expect(page.getByRole('heading', { name: /Welcome to Art Collective/i })).toBeVisible();
+        await joinGroupPage.verifyJoinSuccessIndicatorVisible();
+        await joinGroupPage.verifySuccessHeadingContains('Welcome to Art Collective');
     });
 });
