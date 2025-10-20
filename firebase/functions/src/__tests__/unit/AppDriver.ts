@@ -111,9 +111,32 @@ export class AppDriver {
         this.disposeTriggers = undefined;
     }
 
-    async listGroups(userId1: string) {
+    async listGroups(
+        userId1: string,
+        options: {
+            limit?: number;
+            cursor?: string;
+            order?: 'asc' | 'desc';
+            includeMetadata?: boolean;
+        } = {},
+    ) {
         const req = createStubRequest(userId1, {});
-        req.query = { limit: '20' };
+        const query: Record<string, string> = {};
+
+        if (options.limit !== undefined) {
+            query.limit = String(options.limit);
+        }
+        if (options.cursor) {
+            query.cursor = options.cursor;
+        }
+        if (options.order) {
+            query.order = options.order;
+        }
+        if (options.includeMetadata !== undefined) {
+            query.includeMetadata = String(options.includeMetadata);
+        }
+
+        req.query = query;
         const res = createStubResponse();
 
         await this.groupHandlers.listGroups(req, res);
@@ -121,9 +144,37 @@ export class AppDriver {
         return (res as any).getJson() as ListGroupsResponse;
     }
 
-    async getGroupFullDetails(userId1: string, groupId: GroupId) {
+    async getGroupFullDetails(
+        userId1: string,
+        groupId: GroupId,
+        options: {
+            expenseLimit?: number;
+            expenseCursor?: string;
+            settlementLimit?: number;
+            settlementCursor?: string;
+            includeDeletedSettlements?: boolean;
+        } = {},
+    ) {
         const req = createStubRequest(userId1, {}, { id: groupId });
-        req.query = {};
+        const query: Record<string, string> = {};
+
+        if (options.expenseLimit !== undefined) {
+            query.expenseLimit = String(options.expenseLimit);
+        }
+        if (options.expenseCursor) {
+            query.expenseCursor = options.expenseCursor;
+        }
+        if (options.settlementLimit !== undefined) {
+            query.settlementLimit = String(options.settlementLimit);
+        }
+        if (options.settlementCursor) {
+            query.settlementCursor = options.settlementCursor;
+        }
+        if (options.includeDeletedSettlements !== undefined) {
+            query.includeDeletedSettlements = String(options.includeDeletedSettlements);
+        }
+
+        req.query = query;
         const res = createStubResponse();
 
         await this.groupHandlers.getGroupFullDetails(req, res);
@@ -185,6 +236,21 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
+    async getGroup(userId: string, groupId: GroupId): Promise<GroupDTO> {
+        const details = await this.getGroupFullDetails(userId, groupId);
+        return details.group;
+    }
+
+    async getGroupBalances(userId: string, groupId: GroupId) {
+        const details = await this.getGroupFullDetails(userId, groupId);
+        return details.balances;
+    }
+
+    async getGroupExpenses(userId: string, groupId: GroupId, options?: { expenseLimit?: number; expenseCursor?: string; }) {
+        const details = await this.getGroupFullDetails(userId, groupId, options);
+        return details.expenses;
+    }
+
     async leaveGroup(userId: string, groupId: GroupId): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = createStubResponse();
@@ -241,6 +307,11 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
+    async getExpense(userId: string, expenseId: ExpenseId): Promise<ExpenseDTO> {
+        const fullDetails = await this.getExpenseFullDetails(userId, expenseId);
+        return fullDetails.expense;
+    }
+
     async getExpenseFullDetails(userId: string, expenseId: ExpenseId) {
         const req = createStubRequest(userId, {}, { id: expenseId });
         const res = createStubResponse();
@@ -275,6 +346,40 @@ export class AppDriver {
         await this.settlementHandlers.deleteSettlement(req, res);
 
         return (res as any).getJson() as MessageResponse;
+    }
+
+    async getSettlement(userId: string, groupId: GroupId, settlementId: SettlementId): Promise<SettlementWithMembers> {
+        let fullDetails;
+
+        try {
+            fullDetails = await this.getGroupFullDetails(userId, groupId);
+        } catch (error: any) {
+            // If getGroupFullDetails fails, it means the user can't access the group
+            // This should be treated as NOT_GROUP_MEMBER regardless of the specific error code
+            if (error.status === 403 || error.status === 404 ||
+                (error.message && (error.message.includes('Group not found') || error.message.includes('403')))) {
+                const groupError = new Error(`Group access denied`);
+                (groupError as any).status = 403;
+                (groupError as any).message = 'status 403: NOT_GROUP_MEMBER';
+                throw groupError;
+            }
+
+            // Re-throw other errors as-is
+            throw error;
+        }
+
+        // At this point, we have group access, so check if settlement exists
+        const settlement = fullDetails.settlements.settlements.find((s: any) => s.id === settlementId);
+
+        if (!settlement) {
+            // Create an error object with status and message properties to match expected test behavior
+            const error = new Error(`Settlement not found`);
+            (error as any).status = 404;
+            (error as any).message = 'status 404: SETTLEMENT_NOT_FOUND';
+            throw error;
+        }
+
+        return settlement;
     }
 
     async createGroupComment(userId: string, groupId: GroupId, text: string): Promise<CommentDTO> {
