@@ -55,6 +55,7 @@ const buildMember = () => {
     const member = new GroupMemberBuilder()
         .withUid('user-456')
         .withDisplayName('Test User')
+        .withGroupDisplayName('Test User')
         .withInitials('TU')
         .withMemberRole('member')
         .withMemberStatus('active')
@@ -65,6 +66,7 @@ const buildMember = () => {
     return {
         uid: member.uid,
         displayName: member.displayName,
+        groupDisplayName: member.groupDisplayName,
         initials: member.initials,
         themeColor: member.themeColor,
         memberRole: member.memberRole,
