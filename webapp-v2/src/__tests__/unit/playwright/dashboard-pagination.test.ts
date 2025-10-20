@@ -1,5 +1,5 @@
 import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
-import { expect, test } from '../../utils/console-logging-fixture';
+import { test } from '../../utils/console-logging-fixture';
 import { mockCreateGroupApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
 test.describe('Dashboard Groups Pagination', () => {

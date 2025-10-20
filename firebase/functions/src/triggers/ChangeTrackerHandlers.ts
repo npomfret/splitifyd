@@ -2,7 +2,7 @@ import type { FirestoreTriggerDocumentSnapshot, FirestoreTriggerEvent } from '@s
 import { getAuth, getFirestore } from '../firebase';
 import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
-import type { IFirestoreReader } from '../services/firestore/IFirestoreReader';
+import type { IFirestoreReader } from '../services/firestore';
 import type { NotificationService } from '../services/notification-service';
 import { ChangeType } from '../utils/change-detection';
 

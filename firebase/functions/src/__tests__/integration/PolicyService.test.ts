@@ -1,5 +1,5 @@
-import { generateShortId, NotificationDriver } from '@splitifyd/test-support';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { generateShortId } from '@splitifyd/test-support';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { getFirestore } from '../../firebase';
 import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { FirestoreReader } from '../../services/firestore';

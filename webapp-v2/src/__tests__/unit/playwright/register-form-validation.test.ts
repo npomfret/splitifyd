@@ -1,5 +1,5 @@
 import { RegisterPage } from '@splitifyd/test-support';
-import { expect, test } from '../../utils/console-logging-fixture';
+import { test } from '../../utils/console-logging-fixture';
 
 test.describe('Registration Form Validation', () => {
     test('should show validation error for empty name field', async ({ pageWithLogging: page }) => {
