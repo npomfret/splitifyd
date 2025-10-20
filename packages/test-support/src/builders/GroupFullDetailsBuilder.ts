@@ -10,7 +10,7 @@ export class GroupFullDetailsBuilder {
     constructor() {
         this.fullDetails = {
             group: {} as GroupDTO,
-            members: { members: [] },
+            members: { members: [], hasMore: false },
             expenses: { expenses: [], hasMore: false },
             balances: {
                 groupId: 'default-group-id',
@@ -32,8 +32,8 @@ export class GroupFullDetailsBuilder {
         return this;
     }
 
-    withMembers(members: GroupMember[]): this {
-        this.fullDetails.members = { members };
+    withMembers(members: GroupMember[], hasMore: boolean = false, nextCursor?: string): this {
+        this.fullDetails.members = { members, hasMore, nextCursor };
         return this;
     }
 
