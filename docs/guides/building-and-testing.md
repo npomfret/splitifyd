@@ -7,9 +7,10 @@ This guide provides an overview of the build and test processes for this monorep
 Our testing philosophy is guided by the following principles:
 
 - **Two Test Types**: We primarily use two types of tests:
-    - **Unit Tests**: These are fine-grained tests that verify small, isolated pieces of code. They do not require any external services, such as the Firebase emulator, to be running.
-    - **Integration Tests**: These are coarse-grained tests that verify the interaction between different parts of the system. They require the Firebase emulator to be running.
-- **Speed and Reliability**: Tests must be fast and reliable. Flaky tests are actively discouraged and should be fixed or removed.
+    - **Unit Tests**: These are fine-grained tests that verify small, isolated pieces of code. They do not require any external services.
+    - **Integration Tests**: These are coarse-grained tests that verify the interaction between different parts of the system. They either require the Firebase emulator to be running, or they use playwright and a browser.
+- **Reliability**: Tests must be reliable. Flaky tests are not allowed.
+- **Speed**: Fast tests are good, but we prioritize _correctness_ and readability over speed.
 - **Isolation**: Tests must be self-contained and should not depend on the state of other tests.
 
 ## Build Process
