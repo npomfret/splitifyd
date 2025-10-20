@@ -2837,4 +2837,91 @@ describe('app tests', () => {
         });
     });
 
+    describe('policy administration flows', () => {
+        const policyAdmin = user1;
+
+        it('should allow admin to create, update, and publish policies', async () => {
+            const policyName = `Test Policy ${Date.now()}`;
+
+            const created = await appDriver.createPolicy(policyAdmin, {
+                policyName,
+                text: 'Initial policy text',
+            });
+
+            expect(created).toMatchObject({
+                success: true,
+                id: expect.any(String),
+                versionHash: expect.any(String),
+            });
+
+            const draftUpdate = await appDriver.updatePolicy(policyAdmin, created.id, {
+                text: 'Updated draft policy text',
+                publish: false,
+            });
+
+            expect(draftUpdate).toMatchObject({
+                success: true,
+                published: false,
+                versionHash: expect.any(String),
+            });
+
+            const publishedUpdate = await appDriver.updatePolicy(policyAdmin, created.id, {
+                text: 'Final published policy text',
+                publish: true,
+            });
+
+            expect(publishedUpdate).toMatchObject({
+                success: true,
+                published: true,
+                currentVersionHash: expect.any(String),
+            });
+
+            const policyDetails = await appDriver.getPolicy(policyAdmin, created.id);
+            const publishedVersionHash = publishedUpdate.currentVersionHash;
+            expect(publishedVersionHash).toBeDefined();
+            expect(policyDetails.currentVersionHash).toBe(publishedVersionHash);
+            const publishedVersion = publishedVersionHash ? policyDetails.versions[publishedVersionHash] : undefined;
+            expect(publishedVersion).toBeDefined();
+            expect(publishedVersion?.text).toBe('Final published policy text');
+        });
+
+        it('should handle update-or-create workflow for named policies', async () => {
+            const policyName = 'Terms of Service';
+            const policyId = 'terms-of-service';
+
+            await expect(
+                appDriver.updatePolicy(policyAdmin, policyId, {
+                    text: 'Updated terms version 1',
+                    publish: true,
+                }),
+            ).rejects.toThrow(/Policy not found/);
+
+            const created = await appDriver.createPolicy(policyAdmin, {
+                policyName,
+                text: 'Initial terms content',
+            });
+
+            expect(created.id).toBe(policyId);
+
+            const update = await appDriver.updatePolicy(policyAdmin, created.id, {
+                text: 'Updated terms version 2',
+                publish: true,
+            });
+
+            expect(update).toMatchObject({
+                success: true,
+                published: true,
+                currentVersionHash: expect.any(String),
+            });
+
+            const policyDetails = await appDriver.getPolicy(policyAdmin, policyId);
+            const publishedHash = update.currentVersionHash;
+            expect(publishedHash).toBeDefined();
+            expect(policyDetails.currentVersionHash).toBe(publishedHash);
+            const currentVersion = publishedHash ? policyDetails.versions[publishedHash] : undefined;
+            expect(currentVersion).toBeDefined();
+            expect(currentVersion?.text).toBe('Updated terms version 2');
+        });
+    });
+
 });
