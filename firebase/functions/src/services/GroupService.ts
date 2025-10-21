@@ -890,8 +890,8 @@ export class GroupService {
         }
 
         // Validate and set defaults for pagination
-        const expenseLimit = Math.min(options.expenseLimit || 20, 100);
-        const settlementLimit = Math.min(options.settlementLimit || 20, 100);
+        const expenseLimit = Math.min(options.expenseLimit || 8, 100);
+        const settlementLimit = Math.min(options.settlementLimit || 8, 100);
         const commentLimit = Math.min(options.commentLimit || 20, 100);
 
         // Get group with access check (this will throw if user doesn't have access)

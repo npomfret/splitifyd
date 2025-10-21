@@ -701,6 +701,7 @@ export class FirestoreReader implements IFirestoreReader {
         nextCursor?: string;
     }> {
         try {
+            const limit = Math.min(options.limit ?? 50, 100);
             let query = this.buildBaseSettlementQuery(groupId, options.includeDeleted ?? false);
 
             // Apply ordering (default to createdAt desc if not specified)
@@ -724,8 +725,7 @@ export class FirestoreReader implements IFirestoreReader {
             }
 
             // For cursor-based pagination, fetch limit + 1 to detect hasMore
-            const effectiveLimit = options.cursor ? options.limit + 1 : options.limit;
-            query = query.limit(effectiveLimit);
+            query = query.limit(limit + 1);
 
             // Apply offset-based pagination (for batch fetching)
             if (options.offset !== undefined && options.offset > 0) {
@@ -742,16 +742,9 @@ export class FirestoreReader implements IFirestoreReader {
 
             const settlements = await this.executeSettlementQuery(query);
 
-            // Determine hasMore and nextCursor for cursor-based pagination
-            let hasMore = false;
-            let nextCursor: string | undefined;
-            let settlementsToReturn = settlements;
-
-            if (options.cursor) {
-                hasMore = settlements.length > options.limit;
-                settlementsToReturn = hasMore ? settlements.slice(0, options.limit) : settlements;
-                nextCursor = hasMore && settlementsToReturn.length > 0 ? settlementsToReturn[settlementsToReturn.length - 1].id : undefined;
-            }
+            const hasMore = settlements.length > limit;
+            const settlementsToReturn = hasMore ? settlements.slice(0, limit) : settlements;
+            const nextCursor = hasMore && settlementsToReturn.length > 0 ? settlementsToReturn[settlementsToReturn.length - 1].id : undefined;
 
             return {
                 settlements: settlementsToReturn,

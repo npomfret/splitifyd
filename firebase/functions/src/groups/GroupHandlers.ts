@@ -120,9 +120,9 @@ export class GroupHandlers {
         const groupId = validateGroupId(req.params.id);
 
         // Parse pagination parameters from query string
-        const expenseLimit = parseInt(req.query.expenseLimit as string) || 20;
+        const expenseLimit = parseInt(req.query.expenseLimit as string) || 8;
         const expenseCursor = req.query.expenseCursor as string;
-        const settlementLimit = parseInt(req.query.settlementLimit as string) || 20;
+        const settlementLimit = parseInt(req.query.settlementLimit as string) || 8;
         const settlementCursor = req.query.settlementCursor as string;
         const includeDeletedSettlements = req.query.includeDeletedSettlements === 'true';
         const commentLimit = parseInt(req.query.commentLimit as string) || 20;

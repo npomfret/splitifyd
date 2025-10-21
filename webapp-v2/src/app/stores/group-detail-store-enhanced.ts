@@ -72,6 +72,8 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
     // Current group tracking for core functionality
     private currentGroupId: string | null = null;
+    private expenseCursor: string | null = null;
+    private settlementCursor: string | null = null;
 
     constructor(private notificationDetector: UserNotificationDetector) {}
 
@@ -158,8 +160,15 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 this.#balancesSignal.value = fullDetails.balances;
                 this.#settlementsSignal.value = fullDetails.settlements.settlements;
                 this.#commentsResponseSignal.value = fullDetails.comments;
+                this.#hasMoreExpensesSignal.value = fullDetails.expenses.hasMore;
+                this.#hasMoreSettlementsSignal.value = fullDetails.settlements.hasMore;
+                this.#loadingExpensesSignal.value = false;
+                this.#loadingSettlementsSignal.value = false;
                 this.#loadingSignal.value = false;
             });
+
+            this.expenseCursor = fullDetails.expenses.nextCursor ?? null;
+            this.settlementCursor = fullDetails.settlements.nextCursor ?? null;
 
             permissionsStore.updateGroupData(fullDetails.group, fullDetails.members.members);
         } catch (error: any) {
@@ -325,13 +334,74 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         permissionsStore.deregisterComponent(groupId);
     }
 
-    // Pagination methods (simplified - just stubs for now)
     async loadMoreExpenses(): Promise<void> {
-        // Not implemented in minimal version
+        if (!this.currentGroupId) {
+            return;
+        }
+        if (!this.#hasMoreExpensesSignal.value || !this.expenseCursor) {
+            return;
+        }
+
+        this.#loadingExpensesSignal.value = true;
+
+        try {
+            const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
+                expenseCursor: this.expenseCursor,
+                includeDeletedSettlements: this.#showDeletedSettlementsSignal.value,
+            });
+
+            const nextCursor = fullDetails.expenses.nextCursor ?? null;
+
+            batch(() => {
+                this.#expensesSignal.value = [
+                    ...this.#expensesSignal.value,
+                    ...fullDetails.expenses.expenses,
+                ];
+                this.#hasMoreExpensesSignal.value = fullDetails.expenses.hasMore;
+                this.#loadingExpensesSignal.value = false;
+            });
+
+            this.expenseCursor = nextCursor;
+        } catch (error: any) {
+            this.#loadingExpensesSignal.value = false;
+            logError('loadMoreExpenses failed', { error, groupId: this.currentGroupId, cursor: this.expenseCursor });
+            throw error;
+        }
     }
 
     async loadMoreSettlements(): Promise<void> {
-        // Not implemented in minimal version
+        if (!this.currentGroupId) {
+            return;
+        }
+        if (!this.#hasMoreSettlementsSignal.value || !this.settlementCursor) {
+            return;
+        }
+
+        this.#loadingSettlementsSignal.value = true;
+
+        try {
+            const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
+                settlementCursor: this.settlementCursor,
+                includeDeletedSettlements: this.#showDeletedSettlementsSignal.value,
+            });
+
+            const nextCursor = fullDetails.settlements.nextCursor ?? null;
+
+            batch(() => {
+                this.#settlementsSignal.value = [
+                    ...this.#settlementsSignal.value,
+                    ...fullDetails.settlements.settlements,
+                ];
+                this.#hasMoreSettlementsSignal.value = fullDetails.settlements.hasMore;
+                this.#loadingSettlementsSignal.value = false;
+            });
+
+            this.settlementCursor = nextCursor;
+        } catch (error: any) {
+            this.#loadingSettlementsSignal.value = false;
+            logError('loadMoreSettlements failed', { error, groupId: this.currentGroupId, cursor: this.settlementCursor });
+            throw error;
+        }
     }
 
     async fetchSettlements(cursor?: string, userId?: string): Promise<void> {
@@ -350,6 +420,8 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 this.#hasMoreSettlementsSignal.value = fullDetails.settlements.hasMore;
                 this.#loadingSettlementsSignal.value = false;
             });
+
+            this.settlementCursor = fullDetails.settlements.nextCursor ?? null;
         } catch (error: any) {
             logError('fetchSettlements failed', { error, groupId: this.currentGroupId });
             this.#loadingSettlementsSignal.value = false;
@@ -376,6 +448,8 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             this.#hasMoreSettlementsSignal.value = false;
             this.#isDeletingGroupSignal.value = false; // Clear deletion flag
         });
+        this.expenseCursor = null;
+        this.settlementCursor = null;
     }
 }
 

@@ -909,7 +909,7 @@ export interface CreateCommentRequest {
     groupId?: string; // Required for expense comments
 }
 
-export interface ListMembersResponse {
+export interface ListMembersResponse {// todo: there should be no pagination - all members are returned
     members: GroupMember[];
     hasMore: boolean;
     nextCursor?: string;

@@ -122,6 +122,112 @@ describe('app tests', () => {
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].netBalance).toBe('50.25');
         });
 
+        it('should paginate expenses and settlements via group full details', async () => {
+            const group = await appDriver.createGroup(user1);
+            const groupId = group.id;
+            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            await appDriver.joinGroupByLink(user2, linkId);
+
+            const participants = [user1, user2];
+
+            const createdExpenseIds: string[] = [];
+            for (let index = 0; index < 5; index += 1) {
+                const amount = 50 + index;
+                const expense = await appDriver.createExpense(
+                    user1,
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withDescription(`Paginated expense ${index}`)
+                        .withAmount(amount, 'USD')
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(calculateEqualSplits(amount, 'USD', participants))
+                        .build(),
+                );
+
+                createdExpenseIds.push(expense.id);
+            }
+
+            const settlementAmounts = [40, 30, 20, 10];
+            const createdSettlementIds: string[] = [];
+            for (const amount of settlementAmounts) {
+                const settlement = await appDriver.createSettlement(
+                    user2,
+                    new CreateSettlementRequestBuilder()
+                        .withGroupId(groupId)
+                        .withPayerId(user2)
+                        .withPayeeId(user1)
+                        .withAmount(amount, 'USD')
+                        .build(),
+                );
+
+                createdSettlementIds.push(settlement.id);
+            }
+
+            expect(createdSettlementIds).toHaveLength(settlementAmounts.length);
+
+            const firstPage = await appDriver.getGroupFullDetails(user1, groupId, {
+                expenseLimit: 2,
+                settlementLimit: 2,
+            });
+
+            expect(firstPage.expenses.expenses).toHaveLength(2);
+            expect(firstPage.expenses.hasMore).toBe(true);
+            expect(firstPage.expenses.nextCursor).toBeDefined();
+
+            expect(firstPage.settlements.settlements).toHaveLength(2);
+            expect(firstPage.settlements.hasMore).toBe(true);
+            expect(firstPage.settlements.nextCursor).toBeDefined();
+
+            const secondPage = await appDriver.getGroupFullDetails(user1, groupId, {
+                expenseLimit: 2,
+                expenseCursor: firstPage.expenses.nextCursor,
+                settlementLimit: 2,
+                settlementCursor: firstPage.settlements.nextCursor,
+            });
+
+            expect(secondPage.expenses.expenses.length).toBeGreaterThanOrEqual(1);
+
+            const seenSettlementIds = [
+                ...firstPage.settlements.settlements.map((settlement) => settlement.id),
+                ...secondPage.settlements.settlements.map((settlement) => settlement.id),
+            ];
+            let settlementCursor = secondPage.settlements.nextCursor;
+
+            while (settlementCursor) {
+                const nextPage = await appDriver.getGroupFullDetails(user1, groupId, {
+                    settlementLimit: 2,
+                    settlementCursor,
+                });
+
+                seenSettlementIds.push(...nextPage.settlements.settlements.map((settlement) => settlement.id));
+                settlementCursor = nextPage.settlements.nextCursor;
+            }
+
+            const thirdPage = await appDriver.getGroupFullDetails(user1, groupId, {
+                expenseLimit: 2,
+                expenseCursor: secondPage.expenses.nextCursor,
+            });
+
+            expect(secondPage.expenses.expenses).toHaveLength(2);
+            expect(secondPage.expenses.hasMore).toBe(true);
+            expect(secondPage.expenses.nextCursor).toBeDefined();
+
+            expect(thirdPage.expenses.expenses).toHaveLength(1);
+            expect(thirdPage.expenses.hasMore).toBe(false);
+            expect(thirdPage.expenses.nextCursor).toBeUndefined();
+
+            const allExpenseIds = [
+                ...firstPage.expenses.expenses,
+                ...secondPage.expenses.expenses,
+                ...thirdPage.expenses.expenses,
+            ].map((expense) => expense.id);
+
+            expect(new Set(allExpenseIds)).toEqual(new Set(createdExpenseIds));
+            expect(new Set(seenSettlementIds)).toEqual(new Set(createdSettlementIds));
+        });
+
         it('should track balances separately for multi-currency expenses', async () => {
             const group = await appDriver.createGroup(user1);
             const groupId = group.id;
@@ -1378,7 +1484,9 @@ describe('app tests', () => {
                 );
             }
 
-            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId, {
+                expenseLimit: NUM_OPERATIONS,
+            });
             const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
             expect(usdBalances, 'USD balances should exist after many small operations').toBeDefined();
@@ -1698,7 +1806,9 @@ describe('app tests', () => {
                 );
             }
 
-            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId, {
+                expenseLimit: OPERATIONS_COUNT,
+            });
             const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
             expect(usdBalances).toBeDefined();

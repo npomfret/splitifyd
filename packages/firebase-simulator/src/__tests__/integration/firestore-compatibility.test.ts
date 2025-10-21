@@ -64,28 +64,34 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
     });
 
     afterEach(async () => {
-        const snapshot = await realDb!.collection(testCollectionPrefix).get();
+        const collectionsToClean = [testCollectionPrefix, `${testCollectionPrefix}-pagination`];
 
-        for (const doc of snapshot.docs) {
-            const shareLinksSnapshot = await doc.ref.collection('shareLinks').get();
-            const shareLinksBatch = realDb!.batch();
-            shareLinksSnapshot.docs.forEach((linkDoc) => shareLinksBatch.delete(linkDoc.ref));
-            if (shareLinksSnapshot.docs.length > 0) {
-                await shareLinksBatch.commit();
+        for (const collectionName of collectionsToClean) {
+            const snapshot = await realDb!.collection(collectionName).get();
+
+            if (collectionName === testCollectionPrefix) {
+                for (const doc of snapshot.docs) {
+                    const shareLinksSnapshot = await doc.ref.collection('shareLinks').get();
+                    const shareLinksBatch = realDb!.batch();
+                    shareLinksSnapshot.docs.forEach((linkDoc) => shareLinksBatch.delete(linkDoc.ref));
+                    if (shareLinksSnapshot.docs.length > 0) {
+                        await shareLinksBatch.commit();
+                    }
+
+                    const membersSnapshot = await doc.ref.collection('members').get();
+                    const membersBatch = realDb!.batch();
+                    membersSnapshot.docs.forEach((memberDoc) => membersBatch.delete(memberDoc.ref));
+                    if (membersSnapshot.docs.length > 0) {
+                        await membersBatch.commit();
+                    }
+                }
             }
 
-            const membersSnapshot = await doc.ref.collection('members').get();
-            const membersBatch = realDb!.batch();
-            membersSnapshot.docs.forEach((memberDoc) => membersBatch.delete(memberDoc.ref));
-            if (membersSnapshot.docs.length > 0) {
-                await membersBatch.commit();
+            const batch = realDb!.batch();
+            snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+            if (snapshot.docs.length > 0) {
+                await batch.commit();
             }
-        }
-
-        const batch = realDb!.batch();
-        snapshot.docs.forEach((doc) => batch.delete(doc.ref));
-        if (snapshot.docs.length > 0) {
-            await batch.commit();
         }
 
         stubDb.clear();
@@ -175,19 +181,34 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
     });
 
     describe('Query Operations', () => {
+        const paginationCollection = `${testCollectionPrefix}-pagination`;
+
         beforeEach(async () => {
-            const testData = [
+            const baseCollectionData = [
                 {id: 'user-1', name: 'Alice', age: 25, city: 'NYC'},
                 {id: 'user-2', name: 'Bob', age: 30, city: 'LA'},
                 {id: 'user-3', name: 'Charlie', age: 35, city: 'NYC'},
                 {id: 'user-4', name: 'David', age: 28, city: 'SF'},
             ];
 
-            for (const data of testData) {
+            for (const data of baseCollectionData) {
                 if (realDb) {
                     await realDb.collection(testCollectionPrefix).doc(data.id).set(data);
                 }
                 await stubDb.collection(testCollectionPrefix).doc(data.id).set(data);
+            }
+
+            const paginationData = Array.from({length: 6}, (_, index) => ({
+                id: `page-item-${index + 1}`,
+                index,
+                label: `Item ${index + 1}`,
+            }));
+
+            for (const data of paginationData) {
+                if (realDb) {
+                    await realDb.collection(paginationCollection).doc(data.id).set(data);
+                }
+                await stubDb.collection(paginationCollection).doc(data.id).set(data);
             }
         });
 
@@ -254,6 +275,28 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
 
                 const data = snapshot.docs[0].data();
                 expect(data?.name, `Combined query result (${isStub ? 'stub' : 'real'})`).toBe('Charlie');
+            });
+        });
+
+        it('should return identical results for paginated queries', async () => {
+            await testBothImplementations('paginated query', async (db, isStub) => {
+                const baseQuery = db.collection(paginationCollection).orderBy('index');
+
+                const limit = 3;
+                const firstPage = await baseQuery.limit(limit).get();
+
+                expect(firstPage.size, `First page size (${isStub ? 'stub' : 'real'})`).toBe(limit);
+
+                const lastDoc = firstPage.docs[firstPage.docs.length - 1];
+                const secondPage = await baseQuery.startAfter(lastDoc).limit(limit).get();
+
+                expect(secondPage.size, `Second page size (${isStub ? 'stub' : 'real'})`).toBe(limit);
+
+                const combined = [...firstPage.docs, ...secondPage.docs];
+                const indexes = combined.map((doc) => doc.data().index);
+
+                expect(new Set(indexes).size).toBe(limit * 2);
+                expect(indexes).toEqual([...indexes].sort((a, b) => a - b));
             });
         });
     });
@@ -689,5 +732,4 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
             });
         });
     });
-});
 });
