@@ -753,61 +753,6 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         return removeModal;
     }
 
-    async verifyMemberNotVisible(memberName: string): Promise<void> {
-        await expect(this.getMemberItem(memberName)).not.toBeVisible();
-    }
-
-    // ============================================================================
-    // ADDITIONAL VERIFICATION METHODS
-    // ============================================================================
-
-    /**
-     * Verify the group name matches expected text
-     */
-    async verifyGroupNameText(expectedText: string): Promise<void> {
-        const actualText = await this.getGroupNameText();
-        expect(actualText).toBe(expectedText);
-    }
-
-    /**
-     * Verify leave button is not visible (e.g., when user has outstanding balance)
-     */
-    async verifyLeaveButtonNotVisible(): Promise<void> {
-        const leaveButton = this.getLeaveGroupButton();
-        await expect(leaveButton).not.toBeVisible();
-    }
-
-    /**
-     * Verify edit button is visible
-     */
-    async verifyEditButtonVisible(): Promise<void> {
-        const editButton = this.getEditGroupButton();
-        await expect(editButton).toBeVisible();
-    }
-
-    /**
-     * Verify a comment with specific text is visible
-     */
-    async verifyCommentVisible(text: string): Promise<void> {
-        const comment = this.getCommentByText(text);
-        await expect(comment).toBeVisible();
-    }
-
-    /**
-     * Verify leave group button is visible
-     */
-    async verifyLeaveGroupButtonVisible(): Promise<void> {
-        const leaveButton = this.getLeaveGroupButton();
-        await expect(leaveButton).toBeVisible();
-    }
-
-    /**
-     * Verify member count element is visible
-     */
-    async verifyMemberCountElementVisible(): Promise<void> {
-        const memberCount = this.getMemberCount();
-        await expect(memberCount).toBeVisible();
-    }
 }
 
 /**

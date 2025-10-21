@@ -372,6 +372,14 @@ export class GroupDetailPage extends BasePage {
         await expect(this.getCommentByText(text)).toBeVisible();
     }
 
+    /**
+     * Verify the group header displays the expected name
+     */
+    async verifyGroupNameText(expectedText: string): Promise<void> {
+        const actualText = await this.getGroupNameText();
+        expect(actualText).toBe(expectedText);
+    }
+
     // ============================================================================
     // BALANCE SECTION
     // ============================================================================
@@ -791,5 +799,43 @@ export class GroupDetailPage extends BasePage {
     async verifyMemberActions(): Promise<void> {
         await expect(this.getEditGroupButton()).not.toBeVisible();
         await expect(this.getLeaveGroupButton()).toBeVisible();
+    }
+
+    /**
+     * Verify the member count element is visible
+     */
+    async verifyMemberCountElementVisible(): Promise<void> {
+        await expect(this.getMemberCount()).toBeVisible();
+    }
+
+    /**
+     * Verify the Leave Group button is visible
+     */
+    async verifyLeaveGroupButtonVisible(): Promise<void> {
+        await expect(this.getLeaveGroupButton()).toBeVisible();
+    }
+
+    /**
+     * Verify the Leave Group button is not visible
+     */
+    async verifyLeaveButtonNotVisible(): Promise<void> {
+        await expect(this.getLeaveGroupButton()).not.toBeVisible();
+    }
+
+    /**
+     * Verify the Edit Group button is visible
+     */
+    async verifyEditButtonVisible(): Promise<void> {
+        await expect(this.getEditGroupButton()).toBeVisible();
+    }
+
+    /**
+     * Verify a member is not visible in the member list
+     */
+    async verifyMemberNotVisible(memberName: string): Promise<void> {
+        const memberItem = this
+            .getMembersContainer()
+            .locator(`[data-testid="member-item"][data-member-name="${memberName}"]`);
+        await expect(memberItem).not.toBeVisible();
     }
 }
