@@ -5,7 +5,9 @@ import { EditGroupModalPage } from './EditGroupModalPage';
 import { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
 import { ExpenseFormPage } from './ExpenseFormPage';
+import { ExpenseDetailPage } from './ExpenseDetailPage';
 import { SettlementFormPage } from './SettlementFormPage';
+import { RemoveMemberDialogPage } from './RemoveMemberDialogPage';
 import { translationEn } from '../translations/translation-en';
 import { GroupId } from '@splitifyd/shared';
 
@@ -282,6 +284,41 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
+     * Wait for the member list and header count to match the expected value.
+     */
+    async waitForMemberCount(expectedCount: number, timeout: number = 5000): Promise<void> {
+        await expect(async () => {
+            const textCount = await this.getCurrentMemberCount().catch(() => -1);
+            const actualItems = await this.getMemberCards().count();
+
+            if (textCount !== expectedCount || actualItems !== expectedCount) {
+                const memberNames = await this.getMemberNames();
+                throw new Error(
+                    `Member count mismatch. Expected: ${expectedCount}, `
+                        + `Header shows: ${textCount}, Items: ${actualItems}. `
+                        + `Members: [${memberNames.join(', ')}]. URL: ${this.page.url()}`,
+                );
+            }
+        }).toPass({ timeout });
+    }
+
+    /**
+     * Locate a specific member entry by display name.
+     */
+    getMemberItem(memberName: string): Locator {
+        return this
+            .getMembersContainer()
+            .locator(`[data-testid="member-item"][data-member-name="${memberName}"]:visible`);
+    }
+
+    /**
+     * Get the remove member button for a given member.
+     */
+    getRemoveMemberButton(memberName: string): Locator {
+        return this.getMemberItem(memberName).locator('[data-testid="remove-member-button"]');
+    }
+
+    /**
      * Add Member button - looks for button with "add" and "member" text
      */
     getAddMemberButton(): Locator {
@@ -304,6 +341,19 @@ export class GroupDetailPage extends BasePage {
      */
     getExpenseByDescription(description: string): Locator {
         return this.getExpensesContainer().getByText(description);
+    }
+
+    /**
+     * Click on an expense and return the expense detail page for further assertions.
+     */
+    async clickExpenseToView(description: string): Promise<ExpenseDetailPage> {
+        const expense = this.getExpenseByDescription(description);
+        await expense.click();
+
+        const expenseDetailPage = new ExpenseDetailPage(this.page);
+        await expenseDetailPage.waitForPageReady();
+
+        return expenseDetailPage;
     }
 
     /**
@@ -543,6 +593,38 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
+     * Click remove member button and return the confirmation dialog page.
+     */
+    async clickRemoveMember(memberName: string): Promise<RemoveMemberDialogPage> {
+        const memberItem = this.getMemberItem(memberName);
+        try {
+            await expect(memberItem).toBeVisible({ timeout: 5000 });
+        } catch (error) {
+            const visibleMemberItems = await this.page.locator('[data-testid="member-item"]:visible').all();
+            const visibleMembers = await Promise.all(
+                visibleMemberItems.map(async (item) => {
+                    const text = await item.innerText();
+                    const dataName = await item.getAttribute('data-member-name');
+                    return `${text.replace(/\n/g, ' ')} [data-member-name="${dataName}"]`;
+                }),
+            );
+            const message = [
+                `Failed to find visible member "${memberName}".`,
+                `Visible members:`,
+                visibleMembers.map((m, index) => `  ${index + 1}. ${m}`).join('\n') || '  (none)',
+            ].join('\n');
+            throw new Error(message);
+        }
+
+        const removeButton = this.getRemoveMemberButton(memberName);
+        await this.clickButton(removeButton, { buttonName: `Remove ${memberName}` });
+
+        const removeModal = new RemoveMemberDialogPage(this.page);
+        await removeModal.waitForDialogVisible();
+        return removeModal;
+    }
+
+    /**
      * Verify expenses are displayed
      */
     async verifyExpensesDisplayed(count: number): Promise<void> {
@@ -629,6 +711,27 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
+     * Wait for an expense with the given description to appear.
+     */
+    async waitForExpense(description: string, timeout: number = 5000): Promise<void> {
+        await expect(async () => {
+            const expenseElement = this.getExpenseByDescription(description);
+            const count = await expenseElement.count();
+            if (count === 0) {
+                throw new Error(`Expense with description "${description}" not found yet`);
+            }
+
+            const visible = await expenseElement.first().isVisible();
+            if (!visible) {
+                throw new Error(`Expense with description "${description}" found but not visible yet`);
+            }
+        }).toPass({
+            timeout,
+            intervals: [100, 200, 300, 500, 1000],
+        });
+    }
+
+    /**
      * Verify empty expenses state
      */
     async verifyEmptyExpensesState(): Promise<void> {
@@ -647,6 +750,34 @@ export class GroupDetailPage extends BasePage {
      */
     async verifyHasDebts(): Promise<void> {
         await expect(this.getDebtItems().first()).toBeVisible();
+    }
+
+    /**
+     * Wait for balances section to render and loading indicator (if any) to disappear.
+     */
+    async waitForBalancesSection(groupId: GroupId, timeout: number = 3000): Promise<void> {
+        const currentUrl = this.page.url();
+        if (!currentUrl.includes(`/groups/${groupId}`)) {
+            throw new Error(`waitForBalancesSection called but not on correct group page. Expected: /groups/${groupId}, Got: ${currentUrl}`);
+        }
+
+        const balancesSection = this.getBalanceContainer();
+        await expect(balancesSection).toBeVisible({ timeout });
+
+        try {
+            await expect(balancesSection.getByText('Loading balances...')).not.toBeVisible({ timeout: 2000 });
+        } catch {
+            // Loading text may not appear; ignore timeout
+        }
+    }
+
+    /**
+     * Utility to ensure a newly created group page is ready for interactions.
+     */
+    async ensureNewGroupPageReadyWithOneMember(groupId: GroupId): Promise<void> {
+        await this.waitForDomContentLoaded();
+        await this.waitForMemberCount(1);
+        await this.waitForBalancesSection(groupId);
     }
 
     /**
@@ -1119,6 +1250,13 @@ export class GroupDetailPage extends BasePage {
         const dialogPage = new LeaveGroupDialogPage(this.page);
         await dialogPage.waitForDialogToOpen();
         return dialogPage;
+    }
+
+    /**
+     * Alias retained for compatibility with older call sites.
+     */
+    async clickLeaveGroupButton(): Promise<LeaveGroupDialogPage> {
+        return this.clickLeaveGroupAndOpenDialog();
     }
 
     /**

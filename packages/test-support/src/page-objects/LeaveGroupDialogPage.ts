@@ -179,7 +179,6 @@ export class LeaveGroupDialogPage extends BasePage {
         }
 
         await this.clickConfirm();
-        await this.waitForDialogToClose();
         await expect(this.page).toHaveURL(/\/dashboard/, { timeout: 5000 });
 
         const dashboardPage = createDashboardPage

@@ -1,8 +1,5 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { GroupDetailPage as BaseGroupDetailPage, HeaderPage, SettlementFormPage as SharedSettlementFormPage } from '@splitifyd/test-support';
-import { ExpenseDetailPage } from '@splitifyd/test-support';
-import { LeaveGroupDialogPage } from '@splitifyd/test-support';
-import { RemoveMemberDialogPage } from '@splitifyd/test-support';
 import { SettlementFormPage as E2ESettlementFormPage } from './settlement-form.page';
 import { GroupId } from '@splitifyd/shared';
 
@@ -109,78 +106,6 @@ export class GroupDetailPage extends BaseGroupDetailPage {
             });
     }
 
-    /**
-     * Waits for the group to have the expected number of members.
-     * Relies on real-time updates to show the correct member count.
-     */
-    async waitForMemberCount(expectedCount: number, timeout = 5000): Promise<void> {
-        // Assert we're on a group page before waiting for member count
-        const currentUrl = this.page.url();
-        if (!currentUrl.includes('/groups/') && !currentUrl.includes('/group/')) {
-            throw new Error(`waitForMemberCount called but not on a group page. Current URL: ${currentUrl}`);
-        }
-
-        // Wait for page to load
-        await this.waitForDomContentLoaded();
-
-        // Use polling pattern to wait for both member count text AND actual member items
-        await expect(async () => {
-            // Check member count text
-            let textCount: number;
-            try {
-                textCount = await this.getCurrentMemberCount();
-            } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : String(error);
-                throw new Error(`Member count text not ready: ${errorMessage}`);
-            }
-
-            // Check actual member items
-            const actualItems = await this.getMemberCards().count();
-
-            // Both must match expected count
-            if (textCount !== expectedCount || actualItems !== expectedCount) {
-                // Get member names for better debugging
-                const memberNames = await this.getMemberNames();
-                throw new Error(
-                    `Member count mismatch. Expected: ${expectedCount}, `
-                        + `Text shows: ${textCount}, Actual items: ${actualItems}. `
-                        + `Members: [${memberNames.join(', ')}]. URL: ${this.page.url()}`,
-                );
-            }
-        })
-            .toPass({ timeout });
-
-        // Double-check we're still on the group page after waiting
-        const finalUrl = this.page.url();
-        if (!finalUrl.includes('/groups/') && !finalUrl.includes('/group/')) {
-            throw new Error(`Navigation changed during waitForMemberCount. Now on: ${finalUrl}`);
-        }
-    }
-
-    /**
-     * Wait for balances section to be ready - replaces deprecated waitForBalancesToLoad and waitForBalanceUpdate
-     * This method waits for the balance section to be visible but doesn't rely on generic loading states.
-     * For specific debt verification, use verifyDebtRelationship() or waitForSettledUpMessage().
-     */
-    async waitForBalancesSection(groupId: GroupId): Promise<void> {
-        // Assert we're on the correct group page
-        const currentUrl = this.page.url();
-        if (!currentUrl.includes(`/groups/${groupId}`)) {
-            throw new Error(`waitForBalancesSection called but not on correct group page. Expected: /groups/${groupId}, Got: ${currentUrl}`);
-        }
-
-        // Wait for balances section to be visible
-        const balancesSection = this.getBalanceContainer();
-        await expect(balancesSection).toBeVisible({ timeout: 3000 });
-
-        // Wait for any loading text to disappear if present
-        try {
-            await expect(balancesSection.getByText('Loading balances...')).not.toBeVisible({ timeout: 2000 });
-        } catch (e) {
-            // Loading text might not be present, that's okay
-        }
-    }
-
     async waitForPage(groupId: GroupId, expectedMemberCount: number) {
         const targetGroupUrl = `/groups/${groupId}`;
         await this.sanityCheckPageUrl(this.page.url(), targetGroupUrl);
@@ -191,26 +116,6 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         await this.sanityCheckPageUrl(this.page.url(), targetGroupUrl);
         await this.waitForBalancesSection(groupId);
         await this.sanityCheckPageUrl(this.page.url(), targetGroupUrl);
-    }
-
-    async waitForExpense(expenseDescription: string) {
-        // Use polling to handle real-time expense creation
-        await expect(async () => {
-            const expenseElement = this.getExpenseByDescription(expenseDescription);
-            const count = await expenseElement.count();
-            if (count === 0) {
-                throw new Error(`Expense with description "${expenseDescription}" not found yet`);
-            }
-
-            const isVisible = await expenseElement.first().isVisible();
-            if (!isVisible) {
-                throw new Error(`Expense with description "${expenseDescription}" found but not visible yet`);
-            }
-        })
-            .toPass({
-                timeout: 5000,
-                intervals: [100, 200, 300, 500, 1000],
-            });
     }
 
     private async sanityCheckPageUrl(currentUrl: string, targetGroupUrl: string) {
@@ -224,23 +129,6 @@ export class GroupDetailPage extends BaseGroupDetailPage {
     // ============================================================================
     // EXPENSE METHODS
     // ============================================================================
-
-    /**
-     * Clicks on an expense by its description to view details
-     * Returns the ExpenseDetailPage for further interactions
-     */
-    async clickExpenseToView(description: string): Promise<ExpenseDetailPage> {
-        const expense = this.getExpenseByDescription(description);
-        // Note: Expense item is not a button but a clickable element
-
-        await expense.click();
-
-        // Create and wait for expense detail page to be ready
-        const expenseDetailPage = new ExpenseDetailPage(this.page);
-        await expenseDetailPage.waitForPageReady();
-
-        return expenseDetailPage;
-    }
 
     /**
      * Verify that a currency amount is visible for a specific user within the expenses section
@@ -286,78 +174,9 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         await this.ensureSettlementHistoryOpen();
     }
 
-    /**
-     * Ensures group page is fully loaded before proceeding with expense operations.
-     * This should be called after creating a group or navigating to a group page.
-     */
-    async ensureNewGroupPageReadyWithOneMember(groupId: GroupId): Promise<void> {
-        await this.waitForDomContentLoaded();
-        await this.waitForMemberCount(1); // Wait for at least the creator to show
-        await this.waitForBalancesSection(groupId);
-    }
-
-    // ============================================================================
-    // MEMBER MANAGEMENT METHODS
-    // ============================================================================
-
-    private getMemberItem(memberName: string): Locator {
-        // Use data-member-name attribute for precise selection within the members container
-        // This avoids issues with "Admin" text or other content in the member item
-        // Important: Only select visible member items within the Members section
-        const membersContainer = this.getMembersContainer();
-        return membersContainer.locator(`[data-testid="member-item"][data-member-name="${memberName}"]:visible`);
-    }
-
-    getRemoveMemberButton(memberName: string): Locator {
-        const memberItem = this.getMemberItem(memberName);
-        return memberItem.locator('[data-testid="remove-member-button"]');
-    }
-
-    /**
-     * E2E-specific version that returns LeaveGroupModalPage
-     * The shared base has clickLeaveGroup() that returns void
-     * This version is for e2e workflows that need the page object
-     */
-    async clickLeaveGroupButton(): Promise<LeaveGroupDialogPage> {
-        const leaveButton = this.getLeaveGroupButton();
-        await this.clickButton(leaveButton, { buttonName: 'Leave Group' });
-
-        // Create and return the LeaveGroup dialog instance
-        const leaveModal = new LeaveGroupDialogPage(this.page);
-        await leaveModal.waitForDialogVisible();
-
-        return leaveModal;
-    }
-
     async waitForRedirectAwayFromGroup(groupId: GroupId): Promise<void> {
         // Use proper web-first assertion to wait for URL change
         await expect(this.page).not.toHaveURL(new RegExp(`/groups/${groupId}`), { timeout: 5000 });
-    }
-
-    async clickRemoveMember(memberName: string): Promise<RemoveMemberDialogPage> {
-        const memberItem = this.getMemberItem(memberName);
-        try {
-            await expect(memberItem).toBeVisible({ timeout: 5000 });
-        } catch (e) {
-            // Only get visible member items for error message
-            const visibleMemberItems = await this.page.locator('[data-testid="member-item"]:visible').all();
-            const visibleMembers = await Promise.all(
-                visibleMemberItems.map(async (item) => {
-                    const text = await item.innerText();
-                    const dataName = await item.getAttribute('data-member-name');
-                    return `${text.replace(/\n/g, ' ')} [data-member-name="${dataName}"]`;
-                }),
-            );
-            throw new Error(`Failed to find visible member "${memberName}". Visible members:\n${visibleMembers.map((m, i) => `  ${i + 1}. ${m}`).join('\n')}`);
-        }
-
-        const removeButton = this.getRemoveMemberButton(memberName);
-        await this.clickButton(removeButton, { buttonName: `Remove ${memberName}` });
-
-        // Create and return the RemoveMemberModalPage instance
-        const removeModal = new RemoveMemberDialogPage(this.page);
-        await removeModal.waitForDialogVisible();
-        return removeModal;
     }
 
 }
