@@ -14,6 +14,8 @@ This task combines the group security model with flexible expense permissions, c
 
 Rather than rigid "modes", the system provides convenient preset buttons that configure a bundle of security preferences for the group. Users can select a preset and then customize individual settings as needed.
 
+Preset selections are never persisted—only the resulting permission values are stored. The UI can infer which preset best matches the current state but must not rely on a dedicated `securityPreset` flag.
+
 ### 1. "Open Collaboration" Preset (Default)
 
 **Convenience preset for casual groups:**
@@ -82,10 +84,6 @@ Add to group document:
 interface Group {
     // existing fields...
 
-    // Security Configuration
-    securityPreset: 'open' | 'managed' | 'custom'; // default: 'open'
-    presetAppliedAt?: Timestamp; // Track when preset was last applied
-
     // Individual permission settings (customizable after preset selection)
     permissions: {
         expenseEditing: 'anyone' | 'owner-and-admin' | 'admin-only';
@@ -125,6 +123,8 @@ interface Group {
     };
 }
 ```
+
+> ℹ️ Preset usage is recorded implicitly by the values written to `permissions` (and explicitly via `permissionHistory` entries). There is **no** `securityPreset` field in the persisted document.
 
 ### 2. Backend Changes
 
@@ -204,7 +204,7 @@ if (!canDelete) {
 
 New endpoints needed:
 
-- `applySecurityPreset(groupId, preset)` - Apply a convenience preset (batch transaction)
+- `applySecurityPreset(groupId, preset)` - Apply a convenience preset (batch transaction that writes the corresponding permission values and audit log entries — no preset flag is stored)
 - `updateGroupPermissions(groupId, permissions)` - Customize individual permissions
 - `setMemberRole(groupId, targetUserId, role)` - Promote/demote members (with last admin check)
 - `approveMember(groupId, userId)` - Approve pending members
@@ -269,6 +269,7 @@ Add new section for security management:
 **Security Presets Section:**
 - Quick preset buttons: "Open Collaboration" | "Managed Group"
 - Visual indicator when custom permissions deviate from preset
+- Indicator is computed by comparing current permission values to preset definitions (no dedicated flag)
 - Description of what each preset configures
 - "Permission Simulator" showing what each role can do
 
@@ -294,7 +295,7 @@ Add new section for security management:
 
 ### 5. Migration & Defaults
 
-- All existing groups get **"Open Collaboration" preset** applied
+- All existing groups have their permission fields set to the **"Open Collaboration"** defaults
 - Group creator becomes first admin when using role-based permissions
 - Last admin check: Auto-assign admin role to another member or revert to open permissions
 - Migration preview mode: Show admins what would change before applying
@@ -455,7 +456,7 @@ class PermissionSync {
 **Backend Tasks**:
 
 1. **Database Schema Migration** (`firebase/functions/src/migrations/`) ✅ COMPLETED
-    - ✅ Create migration script for existing groups → Open Collaboration preset
+    - ✅ Create migration script to align existing groups' permissions with the Open Collaboration defaults
     - ✅ Add new fields to Group interface in `shared/shared-types.ts`
     - Update group validation schemas in `groups/validation.ts` (pending)
 
@@ -522,7 +523,7 @@ class PermissionSync {
     - Add permission tooltips explaining restrictions
     - Update member invitation flow for managed groups
 
-**Testing**: 12. **Role-based Permission Tests** ✅ PARTIALLY IMPLEMENTED - ✅ Admin vs member permission boundaries - **4 tests passing for security presets and role changes** - ✅ Last admin protection scenarios - **Test verifies last admin cannot be demoted** - ⚠️ Pending member approval workflow - **Tests written but commented out (endpoints don't exist)** - ❌ Invite link expiry and usage limits - **Not tested**
+**Testing**: 12. **Role-based Permission Tests** ✅ PARTIALLY IMPLEMENTED - ✅ Admin vs member permission boundaries - **4 tests passing for preset application (permissions updated correctly) and role changes** - ✅ Last admin protection scenarios - **Test verifies last admin cannot be demoted** - ⚠️ Pending member approval workflow - **Tests written but commented out (endpoints don't exist)** - ❌ Invite link expiry and usage limits - **Not tested**
 
 **Current Changeset Analysis (2025-08-27):**
 
@@ -535,19 +536,19 @@ class PermissionSync {
     - Clear separation between system-level roles (app admin) and group-level roles (group admin/member/viewer)
 3. **Test Infrastructure**:
     - Added 6 new ApiDriver methods for security management
-    - Created integration tests verifying security preset application and role management
+    - Created integration tests verifying preset application updates permissions and role management
     - Tests confirm permission boundaries work (admins can change settings, members cannot)
 
 **⚠️ Key Findings:**
 
-1. **Security preset tests PASS** - Admin can apply presets, members get 403
+1. **Preset application tests PASS** - Admin can trigger permission bundles, members get 403
 2. **Member role tests PASS** - Admin can change roles, members get 403, last admin protected
 3. **Pending member tests FAIL** - Endpoints return 404 (not implemented)
 4. **Type confusion fixed** - User.role now correctly typed as SystemUserRole
 
 **Next Steps Required:**
 
-1. Verify backend handler implementations for security preset and role management
+1. Verify backend handler implementations for preset application and role management
 2. Implement pending member approval endpoints (currently missing)
 3. Build frontend UI components for security management
 4. Implement invite system with expiry/usage limits
