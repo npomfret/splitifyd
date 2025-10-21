@@ -9,6 +9,7 @@ import {
     GroupUpdateBuilder,
     NotificationDriver,
     SettlementUpdateBuilder,
+    getFirebaseEmulatorConfig,
 } from '@splitifyd/test-support';
 import { v4 as uuidv4 } from 'uuid';
 import { beforeEach, describe, expect, test } from 'vitest';
@@ -24,10 +25,8 @@ import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
     const apiDriver = new ApiDriver();
     const notificationDriver = new NotificationDriver(getFirestore());
-    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth());
-    const groupService = applicationBuilder.buildGroupService();
-    const groupMemberService = applicationBuilder.buildGroupMemberService();
-    const groupShareService = applicationBuilder.buildGroupShareService();
+    const identityToolkit = getFirebaseEmulatorConfig().identityToolkit;
+    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), identityToolkit);
     const firestoreReader = applicationBuilder.buildFirestoreReader();
     let users: PooledTestUser[];
 

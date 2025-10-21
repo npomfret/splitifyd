@@ -343,11 +343,17 @@ describe('UserService - Consolidated Unit Tests', () => {
             const newPassword = 'NewSecurePassword123!';
 
             // Set up existing user
-            stubAuth.setUser(uid, {
+            stubAuth.setUser(
                 uid,
-                email: 'test@example.com',
-                displayName: 'Test User',
-            });
+                {
+                    uid,
+                    email: 'test@example.com',
+                    displayName: 'Test User',
+                },
+                {
+                    password: currentPassword,
+                },
+            );
 
             db.seedUser(uid, {
                 displayName: 'Test User',

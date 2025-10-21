@@ -1,6 +1,8 @@
+import type { Auth } from 'firebase-admin/auth';
+import type { Firestore } from 'firebase-admin/firestore';
 import { createFirestoreDatabase, IFirestoreDatabase } from '../firestore-wrapper';
 import { IAuthService } from './auth';
-import { FirebaseAuthService } from './auth';
+import { FirebaseAuthService, type IdentityToolkitConfig } from './auth';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import { CommentService } from './CommentService';
 import { ExpenseService } from './ExpenseService';
@@ -38,14 +40,16 @@ export class ApplicationBuilder {
     }
 
     static createApplicationBuilder(
-        firestore: Parameters<typeof createFirestoreDatabase>[0],
-        auth: ConstructorParameters<typeof FirebaseAuthService>[0],
+        firestore: Firestore,
+        auth: Auth,
+        identityToolkit: IdentityToolkitConfig,
     ) {
         // Wrap the Firestore instance with our abstraction layer
         const wrappedDb = createFirestoreDatabase(firestore);
 
         const firebaseAuthService = new FirebaseAuthService(
             auth,
+            identityToolkit,
             true, // enableValidation
             true, // enableMetrics
         );

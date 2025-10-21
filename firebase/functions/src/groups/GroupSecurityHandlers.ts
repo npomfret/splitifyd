@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
+import { getIdentityToolkitConfig } from '../client-config';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { GroupMemberService } from '../services/GroupMemberService';
 import { GroupService } from '../services/GroupService';
@@ -20,7 +21,7 @@ export class GroupSecurityHandlers {
         private readonly groupMemberService: GroupMemberService,
     ) {}
 
-    static createGroupSecurityHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth())) {
+    static createGroupSecurityHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
         const groupService = applicationBuilder.buildGroupService();
         const groupMemberService = applicationBuilder.buildGroupMemberService();
         return new GroupSecurityHandlers(groupService, groupMemberService);

@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import { getAuth, getFirestore } from '../firebase';
+import { getIdentityToolkitConfig } from '../client-config';
 import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
-const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth(), getIdentityToolkitConfig());
 const policyService = applicationBuilder.buildPolicyService();
 
 /**

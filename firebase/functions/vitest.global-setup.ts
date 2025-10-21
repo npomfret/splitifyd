@@ -1,4 +1,4 @@
-import { getFirestorePort, getProjectId } from '@splitifyd/test-support';
+import { getFirestorePort, getProjectId, getFirebaseEmulatorConfig } from '@splitifyd/test-support';
 
 async function warmUpFirestoreEmulator(): Promise<void> {
     console.log('🔥 [GLOBAL SETUP] Warming up Firestore emulator...');
@@ -27,6 +27,11 @@ async function warmUpFirestoreEmulator(): Promise<void> {
 }
 
 export default async function setup() {
+    const emulatorConfig = getFirebaseEmulatorConfig();
+    process.env.FIREBASE_AUTH_EMULATOR_HOST = emulatorConfig.identityToolkit.host;
+    process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${emulatorConfig.firestorePort}`;
+    process.env.CLIENT_API_KEY = emulatorConfig.identityToolkit.apiKey;
+
     // Check if we're running integration tests by looking at the process arguments
     const processArgs = process.argv.join(' ');
     const isIntegrationTests = processArgs.includes('src/__tests__/integration');

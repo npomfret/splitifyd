@@ -1,12 +1,12 @@
 import { SystemUserRoles, TestErrorResponse, TestPromoteToAdminResponse, TestSuccessResponse } from '@splitifyd/shared';
 import { Request, Response } from 'express';
-import { getConfig } from '../client-config';
+import { getConfig, getIdentityToolkitConfig } from '../client-config';
 import { getAuth, getFirestore } from '../firebase';
 import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
-const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth(), getIdentityToolkitConfig());
 const authService = applicationBuilder.buildAuthService();
 const firestoreWriter = applicationBuilder.buildFirestoreWriter();
 

@@ -62,12 +62,40 @@ import { LoggerContext } from '../../utils/logger-context';
 import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
 import { validateBatchUserIds, validateCreateUser, validateCustomClaims, validateIdToken, validateUpdateUser, validateUserId } from './auth-validation';
 
+export interface IdentityToolkitConfig {
+    apiKey: string;
+    baseUrl: string;
+}
+
+interface IdentityToolkitErrorResponse {
+    error?: {
+        code?: number;
+        message?: string;
+        status?: string;
+        errors?: Array<{
+            message?: string;
+            domain?: string;
+            reason?: string;
+        }>;
+    };
+}
+
+const SIGN_IN_WITH_PASSWORD_ENDPOINT = '/v1/accounts:signInWithPassword';
+
 export class FirebaseAuthService implements IAuthService {
     constructor(
         private readonly auth: Auth,
+        identityToolkit: IdentityToolkitConfig,
         private readonly enableValidation: boolean = true,
         private readonly enableMetrics: boolean = true,
-    ) {}
+    ) {
+        this.identityToolkitConfig = {
+            apiKey: identityToolkit.apiKey,
+            baseUrl: identityToolkit.baseUrl.replace(/\/$/, ''),
+        };
+    }
+
+    private readonly identityToolkitConfig: IdentityToolkitConfig;
 
     /**
      * Create operation context for logging
@@ -84,6 +112,10 @@ export class FirebaseAuthService implements IAuthService {
      * Map Firebase Auth errors to application errors
      */
     private mapFirebaseError(error: any, context: AuthOperationContext): ApiError {
+        if (error instanceof ApiError) {
+            return error;
+        }
+
         const firebaseCode = error.code;
         const appErrorCode = FIREBASE_AUTH_ERROR_MAP[firebaseCode];
 
@@ -108,13 +140,30 @@ export class FirebaseAuthService implements IAuthService {
                 case AuthErrorCode.TOO_MANY_REQUESTS:
                     return new ApiError(HTTP_STATUS.TOO_MANY_REQUESTS, appErrorCode, 'Too many requests');
                 default:
-                    return new ApiError(HTTP_STATUS.INTERNAL_ERROR, appErrorCode, error.message);
+                return new ApiError(HTTP_STATUS.INTERNAL_ERROR, appErrorCode, error.message);
             }
         }
 
         // Unknown Firebase error
         logger.error(`Unknown Firebase Auth error: ${firebaseCode}`, error, context);
         return new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'AUTH_UNKNOWN_ERROR', 'Authentication service error');
+    }
+
+    /**
+     * Resolve and cache Identity Toolkit configuration (base URL + API key).
+     */
+    private resolveIdentityToolkitConfig(): IdentityToolkitConfig {
+        const { apiKey, baseUrl } = this.identityToolkitConfig;
+
+        if (!apiKey || apiKey.trim().length === 0) {
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'AUTH_CONFIGURATION_ERROR', 'Identity Toolkit API key is not configured');
+        }
+
+        if (!baseUrl || baseUrl.trim().length === 0) {
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'AUTH_CONFIGURATION_ERROR', 'Identity Toolkit base URL is not configured');
+        }
+
+        return this.identityToolkitConfig;
     }
 
     /**
@@ -359,21 +408,68 @@ export class FirebaseAuthService implements IAuthService {
         return this.executeWithMetrics(
             'FirebaseAuthService.verifyPassword',
             async () => {
-                // Firebase Admin SDK doesn't have direct password verification
-                // For emulator mode, we simulate password verification by checking if user exists
-                // In production, this would need a proper implementation using Firebase Auth REST API
+                const config = this.resolveIdentityToolkitConfig();
+                const requestUrl = `${config.baseUrl}${SIGN_IN_WITH_PASSWORD_ENDPOINT}?key=${config.apiKey}`;
 
-                // First, verify the user exists
-                const userRecord = await this.auth.getUserByEmail(email);
-                if (!userRecord) {
-                    logger.info('Password verification failed - user not found', { ...context, email });
+                const payload = {
+                    email,
+                    password,
+                    returnSecureToken: false,
+                };
+
+                let response: Response;
+
+                try {
+                    response = await fetch(requestUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    });
+                } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+                    logger.error('Password verification request failed', { ...context, errorMessage });
+                    throw new ApiError(HTTP_STATUS.SERVICE_UNAVAILABLE, AuthErrorCode.SERVICE_UNAVAILABLE, 'Password verification service unavailable');
+                }
+
+                if (response.ok) {
+                    logger.info('Password verification succeeded', { ...context });
+                    return true;
+                }
+
+                let errorBody: IdentityToolkitErrorResponse | undefined;
+
+                try {
+                    errorBody = await response.json();
+                } catch {
+                    // Ignore JSON parsing failures; we'll fall back to status code
+                }
+
+                const rawMessage = errorBody?.error?.message ?? `HTTP_${response.status}`;
+                const message = rawMessage.toUpperCase();
+
+                if (message === 'INVALID_PASSWORD' || message === 'EMAIL_NOT_FOUND' || message === 'USER_DISABLED') {
+                    logger.info('Password verification failed due to invalid credentials', { ...context, reason: message });
                     return false;
                 }
 
-                // In emulator mode, we'll assume password verification succeeds if user exists
-                // This is a simplified implementation for development/testing
-                logger.info('Password verification simulated as successful in emulator mode', { ...context, email });
-                return true;
+                if (message === 'TOO_MANY_ATTEMPTS_TRY_LATER') {
+                    logger.warn('Password verification rate limited', { ...context });
+                    throw new ApiError(HTTP_STATUS.TOO_MANY_REQUESTS, AuthErrorCode.TOO_MANY_REQUESTS, 'Too many password verification attempts. Please try again later.');
+                }
+
+                logger.error('Password verification failed with unexpected error', {
+                    ...context,
+                    status: response.status,
+                    message: rawMessage,
+                });
+
+                throw new ApiError(
+                    response.status >= 500 ? HTTP_STATUS.INTERNAL_ERROR : response.status,
+                    AuthErrorCode.SERVICE_UNAVAILABLE,
+                    'Authentication service error',
+                );
             },
             context,
         );

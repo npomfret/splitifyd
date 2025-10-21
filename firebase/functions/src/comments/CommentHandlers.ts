@@ -4,6 +4,7 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
 import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
+import { getIdentityToolkitConfig } from '../client-config';
 import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { CommentService } from '../services/CommentService';
@@ -14,7 +15,7 @@ export class CommentHandlers {
     constructor(private readonly commentService: CommentService) {
     }
 
-    static createCommentHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth())) {
+    static createCommentHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
         const commentService = applicationBuilder.buildCommentService();
         return new CommentHandlers(commentService);
     }

@@ -2,13 +2,14 @@ import { AuthenticatedUser, SystemUserRoles } from '@splitifyd/shared';
 import { NextFunction, Request, Response } from 'express';
 import { AUTH } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
+import { getIdentityToolkitConfig } from '../client-config';
 import { logger } from '../logger';
 import { LoggerContext } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { Errors, sendError } from '../utils/errors';
 
 const firestore = getFirestore();
-const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth(), getIdentityToolkitConfig());
 const firestoreReader = applicationBuilder.buildFirestoreReader();
 const authService = applicationBuilder.buildAuthService();
 

@@ -1,12 +1,14 @@
 import { amountToSmallestUnit, GroupDTO } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, NotificationDriver } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, NotificationDriver, getFirebaseEmulatorConfig } from '@splitifyd/test-support';
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 
 describe('Concurrent Operations Integration Tests', () => {
-    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth());
+    const identityToolkit = getFirebaseEmulatorConfig().identityToolkit;
+
+    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), identityToolkit);
     const firestoreReader = applicationBuilder.buildFirestoreReader();
     const groupService = applicationBuilder.buildGroupService();
     const groupMemberService = applicationBuilder.buildGroupMemberService();

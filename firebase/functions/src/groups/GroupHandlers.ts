@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { DOCUMENT_CONFIG, HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
+import { getIdentityToolkitConfig } from '../client-config';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { IFirestoreWriter } from '../services/firestore';
 import { GroupService } from '../services/GroupService';
@@ -15,7 +16,7 @@ export class GroupHandlers {
     ) {
     }
 
-    static createGroupHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth())) {
+    static createGroupHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
         const groupService = applicationBuilder.buildGroupService();
         const firestoreWriter = applicationBuilder.buildFirestoreWriter();
         return new GroupHandlers(groupService, firestoreWriter);

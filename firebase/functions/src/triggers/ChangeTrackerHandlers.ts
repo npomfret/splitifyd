@@ -1,5 +1,6 @@
 import type { FirestoreTriggerDocumentSnapshot, FirestoreTriggerEvent } from '@splitifyd/firebase-simulator';
 import { getAuth, getFirestore } from '../firebase';
+import { getIdentityToolkitConfig } from '../client-config';
 import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import type { IFirestoreReader } from '../services/firestore';
@@ -10,7 +11,7 @@ import {GroupId} from "@splitifyd/shared";
 export class ChangeTrackerHandlers {
     constructor(private readonly firestoreReader: IFirestoreReader, private readonly notificationService: NotificationService) {}
 
-    static createChangeTrackerHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth()),) {
+    static createChangeTrackerHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig()),) {
         const firestoreReader = applicationBuilder.buildFirestoreReader();
         const notificationService = applicationBuilder.buildNotificationService();
         return new ChangeTrackerHandlers(firestoreReader, notificationService);

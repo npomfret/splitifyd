@@ -3,6 +3,7 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
+import { getIdentityToolkitConfig } from '../client-config';
 import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { PolicyService } from '../services/PolicyService';
@@ -14,7 +15,7 @@ export class PolicyHandlers {
     ) {
     }
 
-    static createPolicyHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth())) {
+    static createPolicyHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
         const policyService = applicationBuilder.buildPolicyService();
         return new PolicyHandlers(policyService);
     }

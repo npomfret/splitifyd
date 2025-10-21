@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
+import { getIdentityToolkitConfig } from '../client-config';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { ApiError } from '../utils/errors';
 import { validateAcceptMultiplePolicies } from './validation';
@@ -13,7 +14,7 @@ export class UserHandlers {
     constructor(private readonly userPolicyService: UserPolicyService) {
     }
 
-    static createUserHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth())) {
+    static createUserHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
         const userPolicyService = applicationBuilder.buildUserPolicyService();
         return new UserHandlers(userPolicyService)
     }

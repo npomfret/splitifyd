@@ -13,9 +13,14 @@ import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreReader } from '../../services/firestore';
 
+const identityToolkitConfig = {
+    apiKey: 'test-api-key',
+    baseUrl: 'https://identitytoolkit.googleapis.com',
+};
+
 describe('FirestoreReader', () => {
     const firestore = getFirestore();
-    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth());
+    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth(), identityToolkitConfig);
     const firestoreReader = applicationBuilder.buildFirestoreReader();
 
     test('should be instantiable', () => {

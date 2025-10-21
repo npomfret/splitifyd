@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { getAuth, getFirestore } from '../firebase';
+import { getIdentityToolkitConfig } from '../client-config';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { GroupMemberService } from '../services/GroupMemberService';
 import { logger } from '../utils/contextual-logger';
@@ -10,7 +11,7 @@ export class GroupMemberHandlers {
     constructor(private readonly groupMemberService: GroupMemberService) {
     }
 
-    static createGroupMemberHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth())) {
+    static createGroupMemberHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
         const groupMemberService = applicationBuilder.buildGroupMemberService();
         return new GroupMemberHandlers(groupMemberService);
     }

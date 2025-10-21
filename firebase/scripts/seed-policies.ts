@@ -1,7 +1,7 @@
 #!/usr/bin/env npx tsx
 
 import { PolicyIds } from '@splitifyd/shared';
-import { ApiDriver } from '@splitifyd/test-support';
+import { ApiDriver, getFirebaseEmulatorConfig } from '@splitifyd/test-support';
 import * as fs from 'fs';
 import assert from 'node:assert';
 import * as path from 'path';
@@ -25,11 +25,25 @@ initializeFirebase(env);
 
 import { FirestoreCollections } from '../functions/src/constants';
 import { getAuth, getFirestore } from '../functions/src/firebase';
+import { getIdentityToolkitConfig } from '../functions/src/client-config';
 import { ApplicationBuilder } from '../functions/src/services/ApplicationBuilder';
 
 // Get Firebase instances
 const firestoreDb = getFirestore();
-const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestoreDb, getAuth());
+
+const identityToolkitConfig = (() => {
+    if (env.isEmulator) {
+        const emulator = getFirebaseEmulatorConfig();
+        process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${emulator.firestorePort}`;
+        process.env.FIREBASE_AUTH_EMULATOR_HOST = emulator.identityToolkit.host;
+        process.env.CLIENT_API_KEY = emulator.identityToolkit.apiKey;
+        return emulator.identityToolkit;
+    }
+
+    return getIdentityToolkitConfig();
+})();
+
+const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestoreDb, getAuth(), identityToolkitConfig);
 const policyService = applicationBuilder.buildPolicyService();
 
 /**

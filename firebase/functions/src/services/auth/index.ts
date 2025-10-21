@@ -7,6 +7,7 @@
 
 // Core interface and implementations
 export { FirebaseAuthService } from './FirebaseAuthService';
+export type { IdentityToolkitConfig } from './FirebaseAuthService';
 export { IAuthService } from './IAuthService';
 
 // Types and interfaces (only shared/public types)

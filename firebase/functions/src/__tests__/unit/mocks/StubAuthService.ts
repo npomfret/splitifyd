@@ -12,9 +12,10 @@ export class StubAuthService implements IAuthService {
     private customTokens = new Map<string, string>();
     private decodedTokens = new Map<string, DecodedIdToken>();
     private deletedUsers = new Set<string>();
+    private passwords = new Map<string, string>();
 
     // Helper methods to set up test data
-    setUser(uid: string, user: Partial<UserRecord> & { uid: string; }) {
+    setUser(uid: string, user: Partial<UserRecord> & { uid: string; }, options: { password?: string } = {}) {
         const fullUser: UserRecord = {
             uid,
             email: user.email,
@@ -37,6 +38,13 @@ export class StubAuthService implements IAuthService {
         };
 
         this.users.set(uid, fullUser);
+
+        if (options.password) {
+            this.passwords.set(uid, options.password);
+        } else if (!this.passwords.has(uid)) {
+            // Default password used by many unit tests
+            this.passwords.set(uid, 'ValidPass123!');
+        }
     }
 
     setDecodedToken(token: string, decoded: DecodedIdToken) {
@@ -46,6 +54,7 @@ export class StubAuthService implements IAuthService {
     markUserAsDeleted(uid: string) {
         this.deletedUsers.add(uid);
         this.users.delete(uid);
+        this.passwords.delete(uid);
     }
 
     // Clear all test data
@@ -54,6 +63,7 @@ export class StubAuthService implements IAuthService {
         this.customTokens.clear();
         this.decodedTokens.clear();
         this.deletedUsers.clear();
+        this.passwords.clear();
     }
 
     // IAuthService implementation
@@ -89,7 +99,7 @@ export class StubAuthService implements IAuthService {
             toJSON: () => ({}),
         };
 
-        this.setUser(uid, user);
+        this.setUser(uid, user, { password: userData.password });
         return user;
     }
 
@@ -146,7 +156,7 @@ export class StubAuthService implements IAuthService {
             toJSON: () => ({}),
         };
 
-        this.setUser(uid, updatedUser);
+        this.setUser(uid, updatedUser, { password: updates.password });
         return updatedUser;
     }
 
@@ -179,13 +189,16 @@ export class StubAuthService implements IAuthService {
     }
 
     async verifyPassword(email: string, password: string): Promise<boolean> {
-        // Find user by email
         const user = Array.from(this.users.values()).find((u) => u.email === email);
         if (!user || this.deletedUsers.has(user.uid)) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User with email ${email} not found`);
+            return false;
         }
-        // For testing purposes, return true for valid passwords
-        // You could enhance this to store and verify actual passwords if needed
-        return true;
+
+        const storedPassword = this.passwords.get(user.uid);
+        if (!storedPassword) {
+            return false;
+        }
+
+        return storedPassword === password;
     }
 }

@@ -1,4 +1,5 @@
 import { AppConfiguration, EnvironmentConfig, FirebaseConfig } from '@splitifyd/shared';
+import { loadFirebaseConfig } from '@splitifyd/test-support';
 import { z } from 'zod';
 import { DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import { logger } from './logger';
@@ -201,6 +202,43 @@ function buildAppConfiguration(): AppConfiguration {
         formDefaults: config.formDefaults,
         firebaseAuthUrl: getFirebaseAuthUrl(config, env),
         firebaseFirestoreUrl: getFirebaseFirestoreUrl(config, env),
+    };
+}
+
+const IDENTITY_TOOLKIT_SERVICE_PATH = '/identitytoolkit.googleapis.com';
+const IDENTITY_TOOLKIT_PRODUCTION_BASE_URL = 'https://identitytoolkit.googleapis.com';
+
+function getIdentityToolkitBaseUrl(): string {
+    const config = getConfig();
+
+    if (config.isProduction) {
+        return IDENTITY_TOOLKIT_PRODUCTION_BASE_URL;
+    }
+
+    const env = getEnv();
+    const authUrl = getFirebaseAuthUrl(config, env);
+    if (!authUrl) {
+        throw new Error('Auth emulator URL is not configured');
+    }
+
+    return `${authUrl}${IDENTITY_TOOLKIT_SERVICE_PATH}`;
+}
+
+function getIdentityToolkitApiKey(): string {
+    const env = getEnv();
+    const apiKey = env.CLIENT_API_KEY ?? (() => getAppConfig().firebase.apiKey)();
+
+    if (!apiKey || apiKey.trim().length === 0) {
+        throw new Error('Firebase API key is not configured');
+    }
+
+    return apiKey;
+}
+
+export function getIdentityToolkitConfig(): { apiKey: string; baseUrl: string; } {
+    return {
+        apiKey: getIdentityToolkitApiKey(),
+        baseUrl: getIdentityToolkitBaseUrl(),
     };
 }
 

@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
+import { getIdentityToolkitConfig } from '../client-config';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { UserService } from '../services/UserService2';
 import { Errors } from '../utils/errors';
@@ -11,7 +12,7 @@ export class UserHandlers {
     constructor(private readonly userService: UserService) {
     }
 
-    static createUserHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth())) {
+    static createUserHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
         const userService = applicationBuilder.buildUserService();
         return new UserHandlers(userService);
     }
