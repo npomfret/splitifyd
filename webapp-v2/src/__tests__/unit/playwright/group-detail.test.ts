@@ -1,6 +1,7 @@
-import { ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import { CommentBuilder, ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockApiFailure, mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
+import { createJsonHandler } from '@/test/msw/handlers.ts';
 
 test.describe('Group Detail - Authentication and Navigation', () => {
     test('should redirect unauthenticated user to login', async ({ pageWithLogging: page }) => {
@@ -176,6 +177,111 @@ test.describe('Group Detail - Members Display', () => {
 
         // Verify member count is displayed
         await expect(groupDetailPage.getMemberCount()).toContainText('2');
+    });
+});
+
+test.describe('Group Detail - Comments', () => {
+    test('should display existing comments for the group', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
+        const groupDetailPage = new GroupDetailPage(page);
+        const groupId = 'group-comments-visible';
+
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withId(groupId)
+            .withName('Comments Group')
+            .build();
+
+        const members = [
+            new GroupMemberBuilder()
+                .withUid(testUser.uid)
+                .withDisplayName(testUser.displayName)
+                .withGroupDisplayName(testUser.displayName)
+                .withTheme(
+                    ThemeBuilder
+                        .blue()
+                        .build(),
+                )
+                .build(),
+        ];
+
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members)
+            .build();
+
+        const existingComment = new CommentBuilder()
+            .withId('comment-existing')
+            .withAuthor(testUser.uid, testUser.displayName)
+            .withText('Welcome to the group!')
+            .build();
+
+        await mockGroupDetailApi(page, groupId, fullDetails);
+        await mockGroupCommentsApi(page, groupId, [existingComment]);
+
+        await groupDetailPage.navigateToGroup(groupId);
+        await groupDetailPage.waitForGroupToLoad();
+
+        await groupDetailPage.verifyCommentsSection();
+        await groupDetailPage.waitForCommentCount(1);
+        await groupDetailPage.verifyCommentVisible(existingComment.text);
+    });
+
+    test('should submit a new comment and reset the input state', async ({ authenticatedPage, msw }) => {
+        const { page, user: testUser } = authenticatedPage;
+        const groupDetailPage = new GroupDetailPage(page);
+        const groupId = 'group-comments-submit';
+
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withId(groupId)
+            .withName('Comments Submission Group')
+            .build();
+
+        const members = [
+            new GroupMemberBuilder()
+                .withUid(testUser.uid)
+                .withDisplayName(testUser.displayName)
+                .withGroupDisplayName(testUser.displayName)
+                .withTheme(
+                    ThemeBuilder
+                        .blue()
+                        .build(),
+                )
+                .build(),
+        ];
+
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members)
+            .build();
+
+        await mockGroupDetailApi(page, groupId, fullDetails);
+        await mockGroupCommentsApi(page, groupId);
+
+        const newCommentText = 'This group is great!';
+        const createdComment = new CommentBuilder()
+            .withId('comment-created')
+            .withAuthor(testUser.uid, testUser.displayName)
+            .withText(newCommentText)
+            .build();
+
+        await msw.use(createJsonHandler('POST', `/api/groups/${groupId}/comments`, createdComment, { once: true }));
+
+        await groupDetailPage.navigateToGroup(groupId);
+        await groupDetailPage.waitForGroupToLoad();
+        await groupDetailPage.verifyCommentsSection();
+
+        const commentRequestPromise = page.waitForRequest(
+            (request) => request.method() === 'POST' && request.url().endsWith(`/api/groups/${groupId}/comments`),
+        );
+
+        await groupDetailPage.addComment(newCommentText);
+
+        const commentRequest = await commentRequestPromise;
+        expect(commentRequest.postDataJSON()).toEqual({ text: newCommentText });
+
+        await expect(page.locator('[data-testid="comment-error-message"]')).toHaveCount(0);
     });
 });
 

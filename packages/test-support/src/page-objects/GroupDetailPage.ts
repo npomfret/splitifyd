@@ -273,6 +273,106 @@ export class GroupDetailPage extends BasePage {
     }
 
     // ============================================================================
+    // COMMENTS SECTION
+    // ============================================================================
+
+    /**
+     * Get the comments section container
+     */
+    getCommentsSection(): Locator {
+        return this.page.getByTestId('comments-section');
+    }
+
+    /**
+     * Get the comment input textarea
+     */
+    getCommentInput(): Locator {
+        return this.getCommentsSection().getByRole('textbox', { name: /comment text/i });
+    }
+
+    /**
+     * Get the send comment button
+     */
+    getSendCommentButton(): Locator {
+        return this.getCommentsSection().getByRole('button', { name: /send comment/i });
+    }
+
+    /**
+     * Get all comments currently rendered
+     */
+    getCommentItems(): Locator {
+        return this.getCommentsSection().locator('[data-testid="comment-item"]');
+    }
+
+    /**
+     * Get a comment locator by its text content
+     */
+    getCommentByText(text: string): Locator {
+        return this.getCommentsSection().getByText(text);
+    }
+
+    /**
+     * Add a comment using the UI controls
+     */
+    async addComment(text: string): Promise<void> {
+        const input = this.getCommentInput();
+        const sendButton = this.getSendCommentButton();
+
+        await expect(this.getCommentsSection()).toBeVisible();
+
+        await this.fillPreactInput(input, text);
+
+        await expect(sendButton).toBeEnabled();
+
+        await this.clickButton(sendButton, { buttonName: 'Send comment' });
+
+        await expect(sendButton).toBeDisabled({ timeout: 2000 });
+
+        await expect(input).toHaveValue('');
+        await expect(sendButton).toBeDisabled();
+    }
+
+    /**
+     * Wait for a comment containing specific text to become visible
+     */
+    async waitForCommentToAppear(text: string, timeout: number = 5000): Promise<void> {
+        const comment = this.getCommentByText(text);
+        await expect(comment).toBeVisible({ timeout });
+    }
+
+    /**
+     * Wait for the comment count to reach the expected value
+     */
+    async waitForCommentCount(expectedCount: number, timeout: number = 5000): Promise<void> {
+        await expect(async () => {
+            const count = await this.getCommentItems().count();
+            expect(count).toBe(expectedCount);
+        }).toPass({ timeout });
+    }
+
+    /**
+     * Verify the comments section renders with expected controls
+     */
+    async verifyCommentsSection(): Promise<void> {
+        await expect(this.getCommentsSection()).toBeVisible();
+
+        const input = this.getCommentInput();
+        await expect(input).toBeVisible();
+        await expect(input).toHaveAttribute('placeholder', /add a comment to this group/i);
+
+        const sendButton = this.getSendCommentButton();
+        await expect(sendButton).toBeVisible();
+        await expect(sendButton).toBeDisabled();
+    }
+
+    /**
+     * Verify a comment with given text is visible
+     */
+    async verifyCommentVisible(text: string): Promise<void> {
+        await expect(this.getCommentByText(text)).toBeVisible();
+    }
+
+    // ============================================================================
     // BALANCE SECTION
     // ============================================================================
 
