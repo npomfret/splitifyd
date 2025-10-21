@@ -11,6 +11,14 @@ import { HTTP_STATUS, SYSTEM } from './constants';
 import { createExpense, deleteExpense, getExpenseFullDetails, updateExpense } from './expenses/handlers';
 import { getAuth } from './firebase';
 import { createGroup, deleteGroup, getGroupFullDetails, listGroups, updateGroup, updateGroupMemberDisplayName } from './groups/handlers';
+import {
+    applySecurityPreset,
+    approveMember,
+    getPendingMembers,
+    rejectMember,
+    updateGroupPermissions,
+    updateMemberRole,
+} from './groups/security';
 import { leaveGroup, removeGroupMember } from './groups/memberHandlers';
 import { generateShareableLink, joinGroupByLink, previewGroupByLink } from './groups/shareHandlers';
 import { logger } from './logger';
@@ -354,8 +362,14 @@ function setupRoutes(app: express.Application): void {
     app.get(`/${FirestoreCollections.GROUPS}/:id/full-details`, authenticate, asyncHandler(getGroupFullDetails));
     app.put(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(updateGroup));
     app.delete(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(deleteGroup));
+    app.post(`/${FirestoreCollections.GROUPS}/:id/security/apply-preset`, authenticate, asyncHandler(applySecurityPreset));
+    app.patch(`/${FirestoreCollections.GROUPS}/:id/security/permissions`, authenticate, asyncHandler(updateGroupPermissions));
     app.post(`/${FirestoreCollections.GROUPS}/:id/leave`, authenticate, asyncHandler(leaveGroup));
     app.put(`/${FirestoreCollections.GROUPS}/:id/members/display-name`, authenticate, asyncHandler(updateGroupMemberDisplayName));
+    app.get(`/${FirestoreCollections.GROUPS}/:id/members/pending`, authenticate, asyncHandler(getPendingMembers));
+    app.patch(`/${FirestoreCollections.GROUPS}/:id/members/:memberId/role`, authenticate, asyncHandler(updateMemberRole));
+    app.post(`/${FirestoreCollections.GROUPS}/:id/members/:memberId/approve`, authenticate, asyncHandler(approveMember));
+    app.post(`/${FirestoreCollections.GROUPS}/:id/members/:memberId/reject`, authenticate, asyncHandler(rejectMember));
     app.delete(`/${FirestoreCollections.GROUPS}/:id/members/:memberId`, authenticate, asyncHandler(removeGroupMember));
 
     // Settlement endpoints (requires auth)

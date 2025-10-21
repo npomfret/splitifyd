@@ -20,7 +20,6 @@ import {
     MAX_GROUP_MEMBERS,
     type PolicyDTO,
     type RegisteredUser,
-    SecurityPresets,
     ExpenseId,
     type SettlementDTO,
 } from '@splitifyd/shared';
@@ -102,7 +101,6 @@ export class FirestoreReader implements IFirestoreReader {
      * - createdAt, updatedAt, deletedAt
      * - date (for expenses/settlements)
      * - joinedAt (for group members)
-     * - presetAppliedAt (for groups)
      * - lastModified, lastTransactionChange, lastBalanceChange, etc. (for notifications)
      */
     private convertTimestampsToISO<T extends Record<string, any>>(obj: T): T {
@@ -312,26 +310,18 @@ export class FirestoreReader implements IFirestoreReader {
         // These might be present in corrupted data from old migrations or test data
         delete sanitized.balance;
         delete sanitized.lastActivity;
-
-        // Sanitize securityPreset field - this is acceptable business logic
-        if (sanitized.securityPreset !== undefined) {
-            const validPresets = Object.values(SecurityPresets) as string[];
-            if (!validPresets.includes(sanitized.securityPreset as string)) {
-                logger.warn('Invalid securityPreset value detected, defaulting to OPEN');
-                // Default to OPEN for invalid values
-                sanitized.securityPreset = SecurityPresets.OPEN;
-            }
+        // Drop legacy fields that should no longer be stored
+        if ('securityPreset' in sanitized) {
+            delete sanitized.securityPreset;
+        }
+        if ('presetAppliedAt' in sanitized) {
+            delete sanitized.presetAppliedAt;
         }
 
         // Assert timestamp fields are proper Timestamp objects
         // DO NOT silently fix corrupted data - let it throw
         sanitized.createdAt = assertTimestamp(sanitized.createdAt, 'createdAt');
         sanitized.updatedAt = assertTimestamp(sanitized.updatedAt, 'updatedAt');
-
-        // Optional timestamp fields
-        if (sanitized.presetAppliedAt !== undefined && sanitized.presetAppliedAt !== null) {
-            sanitized.presetAppliedAt = assertTimestamp(sanitized.presetAppliedAt, 'presetAppliedAt');
-        }
 
         return sanitized;
     }

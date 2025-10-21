@@ -5,7 +5,7 @@
  */
 
 import { ReadonlySignal, signal } from '@preact/signals';
-import { GroupDTO, JoinGroupResponse } from '@splitifyd/shared';
+import { GroupDTO, JoinGroupResponse, MemberStatus } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
 
 class JoinGroupStore {
@@ -22,6 +22,7 @@ class JoinGroupStore {
     readonly #joinedGroupIdSignal = signal<string | null>(null);
     readonly #updatingDisplayNameSignal = signal<boolean>(false);
     readonly #displayNameUpdateErrorSignal = signal<string | null>(null);
+    readonly #memberStatusSignal = signal<MemberStatus | null>(null);
 
     // State getters - readonly values for external consumers
     get group() {
@@ -60,6 +61,9 @@ class JoinGroupStore {
     get displayNameUpdateError() {
         return this.#displayNameUpdateErrorSignal.value;
     }
+    get memberStatus() {
+        return this.#memberStatusSignal.value;
+    }
 
     get errorSignal(): ReadonlySignal<string | null> {
         return this.#errorSignal;
@@ -82,7 +86,6 @@ class JoinGroupStore {
                 createdBy: '', // Will be populated from server
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
-                securityPreset: 'open' as const,
                 permissions: {
                     expenseEditing: 'anyone' as const,
                     expenseDeletion: 'anyone' as const,
@@ -100,6 +103,7 @@ class JoinGroupStore {
             this.#memberCountSignal.value = preview.memberCount;
             this.#isAlreadyMemberSignal.value = preview.isAlreadyMember;
             this.#loadingPreviewSignal.value = false;
+            this.#memberStatusSignal.value = null;
 
             // Don't auto-redirect if user is already a member - let them see the UI and click "Go to Group"
         } catch (error: any) {
@@ -126,6 +130,7 @@ class JoinGroupStore {
             this.#joinedGroupIdSignal.value = response.groupId;
             this.#displayNameConflictSignal.value = response.displayNameConflict;
             this.#joiningSignal.value = false;
+            this.#memberStatusSignal.value = response.memberStatus;
             if (response.displayNameConflict) {
                 // Conflict will be handled by UI prompting for a new name
                 this.#joinSuccessSignal.value = false;
@@ -147,7 +152,6 @@ class JoinGroupStore {
                     createdBy: '',
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString(),
-                    securityPreset: 'open',
                     permissions: {
                         expenseEditing: 'anyone',
                         expenseDeletion: 'anyone',
@@ -162,7 +166,7 @@ class JoinGroupStore {
                 };
             }
 
-            this.#joinSuccessSignal.value = true;
+            this.#joinSuccessSignal.value = response.success;
             return response;
         } catch (error: any) {
             let errorMessage = 'Failed to join group';
@@ -181,6 +185,7 @@ class JoinGroupStore {
 
             this.#joiningSignal.value = false;
             this.#errorSignal.value = errorMessage;
+            this.#memberStatusSignal.value = null;
             return null;
         }
     }
@@ -198,6 +203,7 @@ class JoinGroupStore {
         this.#joinedGroupIdSignal.value = null;
         this.#updatingDisplayNameSignal.value = false;
         this.#displayNameUpdateErrorSignal.value = null;
+        this.#memberStatusSignal.value = null;
     }
 
     clearError() {
@@ -217,6 +223,7 @@ class JoinGroupStore {
 
             this.#displayNameConflictSignal.value = false;
             this.#joinSuccessSignal.value = true;
+            this.#memberStatusSignal.value = 'active';
         } catch (error: any) {
             this.#displayNameUpdateErrorSignal.value = error?.message || 'Failed to update display name';
             throw error;
@@ -230,6 +237,7 @@ class JoinGroupStore {
         this.#joinSuccessSignal.value = true;
         this.#updatingDisplayNameSignal.value = false;
         this.#displayNameUpdateErrorSignal.value = null;
+        this.#memberStatusSignal.value = 'active';
     }
 
     clearDisplayNameError() {

@@ -504,12 +504,12 @@ class PermissionSync {
 
 **Goal**: Add role-based permissions and admin approval
 
-**Backend Tasks**: 8. **Group Management Handlers** (`firebase/functions/src/groups/handlers.ts`) ⚠️ UNCLEAR STATUS
+**Backend Tasks**: 8. **Group Management Handlers** (`firebase/functions/src/groups/handlers.ts`) ✅ COMPLETED
 
-- ⚠️ `applySecurityPreset(groupId, preset)` endpoint - **ApiDriver method exists, backend implementation status unclear**
-- ⚠️ `setMemberRole(groupId, targetUserId, role)` with last admin protection - **ApiDriver method exists, tests pass**
-- ❌ `approveMember(groupId, userId)` and `rejectMember(groupId, userId)` - **ApiDriver methods exist, endpoints return 404**
-- ❌ `getPendingMembers(groupId)` endpoint - **ApiDriver method exists, endpoint returns 404**
+- ✅ `applySecurityPreset(groupId, preset)` endpoint
+- ✅ `setMemberRole(groupId, targetUserId, role)` with last admin protection
+- ✅ `approveMember(groupId, userId)` and `rejectMember(groupId, userId)`
+- ✅ `getPendingMembers(groupId)` endpoint
 
 9. **Invite System** (`firebase/functions/src/invites/`) ❌ NOT STARTED
     - `createInviteLink(groupId, options)` with expiry/usage limits
@@ -523,7 +523,7 @@ class PermissionSync {
     - Add permission tooltips explaining restrictions
     - Update member invitation flow for managed groups
 
-**Testing**: 12. **Role-based Permission Tests** ✅ PARTIALLY IMPLEMENTED - ✅ Admin vs member permission boundaries - **4 tests passing for preset application (permissions updated correctly) and role changes** - ✅ Last admin protection scenarios - **Test verifies last admin cannot be demoted** - ⚠️ Pending member approval workflow - **Tests written but commented out (endpoints don't exist)** - ❌ Invite link expiry and usage limits - **Not tested**
+**Testing**: 12. **Role-based Permission Tests** ✅ PARTIALLY IMPLEMENTED - ✅ Admin vs member permission boundaries - **4 tests passing for preset application (permissions updated correctly) and role changes** - ✅ Last admin protection scenarios - **Unit tests now cover last-admin protection** - ✅ Pending member approval workflow - **Unit tests cover join pending flow; integration test exercises approval/rejection APIs** - ❌ Invite link expiry and usage limits - **Not tested**
 
 **Current Changeset Analysis (2025-08-27):**
 

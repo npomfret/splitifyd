@@ -1,4 +1,16 @@
-import { CreateGroupRequest, CreateGroupRequestSchema, UpdateDisplayNameRequest, UpdateDisplayNameRequestSchema, UpdateGroupRequest, UpdateGroupRequestSchema } from '@splitifyd/shared';
+import {
+    CreateGroupRequest,
+    CreateGroupRequestSchema,
+    GroupPermissions,
+    MemberRoles,
+    PermissionLevels,
+    SecurityPresets,
+    UpdateDisplayNameRequest,
+    UpdateDisplayNameRequestSchema,
+    UpdateGroupRequest,
+    UpdateGroupRequestSchema,
+} from '@splitifyd/shared';
+import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 import { sanitizeString } from '../utils/security';
@@ -79,4 +91,72 @@ export const sanitizeGroupData = <T extends CreateGroupRequest | UpdateGroupRequ
     }
 
     return sanitized as T;
+};
+
+const ApplySecurityPresetSchema = z.object({
+    preset: z.nativeEnum(SecurityPresets),
+});
+
+const ExpensePermissionSchema = z.enum([
+    PermissionLevels.ANYONE,
+    PermissionLevels.OWNER_AND_ADMIN,
+    PermissionLevels.ADMIN_ONLY,
+]);
+const MemberInvitationPermissionSchema = z.enum([PermissionLevels.ANYONE, PermissionLevels.ADMIN_ONLY]);
+const SettingsManagementPermissionSchema = z.enum([PermissionLevels.ANYONE, PermissionLevels.ADMIN_ONLY]);
+const MemberApprovalSchema = z.enum(['automatic', 'admin-required']);
+
+const UpdateGroupPermissionsSchema = z
+    .object({
+        expenseEditing: ExpensePermissionSchema.optional(),
+        expenseDeletion: ExpensePermissionSchema.optional(),
+        memberInvitation: MemberInvitationPermissionSchema.optional(),
+        memberApproval: MemberApprovalSchema.optional(),
+        settingsManagement: SettingsManagementPermissionSchema.optional(),
+    })
+    .refine((value) => Object.values(value).some((v) => v !== undefined), {
+        message: 'At least one permission must be provided',
+    });
+
+const UpdateMemberRoleSchema = z.object({
+    role: z.nativeEnum(MemberRoles),
+});
+
+export type ApplySecurityPresetRequest = z.infer<typeof ApplySecurityPresetSchema>;
+export type UpdateGroupPermissionsRequest = Partial<GroupPermissions>;
+export type UpdateMemberRoleRequestBody = z.infer<typeof UpdateMemberRoleSchema>;
+
+export const validateApplySecurityPreset = (body: unknown): ApplySecurityPresetRequest => {
+    return parseWithApiError(ApplySecurityPresetSchema, body, {
+        preset: {
+            code: 'INVALID_INPUT',
+            message: 'Invalid preset value',
+        },
+    });
+};
+
+export const validateUpdateGroupPermissionsRequest = (body: unknown): UpdateGroupPermissionsRequest => {
+    return parseWithApiError(UpdateGroupPermissionsSchema, body, {
+        expenseEditing: { code: 'INVALID_INPUT', message: 'Invalid expense editing permission' },
+        expenseDeletion: { code: 'INVALID_INPUT', message: 'Invalid expense deletion permission' },
+        memberInvitation: { code: 'INVALID_INPUT', message: 'Invalid member invitation permission' },
+        memberApproval: { code: 'INVALID_INPUT', message: 'Invalid member approval requirement' },
+        settingsManagement: { code: 'INVALID_INPUT', message: 'Invalid settings management permission' },
+    }) as UpdateGroupPermissionsRequest;
+};
+
+export const validateUpdateMemberRoleRequest = (body: unknown): UpdateMemberRoleRequestBody => {
+    return parseWithApiError(UpdateMemberRoleSchema, body, {
+        role: {
+            code: 'INVALID_INPUT',
+            message: 'Invalid member role',
+        },
+    });
+};
+
+export const validateMemberId = (memberId: unknown): string => {
+    if (!memberId || typeof memberId !== 'string' || memberId.trim().length === 0) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_INPUT', 'member ID is required');
+    }
+    return memberId.trim();
 };

@@ -1,5 +1,5 @@
-import type { GroupDTO, GroupPermissions, SecurityPreset, UserThemeColor } from '@splitifyd/shared';
-import { MemberRoles, MemberStatuses, SecurityPresets } from '@splitifyd/shared';
+import type { GroupDTO, GroupPermissions, UserThemeColor } from '@splitifyd/shared';
+import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, randomChoice, randomString, timestampToISOString } from '../test-helpers';
 
 /**
@@ -19,15 +19,11 @@ export class GroupDTOBuilder {
         createdBy: string;
         name: string;
         description?: string;
-        securityPreset: SecurityPreset;
-        presetAppliedAt: Date | string | { toDate(): Date; };
         permissions: GroupPermissions;
     } = {
         createdBy: `user-${generateShortId()}`,
         name: `${randomChoice(['Team', 'Group', 'Squad', 'Club', 'Circle'])} ${randomString(4)}`,
         description: `A test group for ${randomString(6)}`,
-        securityPreset: SecurityPresets.OPEN,
-        presetAppliedAt: new Date(),
         permissions: {
             expenseEditing: 'anyone',
             expenseDeletion: 'anyone',
@@ -92,11 +88,6 @@ export class GroupDTOBuilder {
         return this;
     }
 
-    withSecurityPreset(preset: SecurityPreset): this {
-        this.businessFields.securityPreset = preset;
-        return this;
-    }
-
     withPermissions(permissions: Partial<GroupPermissions>): this {
         this.businessFields.permissions = { ...this.businessFields.permissions, ...permissions };
         return this;
@@ -109,11 +100,6 @@ export class GroupDTOBuilder {
 
     withUpdatedAt(timestamp: BuilderTimestamp): this {
         this.auditFields.updatedAt = timestamp;
-        return this;
-    }
-
-    withPresetAppliedAt(timestamp: BuilderTimestamp): this {
-        this.businessFields.presetAppliedAt = timestamp;
         return this;
     }
 
@@ -174,8 +160,6 @@ export class GroupDTOBuilder {
             // Convert audit timestamps to ISO strings for client
             createdAt: timestampToISOString(this.auditFields.createdAt),
             updatedAt: timestampToISOString(this.auditFields.updatedAt),
-            // Convert business field timestamps to ISO strings for client
-            presetAppliedAt: timestampToISOString(this.businessFields.presetAppliedAt),
             // Default client fields if not set
             balance: this.clientFields.balance || { balancesByCurrency: {} },
             lastActivity: this.clientFields.lastActivity || '2 hours ago',
@@ -194,8 +178,6 @@ export class GroupDTOBuilder {
             // Convert audit timestamps to ISO strings
             createdAt: timestampToISOString(this.auditFields.createdAt),
             updatedAt: timestampToISOString(this.auditFields.updatedAt),
-            // Convert business field timestamps to ISO strings
-            presetAppliedAt: timestampToISOString(this.businessFields.presetAppliedAt),
         };
         return result;
     }

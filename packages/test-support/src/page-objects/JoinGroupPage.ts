@@ -77,6 +77,10 @@ export class JoinGroupPage extends BasePage {
         return this.page.locator('[data-testid="invalid-link-warning"], [data-testid="unable-join-warning"]');
     }
 
+    getPendingApprovalAlert(): Locator {
+        return this.page.getByTestId('pending-approval-alert');
+    }
+
     getBackToDashboardButton(): Locator {
         return this.page.getByRole('button', { name: /Go to dashboard/i });
     }
@@ -354,6 +358,12 @@ export class JoinGroupPage extends BasePage {
 
     async verifyJoinButtonDisabled(): Promise<void> {
         await expect(this.getJoinGroupButton()).toBeDisabled();
+    }
+
+    async verifyPendingApprovalAlertVisible(expectedGroupName: string): Promise<void> {
+        const alert = this.getPendingApprovalAlert();
+        await expect(alert).toBeVisible();
+        await expect(alert).toContainText(expectedGroupName);
     }
 
     async clickJoinGroupButton(): Promise<void> {

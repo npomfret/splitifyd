@@ -1,4 +1,4 @@
-import { MAX_GROUP_MEMBERS } from '@splitifyd/shared';
+import { MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels } from '@splitifyd/shared';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -293,6 +293,104 @@ describe('GroupShareService', () => {
             expect(result.displayNameConflict).toBe(true);
             expect(result.groupId).toBe(groupId);
             expect(result.success).toBe(true);
+        });
+    });
+
+    describe('member approval workflow - admin required', () => {
+        const groupId = 'managed-group';
+        const linkId = 'managed-link';
+        const ownerId = 'owner-id';
+        const pendingUserId = 'pending-user-id';
+
+        beforeEach(() => {
+            const managedGroup = new GroupDTOBuilder()
+                .withId(groupId)
+                .withCreatedBy(ownerId)
+                .withPermissions({
+                    expenseEditing: PermissionLevels.OWNER_AND_ADMIN,
+                    expenseDeletion: PermissionLevels.OWNER_AND_ADMIN,
+                    memberInvitation: PermissionLevels.ADMIN_ONLY,
+                    memberApproval: 'admin-required',
+                    settingsManagement: PermissionLevels.ADMIN_ONLY,
+                })
+                .build();
+            db.seedGroup(groupId, managedGroup);
+            db.initializeGroupBalance(groupId);
+
+            const shareLink = {
+                id: linkId,
+                token: linkId,
+                createdBy: ownerId,
+                isActive: true,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
+            db.seed(`groups/${groupId}/shareLinks/${linkId}`, shareLink);
+
+            const ownerMember = new GroupMemberDocumentBuilder()
+                .withUserId(ownerId)
+                .withGroupId(groupId)
+                .asAdmin()
+                .asActive()
+                .buildDocument();
+            db.seedGroupMember(groupId, ownerId, ownerMember);
+
+            db.seedUser(pendingUserId, { displayName: 'Pending User' });
+        });
+
+        it('should mark joins as pending when admin approval is required', async () => {
+            const result = await groupShareService.joinGroupByLink(pendingUserId, linkId);
+            expect(result.success).toBe(false);
+            expect(result.memberStatus).toBe(MemberStatuses.PENDING);
+
+            const storedMembership = await firestoreReader.getGroupMember(groupId, pendingUserId);
+            expect(storedMembership).not.toBeNull();
+            expect(storedMembership?.memberStatus).toBe(MemberStatuses.PENDING);
+        });
+    });
+
+    describe('member approval workflow - automatic', () => {
+        const groupId = 'open-group';
+        const linkId = 'open-link';
+        const ownerId = 'open-owner';
+        const joiningUserId = 'joining-user';
+
+        beforeEach(() => {
+            const openGroup = new GroupDTOBuilder()
+                .withId(groupId)
+                .withCreatedBy(ownerId)
+                .build();
+            db.seedGroup(groupId, openGroup);
+            db.initializeGroupBalance(groupId);
+
+            const shareLink = {
+                id: linkId,
+                token: linkId,
+                createdBy: ownerId,
+                isActive: true,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
+            db.seed(`groups/${groupId}/shareLinks/${linkId}`, shareLink);
+
+            const ownerMember = new GroupMemberDocumentBuilder()
+                .withUserId(ownerId)
+                .withGroupId(groupId)
+                .asAdmin()
+                .asActive()
+                .buildDocument();
+            db.seedGroupMember(groupId, ownerId, ownerMember);
+
+            db.seedUser(joiningUserId, { displayName: 'Joining User' });
+        });
+
+        it('should activate members immediately when approval is automatic', async () => {
+            const result = await groupShareService.joinGroupByLink(joiningUserId, linkId);
+            expect(result.success).toBe(true);
+            expect(result.memberStatus).toBe(MemberStatuses.ACTIVE);
+
+            const storedMembership = await firestoreReader.getGroupMember(groupId, joiningUserId);
+            expect(storedMembership?.memberStatus).toBe(MemberStatuses.ACTIVE);
         });
     });
 });

@@ -1,4 +1,4 @@
-import { MemberRoles } from '@splitifyd/shared';
+import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { GroupBalanceDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, ThemeBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
 import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { Timestamp } from 'firebase-admin/firestore';
@@ -144,6 +144,91 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
             // Assert
             expect(result).toBe(false);
+        });
+    });
+
+    describe('Security Role and Approval Workflow', () => {
+        const groupId = 'test-group-id';
+        const adminUserId = 'admin-user';
+        const memberUserId = 'member-user';
+        const pendingUserId = 'pending-user';
+
+        beforeEach(() => {
+            const managedGroup = new GroupDTOBuilder()
+                .withId(groupId)
+                .withCreatedBy(adminUserId)
+                .withPermissions({
+                    memberApproval: 'admin-required',
+                    memberInvitation: 'admin-only',
+                    expenseEditing: 'owner-and-admin',
+                    expenseDeletion: 'owner-and-admin',
+                    settingsManagement: 'admin-only',
+                })
+                .build();
+            db.seedGroup(groupId, managedGroup);
+            db.initializeGroupBalance(groupId);
+
+            const adminMember = new GroupMemberDocumentBuilder()
+                .withUserId(adminUserId)
+                .withGroupId(groupId)
+                .asAdmin()
+                .asActive()
+                .buildDocument();
+            const activeMember = new GroupMemberDocumentBuilder()
+                .withUserId(memberUserId)
+                .withGroupId(groupId)
+                .asMember()
+                .asActive()
+                .buildDocument();
+            const pendingMember = new GroupMemberDocumentBuilder()
+                .withUserId(pendingUserId)
+                .withGroupId(groupId)
+                .asMember()
+                .asPending()
+                .buildDocument();
+
+            db.seedGroupMember(groupId, adminUserId, adminMember);
+            db.seedGroupMember(groupId, memberUserId, activeMember);
+            db.seedGroupMember(groupId, pendingUserId, pendingMember);
+        });
+
+        it('should allow admin to promote a member to admin', async () => {
+            const response = await groupMemberService.updateMemberRole(adminUserId, groupId, memberUserId, MemberRoles.ADMIN);
+            expect(response.message).toContain('Member role updated');
+
+            const updatedMember = await firestoreReader.getGroupMember(groupId, memberUserId);
+            expect(updatedMember?.memberRole).toBe(MemberRoles.ADMIN);
+        });
+
+        it('should prevent removing the last active admin', async () => {
+            await expect(
+                groupMemberService.updateMemberRole(adminUserId, groupId, adminUserId, MemberRoles.MEMBER),
+            ).rejects.toMatchObject({
+                details: { message: expect.stringMatching(/last active admin/i) },
+            });
+        });
+
+        it('should approve pending members', async () => {
+            const response = await groupMemberService.approveMember(adminUserId, groupId, pendingUserId);
+            expect(response.message).toContain('Member approved');
+
+            const approvedMember = await firestoreReader.getGroupMember(groupId, pendingUserId);
+            expect(approvedMember?.memberStatus).toBe(MemberStatuses.ACTIVE);
+        });
+
+        it('should reject pending members', async () => {
+            const response = await groupMemberService.rejectMember(adminUserId, groupId, pendingUserId);
+            expect(response.message).toContain('Member rejected');
+
+            const rejectedMember = await firestoreReader.getGroupMember(groupId, pendingUserId);
+            expect(rejectedMember).toBeNull();
+        });
+
+        it('should list pending members for admins', async () => {
+            const pendingMembers = await groupMemberService.getPendingMembers(adminUserId, groupId);
+            expect(pendingMembers).toHaveLength(1);
+            expect(pendingMembers[0].uid).toBe(pendingUserId);
+            expect(pendingMembers[0].memberStatus).toBe(MemberStatuses.PENDING);
         });
     });
 

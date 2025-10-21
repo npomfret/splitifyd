@@ -102,6 +102,35 @@ test.describe('Join Group Page - Successful Join', () => {
         await joinGroupPage.verifySuccessHeadingContains('Welcome to New Group');
     });
 
+    test('should show pending approval message when admin approval is required', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
+        const joinGroupPage = new JoinGroupPage(page);
+
+        await setupSuccessfulApiMocks(page);
+
+        const previewResponse = PreviewGroupResponseBuilder
+            .newMember()
+            .withGroupName('Managed Group')
+            .build();
+        await mockGroupPreviewApi(page, previewResponse);
+
+        const pendingJoinResponse = new JoinGroupResponseBuilder()
+            .withGroupId('group-managed')
+            .withGroupName('Managed Group')
+            .withSuccess(false)
+            .withMemberStatus('pending')
+            .build();
+        await mockJoinGroupApi(page, pendingJoinResponse);
+
+        await page.goto('/join?linkId=managed-link');
+
+        await joinGroupPage.verifyJoinGroupHeadingVisible();
+        await joinGroupPage.clickJoinGroupButton();
+
+        await joinGroupPage.verifyPendingApprovalAlertVisible('Managed Group');
+        await joinGroupPage.verifyJoinButtonDisabled();
+    });
+
     test('should show error when join fails', async ({ authenticatedPage }) => {
         const { page } = authenticatedPage;
         const joinGroupPage = new JoinGroupPage(page);

@@ -4,7 +4,6 @@
  * Tests the basic functionality of the FirestoreReader service and MockFirestoreReader
  */
 
-import { SecurityPresets } from '@splitifyd/shared';
 import { GroupDTOBuilder } from '@splitifyd/test-support';
 import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { beforeEach, describe, expect, test } from 'vitest';
@@ -62,7 +61,7 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
     // Helper to convert ISO strings to Timestamps for Firestore storage
     const convertDatesToTimestamps = (data: any) => {
         const converted = { ...data };
-        const dateFields = ['createdAt', 'updatedAt', 'deletedAt', 'presetAppliedAt'];
+        const dateFields = ['createdAt', 'updatedAt', 'deletedAt'];
         for (const field of dateFields) {
             if (converted[field] && typeof converted[field] === 'string') {
                 converted[field] = Timestamp.fromDate(new Date(converted[field]));
@@ -76,100 +75,6 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
         firestoreReader = new FirestoreReader(db);
     });
 
-    describe('Invalid SecurityPreset Values', () => {
-        test('should handle groups with invalid securityPreset values gracefully', async () => {
-            // Test that invalid securityPreset values don't break the application
-            // In the real system, FirestoreReader.sanitizeGroupData() handles this
-
-            // Use builder to create valid group data, then corrupt the securityPreset
-            const validGroup = new GroupDTOBuilder()
-                .withName('Test Group')
-                .withDescription('Group with invalid security preset')
-                .withCreatedBy('user123')
-                .build();
-
-            const corruptedGroup = {
-                ...validGroup,
-                securityPreset: 'invalid-value', // This should be sanitized to 'open'
-                id: 'test-group-id',
-            };
-
-            db.seed('groups/test-group-id', convertDatesToTimestamps(corruptedGroup));
-
-            const result = await firestoreReader.getGroup('test-group-id');
-
-            expect(result).toBeDefined();
-            expect(result!.id).toBe('test-group-id');
-            expect(result!.name).toBe('Test Group');
-            // Note: StubFirestoreReader doesn't implement sanitization logic
-            // This test documents the expected behavior that the real implementation handles
-        });
-
-        test('should handle various invalid securityPreset data types', async () => {
-            // Test different types of invalid data that might appear in the database
-            const invalidPresetTypes = [
-                { preset: null, description: 'null value' },
-                { preset: 123, description: 'numeric value' },
-                { preset: {}, description: 'object value' },
-                { preset: [], description: 'array value' },
-                { preset: '', description: 'empty string' },
-            ];
-
-            for (const { preset, description } of invalidPresetTypes) {
-                const groupId = `group-${description.replace(/\s+/g, '-')}`;
-
-                // Use builder for valid base data, then corrupt securityPreset
-                const validGroup = new GroupDTOBuilder()
-                    .withName(`Group with ${description}`)
-                    .withDescription(`Testing ${description}`)
-                    .withCreatedBy('user123')
-                    .build();
-
-                const corruptedGroup = {
-                    ...validGroup,
-                    id: groupId,
-                    securityPreset: preset, // Invalid value
-                };
-
-                db.seed(`groups/${groupId}`, convertDatesToTimestamps(corruptedGroup));
-
-                // The application should not crash when retrieving groups with invalid data
-                const result = await firestoreReader.getGroup(groupId);
-                expect(result).toBeDefined();
-                expect(result!.id).toBe(groupId);
-            }
-        });
-
-        test('should preserve valid securityPreset values', async () => {
-            // Test that valid values are preserved
-            const validPresets = Object.values(SecurityPresets);
-
-            for (const validPreset of validPresets) {
-                const groupId = `group-${validPreset}`;
-
-                // Use builder with valid securityPreset
-                const groupData = new GroupDTOBuilder()
-                    .withName(`Group with ${validPreset}`)
-                    .withDescription(`Testing ${validPreset} preset`)
-                    .withCreatedBy('user123')
-                    .build();
-
-                // Override with specific valid preset
-                const groupWithPreset = {
-                    ...groupData,
-                    id: groupId,
-                    securityPreset: validPreset,
-                };
-
-                db.seed(`groups/${groupId}`, convertDatesToTimestamps(groupWithPreset));
-
-                const result = await firestoreReader.getGroup(groupId);
-                expect(result).toBeDefined();
-                expect(result!.securityPreset).toBe(validPreset);
-            }
-        });
-    });
-
     describe('Malformed Document Handling', () => {
         test('should reject documents with missing required fields', async () => {
             // Test that the application rejects incomplete documents via validation
@@ -181,7 +86,6 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
             const incompleteGroup = {
                 id: 'incomplete-group',
                 // Remove required fields to simulate corruption
-                securityPreset: validGroup.securityPreset,
                 createdAt: Timestamp.fromDate(new Date(validGroup.createdAt)),
                 updatedAt: Timestamp.now(), // Add required timestamp field
                 // Missing name, description, createdBy
@@ -244,7 +148,7 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
                 id: 'bad-timestamps-group',
                 // Keep valid createdAt and updatedAt to pass basic validation
                 // Test that the reader rejects invalid timestamp fields
-                presetAppliedAt: {}, // Should be Timestamp or null, not object
+                createdAt: {} as any, // Should be Timestamp or ISO string, not object
             };
 
             // Don't try to convert - seed directly
@@ -294,9 +198,15 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
                 .build();
 
             const groupData = [
-                { ...goodGroup1, id: 'good-group-1', securityPreset: SecurityPresets.OPEN },
-                { ...goodGroup1, id: 'bad-group-1', name: 'Bad Group 1', description: 'Group with invalid preset', securityPreset: 'invalid-preset' },
-                { ...goodGroup2, id: 'good-group-2', securityPreset: SecurityPresets.MANAGED },
+                { ...goodGroup1, id: 'good-group-1' },
+                {
+                    ...goodGroup1,
+                    id: 'bad-group-1',
+                    name: 'Bad Group 1',
+                    description: 'Group with invalid permissions',
+                    permissions: { ...goodGroup1.permissions, expenseEditing: 'invalid-permission' as any },
+                },
+                { ...goodGroup2, id: 'good-group-2' },
             ];
 
             // Set up all groups

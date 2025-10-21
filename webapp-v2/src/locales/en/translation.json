@@ -974,6 +974,9 @@
     "joinSuccess": "You've successfully joined the group. Redirecting to group page...",
     "joinedTitle": "Joined {{groupName}} - Splitifyd",
     "backToDashboard": "Back to Dashboard",
+    "pendingApprovalTitle": "Awaiting approval",
+    "pendingApprovalMessage": "Your request to join {{groupName}} has been sent to the group admins.",
+    "pendingApprovalHelp": "We'll notify you once you're approved. You can head back to your dashboard for now.",
     "errors": {
       "invalidLink": "This invitation link is invalid or has expired",
       "groupNotFound": "This group no longer exists",

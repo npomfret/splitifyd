@@ -28,12 +28,6 @@ type GroupId = string;
 type ExpenseId = string;
 type SettlementId = string;
 
-const SecurityPresets = {
-    OPEN: 'open',
-    MANAGED: 'managed',
-    CUSTOM: 'custom',
-} as const;
-
 export type FirestoreTriggerEventType = 'create' | 'update' | 'delete';
 
 export interface FirestoreTriggerChange {
@@ -1400,7 +1394,6 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
             'createdAt',
             'updatedAt',
             'deletedAt',
-            'presetAppliedAt',
             'markedForDeletionAt',
             'joinedAt',
             'groupUpdatedAt',
@@ -1456,7 +1449,12 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
 
     seedGroup(groupId: GroupId, overrides: Record<string, any> = {}): void {
         const now = Timestamp.now();
-        const { permissions: overridePermissions, ...restOverrides } = overrides;
+        const {
+            permissions: overridePermissions,
+            securityPreset: _legacySecurityPreset,
+            presetAppliedAt: _legacyPresetAppliedAt,
+            ...restOverrides
+        } = overrides;
 
         const defaultPermissions = {
             expenseEditing: 'anyone',
@@ -1471,8 +1469,6 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
             name: restOverrides.name ?? 'Test Group',
             description: restOverrides.description ?? 'A test group',
             createdBy: restOverrides.createdBy ?? 'test-creator',
-            securityPreset: restOverrides.securityPreset ?? SecurityPresets.OPEN,
-            presetAppliedAt: restOverrides.presetAppliedAt ?? now.toDate().toISOString(),
             permissions: {
                 ...defaultPermissions,
                 ...(overridePermissions ?? {}),
@@ -1489,6 +1485,15 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
     seedGroupMember(groupId: GroupId, userId: string, memberData: Record<string, any>): void {
         const firestoreData = this.convertDatesToTimestamps(memberData);
         this.seed(`group-memberships/${userId}_${groupId}`, firestoreData);
+        const notificationPath = `user-notifications/${userId}`;
+        if (!this.storage.has(notificationPath)) {
+            const now = Timestamp.now();
+            this.seed(notificationPath, {
+                changeVersion: 0,
+                groups: {},
+                lastModified: now,
+            });
+        }
     }
 
     seedExpense(expenseId: ExpenseId, expenseData: Record<string, any>): void {

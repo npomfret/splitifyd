@@ -48,41 +48,59 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
         await notificationDriver.stopAllListeners();
     });
 
-    describe('Invalid securityPreset values', () => {
+    describe('Invalid permissions values', () => {
         let testGroupIds: string[] = []; // Track groups created in each test
 
         beforeEach(async () => {
             testGroupIds = [];
 
-            // Create groups with invalid securityPreset values using builders
-            const invalidSecurityPresets = ['unknown', 123, null];
-            const invalidGroupNames = ['Invalid SecurityPreset Group - Unknown', 'Invalid SecurityPreset Group - Numeric', 'Invalid SecurityPreset Group - Null'];
+            // Create groups with invalid permissions configurations using builders
+            const invalidPermissionCases: Array<{ name: string; mutate: (permissions: any) => any; }> = [
+                {
+                    name: 'Invalid Expense Editing Permission',
+                    mutate: (permissions: any) => ({
+                        ...permissions,
+                        expenseEditing: 'invalid-value',
+                    }),
+                },
+                {
+                    name: 'Non-string Member Invitation Permission',
+                    mutate: (permissions: any) => ({
+                        ...permissions,
+                        memberInvitation: 123 as any,
+                    }),
+                },
+                {
+                    name: 'Incomplete Permissions Object',
+                    mutate: () => ({
+                        expenseEditing: 'anyone',
+                    }),
+                },
+            ];
 
-            for (let i = 0; i < invalidSecurityPresets.length; i++) {
+            for (const { name, mutate } of invalidPermissionCases) {
                 const groupRef = firestore.collection(FirestoreCollections.GROUPS).doc();
 
-                // Build valid group data, then corrupt the securityPreset field
+                // Build valid group data, then corrupt the permissions field
                 // Note: GroupDTOBuilder produces DTOs with ISO strings, but we're writing to Firestore
                 // which requires Timestamps. We must convert ALL date fields.
                 const validGroup = new GroupDTOBuilder()
-                    .withName(invalidGroupNames[i])
-                    .withDescription('Group with invalid securityPreset')
+                    .withName(`Invalid Permissions Group - ${name}`)
+                    .withDescription('Group with invalid permissions configuration')
                     .withCreatedBy(testUser.uid)
                     .build();
 
                 const now = Timestamp.now();
-                // Corrupt the securityPreset field - this is the invalid data we're testing
+                // Corrupt the permissions field - this is the invalid data we're testing
                 const corruptedGroup = {
                     name: validGroup.name,
                     description: validGroup.description,
                     createdBy: validGroup.createdBy,
-                    permissions: validGroup.permissions,
-                    securityPreset: invalidSecurityPresets[i],
+                    permissions: mutate(validGroup.permissions),
                     id: groupRef.id,
                     // All timestamps must be Firestore Timestamps, not ISO strings
                     createdAt: now,
                     updatedAt: now,
-                    presetAppliedAt: now,
                 };
 
                 await groupRef.set(corruptedGroup);
@@ -103,7 +121,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             }
         });
 
-        test('GET /groups should return successfully despite invalid securityPreset values', async () => {
+        test('GET /groups should return successfully despite invalid permission values', async () => {
             // Call the API endpoint that would normally fail with invalid data
             const response = await apiDriver.listGroups(testUser.token);
 
@@ -118,7 +136,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             expect(validGroup?.name).toBe('Valid Test Group');
         });
 
-        // REMOVED: Individual group securityPreset validation test
+        // REMOVED: Individual field validation test
         // This is now covered by unit tests (FirestoreReader.validation.unit.test.ts)
         // which are faster and don't require Firebase setup.
         // The GET /groups test above already validates that invalid presets don't break the list endpoint.
@@ -174,7 +192,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
         });
 
         // NOTE: Additional data validation scenarios have been moved to unit tests:
-        // - FirestoreReader.validation.unit.test.ts covers securityPreset sanitization
+        // - FirestoreReader.validation.unit.test.ts covers permission sanitization
         // - Timestamp validation, missing fields, and wrong data types
         // - These unit tests are faster and provide better isolation
     });

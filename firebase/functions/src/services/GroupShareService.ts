@@ -202,6 +202,7 @@ export class GroupShareService {
         if (!preCheckGroup) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
+        const requiresApproval = preCheckGroup.permissions?.memberApproval === 'admin-required';
 
         // Early membership check to avoid transaction if user is already a member
         const existingMember = await this.firestoreReader.getGroupMember(groupId, userId);
@@ -242,7 +243,7 @@ export class GroupShareService {
             memberRole: MemberRoles.MEMBER,
             theme: themeColor,
             joinedAt: joinedAt,
-            memberStatus: MemberStatuses.ACTIVE,
+            memberStatus: requiresApproval ? MemberStatuses.PENDING : MemberStatuses.ACTIVE,
             invitedBy: shareLink.createdBy,
             groupDisplayName: userData.displayName, // Default to user's account display name
         };
@@ -289,14 +290,16 @@ export class GroupShareService {
             linkId: linkId.substring(0, 4) + '...',
             invitedBy: result.invitedBy,
             displayNameConflict,
+            memberStatus: memberDoc.memberStatus,
             timings: timer.getTimings(),
         });
 
         return {
             groupId,
             groupName: result.groupName,
-            success: true,
+            success: !requiresApproval,
             displayNameConflict,
+            memberStatus: memberDoc.memberStatus,
         };
     }
 }

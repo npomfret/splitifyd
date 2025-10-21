@@ -35,6 +35,8 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     const joinedGroupId = joinGroupStore.joinedGroupId;
     const displayNameUpdateError = joinGroupStore.displayNameUpdateError;
     const updatingDisplayName = joinGroupStore.updatingDisplayName;
+    const memberStatus = joinGroupStore.memberStatus;
+    const pendingApproval = memberStatus === 'pending';
 
     // Get linkId from URL query parameters if not provided as prop
     const urlParams = new URLSearchParams(window.location.search);
@@ -194,6 +196,17 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                                 </div>
                             )}
 
+                            {pendingApproval && (
+                                <div className='bg-amber-50 border border-amber-200 rounded-lg p-4' data-testid='pending-approval-alert'>
+                                    <p className='text-amber-800 font-semibold mb-2'>{t('joinGroupPage.pendingApprovalTitle')}</p>
+                                    <p className='text-amber-700 text-sm mb-3'>{t('joinGroupPage.pendingApprovalMessage', { groupName: group.name })}</p>
+                                    <p className='text-amber-700 text-xs mb-4'>{t('joinGroupPage.pendingApprovalHelp')}</p>
+                                    <Button variant='secondary' onClick={() => navigationService.goToDashboard()} fullWidth>
+                                        {t('joinGroupPage.backToDashboard')}
+                                    </Button>
+                                </div>
+                            )}
+
                             {/* Error message if any */}
                             {error && !isAlreadyMember && (
                                 <div className='bg-red-50 border border-red-200 rounded-lg p-3'>
@@ -214,7 +227,9 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                                             {t('joinGroupPage.goToGroup')}
                                         </Button>
                                     )
-                                    : <JoinButton onJoin={handleJoinGroup} loading={joining} />}
+                                    : (
+                                        <JoinButton onJoin={handleJoinGroup} loading={joining} disabled={pendingApproval} />
+                                    )}
 
                                 <Button variant='secondary' onClick={() => navigationService.goToDashboard()} fullWidth>
                                     {t('joinGroupPage.cancel')}

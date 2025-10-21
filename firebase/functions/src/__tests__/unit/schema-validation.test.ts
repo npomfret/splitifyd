@@ -14,7 +14,6 @@ const buildGroupResponse = () => {
         .withCreatedBy('user-123')
         .withCreatedAt('2024-01-01T00:00:00.000Z')
         .withUpdatedAt('2024-01-02T00:00:00.000Z')
-        .withSecurityPreset('open')
         .withPermissions({
             expenseEditing: 'anyone',
             expenseDeletion: 'owner-and-admin',
@@ -43,7 +42,6 @@ const buildGroupResponse = () => {
             amount: '42.50',
             date: '2024-01-03T00:00:00.000Z',
         },
-        securityPreset: group.securityPreset,
         permissions: group.permissions,
         createdBy: group.createdBy,
         createdAt: group.createdAt,

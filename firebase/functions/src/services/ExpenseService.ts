@@ -673,7 +673,6 @@ export class ExpenseService {
             createdBy: groupData.createdBy,
             createdAt: groupData.createdAt,
             updatedAt: groupData.updatedAt,
-            securityPreset: groupData.securityPreset,
             permissions: groupData.permissions,
         };
 

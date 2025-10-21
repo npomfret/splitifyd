@@ -127,7 +127,6 @@ export class FirestoreWriter implements IFirestoreWriter {
      * - createdAt, updatedAt, deletedAt
      * - date (for expenses/settlements)
      * - joinedAt (for group members)
-     * - presetAppliedAt (for groups)
      * - lastModified, lastTransactionChange, lastBalanceChange, etc. (for notifications)
      */
     private convertTimestampsToISO<T extends Record<string, any>>(obj: T): T {
@@ -196,7 +195,6 @@ export class FirestoreWriter implements IFirestoreWriter {
             'deletedAt',
             'date',
             'joinedAt',
-            'presetAppliedAt',
             'lastModified',
             'lastTransactionChange',
             'lastBalanceChange',

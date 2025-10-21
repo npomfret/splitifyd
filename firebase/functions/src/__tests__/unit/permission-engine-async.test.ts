@@ -16,7 +16,6 @@ describe('PermissionEngineAsync', () => {
             .withCreatedBy('creator123')
             .withCreatedAt('2023-01-01T00:00:00Z')
             .withUpdatedAt('2023-01-01T00:00:00Z')
-            .withSecurityPreset('open')
             .build();
 
         // Override the permissions to match the test expectations

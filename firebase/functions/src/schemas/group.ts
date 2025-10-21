@@ -1,4 +1,3 @@
-import { SecurityPresets } from '@splitifyd/shared';
 import { z } from 'zod';
 import { AuditFieldsSchema, createDocumentSchemas, FirestoreTimestampSchema, UserIdSchema } from './common';
 
@@ -13,7 +12,6 @@ const BaseGroupSchema = z
         name: z.string().min(1, 'Group name is required'),
         description: z.string().optional(),
         createdBy: UserIdSchema,
-        securityPreset: z.nativeEnum(SecurityPresets).optional(),
         permissions: z
             .object({
                 expenseEditing: z.string(),
@@ -23,7 +21,6 @@ const BaseGroupSchema = z
                 settingsManagement: z.string(),
             })
             .strict(),
-        presetAppliedAt: FirestoreTimestampSchema.optional(),
         // Phase 3: Deletion state management fields
         deletionStatus: z.enum(['deleting', 'failed']).optional(),
         deletionStartedAt: FirestoreTimestampSchema.optional(),

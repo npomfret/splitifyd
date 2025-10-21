@@ -11,12 +11,16 @@ import {
     GroupBalances,
     GroupDTO,
     GroupFullDetailsDTO,
+    type GroupMembershipDTO,
     JoinGroupResponse,
     ListCommentsResponse,
     ListGroupsResponse,
     MessageResponse,
+    type GroupPermissions,
+    type MemberRole,
     PooledTestUser,
     RegisterResponse,
+    type SecurityPreset,
     type SettlementDTO,
     SettlementWithMembers,
     ShareLinkResponse,
@@ -271,6 +275,31 @@ export class ApiDriver {
 
     async deleteGroup(groupId: GroupId, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}`, 'DELETE', null, token);
+    }
+
+    async applySecurityPreset(groupId: GroupId, preset: SecurityPreset, token: string): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/security/apply-preset`, 'POST', { preset }, token);
+    }
+
+    async updateGroupPermissions(groupId: GroupId, permissions: Partial<GroupPermissions>, token: string): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/security/permissions`, 'PATCH', permissions, token);
+    }
+
+    async updateMemberRole(groupId: GroupId, memberId: string, role: MemberRole, token: string): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/members/${memberId}/role`, 'PATCH', { role }, token);
+    }
+
+    async approveMember(groupId: GroupId, memberId: string, token: string): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/members/${memberId}/approve`, 'POST', {}, token);
+    }
+
+    async rejectMember(groupId: GroupId, memberId: string, token: string): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/members/${memberId}/reject`, 'POST', {}, token);
+    }
+
+    async getPendingMembers(groupId: GroupId, token: string): Promise<GroupMembershipDTO[]> {
+        const response = await this.apiRequest(`/groups/${groupId}/members/pending`, 'GET', null, token);
+        return Array.isArray(response?.members) ? (response.members as GroupMembershipDTO[]) : [];
     }
 
     async listGroups(token: string, params?: { limit?: number; cursor?: string; order?: 'asc' | 'desc'; includeMetadata?: boolean; }): Promise<ListGroupsResponse> {

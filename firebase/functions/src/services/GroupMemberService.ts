@@ -1,10 +1,13 @@
-import { amountToSmallestUnit, MemberRoles, MessageResponse } from '@splitifyd/shared';
+import { amountToSmallestUnit, GroupMembershipDTO, MemberRole, MemberRoles, MemberStatuses, MessageResponse } from '@splitifyd/shared';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { ApiError, Errors } from '../utils/errors';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
-import {GroupId} from "@splitifyd/shared";
+import { GroupId } from '@splitifyd/shared';
+import { FirestoreCollections } from '../constants';
+import { getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
+import { FieldValue } from '../firestore-wrapper';
 
 export class GroupMemberService {
     constructor(
@@ -18,6 +21,172 @@ export class GroupMemberService {
 
     async removeGroupMember(userId: string, groupId: GroupId, memberId: string): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.removeGroupMember', async () => this._removeMemberFromGroup(userId, groupId, memberId, false));
+    }
+
+    async updateMemberRole(requestingUserId: string, groupId: GroupId, targetUserId: string, newRole: MemberRole): Promise<MessageResponse> {
+        return measure.measureDb('GroupMemberService.updateMemberRole', async () => {
+            if (!requestingUserId) {
+                throw Errors.UNAUTHORIZED();
+            }
+            if (!targetUserId) {
+                throw Errors.MISSING_FIELD('memberId');
+            }
+
+            const [requesterMembership, targetMembership, allMembers] = await Promise.all([
+                this.firestoreReader.getGroupMember(groupId, requestingUserId),
+                this.firestoreReader.getGroupMember(groupId, targetUserId),
+                this.firestoreReader.getAllGroupMembers(groupId),
+            ]);
+
+            if (!requesterMembership || requesterMembership.memberRole !== MemberRoles.ADMIN || requesterMembership.memberStatus !== MemberStatuses.ACTIVE) {
+                throw Errors.FORBIDDEN();
+            }
+
+            if (!targetMembership) {
+                throw Errors.NOT_FOUND('Group member');
+            }
+
+            if (targetMembership.memberRole === newRole) {
+                return { message: 'Member role unchanged' };
+            }
+
+            if (targetMembership.memberRole === MemberRoles.ADMIN && newRole !== MemberRoles.ADMIN) {
+                const activeAdminCount = allMembers.filter((member) => member.memberRole === MemberRoles.ADMIN && member.memberStatus === MemberStatuses.ACTIVE).length;
+                if (activeAdminCount <= 1) {
+                    throw Errors.INVALID_INPUT({ message: 'Cannot remove the last active admin from the group' });
+                }
+            }
+
+            await this.firestoreWriter.runTransaction(async (transaction) => {
+                const membershipDocId = getTopLevelMembershipDocId(targetUserId, groupId);
+                const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
+                const membershipSnap = await transaction.get(membershipRef);
+                if (!membershipSnap.exists) {
+                    throw Errors.NOT_FOUND('Group member');
+                }
+
+                transaction.update(membershipRef, {
+                    memberRole: newRole,
+                    groupUpdatedAt: FieldValue.serverTimestamp(),
+                });
+
+                await this.firestoreWriter.touchGroup(groupId, transaction);
+            });
+
+            LoggerContext.setBusinessContext({ groupId });
+            logger.info('group-member-role-updated', {
+                groupId,
+                targetUserId,
+                newRole,
+            });
+
+            return { message: 'Member role updated successfully' };
+        });
+    }
+
+    async approveMember(requestingUserId: string, groupId: GroupId, targetUserId: string): Promise<MessageResponse> {
+        return measure.measureDb('GroupMemberService.approveMember', async () => {
+            if (!requestingUserId) {
+                throw Errors.UNAUTHORIZED();
+            }
+            if (!targetUserId) {
+                throw Errors.MISSING_FIELD('memberId');
+            }
+
+            const [requesterMembership, targetMembership] = await Promise.all([
+                this.firestoreReader.getGroupMember(groupId, requestingUserId),
+                this.firestoreReader.getGroupMember(groupId, targetUserId),
+            ]);
+
+            if (!requesterMembership || requesterMembership.memberRole !== MemberRoles.ADMIN || requesterMembership.memberStatus !== MemberStatuses.ACTIVE) {
+                throw Errors.FORBIDDEN();
+            }
+
+            if (!targetMembership) {
+                throw Errors.NOT_FOUND('Group member');
+            }
+
+            if (targetMembership.memberStatus === MemberStatuses.ACTIVE) {
+                return { message: 'Member is already active' };
+            }
+
+            await this.firestoreWriter.runTransaction(async (transaction) => {
+                const membershipDocId = getTopLevelMembershipDocId(targetUserId, groupId);
+                const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
+                const membershipSnap = await transaction.get(membershipRef);
+                if (!membershipSnap.exists) {
+                    throw Errors.NOT_FOUND('Group member');
+                }
+
+                transaction.update(membershipRef, {
+                    memberStatus: MemberStatuses.ACTIVE,
+                    groupUpdatedAt: FieldValue.serverTimestamp(),
+                });
+
+                await this.firestoreWriter.touchGroup(groupId, transaction);
+            });
+
+            LoggerContext.setBusinessContext({ groupId });
+            logger.info('group-member-approved', {
+                groupId,
+                targetUserId,
+            });
+
+            return { message: 'Member approved successfully' };
+        });
+    }
+
+    async rejectMember(requestingUserId: string, groupId: GroupId, targetUserId: string): Promise<MessageResponse> {
+        return measure.measureDb('GroupMemberService.rejectMember', async () => {
+            if (!requestingUserId) {
+                throw Errors.UNAUTHORIZED();
+            }
+            if (!targetUserId) {
+                throw Errors.MISSING_FIELD('memberId');
+            }
+
+            const requesterMembership = await this.firestoreReader.getGroupMember(groupId, requestingUserId);
+            if (!requesterMembership || requesterMembership.memberRole !== MemberRoles.ADMIN || requesterMembership.memberStatus !== MemberStatuses.ACTIVE) {
+                throw Errors.FORBIDDEN();
+            }
+
+            const targetMembership = await this.firestoreReader.getGroupMember(groupId, targetUserId);
+            if (!targetMembership) {
+                throw Errors.NOT_FOUND('Group member');
+            }
+
+            await this.firestoreWriter.runTransaction(async (transaction) => {
+                const membershipDocId = getTopLevelMembershipDocId(targetUserId, groupId);
+                const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
+                const membershipSnap = await transaction.get(membershipRef);
+                if (!membershipSnap.exists) {
+                    throw Errors.NOT_FOUND('Group member');
+                }
+
+                transaction.delete(membershipRef);
+                await this.firestoreWriter.touchGroup(groupId, transaction);
+            });
+
+            LoggerContext.setBusinessContext({ groupId });
+            logger.info('group-member-rejected', {
+                groupId,
+                targetUserId,
+            });
+
+            return { message: 'Member rejected successfully' };
+        });
+    }
+
+    async getPendingMembers(requestingUserId: string, groupId: GroupId): Promise<GroupMembershipDTO[]> {
+        return measure.measureDb('GroupMemberService.getPendingMembers', async () => {
+            const requesterMembership = await this.firestoreReader.getGroupMember(groupId, requestingUserId);
+            if (!requesterMembership || requesterMembership.memberRole !== MemberRoles.ADMIN || requesterMembership.memberStatus !== MemberStatuses.ACTIVE) {
+                throw Errors.FORBIDDEN();
+            }
+
+            const members = await this.firestoreReader.getAllGroupMembers(groupId);
+            return members.filter((member) => member.memberStatus === MemberStatuses.PENDING);
+        });
     }
 
     /**

@@ -540,10 +540,6 @@ interface Group {
 
     createdBy: string;
 
-    // Security Configuration
-    securityPreset: SecurityPreset; // default: 'open'
-    presetAppliedAt?: ISOString;
-
     // Individual permission settings (customizable after preset selection)
     permissions: GroupPermissions;
 
@@ -803,6 +799,7 @@ export interface JoinGroupResponse {
     groupName: string;
     success: boolean;
     displayNameConflict: boolean; // True if user's display name conflicts with existing member
+    memberStatus: MemberStatus;
 }
 
 export interface RegisterResponse {
