@@ -7,9 +7,9 @@ import { firebaseConfigManager } from './firebase-config';
 
 declare global {
     interface Window {
-        __firebaseServiceOverride?: FirebaseService;
         __provideFirebaseForTests?: (service: FirebaseService) => void;
         __resetFirebaseForTests?: () => void;
+        __pendingFirebaseServiceOverrides?: FirebaseService[];
     }
 }
 
@@ -129,7 +129,13 @@ class FirebaseServiceImpl implements FirebaseService {
 
 const isBrowser = typeof window !== 'undefined';
 const devMode = Boolean((import.meta as any)?.env?.DEV);
-let overrideService: FirebaseService | null = isBrowser ? window.__firebaseServiceOverride ?? null : null;
+let overrideService: FirebaseService | null = null;
+if (isBrowser) {
+    const pending = window.__pendingFirebaseServiceOverrides;
+    if (pending && pending.length > 0) {
+        overrideService = pending[pending.length - 1] ?? null;
+    }
+}
 let defaultService: FirebaseService | null = null;
 
 function ensureDefaultService(): FirebaseService {
@@ -143,13 +149,6 @@ function applyOverride(service: FirebaseService | null) {
     overrideService = service;
     if (!service) {
         defaultService = null;
-    }
-    if (isBrowser) {
-        if (service) {
-            window.__firebaseServiceOverride = service;
-        } else {
-            delete window.__firebaseServiceOverride;
-        }
     }
 }
 
@@ -174,6 +173,19 @@ export function resetFirebaseService(): void {
 }
 
 if (isBrowser && devMode) {
-    window.__provideFirebaseForTests = setFirebaseService;
+    const queue = window.__pendingFirebaseServiceOverrides ?? [];
+    window.__pendingFirebaseServiceOverrides = queue;
+
+    window.__provideFirebaseForTests = (service: FirebaseService) => {
+        setFirebaseService(service);
+    };
     window.__resetFirebaseForTests = resetFirebaseService;
+
+    if (queue.length > 0) {
+        const last = queue.pop() ?? null;
+        queue.length = 0;
+        if (last) {
+            setFirebaseService(last);
+        }
+    }
 }

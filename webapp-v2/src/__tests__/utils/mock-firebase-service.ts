@@ -180,17 +180,18 @@ export class MockFirebase {
                 },
                 cleanup: () => {
                     delete window.__TEST_ENV__;
-                    delete (window as any).__firebaseServiceOverride;
                     if (typeof (window as any).__resetFirebaseForTests === 'function') {
                         (window as any).__resetFirebaseForTests();
                     }
                 },
             };
 
-            // Global override consumed by firebase.ts before the app bootstraps
-            (window as any).__firebaseServiceOverride = mockService;
             if (typeof (window as any).__provideFirebaseForTests === 'function') {
                 (window as any).__provideFirebaseForTests(mockService);
+            } else {
+                const queue = (window as any).__pendingFirebaseServiceOverrides ?? [];
+                queue.push(mockService);
+                (window as any).__pendingFirebaseServiceOverrides = queue;
             }
         }, initialUser);
 

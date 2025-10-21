@@ -19,9 +19,12 @@
 3. **Update Playwright fixtures** — ✅ landed  
    - In `createMockFirebase`, call `page.addInitScript` that runs `window.__provideFirebaseForTests(mock)` which internally invokes `setFirebaseService`.  
    - Expose a teardown hook to call `resetFirebaseService()` during fixture disposal.
-4. **Surface richer mock contract**  
+4. **Surface richer mock contract** — ⏳ in progress  
    - Extend `MockFirebase` to implement the complete interface (including `connect`, `performTokenRefresh`, Firestore listeners).  
    - Optionally wrap auth state in an event emitter to simplify multi-listener support.
+5. **Eliminate legacy globals** — ✅ landed  
+   - Replaced `window.__firebaseServiceOverride` with a pending override queue consumed by `setFirebaseService` during module load.  
+   - Mock bootstrap now relies solely on the exported setter/resetter without touching app internals.
 
 ## Track B — MSW Network Mocking
 1. **Baseline MSW setup** — ✅ landed  
@@ -30,9 +33,9 @@
 2. **Boot worker in tests** — ✅ landed *(replaced by route controller)*  
    - The Playwright fixture wires the handler controller during `test.extend`, exposing `msw` helpers that mirror the MSW API (`start`, `use`, `resetHandlers`, `stop`).  
    - Tests call `await msw.use(...)` to register handlers; the fixture automatically clears them between runs.
-3. **Port existing mocks** — ✅ landed  
+3. **Port existing mocks** — ✅ landed (Playwright unit suites)  
    - Helpers such as `mockGroupsApi`, `mockJoinGroupFailure`, and the registration flows now feed `SerializedMswHandler`s into the Playwright route controller.  
-   - All Playwright suites have been converted to `await msw.use(...)`; there are no lingering direct `page.route` hooks in tests or fixtures.
+   - All Playwright unit suites have been converted to `await msw.use(...)`; Playwright-backed e2e suites still use `page.route` intentionally because they talk to the Firebase emulator.
 4. **Firestore simulation** — ✅ landed  
    - Added `MockFirebase.emitFirestoreSnapshot()` and rewired `triggerNotificationUpdate()` to use it, so tests no longer call `page.evaluate` directly when emitting snapshot updates.
 5. **Teardown**  
@@ -48,6 +51,7 @@
 - ⚠️ `npm run test:unit --workspace webapp-v2` (2025-10-20) — Vite dev server failed to bind to ::1 inside the sandbox (EPERM); rerun locally outside the restricted environment.
 - ✅ `npx playwright test src/__tests__/unit/playwright/dashboard-auth-navigation.test.ts --project=chromium --workers=1` (2025-10-20) — green after adopting the MSW-backed route controller.
 - ✅ `./run-test.sh src/__tests__/unit/playwright/register-authentication.test.ts` (2025-10-20) — repeated runs green with the MSW-driven registration handlers.
+- ✅ `./run-test.sh dashboard-groups-display "should display user menu and allow interaction"` (2025-10-21) — passes after queue-based override cleanup.
 - Continue running the full Playwright suite locally to confirm end-to-end coverage.
 - Verify no console warnings about missing provider or duplicate MSW registrations.
 - Run `npm run lint` (or `dprint`) to confirm typing and formatting remain intact.
