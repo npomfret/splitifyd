@@ -37,6 +37,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const members = useComputed(() => enhancedGroupDetailStore.members);
     const balances = useComputed(() => enhancedGroupDetailStore.balances);
     const expenses = useComputed(() => enhancedGroupDetailStore.expenses);
+    const commentsResponse = useComputed(() => enhancedGroupDetailStore.commentsResponse);
 
     // Auth store via hook
     const authStore = useAuthRequired();
@@ -296,7 +297,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
                         {/* Comments Section */}
                         <SidebarCard title={t('pages.groupDetailPage.comments')} className='flex-1'>
-                            <CommentsSection targetType='group' targetId={groupId!} maxHeight='300px' />
+                            <CommentsSection targetType='group' targetId={groupId!} maxHeight='300px' initialData={commentsResponse.value} />
                         </SidebarCard>
 
                         {/* Settlement History Section */}

@@ -1,7 +1,7 @@
 import { commentsStore } from '@/stores/comments-store.ts';
 import { useComputed } from '@preact/signals';
-import type { CommentTargetType } from '@splitifyd/shared';
-import { useEffect } from 'preact/hooks';
+import type { CommentTargetType, ListCommentsResponse } from '@splitifyd/shared';
+import { useEffect, useRef } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { CommentInput } from './CommentInput';
 import { CommentsList } from './CommentsList';
@@ -11,9 +11,10 @@ interface CommentsSectionProps {
     targetId: string;
     maxHeight?: string;
     className?: string;
+    initialData?: ListCommentsResponse | null;
 }
 
-export function CommentsSection({ targetType, targetId, maxHeight = '400px', className = '' }: CommentsSectionProps) {
+export function CommentsSection({ targetType, targetId, maxHeight = '400px', className = '', initialData }: CommentsSectionProps) {
     const { t } = useTranslation();
 
     // Use signals for reactive state
@@ -23,9 +24,12 @@ export function CommentsSection({ targetType, targetId, maxHeight = '400px', cla
     const error = useComputed(() => commentsStore.errorSignal.value);
     const hasMore = useComputed(() => commentsStore.hasMoreSignal.value);
 
+    const initialDataRef = useRef<ListCommentsResponse | null | undefined>();
+    initialDataRef.current = initialData;
+
     // Subscribe to comments when component mounts or target changes
     useEffect(() => {
-        commentsStore.registerComponent(targetType, targetId);
+        commentsStore.registerComponent(targetType, targetId, initialDataRef.current);
 
         // Cleanup on unmount
         return () => {

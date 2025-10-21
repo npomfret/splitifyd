@@ -79,6 +79,7 @@ export class ApplicationBuilder {
                 this.buildGroupMemberService(),
                 this.buildNotificationService(),
                 this.buildGroupShareService(),
+                this.buildCommentService(),
             );
         }
         return this.groupService;

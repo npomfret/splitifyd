@@ -342,6 +342,15 @@ const GroupFullDetailsSchema = z.object({
         hasMore: z.boolean(),
         nextCursor: z.string().nullable().optional(),
     }),
+    comments: ListCommentsResponseSchema,
+});
+
+const ExpenseFullDetailsSchema = z.object({
+    expense: ExpenseDataSchema,
+    group: GroupSchema,
+    members: z.object({
+        members: z.array(GroupMemberDTOSchema),
+    }),
 });
 
 export const responseSchemas = {
@@ -355,7 +364,7 @@ export const responseSchemas = {
     '/expenses': ExpenseDataSchema,
     'DELETE /expenses': MessageResponseSchema,
     '/expenses/group': ExpenseListResponseSchema,
-    '/expenses/:id/full-details': GroupFullDetailsSchema,
+    '/expenses/:id/full-details': ExpenseFullDetailsSchema,
     '/groups/balances': GroupBalancesSchema,
     'POST /groups/share': ShareableLinkResponseSchema,
     '/groups/share': ShareableLinkResponseSchema,

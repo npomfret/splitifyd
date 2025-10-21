@@ -2,9 +2,8 @@ import { permissionsStore } from '@/stores/permissions-store.ts';
 import { logError, logInfo } from '@/utils/browser-logger';
 import { UserNotificationDetector, userNotificationDetector } from '@/utils/user-notification-detector';
 import { batch, signal } from '@preact/signals';
-import { ExpenseDTO, GroupBalances, GroupDTO, GroupMember, SettlementWithMembers } from '@splitifyd/shared';
+import { ExpenseDTO, GroupBalances, GroupDTO, GroupId, GroupMember, ListCommentsResponse, SettlementWithMembers } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
-import {GroupId} from "@splitifyd/shared";
 
 interface EnhancedGroupDetailStore {
     // State accessors (wrap these in useComputed() in components)
@@ -13,6 +12,7 @@ interface EnhancedGroupDetailStore {
     readonly expenses: ExpenseDTO[];
     readonly balances: GroupBalances | null;
     readonly settlements: SettlementWithMembers[];
+    readonly commentsResponse: ListCommentsResponse | null;
     readonly loading: boolean;
     readonly loadingMembers: boolean;
     readonly loadingExpenses: boolean;
@@ -53,6 +53,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     readonly #expensesSignal = signal<ExpenseDTO[]>([]);
     readonly #balancesSignal = signal<GroupBalances | null>(null);
     readonly #settlementsSignal = signal<SettlementWithMembers[]>([]);
+    readonly #commentsResponseSignal = signal<ListCommentsResponse | null>(null);
     readonly #loadingSignal = signal<boolean>(false);
     readonly #loadingMembersSignal = signal<boolean>(false);
     readonly #loadingExpensesSignal = signal<boolean>(false);
@@ -93,6 +94,10 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
     get settlements() {
         return this.#settlementsSignal.value;
+    }
+
+    get commentsResponse() {
+        return this.#commentsResponseSignal.value;
     }
 
     get loading() {
@@ -152,6 +157,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 this.#expensesSignal.value = fullDetails.expenses.expenses;
                 this.#balancesSignal.value = fullDetails.balances;
                 this.#settlementsSignal.value = fullDetails.settlements.settlements;
+                this.#commentsResponseSignal.value = fullDetails.comments;
                 this.#loadingSignal.value = false;
             });
 
@@ -183,6 +189,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                     this.#expensesSignal.value = [];
                     this.#balancesSignal.value = null;
                     this.#settlementsSignal.value = [];
+                    this.#commentsResponseSignal.value = null;
                     this.#loadingSignal.value = false;
                 });
 
@@ -201,6 +208,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                     this.#expensesSignal.value = [];
                     this.#balancesSignal.value = null;
                     this.#settlementsSignal.value = [];
+                    this.#commentsResponseSignal.value = null;
                     this.#loadingSignal.value = false;
                 });
 
@@ -233,6 +241,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             this.#expensesSignal.value = [];
             this.#balancesSignal.value = null;
             this.#settlementsSignal.value = [];
+            this.#commentsResponseSignal.value = null;
             this.#loadingSignal.value = false;
             this.#errorSignal.value = null;
         });

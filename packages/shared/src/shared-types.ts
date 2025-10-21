@@ -761,10 +761,11 @@ export interface SettlementWithMembers extends SoftDeletable {
 
 export interface GroupFullDetailsDTO {
     group: GroupDTO;
-    members: { members: GroupMember[]; hasMore: boolean; nextCursor?: string; };
-    expenses: { expenses: ExpenseDTO[]; hasMore: boolean; nextCursor?: string; };
+    members: ListMembersResponse;
+    expenses: ListExpensesResponse;
     balances: GroupBalances;
-    settlements: { settlements: SettlementWithMembers[]; hasMore: boolean; nextCursor?: string; };
+    settlements: ListSettlementsResponse;
+    comments: ListCommentsResponse;
 }
 
 export interface ExpenseFullDetailsDTO {
@@ -906,6 +907,24 @@ export interface CreateCommentRequest {
     targetType: CommentTargetType;
     targetId: string;
     groupId?: string; // Required for expense comments
+}
+
+export interface ListMembersResponse {
+    members: GroupMember[];
+    hasMore: boolean;
+    nextCursor?: string;
+};
+
+export interface ListExpensesResponse {
+    expenses: ExpenseDTO[];
+    hasMore: boolean;
+    nextCursor?: string;
+}
+
+export interface ListSettlementsResponse {
+    settlements: SettlementWithMembers[];
+    hasMore: boolean;
+    nextCursor?: string;
 }
 
 export interface ListCommentsResponse {

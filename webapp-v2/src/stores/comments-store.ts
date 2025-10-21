@@ -22,7 +22,7 @@ interface CommentsStore {
     readonly hasMoreSignal: ReadonlySignal<boolean>;
 
     // Actions
-    registerComponent(targetType: CommentTargetType, targetId: string): void;
+    registerComponent(targetType: CommentTargetType, targetId: string, initialData?: ListCommentsResponse | null): void;
     deregisterComponent(targetId: string): void;
     addComment(text: string): Promise<void>;
     loadMoreComments(): Promise<void>;
@@ -91,7 +91,7 @@ class CommentsStoreImpl implements CommentsStore {
         return this.#hasMoreSignal;
     }
 
-    registerComponent(targetType: CommentTargetType, targetId: string): void {
+    registerComponent(targetType: CommentTargetType, targetId: string, initialData?: ListCommentsResponse | null): void {
         const currentCount = this.#subscriberCounts.get(targetId) || 0;
         this.#subscriberCounts.set(targetId, currentCount + 1);
 
@@ -99,7 +99,13 @@ class CommentsStoreImpl implements CommentsStore {
         if (currentCount === 0 || targetChanged) {
             this.#activateTarget(targetType, targetId);
             this.#setupNotificationListener(targetType, targetId);
-            void this.#fetchCommentsViaApi(targetType, targetId);
+
+            // Fetch initial data via API
+            if (initialData) {
+                this.#applyInitialData(targetType, targetId, initialData);
+            } else {
+                void this.#fetchCommentsViaApi(targetType, targetId);
+            }
         }
     }
 
@@ -114,6 +120,28 @@ class CommentsStoreImpl implements CommentsStore {
         } else {
             this.#subscriberCounts.set(targetId, currentCount - 1);
         }
+    }
+
+    /**
+     * Apply initial comment data without an API call
+     */
+    #applyInitialData(targetType: CommentTargetType, targetId: string, initialData: ListCommentsResponse) {
+        this.#targetTypeSignal.value = targetType;
+        this.#targetIdSignal.value = targetId;
+        this.#loadingSignal.value = false;
+        this.#errorSignal.value = null;
+
+        this.#apiHasMore = initialData.hasMore;
+        this.#apiCursor = initialData.nextCursor ?? null;
+        this.#commentsSignal.value = initialData.comments;
+        this.#hasMoreSignal.value = this.#apiHasMore;
+
+        logInfo('Comments initialized from preloaded data', {
+            targetType,
+            targetId,
+            count: initialData.comments.length,
+            hasMore: initialData.hasMore,
+        });
     }
 
     /**

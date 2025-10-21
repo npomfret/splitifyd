@@ -1,4 +1,4 @@
-import type { ExpenseDTO, GroupBalances, GroupDTO, GroupFullDetailsDTO, GroupMember, SettlementWithMembers } from '@splitifyd/shared';
+import type { ExpenseDTO, GroupBalances, GroupDTO, GroupFullDetailsDTO, GroupMember, ListCommentsResponse, SettlementWithMembers } from '@splitifyd/shared';
 
 /**
  * Builder for creating GroupFullDetails responses for testing
@@ -20,6 +20,10 @@ export class GroupFullDetailsBuilder {
                 balancesByCurrency: {},
             },
             settlements: { settlements: [], hasMore: false },
+            comments: {
+                comments: [],
+                hasMore: false,
+            },
         };
     }
 
@@ -49,6 +53,11 @@ export class GroupFullDetailsBuilder {
 
     withSettlements(settlements: SettlementWithMembers[], hasMore: boolean = false, nextCursor?: string): this {
         this.fullDetails.settlements = { settlements, hasMore, nextCursor };
+        return this;
+    }
+
+    withComments(comments: ListCommentsResponse): this {
+        this.fullDetails.comments = comments;
         return this;
     }
 

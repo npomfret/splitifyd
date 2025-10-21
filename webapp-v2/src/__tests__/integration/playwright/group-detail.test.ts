@@ -266,15 +266,16 @@ test.describe('Group Detail - Comments', () => {
                 .build(),
         ];
 
-        const fullDetails = new GroupFullDetailsBuilder()
-            .withGroup(group)
-            .withMembers(members)
-            .build();
-
         const existingComment = new CommentBuilder()
             .withId('comment-existing')
             .withAuthor(testUser.uid, testUser.displayName)
             .withText('Welcome to the group!')
+            .build();
+
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members)
+            .withComments({ comments: [existingComment], hasMore: false })
             .build();
 
         await mockGroupDetailApi(page, groupId, fullDetails);

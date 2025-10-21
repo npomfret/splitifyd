@@ -606,6 +606,8 @@ class ApiClient {
             settlementLimit?: number;
             settlementCursor?: string;
             includeDeletedSettlements?: boolean;
+            commentLimit?: number;
+            commentCursor?: string;
         },
     ): Promise<GroupFullDetailsDTO> {
         const queryParams: Record<string, string> = {};
@@ -624,6 +626,12 @@ class ApiClient {
         }
         if (options?.includeDeletedSettlements !== undefined) {
             queryParams.includeDeletedSettlements = options.includeDeletedSettlements.toString();
+        }
+        if (options?.commentLimit) {
+            queryParams.commentLimit = options.commentLimit.toString();
+        }
+        if (options?.commentCursor) {
+            queryParams.commentCursor = options.commentCursor;
         }
 
         return this.request({

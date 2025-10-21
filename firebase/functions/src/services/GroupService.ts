@@ -1,6 +1,7 @@
 import {
     Amount,
     amountToSmallestUnit,
+    CommentTargetTypes,
     CreateGroupRequest,
     GroupDTO,
     GroupFullDetailsDTO,
@@ -25,6 +26,7 @@ import { GroupBalanceDTO } from '../schemas';
 import * as dateHelpers from '../utils/dateHelpers';
 import { Errors } from '../utils/errors';
 import { getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
+import { CommentService } from './CommentService';
 import { ExpenseService } from './ExpenseService';
 import type { GetGroupsForUserOptions, IFirestoreReader, IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
@@ -32,7 +34,7 @@ import { GroupShareService } from './GroupShareService';
 import { NotificationService } from './notification-service';
 import { SettlementService } from './SettlementService';
 import { UserService } from './UserService2';
-import {GroupId} from "@splitifyd/shared";
+import { GroupId } from '@splitifyd/shared';
 
 /**
  * Service for managing group operations
@@ -47,6 +49,7 @@ export class GroupService {
         private readonly groupMemberService: GroupMemberService,
         private readonly notificationService: NotificationService,
         private readonly groupShareService: GroupShareService,
+        private readonly commentService: CommentService,
     ) {}
 
     /**
@@ -878,6 +881,8 @@ export class GroupService {
             settlementLimit?: number;
             settlementCursor?: string;
             includeDeletedSettlements?: boolean;
+            commentLimit?: number;
+            commentCursor?: string;
         } = {},
     ): Promise<GroupFullDetailsDTO> {
         if (!userId) {
@@ -887,12 +892,13 @@ export class GroupService {
         // Validate and set defaults for pagination
         const expenseLimit = Math.min(options.expenseLimit || 20, 100);
         const settlementLimit = Math.min(options.settlementLimit || 20, 100);
+        const commentLimit = Math.min(options.commentLimit || 20, 100);
 
         // Get group with access check (this will throw if user doesn't have access)
         const { group } = await this.fetchGroupWithAccess(groupId, userId);
 
         // Fetch all data in parallel using proper service layer methods
-        const [membersData, expensesData, balancesData, settlementsData] = await Promise.all([
+        const [membersData, expensesData, balancesData, settlementsData, commentsData] = await Promise.all([
             // Get members using service layer
             this.userService.getGroupMembersResponseFromSubcollection(groupId),
 
@@ -911,6 +917,11 @@ export class GroupService {
                 cursor: options.settlementCursor,
                 includeDeleted: options.includeDeletedSettlements ?? false,
             }),
+            // Get comments for the group using comment service
+            this.commentService.listComments(CommentTargetTypes.GROUP, groupId, userId, {
+                limit: commentLimit,
+                cursor: options.commentCursor,
+            }),
         ]);
 
         // balancesData is already validated GroupBalanceDTO from getGroupBalance()
@@ -928,6 +939,7 @@ export class GroupService {
             expenses: expensesData,
             balances: balancesDTO,
             settlements: settlementsData,
+            comments: commentsData,
         };
     }
 }
