@@ -795,7 +795,7 @@ class ApiClient {
         });
     }
 
-    async updateGroupMemberDisplayName(groupId: string, displayName: UpdateDisplayNameRequest['displayName']): Promise<MessageResponse> {
+    async updateGroupMemberDisplayName(groupId: GroupId, displayName: UpdateDisplayNameRequest['displayName']): Promise<MessageResponse> {
         return this.request({
             endpoint: '/groups/:id/members/display-name',
             method: 'PUT',

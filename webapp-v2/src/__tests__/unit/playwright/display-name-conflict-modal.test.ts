@@ -19,7 +19,7 @@ interface ConflictModalOptions {
 interface ConflictModalContext {
     joinGroupPage: JoinGroupPage;
     conflictModal: DisplayNameConflictModalPage;
-    groupId: string;
+    groupId: GroupId;
     groupName: string;
     userDisplayName: string;
     page: Page;

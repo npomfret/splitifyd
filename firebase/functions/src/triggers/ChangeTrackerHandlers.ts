@@ -5,6 +5,7 @@ import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import type { IFirestoreReader } from '../services/firestore';
 import type { NotificationService } from '../services/notification-service';
 import { ChangeType } from '../utils/change-detection';
+import {GroupId} from "@splitifyd/shared";
 
 export class ChangeTrackerHandlers {
     constructor(private readonly firestoreReader: IFirestoreReader, private readonly notificationService: NotificationService) {}
@@ -15,7 +16,7 @@ export class ChangeTrackerHandlers {
         return new ChangeTrackerHandlers(firestoreReader, notificationService);
     }
 
-    async handleGroupChange(event: FirestoreTriggerEvent<{ groupId: string; }>) {
+    async handleGroupChange(event: FirestoreTriggerEvent<{ groupId: GroupId; }>) {
         const groupId = event.params.groupId;
         const {changeType} = this.extractDataChange(event);
 
@@ -75,7 +76,7 @@ export class ChangeTrackerHandlers {
         return {groupId, affectedUserCount: affectedUsers.length};
     };
 
-    async handleGroupCommentChange(event: FirestoreTriggerEvent<{ groupId: string; commentId: string; }>) {
+    async handleGroupCommentChange(event: FirestoreTriggerEvent<{ groupId: GroupId; commentId: string; }>) {
         const groupId = event.params.groupId;
         const commentId = event.params.commentId;
 

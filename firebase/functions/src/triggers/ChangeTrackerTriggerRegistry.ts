@@ -8,6 +8,7 @@ import {
 import { FirestoreCollections } from '../constants';
 import { measureTrigger } from '../monitoring/measure';
 import { ChangeTrackerHandlers } from './ChangeTrackerHandlers';
+import { GroupId } from "@splitifyd/shared";
 
 export type TriggerName =
     | 'trackGroupChanges'
@@ -27,10 +28,10 @@ type HandlerNameByTrigger = {
 export type HandlerName = HandlerNameByTrigger[TriggerName];
 
 type TriggerParamsByName = {
-    trackGroupChanges: { groupId: string; };
+    trackGroupChanges: { groupId: GroupId; };
     trackExpenseChanges: { expenseId: string; };
     trackSettlementChanges: { settlementId: string; };
-    trackGroupCommentChanges: { groupId: string; commentId: string; };
+    trackGroupCommentChanges: { groupId: GroupId; commentId: string; };
     trackExpenseCommentChanges: { expenseId: string; commentId: string; };
 };
 

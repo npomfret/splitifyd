@@ -1,5 +1,5 @@
 import { describe, it, beforeEach, afterEach, expect } from 'vitest';
-import { calculateEqualSplits } from '@splitifyd/shared';
+import { calculateEqualSplits, GroupId } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
 import { AppDriver } from '../AppDriver';
 import type { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
@@ -59,7 +59,7 @@ type NotificationListenerHandle = ReturnType<typeof createNotificationListener>;
 
 function waitForGroupState(
     listener: NotificationListenerHandle,
-    groupId: string,
+    groupId: GroupId,
     predicate: (state: any, snapshot: NotificationSnapshot) => boolean,
     timeoutMs?: number,
 ) {
@@ -71,7 +71,7 @@ function waitForGroupState(
         .then((doc) => doc.groups[groupId]);
 }
 
-function latestGroupState(listener: NotificationListenerHandle, groupId: string) {
+function latestGroupState(listener: NotificationListenerHandle, groupId: GroupId) {
     return listener.latest()?.groups[groupId];
 }
 

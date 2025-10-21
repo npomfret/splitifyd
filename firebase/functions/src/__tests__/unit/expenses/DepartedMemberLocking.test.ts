@@ -1,7 +1,7 @@
 // Unit tests for departed member transaction locking
 // Tests that expenses and settlements involving departed members become read-only (locked)
 
-import { calculateEqualSplits } from '@splitifyd/shared';
+import { calculateEqualSplits, GroupId } from '@splitifyd/shared';
 import {
     CreateExpenseRequestBuilder,
     CreateSettlementRequestBuilder,
@@ -32,7 +32,7 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
     });
 
     // Helper function to add members to a group
-    const addMembersToGroup = async (groupId: string, ownerUserId: string, memberUserIds: string[]) => {
+    const addMembersToGroup = async (groupId: GroupId, ownerUserId: string, memberUserIds: string[]) => {
         const shareLink = await appDriver.generateShareableLink(ownerUserId, groupId);
         for (const userId of memberUserIds) {
             await appDriver.joinGroupByLink(userId, shareLink.linkId);
