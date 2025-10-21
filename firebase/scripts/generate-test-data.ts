@@ -735,6 +735,75 @@ async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], groupM
     console.log(`Created ${totalExpenses} expenses for "Large Group"`);
 }
 
+async function createManySettlementsForLargeGroup(groups: GroupWithInvite[], groupMemberships: Map<string, AuthenticatedFirebaseUser[]>, config: TestDataConfig): Promise<void> {
+    const largeGroup = groups.find((g) => g.name === 'Large Group');
+    if (!largeGroup) return;
+
+    console.log('Creating many settlements for "Large Group"');
+
+    // Get actual members of this group from tracked memberships
+    const groupMembers = groupMemberships.get(largeGroup.id) || [];
+
+    if (groupMembers.length < 2) return;
+
+    // Create settlements based on config (about 20% of expenses count)
+    const totalSettlements = Math.floor(config.largeGroupExpenseCount * 0.2);
+    const BATCH_SIZE = 3;
+
+    const settlementNotes = [
+        'Quick settlement',
+        'Paying back from last week',
+        'Settling up expenses',
+        'Partial payment',
+        'Final settlement',
+        'Monthly balance',
+        'Weekend trip payback',
+        'Dinner expenses paid',
+        'Splitting bills',
+        'Evening out accounts',
+    ];
+
+    for (let i = 0; i < totalSettlements; i += BATCH_SIZE) {
+        const batchPromises = [];
+
+        for (let j = 0; j < BATCH_SIZE && i + j < totalSettlements; j++) {
+            // Pick random payer and payee
+            const payer = groupMembers[Math.floor(Math.random() * groupMembers.length)];
+            const availablePayees = groupMembers.filter((m) => m.uid !== payer.uid);
+
+            if (availablePayees.length === 0) continue;
+
+            const payee = availablePayees[Math.floor(Math.random() * availablePayees.length)];
+
+            // Random amount between $10 and $150
+            const currency = Math.random() < 0.5 ? 'GBP' : 'EUR';
+            const rawAmount = Math.random() * 140 + 10;
+            const amount = normalizeAmount(rawAmount, currency);
+
+            const settlementData: CreateSettlementRequest = {
+                groupId: largeGroup.id,
+                payerId: payer.uid,
+                payeeId: payee.uid,
+                amount: amount,
+                currency: currency,
+                note: settlementNotes[Math.floor(Math.random() * settlementNotes.length)],
+                date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+            };
+
+            batchPromises.push(driver.createSettlement(settlementData, payer.token));
+        }
+
+        await Promise.all(batchPromises);
+
+        // Small delay between batches
+        if (i + BATCH_SIZE < totalSettlements) {
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+    }
+
+    console.log(`Created ${totalSettlements} settlements for "Large Group"`);
+}
+
 async function createSmallPaymentsForGroups(groups: GroupWithInvite[], groupMemberships: Map<string, AuthenticatedFirebaseUser[]>): Promise<void> {
     // Skip empty group AND settled group (to preserve its settled state)
     const groupsWithPayments = groups.filter((g) => g.name !== 'Empty Group' && g.name !== 'Settled Group');
@@ -863,6 +932,131 @@ async function deleteSomeExpensesFromGroups(groups: GroupWithInvite[], groupMemb
     console.log(`✓ Finished deleting expenses. Total deleted: ${totalDeleted} expenses across all groups`);
 }
 
+async function createCommentsForGroups(groups: GroupWithInvite[], groupMemberships: Map<string, AuthenticatedFirebaseUser[]>, config: TestDataConfig): Promise<void> {
+    console.log(`Creating comments for all groups`);
+
+    const commentTemplates = [
+        'Thanks for adding this!',
+        'Can we split this differently?',
+        'I paid for this already',
+        'Let me know when you get this',
+        'Great, all sorted',
+        'Just a reminder about this expense',
+        'This looks good to me',
+        'I think the amount might be wrong',
+        'Can we discuss this later?',
+        'Perfect, thanks!',
+        'Added the receipt',
+        'Confirmed',
+        'All good here',
+        'Just checking in on this',
+        'Let me double check',
+        'Looks correct',
+        'Thanks for the update',
+        'Can you verify this?',
+        'Approved',
+        'Noted',
+        'Got it',
+        'Will pay this weekend',
+        'Already settled',
+        'Missing some details',
+        'Can you add more info?',
+        'Thanks for organizing',
+        'Makes sense',
+        'Agreed',
+        'Will handle this tomorrow',
+        'Processed',
+        'Updated the amount',
+        'Fixed the split',
+        'Changed the date',
+        'Added participants',
+        'Verified with receipt',
+        'Paid via bank transfer',
+        'Cash payment made',
+        'Venmo sent',
+        'PayPal completed',
+        'Waiting for confirmation',
+    ];
+
+    let totalComments = 0;
+    let totalGroupComments = 0;
+    let totalExpenseComments = 0;
+
+    for (const group of groups) {
+        const groupMembers = groupMemberships.get(group.id) || [];
+        if (groupMembers.length === 0) continue;
+
+        // Determine comment counts based on group type
+        let groupCommentsToCreate = 0;
+        let expenseCommentsToCreate = 0;
+
+        if (group.name === 'Large Group') {
+            // Lots of group comments for Large Group (40-60)
+            groupCommentsToCreate = Math.floor(Math.random() * 21) + 40;
+            // Also lots of expense comments (50-80)
+            expenseCommentsToCreate = Math.floor(Math.random() * 31) + 50;
+        } else if (group.name === 'Empty Group') {
+            // Just group-level comments for Empty Group (3-5)
+            groupCommentsToCreate = Math.floor(Math.random() * 3) + 3;
+            expenseCommentsToCreate = 0; // No expenses in Empty Group
+        } else {
+            // Regular groups get group comments (3-6)
+            groupCommentsToCreate = Math.floor(Math.random() * 4) + 3;
+            // And expense comments (5-12)
+            expenseCommentsToCreate = Math.floor(Math.random() * 8) + 5;
+        }
+
+        const totalForGroup = groupCommentsToCreate + expenseCommentsToCreate;
+        console.log(`Creating ${totalForGroup} comments for group "${group.name}" (${groupCommentsToCreate} group, ${expenseCommentsToCreate} expense)`);
+
+        // Get expenses for this group (to add expense comments)
+        const { expenses } = await driver.getGroupExpenses(group.id, groupMembers[0].token);
+
+        const commentPromises = [];
+
+        // Create group-level comments
+        for (let i = 0; i < groupCommentsToCreate; i++) {
+            const commenter = groupMembers[Math.floor(Math.random() * groupMembers.length)];
+            const commentText = commentTemplates[Math.floor(Math.random() * commentTemplates.length)];
+            commentPromises.push(driver.createComment(group.id, 'group', commentText, commenter.token));
+
+            // Process in batches to avoid overwhelming the API
+            if (commentPromises.length >= 5) {
+                await Promise.all(commentPromises.splice(0, 5));
+                await new Promise((resolve) => setTimeout(resolve, 50));
+            }
+        }
+
+        // Create expense-level comments (if expenses exist)
+        if (expenses && expenses.length > 0) {
+            for (let i = 0; i < expenseCommentsToCreate; i++) {
+                const commenter = groupMembers[Math.floor(Math.random() * groupMembers.length)];
+                const commentText = commentTemplates[Math.floor(Math.random() * commentTemplates.length)];
+                const expense = expenses[Math.floor(Math.random() * expenses.length)];
+                commentPromises.push(driver.createComment(expense.id, 'expense', commentText, commenter.token));
+
+                // Process in batches to avoid overwhelming the API
+                if (commentPromises.length >= 5) {
+                    await Promise.all(commentPromises.splice(0, 5));
+                    await new Promise((resolve) => setTimeout(resolve, 50));
+                }
+            }
+        }
+
+        // Process remaining comments
+        if (commentPromises.length > 0) {
+            await Promise.all(commentPromises);
+        }
+
+        totalComments += totalForGroup;
+        totalGroupComments += groupCommentsToCreate;
+        totalExpenseComments += expenseCommentsToCreate;
+        console.log(`Created ${totalForGroup} comments for group: ${group.name}`);
+    }
+
+    console.log(`✓ Finished creating comments. Total created: ${totalComments} comments across all groups (${totalGroupComments} group-level, ${totalExpenseComments} expense-level)`);
+}
+
 export async function generateTestData(): Promise<void> {
     const testConfig = getTestConfig();
     const startTime = Date.now();
@@ -964,12 +1158,26 @@ export async function generateTestData(): Promise<void> {
     console.log('✓ Created many expenses for pagination testing');
     logTiming('Large group expenses creation', largeGroupExpensesStart);
 
+    // Create many settlements for "Large Group" for pagination testing
+    console.log('Creating many settlements for "Large Group"...');
+    const largeGroupSettlementsStart = Date.now();
+    await createManySettlementsForLargeGroup(refreshedGroups, groupMemberships, testConfig);
+    console.log('✓ Created many settlements for pagination testing');
+    logTiming('Large group settlements creation', largeGroupSettlementsStart);
+
     // Create small payments/settlements for groups to demonstrate payment functionality
     console.log('Creating small payments/settlements for groups...');
     const smallPaymentsStart = Date.now();
     await createSmallPaymentsForGroups(refreshedGroups, groupMemberships);
     console.log('✓ Created small payments/settlements');
     logTiming('Small payments creation', smallPaymentsStart);
+
+    // Create comments for all groups (including lots for Large Group)
+    console.log('Creating comments for all groups...');
+    const commentsStart = Date.now();
+    await createCommentsForGroups(refreshedGroups, groupMemberships, testConfig);
+    console.log('✓ Created comments for all groups');
+    logTiming('Comments creation', commentsStart);
 
     // Delete some expenses to test deletion functionality and show deleted state
     console.log('Deleting some expenses to test deletion functionality...');
