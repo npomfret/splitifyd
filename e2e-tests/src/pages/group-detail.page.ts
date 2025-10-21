@@ -248,15 +248,6 @@ export class GroupDetailPage extends BaseGroupDetailPage {
      * @param payer - The display name of the user who paid (e.g., 'pool user 6dbee5f4')
      * @param currencyAmount - The formatted currency amount to find (e.g., '¥123', 'BHD 30.500', 'EUR 50.00')
      */
-    /**
-     * Gets debt information from balances section
-     */
-    getDebtInfo(debtorName: string, creditorName: string) {
-        const balancesSection = this.getBalanceContainer();
-        // UI now uses arrow notation: "User A → User B" instead of "owes"
-        return balancesSection.getByText(`${debtorName} → ${creditorName}`).or(balancesSection.getByText(`${debtorName} owes ${creditorName}`));
-    }
-
     // ============================================================================
     // MEMBER COUNT AND ITEMS
     // ============================================================================
