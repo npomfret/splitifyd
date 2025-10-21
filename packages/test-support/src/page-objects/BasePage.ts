@@ -198,7 +198,7 @@ export abstract class BasePage {
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
             try {
                 await input.focus();
-                await input.pressSequentially(value, { delay: 25, timeout: TEST_TIMEOUTS.INPUT_UPDATE });
+                await input.pressSequentially(value, { delay: 5, timeout: TEST_TIMEOUTS.INPUT_UPDATE });
 
                 const currentValue = await input.inputValue();
                 if (currentValue === value) {

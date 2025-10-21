@@ -114,8 +114,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.verifyCheckboxStates(true, true);
         await registerPage.verifySubmitButtonState(true);
 
-        // State should still persist after a short wait
-        await page.waitForTimeout(100);
+        // State should persist - verify again to ensure no unexpected changes
         await registerPage.verifyNameInputValue('Jane Smith');
         await registerPage.verifyEmailInputValue('jane@example.com');
     });
@@ -281,7 +280,7 @@ test.describe('Registration Form Loading States', () => {
         const registerPage = new RegisterPage(page);
 
         // Mock registration with delay to see loading state
-        await mockFirebase.mockRegisterWithDelay(testUser, 1000);
+        await mockFirebase.mockRegisterWithDelay(testUser, 100);
 
         await registerPage.navigate();
 
@@ -306,7 +305,7 @@ test.describe('Registration Form Loading States', () => {
             .build();
         const registerPage = new RegisterPage(page);
 
-        await mockFirebase.mockRegisterWithDelay(testUser, 1000);
+        await mockFirebase.mockRegisterWithDelay(testUser, 100);
 
         await registerPage.navigate();
 

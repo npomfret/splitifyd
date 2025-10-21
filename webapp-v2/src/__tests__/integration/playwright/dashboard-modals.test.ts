@@ -596,7 +596,7 @@ test.describe('Dashboard Share Group Modal', () => {
         );
 
         // Mock delayed response for share link to test loading state
-        await mockGenerateShareLinkApi(page, 'group-123', 'delayed-token', { delayMs: 1000 });
+        await mockGenerateShareLinkApi(page, 'group-123', 'delayed-token', { delayMs: 100 });
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();

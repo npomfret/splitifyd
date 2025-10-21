@@ -174,7 +174,7 @@ test.describe('Registration Form - Loading and Disabled States', () => {
         const registerPage = new RegisterPage(page);
 
         // Configure mock with delayed response to test loading state
-        await mockFirebase.mockRegisterWithDelay(testUser, 1000);
+        await mockFirebase.mockRegisterWithDelay(testUser, 100);
 
         await registerPage.navigate();
 
@@ -227,7 +227,7 @@ test.describe('Registration Form - Loading and Disabled States', () => {
             .validUser()
             .build();
         const registerPage = new RegisterPage(page);
-        await mockFirebase.mockRegisterWithDelay(testUser, 1000);
+        await mockFirebase.mockRegisterWithDelay(testUser, 100);
 
         await registerPage.navigate();
 

@@ -1,10 +1,10 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { GroupDetailPage as BaseGroupDetailPage, HeaderPage } from '@splitifyd/test-support';
+import { GroupDetailPage as BaseGroupDetailPage, HeaderPage, SettlementFormPage as SharedSettlementFormPage } from '@splitifyd/test-support';
 import { ExpenseDetailPage } from '@splitifyd/test-support';
 import { LeaveGroupDialogPage } from '@splitifyd/test-support';
 import { RemoveMemberDialogPage } from '@splitifyd/test-support';
-import { SettlementFormPage } from './settlement-form.page';
-import {GroupId} from "@splitifyd/shared";
+import { SettlementFormPage as E2ESettlementFormPage } from './settlement-form.page';
+import { GroupId } from '@splitifyd/shared';
 
 export class GroupDetailPage extends BaseGroupDetailPage {
     private _header?: HeaderPage;
@@ -45,9 +45,9 @@ export class GroupDetailPage extends BaseGroupDetailPage {
 
     /**
      * Click Settle Up button and open settlement form (e2e-specific workflow)
-     * This is an e2e version that returns SettlementFormPage instead of void
+     * This is an e2e version that returns the extended SettlementFormPage instead of void
      */
-    async clickSettleUpButton(expectedMemberCount: number): Promise<SettlementFormPage> {
+    async clickSettleUpButton(expectedMemberCount: number): Promise<E2ESettlementFormPage> {
         // Assert we're on the group detail page before action
         await expect(this.page).toHaveURL(groupDetailUrlPattern());
 
@@ -57,7 +57,7 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         await this.clickButton(settleButton, { buttonName: 'Settle up' });
 
         // Verify modal opened
-        const settlementFormPage = new SettlementFormPage(this.page);
+        const settlementFormPage = new E2ESettlementFormPage(this.page);
         await expect(settlementFormPage.getModal()).toBeVisible();
 
         const membersCount = await this.getCurrentMemberCount();
@@ -248,75 +248,6 @@ export class GroupDetailPage extends BaseGroupDetailPage {
      * @param payer - The display name of the user who paid (e.g., 'pool user 6dbee5f4')
      * @param currencyAmount - The formatted currency amount to find (e.g., '¥123', 'BHD 30.500', 'EUR 50.00')
      */
-    async verifyCurrencyAmountInExpenses(payer: string, currencyAmount: string): Promise<void> {
-        // Find the Expenses section by its heading
-        const expensesHeading = this.page.getByRole('heading', { name: /Expenses/i });
-        await expect(expensesHeading).toBeVisible({ timeout: 2000 });
-
-        // Get the expenses container (parent of the heading)
-        const expensesContainer = this.getExpensesContainer();
-        await expect(expensesContainer).toBeVisible();
-
-        // Find the specific expense item that contains both the payer name and amount
-        // Use polling to wait for the expense to appear
-        await expect(async () => {
-            // Find all expense items
-            const expenseItems = expensesContainer.locator('[data-testid="expense-item"]');
-            const count = await expenseItems.count();
-
-            if (count === 0) {
-                throw new Error('No expense items found yet');
-            }
-
-            // Look for an expense item that has both the payer and amount
-            let found = false;
-            const expenseTexts: Array<{ index: number; text: string; hasPayer: boolean; hasAmount: boolean; }> = [];
-
-            for (let i = 0; i < count; i++) {
-                const item = expenseItems.nth(i);
-                const text = await item.textContent();
-
-                if (text) {
-                    // Normalize spaces: replace non-breaking spaces (U+00A0) with regular spaces
-                    const normalizedText = text.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
-                    const normalizedPayer = payer.replace(/\u00A0/g, ' ').trim();
-                    const normalizedAmount = currencyAmount.replace(/\u00A0/g, ' ').trim();
-
-                    const hasPayer = normalizedText.includes(normalizedPayer);
-                    const hasAmount = normalizedText.includes(normalizedAmount);
-
-                    expenseTexts.push({
-                        index: i,
-                        text: normalizedText,
-                        hasPayer,
-                        hasAmount,
-                    });
-
-                    if (hasPayer && hasAmount) {
-                        found = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!found) {
-                const debugInfo = expenseTexts
-                    .map(
-                        (e) => `  [${e.index}] hasPayer=${e.hasPayer}, hasAmount=${e.hasAmount}\n     Text: "${e.text.substring(0, 200)}${e.text.length > 200 ? '...' : ''}"`,
-                    )
-                    .join('\n');
-
-                throw new Error(
-                    `No expense found with payer "${payer}" AND amount "${currencyAmount}"\n`
-                        + `Found ${count} expense(s):\n${debugInfo}\n`
-                        + `Looking for payer: "${payer}"\n`
-                        + `Looking for amount: "${currencyAmount}"`,
-                );
-            }
-        })
-            .toPass({ timeout: 5000 });
-    }
-
     /**
      * Gets debt information from balances section
      */
@@ -330,303 +261,38 @@ export class GroupDetailPage extends BaseGroupDetailPage {
     // MEMBER COUNT AND ITEMS
     // ============================================================================
 
-    /**
-     * Get the actual member count as a number by parsing the UI text
-     * Waits for the API-loaded member count to be available
-     */
-    async getCurrentMemberCount(): Promise<number> {
-        const memberCountElement = this.getMemberCount();
-        await expect(memberCountElement).toBeVisible({ timeout: 1000 });
-
-        const memberText = await memberCountElement.textContent();
-        if (!memberText) {
-            throw new Error('Could not find member count text in UI');
-        }
-
-        // Extract number from text like "1 member" or "3 members"
-        const match = memberText.match(/(\d+)\s+member/i);
-        if (!match) {
-            throw new Error(`Could not parse member count from text: "${memberText}"`);
-        }
-
-        return parseInt(match[1], 10);
-    }
-
-    /**
-     * Get actual member items displayed in the members list
-     */
-    async getMemberNames(): Promise<string[]> {
-        const memberItems = this.getMemberCards();
-        const count = await memberItems.count();
-        const names: string[] = [];
-
-        for (let i = 0; i < count; i++) {
-            const item = memberItems.nth(i);
-            const name = await item.getAttribute('data-member-name');
-            if (name) {
-                names.push(name);
-            }
-        }
-
-        return names;
-    }
-
     // ============================================================================
     // SETTLEMENT HISTORY METHODS (Payment History Section)
     // ============================================================================
 
     /**
-     * E2E-specific payment history container (for settlement features)
-     */
-    private getPaymentHistoryContainer(): Locator {
-        // Find the SidebarCard containing "Payment History" heading
-        // Based on SidebarCard structure: bg-white rounded-lg shadow-sm border border-gray-200 p-4
-        return this.page.locator('.bg-white.rounded-lg.shadow-sm.border.border-gray-200.p-4').filter({
-            has: this.page.locator('h3').filter({ hasText: 'Payment History' }),
-        });
-    }
-
-    async verifyExpenseInList(description: string, amount?: string) {
-        await expect(this.getExpenseByDescription(description)).toBeVisible();
-        if (amount) {
-            await expect(this.page.getByText(amount)).toBeVisible();
-        }
-    }
-
-    /**
-     * Get settlement payment history entry by note
-     * Properly scoped to the payment history container
-     */
-    private getSettlementHistoryEntry(settlementNote: string | RegExp) {
-        const paymentHistoryContainer = this.getPaymentHistoryContainer();
-        const hasTextPattern = typeof settlementNote === 'string' ? new RegExp(settlementNote, 'i') : settlementNote;
-        return paymentHistoryContainer.locator('[data-testid="settlement-item"]').filter({
-            hasText: hasTextPattern,
-        });
-    }
-
-    /**
-     * Get delete button for a specific settlement by identifying the settlement container
-     * Properly scoped to the payment history container
-     */
-    private getSettlementDeleteButton(settlementNote: string): Locator {
-        const settlementItem = this.getSettlementHistoryEntry(settlementNote);
-        return settlementItem.locator('[data-testid="delete-settlement-button"]');
-    }
-
-    /**
      * Click edit button for a settlement and wait for edit form to open
      */
-    async clickEditSettlement(settlementNote: string): Promise<SettlementFormPage> {
-        // Assert we're on the group detail page before action
-        await expect(this.page).toHaveURL(groupDetailUrlPattern());
+    override async clickEditSettlement<T extends SharedSettlementFormPage = SharedSettlementFormPage>(
+        settlementNote: string | RegExp,
+        options: {
+            createSettlementFormPage?: (page: Page) => T;
+            expectedMemberCount?: number;
+            waitForFormReady?: boolean;
+            ensureUpdateHeading?: boolean;
+        } = {},
+    ): Promise<T> {
+        const createSettlementFormPage =
+            options.createSettlementFormPage
+            ?? ((page: Page) => new E2ESettlementFormPage(page) as unknown as T);
 
-        await this.openHistoryIfClosed();
-
-        // Assert the edit button exists and is enabled
-        const editButton = this.getSettlementEditButton(settlementNote);
-        await expect(editButton).toBeVisible({ timeout: 2000 });
-        await expect(editButton).toBeEnabled();
-
-        await this.clickButton(editButton, { buttonName: 'Edit Settlement' });
-
-        // Wait for settlement form modal to open in edit mode
-        const modal = this.page.getByRole('dialog');
-        await expect(modal).toBeVisible({ timeout: 3000 });
-
-        // Verify we're in edit mode by checking for "Update Payment" title
-        await expect(modal.getByRole('heading', { name: 'Update Payment' })).toBeVisible();
-
-        const expectedMemberCount = await this.getCurrentMemberCount();
-
-        const settlementFormPage = new SettlementFormPage(this.page);
-        await expect(settlementFormPage.getModal()).toBeVisible();
-        await settlementFormPage.waitForFormReady(expectedMemberCount);
-
-        return settlementFormPage;
+        return super.clickEditSettlement<T>(settlementNote, {
+            ...options,
+            createSettlementFormPage,
+            waitForFormReady: options.waitForFormReady ?? true,
+        });
     }
 
     /**
-     * Verify a settlement is no longer visible in history
-     */
-    async verifySettlementNotInHistory(settlementNote: string): Promise<void> {
-        await this.openHistoryIfClosed();
-
-        // Use polling to wait for real-time settlement deletion updates
-        await expect(async () => {
-            const settlementEntry = this.getSettlementHistoryEntry(settlementNote);
-            const count = await settlementEntry.count();
-
-            if (count > 0) {
-                const isVisible = await settlementEntry.first().isVisible();
-                if (isVisible) {
-                    throw new Error(`Settlement "${settlementNote}" is still visible in history`);
-                }
-            }
-
-            // Settlement successfully removed
-        })
-            .toPass({
-                timeout: 5000,
-                intervals: [100, 200, 300, 500, 1000],
-            });
-    }
-
-    /**
-     * Verify settlement details in history
-     * Properly scoped to the payment history container
-     */
-    async verifySettlementDetails(details: { note: string; amount?: string; payerName?: string; payeeName?: string; }): Promise<void> {
-        // Assert we're in the right state
-        await expect(this.page).toHaveURL(groupDetailUrlPattern());
-
-        await this.openHistoryIfClosed();
-
-        // Use polling to wait for real-time settlement updates
-        await expect(async () => {
-            // Find the settlement within the payment history container
-            const settlementItem = this.getSettlementHistoryEntry(details.note);
-
-            const count = await settlementItem.count();
-            if (count === 0) {
-                throw new Error(`Settlement with note "${details.note}" not found in payment history yet`);
-            }
-
-            // Verify settlement is visible
-            const isVisible = await settlementItem.first().isVisible();
-            if (!isVisible) {
-                throw new Error(`Settlement with note "${details.note}" found but not visible yet`);
-            }
-
-            // Verify all expected details are present
-            if (details.amount) {
-                const amountVisible = await settlementItem.first().locator(`text=${details.amount}`).isVisible();
-                if (!amountVisible) {
-                    throw new Error(`Settlement amount "${details.amount}" not visible yet`);
-                }
-            }
-
-            if (details.payerName) {
-                const payerVisible = await settlementItem.first().locator(`text=${details.payerName}`).isVisible();
-                if (!payerVisible) {
-                    throw new Error(`Payer name "${details.payerName}" not visible yet`);
-                }
-            }
-
-            if (details.payeeName) {
-                const payeeVisible = await settlementItem.first().locator(`text=${details.payeeName}`).isVisible();
-                if (!payeeVisible) {
-                    throw new Error(`Payee name "${details.payeeName}" not visible yet`);
-                }
-            }
-        })
-            .toPass({
-                timeout: 5000,
-                intervals: [100, 200, 300, 500, 1000],
-            });
-    }
-
-    /**
-     * Open history if it's closed (idempotent)
+     * Legacy alias retained for existing test call sites.
      */
     async openHistoryIfClosed(): Promise<void> {
-        // Assert we're on the group detail page
-        await expect(this.page).toHaveURL(groupDetailUrlPattern());
-
-        const showHistoryButton = this.page.getByRole('button', { name: 'Show History' });
-        const hideHistoryButton = this.page.getByRole('button', { name: 'Hide History' });
-
-        // Check if history is already open
-        const isHistoryOpen = await hideHistoryButton.isVisible();
-
-        if (!isHistoryOpen) {
-            // History is closed, open it
-            await expect(showHistoryButton).toBeVisible();
-            await showHistoryButton.click();
-
-            // Wait for history section to be visible
-            await expect(hideHistoryButton).toBeVisible();
-            // More specific: wait for settlement list container
-            await expect(this.page.locator('.space-y-2').first()).toBeVisible();
-        }
-    }
-
-    /**
-     * Verify settlement has edit button
-     */
-    async verifySettlementHasEditButton(note: string): Promise<void> {
-        const editButton = this.getSettlementEditButton(note);
-        await expect(editButton).toBeVisible();
-    }
-
-    /**
-     * Verify settlement has delete button
-     */
-    async verifySettlementHasDeleteButton(note: string): Promise<void> {
-        const deleteButton = this.getSettlementDeleteButton(note);
-        await expect(deleteButton).toBeVisible();
-    }
-
-    /**
-     * Verify settlement edit button is disabled (for locked settlements)
-     * Uses polling to wait for real-time updates to propagate after member departure
-     */
-    async verifySettlementEditButtonDisabled(note: string): Promise<void> {
-        await this.openHistoryIfClosed();
-
-        const editButton = this.getSettlementEditButton(note);
-        await expect(editButton).toBeVisible();
-
-        // Poll for button to become disabled (real-time update after member leaves)
-        // Increased timeout to 10s to allow time for:
-        // 1. Group change notification to be detected
-        // 2. API request to fetch updated settlement data with isLocked=true
-        // 3. Frontend to re-render with disabled button
-        await expect(async () => {
-            const isDisabled = await editButton.isDisabled();
-            if (!isDisabled) {
-                throw new Error(`Settlement edit button for "${note}" is still enabled, waiting for lock...`);
-            }
-        })
-            .toPass({ timeout: 10000 });
-    }
-
-    /**
-     * Delete a settlement
-     */
-    async deleteSettlement(note: string, confirm: boolean): Promise<void> {
-        // Assert we're on the group detail page before action
-        await expect(this.page).toHaveURL(groupDetailUrlPattern());
-
-        await this.openHistoryIfClosed();
-
-        // Assert the delete button exists and is enabled
-        const deleteButton = this.getSettlementDeleteButton(note);
-        await expect(deleteButton).toBeVisible({ timeout: 2000 });
-        await expect(deleteButton).toBeEnabled();
-
-        await this.clickButton(deleteButton, { buttonName: 'Delete Settlement' });
-
-        // Wait for confirmation dialog - it uses data-testid, not role="dialog"
-        const confirmDialog = this.page.locator('[data-testid="confirmation-dialog"]');
-        await expect(confirmDialog).toBeVisible({ timeout: 3000 });
-
-        // Verify it's the correct dialog
-        await expect(confirmDialog.locator('h3')).toHaveText('Delete Payment');
-
-        if (confirm) {
-            const deleteButton = confirmDialog.locator('[data-testid="confirm-button"]');
-            await this.clickButton(deleteButton, { buttonName: 'Delete' });
-
-            // Wait for dialog to close
-            await expect(confirmDialog).not.toBeVisible({ timeout: 3000 });
-        } else {
-            const cancelButton = confirmDialog.locator('[data-testid="cancel-button"]');
-            await this.clickButton(cancelButton, { buttonName: 'Cancel' });
-
-            // Wait for dialog to close
-            await expect(confirmDialog).not.toBeVisible({ timeout: 3000 });
-        }
+        await this.ensureSettlementHistoryOpen();
     }
 
     // ============================================================================

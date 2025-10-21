@@ -96,7 +96,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
         const loginPage = new LoginPage(page);
 
         // Configure mock with delayed response to test loading state
-        mockFirebase.mockLoginWithDelay(testUser, 1000);
+        mockFirebase.mockLoginWithDelay(testUser, 100);
 
         await loginPage.navigate();
 
@@ -221,7 +221,7 @@ test.describe('LoginPage Reactivity and UI States', () => {
             .validUser()
             .build();
         const loginPage = new LoginPage(page);
-        mockFirebase.mockLoginWithDelay(testUser, 1000);
+        mockFirebase.mockLoginWithDelay(testUser, 100);
 
         await loginPage.navigate();
 

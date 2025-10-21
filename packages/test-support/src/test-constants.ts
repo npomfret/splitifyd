@@ -9,13 +9,13 @@ export const TEST_TIMEOUTS = {
     NAVIGATION: 5000,
 
     /** Input field updates - form field value changes, Preact signal updates */
-    INPUT_UPDATE: 3000, // Increased for longer text inputs (40+ chars)
+    INPUT_UPDATE: 1000, // Reduced from 3000ms - mocks respond instantly
 
     /** Modal/dialog open/close animations and visibility */
-    MODAL_TRANSITION: 2000,
+    MODAL_TRANSITION: 500, // Reduced from 2000ms - CSS transitions are fast
 
     /** API response timeout - waiting for mocked API responses */
-    API_RESPONSE: 3000,
+    API_RESPONSE: 1000, // Reduced from 3000ms - mocked APIs are instant
 
     /** Element visibility - waiting for elements to appear/disappear */
     ELEMENT_VISIBLE: 5000,

@@ -5,6 +5,7 @@ import { EditGroupModalPage } from './EditGroupModalPage';
 import { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
 import { ExpenseFormPage } from './ExpenseFormPage';
+import { SettlementFormPage } from './SettlementFormPage';
 import { translationEn } from '../translations/translation-en';
 import { GroupId } from '@splitifyd/shared';
 
@@ -102,14 +103,19 @@ export class GroupDetailPage extends BasePage {
         return this.getSettlementContainer().locator('[data-testid="settlement-item"]');
     }
 
-    private getSettlementItem(note: string): Locator {
+    private getSettlementItem(note: string | RegExp): Locator {
+        const pattern = typeof note === 'string' ? new RegExp(note, 'i') : note;
         return this.getSettlementItems().filter({
-            has: this.page.getByText(note, { exact: false }),
+            hasText: pattern,
         });
     }
 
-    protected getSettlementEditButton(note: string): Locator {
+    protected getSettlementEditButton(note: string | RegExp): Locator {
         return this.getSettlementItem(note).getByTestId('edit-settlement-button');
+    }
+
+    protected getSettlementDeleteButton(note: string | RegExp): Locator {
+        return this.getSettlementItem(note).getByTestId('delete-settlement-button');
     }
 
     /**
@@ -234,6 +240,45 @@ export class GroupDetailPage extends BasePage {
      */
     getMemberCard(memberName: string): Locator {
         return this.getMembersContainer().locator('.space-y-3').first().getByText(memberName, { exact: false });
+    }
+
+    /**
+     * Get the actual member count displayed in the header
+     */
+    async getCurrentMemberCount(): Promise<number> {
+        const memberCountElement = this.getMemberCount();
+        await expect(memberCountElement).toBeVisible({ timeout: 1000 });
+
+        const memberText = await memberCountElement.textContent();
+        if (!memberText) {
+            throw new Error('Could not find member count text in UI');
+        }
+
+        const match = memberText.match(/(\d+)\s+member/i);
+        if (!match) {
+            throw new Error(`Could not parse member count from text: "${memberText}"`);
+        }
+
+        return parseInt(match[1], 10);
+    }
+
+    /**
+     * Get display names for all members currently rendered
+     */
+    async getMemberNames(): Promise<string[]> {
+        const memberItems = this.getMemberCards();
+        const count = await memberItems.count();
+        const names: string[] = [];
+
+        for (let i = 0; i < count; i++) {
+            const item = memberItems.nth(i);
+            const name = await item.getAttribute('data-member-name');
+            if (name) {
+                names.push(name);
+            }
+        }
+
+        return names;
     }
 
     /**
@@ -502,6 +547,78 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
+     * Verify expense list contains description (and optional amount)
+     */
+    async verifyExpenseInList(description: string, amount?: string): Promise<void> {
+        await expect(this.getExpenseByDescription(description)).toBeVisible();
+        if (amount) {
+            await expect(this.page.getByText(amount)).toBeVisible();
+        }
+    }
+
+    /**
+     * Verify a payer and currency amount combination appears inside expenses
+     */
+    async verifyCurrencyAmountInExpenses(payer: string, currencyAmount: string): Promise<void> {
+        const expensesHeading = this.page.getByRole('heading', { name: /Expenses/i });
+        await expect(expensesHeading).toBeVisible({ timeout: 2000 });
+
+        const expensesContainer = this.getExpensesContainer();
+        await expect(expensesContainer).toBeVisible();
+
+        await expect(async () => {
+            const expenseItems = expensesContainer.locator('[data-testid="expense-item"]');
+            const count = await expenseItems.count();
+
+            if (count === 0) {
+                throw new Error('No expense items found yet');
+            }
+
+            let found = false;
+            const debugInfo: Array<{ index: number; text: string; hasPayer: boolean; hasAmount: boolean; }> = [];
+
+            for (let i = 0; i < count; i++) {
+                const item = expenseItems.nth(i);
+                const text = await item.textContent();
+
+                if (text) {
+                    const normalizedText = text.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
+                    const normalizedPayer = payer.replace(/\u00A0/g, ' ').trim();
+                    const normalizedAmount = currencyAmount.replace(/\u00A0/g, ' ').trim();
+
+                    const hasPayer = normalizedText.includes(normalizedPayer);
+                    const hasAmount = normalizedText.includes(normalizedAmount);
+
+                    debugInfo.push({
+                        index: i,
+                        text: normalizedText,
+                        hasPayer,
+                        hasAmount,
+                    });
+
+                    if (hasPayer && hasAmount) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!found) {
+                const details = debugInfo
+                    .map((entry) => `  [${entry.index}] hasPayer=${entry.hasPayer}, hasAmount=${entry.hasAmount}\n     Text: "${entry.text.substring(0, 200)}${entry.text.length > 200 ? '...' : ''}"`)
+                    .join('\n');
+
+                throw new Error(
+                    `No expense found with payer "${payer}" AND amount "${currencyAmount}"\n`
+                        + `Found ${count} expense(s):\n${details}\n`
+                        + `Looking for payer: "${payer}"\n`
+                        + `Looking for amount: "${currencyAmount}"`,
+                );
+            }
+        }).toPass({ timeout: 5000 });
+    }
+
+    /**
      * Verify empty expenses state
      */
     async verifyEmptyExpensesState(): Promise<void> {
@@ -606,26 +723,44 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Open settlement history if the toggle is visible
+     * Ensure the settlement history panel is open.
+     * Idempotent: if history is already visible, nothing happens.
+     */
+    async ensureSettlementHistoryOpen(): Promise<void> {
+        const showHistoryButton = this.page.getByRole('button', { name: /show history/i });
+        const hideHistoryButton = this.page.getByRole('button', { name: /hide history/i });
+
+        const historyAlreadyOpen = await hideHistoryButton.isVisible().catch(() => false);
+        if (historyAlreadyOpen) {
+            return;
+        }
+
+        const canOpen = await showHistoryButton.isVisible().catch(() => false);
+        if (canOpen) {
+            await showHistoryButton.click();
+            await expect(hideHistoryButton).toBeVisible();
+            await expect(this.getSettlementContainer()).toBeVisible();
+        }
+    }
+
+    /**
+     * Open settlement history (for legacy call sites).
      */
     async openSettlementHistory(): Promise<void> {
-        const toggle = this.getSettlementHistoryToggle();
-        if (await toggle.isVisible()) {
-            await toggle.click();
-        }
+        await this.ensureSettlementHistoryOpen();
     }
 
     /**
      * Verify settlement with specific note is visible
      */
-    async verifySettlementVisible(note: string): Promise<void> {
+    async verifySettlementVisible(note: string | RegExp): Promise<void> {
         await expect(this.getSettlementItem(note)).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
     }
 
     /**
      * Verify settlement edit button is disabled
      */
-    async verifySettlementEditDisabled(note: string, expectedTooltip?: string): Promise<void> {
+    async verifySettlementEditDisabled(note: string | RegExp, expectedTooltip?: string): Promise<void> {
         const button = this.getSettlementEditButton(note);
         await expect(button).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
         await expect(button).toBeDisabled();
@@ -637,13 +772,207 @@ export class GroupDetailPage extends BasePage {
     /**
      * Verify settlement edit button is enabled
      */
-    async verifySettlementEditEnabled(note: string, expectedTooltip?: string): Promise<void> {
+    async verifySettlementEditEnabled(note: string | RegExp, expectedTooltip?: string): Promise<void> {
         const button = this.getSettlementEditButton(note);
         await expect(button).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
         await expect(button).toBeEnabled();
         if (expectedTooltip) {
             await expect(button).toHaveAttribute('title', expectedTooltip);
         }
+    }
+
+    /**
+     * Click edit on an existing settlement and return the form page object.
+     * Provides optional hooks to customise the returned form instance and readiness checks.
+     */
+    async clickEditSettlement<T extends SettlementFormPage = SettlementFormPage>(
+        note: string | RegExp,
+        options: {
+            createSettlementFormPage?: (page: Page) => T;
+            expectedMemberCount?: number;
+            waitForFormReady?: boolean;
+            ensureUpdateHeading?: boolean;
+        } = {},
+    ): Promise<T> {
+        await this.ensureSettlementHistoryOpen();
+
+        const editButton = this.getSettlementEditButton(note);
+        await expect(editButton).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+        await expect(editButton).toBeEnabled();
+
+        await this.clickButton(editButton, { buttonName: 'Edit Settlement' });
+
+        const modal = this.page.getByRole('dialog');
+        await expect(modal).toBeVisible({ timeout: 3000 });
+
+        if (options.ensureUpdateHeading !== false) {
+            await expect(modal.getByRole('heading', { name: /Update Payment/i })).toBeVisible();
+        }
+
+        const createFormPage =
+            options.createSettlementFormPage
+            ?? ((page: Page) => new SettlementFormPage(page) as unknown as T);
+
+        const settlementFormPage = createFormPage(this.page);
+        await expect(settlementFormPage.getModal()).toBeVisible();
+
+        const shouldWaitForFormReady = options.waitForFormReady ?? true;
+        if (shouldWaitForFormReady) {
+            const guards = settlementFormPage as unknown as {
+                waitForFormReady?: (expectedMemberCount: number) => Promise<void>;
+            };
+
+            if (typeof guards.waitForFormReady === 'function') {
+                let expectedMemberCount = options.expectedMemberCount;
+                if (expectedMemberCount === undefined) {
+                    try {
+                        expectedMemberCount = await this.getCurrentMemberCount();
+                    } catch {
+                        expectedMemberCount = undefined;
+                    }
+                }
+
+                if (expectedMemberCount !== undefined) {
+                    await guards.waitForFormReady(expectedMemberCount);
+                }
+            }
+        }
+
+        return settlementFormPage;
+    }
+
+    /**
+     * Verify a settlement no longer appears in history.
+     */
+    async verifySettlementNotInHistory(note: string | RegExp): Promise<void> {
+        await this.ensureSettlementHistoryOpen();
+
+        await expect(async () => {
+            const settlementEntry = this.getSettlementItem(note);
+            const count = await settlementEntry.count();
+
+            if (count > 0) {
+                const visible = await settlementEntry.first().isVisible();
+                if (visible) {
+                    throw new Error(`Settlement "${String(note)}" is still visible in history`);
+                }
+            }
+        })
+            .toPass({
+                timeout: 5000,
+                intervals: [100, 200, 300, 500, 1000],
+            });
+    }
+
+    /**
+     * Verify settlement details (amount/payer/payee) are displayed for the specified note.
+     */
+    async verifySettlementDetails(details: { note: string | RegExp; amount?: string; payerName?: string; payeeName?: string; }): Promise<void> {
+        await this.ensureSettlementHistoryOpen();
+
+        await expect(async () => {
+            const settlementItem = this.getSettlementItem(details.note);
+            const count = await settlementItem.count();
+
+            if (count === 0) {
+                throw new Error(`Settlement with note "${String(details.note)}" not found in payment history yet`);
+            }
+
+            const firstItem = settlementItem.first();
+            const visible = await firstItem.isVisible();
+            if (!visible) {
+                throw new Error(`Settlement with note "${String(details.note)}" found but not visible yet`);
+            }
+
+            if (details.amount) {
+                const amountVisible = await firstItem.locator(`text=${details.amount}`).isVisible();
+                if (!amountVisible) {
+                    throw new Error(`Settlement amount "${details.amount}" not visible yet`);
+                }
+            }
+
+            if (details.payerName) {
+                const payerVisible = await firstItem.locator(`text=${details.payerName}`).isVisible();
+                if (!payerVisible) {
+                    throw new Error(`Payer name "${details.payerName}" not visible yet`);
+                }
+            }
+
+            if (details.payeeName) {
+                const payeeVisible = await firstItem.locator(`text=${details.payeeName}`).isVisible();
+                if (!payeeVisible) {
+                    throw new Error(`Payee name "${details.payeeName}" not visible yet`);
+                }
+            }
+        })
+            .toPass({
+                timeout: 5000,
+                intervals: [100, 200, 300, 500, 1000],
+            });
+    }
+
+    /**
+     * Verify settlement entry exposes an edit button.
+     */
+    async verifySettlementHasEditButton(note: string | RegExp): Promise<void> {
+        await this.ensureSettlementHistoryOpen();
+        const editButton = this.getSettlementEditButton(note);
+        await expect(editButton).toBeVisible();
+    }
+
+    /**
+     * Verify settlement entry exposes a delete button.
+     */
+    async verifySettlementHasDeleteButton(note: string | RegExp): Promise<void> {
+        await this.ensureSettlementHistoryOpen();
+        const deleteButton = this.getSettlementDeleteButton(note);
+        await expect(deleteButton).toBeVisible();
+    }
+
+    /**
+     * Poll until the settlement edit button becomes disabled (useful for real-time updates).
+     */
+    async verifySettlementEditButtonDisabled(note: string | RegExp, timeoutMs: number = 10000): Promise<void> {
+        await this.ensureSettlementHistoryOpen();
+
+        const editButton = this.getSettlementEditButton(note);
+        await expect(editButton).toBeVisible();
+
+        await expect(async () => {
+            const disabled = await editButton.isDisabled();
+            if (!disabled) {
+                throw new Error(`Settlement edit button for "${String(note)}" is still enabled, waiting for lock...`);
+            }
+        })
+            .toPass({ timeout: timeoutMs });
+    }
+
+    /**
+     * Delete a settlement via the UI confirmation dialog.
+     * Pass confirm=false to cancel the deletion during tests.
+     */
+    async deleteSettlement(note: string | RegExp, confirm: boolean = true): Promise<void> {
+        await this.ensureSettlementHistoryOpen();
+
+        const deleteButton = this.getSettlementDeleteButton(note);
+        await expect(deleteButton).toBeVisible({ timeout: 2000 });
+        await expect(deleteButton).toBeEnabled();
+
+        await this.clickButton(deleteButton, { buttonName: 'Delete Settlement' });
+
+        const confirmDialog = this.page.locator('[data-testid="confirmation-dialog"]');
+        await expect(confirmDialog).toBeVisible({ timeout: 3000 });
+        await expect(confirmDialog.locator('h3')).toHaveText('Delete Payment');
+
+        if (confirm) {
+            const confirmButton = confirmDialog.locator('[data-testid="confirm-button"]');
+            await this.clickButton(confirmButton, { buttonName: 'Delete' });
+        } else {
+            const cancelButton = confirmDialog.locator('[data-testid="cancel-button"]');
+            await this.clickButton(cancelButton, { buttonName: 'Cancel' });
+        }
+
+        await expect(confirmDialog).not.toBeVisible({ timeout: 3000 });
     }
 
     /**
