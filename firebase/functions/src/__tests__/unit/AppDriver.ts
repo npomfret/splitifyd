@@ -595,4 +595,12 @@ export class AppDriver {
             expect(groupNotif.lastCommentChange).toBeDefined();
         }
     }
+
+    // convenience function - not a public interface method
+    async addMembersToGroup(groupId: string, ownerUserId: string, memberUserIds: string[]) {
+        const shareLink = await this.generateShareableLink(ownerUserId, groupId);
+        for (const userId of memberUserIds) {
+            await this.joinGroupByLink(userId, shareLink.linkId);
+        }
+    };
 }

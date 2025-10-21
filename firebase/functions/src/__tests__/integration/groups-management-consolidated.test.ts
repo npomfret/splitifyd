@@ -16,7 +16,13 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 
-describe('Groups Management - Consolidated Tests', () => {
+// NOTE: This integration test suite now focuses exclusively on Firebase-specific features that
+// require the emulator: concurrent operations, optimistic locking, and subcollection cleanup.
+//
+// Business logic tests (CRUD, access control, permissions) have been moved to unit tests in:
+// firebase/functions/src/__tests__/unit/groups/GroupCRUDAndAccessControl.test.ts
+
+describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
     const apiDriver = new ApiDriver();
     const notificationDriver = new NotificationDriver(getFirestore());
     const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth());
@@ -34,74 +40,6 @@ describe('Groups Management - Consolidated Tests', () => {
         // Wait for system to settle before stopping listeners
         await notificationDriver.waitForQuiet();
         await notificationDriver.stopAllListeners();
-    });
-
-    describe('Group Creation and Basic Operations', () => {
-        // NOTE: Group creation business logic (validation, default settings, permissions)
-        // is now comprehensively tested in unit tests: GroupService.test.ts
-        // This integration test focuses only on API endpoint and Firebase Auth integration
-        test('should create groups via API with proper authentication', async () => {
-            const groupData = new CreateGroupRequestBuilder()
-                .withName(`Test Group ${uuidv4()}`)
-                .withDescription('A test group for API testing')
-                .build();
-
-            // Test API creation with authentication
-            const apiResponse = await apiDriver.createGroup(groupData, users[0].token);
-            expect(apiResponse.id).toBeDefined();
-            expect(apiResponse.name).toBe(groupData.name);
-            expect(apiResponse.description).toBe(groupData.description);
-            expect(apiResponse.createdBy).toBe(users[0].uid);
-
-            // Test immediate balance access via API
-            const balances = await apiDriver.getGroupBalances(apiResponse.id, users[0].token);
-            expect(balances.groupId).toBe(apiResponse.id);
-            expect(balances.balancesByCurrency).toBeDefined();
-        });
-
-        // NOTE: Group validation logic is now comprehensively tested in unit tests:
-        // GroupService.test.ts - This integration test focuses on Firebase Auth integration only
-        test('should require authentication for group creation', async () => {
-            await expect(apiDriver.createGroup(
-                new CreateGroupRequestBuilder()
-                    .withName('Test')
-                    .build(),
-                '',
-            ))
-                .rejects
-                .toThrow(/401|unauthorized/i);
-        });
-    });
-
-    describe('Group Retrieval and Access Control', () => {
-        let testGroup: any;
-
-        beforeEach(async () => {
-            const groupData = new CreateGroupRequestBuilder()
-                .withName(`Get Test Group ${uuidv4()}`)
-                .build();
-            testGroup = await apiDriver.createGroup(groupData, users[0].token);
-        });
-
-        test('should enforce proper access control', async () => {
-            // Non-existent group
-            await expect(apiDriver.getGroupFullDetails('non-existent-id', users[0].token)).rejects.toThrow(/404|not found/i);
-
-            // Non-member access (returns 404 for security - doesn't reveal group existence)
-            await expect(apiDriver.getGroupFullDetails(testGroup.id, users[1].token)).rejects.toThrow(/404|not found/i);
-
-            // Unauthenticated access
-            await expect(apiDriver.getGroupFullDetails(testGroup.id, '')).rejects.toThrow(/401|unauthorized/i);
-
-            // Member access should work
-            const multiMemberGroup = await apiDriver.createGroupWithMembers(`Shared Group ${uuidv4()}`, [users[0], users[1]], users[0].token);
-
-            const { group: groupFromUser0 } = await apiDriver.getGroupFullDetails(multiMemberGroup.id, users[0].token);
-            const { group: groupFromUser1 } = await apiDriver.getGroupFullDetails(multiMemberGroup.id, users[1].token);
-
-            expect(groupFromUser0.id).toBe(multiMemberGroup.id);
-            expect(groupFromUser1.id).toBe(multiMemberGroup.id);
-        });
     });
 
     describe('Concurrent Operations and Optimistic Locking', () => {
