@@ -138,6 +138,14 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
+     * Convenience helper to read the trimmed group name text.
+     */
+    async getGroupNameText(): Promise<string> {
+        const title = await this.getGroupName().textContent();
+        return title?.trim() ?? '';
+    }
+
+    /**
      * Group description - paragraph text that appears directly after the group name h1
      * within the GroupHeader component (has text-gray-600 class)
      */

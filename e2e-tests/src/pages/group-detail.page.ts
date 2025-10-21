@@ -44,14 +44,6 @@ export class GroupDetailPage extends BaseGroupDetailPage {
     // ============================================================================
 
     /**
-     * Get group name as text (e2e-specific, shared base has getGroupName() returning Locator)
-     */
-    async getGroupNameText(): Promise<string> {
-        const title = await this.getGroupName().textContent();
-        return title?.trim() || '';
-    }
-
-    /**
      * Click Settle Up button and open settlement form (e2e-specific workflow)
      * This is an e2e version that returns SettlementFormPage instead of void
      */
