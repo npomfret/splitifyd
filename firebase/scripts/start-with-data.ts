@@ -29,26 +29,17 @@ async function runSeedPoliciesStep(): Promise<void> {
 }
 
 async function runGenerateTestDataStep(): Promise<void> {
-    try {
-        logger.info('');
-        logger.info('═══════════════════════════════════════════════════════');
-        logger.info('📊 STARTING TEST DATA GENERATION...');
-        logger.info('═══════════════════════════════════════════════════════');
-        logger.info('');
+    logger.info('');
+    logger.info('═══════════════════════════════════════════════════════');
+    logger.info('📊 STARTING TEST DATA GENERATION...');
+    logger.info('═══════════════════════════════════════════════════════');
+    logger.info('');
 
-        await generateTestData();
+    await generateTestData();
 
-        logger.info('');
-        logger.info('✅ Test data generation completed successfully!');
-        logger.info('🎲 Groups now contain expenses and payments for testing');
-    } catch (error) {
-        logger.error('⚠️ Test data generation failed (non-fatal)', { error });
-        logger.info('💡 You can manually generate test data later by running:');
-        logger.info('   cd firebase/functions && npx tsx scripts/generate-test-data.ts');
-        logger.info('');
-        logger.info('🔧 The emulator is still running and functional despite test data generation failure');
-        // Don't throw - emulator is still functional
-    }
+    logger.info('');
+    logger.info('✅ Test data generation completed successfully!');
+    logger.info('🎲 Groups now contain expenses and payments for testing');
 }
 
 // Get Firebase configuration using centralized loader
