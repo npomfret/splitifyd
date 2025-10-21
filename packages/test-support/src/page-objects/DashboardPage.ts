@@ -467,10 +467,48 @@ export class DashboardPage extends BasePage {
      */
     async clickCreateGroup(): Promise<CreateGroupModalPage> {
         const button = this.getCreateGroupButton();
+
+        // Verify button exists and is visible before clicking
+        await expect(button).toBeVisible({ timeout: 2000 });
+        await expect(button).toBeEnabled({ timeout: 1000 });
+
         await this.clickButton(button, { buttonName: 'Create Group' });
 
+        // Wait for any network requests to settle (e.g., user session checks)
+        await this.page.waitForLoadState('networkidle', { timeout: 2000 }).catch(() => {
+            // Ignore timeout - not critical if network doesn't idle
+        });
+
         const modalPage = new CreateGroupModalPage(this.page);
-        await modalPage.waitForModalToOpen();
+
+        // Add defensive check with better error message
+        try {
+            await modalPage.waitForModalToOpen();
+
+            // CRITICAL: Verify modal is STILL open after waitForModalToOpen passes
+            // This catches race conditions where modal opens then immediately closes
+            await expect(modalPage.getModalContainer()).toBeVisible({ timeout: 500 });
+            await expect(modalPage.getGroupNameInput()).toBeVisible({ timeout: 500 });
+
+        } catch (error) {
+            // Capture detailed page state when modal fails to open or stay open
+            const url = this.page.url();
+            const visibleButtons = await this.page.locator('button:visible').evaluateAll(
+                (buttons) => buttons.map((b) => b.textContent?.trim()).filter(Boolean)
+            );
+            const dialogs = await this.page.locator('[role="dialog"]').count();
+            const modalVisible = await modalPage.getModalContainer().isVisible().catch(() => false);
+
+            throw new Error(
+                `Create Group modal failed to open or stay open after clicking button.\n` +
+                `Current URL: ${url}\n` +
+                `Dialogs in DOM: ${dialogs}\n` +
+                `Modal visible now: ${modalVisible}\n` +
+                `Visible buttons: ${JSON.stringify(visibleButtons)}\n` +
+                `Original error: ${error instanceof Error ? error.message : String(error)}`
+            );
+        }
+
         return modalPage;
     }
 

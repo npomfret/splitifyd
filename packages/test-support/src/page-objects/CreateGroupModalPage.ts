@@ -196,10 +196,13 @@ export class CreateGroupModalPage extends BasePage {
      * Fill the group name field using proper Preact handling
      */
     async fillGroupName(name: string): Promise<void> {
-        // Defensive check: Verify modal is open before interacting
+        // Defensive check: Verify modal is open AND input is visible before interacting
         // This will fail early with a clear error if modal is not visible
-        await expect(this.getModalContainer()).toBeVisible({ timeout: 2000 });
-        await this.fillPreactInput(this.getGroupNameInput(), name);
+        // We check the input specifically to ensure modal is fully loaded
+        const input = this.getGroupNameInput();
+        await expect(input).toBeVisible({ timeout: 2000 });
+        await expect(input).toBeEnabled({ timeout: 1000 });
+        await this.fillPreactInput(input, name);
     }
 
     /**
