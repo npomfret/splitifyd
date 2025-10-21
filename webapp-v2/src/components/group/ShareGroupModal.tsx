@@ -23,11 +23,27 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
     const toastTimerRef = useRef<number | null>(null);
 
     useEffect(() => {
-        if (isOpen && groupId) {
-            // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
-            generateLink();
+        if (!isOpen || !groupId) {
+            return;
         }
-    }, [isOpen]); // Only watch isOpen to prevent regenerating link on groupId updates
+
+        if (copiedTimerRef.current) {
+            clearTimeout(copiedTimerRef.current);
+            copiedTimerRef.current = null;
+        }
+        if (toastTimerRef.current) {
+            clearTimeout(toastTimerRef.current);
+            toastTimerRef.current = null;
+        }
+
+        setShareLink('');
+        setError(null);
+        setCopied(false);
+        setShowToast(false);
+
+        // Intentionally not awaited - useEffect cannot be async
+        generateLink(groupId);
+    }, [isOpen, groupId]);
 
     // Handle escape key to close modal
     // Pattern matches CreateGroupModal for consistency and reliability
@@ -62,12 +78,12 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
         };
     }, []);
 
-    const generateLink = async () => {
+    const generateLink = async (targetGroupId: string) => {
         setLoading(true);
         setError(null);
 
         try {
-            const response = await apiClient.generateShareLink(groupId);
+            const response = await apiClient.generateShareLink(targetGroupId);
             // Construct full URL from the path returned by server
             const fullUrl = `${window.location.origin}${response.shareablePath}`;
             setShareLink(fullUrl);
@@ -222,7 +238,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
                                 {/* Link expiration options */}
                                 <div class='flex items-center justify-between text-sm text-gray-500 pt-2 border-t border-gray-100'>
                                     <span>{t('shareGroupModal.expiration')}</span>
-                                    <button onClick={generateLink} class='text-purple-600 hover:text-purple-700 font-medium' data-testid='generate-new-link-button'>
+                                    <button onClick={() => generateLink(groupId)} class='text-purple-600 hover:text-purple-700 font-medium' data-testid='generate-new-link-button'>
                                         {t('shareGroupModal.generateNew')}
                                     </button>
                                 </div>

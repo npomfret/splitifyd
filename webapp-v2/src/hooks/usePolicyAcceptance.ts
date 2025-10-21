@@ -48,7 +48,7 @@ export function usePolicyAcceptance(): PolicyAcceptanceState {
         setError(null);
 
         try {
-            const response = await apiClient.getUserPolicyStatus();
+            const response = await apiClient.getUserPolicyStatus(controller.signal);
 
             // Only update state if this request wasn't aborted
             if (!controller.signal.aborted) {

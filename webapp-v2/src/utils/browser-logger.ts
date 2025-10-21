@@ -27,6 +27,59 @@ enum LogLevel {
     USER_ACTION = 'USER_ACTION',
 }
 
+const SENSITIVE_LOG_KEYWORDS = ['password', 'passcode', 'secret', 'token', 'auth', 'credential', 'key'];
+
+function isSensitiveKey(key: string): boolean {
+    const normalized = key.toLowerCase();
+    return SENSITIVE_LOG_KEYWORDS.some((keyword) => normalized.includes(keyword));
+}
+
+function sanitizeForLog(value: unknown, parentKey?: string): unknown {
+    if (value === null || value === undefined) {
+        return value;
+    }
+
+    if (parentKey && isSensitiveKey(parentKey)) {
+        return '[REDACTED]';
+    }
+
+    if (Array.isArray(value)) {
+        return value.map((item) => sanitizeForLog(item));
+    }
+
+    if (value instanceof Date) {
+        return value.toISOString();
+    }
+
+    if (typeof value === 'object') {
+        if (value instanceof Error) {
+            return {
+                name: value.name,
+                message: value.message,
+            };
+        }
+
+        const result: Record<string, unknown> = {};
+        for (const [key, nestedValue] of Object.entries(value)) {
+            result[key] = sanitizeForLog(nestedValue, key);
+        }
+        return result;
+    }
+
+    if (typeof value === 'string') {
+        if (value.length > 256) {
+            return `${value.slice(0, 253)}...`;
+        }
+        return value;
+    }
+
+    if (typeof value === 'number' || typeof value === 'boolean') {
+        return value;
+    }
+
+    return '[REDACTED]';
+}
+
 // Get current user context
 function getUserContext(): Record<string, any> {
     const context: Record<string, any> = {
@@ -146,21 +199,33 @@ export function logApiRequest(
         [key: string]: any;
     },
 ): void {
+    const sanitizedDetails = details
+        ? {
+            ...details,
+            params: sanitizeForLog(details.params),
+            query: sanitizeForLog(details.query),
+            body: sanitizeForLog(details.body, 'body'),
+            headers: sanitizeForLog(details.headers, 'headers'),
+        }
+        : undefined;
+
     const logData = {
         ...getUserContext(),
         level: LogLevel.API,
         type: 'request',
         method,
         endpoint,
-        ...details,
+        ...sanitizedDetails,
     };
 
     // Remove sensitive headers
-    if (logData.headers) {
-        const safeHeaders = { ...logData.headers };
+    if (logData.headers && typeof logData.headers === 'object' && !Array.isArray(logData.headers)) {
+        const safeHeaders: Record<string, unknown> = { ...logData.headers };
         delete safeHeaders.Authorization;
         delete safeHeaders.authorization;
         logData.headers = safeHeaders;
+    } else if (logData.headers) {
+        logData.headers = '[REDACTED]';
     }
 
     if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {

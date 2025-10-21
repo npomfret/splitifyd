@@ -282,8 +282,10 @@ test.describe('Registration Page Error Recovery', () => {
             .build();
         await mockFirebase.mockRegisterSuccess(testUser);
 
-        // Retry with different email
+        // Retry with different email (passwords must be re-entered after security fix removed persistence)
         await registerPage.fillEmail('newemail@example.com');
+        await registerPage.fillPassword('Password1234');
+        await registerPage.fillConfirmPassword('Password1234');
         await registerPage.submitForm();
 
         // Should succeed and navigate to dashboard

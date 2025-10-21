@@ -92,16 +92,14 @@ class CommentsStoreImpl implements CommentsStore {
     }
 
     registerComponent(targetType: CommentTargetType, targetId: string): void {
-        // Registering component for comments target (routine)
         const currentCount = this.#subscriberCounts.get(targetId) || 0;
         this.#subscriberCounts.set(targetId, currentCount + 1);
 
-        if (currentCount === 0) {
-            // Setup notification listener for real-time updates
+        const targetChanged = this.#targetIdSignal.value !== targetId || this.#targetTypeSignal.value !== targetType;
+        if (currentCount === 0 || targetChanged) {
+            this.#activateTarget(targetType, targetId);
             this.#setupNotificationListener(targetType, targetId);
-
-            // Fetch initial data via API
-            this.#fetchCommentsViaApi(targetType, targetId);
+            void this.#fetchCommentsViaApi(targetType, targetId);
         }
     }
 
@@ -146,6 +144,22 @@ class CommentsStoreImpl implements CommentsStore {
         });
     }
 
+    #activateTarget(targetType: CommentTargetType, targetId: string) {
+        const targetChanged = this.#targetTypeSignal.value !== targetType || this.#targetIdSignal.value !== targetId;
+
+        if (targetChanged) {
+            this.#dispose();
+            this.#commentsSignal.value = [];
+            this.#hasMoreSignal.value = false;
+            this.#apiCursor = null;
+            this.#apiHasMore = false;
+        }
+
+        this.#targetTypeSignal.value = targetType;
+        this.#targetIdSignal.value = targetId;
+        this.#errorSignal.value = null;
+    }
+
     /**
      * Refresh comments when notified of changes
      */
@@ -172,12 +186,6 @@ class CommentsStoreImpl implements CommentsStore {
      * Fetch comments via API
      */
     async #fetchCommentsViaApi(targetType: CommentTargetType, targetId: string, isRefresh: boolean = false) {
-        // Always set target signals for the current target (store is singleton, may be reused)
-        if (!isRefresh) {
-            this.#targetTypeSignal.value = targetType;
-            this.#targetIdSignal.value = targetId;
-        }
-
         if (!isRefresh) {
             this.#loadingSignal.value = true;
         }

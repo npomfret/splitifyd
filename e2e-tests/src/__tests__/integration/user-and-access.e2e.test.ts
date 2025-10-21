@@ -217,6 +217,8 @@ simpleTest.describe('User Registration & Account Management', () => {
         // Test 3: Recovery by changing email and additional loading state tests
         const newEmail = generateTestEmail('recovery');
         await registerPage.fillEmail(newEmail);
+        await registerPage.fillPassword(password);
+        await registerPage.fillConfirmPassword(password);
         await registerPage.submitForm();
 
         // Should succeed with different email

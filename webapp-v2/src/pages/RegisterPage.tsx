@@ -29,20 +29,8 @@ export function RegisterPage() {
             return '';
         }
     });
-    const [password, setPassword] = useState(() => {
-        try {
-            return sessionStorage.getItem('register-form-password') || '';
-        } catch {
-            return '';
-        }
-    });
-    const [confirmPassword, setConfirmPassword] = useState(() => {
-        try {
-            return sessionStorage.getItem('register-form-confirmPassword') || '';
-        } catch {
-            return '';
-        }
-    });
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [agreeToTerms, setAgreeToTerms] = useState(() => {
         try {
             return sessionStorage.getItem('register-form-agreeToTerms') === 'true';
@@ -59,9 +47,15 @@ export function RegisterPage() {
     });
     const [localError, setLocalError] = useState<string | null>(null);
 
-    // Clear any previous errors when component mounts
+    // Clear any previous errors when component mounts and remove legacy password cache entries
     useEffect(() => {
         setLocalError(null);
+        try {
+            sessionStorage.removeItem('register-form-password');
+            sessionStorage.removeItem('register-form-confirmPassword');
+        } catch {
+            // Ignore storage access errors
+        }
     }, []);
 
     // Redirect if already logged in
@@ -130,8 +124,6 @@ export function RegisterPage() {
             try {
                 sessionStorage.removeItem('register-form-name');
                 sessionStorage.removeItem('register-form-email');
-                sessionStorage.removeItem('register-form-password');
-                sessionStorage.removeItem('register-form-confirmPassword');
                 sessionStorage.removeItem('register-form-agreeToTerms');
                 sessionStorage.removeItem('register-form-agreeToCookies');
             } catch {
@@ -201,11 +193,6 @@ export function RegisterPage() {
                     value={password}
                     onInput={(value) => {
                         setPassword(value);
-                        try {
-                            sessionStorage.setItem('register-form-password', value);
-                        } catch {
-                            // Ignore sessionStorage errors
-                        }
                     }}
                     label={t('registerPage.passwordLabel')}
                     placeholder={t('registerPage.passwordPlaceholder')}
@@ -219,11 +206,6 @@ export function RegisterPage() {
                     value={confirmPassword}
                     onInput={(value) => {
                         setConfirmPassword(value);
-                        try {
-                            sessionStorage.setItem('register-form-confirmPassword', value);
-                        } catch {
-                            // Ignore sessionStorage errors
-                        }
                     }}
                     label={t('registerPage.confirmPasswordLabel')}
                     placeholder={t('registerPage.confirmPasswordPlaceholder')}

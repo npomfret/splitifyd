@@ -819,10 +819,11 @@ class ApiClient {
         });
     }
 
-    async getUserPolicyStatus(): Promise<UserPolicyStatusResponse> {
+    async getUserPolicyStatus(signal?: AbortSignal): Promise<UserPolicyStatusResponse> {
         return this.request({
             endpoint: '/user/policies/status',
             method: 'GET',
+            signal,
         });
     }
 

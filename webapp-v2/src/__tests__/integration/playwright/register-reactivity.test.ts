@@ -51,8 +51,10 @@ test.describe('Registration Form Reactivity and UI States', () => {
             .build();
         await mockFirebase.mockRegisterSuccess(testUser);
 
-        // Refill email and submit again
+        // Refill email and passwords, then submit again (passwords must be re-entered after security fix)
         await registerPage.fillEmail('newemail@example.com');
+        await registerPage.fillPassword('Password12344');
+        await registerPage.fillConfirmPassword('Password12344');
         await registerPage.submitForm();
 
         // Verify successful registration (error should disappear and redirect occurs)

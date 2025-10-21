@@ -5,10 +5,23 @@ interface PolicyRendererProps {
     className?: string;
 }
 
+function escapeHtml(value: string): string {
+    return (
+        value
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+    );
+}
+
 // Simple markdown parser for policy text
 function parseMarkdown(markdown: string): string {
+    const safeInput = escapeHtml(markdown);
+
     return (
-        markdown
+        safeInput
             // Headers
             .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold text-gray-900 mb-2">$1</h3>')
             .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-gray-900 mb-4">$1</h2>')

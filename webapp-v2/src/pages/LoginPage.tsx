@@ -19,7 +19,7 @@ export function LoginPage() {
 
     // Component state with sessionStorage persistence
     const [email, setEmail] = useState(() => sessionStorage.getItem('login-email') || '');
-    const [password, setPassword] = useState(() => sessionStorage.getItem('login-password') || '');
+    const [password, setPassword] = useState('');
 
     // Persist to sessionStorage on changes
     useEffect(() => {
@@ -27,8 +27,12 @@ export function LoginPage() {
     }, [email]);
 
     useEffect(() => {
-        sessionStorage.setItem('login-password', password);
-    }, [password]);
+        try {
+            sessionStorage.removeItem('login-password');
+        } catch {
+            // Ignore storage access errors
+        }
+    }, []);
 
     // Note: Error clearing is handled by auth-store.login() which clears errors before attempting login
 
