@@ -1,7 +1,8 @@
 import { expect, Locator, Page } from '@playwright/test';
+import type { ExpenseFormData } from '@splitifyd/shared';
+import { GroupId } from '@splitifyd/shared';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
-import {GroupId} from "@splitifyd/shared";
 
 /**
  * Expense Form Page Object Model for Playwright tests
@@ -16,8 +17,106 @@ import {GroupId} from "@splitifyd/shared";
  * Used for testing expense form behavior including split recalculation
  */
 export class ExpenseFormPage extends BasePage {
+    readonly url = '/groups/[id]/add-expense';
+
     constructor(page: Page) {
         super(page);
+    }
+
+    // ============================================================================
+    // PAGE STATE HELPERS
+    // ============================================================================
+
+    /**
+     * Wait for the expense form to finish loading and ensure all expected participants are present.
+     */
+    async waitForFormReady(expectedMemberNames: string[] = [], timeout: number = 5000): Promise<void> {
+        const currentUrl = this.page.url();
+        const urlPattern = /\/groups\/[a-zA-Z0-9]+\/(add|edit|copy)-expense/;
+
+        if (!urlPattern.test(currentUrl)) {
+            throw new Error(
+                `Expense form URL validation failed. Expected pattern: /groups/[id]/add-expense, got: ${currentUrl}`,
+            );
+        }
+
+        await this.waitForDomContentLoaded();
+
+        await expect(async () => {
+            const title = await this.page.title();
+            if (title.includes('Loading...')) {
+                throw new Error(`Page still loading: ${title}`);
+            }
+        })
+            .toPass({ timeout, intervals: [100, 250, 500] });
+
+        await expect(this.getPageHeading()).toBeVisible({ timeout: 3000 });
+        await expect(this.getCancelButton()).toBeVisible({ timeout: 3000 });
+
+        const formElement = this.page.locator('form');
+        await expect(formElement).toBeVisible({ timeout: 3000 });
+
+        await this.waitForExpenseFormSections();
+        await expect(this.getDescriptionInput()).toBeVisible({ timeout: 3000 });
+
+        if (expectedMemberNames.length > 0) {
+            await this.waitForMembersInExpenseForm(expectedMemberNames, timeout);
+        }
+    }
+
+    /**
+     * Wait for the key expense form sections to be visible.
+     */
+    async waitForExpenseFormSections(): Promise<void> {
+        await expect(this.getExpenseDetailsSection()).toBeVisible({ timeout: 3000 });
+        await expect(this.getWhoPaidSection()).toBeVisible({ timeout: 3000 });
+        await expect(this.getSplitBetweenSection()).toBeVisible({ timeout: 3000 });
+        await expect(this.getHowToSplitSection()).toBeVisible({ timeout: 3000 });
+    }
+
+    /**
+     * Wait for all expected members to appear in both payer and participant sections.
+     */
+    private async waitForMembersInExpenseForm(expectedMemberNames: string[], timeout: number = 5000): Promise<void> {
+        await expect(async () => {
+            const missingMembers: string[] = [];
+            for (const memberName of expectedMemberNames) {
+                const memberRadio = this.page.getByRole('radio', { name: memberName });
+                const isVisible = await memberRadio.isVisible().catch(() => false);
+                if (!isVisible) {
+                    missingMembers.push(memberName);
+                }
+            }
+            if (missingMembers.length > 0) {
+                throw new Error(
+                    `Members not loaded in "Who paid?" section: ${missingMembers.join(', ')} - waiting for members data`,
+                );
+            }
+        })
+            .toPass({
+                timeout,
+                intervals: [100, 250, 500, 2000],
+            });
+
+        await expect(async () => {
+            const missingMembers: string[] = [];
+            for (const memberName of expectedMemberNames) {
+                const memberCheckbox = this.page.getByRole('checkbox', { name: memberName });
+                const isVisible = await memberCheckbox.isVisible().catch(() => false);
+                if (!isVisible) {
+                    missingMembers.push(memberName);
+                }
+            }
+            if (missingMembers.length > 0) {
+                throw new Error(
+                    `Members not loaded in "Split between" section: ${missingMembers.join(', ')} - waiting for members data`,
+                );
+            }
+        })
+            .toPass({
+                timeout,
+                intervals: [100, 250, 500, 2000],
+            });
     }
 
     // ============================================================================
@@ -25,10 +124,10 @@ export class ExpenseFormPage extends BasePage {
     // ============================================================================
 
     /**
-     * Page heading (Add Expense / Edit Expense)
+     * Page heading (Add Expense / Edit Expense / Copy Expense)
      */
     getPageHeading(): Locator {
-        return this.page.getByRole('heading', { name: /add expense|edit expense/i });
+        return this.page.getByRole('heading', { name: /add expense|edit expense|copy expense/i });
     }
 
     // ============================================================================
@@ -171,10 +270,116 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
-     * Cancel button
+     * Cancel button - scoped to form to avoid multiple matches
      */
     getCancelButton(): Locator {
-        return this.page.getByRole('button', { name: /cancel/i });
+        return this.page.locator('form').getByRole('button', { name: /cancel/i });
+    }
+
+    /**
+     * Update Expense button (edit mode)
+     */
+    getUpdateExpenseButton(): Locator {
+        return this.page.getByRole('button', { name: /update expense/i });
+    }
+
+    /**
+     * Select all participants button.
+     */
+    getSelectAllButton(): Locator {
+        return this.page.getByRole('button', { name: /select all/i });
+    }
+
+    /**
+     * Convenience date buttons.
+     */
+    getTodayButton(): Locator {
+        return this.page.getByRole('button', { name: 'Today' });
+    }
+
+    getYesterdayButton(): Locator {
+        return this.page.getByRole('button', { name: 'Yesterday' });
+    }
+
+    getLastNightButton(): Locator {
+        return this.page.getByRole('button', { name: 'Last Night' });
+    }
+
+    /**
+     * Date input field.
+     */
+    getDateInput(): Locator {
+        return this.getExpenseDetailsSection().locator('input[type="date"]').first();
+    }
+
+    /**
+     * Clock icon button to open time picker.
+     */
+    getClockIcon(): Locator {
+        return this
+            .page
+            .locator(
+                [
+                    'button[aria-label*="time" i]',
+                    'button[aria-label*="clock" i]',
+                    'button:has(svg[data-icon="clock"])',
+                    'button:has(svg.clock-icon)',
+                    'button:has([data-testid*="clock" i])',
+                    '[role="button"]:has(svg)',
+                    'button.time-selector-trigger',
+                    '[data-testid="time-selector"]',
+                ]
+                    .join(', '),
+            )
+            .first();
+    }
+
+    /**
+     * Time-related selectors.
+     */
+    getTimeButton(): Locator {
+        return this.page.getByRole('button', { name: /at \d{1,2}:\d{2} (AM|PM)/i });
+    }
+
+    getTimeInput(): Locator {
+        return this.page.getByPlaceholder(/Enter time/i);
+    }
+
+    getTimeSuggestion(time: string): Locator {
+        return this.page.getByRole('button', { name: time });
+    }
+
+    /**
+     * Category input field (combobox).
+     */
+    getCategoryInput(): Locator {
+        return this.getExpenseDetailsSection().locator('input[aria-haspopup="listbox"]').first();
+    }
+
+    /**
+     * Expense Details heading (used for blur actions).
+     */
+    getExpenseDetailsHeading(): Locator {
+        return this.page.getByRole('heading', { name: /expense details/i });
+    }
+
+    /**
+     * Split Between heading.
+     */
+    getSplitBetweenHeading(): Locator {
+        return this.page.getByRole('heading', { name: /split between/i });
+    }
+
+    /**
+     * Split options container/card.
+     */
+    getSplitOptionsCard(): Locator {
+        const splitHeading = this.getSplitBetweenHeading();
+        return splitHeading.locator('..').locator('..');
+    }
+
+    getSplitOptionsFirstCheckbox(): Locator {
+        return this.getSplitOptionsCard().locator('input[type="checkbox"]').first();
     }
 
     // ============================================================================
@@ -219,14 +424,24 @@ export class ExpenseFormPage extends BasePage {
      * Note: Currency is a custom dropdown (button + listbox), not a native select
      */
     async selectCurrency(currencyCode: string): Promise<void> {
-        // Click the currency button to open dropdown
         const currencyButton = this.getCurrencySelect();
         await expect(currencyButton).toBeVisible();
-        await currencyButton.click();
+        await this.clickButton(currencyButton, { buttonName: 'Select currency' });
 
-        // Wait for dropdown to open and click the currency option
+        const searchInput = this.page.getByPlaceholder(/Search by symbol, code, or country/i);
+        const searchVisible = await searchInput.isVisible().catch(() => false);
+
+        if (searchVisible) {
+            await this.fillPreactInput(searchInput, currencyCode);
+            await this.page.waitForTimeout(350);
+            await searchInput.press('ArrowDown');
+            await searchInput.press('Enter');
+            await expect(searchInput).not.toBeVisible({ timeout: 2000 });
+            return;
+        }
+
         const currencyOption = this.page.getByRole('option', { name: new RegExp(currencyCode, 'i') });
-        await expect(currencyOption).toBeVisible();
+        await expect(currencyOption).toBeVisible({ timeout: 2000 });
         await currencyOption.click();
     }
 
@@ -234,9 +449,43 @@ export class ExpenseFormPage extends BasePage {
      * Select who paid by display name (what user sees on screen)
      */
     async selectPayer(displayName: string): Promise<void> {
+        const radioByUid = this.page.locator(`input[type="radio"][name="paidBy"][value="${displayName}"]`);
+
+        if (await radioByUid.isVisible().catch(() => false)) {
+            const labelForUid = this.page.locator(`label:has(input[type="radio"][name="paidBy"][value="${displayName}"])`).first();
+            await expect(labelForUid).toBeVisible();
+            await labelForUid.click();
+            return;
+        }
+
+        const labelByText = this
+            .page
+            .locator('label')
+            .filter({ has: this.page.locator('input[type="radio"][name="paidBy"]') })
+            .filter({ hasText: displayName })
+            .first();
+
+        if (await labelByText.isVisible().catch(() => false)) {
+            await labelByText.click();
+            return;
+        }
+
         const radio = this.getPayerRadio(displayName);
-        await expect(radio).toBeVisible();
-        await radio.check();
+        if (await radio.isVisible().catch(() => false)) {
+            await radio.check();
+            return;
+        }
+
+        const availableOptions = await this.page
+            .locator('label:has(input[type="radio"][name="paidBy"])')
+            .allTextContents();
+
+        throw new Error(
+            `Could not find payer "${displayName}". Available options: ${availableOptions
+                .map((text) => text.trim())
+                .filter(Boolean)
+                .join(', ')}`,
+        );
     }
 
     /**
@@ -265,11 +514,86 @@ export class ExpenseFormPage extends BasePage {
      * This checks the checkboxes in the "Split between" section
      */
     async selectSplitParticipants(displayNames: string[]): Promise<void> {
-        for (const displayName of displayNames) {
-            const checkbox = this.getParticipantCheckbox(displayName);
-            await expect(checkbox).toBeVisible();
-            await checkbox.check();
+        await this.selectSpecificParticipants(displayNames);
+    }
+
+    /**
+     * Select all participants in the split section.
+     */
+    async selectAllParticipants(): Promise<void> {
+        const button = this.getSelectAllButton();
+        await expect(button).toBeVisible({ timeout: 2000 });
+        await this.clickButton(button, { buttonName: 'Select all participants' });
+    }
+
+    /**
+     * Select a specific set of participants, toggling checkboxes as needed.
+     */
+    async selectSpecificParticipants(participants: string[]): Promise<void> {
+        const allLabels = this.page.locator('[data-testid="participant-selector-grid"]').locator('label');
+        await allLabels.first().waitFor({ state: 'visible' });
+
+        const count = await allLabels.count();
+        const availableParticipants: string[] = [];
+
+        for (let i = 0; i < count; i++) {
+            const label = allLabels.nth(i);
+            const checkbox = label.locator('input[type="checkbox"]');
+            const text = (await label.textContent())?.trim() ?? '';
+
+            if (text) {
+                availableParticipants.push(text);
+            }
+
+            const shouldBeChecked = participants.some((participant) => text.includes(participant));
+            const isChecked = await checkbox.isChecked();
+
+            if (shouldBeChecked !== isChecked) {
+                // Check if checkbox is enabled before trying to click
+                const isEnabled = await checkbox.isEnabled();
+                if (!isEnabled) {
+                    // Skip disabled checkboxes - they're locked in their current state by the form logic
+                    continue;
+                }
+                await label.click();
+                await expect(checkbox).toBeChecked({ checked: shouldBeChecked });
+            }
         }
+
+        const unfoundParticipants = participants.filter(
+            (participant) => !availableParticipants.some((available) => available.includes(participant)),
+        );
+
+        if (unfoundParticipants.length > 0) {
+            throw new Error(
+                `Could not find participants: ${unfoundParticipants.join(', ')}. `
+                    + `Available participants: ${availableParticipants.join(', ')}`,
+            );
+        }
+    }
+
+    /**
+     * Switch to the Exact Amounts split type.
+     */
+    async switchToExactAmounts(): Promise<void> {
+        await this.selectSplitType('Exact amounts');
+    }
+
+    /**
+     * Click the Save/Submit button and wait for navigation.
+     */
+    async clickSaveExpenseButton(): Promise<void> {
+        const saveButton = this.getSubmitButton();
+        await expect(saveButton).toBeEnabled({ timeout: 500 });
+        await this.clickButton(saveButton, { buttonName: 'Save Expense' });
+        await expect(this.page).not.toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/, { timeout: 3000 });
+    }
+
+    /**
+     * Access the submit button for validation assertions.
+     */
+    getSaveButtonForValidation(): Locator {
+        return this.getSubmitButton();
     }
 
     /**
@@ -281,11 +605,146 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
+     * Complete the expense submission workflow using a data object.
+     */
+    async submitExpense(expense: ExpenseFormData): Promise<void> {
+        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+
+        await this.fillDescription(expense.description);
+        await this.selectCurrency(expense.currency);
+        await this.fillAmount(expense.amount.toString());
+        await this.selectPayer(expense.paidByDisplayName);
+
+        if (expense.splitType === 'equal') {
+            if (expense.participants && expense.participants.length > 0) {
+                await this.selectSpecificParticipants(expense.participants);
+            } else {
+                await this.selectAllParticipants();
+            }
+        } else if (expense.splitType === 'exact') {
+            await this.switchToExactAmounts();
+        }
+
+        await this.clickSaveExpenseButton();
+
+        const permissionErrorMessages = [
+            'You do not have permission to create expenses in this group',
+            'Something went wrong',
+            'Permission denied',
+            'Not authorized',
+        ];
+
+        try {
+            await expect(async () => {
+                for (const errorMessage of permissionErrorMessages) {
+                    const errorElement = this.page.getByText(errorMessage, { exact: false });
+                    if (await errorElement.isVisible().catch(() => false)) {
+                        throw new Error(`Permission error detected: "${errorMessage}"`);
+                    }
+                }
+            })
+                .toPass({ timeout: 1000, intervals: [100, 250] });
+        } catch (error) {
+            if (error instanceof Error && error.message.includes('Permission error detected')) {
+                throw error;
+            }
+        }
+
+        const groupDetailPattern = /\/groups\/[a-zA-Z0-9]+$/;
+
+        try {
+            await expect(this.page).toHaveURL(groupDetailPattern);
+            await expect(this.page.getByText(expense.description)).toBeVisible({ timeout: 3000 });
+            await this.waitForDomContentLoaded();
+        } catch (navigationError) {
+            for (const errorMessage of permissionErrorMessages) {
+                const errorElement = this.page.getByText(errorMessage, { exact: false });
+                if (await errorElement.isVisible().catch(() => false)) {
+                    throw new Error(`Permission error detected after navigation timeout: "${errorMessage}"`);
+                }
+            }
+            throw navigationError;
+        }
+    }
+
+    /**
      * Click cancel button
      */
     async clickCancel(): Promise<void> {
         const button = this.getCancelButton();
         await this.clickButton(button, { buttonName: 'Cancel' });
+    }
+
+    /**
+     * Click the clock icon to open the time picker.
+     */
+    async clickClockIcon(): Promise<void> {
+        const clockIcon = this.getClockIcon();
+        await this.clickButton(clockIcon, { buttonName: 'Clock icon' });
+    }
+
+    async clickTodayButton(): Promise<void> {
+        await this.clickButton(this.getTodayButton(), { buttonName: 'Today' });
+    }
+
+    async clickYesterdayButton(): Promise<void> {
+        await this.clickButton(this.getYesterdayButton(), { buttonName: 'Yesterday' });
+    }
+
+    async clickLastNightButton(): Promise<void> {
+        await this.clickButton(this.getLastNightButton(), { buttonName: 'Last Night' });
+    }
+
+    async clickSelectAllButton(): Promise<void> {
+        await this.selectAllParticipants();
+    }
+
+    async typeCategoryText(text: string): Promise<void> {
+        const categoryInput = this.getCategoryInput();
+        await this.fillPreactInput(categoryInput, text);
+    }
+
+    async isUserInSplitOptions(userName: string): Promise<boolean> {
+        const splitCard = this.getSplitOptionsCard();
+        return splitCard.getByText(userName).isVisible().catch(() => false);
+    }
+
+    async getDateInputValue(): Promise<string> {
+        return this.getDateInput().inputValue();
+    }
+
+    async getTimeButtonCount(): Promise<number> {
+        return this.getTimeButton().count();
+    }
+
+    async clickTimeButton(): Promise<void> {
+        const timeButton = this.getTimeButton();
+        await timeButton.click();
+    }
+
+    async fillTimeInput(value: string): Promise<void> {
+        const timeInput = this.getTimeInput();
+        await timeInput.fill(value);
+    }
+
+    async getClockIconCount(): Promise<number> {
+        return this.getClockIcon().count();
+    }
+
+    async clickUpdateExpenseButton(): Promise<void> {
+        const updateButton = this.getUpdateExpenseButton();
+        await expect(updateButton).toBeVisible({ timeout: 2000 });
+        await updateButton.click();
+    }
+
+    async clickExpenseDetailsHeading(): Promise<void> {
+        const heading = this.getExpenseDetailsHeading();
+        await heading.click();
+    }
+
+    async clickTimeSuggestion(time: string): Promise<void> {
+        const suggestion = this.getTimeSuggestion(time);
+        await suggestion.click();
     }
 
     // ============================================================================
@@ -372,5 +831,66 @@ export class ExpenseFormPage extends BasePage {
         // Find the total text within the exact split container specifically
         await expect(this.getExactSplitTotalText()).toBeVisible();
         await expect(container.getByText(`${splitTotal} / ${expenseTotal}`, { exact: true })).toBeVisible();
+    }
+
+    async verifyCopyMode(): Promise<void> {
+        const headerTitle = this.page.getByRole('heading', { name: /Copy Expense/i });
+        await expect(headerTitle).toBeVisible({ timeout: 3000 });
+    }
+
+    async verifyPreFilledValues(expectedValues: { description?: string; amount?: string; category?: string; }): Promise<void> {
+        if (expectedValues.description) {
+            await expect(this.getDescriptionInput()).toHaveValue(expectedValues.description);
+        }
+
+        if (expectedValues.amount) {
+            await expect(this.getAmountInput()).toHaveValue(expectedValues.amount);
+        }
+
+        if (expectedValues.category) {
+            await expect(this.getCategoryInput()).toHaveValue(expectedValues.category);
+        }
+    }
+
+    async verifyDateIsToday(): Promise<void> {
+        const today = new Date().toISOString().split('T')[0];
+        await expect(this.getDateInput()).toHaveValue(today);
+    }
+
+    async verifyMemberNotInParticipantDropdown(memberName: string): Promise<void> {
+        await expect(this.getSplitBetweenHeading()).toBeVisible();
+
+        const memberCheckbox = this.page.getByRole('checkbox', { name: memberName });
+        await expect(memberCheckbox).not.toBeVisible();
+
+        const memberRadio = this.page.getByRole('radio', { name: memberName });
+        await expect(memberRadio).not.toBeVisible();
+    }
+
+    async verifyTimeButtonVisible(): Promise<void> {
+        await expect(this.getTimeButton()).toBeVisible();
+    }
+
+    async verifyTimeInputVisible(): Promise<void> {
+        await expect(this.getTimeInput()).toBeVisible();
+    }
+
+    async verifyTimeInputFocused(): Promise<void> {
+        await expect(this.getTimeInput()).toBeFocused();
+    }
+
+    async verifyTimeSuggestionVisible(time: string): Promise<void> {
+        await expect(this.getTimeSuggestion(time)).toBeVisible();
+    }
+
+    async verifySplitBetweenHeadingVisible(): Promise<void> {
+        await expect(this.getSplitBetweenHeading()).toBeVisible();
+    }
+
+    async verifyDateInputMatchesPattern(pattern: RegExp): Promise<void> {
+        await expect(async () => {
+            const value = await this.getDateInput().inputValue();
+            expect(value).toMatch(pattern);
+        }).toPass({ timeout: 5000 });
     }
 }
