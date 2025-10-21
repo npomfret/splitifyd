@@ -20,7 +20,7 @@ const DEV_SERVER_BASE_URL = `http://${DEV_SERVER_HOST}:${DEV_SERVER_PORT}`;
 process.env.PW_TEST_REUSE_CONTEXT = '1';
 
 export default defineConfig({
-    testDir: './src/__tests__/unit/playwright',
+    testDir: './src/__tests__/integration/playwright',
 
     /* Global setup to create reusable browser instance */
     globalSetup: './global-setup.ts',
@@ -76,7 +76,7 @@ export default defineConfig({
                 ...devices['Desktop Chrome'],
                 viewport: { width: 1280, height: 2048 }, // Taller desktop viewport
             },
-            testDir: './src/__tests__/unit/playwright',
+            testDir: './src/__tests__/integration/playwright',
         },
     ],
 

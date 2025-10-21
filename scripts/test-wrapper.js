@@ -38,8 +38,8 @@ function getTestCommand(scriptType, packageName) {
         },
         'webapp-v2': {
             test: 'npm run test:unit && npm run test:integration',
-            'test:unit': 'vitest run src/__tests__/unit/vitest && playwright test',
-            'test:integration': 'echo \'no integration tests\' && exit 0',
+            'test:unit': 'vitest run src/__tests__/unit/vitest',
+            'test:integration': 'playwright test',
         },
         '@splitifyd/e2e-tests': {
             test: 'npm run test:unit && npm run test:integration',
@@ -54,7 +54,7 @@ function getTestCommand(scriptType, packageName) {
         },
         '@splitifyd/test-support': {
             test: 'npm run test:unit && npm run test:integration',
-            'test:unit': 'vitest run src/__tests__/',
+            'test:unit': 'echo \'No unit tests for shared package\'',
             'test:integration': 'echo \'No integration tests for test-support package\'',
         },
         '@splitifyd/firebase-simulator': {
