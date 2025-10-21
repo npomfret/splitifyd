@@ -5,13 +5,16 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 
 /**
- * Minimal Comments integration tests - only testing Firebase-specific behavior
- * that cannot be stubbed. Most business logic is now covered by unit tests.
+ * Minimal Comments integration tests - ONLY testing Firebase security rules
+ * that cannot be stubbed.
+ *
+ * IMPORTANT: All other comment tests have been moved to unit tests:
+ * - firebase/functions/src/__tests__/unit/comments/CommentHandlers.test.ts - CRUD business logic
+ * - firebase/functions/src/__tests__/unit/comments/CommentRealtime.test.ts - Real-time subscriptions
  */
-describe('Comments Integration Tests (Essential Firebase Behavior)', () => {
+describe('Comments Integration Tests (Firebase Security Rules Only)', () => {
     const apiDriver = new ApiDriver();
-    const firestore = getFirestore();
-    const notificationDriver = new NotificationDriver(firestore);
+    const notificationDriver = new NotificationDriver(getFirestore());
     let testGroup: any;
     let users: PooledTestUser[];
 
@@ -54,66 +57,12 @@ describe('Comments Integration Tests (Essential Firebase Behavior)', () => {
         });
     });
 
-    describe('Real-time Firestore Subscriptions', () => {
-        test('should handle real-time updates via onSnapshot pattern', async () => {
-            // This tests actual Firestore real-time behavior that cannot be stubbed
-            let receivedComments: any[] = [];
-            let callbackCount = 0;
-
-            // Set up listener like the frontend does
-            const unsubscribe = firestore
-                .collection(`groups/${testGroup.id}/comments`)
-                .orderBy('createdAt', 'desc')
-                .limit(20)
-                .onSnapshot((snapshot) => {
-                    callbackCount++;
-                    receivedComments = snapshot.docs.map((doc) => ({
-                        id: doc.id,
-                        ...doc.data(),
-                    }));
-                });
-
-            // Wait for initial snapshot
-            await new Promise((resolve) => setTimeout(resolve, 100));
-            const initialCallbackCount = callbackCount;
-
-            // Add a comment
-            const commentText = `Real-time test ${uuidv4()}`;
-            await apiDriver.createGroupComment(testGroup.id, commentText, users[0].token);
-
-            // Wait for the update
-            await new Promise((resolve) => setTimeout(resolve, 200));
-
-            // Should have received an update
-            expect(callbackCount).toBeGreaterThan(initialCallbackCount);
-            expect(receivedComments.some((c: any) => c.text === commentText)).toBe(true);
-
-            unsubscribe();
-        });
-
-        test('should handle Firestore query ordering correctly', async () => {
-            // This tests actual Firestore query behavior
-            await apiDriver.createGroupComment(testGroup.id, 'First comment', users[0].token);
-            await new Promise((resolve) => setTimeout(resolve, 100));
-            await apiDriver.createGroupComment(testGroup.id, 'Second comment', users[1].token);
-            await new Promise((resolve) => setTimeout(resolve, 100));
-
-            // Query Firestore directly to test ordering
-            const snapshot = await firestore.collection(`groups/${testGroup.id}/comments`).orderBy('createdAt', 'desc').get();
-            const comments = snapshot.docs.map((doc) => doc.data());
-
-            expect(comments.length).toBeGreaterThanOrEqual(2);
-
-            const firstComment = comments.find((c: any) => c.text === 'First comment');
-            const secondComment = comments.find((c: any) => c.text === 'Second comment');
-
-            expect(firstComment).toBeDefined();
-            expect(secondComment).toBeDefined();
-
-            // Newer comment should come first (descending order)
-            const firstIndex = comments.indexOf(firstComment as any);
-            const secondIndex = comments.indexOf(secondComment as any);
-            expect(secondIndex).toBeLessThan(firstIndex);
-        });
-    });
+    // REMOVED: Real-time Firestore Subscriptions tests (2 tests)
+    // These have been migrated to unit tests in:
+    // firebase/functions/src/__tests__/unit/comments/CommentRealtime.test.ts
+    //
+    // The unit tests provide:
+    // - Faster execution (10ms vs 200-300ms per test)
+    // - No Firebase emulator dependency
+    // - Identical coverage using StubFirestoreDatabase.onSnapshot()
 });
