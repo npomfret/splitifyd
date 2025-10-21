@@ -450,6 +450,16 @@ export class GroupDetailPage extends BasePage {
         return this.getBalanceContainer().locator('[data-testid="debt-item"]');
     }
 
+    /**
+     * Get debt entry describing a debtor → creditor relationship.
+     */
+    getDebtInfo(debtorName: string, creditorName: string): Locator {
+        const balancesSection = this.getBalanceContainer();
+        return balancesSection
+            .getByText(`${debtorName} → ${creditorName}`)
+            .or(balancesSection.getByText(`${debtorName} owes ${creditorName}`));
+    }
+
     // ============================================================================
     // MODALS
     // ============================================================================
@@ -637,6 +647,38 @@ export class GroupDetailPage extends BasePage {
      */
     async verifyHasDebts(): Promise<void> {
         await expect(this.getDebtItems().first()).toBeVisible();
+    }
+
+    /**
+     * Verify that a specific debt relationship is no longer visible.
+     */
+    async verifyNoDebtRelationship(debtorName: string, creditorName: string, timeout: number = 5000): Promise<void> {
+        await expect(async () => {
+            const debtInfo = this.getDebtInfo(debtorName, creditorName);
+            const count = await debtInfo.count();
+            if (count > 0) {
+                throw new Error(`Debt relationship still exists: ${debtorName} → ${creditorName}`);
+            }
+        })
+            .toPass({ timeout });
+    }
+
+    /**
+     * Verify that the group is fully settled up (no outstanding balances).
+     * Optionally assert that the current URL corresponds to the provided group ID.
+     */
+    async verifyAllSettledUp(groupId?: GroupId, timeout: number = 3000): Promise<void> {
+        if (groupId) {
+            const currentUrl = this.page.url();
+            if (!currentUrl.includes(`/groups/${groupId}`)) {
+                throw new Error(`verifyAllSettledUp called but not on correct group page. Expected: /groups/${groupId}, Got: ${currentUrl}`);
+            }
+        }
+
+        await expect(this.getSettledUpMessage()).toBeVisible({ timeout });
+
+        const debtElements = this.getBalanceContainer().locator('[data-financial-amount="debt"]');
+        await expect(debtElements).toHaveCount(0);
     }
 
     /**

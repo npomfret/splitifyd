@@ -295,56 +295,6 @@ export class GroupDetailPage extends BaseGroupDetailPage {
         await this.ensureSettlementHistoryOpen();
     }
 
-    // ============================================================================
-    // DEBT AND BALANCE VERIFICATION METHODS
-    // ============================================================================
-
-    /**
-     * Verify that a specific debt relationship no longer exists
-     * (e.g., after a member settles their balance)
-     */
-    async verifyNoDebtRelationship(debtorName: string, creditorName: string): Promise<void> {
-        // Use polling pattern to wait for real-time balance updates
-        await expect(async () => {
-            const debtInfo = this.getDebtInfo(debtorName, creditorName);
-            const count = await debtInfo.count();
-            if (count > 0) {
-                throw new Error(`Debt relationship still exists: ${debtorName} → ${creditorName}`);
-            }
-        })
-            .toPass({ timeout: 5000 });
-    }
-
-    /**
-     * Verify that all members in the group are settled up (no outstanding balances)
-     * @param groupId - The group ID for context (used for better error messages)
-     */
-    async verifyAllSettledUp(groupId: GroupId): Promise<void> {
-        // Assert we're on the correct group page
-        const currentUrl = this.page.url();
-        if (!currentUrl.includes(`/groups/${groupId}`)) {
-            throw new Error(`verifyAllSettledUp called but not on correct group page. Expected: /groups/${groupId}, Got: ${currentUrl}`);
-        }
-
-        // Wait for the "All settled up!" message to appear
-        await expect(async () => {
-            const balanceSection = this.getBalanceContainer();
-            const count = await balanceSection.getByText('All settled up!').count();
-            if (count === 0) {
-                throw new Error('No "All settled up!" in balances section found yet');
-            }
-        })
-            .toPass({
-                timeout: 3000,
-                intervals: [100, 200, 300, 400, 500, 1000],
-            });
-
-        // Double-check that there are no debt relationships visible
-        const balancesSection = this.getBalanceContainer();
-        const debtElements = balancesSection.locator('[data-financial-amount="debt"]');
-        await expect(debtElements).toHaveCount(0);
-    }
-
     /**
      * Ensures group page is fully loaded before proceeding with expense operations.
      * This should be called after creating a group or navigating to a group page.
