@@ -4,6 +4,7 @@ import { CreateGroupRequest } from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, Form, Input } from '../ui';
+import { logInfo } from '@/utils/browser-logger';
 
 interface CreateGroupModalProps {
     isOpen: boolean;
@@ -38,6 +39,10 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
 
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
+                logInfo('[CreateGroupModal] Closing modal: Escape key pressed', {
+                    key: e.key,
+                    isSubmitting
+                });
                 onClose();
             }
         };
@@ -49,6 +54,9 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
     // Handle click outside modal to close - but not during submission
     const handleBackdropClick = (e: Event) => {
         if (e.target === e.currentTarget && !isSubmitting) {
+            logInfo('[CreateGroupModal] Closing modal: Backdrop clicked', {
+                isSubmitting
+            });
             onClose();
         }
     };
@@ -117,7 +125,12 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                     <h3 id='create-group-modal-title' class='text-lg font-semibold text-gray-900'>
                         {t('createGroupModal.title')}
                     </h3>
-                    <button onClick={onClose} class='text-gray-400 hover:text-gray-600 transition-colors' disabled={isSubmitting}>
+                    <button onClick={() => {
+                        logInfo('[CreateGroupModal] Closing modal: X button clicked', {
+                            isSubmitting
+                        });
+                        onClose();
+                    }} class='text-gray-400 hover:text-gray-600 transition-colors' disabled={isSubmitting}>
                         <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
                         </svg>
@@ -192,7 +205,12 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
 
                     {/* Modal Footer */}
                     <div class='flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-gray-200'>
-                        <Button type='button' variant='secondary' onClick={onClose} disabled={isSubmitting}>
+                        <Button type='button' variant='secondary' onClick={() => {
+                            logInfo('[CreateGroupModal] Closing modal: Cancel button clicked', {
+                                isSubmitting
+                            });
+                            onClose();
+                        }} disabled={isSubmitting}>
                             {t('createGroupModal.cancelButton')}
                         </Button>
                         <Button type='submit' loading={isSubmitting} disabled={!isFormValid}>

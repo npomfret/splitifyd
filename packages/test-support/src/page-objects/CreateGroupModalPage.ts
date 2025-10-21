@@ -196,12 +196,42 @@ export class CreateGroupModalPage extends BasePage {
      * Fill the group name field using proper Preact handling
      */
     async fillGroupName(name: string): Promise<void> {
-        // Defensive check: Verify modal is open AND input is visible before interacting
-        // This will fail early with a clear error if modal is not visible
-        // We check the input specifically to ensure modal is fully loaded
+        // Defensive check: Verify modal is STILL open before trying to fill input
+        // This catches race conditions where modal closes during test execution
+        const modalContainer = this.getModalContainer();
+        const isModalVisible = await modalContainer.isVisible().catch(() => false);
+
+        if (!isModalVisible) {
+            throw new Error(
+                `Cannot fill group name - Create Group Modal is not open or has already closed.\n` +
+                `This usually means:\n` +
+                `  1. Modal closed unexpectedly (check browser console for "[CreateGroupModal] Closing modal" logs)\n` +
+                `  2. Modal was never opened in the first place\n` +
+                `  3. Navigation occurred while modal was still processing\n` +
+                `Current URL: ${this.page.url()}\n` +
+                `Attempted to fill name: "${name}"`
+            );
+        }
+
+        // Verify input is visible and enabled
         const input = this.getGroupNameInput();
-        await expect(input).toBeVisible({ timeout: 2000 });
-        await expect(input).toBeEnabled({ timeout: 1000 });
+        try {
+            await expect(input).toBeVisible({ timeout: 2000 });
+            await expect(input).toBeEnabled({ timeout: 1000 });
+        } catch (error) {
+            // Double-check modal is still there
+            const stillVisible = await modalContainer.isVisible().catch(() => false);
+            if (!stillVisible) {
+                throw new Error(
+                    `Create Group Modal closed while waiting for input to be ready.\n` +
+                    `The modal was visible initially but closed during interaction.\n` +
+                    `Check browser console for "[CreateGroupModal] Closing modal" logs to see why it closed.\n` +
+                    `Original error: ${error instanceof Error ? error.message : String(error)}`
+                );
+            }
+            throw error;
+        }
+
         await this.fillPreactInput(input, name);
     }
 
@@ -209,6 +239,18 @@ export class CreateGroupModalPage extends BasePage {
      * Fill the group description field using proper Preact handling
      */
     async fillGroupDescription(description: string): Promise<void> {
+        // Defensive check: Verify modal is still open
+        const modalContainer = this.getModalContainer();
+        const isModalVisible = await modalContainer.isVisible().catch(() => false);
+
+        if (!isModalVisible) {
+            throw new Error(
+                `Cannot fill group description - Create Group Modal is not open or has closed.\n` +
+                `Current URL: ${this.page.url()}\n` +
+                `Check browser console for "[CreateGroupModal] Closing modal" logs.`
+            );
+        }
+
         const input = this.getGroupDescriptionInput();
         await expect(input).toBeVisible();
         await expect(input).toBeEnabled();
@@ -232,6 +274,18 @@ export class CreateGroupModalPage extends BasePage {
      * Submit the modal form
      */
     async submitForm(): Promise<void> {
+        // Defensive check: Verify modal is still open before submitting
+        const modalContainer = this.getModalContainer();
+        const isModalVisible = await modalContainer.isVisible().catch(() => false);
+
+        if (!isModalVisible) {
+            throw new Error(
+                `Cannot submit form - Create Group Modal is not open or has closed.\n` +
+                `Current URL: ${this.page.url()}\n` +
+                `Check browser console for "[CreateGroupModal] Closing modal" logs.`
+            );
+        }
+
         const submitButton = this.getSubmitButton();
         await this.clickButton(submitButton, { buttonName: 'Create Group' });
     }

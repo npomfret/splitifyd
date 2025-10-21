@@ -328,19 +328,27 @@ export abstract class BasePage {
     /**
      * Get a human-readable identifier for an input field (for error messages)
      * Protected so child classes can use it for enhanced error reporting
+     *
+     * Resilient to elements disappearing - returns a fallback identifier if element is gone
      */
     protected async getInputIdentifier(input: Locator): Promise<string> {
-        const id = await input.getAttribute('id');
-        if (id) return `#${id}`;
+        try {
+            // Short timeout for attribute checks - if element is gone, fail fast
+            const id = await input.getAttribute('id', { timeout: 500 });
+            if (id) return `#${id}`;
 
-        const name = await input.getAttribute('name');
-        if (name) return `[name="${name}"]`;
+            const name = await input.getAttribute('name', { timeout: 500 });
+            if (name) return `[name="${name}"]`;
 
-        const placeholder = await input.getAttribute('placeholder');
-        if (placeholder) return `[placeholder="${placeholder}"]`;
+            const placeholder = await input.getAttribute('placeholder', { timeout: 500 });
+            if (placeholder) return `[placeholder="${placeholder}"]`;
 
-        const ariaLabel = await input.getAttribute('aria-label');
-        if (ariaLabel) return `[aria-label="${ariaLabel}"]`;
+            const ariaLabel = await input.getAttribute('aria-label', { timeout: 500 });
+            if (ariaLabel) return `[aria-label="${ariaLabel}"]`;
+        } catch (error) {
+            // Element disappeared or timed out - return a helpful fallback
+            return `<input element no longer available - may have been removed from DOM>`;
+        }
 
         return '[input]';
     }
