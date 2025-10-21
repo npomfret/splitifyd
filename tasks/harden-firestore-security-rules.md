@@ -7,7 +7,7 @@ Owner: Platform Engineering
 
 | Issue | Area | Status | Notes |
 | --- | --- | --- | --- |
-| 1 | Registration abuse (rate limiting) | Open | `register` handler exposes registration without throttling or abuse detection (firebase/functions/src/auth/handlers.ts:5). No rate-limiting middleware or request counters exist. |
+| 1 | Registration abuse (edge-level control) | Delegated | Registration rate limiting must be enforced before traffic reaches Cloud Functions. No function-level throttling is planned; coordinate with the platform gateway team. |
 | 2 | Test endpoint guardrails | Done | Production traffic is blocked from `/test-pool/*` and `/test/user/*`, and the handlers enforce non-production plus token checks (firebase/functions/src/index.ts:305, firebase/functions/src/test/policy-handlers.ts:14). |
 | 3 | Auth field duplication | Partially done | Email and photo URL are no longer written to Firestore, but `displayName` is still duplicated on create/update (firebase/functions/src/services/UserService2.ts:200,392). Schema still allows legacy email fields for backward compatibility. |
 | 4 | Health and diagnostics endpoints | Open | `/health` is minimal, but `/status` and `/env` still leak environment variables, filesystem contents, and runtime details without auth (firebase/functions/src/index.ts:121,183). |
@@ -28,21 +28,20 @@ Legend: Done = implemented and verified, Partially done = partially mitigated, N
 
 ## Outstanding Work
 
-1. Implement registration throttling and abuse protection (Issue 1). Options include IP-based quotas, per-email lockouts, and exponential backoff responses.
-2. Lock down `/status` and `/env` (Issue 4). Either require authenticated admins, or remove sensitive payloads (environment variables, filesystem listings, process identifiers).
-3. Ship a registration flow that avoids leaking whether an email exists (Issue 5). Standardise error messaging and insert a minimum response delay.
-4. Introduce log sanitisation (Issue 6). Add redaction for password, token, key, and bearer fields before forwarding payloads to Cloud Logging.
-5. Create an audit logging service for admin actions (Issue 7) and enforce read/write rules for the backing collection.
-6. Finish the input sanitisation audit (Issue 9). Document coverage, add regression tests, and close any gaps (group names, notification payloads, etc.).
-7. Consider removing the remaining `displayName` duplication from Firestore (Issue 3 follow-up) once frontend dependencies are reviewed.
+1. Lock down `/status` and `/env` (Issue 4). Either require authenticated admins, or remove sensitive payloads (environment variables, filesystem listings, process identifiers).
+2. Ship a registration flow that avoids leaking whether an email exists (Issue 5). Standardise error messaging and insert a minimum response delay.
+3. Introduce log sanitisation (Issue 6). Add redaction for password, token, key, and bearer fields before forwarding payloads to Cloud Logging.
+4. Create an audit logging service for admin actions (Issue 7) and enforce read/write rules for the backing collection.
+5. Finish the input sanitisation audit (Issue 9). Document coverage, add regression tests, and close any gaps (group names, notification payloads, etc.).
+6. Consider removing the remaining `displayName` duplication from Firestore (Issue 3 follow-up) once frontend dependencies are reviewed.
 
 ## Issue Details
 
-### Issue 1 - Registration abuse (rate limiting)
+### Issue 1 - Registration abuse (edge-level control)
 
-- **Status:** Open  
-- **Findings:** The `register` handler simply delegates to `UserService2.registerUser` (firebase/functions/src/auth/handlers.ts:5) with no attempt counters, cooldowns, or IP throttling. Translation strings include `rateLimitExceeded`, but no middleware produces that response.  
-- **Actions:** Introduce lightweight throttling (per-IP and per-email) at the Express layer, add metrics for rejection counts, and ensure emulator/test bypasses are explicit.
+- **Status:** Delegated  
+- **Findings:** The registration flow intentionally skips rate limiting because Cloud Functions is not the right enforcement point. Upstream services (load balancer, API gateway, or WAF) must handle quotas, lockouts, and CAPTCHA flows.  
+- **Actions:** Coordinate with the platform team to confirm edge protections are in place; no changes required inside `firebase/functions`.
 
 ### Issue 2 - Test endpoint guardrails
 
