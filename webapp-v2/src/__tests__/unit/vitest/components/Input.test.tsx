@@ -177,7 +177,7 @@ describe('Input Component', () => {
         });
 
         it('should handle different types of validation errors', () => {
-            const errorTypes = ['Required field', 'Invalid email format', 'Password must be at least 8 characters', 'Username already exists', 'Special characters not allowed'];
+            const errorTypes = ['Required field', 'Invalid email format', 'Password must be at least 12 characters', 'Username already exists', 'Special characters not allowed'];
 
             errorTypes.forEach((errorMessage) => {
                 const { unmount } = render(<Input label='Test Field' error={errorMessage} />);

@@ -353,7 +353,7 @@ class AuthStoreImpl implements AuthStore {
                 case AuthErrors.EMAIL_EXISTS:
                     return 'This email is already registered.';
                 case 'auth/weak-password':
-                    return 'Password is too weak. Please use at least 6 characters.';
+                    return 'Password is too weak. Please use at least 12 characters.';
                 case 'auth/invalid-email':
                     return 'Please enter a valid email address.';
                 case 'auth/too-many-requests':

@@ -16,7 +16,7 @@ export class TestUserBuilder {
     constructor() {
         this.user = {
             email: `test-${generateShortId()}@example.com`,
-            password: 'rrRR44$$', // Strong password that meets validation requirements
+            password: 'passwordpass', // Default test password: 12 characters, no complexity required
             displayName: `${randomChoice(['Test', 'Demo', 'Sample'])} ${randomChoice(['User', 'Person', 'Account'])}`,
         };
     }

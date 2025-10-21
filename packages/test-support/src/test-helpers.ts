@@ -31,7 +31,7 @@ export function generateTestUserName(prefix: string = 'User'): string {
     return generateNewUserDetails(prefix).displayName;
 }
 
-export const DEFAULT_PASSWORD = 'rrRR44$$';
+export const DEFAULT_PASSWORD = 'passwordpass';
 
 export function generateNewUserDetails(prefix = 'u') {
     const id = generateShortId();

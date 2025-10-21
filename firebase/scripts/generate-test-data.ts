@@ -58,7 +58,7 @@ const generateTestUserRegistrations = (config: TestDataConfig): UserRegistration
     // Keep test1@test.com as the first user for easy reference
     users.push({
         email: 'test1@test.com',
-        password: 'rrRR44$$',
+        password: 'passwordpass',
         displayName: 'Bill Splitter',
         termsAccepted: true,
         cookiePolicyAccepted: true,
@@ -95,7 +95,7 @@ const generateTestUserRegistrations = (config: TestDataConfig): UserRegistration
             ...testUsers[i],
             termsAccepted: true,
             cookiePolicyAccepted: true,
-            password: 'rrRR44$$',
+            password: 'passwordpass',
         });
     }
 

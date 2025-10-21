@@ -76,7 +76,7 @@ export function SettingsPage() {
             return;
         }
 
-        if (passwordData.newPassword.length < 6) {
+        if (passwordData.newPassword.length < 12) {
             setErrorMessage(t('settingsPage.errorMessages.passwordTooShort'));
             return;
         }

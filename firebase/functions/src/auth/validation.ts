@@ -6,7 +6,7 @@ import { displayNameSchema } from '../validation/validationSchemas';
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&\s]{8,}$/;
+const PASSWORD_REGEX = /^.{12,}$/;
 
 const registerSchema = Joi.object({
     email: Joi
@@ -29,7 +29,7 @@ const registerSchema = Joi.object({
             'any.required': 'Email is required',
         }),
     password: Joi.string().pattern(PASSWORD_REGEX).required().messages({
-        'string.pattern.base': 'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character',
+        'string.pattern.base': 'Password must be at least 12 characters long',
         'string.empty': 'Password is required',
         'any.required': 'Password is required',
     }),
@@ -56,7 +56,7 @@ export const validateRegisterRequest = (body: UserRegistration): UserRegistratio
         if (firstError.path.includes('email')) {
             errorCode = firstError.message.includes('format') ? 'INVALID_EMAIL_FORMAT' : 'MISSING_EMAIL';
         } else if (firstError.path.includes('password')) {
-            errorCode = firstError.message.includes('8 characters') ? 'WEAK_PASSWORD' : 'MISSING_PASSWORD';
+            errorCode = firstError.message.includes('12 characters') ? 'WEAK_PASSWORD' : 'MISSING_PASSWORD';
         } else if (firstError.path.includes('displayName')) {
             if (firstError.message.includes('2 characters')) {
                 errorCode = 'DISPLAY_NAME_TOO_SHORT';

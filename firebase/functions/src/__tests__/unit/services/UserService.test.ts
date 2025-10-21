@@ -36,7 +36,7 @@ describe('UserService - Consolidated Unit Tests', () => {
     describe('registerUser', () => {
         it('should register a new user with Firebase Auth and Firestore', async () => {
             const registrationData = new UserRegistrationBuilder()
-                .withPassword('SecurePass123!')
+                .withPassword('passwordpass')
                 .withDisplayName('New User')
                 .build();
 
@@ -81,7 +81,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
         it('should validate policy acceptance flags', async () => {
             const userData = new UserRegistrationBuilder()
-                .withPassword('SecurePass123!')
+                .withPassword('passwordpass')
                 .withDisplayName('Test User')
                 .withTermsAccepted(false)
                 .withCookiePolicyAccepted(true)
@@ -91,7 +91,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             // Test cookie policy validation
             const userData2 = new UserRegistrationBuilder()
-                .withPassword('SecurePass123!')
+                .withPassword('passwordpass')
                 .withDisplayName('Test User')
                 .withTermsAccepted(true)
                 .withCookiePolicyAccepted(false)
@@ -102,7 +102,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
         it('should assign theme color and role during registration', async () => {
             const registrationData = new UserRegistrationBuilder()
-                .withPassword('SecurePass123!')
+                .withPassword('passwordpass')
                 .withDisplayName('Themed User')
                 .build();
 
@@ -339,8 +339,8 @@ describe('UserService - Consolidated Unit Tests', () => {
     describe('changePassword', () => {
         it('should update password and track change timestamp', async () => {
             const uid = 'test-user';
-            const currentPassword = 'OldPassword123!';
-            const newPassword = 'NewSecurePassword123!';
+            const currentPassword = 'OldPassword1234!';
+            const newPassword = 'NewSecurePassword1234!';
 
             // Set up existing user
             stubAuth.setUser(
@@ -373,8 +373,8 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             await expect(
                 userService.changePassword(nonExistentUid, {
-                    currentPassword: 'OldPassword123!',
-                    newPassword: 'NewPassword123!',
+                    currentPassword: 'OldPassword1234!',
+                    newPassword: 'NewPassword1234!',
                 }),
             )
                 .rejects
@@ -434,6 +434,24 @@ describe('UserService - Consolidated Unit Tests', () => {
 
         beforeEach(() => {
             validationUserService = new ApplicationBuilder(stubAuth, db).buildUserService();
+
+            const email = `${testUserId}@example.com`;
+            const displayName = 'Validation User';
+
+            stubAuth.setUser(
+                testUserId,
+                {
+                    uid: testUserId,
+                    email,
+                    displayName,
+                },
+                { password: 'ValidCurrentPassword1234!' },
+            );
+
+            db.seedUser(testUserId, {
+                email,
+                displayName,
+            });
         });
 
         describe('updateProfile validation', () => {
@@ -503,66 +521,53 @@ describe('UserService - Consolidated Unit Tests', () => {
         });
 
         describe('changePassword validation', () => {
-            it('should validate password strength - minimum length', async () => {
+            it('should reject new passwords shorter than 12 characters', async () => {
                 const changeData = new PasswordChangeRequestBuilder()
-                    .withCurrentPassword('ValidCurrentPassword123!')
+                    .withCurrentPassword('ValidCurrentPassword1234!')
                     .withNewPassword('123') // Too short
                     .build();
 
                 await expect(validationUserService.changePassword(testUserId, changeData)).rejects.toThrow(ApiError);
             });
 
-            it('should validate password strength - requires uppercase', async () => {
-                const changeData = new PasswordChangeRequestBuilder()
-                    .withCurrentPassword('ValidCurrentPassword123!')
-                    .withNewPassword('newpassword123!') // No uppercase
-                    .build();
-
-                await expect(validationUserService.changePassword(testUserId, changeData)).rejects.toThrow(ApiError);
-            });
-
-            it('should validate password strength - requires lowercase', async () => {
+            it('should accept lowercase-only passwords when long enough', async () => {
                 const changeData = {
-                    currentPassword: 'ValidCurrentPassword123!',
-                    newPassword: 'NEWPASSWORD123!', // No lowercase
+                    currentPassword: 'ValidCurrentPassword1234!',
+                    newPassword: 'lowercaseonlypass',
                 };
 
-                await expect(validationUserService.changePassword(testUserId, changeData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.changePassword(testUserId, changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
             });
 
-            it('should validate password strength - requires number', async () => {
+            it('should accept passwords without numbers or special characters when long enough', async () => {
                 const changeData = {
-                    currentPassword: 'ValidCurrentPassword123!',
-                    newPassword: 'NewPassword!', // No number
+                    currentPassword: 'ValidCurrentPassword1234!',
+                    newPassword: 'JustLettersHere',
                 };
 
-                await expect(validationUserService.changePassword(testUserId, changeData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.changePassword(testUserId, changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
             });
 
-            it('should validate password strength - requires special character', async () => {
+            it('should accept passwords with spaces when long enough', async () => {
                 const changeData = {
-                    currentPassword: 'ValidCurrentPassword123!',
-                    newPassword: 'NewPassword123', // No special character
+                    currentPassword: 'ValidCurrentPassword1234!',
+                    newPassword: 'twelve chars ok',
                 };
 
-                await expect(validationUserService.changePassword(testUserId, changeData)).rejects.toThrow(ApiError);
-            });
-
-            it('should accept valid strong password', async () => {
-                // todo
+                await expect(validationUserService.changePassword(testUserId, changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
             });
 
             it('should validate current password is provided', async () => {
                 const changeData = {
                     currentPassword: '',
-                    newPassword: 'NewSecurePassword123!',
+                    newPassword: 'NewSecurePassword1234!',
                 };
 
                 await expect(validationUserService.changePassword(testUserId, changeData)).rejects.toThrow(ApiError);
             });
 
             it('should validate new password is different from current', async () => {
-                const samePassword = 'SamePassword123!';
+                const samePassword = 'SamePassword1234!';
                 const changeData = {
                     currentPassword: samePassword,
                     newPassword: samePassword,
@@ -584,7 +589,7 @@ describe('UserService - Consolidated Unit Tests', () => {
             it('should validate email format', async () => {
                 const registrationData = {
                     email: 'invalid-email',
-                    password: 'ValidPassword123!',
+                    password: 'ValidPassword1234!',
                     displayName: 'Test User',
                     termsAccepted: true,
                     cookiePolicyAccepted: true,
@@ -608,7 +613,7 @@ describe('UserService - Consolidated Unit Tests', () => {
             it('should require terms acceptance', async () => {
                 const registrationData = {
                     email: 'newuser@example.com',
-                    password: 'ValidPassword123!',
+                    password: 'ValidPassword1234!',
                     displayName: 'Test User',
                     termsAccepted: false,
                     cookiePolicyAccepted: true,
@@ -620,7 +625,7 @@ describe('UserService - Consolidated Unit Tests', () => {
             it('should require cookie policy acceptance', async () => {
                 const registrationData = {
                     email: 'newuser@example.com',
-                    password: 'ValidPassword123!',
+                    password: 'ValidPassword1234!',
                     displayName: 'Test User',
                     termsAccepted: true,
                     cookiePolicyAccepted: false,
@@ -632,7 +637,7 @@ describe('UserService - Consolidated Unit Tests', () => {
             it('should validate displayName during registration', async () => {
                 const registrationData = {
                     email: 'newuser@example.com',
-                    password: 'ValidPassword123!',
+                    password: 'ValidPassword1234!',
                     displayName: '', // Empty display name
                     termsAccepted: true,
                     cookiePolicyAccepted: true,
@@ -756,82 +761,33 @@ describe('UserService - Consolidated Unit Tests', () => {
             it('should reject passwords that are too short', () => {
                 expect(() => {
                     const password = '123';
-                    const minLength = 8;
+                    const minLength = 12;
                     if (password.length < minLength) {
                         throw new ApiError(400, 'WEAK_PASSWORD', `Password must be at least ${minLength} characters long`);
                     }
                 })
-                    .toThrow('Password must be at least 8 characters long');
+                    .toThrow('Password must be at least 12 characters long');
             });
 
-            it('should reject passwords without uppercase letters', () => {
-                expect(() => {
-                    const password = 'newpassword123!';
-                    if (!/[A-Z]/.test(password)) {
-                        throw new ApiError(400, 'WEAK_PASSWORD', 'Password must contain at least one uppercase letter');
-                    }
-                })
-                    .toThrow('Password must contain at least one uppercase letter');
-            });
+            it('should accept passwords of any composition when length requirement is met', () => {
+                const validPasswords = ['passwordpass', 'lowercaseonlypass', '123456789012', '!!!!!!!!!!!!', 'WITH SPACES 12'];
 
-            it('should reject passwords without lowercase letters', () => {
-                expect(() => {
-                    const password = 'NEWPASSWORD123!';
-                    if (!/[a-z]/.test(password)) {
-                        throw new ApiError(400, 'WEAK_PASSWORD', 'Password must contain at least one lowercase letter');
-                    }
-                })
-                    .toThrow('Password must contain at least one lowercase letter');
-            });
-
-            it('should reject passwords without numbers', () => {
-                expect(() => {
-                    const password = 'NewPassword!';
-                    if (!/[0-9]/.test(password)) {
-                        throw new ApiError(400, 'WEAK_PASSWORD', 'Password must contain at least one number');
-                    }
-                })
-                    .toThrow('Password must contain at least one number');
-            });
-
-            it('should reject passwords without special characters', () => {
-                expect(() => {
-                    const password = 'NewPassword123';
-                    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-                        throw new ApiError(400, 'WEAK_PASSWORD', 'Password must contain at least one special character');
-                    }
-                })
-                    .toThrow('Password must contain at least one special character');
-            });
-
-            it('should accept strong passwords', () => {
-                expect(() => {
-                    const password = 'NewSecurePassword123!';
-
-                    if (password.length < 8) {
-                        throw new ApiError(400, 'WEAK_PASSWORD', 'Password must be at least 8 characters long');
-                    }
-                    if (!/[A-Z]/.test(password)) {
-                        throw new ApiError(400, 'WEAK_PASSWORD', 'Password must contain at least one uppercase letter');
-                    }
-                    if (!/[a-z]/.test(password)) {
-                        throw new ApiError(400, 'WEAK_PASSWORD', 'Password must contain at least one lowercase letter');
-                    }
-                    if (!/[0-9]/.test(password)) {
-                        throw new ApiError(400, 'WEAK_PASSWORD', 'Password must contain at least one number');
-                    }
-                    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-                        throw new ApiError(400, 'WEAK_PASSWORD', 'Password must contain at least one special character');
-                    }
-                })
-                    .not
-                    .toThrow();
+                validPasswords.forEach((password) => {
+                    expect(() => {
+                        const minLength = 12;
+                        if (password.length < minLength) {
+                            throw new ApiError(400, 'WEAK_PASSWORD', `Password must be at least ${minLength} characters long`);
+                        }
+                    })
+                        .not
+                        .toThrow();
+                });
             });
 
             it('should reject passwords that are the same as current password', () => {
                 expect(() => {
-                    const currentPassword = 'SamePassword123!';
-                    const newPassword = 'SamePassword123!';
+                    const currentPassword = 'SamePassword1234!';
+                    const newPassword = 'SamePassword1234!';
 
                     if (currentPassword === newPassword) {
                         throw new ApiError(400, 'INVALID_PASSWORD', 'New password must be different from current password');

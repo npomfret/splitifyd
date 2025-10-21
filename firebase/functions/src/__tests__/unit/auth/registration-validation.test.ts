@@ -18,7 +18,7 @@ import { ApiError } from '../../../utils/errors';
 describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
     const validRegistrationData: UserRegistration = new UserRegistrationBuilder()
         .withEmail('test@example.com')
-        .withPassword('SecurePass123!')
+        .withPassword('passwordpass')
         .withDisplayName('Test User')
         .withTermsAccepted(true)
         .withCookiePolicyAccepted(true)
@@ -72,10 +72,17 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
     });
 
     describe('Password Validation', () => {
-        it('should accept strong passwords', () => {
-            const strongPasswords = ['SecurePass123!', 'MyP@ssw0rd2024', 'Tr0ub4dor&3', 'Complex!Pass1', 'Str0ng&Secure!'];
+        it('should accept any password that meets the minimum length requirement', () => {
+            const validPasswords = [
+                'passwordpass', // simple lowercase
+                'aaaaaaaaaaaa', // repeated characters
+                '123456789012', // numbers only
+                '!!!!!!!!!!!!', // symbols only
+                'MixedCASE1234', // mixed content
+                'with spaces 123', // includes spaces
+            ];
 
-            for (const password of strongPasswords) {
+            for (const password of validPasswords) {
                 const data = new UserRegistrationBuilder()
                     .from(validRegistrationData)
                     .withPassword(password)
@@ -84,22 +91,16 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
             }
         });
 
-        it('should reject weak passwords', () => {
-            const weakPasswords = [
-                '123456', // too simple
-                'password', // no uppercase, numbers, or special chars
-                'abc', // too short
+        it('should reject passwords shorter than 12 characters', () => {
+            const tooShortPasswords = [
+                'short', // 5 characters
+                '12345678901', // 11 characters
+                'password', // 8 characters
                 '', // empty
-                '12345', // too short, no letters
-                'qwerty', // common weak password
-                'password123', // no special chars or uppercase
-                'PASSWORD123!', // no lowercase
-                'password!', // no numbers or uppercase
-                'Password123', // no special characters
-                'Pass1!', // too short
+                'twelvechars', // 11 characters
             ];
 
-            for (const password of weakPasswords) {
+            for (const password of tooShortPasswords) {
                 const data = new UserRegistrationBuilder()
                     .from(validRegistrationData)
                     .withPassword(password)
@@ -108,22 +109,22 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                     expect.objectContaining({
                         statusCode: HTTP_STATUS.BAD_REQUEST,
                         code: expect.stringMatching(/WEAK_PASSWORD|MISSING_PASSWORD/),
-                        message: expect.stringMatching(/Password must contain at least 8 characters|Password is required/),
+                        message: expect.stringMatching(/Password must be at least 12 characters long|Password is required/),
                     }),
                 );
             }
         });
 
-        it('should provide specific error message for password requirements', () => {
+        it('should provide specific error message for passwords that are too short', () => {
             const data = new UserRegistrationBuilder()
                 .from(validRegistrationData)
-                .withPassword('weak')
+                .withPassword('tooshort')
                 .build();
             expect(() => validateRegisterRequest(data)).toThrow(
                 new ApiError(
                     HTTP_STATUS.BAD_REQUEST,
                     'WEAK_PASSWORD',
-                    'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character',
+                    'Password must be at least 12 characters long',
                 ),
             );
         });
@@ -242,11 +243,11 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
     describe('Required Fields Validation', () => {
         it('should require all mandatory fields', () => {
             const incompleteData = [
-                { password: 'Password123!', displayName: 'Test User', termsAccepted: true, cookiePolicyAccepted: true }, // missing email
+                { password: 'passwordpass', displayName: 'Test User', termsAccepted: true, cookiePolicyAccepted: true }, // missing email
                 { email: 'test@example.com', displayName: 'Test User', termsAccepted: true, cookiePolicyAccepted: true }, // missing password
-                { email: 'test@example.com', password: 'Password123!', termsAccepted: true, cookiePolicyAccepted: true }, // missing displayName
-                { email: 'test@example.com', password: 'Password123!', displayName: 'Test User', cookiePolicyAccepted: true }, // missing termsAccepted
-                { email: 'test@example.com', password: 'Password123!', displayName: 'Test User', termsAccepted: true }, // missing cookiePolicyAccepted
+                { email: 'test@example.com', password: 'passwordpass', termsAccepted: true, cookiePolicyAccepted: true }, // missing displayName
+                { email: 'test@example.com', password: 'passwordpass', displayName: 'Test User', cookiePolicyAccepted: true }, // missing termsAccepted
+                { email: 'test@example.com', password: 'passwordpass', displayName: 'Test User', termsAccepted: true }, // missing cookiePolicyAccepted
                 {}, // missing all
             ];
 
@@ -388,7 +389,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
         it('should return processed and normalized data for valid input', () => {
             const inputData = {
                 email: '  TEST@EXAMPLE.COM  ',
-                password: 'SecurePass123!',
+                password: 'passwordpass',
                 displayName: '  Test User  ',
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
@@ -398,7 +399,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
 
             expect(result).toEqual({
                 email: 'test@example.com', // normalized
-                password: 'SecurePass123!', // unchanged
+                password: 'passwordpass', // unchanged
                 displayName: 'Test User', // trimmed
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
@@ -416,7 +417,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
     });
 
     describe('Security Considerations', () => {
-        it('should reject common weak passwords', () => {
+        it('should still reject common weak passwords that are shorter than 12 characters', () => {
             const commonWeakPasswords = ['password123', 'admin123', 'qwerty123', '12345678', 'password!', 'Password1'];
 
             for (const password of commonWeakPasswords) {
@@ -433,25 +434,20 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
             }
         });
 
-        it('should enforce minimum password complexity', () => {
-            // Test each complexity requirement individually
-            const insufficientPasswords = [
-                'ONLYUPPERCASE123!', // no lowercase
-                'onlylowercase123!', // no uppercase
-                'OnlyLetters!', // no numbers
-                'OnlyAlphaNum123', // no special characters
+        it('should accept passwords that previously failed complexity checks when length requirement is satisfied', () => {
+            const passwords = [
+                'ONLYUPPERCASE123!', // uppercase only previously failed lowercase check
+                'onlylowercasepass', // lowercase only
+                'OnlyLettersHere', // letters only
+                'NoSpecials1234', // alphanumeric without special characters
             ];
 
-            for (const password of insufficientPasswords) {
+            for (const password of passwords) {
                 const data = new UserRegistrationBuilder()
                     .from(validRegistrationData)
-                    .withPassword(password)
+                    .withPassword(password.length >= 12 ? password : `${password}_____`) // ensure length >= 12
                     .build();
-                expect(() => validateRegisterRequest(data)).toThrow(
-                    expect.objectContaining({
-                        code: 'WEAK_PASSWORD',
-                    }),
-                );
+                expect(() => validateRegisterRequest(data)).not.toThrow();
             }
         });
     });

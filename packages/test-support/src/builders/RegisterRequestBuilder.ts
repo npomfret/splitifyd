@@ -4,7 +4,7 @@ import { randomBoolean, randomChoice, randomEmail, randomString } from '../test-
 export class RegisterRequestBuilder {
     private request: UserRegistration = {
         email: randomEmail(),
-        password: `Pass123!ABC`,
+        password: `passwordpass`,
         displayName: `${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(6)}`,
         termsAccepted: randomBoolean(),
         cookiePolicyAccepted: randomBoolean(),

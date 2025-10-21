@@ -99,24 +99,24 @@ simpleTest.describe('User Profile Management', () => {
         await passwordSettingsPage.fillNewPassword('123');
         await passwordSettingsPage.fillConfirmPassword('123');
         await passwordSettingsPage.clickUpdatePasswordButton();
-        await passwordSettingsPage.verifyErrorMessage('New password must be at least 6 characters long');
+        await passwordSettingsPage.verifyErrorMessage('New password must be at least 12 characters long');
 
         // Test password mismatch
-        await passwordSettingsPage.fillNewPassword('newPassword123');
+        await passwordSettingsPage.fillNewPassword('newPassword1234');
         await passwordSettingsPage.fillConfirmPassword('differentPassword');
         await passwordSettingsPage.clickUpdatePasswordButton();
         await passwordSettingsPage.verifyErrorMessage('Passwords do not match');
 
         // Test successful password change
         await passwordSettingsPage.cancelPasswordChange();
-        await passwordSettingsPage.changePassword(password, 'newPassword123!');
+        await passwordSettingsPage.changePassword(password, 'newPassword1234!');
         await passwordSettingsPage.verifySuccessMessage('Password changed successfully');
         await passwordSettingsPage.verifyPasswordFormVisible(false);
 
         // Test password change cancellation
         await passwordSettingsPage.openPasswordChangeForm();
         await passwordSettingsPage.fillCurrentPassword('somePassword');
-        await passwordSettingsPage.fillNewPassword('newPassword123');
+        await passwordSettingsPage.fillNewPassword('newPassword1234');
         await passwordSettingsPage.cancelPasswordChange();
         await passwordSettingsPage.verifyPasswordFormVisible(false);
         await passwordSettingsPage.verifyChangePasswordButtonVisible();

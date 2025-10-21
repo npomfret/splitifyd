@@ -18,7 +18,7 @@ curl 'http://127.0.0.1:7002/identitytoolkit.googleapis.com/v1/accounts:signInWit
   -H 'sec-ch-ua: "Chromium";v="140", "Not=A?Brand";v="24", "Google Chrome";v="140"' \
   -H 'sec-ch-ua-mobile: ?0' \
   -H 'sec-ch-ua-platform: "macOS"' \
-  --data-raw '{"returnSecureToken":true,"email":"test1@test.com","password":"rrRR44$$","clientType":"CLIENT_TYPE_WEB"}'
+  --data-raw '{"returnSecureToken":true,"email":"test1@test.com","password":"passwordpass","clientType":"CLIENT_TYPE_WEB"}'
 ```
 
 ## register
@@ -39,7 +39,7 @@ curl 'http://localhost:7005/api/register' \
   -H 'sec-ch-ua: "Chromium";v="140", "Not=A?Brand";v="24", "Google Chrome";v="140"' \
   -H 'sec-ch-ua-mobile: ?0' \
   -H 'sec-ch-ua-platform: "macOS"' \
-  --data-raw '{"email":"xxx@xxx.com","password":"rrRR44$$","displayName":"xxx","termsAccepted":true,"cookiePolicyAccepted":true}'
+  --data-raw '{"email":"xxx@xxx.com","password":"passwordpass","displayName":"xxx","termsAccepted":true,"cookiePolicyAccepted":true}'
 ```
 
 # lookup

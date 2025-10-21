@@ -17,7 +17,7 @@ interface FirestorePoolUser extends PoolUser {
 
 const POOL_PREFIX = 'testpool';
 const POOL_DOMAIN = 'example.com';
-const POOL_PASSWORD = 'rrRR44$$';
+const POOL_PASSWORD = 'passwordpass';
 const POOL_COLLECTION = 'test-user-pool';
 
 export class TestUserPoolService {

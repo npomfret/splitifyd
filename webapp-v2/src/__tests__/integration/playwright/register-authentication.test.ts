@@ -19,7 +19,7 @@ test.describe('Registration Authentication Flow', () => {
         await registerPage.navigate();
 
         // 4. Complete registration and navigate to dashboard (fluent interface)
-        const dashboardPage = await registerPage.registerAndNavigateToDashboard(testUser.displayName, testUser.email, 'SecurePassword123');
+        const dashboardPage = await registerPage.registerAndNavigateToDashboard(testUser.displayName, testUser.email, 'SecurePassword1234');
 
         // 5. Verify successful registration and navigation
         await dashboardPage.verifyAuthenticatedUser(testUser.displayName);
@@ -39,7 +39,7 @@ test.describe('Registration Authentication Flow', () => {
         });
 
         // 3. Attempt registration expecting failure (fluent interface)
-        await registerPage.registerExpectingFailure('John Smith', 'existing@example.com', 'Password123');
+        await registerPage.registerExpectingFailure('John Smith', 'existing@example.com', 'Password1234');
 
         // 4. Verify error handling
         await registerPage.verifyErrorMessage('An account with this email already exists.');
@@ -58,7 +58,7 @@ test.describe('Registration Authentication Flow', () => {
         });
 
         // 3. Attempt registration expecting failure (fluent interface)
-        await registerPage.registerExpectingFailure('Jane Doe', 'jane@example.com', 'Password123');
+        await registerPage.registerExpectingFailure('Jane Doe', 'jane@example.com', 'Password1234');
 
         // 4. Verify network error handling
         await registerPage.verifyErrorMessage('Network error. Please check your connection.');
@@ -72,14 +72,14 @@ test.describe('Registration Authentication Flow', () => {
         // Configure mock Firebase for weak password error
         await mockFirebase.mockRegisterFailure({
             code: 'auth/weak-password',
-            message: 'Password is too weak. Please choose a stronger password.',
+            message: 'Password is too weak. Please use at least 12 characters.',
         });
 
-        // Attempt registration with weak password (6 chars to pass client validation)
-        await registerPage.registerExpectingFailure('Test User', 'test@example.com', '123456');
+        // Attempt registration with password that satisfies client validation but fails backend strength checks
+        await registerPage.registerExpectingFailure('Test User', 'test@example.com', 'weakpassword1');
 
         // Verify error message
-        await registerPage.verifyErrorMessage('Password is too weak. Please choose a stronger password.');
+        await registerPage.verifyErrorMessage('Password is too weak. Please use at least 12 characters.');
     });
 
     test('should handle invalid email format from backend', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -94,7 +94,7 @@ test.describe('Registration Authentication Flow', () => {
         });
 
         // Attempt registration with validly formatted email that backend rejects
-        await registerPage.registerExpectingFailure('Test User', 'badformat@example.com', 'Password123');
+        await registerPage.registerExpectingFailure('Test User', 'badformat@example.com', 'Password1234');
 
         // Verify backend error message is shown
         await registerPage.verifyErrorMessage('This email address is invalid.');
@@ -140,7 +140,7 @@ test.describe('Registration Flow - Already Authenticated', () => {
         await registerPage.verifyRegisterPageLoaded();
 
         // Fill and submit manually (not using fluent method since we're checking returnUrl, not dashboard)
-        await registerPage.fillRegistrationForm(testUser.displayName, testUser.email, 'Password123');
+        await registerPage.fillRegistrationForm(testUser.displayName, testUser.email, 'Password1234');
         await registerPage.acceptAllPolicies();
         await registerPage.submitForm();
 
@@ -159,7 +159,7 @@ test.describe('Registration Flow - Already Authenticated', () => {
         await registerPage.navigate();
 
         // Complete registration - should default to dashboard
-        const dashboardPage = await registerPage.registerAndNavigateToDashboard(testUser.displayName, testUser.email, 'Password123');
+        const dashboardPage = await registerPage.registerAndNavigateToDashboard(testUser.displayName, testUser.email, 'Password1234');
 
         await expect(page).toHaveURL(/\/dashboard/);
         await dashboardPage.verifyAuthenticatedUser(testUser.displayName);
@@ -179,7 +179,7 @@ test.describe('Registration Form - Loading and Disabled States', () => {
         await registerPage.navigate();
 
         // Fill form and verify it's enabled
-        await registerPage.fillRegistrationForm(testUser.displayName, testUser.email, 'Password123');
+        await registerPage.fillRegistrationForm(testUser.displayName, testUser.email, 'Password1234');
         await registerPage.acceptAllPolicies();
         await registerPage.verifyFormEnabled();
 
@@ -206,11 +206,11 @@ test.describe('Registration Form - Loading and Disabled States', () => {
         await registerPage.verifySubmitButtonDisabled();
 
         // Fill password but not confirm password
-        await registerPage.fillPassword('Password123');
+        await registerPage.fillPassword('Password1234');
         await registerPage.verifySubmitButtonDisabled();
 
         // Fill confirm password but don't accept policies
-        await registerPage.fillConfirmPassword('Password123');
+        await registerPage.fillConfirmPassword('Password1234');
         await registerPage.verifySubmitButtonDisabled();
 
         // Accept only one policy checkbox
@@ -233,8 +233,8 @@ test.describe('Registration Form - Loading and Disabled States', () => {
 
         await registerPage.fillName(testUser.displayName);
         await registerPage.fillEmail(testUser.email);
-        await registerPage.fillPassword('Password123');
-        await registerPage.fillConfirmPassword('Password123');
+        await registerPage.fillPassword('Password1234');
+        await registerPage.fillConfirmPassword('Password1234');
         await registerPage.acceptAllPolicies();
         await registerPage.submitForm();
 

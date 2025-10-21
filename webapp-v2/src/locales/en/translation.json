@@ -172,7 +172,7 @@
       "nameRequired": "Name is required",
       "emailRequired": "Email is required",
       "passwordRequired": "Password is required",
-      "passwordTooShort": "Password must be at least 6 characters",
+      "passwordTooShort": "Password must be at least 12 characters",
       "passwordsNoMatch": "Passwords do not match",
       "termsRequired": "You must accept the Terms of Service",
       "cookiesRequired": "You must accept the Cookie Policy"
@@ -201,7 +201,7 @@
       "strengthStrong": "Strong",
       "validation": {
         "required": "Password is required",
-        "tooShort": "Password must be at least 6 characters"
+        "tooShort": "Password must be at least 12 characters"
       }
     },
     "defaultLoginButton": "Continue with Email"
@@ -532,7 +532,7 @@
     "errorMessages": {
       "profileUpdateFailed": "Failed to update profile",
       "passwordAndNewRequired": "Current password and new password are required",
-      "passwordTooShort": "Password must be at least 6 characters",
+      "passwordTooShort": "Password must be at least 12 characters",
       "passwordsNoMatch": "Passwords do not match",
       "passwordSameAsCurrent": "New password must be different from current password",
       "currentPasswordIncorrect": "Current password is incorrect",
@@ -614,7 +614,7 @@
     "validation": {
       "displayNameEmpty": "Display name cannot be empty",
       "displayNameTooLong": "Display name must be 100 characters or less",
-      "passwordTooShort": "New password must be at least 6 characters long",
+      "passwordTooShort": "New password must be at least 12 characters long",
       "passwordsNoMatch": "Passwords do not match",
       "passwordSameAsCurrent": "New password must be different from current password",
       "passwordAndNewRequired": "Current password and new password are required"
@@ -908,7 +908,7 @@
     "errorMessages": {
       "profileUpdateFailed": "Failed to update profile. Please try again.",
       "passwordAndNewRequired": "Current password and new password are required",
-      "passwordTooShort": "New password must be at least 6 characters long",
+      "passwordTooShort": "New password must be at least 12 characters long",
       "passwordsNoMatch": "Passwords do not match",
       "passwordSameAsCurrent": "New password must be different from current password",
       "currentPasswordIncorrect": "Current password is incorrect",

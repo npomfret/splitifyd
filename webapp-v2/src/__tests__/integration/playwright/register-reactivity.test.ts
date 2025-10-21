@@ -14,7 +14,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
         });
 
         // Attempt registration expecting failure (waits for error to appear)
-        await registerPage.registerExpectingFailure('John Doe', 'existing@example.com', 'Password123');
+        await registerPage.registerExpectingFailure('John Doe', 'existing@example.com', 'Password12344');
 
         // Verify error appears
         await registerPage.verifyErrorMessage('An account with this email already exists.');
@@ -38,7 +38,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
         });
 
         // Use fluent method that waits for error
-        await registerPage.registerExpectingFailure('John Doe', 'john@example.com', 'Password123');
+        await registerPage.registerExpectingFailure('John Doe', 'john@example.com', 'Password12344');
 
         // Verify error appears
         await registerPage.verifyErrorMessage('An account with this email already exists.');
@@ -73,10 +73,10 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.fillEmail('john@example.com');
         await registerPage.verifySubmitButtonDisabled();
 
-        await registerPage.fillPassword('Password123');
+        await registerPage.fillPassword('Password12344');
         await registerPage.verifySubmitButtonDisabled();
 
-        await registerPage.fillConfirmPassword('Password123');
+        await registerPage.fillConfirmPassword('Password12344');
         await registerPage.verifySubmitButtonDisabled();
 
         await registerPage.toggleTermsCheckbox();
@@ -102,15 +102,15 @@ test.describe('Registration Form Reactivity and UI States', () => {
         // Fill all fields
         await registerPage.fillName('Jane Smith');
         await registerPage.fillEmail('jane@example.com');
-        await registerPage.fillPassword('SecurePassword123');
-        await registerPage.fillConfirmPassword('SecurePassword123');
+        await registerPage.fillPassword('SecurePassword12344');
+        await registerPage.fillConfirmPassword('SecurePassword12344');
         await registerPage.acceptAllPolicies();
 
         // Verify state persists
         await registerPage.verifyNameInputValue('Jane Smith');
         await registerPage.verifyEmailInputValue('jane@example.com');
-        await registerPage.verifyPasswordInputValue('SecurePassword123');
-        await registerPage.verifyConfirmPasswordInputValue('SecurePassword123');
+        await registerPage.verifyPasswordInputValue('SecurePassword12344');
+        await registerPage.verifyConfirmPasswordInputValue('SecurePassword12344');
         await registerPage.verifyCheckboxStates(true, true);
         await registerPage.verifySubmitButtonState(true);
 
@@ -139,14 +139,14 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.verifyEmailInputValue('second@example.com');
 
         // Fill remaining fields with final values
-        await registerPage.fillPassword('FinalPassword123');
-        await registerPage.fillConfirmPassword('FinalPassword123');
+        await registerPage.fillPassword('FinalPassword12344');
+        await registerPage.fillConfirmPassword('FinalPassword12344');
         await registerPage.acceptAllPolicies();
 
         // Final values should be latest
         await registerPage.verifyNameInputValue('Second Name');
         await registerPage.verifyEmailInputValue('second@example.com');
-        await registerPage.verifyPasswordInputValue('FinalPassword123');
+        await registerPage.verifyPasswordInputValue('FinalPassword12344');
         await registerPage.verifySubmitButtonState(true);
     });
 
@@ -155,7 +155,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.navigate();
 
         // Fill text fields first
-        await registerPage.fillRegistrationForm('John Doe', 'john@example.com', 'Password123');
+        await registerPage.fillRegistrationForm('John Doe', 'john@example.com', 'Password12344');
 
         // Rapidly toggle checkboxes multiple times
         await registerPage.toggleTermsCheckbox();
@@ -185,7 +185,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
         // Fill form with mismatched passwords
         await registerPage.fillName('John Doe');
         await registerPage.fillEmail('john@example.com');
-        await registerPage.fillPassword('Password123');
+        await registerPage.fillPassword('Password12344');
         await registerPage.fillConfirmPassword('DifferentPassword');
         await registerPage.acceptAllPolicies();
 
@@ -193,7 +193,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.verifySubmitButtonEnabled();
 
         // Correct the confirm password to match
-        await registerPage.fillConfirmPassword('Password123');
+        await registerPage.fillConfirmPassword('Password12344');
 
         // Button should remain enabled
         await registerPage.verifySubmitButtonEnabled();
@@ -211,13 +211,13 @@ test.describe('Registration Form Error Display and Recovery', () => {
         });
 
         // Attempt registration with mismatched passwords
-        await registerPage.registerExpectingFailure('John Doe', 'john@example.com', 'Password123', 'WrongPassword');
+        await registerPage.registerExpectingFailure('John Doe', 'john@example.com', 'Password12344', 'WrongPassword');
 
         // Verify password mismatch error
         await registerPage.verifyErrorMessage('Passwords do not match');
 
         // Fix the password mismatch
-        await registerPage.fillConfirmPassword('Password123');
+        await registerPage.fillConfirmPassword('Password12344');
 
         // Note: Error may persist until re-submit since validation is on submit
         // This is expected behavior - error doesn't auto-clear on field change
@@ -231,11 +231,11 @@ test.describe('Registration Form Error Display and Recovery', () => {
 
         await mockFirebase.mockRegisterFailure({
             code: 'auth/weak-password',
-            message: 'Password must be at least 6 characters',
+            message: 'Password must be at least 12 characters',
         });
 
         await registerPage.registerExpectingFailure('John Doe', 'john@example.com', '12345');
-        await registerPage.verifyErrorMessage('Password must be at least 6 characters');
+        await registerPage.verifyErrorMessage('Password must be at least 12 characters');
 
         // Test 2: Navigate away and back to clear state
         await page.goto('/');
@@ -244,8 +244,8 @@ test.describe('Registration Form Error Display and Recovery', () => {
         // Test 3: Missing terms acceptance
         await registerPage.fillName('John Doe');
         await registerPage.fillEmail('john@example.com');
-        await registerPage.fillPassword('Password123');
-        await registerPage.fillConfirmPassword('Password123');
+        await registerPage.fillPassword('Password12344');
+        await registerPage.fillConfirmPassword('Password12344');
         await registerPage.toggleCookiesCheckbox(); // Only check cookies, not terms
         // Submit button should be disabled, so we can't submit
         await registerPage.verifySubmitButtonDisabled();
@@ -262,7 +262,7 @@ test.describe('Registration Form Error Display and Recovery', () => {
         });
 
         // Attempt registration
-        await registerPage.registerExpectingFailure('John Doe', 'existing@example.com', 'Password123');
+        await registerPage.registerExpectingFailure('John Doe', 'existing@example.com', 'Password12344');
 
         // Verify error appears
         await registerPage.verifyErrorMessage('This email is already registered.');
@@ -285,7 +285,7 @@ test.describe('Registration Form Loading States', () => {
         await registerPage.navigate();
 
         // Fill and submit form
-        await registerPage.fillRegistrationForm(testUser.displayName, testUser.email, 'Password123');
+        await registerPage.fillRegistrationForm(testUser.displayName, testUser.email, 'Password12344');
         await registerPage.acceptAllPolicies();
         await registerPage.verifyFormEnabled();
 
@@ -309,7 +309,7 @@ test.describe('Registration Form Loading States', () => {
 
         await registerPage.navigate();
 
-        await registerPage.fillRegistrationForm(testUser.displayName, testUser.email, 'Password123');
+        await registerPage.fillRegistrationForm(testUser.displayName, testUser.email, 'Password12344');
         await registerPage.acceptAllPolicies();
 
         // First submit
@@ -337,7 +337,7 @@ test.describe('Registration Form Loading States', () => {
         });
 
         // Fill and submit
-        await registerPage.fillRegistrationForm('John Doe', 'john@example.com', 'Password123');
+        await registerPage.fillRegistrationForm('John Doe', 'john@example.com', 'Password12344');
         await registerPage.acceptAllPolicies();
         await registerPage.submitForm();
 

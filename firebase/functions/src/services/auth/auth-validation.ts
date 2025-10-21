@@ -18,8 +18,9 @@ const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 /**
  * Password validation regex (same as used in auth/validation.ts)
+ * Allows any content as long as the length is at least 12 characters.
  */
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+const PASSWORD_REGEX = /^.{12,}$/;
 
 /**
  * Create user request validation schema
@@ -31,7 +32,7 @@ const createUserSchema = Joi.object({
         'any.required': 'Email is required',
     }),
     password: Joi.string().pattern(PASSWORD_REGEX).required().messages({
-        'string.pattern.base': 'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character',
+        'string.pattern.base': 'Password must be at least 12 characters long',
         'string.empty': 'Password is required',
         'any.required': 'Password is required',
     }),
@@ -70,7 +71,7 @@ const updateUserSchema = Joi.object({
         'string.uri': 'Photo URL must be a valid URI',
     }),
     password: Joi.string().pattern(PASSWORD_REGEX).optional().messages({
-        'string.pattern.base': 'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character',
+        'string.pattern.base': 'Password must be at least 12 characters long',
     }),
     emailVerified: Joi.boolean().optional(),
     disabled: Joi.boolean().optional(),

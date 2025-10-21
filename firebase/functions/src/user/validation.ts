@@ -3,8 +3,8 @@ import { Errors } from '../utils/errors';
 import { translateJoiError } from '../utils/i18n-validation';
 import { sanitizeString } from '../utils/security';
 
-// Password requirements regex - must contain at least 8 characters, one uppercase, one lowercase, one number, and one special character
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+// Password requirements regex - allow any content with a minimum length of 12 characters
+const PASSWORD_REGEX = /^.{12,}$/;
 
 /**
  * Schema for update user profile request
@@ -84,7 +84,7 @@ const changePasswordSchema = Joi.object({
     newPassword: Joi.string().pattern(PASSWORD_REGEX).required().messages({
         'any.required': 'New password is required',
         'string.empty': 'New password cannot be empty',
-        'string.pattern.base': 'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character',
+        'string.pattern.base': 'Password must be at least 12 characters long',
     }),
 });
 

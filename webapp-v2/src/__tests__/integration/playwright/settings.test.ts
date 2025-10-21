@@ -106,14 +106,14 @@ test.describe('Settings Page Object', () => {
         await settingsPage.openPasswordChangeForm();
 
         // Fill the form
-        await settingsPage.fillPasswordChangeForm('currentPassword123', 'newPassword456');
+        await settingsPage.fillPasswordChangeForm('currentPassword1234', 'newPassword456');
 
         // Verify inputs have values (check they're not empty)
         const currentPasswordValue = await settingsPage.getCurrentPasswordInput().inputValue();
         const newPasswordValue = await settingsPage.getNewPasswordInput().inputValue();
         const confirmPasswordValue = await settingsPage.getConfirmPasswordInput().inputValue();
 
-        expect(currentPasswordValue).toBe('currentPassword123');
+        expect(currentPasswordValue).toBe('currentPassword1234');
         expect(newPasswordValue).toBe('newPassword456');
         expect(confirmPasswordValue).toBe('newPassword456'); // Should match new password by default
     });
@@ -129,7 +129,7 @@ test.describe('Settings Page Object', () => {
         await settingsPage.openPasswordChangeForm();
 
         // Fill the form with different confirm password
-        await settingsPage.fillPasswordChangeForm('currentPassword123', 'newPassword456', 'differentPassword789');
+        await settingsPage.fillPasswordChangeForm('currentPassword1234', 'newPassword456', 'differentPassword789');
 
         // Verify confirm password is different
         const confirmPasswordValue = await settingsPage.getConfirmPasswordInput().inputValue();

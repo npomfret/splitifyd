@@ -156,67 +156,45 @@ describe('UserHandlers - Unit Tests', () => {
             });
         });
 
-        it('should reject password change with weak new password (missing uppercase)', async () => {
+        it('should allow lowercase-only passwords when they meet the length requirement', async () => {
             const userId = 'test-user-123';
-            const passwordRequest = new PasswordChangeRequestBuilder()
-                .withCurrentPassword('ValidPass123!')
-                .withNewPassword('validpass123!')
+            const { uid, emailVerified, photoURL, ...firestoreUser } = new RegisteredUserBuilder()
+                .withUid(userId)
+                .withDisplayName('Test User')
                 .build();
 
-            await expect(appDriver.changePassword(userId, passwordRequest)).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
-                }),
-            );
-        });
+            appDriver.seedUser(userId, firestoreUser);
 
-        it('should reject password change with weak new password (missing lowercase)', async () => {
-            const userId = 'test-user-123';
             const passwordRequest = new PasswordChangeRequestBuilder()
                 .withCurrentPassword('ValidPass123!')
-                .withNewPassword('VALIDPASS123!')
+                .withNewPassword('lowercaseonlypass')
                 .build();
 
-            await expect(appDriver.changePassword(userId, passwordRequest)).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
-                }),
-            );
+            await expect(appDriver.changePassword(userId, passwordRequest)).resolves.toMatchObject({
+                message: 'Password changed successfully',
+            });
         });
 
-        it('should reject password change with weak new password (missing number)', async () => {
+        it('should allow passwords without numbers or special characters when long enough', async () => {
             const userId = 'test-user-123';
+            const { uid, emailVerified, photoURL, ...firestoreUser } = new RegisteredUserBuilder()
+                .withUid(userId)
+                .withDisplayName('Test User')
+                .build();
+
+            appDriver.seedUser(userId, firestoreUser);
+
             const passwordRequest = new PasswordChangeRequestBuilder()
                 .withCurrentPassword('ValidPass123!')
-                .withNewPassword('ValidPassword!')
+                .withNewPassword('OnlyLettersHere')
                 .build();
 
-            await expect(appDriver.changePassword(userId, passwordRequest)).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
-                }),
-            );
+            await expect(appDriver.changePassword(userId, passwordRequest)).resolves.toMatchObject({
+                message: 'Password changed successfully',
+            });
         });
 
-        it('should reject password change with weak new password (missing special char)', async () => {
-            const userId = 'test-user-123';
-            const passwordRequest = new PasswordChangeRequestBuilder()
-                .withCurrentPassword('ValidPass123!')
-                .withNewPassword('ValidPass123')
-                .build();
-
-            await expect(appDriver.changePassword(userId, passwordRequest)).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_INPUT',
-                }),
-            );
-        });
-
-        it('should reject password change with weak new password (too short)', async () => {
+        it('should reject password change with new password shorter than 12 characters', async () => {
             const userId = 'test-user-123';
             const passwordRequest = new PasswordChangeRequestBuilder()
                 .withCurrentPassword('ValidPass123!')

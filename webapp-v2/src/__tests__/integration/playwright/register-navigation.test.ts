@@ -72,7 +72,7 @@ test.describe('Registration Success Navigation', () => {
         await registerPage.navigate();
 
         // Register and verify navigation to dashboard
-        const dashboardPage = await registerPage.registerAndNavigateToDashboard(testUser.displayName, testUser.email, 'Password123');
+        const dashboardPage = await registerPage.registerAndNavigateToDashboard(testUser.displayName, testUser.email, 'Password1234');
 
         await expect(page).toHaveURL('/dashboard');
         await dashboardPage.verifyAuthenticatedUser(testUser.displayName);
@@ -92,7 +92,7 @@ test.describe('Registration Success Navigation', () => {
         await registerPage.verifyRegisterPageLoaded();
 
         // Complete registration
-        await registerPage.fillRegistrationForm(testUser.displayName, testUser.email, 'Password123');
+        await registerPage.fillRegistrationForm(testUser.displayName, testUser.email, 'Password1234');
         await registerPage.acceptAllPolicies();
         await registerPage.submitForm();
 
@@ -114,7 +114,7 @@ test.describe('Registration Success Navigation', () => {
         await registerPage.verifyRegisterPageLoaded();
 
         // Complete registration
-        await registerPage.fillRegistrationForm(testUser.displayName, testUser.email, 'Password123');
+        await registerPage.fillRegistrationForm(testUser.displayName, testUser.email, 'Password1234');
         await registerPage.acceptAllPolicies();
         await registerPage.submitForm();
 
@@ -135,7 +135,7 @@ test.describe('Registration Success Navigation', () => {
         await registerPage.verifyRegisterPageLoaded();
 
         // Complete registration
-        await registerPage.fillRegistrationForm(testUser.displayName, testUser.email, 'Password123');
+        await registerPage.fillRegistrationForm(testUser.displayName, testUser.email, 'Password1234');
         await registerPage.acceptAllPolicies();
         await registerPage.submitForm();
 
@@ -152,22 +152,22 @@ test.describe('Registration Page State Persistence', () => {
         // Fill form partially
         await registerPage.fillName('Jane Doe');
         await registerPage.fillEmail('jane@example.com');
-        await registerPage.fillPassword('Password123');
+        await registerPage.fillPassword('Password1234');
 
         // Verify state is maintained
         await registerPage.verifyNameInputValue('Jane Doe');
         await registerPage.verifyEmailInputValue('jane@example.com');
-        await registerPage.verifyPasswordInputValue('Password123');
+        await registerPage.verifyPasswordInputValue('Password1234');
 
         // Continue filling
-        await registerPage.fillConfirmPassword('Password123');
+        await registerPage.fillConfirmPassword('Password1234');
         await registerPage.acceptAllPolicies();
 
         // All values should still be present
         await registerPage.verifyNameInputValue('Jane Doe');
         await registerPage.verifyEmailInputValue('jane@example.com');
-        await registerPage.verifyPasswordInputValue('Password123');
-        await registerPage.verifyConfirmPasswordInputValue('Password123');
+        await registerPage.verifyPasswordInputValue('Password1234');
+        await registerPage.verifyConfirmPasswordInputValue('Password1234');
     });
 
     test('should clear form state after successful registration', async ({ pageWithLogging: page, mockFirebase }) => {
@@ -181,7 +181,7 @@ test.describe('Registration Page State Persistence', () => {
         await registerPage.navigate();
 
         // Complete registration
-        await registerPage.registerAndNavigateToDashboard(testUser.displayName, testUser.email, 'Password123');
+        await registerPage.registerAndNavigateToDashboard(testUser.displayName, testUser.email, 'Password1234');
 
         // Navigate back to register page (shouldn't happen in real flow, but testing cleanup)
         await page.goto('/register');
@@ -201,7 +201,7 @@ test.describe('Registration Page State Persistence', () => {
         await registerPage.navigate();
 
         // Complete registration
-        await registerPage.registerAndNavigateToDashboard(testUser.displayName, testUser.email, 'Password123');
+        await registerPage.registerAndNavigateToDashboard(testUser.displayName, testUser.email, 'Password1234');
 
         // Verify we're on dashboard
         await expect(page).toHaveURL('/dashboard');
@@ -225,7 +225,7 @@ test.describe('Registration Page Error Recovery', () => {
         });
 
         // Attempt registration with mismatched passwords
-        await registerPage.registerExpectingFailure('John Doe', 'john@example.com', 'Password123', 'DifferentPassword');
+        await registerPage.registerExpectingFailure('John Doe', 'john@example.com', 'Password1234', 'DifferentPassword');
 
         // Should remain on register page
         await expect(page).toHaveURL(/\/register/);
@@ -246,7 +246,7 @@ test.describe('Registration Page Error Recovery', () => {
         });
 
         // Attempt registration
-        await registerPage.registerExpectingFailure('John Doe', 'john@example.com', 'Password123');
+        await registerPage.registerExpectingFailure('John Doe', 'john@example.com', 'Password1234');
 
         // Should remain on register page
         await expect(page).toHaveURL(/\/register/);
@@ -269,7 +269,7 @@ test.describe('Registration Page Error Recovery', () => {
             message: 'Email already registered.',
         });
 
-        await registerPage.registerExpectingFailure('John Doe', 'existing@example.com', 'Password123');
+        await registerPage.registerExpectingFailure('John Doe', 'existing@example.com', 'Password1234');
 
         // Verify error
         await registerPage.verifyErrorMessage('Email already registered.');

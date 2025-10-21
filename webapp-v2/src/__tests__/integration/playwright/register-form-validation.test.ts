@@ -8,8 +8,8 @@ test.describe('Registration Form Validation', () => {
 
         // Fill all fields except name
         await registerPage.fillEmail('test@example.com');
-        await registerPage.fillPassword('Password123');
-        await registerPage.fillConfirmPassword('Password123');
+        await registerPage.fillPassword('Password12344');
+        await registerPage.fillConfirmPassword('Password12344');
         await registerPage.acceptAllPolicies();
 
         // Submit should be disabled because name is empty
@@ -22,8 +22,8 @@ test.describe('Registration Form Validation', () => {
 
         // Fill all fields except email
         await registerPage.fillName('John Doe');
-        await registerPage.fillPassword('Password123');
-        await registerPage.fillConfirmPassword('Password123');
+        await registerPage.fillPassword('Password12344');
+        await registerPage.fillConfirmPassword('Password12344');
         await registerPage.acceptAllPolicies();
 
         // Submit should be disabled because email is empty
@@ -37,7 +37,7 @@ test.describe('Registration Form Validation', () => {
         // Fill all fields except password
         await registerPage.fillName('John Doe');
         await registerPage.fillEmail('test@example.com');
-        await registerPage.fillConfirmPassword('Password123');
+        await registerPage.fillConfirmPassword('Password12344');
         await registerPage.acceptAllPolicies();
 
         // Submit should be disabled because password is empty
@@ -51,7 +51,7 @@ test.describe('Registration Form Validation', () => {
         // Fill all fields except confirm password
         await registerPage.fillName('John Doe');
         await registerPage.fillEmail('test@example.com');
-        await registerPage.fillPassword('Password123');
+        await registerPage.fillPassword('Password12344');
         await registerPage.acceptAllPolicies();
 
         // Submit should be disabled because confirm password is empty
@@ -69,7 +69,7 @@ test.describe('Registration Form Validation', () => {
         });
 
         // Attempt registration with mismatched passwords
-        await registerPage.registerExpectingFailure('John Doe', 'test@example.com', 'Password123', 'DifferentPassword456');
+        await registerPage.registerExpectingFailure('John Doe', 'test@example.com', 'Password12344', 'DifferentPassword456');
 
         // Verify password mismatch error appears
         await registerPage.verifyErrorMessage('Passwords do not match');
@@ -82,14 +82,14 @@ test.describe('Registration Form Validation', () => {
 
         await mockFirebase.mockRegisterFailure({
             code: 'auth/weak-password',
-            message: 'Password must be at least 6 characters',
+            message: 'Password must be at least 12 characters',
         });
 
         // Attempt registration with short password
         await registerPage.registerExpectingFailure('John Doe', 'test@example.com', '12345');
 
         // Verify password length error appears
-        await registerPage.verifyErrorMessage('Password must be at least 6 characters');
+        await registerPage.verifyErrorMessage('Password must be at least 12 characters');
     });
 
     test('should require Terms of Service checkbox to be checked', async ({ pageWithLogging: page }) => {
@@ -99,8 +99,8 @@ test.describe('Registration Form Validation', () => {
         // Fill all fields but don't check Terms checkbox
         await registerPage.fillName('John Doe');
         await registerPage.fillEmail('test@example.com');
-        await registerPage.fillPassword('Password123');
-        await registerPage.fillConfirmPassword('Password123');
+        await registerPage.fillPassword('Password12344');
+        await registerPage.fillConfirmPassword('Password12344');
         await registerPage.toggleCookiesCheckbox(); // Only check cookies
 
         // Submit should be disabled
@@ -117,8 +117,8 @@ test.describe('Registration Form Validation', () => {
         // Fill all fields but don't check Cookie Policy checkbox
         await registerPage.fillName('John Doe');
         await registerPage.fillEmail('test@example.com');
-        await registerPage.fillPassword('Password123');
-        await registerPage.fillConfirmPassword('Password123');
+        await registerPage.fillPassword('Password12344');
+        await registerPage.fillConfirmPassword('Password12344');
         await registerPage.toggleTermsCheckbox(); // Only check terms
 
         // Submit should be disabled
@@ -135,8 +135,8 @@ test.describe('Registration Form Validation', () => {
         // Fill all fields but don't check any checkboxes
         await registerPage.fillName('John Doe');
         await registerPage.fillEmail('test@example.com');
-        await registerPage.fillPassword('Password123');
-        await registerPage.fillConfirmPassword('Password123');
+        await registerPage.fillPassword('Password12344');
+        await registerPage.fillConfirmPassword('Password12344');
 
         // Submit should be disabled
         await registerPage.verifySubmitButtonDisabled();
@@ -145,15 +145,15 @@ test.describe('Registration Form Validation', () => {
         await registerPage.verifyCheckboxStates(false, false);
     });
 
-    test('should accept valid minimum length password (6 characters)', async ({ pageWithLogging: page }) => {
+    test('should accept valid minimum length password (12 characters)', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
         // Fill form with minimum valid password length
         await registerPage.fillName('John Doe');
         await registerPage.fillEmail('test@example.com');
-        await registerPage.fillPassword('Pass12'); // Exactly 6 characters
-        await registerPage.fillConfirmPassword('Pass12');
+        await registerPage.fillPassword('aaaaaaaaaaaa'); // Exactly 12 characters
+        await registerPage.fillConfirmPassword('aaaaaaaaaaaa');
         await registerPage.acceptAllPolicies();
 
         // Submit should be enabled
@@ -176,11 +176,11 @@ test.describe('Registration Form Validation', () => {
         await registerPage.verifySubmitButtonDisabled();
 
         // Fill password
-        await registerPage.fillPassword('Password123');
+        await registerPage.fillPassword('Password12344');
         await registerPage.verifySubmitButtonDisabled();
 
         // Fill confirm password
-        await registerPage.fillConfirmPassword('Password123');
+        await registerPage.fillConfirmPassword('Password12344');
         await registerPage.verifySubmitButtonDisabled();
 
         // Check terms
@@ -199,8 +199,8 @@ test.describe('Registration Form Validation', () => {
         // Fill entire form - button should be enabled
         await registerPage.fillName('John Doe');
         await registerPage.fillEmail('john@example.com');
-        await registerPage.fillPassword('Password123');
-        await registerPage.fillConfirmPassword('Password123');
+        await registerPage.fillPassword('Password12344');
+        await registerPage.fillConfirmPassword('Password12344');
         await registerPage.acceptAllPolicies();
         await registerPage.verifySubmitButtonEnabled();
 
@@ -224,8 +224,8 @@ test.describe('Registration Form Validation', () => {
         // Fill entire form - button should be enabled
         await registerPage.fillName('John Doe');
         await registerPage.fillEmail('john@example.com');
-        await registerPage.fillPassword('Password123');
-        await registerPage.fillConfirmPassword('Password123');
+        await registerPage.fillPassword('Password12344');
+        await registerPage.fillConfirmPassword('Password12344');
         await registerPage.acceptAllPolicies();
         await registerPage.verifySubmitButtonEnabled();
 
@@ -249,8 +249,8 @@ test.describe('Registration Form Validation', () => {
         // Fill form with whitespace-only name
         await registerPage.fillName('   ');
         await registerPage.fillEmail('test@example.com');
-        await registerPage.fillPassword('Password123');
-        await registerPage.fillConfirmPassword('Password123');
+        await registerPage.fillPassword('Password12344');
+        await registerPage.fillConfirmPassword('Password12344');
         await registerPage.acceptAllPolicies();
 
         // Submit should be disabled because name is effectively empty

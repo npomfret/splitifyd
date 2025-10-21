@@ -97,7 +97,7 @@ export function RegisterPage() {
         if (!password) {
             return t('registerPage.validation.passwordRequired');
         }
-        if (password.length < 6) {
+        if (password.length < 12) {
             return t('registerPage.validation.passwordTooShort');
         }
         if (password !== confirmPassword) {

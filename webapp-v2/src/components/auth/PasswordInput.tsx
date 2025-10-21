@@ -34,10 +34,10 @@ export function PasswordInput({
     const localError = signal<string | null>(null);
 
     const calculatePasswordStrength = (password: string): PasswordStrength => {
-        if (password.length < 6) return 'weak';
+        if (password.length < 12) return 'weak';
 
         let score = 0;
-        if (password.length >= 8) score++;
+        if (password.length >= 16) score++;
         if (/[A-Z]/.test(password)) score++;
         if (/[a-z]/.test(password)) score++;
         if (/\d/.test(password)) score++;
@@ -52,7 +52,7 @@ export function PasswordInput({
         if (!password && required) {
             return t('auth.passwordInput.validation.required');
         }
-        if (password && password.length < 6) {
+        if (password && password.length < 12) {
             return t('auth.passwordInput.validation.tooShort');
         }
         return null;
