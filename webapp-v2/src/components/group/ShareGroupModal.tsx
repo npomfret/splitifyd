@@ -11,7 +11,7 @@ interface ShareGroupModalProps {
     groupName: string;
 }
 
-export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalProps) {
+export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGroupModalProps) {
     const { t } = useTranslation();
     const [shareLink, setShareLink] = useState<string>('');
     const [loading, setLoading] = useState(false);
@@ -21,6 +21,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
     const linkInputRef = useRef<HTMLInputElement>(null);
     const copiedTimerRef = useRef<number | null>(null);
     const toastTimerRef = useRef<number | null>(null);
+    const normalizedGroupName = groupName.trim();
 
     useEffect(() => {
         if (!isOpen || !groupId) {
@@ -155,13 +156,20 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
                     {/* Modal Header with colored background */}
                     <div class='bg-gradient-to-r from-purple-50 to-indigo-50 px-6 py-4 border-b border-purple-100'>
                         <div class='flex items-center justify-between'>
-                            <div class='flex items-center space-x-2'>
-                                <svg class='w-5 h-5 text-purple-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' />
-                                </svg>
-                                <h3 id='share-modal-title' class='text-lg font-semibold text-gray-900'>
-                                    {t('shareGroupModal.title')}
-                                </h3>
+                            <div class='flex flex-col space-y-1'>
+                                <div class='flex items-center space-x-2'>
+                                    <svg class='w-5 h-5 text-purple-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                        <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' />
+                                    </svg>
+                                    <h3 id='share-modal-title' class='text-lg font-semibold text-gray-900'>
+                                        {t('shareGroupModal.title')}
+                                    </h3>
+                                </div>
+                                {normalizedGroupName && (
+                                    <p class='text-sm text-gray-600' data-testid='share-group-name'>
+                                        {normalizedGroupName}
+                                    </p>
+                                )}
                             </div>
                             <button onClick={onClose} class='text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 hover:bg-gray-100' data-testid='close-share-modal-button'>
                                 <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>

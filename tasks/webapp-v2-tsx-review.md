@@ -50,6 +50,6 @@
 - **Recommendation:** Extend `getUserPolicyStatus` to accept a signal and pass `controller.signal`, mirroring the pattern already used by `getCurrentPolicy`.
 
 ## Additional Observations (Nice-to-Have)
-- `webapp-v2/src/pages/RegisterPage.tsx:70-85` contains verbose flame-emoji `console.log` debugging that will leak return URLs and timestamps. Consider removing or gating behind `NODE_ENV`.
-- `webapp-v2/src/components/group/ShareGroupModal.tsx` accepts a `groupName` prop but never renders it; include it in the UI or drop the prop for clarity.
+- `webapp-v2/src/pages/RegisterPage.tsx:70-85` contains verbose flame-emoji `console.log` debugging that will leak return URLs and timestamps. **Status:** ✅ Resolved — logs removed; redirection now runs silently via navigation service.
+- `webapp-v2/src/components/group/ShareGroupModal.tsx` accepts a `groupName` prop but never renders it; include it in the UI or drop the prop for clarity. **Status:** ✅ Resolved — modal now surfaces the active group name beneath the title while preserving trimmed formatting.
 - Continue the positive trend of signal-based state—most stores are well-encapsulated and avoid prop drilling.

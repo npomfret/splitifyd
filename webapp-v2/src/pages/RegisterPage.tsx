@@ -61,21 +61,16 @@ export function RegisterPage() {
     // Redirect if already logged in
     useEffect(() => {
         if (authStore.user) {
-            console.log('🔥 REGISTER PAGE - USER LOGGED IN - NEW CODE RUNNING - TIMESTAMP:', new Date().toISOString());
             // Check for returnUrl in query parameters
             const urlParams = new URLSearchParams(window.location.search);
             const returnUrl = urlParams.get('returnUrl');
-            console.log('🔥 REGISTER PAGE - Current URL search params:', window.location.search);
-            console.log('🔥 REGISTER PAGE - Extracted returnUrl:', returnUrl);
 
             if (returnUrl) {
                 // Decode and navigate to the return URL
                 const decodedReturnUrl = decodeURIComponent(returnUrl);
-                console.log('🔥 REGISTER PAGE - Navigating to returnUrl:', decodedReturnUrl);
                 navigationService.navigateTo(decodedReturnUrl);
             } else {
                 // Default to dashboard if no return URL
-                console.log('🔥 REGISTER PAGE - No returnUrl, going to dashboard');
                 navigationService.goToDashboard();
             }
         }
