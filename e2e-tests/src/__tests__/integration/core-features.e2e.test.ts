@@ -454,7 +454,7 @@ simpleTest.describe('Group Deletion', () => {
         await memberDashboardPage1.waitForGroupToAppear(groupName1);
 
         // Owner clicks on the group from dashboard to navigate to it
-        ownerGroupDetailPage = await ownerDashboardPage.clickGroupCard(groupName1);
+        ownerGroupDetailPage = await ownerDashboardPage.clickGroupCardAndNavigateToDetail<E2EGroupDetailPage>(groupName1);
 
         // Delete the group
         const editModal1 = await ownerGroupDetailPage.clickEditGroupAndOpenModal();
@@ -476,7 +476,7 @@ simpleTest.describe('Group Deletion', () => {
         await ownerDashboardPage.waitForGroupToAppear(groupName2);
 
         // Owner clicks on the group from dashboard to delete it
-        ownerGroupDetailPage2 = await ownerDashboardPage.clickGroupCard(groupName2);
+        ownerGroupDetailPage2 = await ownerDashboardPage.clickGroupCardAndNavigateToDetail<E2EGroupDetailPage>(groupName2);
 
         // Owner deletes the group while member is still viewing it
         const editModal2 = await ownerGroupDetailPage2.clickEditGroupAndOpenModal();

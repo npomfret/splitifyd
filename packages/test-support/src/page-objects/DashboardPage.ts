@@ -1,14 +1,18 @@
 import { expect, Locator, Page } from '@playwright/test';
+import type { CreateGroupFormData } from '@splitifyd/shared';
 import { TEST_ROUTES, TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
 import { CreateGroupModalPage } from './CreateGroupModalPage';
 import { GroupDetailPage } from './GroupDetailPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
 import { HeaderPage } from './HeaderPage';
-import { generateShortId } from '../test-helpers';
+import { JoinGroupPage } from './JoinGroupPage';
+import { CreateGroupFormDataBuilder } from '../builders/CreateGroupFormDataBuilder';
+import { generateShortId, randomString } from '../test-helpers';
 import { translationEn } from '../translations/translation-en';
 
 const translation = translationEn;
+let multiUserGroupCounter = 0;
 
 /**
  * Dashboard Page Object Model for Playwright tests
@@ -21,6 +25,14 @@ export class DashboardPage extends BasePage {
 
     constructor(page: Page) {
         super(page);
+    }
+
+    /**
+     * Factory for group detail page instances.
+     * Subclasses can override to provide extended implementations.
+     */
+    protected createGroupDetailPageInstance<T extends GroupDetailPage = GroupDetailPage>(page: Page): T {
+        return new GroupDetailPage(page) as unknown as T;
     }
 
     /**
@@ -551,7 +563,7 @@ export class DashboardPage extends BasePage {
 
         const createGroupDetailPage =
             options.createGroupDetailPage
-            ?? ((page: Page) => new GroupDetailPage(page) as unknown as T);
+            ?? ((page: Page) => this.createGroupDetailPageInstance<T>(page));
 
         const groupDetailPage = createGroupDetailPage(this.page);
         const groupId = groupDetailPage.inferGroupId();
@@ -672,7 +684,7 @@ export class DashboardPage extends BasePage {
 
         const createGroupDetailPage =
             options.createGroupDetailPage
-            ?? ((page: Page) => new GroupDetailPage(page) as unknown as T);
+            ?? ((page: Page) => this.createGroupDetailPageInstance<T>(page));
 
         const groupDetailPage = createGroupDetailPage(this.page);
 
@@ -687,6 +699,75 @@ export class DashboardPage extends BasePage {
         }
 
         return groupDetailPage;
+    }
+
+    /**
+     * Derive the application's base URL from the current dashboard URL.
+     */
+    getBaseUrl(): string {
+        const currentUrl = this.page.url();
+        if (currentUrl.includes(this.url)) {
+            const [origin] = currentUrl.split(this.url);
+            if (origin) {
+                return origin;
+            }
+        }
+
+        try {
+            return new URL(currentUrl).origin;
+        } catch {
+            return currentUrl;
+        }
+    }
+
+    /**
+     * Create a group, optionally invite additional dashboard sessions, and wait for all to sync.
+     */
+    async createMultiUserGroup<T extends GroupDetailPage = GroupDetailPage>(
+        optionsOrBuilder: CreateGroupFormData | CreateGroupFormDataBuilder = new CreateGroupFormDataBuilder(),
+        ...dashboardPages: DashboardPage[]
+    ): Promise<T[]> {
+        const options =
+            optionsOrBuilder instanceof CreateGroupFormDataBuilder
+                ? optionsOrBuilder.build()
+                : optionsOrBuilder;
+
+        const groupName = options.name ?? `g-${++multiUserGroupCounter} ${randomString(4)} ${randomString(6)} ${randomString(8)}`;
+        const groupDescription = options.description ?? `descr for ${groupName}`;
+
+        const ownerGroupDetailPage = await this.createGroupAndNavigate<T>(groupName, groupDescription, {
+            expectedMemberCount: 1,
+        });
+        const groupId = ownerGroupDetailPage.inferGroupId();
+
+        console.log(`New group created: "${groupName}" (id: ${groupId})`);
+
+        const groupDetailPages: T[] = [ownerGroupDetailPage];
+
+        if (dashboardPages.length) {
+            const shareModal = await ownerGroupDetailPage.clickShareGroupAndOpenModal();
+            const shareLink = await shareModal.getShareLink();
+            await shareModal.closeModal();
+
+            for (const dashboardPage of dashboardPages) {
+                const joinGroupPage = new JoinGroupPage(dashboardPage.page);
+                await joinGroupPage.joinGroupUsingShareLink(shareLink);
+                await expect(dashboardPage.page).toHaveURL(GroupDetailPage.groupDetailUrlPattern(groupId));
+
+                const memberDetailPage = dashboardPage.createGroupDetailPageInstance<T>(dashboardPage.page);
+                groupDetailPages.push(memberDetailPage);
+
+                const displayName = await dashboardPage.header.getCurrentUserDisplayName();
+                console.log(`User "${displayName}" has joined group "${groupName}" (id: ${groupId})`);
+            }
+        }
+
+        for (const groupDetailPage of groupDetailPages) {
+            await groupDetailPage.waitForPage(groupId, groupDetailPages.length);
+            await groupDetailPage.verifyAllSettledUp(groupId);
+        }
+
+        return groupDetailPages;
     }
 
     /**
