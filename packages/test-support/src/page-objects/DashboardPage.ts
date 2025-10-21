@@ -4,6 +4,8 @@ import { BasePage } from './BasePage';
 import { CreateGroupModalPage } from './CreateGroupModalPage';
 import { GroupDetailPage } from './GroupDetailPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
+import { HeaderPage } from './HeaderPage';
+import { generateShortId } from '../test-helpers';
 import { translationEn } from '../translations/translation-en';
 
 const translation = translationEn;
@@ -15,9 +17,20 @@ const translation = translationEn;
  */
 export class DashboardPage extends BasePage {
     readonly url = '/dashboard';
+    private _header?: HeaderPage;
 
     constructor(page: Page) {
         super(page);
+    }
+
+    /**
+     * Header page object for user menu and navigation functionality.
+     */
+    get header(): HeaderPage {
+        if (!this._header) {
+            this._header = new HeaderPage(this.page);
+        }
+        return this._header;
     }
 
     // ============================================================================
@@ -449,6 +462,49 @@ export class DashboardPage extends BasePage {
         }
     }
 
+    /**
+     * Wait for dashboard content to stabilise after navigation or mutations.
+     */
+    async waitForDashboard(): Promise<void> {
+        await this.verifyDashboardPageLoaded();
+
+        try {
+            const loadingSpinner = this.getGroupsLoadingSpinner();
+            await loadingSpinner.waitFor({ state: 'hidden', timeout: 3000 });
+        } catch {
+            // Spinner never appeared or disappeared quickly - both cases are acceptable.
+        }
+
+        await expect(async () => {
+            const hasGroupsContainer = await this
+                .getGroupsContainer()
+                .isVisible()
+                .catch(() => false);
+            const hasEmptyState = await this
+                .getEmptyGroupsState()
+                .isVisible()
+                .catch(() => false);
+            const hasErrorState = await this
+                .getErrorContainer()
+                .isVisible()
+                .catch(() => false);
+            const hasLoadingSpinner = await this
+                .getGroupsLoadingSpinner()
+                .isVisible()
+                .catch(() => false);
+
+            if (!hasGroupsContainer && !hasEmptyState && !hasErrorState && !hasLoadingSpinner) {
+                throw new Error('Groups content not yet loaded - waiting for groups container, empty state, error state, or loading spinner');
+            }
+        })
+            .toPass({
+                timeout: 5000,
+                intervals: [100, 250, 500],
+            });
+
+        await this.waitForDomContentLoaded();
+    }
+
     // ============================================================================
     // ACTION METHODS
     // ============================================================================
@@ -459,6 +515,55 @@ export class DashboardPage extends BasePage {
     async navigate(): Promise<void> {
         await this.page.goto(this.url);
         await this.verifyDashboardPageLoaded();
+    }
+
+    /**
+     * Create a new group and navigate to its detail page.
+     */
+    async createGroupAndNavigate<T extends GroupDetailPage = GroupDetailPage>(
+        name: string = generateShortId(),
+        description: string = generateShortId(),
+        options: {
+            createGroupDetailPage?: (page: Page) => T;
+            expectedMemberCount?: number;
+            verifyHeading?: boolean;
+            waitForReady?: boolean;
+        } = {},
+    ): Promise<T> {
+        if (!this.page.url().includes(this.url)) {
+            await this.navigate();
+        } else {
+            await this.waitForDashboard();
+        }
+
+        const createGroupModal = await this.clickCreateGroup();
+        await createGroupModal.createGroup(name, description);
+
+        await this.expectUrl(GroupDetailPage.groupDetailUrlPattern());
+
+        await this.page.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {
+            // Ignore failures if DOM finished loading earlier.
+        });
+
+        if (options.verifyHeading ?? true) {
+            await expect(this.page.getByRole('heading', { name })).toBeVisible();
+        }
+
+        const createGroupDetailPage =
+            options.createGroupDetailPage
+            ?? ((page: Page) => new GroupDetailPage(page) as unknown as T);
+
+        const groupDetailPage = createGroupDetailPage(this.page);
+        const groupId = groupDetailPage.inferGroupId();
+
+        await expect(this.page).toHaveURL(GroupDetailPage.groupDetailUrlPattern(groupId), { timeout: TEST_TIMEOUTS.NAVIGATION });
+
+        if (options.waitForReady ?? true) {
+            const memberCount = options.expectedMemberCount ?? 1;
+            await groupDetailPage.waitForPage(groupId, memberCount);
+        }
+
+        return groupDetailPage;
     }
 
     /**
@@ -541,20 +646,46 @@ export class DashboardPage extends BasePage {
      * Fluent version - verifies navigation and returns GroupDetailPage
      * Use this when you expect navigation to succeed
      */
-    async clickGroupCardAndNavigateToDetail(groupName: string): Promise<GroupDetailPage> {
+    async clickGroupCardAndNavigateToDetail<T extends GroupDetailPage = GroupDetailPage>(
+        groupName: string,
+        options: {
+            createGroupDetailPage?: (page: Page) => T;
+            expectedGroupId?: string;
+            expectedMemberCount?: number;
+            verifyGroupName?: boolean;
+            waitForReady?: boolean;
+        } = {},
+    ): Promise<T> {
         const groupCard = this.getGroupCard(groupName);
         await expect(groupCard).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
         await groupCard.click();
 
         try {
-            await expect(this.page).toHaveURL(TEST_ROUTES.GROUP_DETAIL_PATTERN, { timeout: TEST_TIMEOUTS.NAVIGATION });
+            const urlPattern = options.expectedGroupId
+                ? GroupDetailPage.groupDetailUrlPattern(options.expectedGroupId)
+                : TEST_ROUTES.GROUP_DETAIL_PATTERN;
+            await expect(this.page).toHaveURL(urlPattern, { timeout: TEST_TIMEOUTS.NAVIGATION });
         } catch (error) {
             const currentUrl = this.page.url();
             throw new Error(`Failed to navigate to group detail page after clicking "${groupName}". ` + `Current URL: ${currentUrl}. Expected pattern: /groups/[id]`);
         }
 
-        const groupDetailPage = new GroupDetailPage(this.page);
-        await groupDetailPage.verifyGroupDetailPageLoaded(groupName);
+        const createGroupDetailPage =
+            options.createGroupDetailPage
+            ?? ((page: Page) => new GroupDetailPage(page) as unknown as T);
+
+        const groupDetailPage = createGroupDetailPage(this.page);
+
+        if (options.verifyGroupName ?? true) {
+            await groupDetailPage.verifyGroupDetailPageLoaded(groupName);
+        }
+
+        if (options.waitForReady) {
+            const groupId = options.expectedGroupId ?? groupDetailPage.inferGroupId();
+            const expectedMemberCount = options.expectedMemberCount ?? 1;
+            await groupDetailPage.waitForPage(groupId, expectedMemberCount);
+        }
+
         return groupDetailPage;
     }
 

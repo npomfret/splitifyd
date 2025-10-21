@@ -8,6 +8,7 @@ import { ExpenseFormPage } from './ExpenseFormPage';
 import { ExpenseDetailPage } from './ExpenseDetailPage';
 import { SettlementFormPage } from './SettlementFormPage';
 import { RemoveMemberDialogPage } from './RemoveMemberDialogPage';
+import { HeaderPage } from './HeaderPage';
 import { translationEn } from '../translations/translation-en';
 import { GroupId } from '@splitifyd/shared';
 
@@ -19,8 +20,42 @@ const translation = translationEn;
  * Reusable across unit tests and e2e tests
  */
 export class GroupDetailPage extends BasePage {
+    private _header?: HeaderPage;
+
     constructor(page: Page) {
         super(page);
+    }
+
+    /**
+     * Build a regex that matches a group detail URL, optionally scoped to a specific group ID.
+     */
+    static groupDetailUrlPattern(groupId?: string): RegExp {
+        if (groupId) {
+            return new RegExp(`/groups/${groupId}$`);
+        }
+        return /\/groups\/[a-zA-Z0-9]+$/;
+    }
+
+    /**
+     * Header page object for user menu and navigation functionality.
+     */
+    get header(): HeaderPage {
+        if (!this._header) {
+            this._header = new HeaderPage(this.page);
+        }
+        return this._header;
+    }
+
+    /**
+     * Infer group ID from the current URL.
+     */
+    inferGroupId(): GroupId {
+        const url = new URL(this.page.url());
+        const match = url.pathname.match(/\/groups\/([a-zA-Z0-9]+)/);
+        if (!match) {
+            throw new Error(`Could not infer group ID from URL: ${url.pathname}`);
+        }
+        return match[1] as GroupId;
     }
 
     // ============================================================================
@@ -33,6 +68,69 @@ export class GroupDetailPage extends BasePage {
     async navigateToGroup(groupId: GroupId): Promise<void> {
         await this.page.goto(`/groups/${groupId}`);
         await this.waitForNetworkIdle();
+    }
+
+    // ============================================================================
+    // PAGE STATE HELPERS
+    // ============================================================================
+
+    /**
+     * Wait for the group title heading to match the expected text.
+     */
+    async waitForGroupTitle(expectedText: string, timeout: number = 5000): Promise<void> {
+        await this.waitForDomContentLoaded();
+
+        await expect(async () => {
+            const title = await this.getGroupName().textContent();
+            const normalizedTitle = (title ?? '').trim();
+            if (normalizedTitle !== expectedText) {
+                throw new Error(`Title is still "${normalizedTitle}", waiting for "${expectedText}"`);
+            }
+        }).toPass({
+            timeout,
+            intervals: [500, 1000, 1500, 2000],
+        });
+    }
+
+    /**
+     * Wait for the group description text to match the expected text.
+     */
+    async waitForGroupDescription(expectedText: string, timeout: number = 5000): Promise<void> {
+        await this.waitForDomContentLoaded();
+
+        await expect(async () => {
+            const description = await this.getGroupDescription().textContent();
+            const normalizedDescription = (description ?? '').trim();
+            if (normalizedDescription !== expectedText) {
+                throw new Error(`Description is still "${normalizedDescription}", waiting for "${expectedText}"`);
+            }
+        }).toPass({
+            timeout,
+            intervals: [500, 1000, 1500, 2000],
+        });
+    }
+
+    /**
+     * Wait for critical parts of the group detail page to load and remain consistent.
+     */
+    async waitForPage(groupId: GroupId, expectedMemberCount: number): Promise<void> {
+        const targetPattern = GroupDetailPage.groupDetailUrlPattern(groupId);
+
+        await this.expectUrl(targetPattern);
+        await this.header.getCurrentUserDisplayName();
+
+        await this.waitForMemberCount(expectedMemberCount);
+        await this.expectUrl(targetPattern);
+
+        await this.waitForBalancesSection(groupId);
+        await this.expectUrl(targetPattern);
+    }
+
+    /**
+     * Wait until the browser navigates away from the specified group detail page.
+     */
+    async waitForRedirectAwayFromGroup(groupId: GroupId, timeout: number = 5000): Promise<void> {
+        await expect(this.page).not.toHaveURL(GroupDetailPage.groupDetailUrlPattern(groupId), { timeout });
     }
 
     // ============================================================================
@@ -226,6 +324,43 @@ export class GroupDetailPage extends BasePage {
      */
     getSettleUpButton(): Locator {
         return this.page.getByRole('button', { name: translation.group.actions.settleUp });
+    }
+
+    /**
+     * Click Settle Up button and return a settlement form page object.
+     */
+    async clickSettleUpButton<T extends SettlementFormPage = SettlementFormPage>(
+        expectedMemberCount: number,
+        options: {
+            createSettlementFormPage?: (page: Page) => T;
+            waitForFormReady?: boolean;
+            ensureModalVisible?: boolean;
+        } = {},
+    ): Promise<T> {
+        const button = this.getSettleUpButton();
+        await this.clickButton(button, { buttonName: 'Settle up' });
+
+        const createSettlementFormPage =
+            options.createSettlementFormPage
+            ?? ((page: Page) => new SettlementFormPage(page) as unknown as T);
+
+        const settlementFormPage = createSettlementFormPage(this.page);
+
+        const guards = settlementFormPage as unknown as {
+            waitForFormReady?: (expectedMemberCount: number) => Promise<void>;
+            getModal?: () => Locator;
+        };
+
+        if ((options.ensureModalVisible ?? true) && typeof guards.getModal === 'function') {
+            const modal = guards.getModal();
+            await expect(modal).toBeVisible();
+        }
+
+        if ((options.waitForFormReady ?? true) && typeof guards.waitForFormReady === 'function') {
+            await guards.waitForFormReady(expectedMemberCount);
+        }
+
+        return settlementFormPage;
     }
 
     // ============================================================================
@@ -928,6 +1063,13 @@ export class GroupDetailPage extends BasePage {
      * Open settlement history (for legacy call sites).
      */
     async openSettlementHistory(): Promise<void> {
+        await this.ensureSettlementHistoryOpen();
+    }
+
+    /**
+     * Legacy alias retained for backwards compatibility.
+     */
+    async openHistoryIfClosed(): Promise<void> {
         await this.ensureSettlementHistoryOpen();
     }
 

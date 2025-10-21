@@ -1,7 +1,7 @@
 import { expect, Page } from '@playwright/test';
 import type { CreateGroupFormData } from '@splitifyd/shared';
-import { DashboardPage as BaseDashboardPage, HeaderPage, JoinGroupPage } from '@splitifyd/test-support';
-import { CreateGroupFormDataBuilder, generateShortId, randomString } from '@splitifyd/test-support';
+import { DashboardPage as BaseDashboardPage, JoinGroupPage } from '@splitifyd/test-support';
+import { CreateGroupFormDataBuilder, randomString } from '@splitifyd/test-support';
 import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
 
 let i = 0;
@@ -11,21 +11,8 @@ let i = 0;
  * Adds multi-user group creation and advanced test workflows
  */
 export class DashboardPage extends BaseDashboardPage {
-    private _header?: HeaderPage;
-
     constructor(page: Page) {
         super(page);
-    }
-
-    /**
-     * Header page object for user menu and navigation functionality.
-     * E2E-specific header with additional functionality
-     */
-    get header(): HeaderPage {
-        if (!this._header) {
-            this._header = new HeaderPage(this.page);
-        }
-        return this._header;
     }
 
     // Overload: Accept CreateGroupFormDataBuilder for builder pattern
@@ -40,9 +27,11 @@ export class DashboardPage extends BaseDashboardPage {
         const groupName = options.name ?? `g-${++i} ${randomString(4)} ${randomString(6)} ${randomString(8)}`;
         const groupDescription = options.description ?? `descr for ${groupName}`;
 
-        const groupDetailPage = await this.createGroupAndNavigate(groupName, groupDescription);
+        const groupDetailPage = await this.createGroupAndNavigate<GroupDetailPage>(groupName, groupDescription, {
+            createGroupDetailPage: (page) => new GroupDetailPage(page),
+            expectedMemberCount: 1,
+        });
         const groupId = groupDetailPage.inferGroupId();
-        await groupDetailPage.waitForPage(groupId, 1);
 
         // sanity check
         const name = await groupDetailPage.getGroupNameText();
@@ -81,130 +70,17 @@ export class DashboardPage extends BaseDashboardPage {
     }
 
     /**
-     * E2E-specific group creation that returns e2e GroupDetailPage
-     * Delegates to base class for UI interactions, adds e2e-specific verification
-     *
-     * OVERRIDE RATIONALE:
-     * This method overrides the base class to return the e2e-specific GroupDetailPage
-     * instead of the shared GroupDetailPage. This allows e2e tests to access
-     * e2e-specific methods like waitForPage(), verifyAllSettledUp(), etc.
-     *
-     * The base class handles the UI interactions (clicking buttons, filling forms),
-     * while this override ensures the returned page object has all the e2e-specific
-     * functionality needed for complex workflows like:
-     * - Multi-user state synchronization (waitForPage with member count)
-     * - Real-time update verification (polling for balance changes)
-     * - Settlement and balance validation across multiple users
-     *
-     * @param name - Group name (defaults to generated ID)
-     * @param description - Group description (defaults to generated ID)
-     * @returns E2E GroupDetailPage with extended e2e-specific methods
-     */
-    async createGroupAndNavigate(name: string = generateShortId(), description: string = generateShortId()): Promise<GroupDetailPage> {
-        const currentUrl = this.page.url();
-        if (!currentUrl.includes('/dashboard')) {
-            await this.navigate();
-        }
-        await this.waitForDashboard();
-
-        // Open modal using shared helper that returns CreateGroupModalPage
-        const createGroupModal = await this.clickCreateGroup();
-        await createGroupModal.createGroup(name, description);
-
-        // Wait for navigation and verify URL
-        await this.expectUrl(groupDetailUrlPattern());
-        await this.page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-        await expect(this.page.getByRole('heading', { name })).toBeVisible();
-
-        const groupDetailPage = new GroupDetailPage(this.page);
-        const groupId = groupDetailPage.inferGroupId();
-
-        await expect(this.page).toHaveURL(groupDetailUrlPattern(groupId));
-        await groupDetailPage.ensureNewGroupPageReadyWithOneMember(groupId);
-
-        return groupDetailPage;
-    }
-
-    /**
      * E2E-specific utility to get base URL from current dashboard URL
      */
     getBaseUrl() {
         return this.page.url().split('/dashboard')[0];
     }
 
-    /**
-     * E2E-specific dashboard waiting with comprehensive state checking
-     * Extends base class verification with additional e2e requirements
-     */
-    async waitForDashboard() {
-        // Use base class verification for standard checks
-        await super.verifyDashboardPageLoaded();
-
-        // E2E-specific: Wait for loading spinner to disappear
-        try {
-            const loadingSpinner = super.getGroupsLoadingSpinner();
-            await loadingSpinner.waitFor({ state: 'hidden', timeout: 3000 });
-        } catch {
-            // Spinner never appeared or disappeared quickly - expected behavior
-        }
-
-        // E2E-specific: Comprehensive state polling for all possible outcomes
-        await expect(async () => {
-            const hasGroupsContainer = await super
-                .getGroupsContainer()
-                .isVisible()
-                .catch(() => false);
-            const hasEmptyState = await super
-                .getEmptyGroupsState()
-                .isVisible()
-                .catch(() => false);
-            const hasErrorState = await super
-                .getErrorContainer()
-                .isVisible()
-                .catch(() => false);
-            const hasLoadingSpinner = await super
-                .getGroupsLoadingSpinner()
-                .isVisible()
-                .catch(() => false);
-
-            if (!hasGroupsContainer && !hasEmptyState && !hasErrorState && !hasLoadingSpinner) {
-                throw new Error('Groups content not yet loaded - waiting for groups container, empty state, error state, or loading spinner');
-            }
-        })
-            .toPass({
-                timeout: 5000,
-                intervals: [100, 250, 500],
-            });
-
-        // Final DOM check
-        await this.waitForDomContentLoaded();
-    }
-
-    /**
-     * E2E-specific: Click on a group card and navigate to group detail page
-     *
-     * OVERRIDE RATIONALE:
-     * This method overrides the base class to return the e2e-specific GroupDetailPage.
-     * The base class returns void, but e2e tests need the page object for complex
-     * workflows like multi-user state verification, settlement operations, etc.
-     *
-     * TypeScript doesn't allow changing return types in overrides, but this is
-     * intentional for e2e test ergonomics. The @ts-expect-error suppresses the
-     * compile error while maintaining type safety for callers.
-     *
-     * @param groupName - The name of the group card to click
-     * @param groupId - Optional group ID for URL verification
-     * @returns E2E GroupDetailPage with extended e2e-specific methods
-     */
     // @ts-expect-error - Intentionally changing return type for e2e test ergonomics
     async clickGroupCard(groupName: string, groupId?: string): Promise<GroupDetailPage> {
-        // Use base class method to click the group
-        await super.clickGroupCard(groupName);
-
-        // E2E-specific: Verify navigation to group detail page
-        await expect(this.page).toHaveURL(groupDetailUrlPattern(groupId));
-
-        // Return e2e-specific GroupDetailPage
-        return new GroupDetailPage(this.page);
+        return super.clickGroupCardAndNavigateToDetail<GroupDetailPage>(groupName, {
+            expectedGroupId: groupId,
+            createGroupDetailPage: (page) => new GroupDetailPage(page),
+        });
     }
 }
