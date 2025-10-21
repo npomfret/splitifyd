@@ -10,8 +10,8 @@ export function useGroupModals() {
     const showShareModal = useSignal(false);
     const showSettlementForm = useSignal(false);
     const showSettlementHistory = useSignal(false);
-    const showEditModal = useSignal(false);
-    const showSecurityModal = useSignal(false);
+    const showGroupSettingsModal = useSignal(false);
+    const groupSettingsInitialTab = useSignal<'general' | 'security'>('general');
 
     // Modal data states
     const settlementToEdit = useSignal<SettlementWithMembers | null>(null);
@@ -39,20 +39,13 @@ export function useGroupModals() {
         showSettlementHistory.value = !showSettlementHistory.value;
     };
 
-    const openEditModal = () => {
-        showEditModal.value = true;
+    const openGroupSettingsModal = (tab: 'general' | 'security' = 'general') => {
+        groupSettingsInitialTab.value = tab;
+        showGroupSettingsModal.value = true;
     };
 
-    const closeEditModal = () => {
-        showEditModal.value = false;
-    };
-
-    const openSecurityModal = () => {
-        showSecurityModal.value = true;
-    };
-
-    const closeSecurityModal = () => {
-        showSecurityModal.value = false;
+    const closeGroupSettingsModal = () => {
+        showGroupSettingsModal.value = false;
     };
 
     return {
@@ -60,8 +53,8 @@ export function useGroupModals() {
         showShareModal,
         showSettlementForm,
         showSettlementHistory,
-        showEditModal,
-        showSecurityModal,
+        showGroupSettingsModal,
+        groupSettingsInitialTab,
 
         // Modal data (reactive signal)
         settlementToEdit,
@@ -72,9 +65,7 @@ export function useGroupModals() {
         openSettlementForm,
         closeSettlementForm,
         toggleSettlementHistory,
-        openEditModal,
-        closeEditModal,
-        openSecurityModal,
-        closeSecurityModal,
+        openGroupSettingsModal,
+        closeGroupSettingsModal,
     };
 }

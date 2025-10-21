@@ -407,11 +407,13 @@ simpleTest.describe('Group Settings & Management', () => {
         await expect(editModal.getModal()).not.toBeVisible();
     });
 
-    simpleTest('should not show settings button for non-owner', async ({ createLoggedInBrowsers }) => {
+    simpleTest('should show settings button based on permissions', async ({ createLoggedInBrowsers }) => {
         // Create two browser sessions with pooled users
         const [{ page: ownerPage, dashboardPage }, { page: memberPage, dashboardPage: memberDashboardPage }] = await createLoggedInBrowsers(2);
 
         // Owner creates a group with member
+        // With default permissions (memberApproval: 'automatic'), members can approve new members
+        // and therefore should see the Settings button to access the Security tab
         const [ownerGroupDetailPage, memberGroupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), memberDashboardPage);
         const groupId = ownerGroupDetailPage.inferGroupId();
         const groupName = await ownerGroupDetailPage.getGroupNameText();
@@ -423,9 +425,10 @@ simpleTest.describe('Group Settings & Management', () => {
         const ownerSettingsButton = ownerGroupDetailPage.getEditGroupButton();
         await expect(ownerSettingsButton).toBeVisible();
 
-        // Verify member CANNOT see settings button
+        // Verify member CAN ALSO see settings button (because memberApproval: 'automatic' gives them canApproveMembers)
+        // This allows them to access the Security tab for approving pending members
         const memberSettingsButton = memberGroupDetailPage.getEditGroupButton();
-        await expect(memberSettingsButton).not.toBeVisible();
+        await expect(memberSettingsButton).toBeVisible();
 
         // Verify both can see the group name
         await ownerGroupDetailPage.verifyGroupNameText(groupName);

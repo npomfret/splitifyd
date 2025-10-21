@@ -103,11 +103,11 @@ import { TEST_TIMEOUTS } from '../test-constants';
  * @example
  * // Non-fluent modal opening
  * await groupDetailPage.clickEditGroup();
- * await expect(editModal.getModalContainer()).toBeVisible();
- * const editModal = new EditGroupModalPage(page);
+ * await expect(settingsModal.getModalContainer()).toBeVisible();
+ * const settingsModal = new GroupSettingsModalPage(page);
  *
  * // Fluent modal opening (preferred)
- * const editModal = await groupDetailPage.clickEditGroupAndOpenModal();
+ * const settingsModal = await groupDetailPage.clickEditGroupAndOpenModal();
  * // Modal already verified open, ready to interact
  */
 export abstract class BasePage {

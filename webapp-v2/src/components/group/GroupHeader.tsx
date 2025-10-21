@@ -10,12 +10,10 @@ interface GroupHeaderProps {
     members: GroupMember[];
     expenseCount?: number;
     onSettings?: () => void;
-    onSecurity?: () => void;
     showSettingsButton?: boolean;
-    showSecurityButton?: boolean;
 }
 
-export function GroupHeader({ group, members, expenseCount = 0, onSettings, onSecurity, showSettingsButton, showSecurityButton }: GroupHeaderProps) {
+export function GroupHeader({ group, members, expenseCount = 0, onSettings, showSettingsButton }: GroupHeaderProps) {
     const { t } = useTranslation();
     return (
         <Card className='p-6'>
@@ -25,18 +23,6 @@ export function GroupHeader({ group, members, expenseCount = 0, onSettings, onSe
                     {group.description && <p className='text-gray-600'>{group.description}</p>}
                 </div>
                 <div className='flex gap-2'>
-                    {showSecurityButton && onSecurity && (
-                        <Button
-                            variant='ghost'
-                            size='sm'
-                            onClick={onSecurity}
-                            className='p-2'
-                            ariaLabel={t('groupHeader.groupSecurityAriaLabel')}
-                            data-testid='group-security-button'
-                        >
-                            <CogIcon className='h-5 w-5' />
-                        </Button>
-                    )}
                     {showSettingsButton && onSettings && (
                         <Button
                             variant='ghost'

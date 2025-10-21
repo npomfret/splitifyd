@@ -1,7 +1,7 @@
 export { BasePage } from './BasePage';
 export { CreateGroupModalPage } from './CreateGroupModalPage';
 export { DashboardPage } from './DashboardPage';
-export { EditGroupModalPage } from './EditGroupModalPage';
+export { GroupSettingsModalPage } from './GroupSettingsModalPage';
 export { ExpenseDetailPage } from './ExpenseDetailPage';
 export { ExpenseFormPage } from './ExpenseFormPage';
 export { DisplayNameConflictModalPage } from './DisplayNameConflictModalPage';
@@ -9,7 +9,6 @@ export { GroupDetailPage } from './GroupDetailPage';
 export { HeaderPage } from './HeaderPage';
 export { JoinGroupPage } from './JoinGroupPage';
 export { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
-export { SecuritySettingsModalPage } from './SecuritySettingsModalPage';
 export { RemoveMemberDialogPage } from './RemoveMemberDialogPage';
 export { LoginPage } from './LoginPage';
 export { RegisterPage } from './RegisterPage';

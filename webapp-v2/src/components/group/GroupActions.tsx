@@ -8,11 +8,9 @@ interface GroupActionsProps {
     onAddExpense?: () => void;
     onSettleUp?: () => void;
     onShare?: () => void;
-    onSettings?: () => void; // General settings
-    onSecurity?: () => void; // Security settings
+    onSettings?: () => void;
     onLeaveGroup?: () => void; // New prop for leave group button
     showSettingsButton?: boolean; // To conditionally show settings button
-    showSecurityButton?: boolean; // To conditionally show security button
     canLeaveGroup?: boolean; // Whether leave group button should be enabled
     variant?: 'horizontal' | 'vertical';
 }
@@ -22,10 +20,8 @@ export function GroupActions({
     onSettleUp,
     onShare,
     onSettings,
-    onSecurity,
     onLeaveGroup,
     showSettingsButton,
-    showSecurityButton,
     canLeaveGroup,
     variant = 'horizontal',
 }: GroupActionsProps) {
@@ -53,27 +49,15 @@ export function GroupActions({
         </>
     );
 
-    const settingsButton = showSettingsButton && onSettings
-        ? (
+    const settingsButton =
+        showSettingsButton && onSettings ? (
             <Button variant='primary' onClick={onSettings} className={variant === 'vertical' ? 'w-full' : ''} data-testid='group-settings-button'>
                 <>
                     <CogIcon className='h-4 w-4 mr-2' />
-                    {t('groupActions.groupSettings')}
+                    {t('groupActions.settings')}
                 </>
             </Button>
-        )
-        : null;
-
-    const securityButton = showSecurityButton && onSecurity
-        ? (
-            <Button variant='primary' onClick={onSecurity} className={variant === 'vertical' ? 'w-full' : ''} data-testid='group-security-button'>
-                <>
-                    <CogIcon className='h-4 w-4 mr-2' />
-                    {t('groupActions.groupSecurity')}
-                </>
-            </Button>
-        )
-        : null;
+        ) : null;
 
     const leaveGroupButton = onLeaveGroup && canLeaveGroup
         ? (
@@ -92,7 +76,6 @@ export function GroupActions({
                 <Stack spacing='sm'>
                     {commonButtons}
                     {settingsButton}
-                    {securityButton}
                     {leaveGroupButton}
                 </Stack>
             </SidebarCard>
@@ -103,7 +86,6 @@ export function GroupActions({
         <div className='flex gap-4'>
             {commonButtons}
             {settingsButton}
-            {securityButton}
             {leaveGroupButton}
         </div>
     );

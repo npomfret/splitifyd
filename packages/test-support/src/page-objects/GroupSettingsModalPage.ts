@@ -6,179 +6,205 @@ import { DashboardPage } from './DashboardPage';
 
 const translation = translationEn;
 
+type GroupSettingsTab = 'general' | 'security';
+
 /**
- * Edit Group Modal Page Object Model for Playwright tests
- * Handles both edit form and delete confirmation dialog
- * Reusable across unit tests and e2e tests
+ * Page object for the unified Group Settings modal.
+ * Handles both the General tab (group metadata + deletion) and the Security tab (permissions, roles, pending members).
  */
-export class EditGroupModalPage extends BasePage {
+export class GroupSettingsModalPage extends BasePage {
     constructor(page: Page) {
         super(page);
     }
 
     // ============================================================================
-    // CONTAINER SELECTORS
+    // CONTAINER & TAB HELPERS
     // ============================================================================
 
-    /**
-     * Main modal container
-     */
     getModalContainer(): Locator {
         return this.page.locator('[role="dialog"]').filter({
-            has: this.page.getByTestId('edit-group-modal-title'),
+            has: this.page.getByTestId('group-settings-modal-title'),
         });
     }
 
-    /**
-     * Delete confirmation dialog container
-     */
     getDeleteDialog(): Locator {
         return this.page.getByTestId('delete-group-dialog');
     }
 
-    /**
-     * Modal backdrop
-     */
     getModalBackdrop(): Locator {
         return this.page.locator('[role="presentation"]').filter({
             has: this.page.locator('[role="dialog"]'),
         });
     }
 
+    getTabButton(tab: GroupSettingsTab): Locator {
+        return this.getModalContainer().getByTestId(`group-settings-tab-${tab}`);
+    }
+
+    async hasTab(tab: GroupSettingsTab): Promise<boolean> {
+        return (await this.getTabButton(tab).count()) > 0;
+    }
+
+    async ensureGeneralTab(): Promise<void> {
+        const nameInput = this.getModalContainer().getByTestId('group-name-input');
+        if (await nameInput.count()) {
+            try {
+                if (await nameInput.isVisible()) {
+                    return;
+                }
+            } catch {
+                // fall through and click tab
+            }
+        }
+
+        if (!(await this.hasTab('general'))) {
+            throw new Error('General tab is not available in the Group Settings modal for this user.');
+        }
+
+        await this.getTabButton('general').click();
+        await expect(nameInput).toBeVisible({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
+    }
+
+    async ensureSecurityTab(): Promise<void> {
+        const presetButton = this.getPresetButton('open');
+        if (await presetButton.count()) {
+            try {
+                if (await presetButton.isVisible()) {
+                    return;
+                }
+            } catch {
+                // fall through
+            }
+        }
+
+        if (await this.hasTab('security')) {
+            await this.getTabButton('security').click();
+        }
+
+        await expect(presetButton).toBeVisible({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
+    }
+
     // ============================================================================
-    // FORM FIELD SELECTORS
+    // GENERAL TAB - FORM FIELD SELECTORS
     // ============================================================================
 
-    /**
-     * Group name input field
-     */
     getGroupNameInput(): Locator {
         return this.getModalContainer().getByTestId('group-name-input');
     }
 
-    /**
-     * Group description textarea field
-     */
     getGroupDescriptionInput(): Locator {
         return this.getModalContainer().getByTestId('group-description-input');
     }
 
     // ============================================================================
-    // BUTTON SELECTORS
+    // GENERAL TAB - BUTTON SELECTORS
     // ============================================================================
 
-    /**
-     * Save changes button
-     */
     getSaveButton(): Locator {
         return this.getModalContainer().getByTestId('save-changes-button');
     }
 
-    /**
-     * Cancel button
-     */
     getCancelButton(): Locator {
         return this.getModalContainer().getByTestId('cancel-edit-group-button');
     }
 
-    /**
-     * Delete group button (opens delete confirmation)
-     */
     getDeleteButton(): Locator {
         return this.getModalContainer().getByTestId('delete-group-button');
     }
 
-    /**
-     * Close button (X icon)
-     */
     getCloseButton(): Locator {
-        return this
-            .getModalContainer()
-            .locator('button')
-            .filter({
-                has: this.page.locator('svg'),
-            })
-            .first();
+        return this.getModalContainer().getByTestId('close-group-settings-button');
+    }
+
+    getFooterCloseButton(): Locator {
+        return this.getModalContainer().getByTestId('group-settings-close-button');
     }
 
     // ============================================================================
-    // DELETE DIALOG SELECTORS
+    // SECURITY TAB - SELECTORS
     // ============================================================================
 
-    /**
-     * Confirmation text input in delete dialog
-     */
-    getDeleteConfirmationInput(): Locator {
-        return this.getDeleteDialog().locator('input[type="text"]');
+    getPresetButton(preset: string): Locator {
+        return this.getModalContainer().getByTestId(`preset-button-${preset}`);
     }
 
-    /**
-     * Confirm delete button in dialog
-     */
-    getConfirmDeleteButton(): Locator {
-        return this
-            .getDeleteDialog()
-            .getByRole('button', { name: /delete/i })
-            .last();
+    getSavePermissionsButton(): Locator {
+        return this.getModalContainer().getByTestId('save-permissions-button');
     }
 
-    /**
-     * Cancel delete button in dialog
-     */
-    getCancelDeleteButton(): Locator {
-        return this.getDeleteDialog().getByRole('button', { name: /cancel/i });
+    getPermissionSelect(key: string): Locator {
+        return this.getModalContainer().getByTestId(`permission-select-${key}`);
+    }
+
+    getPendingApproveButton(memberId: string): Locator {
+        return this.getModalContainer().getByTestId(`pending-approve-${memberId}`);
+    }
+
+    getPendingRejectButton(memberId: string): Locator {
+        return this.getModalContainer().getByTestId(`pending-reject-${memberId}`);
     }
 
     // ============================================================================
     // ERROR MESSAGE SELECTORS
     // ============================================================================
 
-    /**
-     * Validation error message
-     */
     getValidationError(): Locator {
         return this.getModalContainer().getByTestId('edit-group-validation-error');
     }
 
-    /**
-     * Delete error message in confirmation dialog
-     */
     getDeleteError(): Locator {
         return this.getDeleteDialog().locator('[role="alert"]');
     }
 
     // ============================================================================
-    // ACTION METHODS - Modal
+    // MODAL LIFECYCLE
     // ============================================================================
 
-    /**
-     * Wait for edit modal to open
-     */
-    async waitForModalToOpen(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
+    async waitForModalToOpen(options: { tab?: GroupSettingsTab; timeout?: number } = {}): Promise<void> {
+        const { tab, timeout = TEST_TIMEOUTS.MODAL_TRANSITION } = options;
         await expect(this.getModalContainer()).toBeVisible({ timeout });
-        await expect(this.getGroupNameInput()).toBeVisible({ timeout });
-        await expect(this.getSaveButton()).toBeVisible({ timeout });
+
+        if (tab === 'security') {
+            await this.ensureSecurityTab();
+            return;
+        }
+
+        if (tab === 'general') {
+            await this.ensureGeneralTab();
+            return;
+        }
+
+        // Default: prefer general tab when available, otherwise security.
+        try {
+            await this.ensureGeneralTab();
+        } catch {
+            await this.ensureSecurityTab();
+        }
     }
 
-    /**
-     * Wait for edit modal to close
-     */
     async waitForModalToClose(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
         await expect(this.getModalContainer()).not.toBeVisible({ timeout });
     }
 
-    /**
-     * Fill group name field
-     */
+    async waitForModalVisible(): Promise<void> {
+        await this.waitForModalToOpen();
+    }
+
+    getModal(): Locator {
+        return this.getModalContainer();
+    }
+
+    // ============================================================================
+    // GENERAL TAB - FORM ACTIONS
+    // ============================================================================
+
     async fillGroupName(name: string): Promise<void> {
+        await this.ensureGeneralTab();
         await this.fillPreactInput(this.getGroupNameInput(), name);
     }
 
-    /**
-     * Edit group name with additional stability checks to guard against
-     * real-time updates overwriting user input.
-     */
     async editGroupName(name: string): Promise<void> {
+        await this.ensureGeneralTab();
         const nameInput = this.getGroupNameInput();
         await this.fillPreactInput(nameInput, name);
 
@@ -197,19 +223,15 @@ export class EditGroupModalPage extends BasePage {
         }
     }
 
-    /**
-     * Clear group name with proper Preact handling.
-     */
     async clearGroupName(): Promise<void> {
+        await this.ensureGeneralTab();
         const nameInput = this.getGroupNameInput();
         await this.fillPreactInput(nameInput, '');
         await nameInput.blur();
     }
 
-    /**
-     * Fill group description field
-     */
     async fillGroupDescription(description: string): Promise<void> {
+        await this.ensureGeneralTab();
         const input = this.getGroupDescriptionInput();
         await input.click();
         await input.fill(description);
@@ -217,10 +239,8 @@ export class EditGroupModalPage extends BasePage {
         await input.blur();
     }
 
-    /**
-     * Edit description with stability verification to detect real-time resets.
-     */
     async editDescription(description: string): Promise<void> {
+        await this.ensureGeneralTab();
         const descriptionInput = this.getGroupDescriptionInput();
         await this.fillPreactInput(descriptionInput, description);
 
@@ -239,9 +259,6 @@ export class EditGroupModalPage extends BasePage {
         }
     }
 
-    /**
-     * Fill both group name and description
-     */
     async fillGroupForm(name: string, description?: string): Promise<void> {
         await this.fillGroupName(name);
         if (description !== undefined) {
@@ -249,18 +266,14 @@ export class EditGroupModalPage extends BasePage {
         }
     }
 
-    /**
-     * Submit the edit form
-     */
     async submitForm(): Promise<void> {
+        await this.ensureGeneralTab();
         const saveButton = this.getSaveButton();
-        await this.clickButton(saveButton, { buttonName: 'Save Changes' });
+        await this.clickButton(saveButton, { buttonName: translation.editGroupModal.saveChangesButton });
     }
 
-    /**
-     * Save changes with additional stability checks suited for e2e flows.
-     */
     async saveChanges(): Promise<void> {
+        await this.ensureGeneralTab();
         const nameInput = this.getGroupNameInput();
         const descriptionInput = this.getGroupDescriptionInput();
         const saveButton = this.getSaveButton();
@@ -302,53 +315,44 @@ export class EditGroupModalPage extends BasePage {
         await expect(modal).not.toBeVisible({ timeout: 1000 });
     }
 
-    /**
-     * Click cancel button
-     */
     async clickCancel(): Promise<void> {
+        await this.ensureGeneralTab();
         const button = this.getCancelButton();
-        await this.clickButton(button, { buttonName: 'Cancel' });
+        await this.clickButton(button, { buttonName: translation.editGroupModal.cancelButton });
     }
 
-    /**
-     * Click close button (X)
-     */
     async clickClose(): Promise<void> {
-        const button = this.getCloseButton();
-        await button.click();
+        await this.getCloseButton().click();
     }
 
-    /**
-     * Close modal by clicking backdrop
-     */
+    async clickFooterClose(): Promise<void> {
+        if (await this.getFooterCloseButton().count()) {
+            await this.getFooterCloseButton().click();
+        } else {
+            await this.clickClose();
+        }
+    }
+
     async clickOutsideToClose(): Promise<void> {
         const backdrop = this.getModalBackdrop();
         await backdrop.click({ position: { x: 10, y: 10 } });
     }
 
-    /**
-     * Close modal by pressing Escape
-     */
     async pressEscapeToClose(): Promise<void> {
         await super.pressEscapeToClose(this.getModalContainer());
     }
 
     // ============================================================================
-    // ACTION METHODS - Delete Flow
+    // GENERAL TAB - DELETE WORKFLOW
     // ============================================================================
 
-    /**
-     * Click delete button to open confirmation dialog
-     */
     async clickDelete(): Promise<void> {
+        await this.ensureGeneralTab();
         const button = this.getDeleteButton();
-        await this.clickButton(button, { buttonName: 'Delete Group' });
+        await this.clickButton(button, { buttonName: translation.editGroupModal.deleteGroupButton });
         await expect(this.getDeleteDialog()).toBeVisible({ timeout: 2000 });
     }
 
-    /**
-     * Fill delete confirmation input with group name
-     */
     async fillDeleteConfirmation(groupName: string): Promise<void> {
         const input = this.getDeleteConfirmationInput();
         await input.click();
@@ -356,25 +360,31 @@ export class EditGroupModalPage extends BasePage {
         await input.dispatchEvent('input');
     }
 
-    /**
-     * Click confirm delete button in dialog
-     */
+    getDeleteConfirmationInput(): Locator {
+        return this.getDeleteDialog().locator('input[type="text"]');
+    }
+
+    getConfirmDeleteButton(): Locator {
+        return this
+            .getDeleteDialog()
+            .getByRole('button', { name: /delete/i })
+            .last();
+    }
+
+    getCancelDeleteButton(): Locator {
+        return this.getDeleteDialog().getByRole('button', { name: /cancel/i });
+    }
+
     async confirmDelete(): Promise<void> {
         const button = this.getConfirmDeleteButton();
-        await this.clickButton(button, { buttonName: 'Confirm Delete' });
+        await this.clickButton(button, { buttonName: translation.editGroupModal.deleteConfirmDialog.confirmText });
     }
 
-    /**
-     * Click cancel in delete dialog
-     */
     async cancelDelete(): Promise<void> {
         const button = this.getCancelDeleteButton();
-        await this.clickButton(button, { buttonName: 'Cancel Delete' });
+        await this.clickButton(button, { buttonName: translation.editGroupModal.deleteConfirmDialog.cancelText });
     }
 
-    /**
-     * Complete delete workflow: click delete → fill confirmation → confirm
-     */
     async deleteGroup(groupName: string): Promise<void> {
         await this.clickDelete();
         await this.fillDeleteConfirmation(groupName);
@@ -382,14 +392,46 @@ export class EditGroupModalPage extends BasePage {
     }
 
     // ============================================================================
-    // VERIFICATION METHODS
+    // SECURITY TAB - ACTIONS
     // ============================================================================
 
-    /**
-     * Verify modal is open with correct structure
-     */
+    async waitForSecurityTab(): Promise<void> {
+        await this.ensureSecurityTab();
+    }
+
+    async selectPreset(preset: string): Promise<void> {
+        await this.ensureSecurityTab();
+        await this.getPresetButton(preset).click();
+    }
+
+    async savePermissions(): Promise<void> {
+        await this.ensureSecurityTab();
+        await this.getSavePermissionsButton().click();
+    }
+
+    async selectPermission(key: string, option: string): Promise<void> {
+        await this.ensureSecurityTab();
+        const select = this.getPermissionSelect(key);
+        await select.selectOption(option);
+    }
+
+    async approvePendingMember(memberId: string): Promise<void> {
+        await this.ensureSecurityTab();
+        await this.getPendingApproveButton(memberId).click();
+    }
+
+    async rejectPendingMember(memberId: string): Promise<void> {
+        await this.ensureSecurityTab();
+        await this.getPendingRejectButton(memberId).click();
+    }
+
+    // ============================================================================
+    // VERIFICATION HELPERS
+    // ============================================================================
+
     async verifyModalOpen(): Promise<void> {
         await expect(this.getModalContainer()).toBeVisible();
+        await this.ensureGeneralTab();
         await expect(this.getGroupNameInput()).toBeVisible();
         await expect(this.getGroupDescriptionInput()).toBeVisible();
         await expect(this.getSaveButton()).toBeVisible();
@@ -397,27 +439,20 @@ export class EditGroupModalPage extends BasePage {
         await expect(this.getDeleteButton()).toBeVisible();
     }
 
-    /**
-     * Verify modal is closed
-     */
     async verifyModalClosed(): Promise<void> {
         await expect(this.getModalContainer()).not.toBeVisible();
     }
 
-    /**
-     * Verify form has specific values
-     */
     async verifyFormValues(expectedName: string, expectedDescription?: string): Promise<void> {
+        await this.ensureGeneralTab();
         await expect(this.getGroupNameInput()).toHaveValue(expectedName);
         if (expectedDescription !== undefined) {
             await expect(this.getGroupDescriptionInput()).toHaveValue(expectedDescription);
         }
     }
 
-    /**
-     * Verify save button state
-     */
     async verifySaveButtonState(shouldBeEnabled: boolean): Promise<void> {
+        await this.ensureGeneralTab();
         if (shouldBeEnabled) {
             await expect(this.getSaveButton()).toBeEnabled();
         } else {
@@ -425,24 +460,15 @@ export class EditGroupModalPage extends BasePage {
         }
     }
 
-    /**
-     * Verify specific validation error
-     */
     async verifyValidationError(expectedMessage: string): Promise<void> {
         await expect(this.getValidationError()).toBeVisible();
         await expect(this.getValidationError()).toContainText(expectedMessage);
     }
 
-    /**
-     * Verify no validation error
-     */
     async verifyNoValidationError(): Promise<void> {
         await expect(this.getValidationError()).not.toBeVisible();
     }
 
-    /**
-     * Verify delete confirmation dialog is open
-     */
     async verifyDeleteDialogOpen(): Promise<void> {
         await expect(this.getDeleteDialog()).toBeVisible();
         await expect(this.getDeleteConfirmationInput()).toBeVisible();
@@ -450,71 +476,47 @@ export class EditGroupModalPage extends BasePage {
         await expect(this.getCancelDeleteButton()).toBeVisible();
     }
 
-    /**
-     * Verify delete confirmation dialog is closed
-     */
     async verifyDeleteDialogClosed(): Promise<void> {
         await expect(this.getDeleteDialog()).not.toBeVisible();
     }
 
-    /**
-     * Verify confirm delete button state based on input match
-     */
     async verifyConfirmDeleteButtonState(shouldBeEnabled: boolean): Promise<void> {
+        const confirmButton = this.getConfirmDeleteButton();
         if (shouldBeEnabled) {
-            await expect(this.getConfirmDeleteButton()).toBeEnabled();
+            await expect(confirmButton).toBeEnabled();
         } else {
-            await expect(this.getConfirmDeleteButton()).toBeDisabled();
+            await expect(confirmButton).toBeDisabled();
         }
     }
 
-    /**
-     * Verify save button is disabled
-     */
     async verifySaveButtonDisabled(): Promise<void> {
+        await this.ensureGeneralTab();
         await expect(this.getSaveButton()).toBeDisabled();
     }
 
-    /**
-     * Click save button (alias for submitForm for semantic consistency)
-     */
     async clickSaveButton(): Promise<void> {
         await this.submitForm();
     }
 
-    /**
-     * Click cancel button (alias for clickCancel for semantic consistency)
-     */
     async clickCancelButton(): Promise<void> {
         await this.clickCancel();
     }
 
-    /**
-     * Alias for compatibility with older e2e tests.
-     */
     async cancel(): Promise<void> {
         await this.clickCancel();
     }
 
-    /**
-     * Convenience wrapper matching the old e2e API.
-     */
     async clickDeleteGroup(): Promise<void> {
-        const deleteButton = this.getDeleteButton();
-        await deleteButton.click();
+        await this.clickDelete();
     }
 
-    /**
-     * Handle hard-delete confirmation dialog and navigate back to dashboard.
-     * Accepts an optional factory to produce a custom dashboard page object.
-     */
     async handleDeleteConfirmDialog<T = DashboardPage>(
         groupName: string,
         createDashboardPage?: (page: Page) => T,
     ): Promise<T> {
         await this.waitForDomContentLoaded();
 
-        const confirmTitle = this.page.getByRole('heading', { name: 'Delete Group' });
+        const confirmTitle = this.page.getByRole('heading', { name: translation.editGroupModal.deleteConfirmDialog.title });
         await expect(confirmTitle).toBeVisible({ timeout: 5000 });
 
         const confirmDialog = confirmTitle.locator('..').locator('..');
@@ -524,15 +526,12 @@ export class EditGroupModalPage extends BasePage {
         await this.fillPreactInput(confirmationInput, groupName);
         await expect(confirmationInput).toHaveValue(groupName);
 
-        const deleteButton = confirmDialog.getByRole('button', { name: 'Delete' });
+        const deleteButton = confirmDialog.getByRole('button', { name: translation.editGroupModal.deleteConfirmDialog.confirmText });
         await expect(deleteButton).toBeVisible();
         await expect(deleteButton).toBeEnabled({ timeout: 2000 });
         await deleteButton.click();
 
-        // Verify confirmation dialog closes after deletion
         await expect(confirmDialog).not.toBeVisible({ timeout: 3000 });
-
-        // Verify navigation to dashboard after group deletion
         await expect(this.page).toHaveURL(/\/dashboard/, { timeout: 5000 });
 
         const dashboardPage = (createDashboardPage
@@ -550,24 +549,9 @@ export class EditGroupModalPage extends BasePage {
             await dashboardGuards.verifyDashboardPageLoaded();
         }
 
-        // Verify loading spinner is gone (group deletion complete)
         const spinner = this.page.locator('.animate-spin');
         await expect(spinner).not.toBeVisible({ timeout: 5000 });
 
         return dashboardPage;
-    }
-
-    /**
-     * Alias for waitForModalToOpen to preserve e2e API surface.
-     */
-    async waitForModalVisible(): Promise<void> {
-        await this.waitForModalToOpen();
-    }
-
-    /**
-     * Alias returning the primary modal container (legacy API).
-     */
-    getModal(): Locator {
-        return this.getModalContainer();
     }
 }

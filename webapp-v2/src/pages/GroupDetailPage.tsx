@@ -1,5 +1,5 @@
 import { CommentsSection } from '@/components/comments';
-import { BalanceSummary, EditGroupModal, ExpensesList, GroupActions, GroupHeader, GroupDisplayNameSettings, LeaveGroupDialog, MembersListWithManagement, SecuritySettingsModal, ShareGroupModal } from '@/components/group';
+import { BalanceSummary, ExpensesList, GroupActions, GroupHeader, GroupDisplayNameSettings, GroupSettingsModal, LeaveGroupDialog, MembersListWithManagement, ShareGroupModal } from '@/components/group';
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
 import { Button, Card, LoadingSpinner } from '@/components/ui';
 import { Stack } from '@/components/ui';
@@ -46,6 +46,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const userPermissions = useComputed(() => permissionsStore.permissions.value || {});
     const canManageSecurity = useComputed(() => Boolean(userPermissions.value.canManageSettings));
     const canApproveMembers = useComputed(() => Boolean(userPermissions.value.canApproveMembers));
+    const canShowSettingsButton = useComputed(() => Boolean(isGroupOwner.value || canManageSecurity.value || canApproveMembers.value));
 
     // Check if user can leave group (not the owner and not the last member)
     const isLastMember = useComputed(() => members.value.length === 1);
@@ -181,11 +182,8 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     };
 
     const handleSettings = () => {
-        modals.openEditModal();
-    };
-
-    const handleSecurity = () => {
-        modals.openSecurityModal();
+        const defaultTab = isGroupOwner.value ? 'general' : 'security';
+        modals.openGroupSettingsModal(defaultTab);
     };
 
     const handleGroupUpdateSuccess = async () => {
@@ -227,10 +225,8 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                             onSettleUp={handleSettleUp}
                             onShare={handleShare}
                             onSettings={handleSettings}
-                            onSecurity={handleSecurity}
                             onLeaveGroup={canLeaveGroup.value ? handleLeaveGroup : undefined}
-                            showSettingsButton={isGroupOwner.value ?? false}
-                            showSecurityButton={canManageSecurity.value ?? false}
+                            showSettingsButton={canShowSettingsButton.value}
                             canLeaveGroup={canLeaveGroup.value}
                             variant='vertical'
                         />
@@ -243,9 +239,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                             members={members.value}
                             expenseCount={expenses.value.length}
                             onSettings={handleSettings}
-                            onSecurity={handleSecurity}
-                            showSettingsButton={isGroupOwner.value ?? false}
-                            showSecurityButton={canManageSecurity.value ?? false}
+                            showSettingsButton={canShowSettingsButton.value}
                         />
 
                         {/* Mobile-only quick actions */}
@@ -255,10 +249,8 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                                 onSettleUp={handleSettleUp}
                                 onShare={handleShare}
                                 onSettings={handleSettings}
-                                onSecurity={handleSecurity}
                                 onLeaveGroup={canLeaveGroup.value ? handleLeaveGroup : undefined}
-                                showSettingsButton={isGroupOwner.value ?? false}
-                                showSecurityButton={canManageSecurity.value ?? false}
+                                showSettingsButton={canShowSettingsButton.value}
                                 canLeaveGroup={canLeaveGroup.value}
                             />
                         </div>
@@ -326,29 +318,19 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             {/* Share Modal */}
             <ShareGroupModal isOpen={modals.showShareModal.value} onClose={() => modals.closeShareModal()} groupId={groupId!} groupName={group.value!.name} />
 
-            {/* Edit Group Modal */}
-            {isGroupOwner.value && (
-                <EditGroupModal
-                    isOpen={modals
-                        .showEditModal
-                        .value}
-                    group={group.value!}
-                    onClose={() => modals.closeEditModal()}
-                    onSuccess={handleGroupUpdateSuccess}
-                    onDelete={handleGroupDelete}
-                />
-            )}
-
-            {/* Security Settings Modal */}
-            {(canManageSecurity.value || isGroupOwner.value) && (
-                <SecuritySettingsModal
-                    isOpen={modals.showSecurityModal.value}
-                    onClose={() => modals.closeSecurityModal()}
+            {/* Group Settings Modal */}
+            {canShowSettingsButton.value && (
+                <GroupSettingsModal
+                    isOpen={modals.showGroupSettingsModal.value}
+                    onClose={() => modals.closeGroupSettingsModal()}
                     group={group.value!}
                     members={members.value}
-                    onRefresh={handleGroupUpdateSuccess}
                     canManageMembers={canManageSecurity.value ?? false}
                     canApproveMembers={canApproveMembers.value ?? false}
+                    isGroupOwner={Boolean(isGroupOwner.value)}
+                    onGroupUpdated={handleGroupUpdateSuccess}
+                    onDelete={handleGroupDelete}
+                    initialTab={modals.groupSettingsInitialTab.value}
                 />
             )}
 

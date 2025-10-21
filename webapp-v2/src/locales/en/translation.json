@@ -956,9 +956,15 @@
     "addExpense": "Add Expense",
     "settleUp": "Settle Up",
     "inviteOthers": "Invite Others",
-    "groupSettings": "Group Settings",
-    "groupSecurity": "Security & Permissions",
+    "settings": "Settings",
     "leaveGroup": "Leave Group"
+  },
+  "groupSettingsModal": {
+    "title": "Group Settings",
+    "tabs": {
+      "general": "General",
+      "security": "Security & Permissions"
+    }
   },
   "groupDisplayNameSettings": {
     "title": "Group display name",

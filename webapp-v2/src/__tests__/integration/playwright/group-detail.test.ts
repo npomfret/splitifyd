@@ -1,4 +1,4 @@
-import { CommentBuilder, ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder, SecuritySettingsModalPage } from '@splitifyd/test-support';
+import { CommentBuilder, ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockApiFailure, mockApplySecurityPresetApi, mockGroupCommentsApi, mockGroupDetailApi, mockPendingMembersApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 import { createJsonHandler } from '@/test/msw/handlers.ts';
@@ -184,7 +184,6 @@ test.describe('Group Detail - Security Settings', () => {
     test('should allow admins to open security modal and apply presets', async ({ authenticatedPage }) => {
         const { page, user: testUser } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
-        const securityModal = new SecuritySettingsModalPage(page);
         const groupId = 'group-security-test';
 
         const group = GroupDTOBuilder
@@ -228,16 +227,16 @@ test.describe('Group Detail - Security Settings', () => {
 
         await expect(groupDetailPage.getSecuritySettingsButton()).toBeVisible();
 
-        await groupDetailPage.openSecuritySettings();
-        await securityModal.waitForOpen();
+        const settingsModal = await groupDetailPage.openSecuritySettings();
+        await settingsModal.waitForSecurityTab();
 
         await Promise.all([
             page.waitForRequest((request) => request.url().includes(`/api/groups/${groupId}/security/apply-preset`) && request.method() === 'POST'),
-            securityModal.selectPreset('managed'),
+            settingsModal.selectPreset('managed'),
         ]);
 
-        await securityModal.close();
-        await expect(page.getByTestId('close-security-modal-button')).toBeHidden();
+        await settingsModal.clickFooterClose();
+        await expect(page.getByTestId('group-settings-modal-title')).toBeHidden();
     });
 });
 
@@ -665,6 +664,9 @@ test.describe('Group Detail - Permission Checks', () => {
             .withId(groupId)
             .withName('Member Group')
             .withCreatedBy('other-user-id')
+            .withPermissions({
+                memberApproval: 'admin-required', // Regular members shouldn't see Settings button
+            })
             .build();
 
         const members = [

@@ -16,24 +16,15 @@ Merge both modals into a single unified **Group Settings Modal** with tabs for d
 
 ## Implementation Plan
 
-### 1. Create New Unified Settings Modal Component
-**File**: `webapp-v2/src/components/group/GroupSettingsModal.tsx` (new)
+### 1. Create New Unified Settings Modal Component ✅
+**Status**: Implemented (`webapp-v2/src/components/group/GroupSettingsModal.tsx`)
 
-**Requirements**:
-- Create tabbed modal with two main sections:
-  - **General** tab: Group name, description, delete group (content from EditGroupModal)
-  - **Security & Permissions** tab: Permissions, presets, member roles, pending approvals (content from SecuritySettingsModal)
-- Tab implementation options:
-  - Use existing tab component pattern if available
-  - Or create simple tab UI with state management
-- Consolidate all logic from both existing modals:
-  - Form validation from EditGroupModal
-  - Permission management from SecuritySettingsModal
-  - Member role updates
-  - Pending member approval/rejection
-  - Group deletion with confirmation dialog
+- Consolidates the previous general/security modals into a tabbed UI.
+- Supports `initialTab`, permission-gated tab visibility, and shared delete workflow.
+- General tab reuses existing validation strings and delete confirmation copy.
+- Security tab covers presets, granular permissions, member-role changes, and pending approvals.
+- New props signature:
 
-**Props**:
 ```typescript
 interface GroupSettingsModalProps {
     isOpen: boolean;
@@ -43,158 +34,46 @@ interface GroupSettingsModalProps {
     canApproveMembers: boolean;
     isGroupOwner: boolean;
     onClose: () => void;
-    onSuccess?: () => void;
+    onGroupUpdated?: () => Promise<void> | void;
     onDelete?: () => void;
+    initialTab?: 'general' | 'security';
 }
 ```
 
-**Tab State**:
-- Accept optional `initialTab?: 'general' | 'security'` prop
-- Default to 'general' tab
-- Allow switching between tabs without closing modal
+### 2. Update GroupActions Component ✅
+- Removed security-specific props and button.
+- Button text now reads `Settings` and maps to the new translation key.
 
-### 2. Update GroupActions Component
-**File**: `webapp-v2/src/components/group/GroupActions.tsx`
+### 3. Update GroupHeader Component ✅
+- Only renders the single settings cog with updated copy.
 
-**Changes**:
-- Remove `onSecurity` prop
-- Remove `securityButton` rendering (lines 67-76)
-- Remove `showSecurityButton` prop
-- Keep only `onSettings` prop and `settingsButton`
-- Update button label from "Group Settings" to just "Settings"
+### 4. Update GroupDetailPage ✅
+- Routes all entry points through the unified modal.
+- Computes `canShowSettingsButton` so owners and admins with manage/approve permissions see the button.
+- Defaults the modal tab to `'general'` for owners and `'security'` for non-owners with manage permissions.
 
-**Before**:
-```typescript
-interface GroupActionsProps {
-    onSettings?: () => void;
-    onSecurity?: () => void;
-    showSettingsButton?: boolean;
-    showSecurityButton?: boolean;
-    // ...
-}
-```
+### 5. Update useGroupModals Hook ✅
+- Replaced edit/security signals with `showGroupSettingsModal` plus `groupSettingsInitialTab`.
+- Exposes `openGroupSettingsModal(tab)` and `closeGroupSettingsModal()`.
 
-**After**:
-```typescript
-interface GroupActionsProps {
-    onSettings?: () => void;
-    showSettingsButton?: boolean;
-    // ...
-}
-```
+### 6. Update Translations ✅
+- Added `groupSettingsModal` namespace and `groupActions.settings` string.
+- Existing edit/security strings reused by the unified modal.
 
-### 3. Update GroupHeader Component
-**File**: `webapp-v2/src/components/group/GroupHeader.tsx`
+### 7. Update Component Exports ✅
+- `GroupSettingsModal` is exported; legacy modal exports removed.
 
-**Changes**:
-- Remove `onSecurity` prop (line 13)
-- Remove `showSecurityButton` prop (line 15)
-- Remove security button rendering (lines 28-39)
-- Keep only single settings button (lines 40-51)
+### 8. Delete Old Files ✅
+- Removed `EditGroupModal.tsx` and `SecuritySettingsModal.tsx`.
 
-**Before**:
-```typescript
-interface GroupHeaderProps {
-    onSettings?: () => void;
-    onSecurity?: () => void;
-    showSettingsButton?: boolean;
-    showSecurityButton?: boolean;
-}
-```
+### 9. Update Shared Test Support ✅
+- Added `GroupSettingsModalPage` and refactored Playwright helpers to target the unified modal/tabs.
+- Updated `GroupDetailPage` page object to use the new modal API.
+- Removed legacy modal page objects.
 
-**After**:
-```typescript
-interface GroupHeaderProps {
-    onSettings?: () => void;
-    showSettingsButton?: boolean;
-}
-```
-
-### 4. Update GroupDetailPage
-**File**: `webapp-v2/src/pages/GroupDetailPage.tsx`
-
-**Changes**:
-- Remove `handleSecurity` function (lines 186-188)
-- Remove all `onSecurity={handleSecurity}` references:
-  - Line 229 (GroupActions in left sidebar)
-  - Line 257 (mobile GroupActions)
-  - Line 245 (GroupHeader)
-- Remove all `showSecurityButton={canManageSecurity.value ?? false}` references:
-  - Line 232 (GroupActions in left sidebar)
-  - Line 260 (mobile GroupActions)
-  - Line 247 (GroupHeader)
-- Update modal imports (line 2):
-  - Remove `SecuritySettingsModal`
-  - Remove `EditGroupModal`
-  - Add `GroupSettingsModal`
-- Replace both modal renderings (lines 328-352) with single unified modal:
-
-```typescript
-{/* Unified Group Settings Modal */}
-{(isGroupOwner.value || canManageSecurity.value) && (
-    <GroupSettingsModal
-        isOpen={modals.showSettingsModal.value}
-        onClose={() => modals.closeSettingsModal()}
-        group={group.value!}
-        members={members.value}
-        canManageMembers={canManageSecurity.value ?? false}
-        canApproveMembers={canApproveMembers.value ?? false}
-        isGroupOwner={isGroupOwner.value ?? false}
-        onSuccess={handleGroupUpdateSuccess}
-        onDelete={handleGroupDelete}
-    />
-)}
-```
-
-### 5. Update useGroupModals Hook
-**File**: `webapp-v2/src/app/hooks/useGroupModals.ts`
-
-**Changes**:
-- Remove `showSecurityModal` signal
-- Remove `openSecurityModal()` function
-- Remove `closeSecurityModal()` function
-- Rename `showEditModal` → `showSettingsModal` (for clarity)
-- Rename `openEditModal()` → `openSettingsModal()`
-- Rename `closeEditModal()` → `closeSettingsModal()`
-
-**OR** keep existing names if preferred (editModal can mean "edit group settings")
-
-### 6. Update Translations
-**Files**: `webapp-v2/src/locales/en/translation.json` (and other locales)
-
-**Add new keys**:
-```json
-{
-  "groupSettingsModal": {
-    "title": "Group Settings",
-    "tabs": {
-      "general": "General",
-      "security": "Security & Permissions"
-    }
-  },
-  "groupActions": {
-    "settings": "Settings"
-  },
-  "groupHeader": {
-    "groupSettingsAriaLabel": "Group settings"
-  }
-}
-```
-
-**Reuse existing keys**:
-- Keep all `editGroupModal.*` keys for general tab content
-- Keep all `securitySettingsModal.*` keys for security tab content
-
-### 7. Update Component Exports
-**File**: `webapp-v2/src/components/group/index.ts`
-
-**Changes**:
-- Remove exports for `EditGroupModal` and `SecuritySettingsModal`
-- Add export for `GroupSettingsModal`
-
-### 8. Delete Old Files (after successful migration and testing)
-- Delete `webapp-v2/src/components/group/EditGroupModal.tsx`
-- Delete `webapp-v2/src/components/group/SecuritySettingsModal.tsx`
+### 10. Update App/Playwright Tests ✅
+- Adjusted `group-detail.test.ts` to open the security tab via the new modal.
+- Confirmed build passes (`npm run build`).
 
 ## Testing Checklist
 
@@ -202,7 +81,7 @@ interface GroupHeaderProps {
 - [ ] Single settings button appears in GroupHeader (top right)
 - [ ] Single settings button appears in GroupActions sidebar
 - [ ] Settings button only shown to users with appropriate permissions
-- [ ] Modal opens with General tab by default
+- [ ] Modal opens with correct default tab based on permissions
 - [ ] Can switch between General and Security tabs
 - [ ] General tab: Can edit group name and description
 - [ ] General tab: Can delete group (owner only)
@@ -217,17 +96,13 @@ interface GroupHeaderProps {
 - [ ] Loading states work correctly
 
 ### E2E Test Updates Required
-Check for tests that reference:
-- `group-settings-button` (should work unchanged)
-- `group-security-button` (needs removal or update)
-- `edit-group-modal-title` (update to `group-settings-modal-title`)
-- `close-security-modal-button` (consolidate with general close)
-- Any tests that open security modal specifically
+Updates completed:
+- Playwright/shared page objects now target `GroupSettingsModalPage`.
+- Integration test (`group-detail.test.ts`) opens the security tab through the new modal API.
 
-Files to check:
-- `e2e-tests/src/page-objects/group-header.page.ts`
-- `e2e-tests/src/page-objects/group-actions.page.ts`
-- Any tests in `e2e-tests/src/tests/` that interact with group settings
+Still to do:
+- Run the Playwright/e2e suites to confirm flows and adjust any downstream selectors if failures surface.
+- Audit any external consumers outside this repo that may still import the removed modal page objects.
 
 ## Benefits
 
@@ -257,6 +132,10 @@ Files to check:
 2. **Unsaved changes warning**:
    - Warn when switching tabs with unsaved changes
    - Warn when closing modal with unsaved changes
+
+### Validation
+- [x] `npm run build`
+- [ ] Playwright/E2E suites
 
 3. **Tab persistence**:
    - Consider remembering last active tab in session storage

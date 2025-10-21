@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
-import { EditGroupModalPage } from './EditGroupModalPage';
+import { GroupSettingsModalPage } from './GroupSettingsModalPage';
 import { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
 import { ExpenseFormPage } from './ExpenseFormPage';
@@ -289,19 +289,19 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Edit Group button (labeled as "Group Settings")
+     * Settings button (opens the Group Settings modal)
      * Uses .first() to handle duplicate buttons in sidebar and header
      */
     getEditGroupButton(): Locator {
-        return this.page.getByRole('button', { name: translation.groupActions.groupSettings }).first();
-    }
-
-    async openSecuritySettings(): Promise<void> {
-        await this.getSecuritySettingsButton().click();
+        return this.page.getByRole('button', { name: translation.groupActions.settings }).first();
     }
 
     getSecuritySettingsButton(): Locator {
-        return this.page.getByRole('button', { name: translation.groupActions.groupSecurity }).first();
+        return this.getEditGroupButton();
+    }
+
+    async openSecuritySettings(): Promise<GroupSettingsModalPage> {
+        return this.clickEditGroupAndOpenModal('security');
     }
 
     /**
@@ -1345,18 +1345,18 @@ export class GroupDetailPage extends BasePage {
      */
     async clickEditGroup(): Promise<void> {
         const button = this.getEditGroupButton();
-        await this.clickButton(button, { buttonName: 'Edit Group' });
+        await this.clickButton(button, { buttonName: translation.groupActions.settings });
     }
 
     /**
-     * Click Edit Group button and open edit modal
-     * Fluent version - verifies modal opens and returns EditGroupModalPage
+     * Click Settings button and open group settings modal
+     * Fluent version - verifies modal opens and returns GroupSettingsModalPage
      */
-    async clickEditGroupAndOpenModal(): Promise<EditGroupModalPage> {
+    async clickEditGroupAndOpenModal(tab: 'general' | 'security' = 'general'): Promise<GroupSettingsModalPage> {
         await this.clickEditGroup();
 
-        const modalPage = new EditGroupModalPage(this.page);
-        await modalPage.waitForModalToOpen();
+        const modalPage = new GroupSettingsModalPage(this.page);
+        await modalPage.waitForModalToOpen({ tab });
         return modalPage;
     }
 

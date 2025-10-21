@@ -37,13 +37,38 @@ export class ChangeTrackerHandlers {
 
     async handleExpenseChange(event: FirestoreTriggerEvent<{ expenseId: string; }>) {
         const expenseId = event.params.expenseId;
-        const {after} = this.extractDataChange(event);
+        const {after, changeType} = this.extractDataChange(event);
+
+        // For delete events, we need to use the 'before' snapshot to get groupId
+        if (changeType === 'deleted') {
+            const {before} = this.extractDataChange(event);
+            const beforeData = before?.data();
+            const groupId = beforeData?.groupId;
+
+            if (!groupId) {
+                logger.warn('groupId missing from deleted expense, skipping notification', {
+                    expenseId,
+                    changeType,
+                    hasBeforeData: !!beforeData,
+                });
+                return;
+            }
+
+            const affectedUsers = await this.firestoreReader.getAllGroupMemberIds(groupId);
+            await this.notificationService.batchUpdateNotificationsMultipleTypes(affectedUsers, groupId, [
+                'transaction',
+                'balance',
+            ]);
+
+            logger.info('expense-deleted', {id: expenseId, groupId, usersNotified: affectedUsers.length});
+            return;
+        }
 
         const afterData = after?.data();
-
         const groupId = afterData?.groupId;
+
         if (!groupId) {
-            throw Error(`groupId missing from expense ${expenseId}`);
+            throw Error(`groupId missing from expense ${expenseId} (changeType: ${changeType}, hasAfterData: ${!!afterData}, fields: ${afterData ? Object.keys(afterData).join(', ') : 'none'})`);
         }
 
         const affectedUsers = await this.firestoreReader.getAllGroupMemberIds(groupId);
@@ -57,13 +82,38 @@ export class ChangeTrackerHandlers {
 
     handleSettlementChange = async (event: FirestoreTriggerEvent<{ settlementId: string; }>) => {
         const settlementId = event.params.settlementId;
-        const {after} = this.extractDataChange(event);
+        const {after, changeType} = this.extractDataChange(event);
+
+        // For delete events, we need to use the 'before' snapshot to get groupId
+        if (changeType === 'deleted') {
+            const {before} = this.extractDataChange(event);
+            const beforeData = before?.data();
+            const groupId = beforeData?.groupId;
+
+            if (!groupId) {
+                logger.warn('groupId missing from deleted settlement, skipping notification', {
+                    settlementId,
+                    changeType,
+                    hasBeforeData: !!beforeData,
+                });
+                return {groupId: '', affectedUserCount: 0};
+            }
+
+            const affectedUsers = await this.firestoreReader.getAllGroupMemberIds(groupId);
+            await this.notificationService.batchUpdateNotificationsMultipleTypes(affectedUsers, groupId, [
+                'transaction',
+                'balance',
+            ]);
+
+            logger.info('settlement-deleted', {id: settlementId, groupId, usersNotified: affectedUsers.length});
+            return {groupId, affectedUserCount: affectedUsers.length};
+        }
 
         const afterData = after?.data();
-
         const groupId = afterData?.groupId;
+
         if (!groupId) {
-            throw Error(`groupId missing from ${JSON.stringify(event)}`);
+            throw Error(`groupId missing from settlement ${settlementId} (changeType: ${changeType}, hasAfterData: ${!!afterData}, fields: ${afterData ? Object.keys(afterData).join(', ') : 'none'})`);
         }
 
         const affectedUsers = await this.firestoreReader.getAllGroupMemberIds(groupId);
