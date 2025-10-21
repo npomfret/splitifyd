@@ -14,6 +14,7 @@ The current implementation is a **development-only solution** that:
 - Always returns `true` if user exists (doesn't actually verify password)
 - Has unused `password` parameter (causing TS6133 warning)
 - Contains clear documentation that this is emulator-only
+- Has no production fallback anywhere else in the codebase—Unit tests use `StubAuthService.verifyPassword`, which also short-circuits to `true`, so no automated check currently guards against deploying this stub.
 
 ```typescript
 async verifyPassword(email: string, password: string): Promise<boolean> {
@@ -50,7 +51,6 @@ For production deployment, this method **MUST** be properly implemented to actua
     - No fallback values that could mask configuration issues
 
 3. **Security Considerations**
-    - Rate limiting for password verification attempts
     - Proper logging (without exposing passwords)
     - Handle all Firebase Auth error scenarios
     - Ensure no credential information leaks in error messages
@@ -91,9 +91,9 @@ async verifyPassword(email: string, password: string): Promise<boolean> {
 1. **Before Production Deployment**:
     - [ ] Implement proper password verification using Firebase Auth REST API
     - [ ] Add comprehensive error handling for all auth scenarios
-    - [ ] Add rate limiting protection
     - [ ] Write integration tests covering both valid/invalid credentials
     - [ ] Remove the TS6133 warning by using the password parameter
+    - [ ] Ensure higher-level rate limiting strategy is in place (tracked outside this doc)
 
 2. **Testing Requirements**:
     - [ ] Test with valid credentials (should return `true`)
@@ -104,8 +104,15 @@ async verifyPassword(email: string, password: string): Promise<boolean> {
 
 3. **Security Review**:
     - [ ] Audit for credential leaks in logs/errors
-    - [ ] Verify rate limiting implementation
     - [ ] Review error messages for information disclosure
+
+## Implementation Plan (2024-XX-XX)
+
+1. Introduce a shared REST client in `FirebaseAuthService` that can call the Identity Toolkit endpoints using the project’s API key (reuse emulator URL handling from `packages/test-support/ApiDriver` to avoid duplication).
+2. Wire configuration through existing service setup so production deploys fail fast if the API key or endpoint is missing.
+3. Expand `StubAuthService.verifyPassword` to hold hashed password state so unit tests can assert real success/failure paths once the live implementation lands.
+4. Add unit tests for the new client (success, invalid credentials, transport failure) and an integration smoke test that exercises the emulator path.
+5. Document how rate limiting is handled at the ingress layer so this service stays focused on verification.
 
 ## Risk Level
 
