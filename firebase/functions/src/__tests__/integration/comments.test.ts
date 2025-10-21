@@ -1,6 +1,5 @@
 import { PooledTestUser } from '@splitifyd/shared';
 import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, generateShortId, NotificationDriver } from '@splitifyd/test-support';
-import { v4 as uuidv4 } from 'uuid';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 

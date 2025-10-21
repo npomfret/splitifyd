@@ -2,7 +2,7 @@
 // Combines tests from security-and-permissions.test.ts, permission-edge-cases.test.ts, and security-preset-validation.integration.test.ts
 
 import { GroupDTO, PooledTestUser, UserToken } from '@splitifyd/shared';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, NotificationDriver, UserRegistrationBuilder } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, GroupUpdateBuilder, NotificationDriver } from '@splitifyd/test-support';
 import { v4 as uuidv4 } from 'uuid';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';

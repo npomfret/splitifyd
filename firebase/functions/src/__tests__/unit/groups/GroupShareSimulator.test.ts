@@ -1,7 +1,6 @@
 import { beforeEach, afterEach, describe, expect, it } from 'vitest';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { AppDriver } from '../AppDriver';
-import { ApiError } from '../../../utils/errors';
 
 describe('Group sharing workflow (stub firestore)', () => {
     let appDriver: AppDriver;
