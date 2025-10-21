@@ -765,10 +765,12 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Wait for network to be idle
+     * Wait for DOM content to be loaded
+     * Note: Using 'domcontentloaded' instead of 'networkidle' to avoid timeouts
+     * when there are 404 errors or ongoing network activity
      */
     private async waitForNetworkIdle(): Promise<void> {
-        await this.page.waitForLoadState('networkidle');
+        await this.page.waitForLoadState('domcontentloaded');
     }
 
     /**

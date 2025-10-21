@@ -465,12 +465,8 @@ export async function mockGroupCommentsApi(
         groupCommentsHandler(
             groupId,
             {
-                success: true,
-                data: {
-                    comments,
-                    count: comments.length,
-                    hasMore: false,
-                },
+                comments,
+                hasMore: false,
             },
             {
                 delayMs: delay,
@@ -509,12 +505,8 @@ export async function mockExpenseCommentsApi(
             'GET',
             `/api/expenses/${expenseId}/comments`,
             {
-                success: true,
-                data: {
-                    comments,
-                    count: comments.length,
-                    hasMore: false,
-                },
+                comments,
+                hasMore: false,
             },
             {
                 delayMs: delay,
