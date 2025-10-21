@@ -8,7 +8,7 @@ import {
     TEST_TIMEOUTS,
 } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { mockGroupPreviewApi, mockJoinGroupApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
+import { mockGroupPreviewApi, mockJoinGroupApi, mockUpdateGroupDisplayNameApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 
 interface ConflictModalOptions {
     groupName?: string;
@@ -104,15 +104,9 @@ test.describe('DisplayNameConflictModal', () => {
 
     test('resolves conflict when a new name is provided', async ({ authenticatedPage }) => {
         const context = await openConflictModal(authenticatedPage);
-        const { conflictModal, joinGroupPage, page } = context;
+        const { conflictModal, joinGroupPage, page, groupId } = context;
 
-        await page.route('**/api/groups/*/members/display-name', async (route) => {
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({ message: 'ok' }),
-            });
-        });
+        await mockUpdateGroupDisplayNameApi(page, groupId, { message: 'ok' }, { once: true });
 
         await conflictModal.fillDisplayName('Product Hero');
         await conflictModal.submit();
@@ -124,25 +118,15 @@ test.describe('DisplayNameConflictModal', () => {
 
     test('shows server error and clears it after editing', async ({ authenticatedPage }) => {
         const context = await openConflictModal(authenticatedPage);
-        const { conflictModal, joinGroupPage, page } = context;
+        const { conflictModal, joinGroupPage, page, groupId } = context;
 
-        let attempt = 0;
-        await page.route('**/api/groups/*/members/display-name', async (route) => {
-            attempt += 1;
-            if (attempt === 1) {
-                await route.fulfill({
-                    status: 400,
-                    contentType: 'application/json',
-                    body: JSON.stringify({ message: 'This name is already taken.' }),
-                });
-            } else {
-                await route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify({ message: 'ok' }),
-                });
-            }
-        });
+        await mockUpdateGroupDisplayNameApi(page, groupId, { message: 'ok' });
+        await mockUpdateGroupDisplayNameApi(
+            page,
+            groupId,
+            { message: 'This name is already taken.' },
+            { status: 400, once: true },
+        );
 
         await conflictModal.fillDisplayName('Existing Member');
         await conflictModal.submit();
@@ -179,25 +163,14 @@ test.describe('DisplayNameConflictModal', () => {
 
     test('disables controls while saving the new name', async ({ authenticatedPage }) => {
         const context = await openConflictModal(authenticatedPage);
-        const { conflictModal, joinGroupPage, page } = context;
+        const { conflictModal, joinGroupPage, page, groupId } = context;
 
-        let completeUpdate: (() => void) | undefined;
-        await page.route('**/api/groups/*/members/display-name', async (route) => {
-            await new Promise<void>((resolve) => {
-                completeUpdate = resolve;
-            });
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({ message: 'ok' }),
-            });
-        });
+        await mockUpdateGroupDisplayNameApi(page, groupId, { message: 'ok' }, { delayMs: 500 });
 
         await conflictModal.fillDisplayName('Delayed Update');
         await conflictModal.submit();
         await conflictModal.verifySavingStateVisible();
 
-        completeUpdate?.();
         await conflictModal.waitForClose(TEST_TIMEOUTS.API_RESPONSE);
 
         await joinGroupPage.verifyJoinSuccessIndicatorVisible();

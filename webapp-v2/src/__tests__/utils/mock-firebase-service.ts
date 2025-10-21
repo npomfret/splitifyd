@@ -15,7 +15,7 @@ import {
     registerSuccessHandler,
     policiesStatusHandler,
 } from '@/test/msw/handlers.ts';
-import type { SerializedMswHandler } from '@/test/msw/types.ts';
+import type { SerializedBodyMatcher, SerializedMswHandler } from '@/test/msw/types.ts';
 
 interface AuthError {
     code: string;
@@ -543,7 +543,7 @@ export async function mockUpdateGroupDisplayNameApi(
     page: Page,
     groupId: GroupId,
     response: any,
-    options: { delayMs?: number; status?: number; } = {},
+    options: { delayMs?: number; status?: number; once?: boolean; bodyMatcher?: SerializedBodyMatcher; } = {},
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
 
@@ -552,6 +552,8 @@ export async function mockUpdateGroupDisplayNameApi(
         createJsonHandler('PUT', `/api/groups/${groupId}/members/display-name`, response, {
             delayMs: delay,
             status: options.status ?? 200,
+            once: options.once,
+            bodyMatcher: options.bodyMatcher,
         }),
     );
 }
