@@ -198,9 +198,10 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                     <button
                         onClick={() => enhancedGroupDetailStore.loadMoreSettlements()}
                         disabled={isLoading.value}
+                        data-testid='load-more-settlements-button'
                         class='px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50'
                     >
-                        {isLoading.value ? t('common.loading') : t('settlementHistory.loadMore')}
+                        {isLoading.value ? t('common.loading') : t('settlementHistory.loadMorePayments')}
                     </button>
                 </div>
             )}

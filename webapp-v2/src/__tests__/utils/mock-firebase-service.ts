@@ -3,6 +3,7 @@ import type { Page, Response, Route } from '@playwright/test';
 import { ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
 import {
     firebaseInitConfigHandler,
+    appConfigHandler,
     acceptedPoliciesHandler,
     createJsonHandler,
     generateShareLinkHandler,
@@ -132,8 +133,8 @@ export class MockFirebase {
     }
 
     private async createBrowserGlobals(initialUser: ClientUser | null): Promise<void> {
-        // Mock Firebase config endpoint to prevent "Failed to fetch config" errors
-        await registerMswHandlers(this.page, firebaseInitConfigHandler());
+        // Mock Firebase config endpoints to prevent "Failed to fetch config" errors
+        await registerMswHandlers(this.page, [firebaseInitConfigHandler(), appConfigHandler()]);
 
         await this.page.addInitScript((initialUser: any) => {
             const mockService: FirebaseService = {

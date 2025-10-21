@@ -177,3 +177,29 @@ export function firebaseInitConfigHandler(options: HandlerOptions = {}): Seriali
         options,
     );
 }
+
+export function appConfigHandler(options: HandlerOptions = {}): SerializedMswHandler {
+    return createJsonHandler(
+        'GET',
+        '/api/config',
+        {
+            firebase: {
+                apiKey: 'mock-api-key',
+                authDomain: 'mock-project.firebaseapp.com',
+                projectId: 'mock-project',
+                storageBucket: 'mock-project.appspot.com',
+                messagingSenderId: '123456789',
+                appId: '1:123456789:web:abcdef',
+            },
+            environment: {
+                name: 'test',
+                apiUrl: 'http://localhost:5001',
+            },
+            formDefaults: {
+                currency: 'USD',
+                splitType: 'equal',
+            },
+        },
+        options,
+    );
+}
