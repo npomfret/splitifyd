@@ -34,7 +34,7 @@ show_usage() {
     echo "  ./run-test.sh dashboard \"should load groups\" --repeat 50  # Run test 50 times"
     echo ""
     echo -e "${YELLOW}Available test files:${NC}"
-    find src/__tests__/unit/playwright -name "*.test.ts" -exec basename {} .test.ts \; | sort
+    find src/__tests__/integration/playwright -name "*.test.ts" -exec basename {} .test.ts \; | sort
 }
 
 # Check if no arguments provided
@@ -85,17 +85,17 @@ done
 
 # Find the test file
 TEST_PATH=""
-if [ -f "src/__tests__/unit/playwright/${TEST_FILE}.test.ts" ]; then
-    TEST_PATH="src/__tests__/unit/playwright/${TEST_FILE}.test.ts"
-elif [ -f "src/__tests__/unit/playwright/${TEST_FILE}" ]; then
-    TEST_PATH="src/__tests__/unit/playwright/${TEST_FILE}"
+if [ -f "src/__tests__/integration/playwright/${TEST_FILE}.test.ts" ]; then
+    TEST_PATH="src/__tests__/integration/playwright/${TEST_FILE}.test.ts"
+elif [ -f "src/__tests__/integration/playwright/${TEST_FILE}" ]; then
+    TEST_PATH="src/__tests__/integration/playwright/${TEST_FILE}"
 elif [ -f "${TEST_FILE}" ]; then
     TEST_PATH="${TEST_FILE}"
 else
     echo -e "${RED}Error: Test file not found${NC}"
     echo "Tried:"
-    echo "  - src/__tests__/unit/playwright/${TEST_FILE}.test.ts"
-    echo "  - src/__tests__/unit/playwright/${TEST_FILE}"
+    echo "  - src/__tests__/integration/playwright/${TEST_FILE}.test.ts"
+    echo "  - src/__tests__/integration/playwright/${TEST_FILE}"
     echo "  - ${TEST_FILE}"
     echo ""
     show_usage
