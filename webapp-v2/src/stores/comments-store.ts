@@ -29,7 +29,7 @@ interface CommentsStore {
     reset(): void;
 }
 
-class CommentsStoreImpl implements CommentsStore {
+export class CommentsStoreImpl implements CommentsStore {
     // Private signals - encapsulated within the class
     readonly #commentsSignal = signal<CommentDTO[]>([]);
     readonly #loadingSignal = signal<boolean>(false);

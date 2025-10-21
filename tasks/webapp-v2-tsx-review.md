@@ -11,7 +11,7 @@
 - **Location:** `webapp-v2/src/components/policy/PolicyRenderer.tsx:8-38`
 - **Issue:** `parseMarkdown` rewrites user-supplied policy text via regex and feeds it directly into `dangerouslySetInnerHTML` without any escaping. Any HTML embedded in the source (including `<script>` tags) will execute.
 - **Impact:** Remote code execution/XSS whenever policies are viewed; affects authenticated and unauthenticated users.
-- **Status:** ✅ Resolved — policy content is now HTML-escaped prior to markdown transforms, preserving existing formatting while blocking inline script/HTML injection (`PolicyRenderer.tsx`).
+- **Status:** ✅ Resolved — policy content is now HTML-escaped prior to markdown transforms, preserving existing formatting while blocking inline script/HTML injection (`PolicyRenderer.tsx`). Unit coverage verifies that rendered markup escapes `<script>` tags while still applying heading/list formatting (`PolicyRenderer.test.tsx`).
 - **Recommendation:** Use a trusted markdown/HTML sanitizer (e.g., `marked` + DOMPurify) or escape raw input before whitelisting tags. Avoid home-grown regex transforms for security-critical content.
 
 ### 2. API Logging Leaks Credentials (P0)
@@ -32,14 +32,14 @@
 - **Location:** `webapp-v2/src/stores/comments-store.ts:94-206`
 - **Issue:** When a new comment target registers, `#commentsSignal` still contains the previous target's list. The initial fetch appends to that array unless the old list was empty, so switching between groups/expenses can show mismatched discussions.
 - **Impact:** Users see comments from other records, breaking data integrity and confusing moderation history.
-- **Status:** ✅ Resolved — registering a new target now clears pagination state, resets the signal cache, and tears down the prior listener before fetching fresh comments (`comments-store.ts`).
+- **Status:** ✅ Resolved — registering a new target now clears pagination state, resets the signal cache, and tears down the prior listener before fetching fresh comments (`comments-store.ts`). Dedicated store tests confirm that target switches clear cached comments, trigger listener teardown, and avoid duplicate fetches for existing subscribers (`comments-store.test.ts`).
 - **Recommendation:** Clear comment state when `currentCount` transitions from 0→1 (before fetching) or reset inside `registerComponent`/`#fetchCommentsViaApi` when `targetId` changes.
 
 ### 5. Share Group Modal Ignores Group Changes While Open (P1)
 - **Location:** `webapp-v2/src/components/group/ShareGroupModal.tsx:25-31`
 - **Issue:** The effect that fetches a share link only depends on `isOpen`. If the modal stays open while the parent updates `groupId` (e.g., user triggers “Share” on a different group without closing), the link never refreshes.
 - **Impact:** Users may copy an outdated invitation URL for the wrong group.
-- **Status:** ✅ Resolved — the modal watches both `isOpen` and `groupId`, clears copy timers/state, and regenerates the link when the target group changes (`ShareGroupModal.tsx`).
+- **Status:** ✅ Resolved — the modal watches both `isOpen` and `groupId`, clears copy timers/state, and regenerates the link when the target group changes (`ShareGroupModal.tsx`). Component tests assert the regenerated link and group name updates when props change while the modal remains open (`ShareGroupModal.test.tsx`).
 - **Recommendation:** Include `groupId` (and optionally `groupName`) in the dependency list and reset transient state (link, errors) whenever it changes.
 
 ### 6. Abort Controller Is Never Wired to Requests (P2)
