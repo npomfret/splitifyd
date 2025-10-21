@@ -1,5 +1,5 @@
 import { CommentsSection } from '@/components/comments';
-import { BalanceSummary, EditGroupModal, ExpensesList, GroupActions, GroupHeader, GroupDisplayNameSettings, LeaveGroupDialog, MembersListWithManagement, ShareGroupModal } from '@/components/group';
+import { BalanceSummary, EditGroupModal, ExpensesList, GroupActions, GroupHeader, GroupDisplayNameSettings, LeaveGroupDialog, MembersListWithManagement, SecuritySettingsModal, ShareGroupModal } from '@/components/group';
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
 import { Button, Card, LoadingSpinner } from '@/components/ui';
 import { Stack } from '@/components/ui';
@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { useGroupModals } from '../app/hooks/useGroupModals';
 import { enhancedGroupDetailStore } from '../app/stores/group-detail-store-enhanced';
+import { permissionsStore } from '@/stores/permissions-store.ts';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { GroupDetailGrid } from '../components/layout/GroupDetailGrid';
 import { logError, logInfo } from '../utils/browser-logger';
@@ -41,6 +42,9 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const authStore = useAuthRequired();
     const currentUser = useComputed(() => authStore.user);
     const isGroupOwner = useComputed(() => currentUser.value && group.value && group.value.createdBy === currentUser.value.uid);
+    const userPermissions = useComputed(() => permissionsStore.permissions.value || {});
+    const canManageSecurity = useComputed(() => Boolean(userPermissions.value.canManageSettings));
+    const canApproveMembers = useComputed(() => Boolean(userPermissions.value.canApproveMembers));
 
     // Check if user can leave group (not the owner and not the last member)
     const isLastMember = useComputed(() => members.value.length === 1);
@@ -179,6 +183,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         modals.openEditModal();
     };
 
+    const handleSecurity = () => {
+        modals.openSecurityModal();
+    };
+
     const handleGroupUpdateSuccess = async () => {
         // Since we don't have Firebase websockets for real-time updates yet,
         // we need to manually refresh the group data after a successful update
@@ -218,8 +226,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                             onSettleUp={handleSettleUp}
                             onShare={handleShare}
                             onSettings={handleSettings}
+                            onSecurity={handleSecurity}
                             onLeaveGroup={canLeaveGroup.value ? handleLeaveGroup : undefined}
-                            isGroupOwner={isGroupOwner.value ?? false}
+                            showSettingsButton={isGroupOwner.value ?? false}
+                            showSecurityButton={canManageSecurity.value ?? false}
                             canLeaveGroup={canLeaveGroup.value}
                             variant='vertical'
                         />
@@ -227,7 +237,15 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                 }
                 mainContent={
                     <Stack spacing='lg'>
-                        <GroupHeader group={group.value!} members={members.value} expenseCount={expenses.value.length} onSettings={handleSettings} isGroupOwner={isGroupOwner.value ?? false} />
+                        <GroupHeader
+                            group={group.value!}
+                            members={members.value}
+                            expenseCount={expenses.value.length}
+                            onSettings={handleSettings}
+                            onSecurity={handleSecurity}
+                            showSettingsButton={isGroupOwner.value ?? false}
+                            showSecurityButton={canManageSecurity.value ?? false}
+                        />
 
                         {/* Mobile-only quick actions */}
                         <div className='lg:hidden'>
@@ -236,8 +254,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                                 onSettleUp={handleSettleUp}
                                 onShare={handleShare}
                                 onSettings={handleSettings}
+                                onSecurity={handleSecurity}
                                 onLeaveGroup={canLeaveGroup.value ? handleLeaveGroup : undefined}
-                                isGroupOwner={isGroupOwner.value ?? false}
+                                showSettingsButton={isGroupOwner.value ?? false}
+                                showSecurityButton={canManageSecurity.value ?? false}
                                 canLeaveGroup={canLeaveGroup.value}
                             />
                         </div>
@@ -315,6 +335,19 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                     onClose={() => modals.closeEditModal()}
                     onSuccess={handleGroupUpdateSuccess}
                     onDelete={handleGroupDelete}
+                />
+            )}
+
+            {/* Security Settings Modal */}
+            {(canManageSecurity.value || isGroupOwner.value) && (
+                <SecuritySettingsModal
+                    isOpen={modals.showSecurityModal.value}
+                    onClose={() => modals.closeSecurityModal()}
+                    group={group.value!}
+                    members={members.value}
+                    onRefresh={handleGroupUpdateSuccess}
+                    canManageMembers={canManageSecurity.value ?? false}
+                    canApproveMembers={canApproveMembers.value ?? false}
                 />
             )}
 

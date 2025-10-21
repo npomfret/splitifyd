@@ -6,4 +6,5 @@ export { GroupHeader } from './GroupHeader';
 export { GroupDisplayNameSettings } from './GroupDisplayNameSettings';
 export { LeaveGroupDialog } from './LeaveGroupDialog';
 export { MembersListWithManagement } from './MembersListWithManagement';
+export { SecuritySettingsModal } from './SecuritySettingsModal';
 export { ShareGroupModal } from './ShareGroupModal';

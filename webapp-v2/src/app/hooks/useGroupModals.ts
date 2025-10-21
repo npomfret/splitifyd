@@ -11,6 +11,7 @@ export function useGroupModals() {
     const showSettlementForm = useSignal(false);
     const showSettlementHistory = useSignal(false);
     const showEditModal = useSignal(false);
+    const showSecurityModal = useSignal(false);
 
     // Modal data states
     const settlementToEdit = useSignal<SettlementWithMembers | null>(null);
@@ -46,12 +47,21 @@ export function useGroupModals() {
         showEditModal.value = false;
     };
 
+    const openSecurityModal = () => {
+        showSecurityModal.value = true;
+    };
+
+    const closeSecurityModal = () => {
+        showSecurityModal.value = false;
+    };
+
     return {
         // Modal visibility states (reactive signals)
         showShareModal,
         showSettlementForm,
         showSettlementHistory,
         showEditModal,
+        showSecurityModal,
 
         // Modal data (reactive signal)
         settlementToEdit,
@@ -64,5 +74,7 @@ export function useGroupModals() {
         toggleSettlementHistory,
         openEditModal,
         closeEditModal,
+        openSecurityModal,
+        closeSecurityModal,
     };
 }

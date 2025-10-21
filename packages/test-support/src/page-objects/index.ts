@@ -9,6 +9,7 @@ export { GroupDetailPage } from './GroupDetailPage';
 export { HeaderPage } from './HeaderPage';
 export { JoinGroupPage } from './JoinGroupPage';
 export { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
+export { SecuritySettingsModalPage } from './SecuritySettingsModalPage';
 export { RemoveMemberDialogPage } from './RemoveMemberDialogPage';
 export { LoginPage } from './LoginPage';
 export { RegisterPage } from './RegisterPage';

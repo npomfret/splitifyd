@@ -211,7 +211,7 @@ New endpoints needed:
 - `rejectMember(groupId, userId)` - Reject pending members
 - `getPendingMembers(groupId)` - List pending members
 - `getPermissionHistory(groupId)` - View permission change audit log
-- `createInviteLink(groupId, options)` - Create time-limited or single-use invite links
+- `createInviteLink(groupId)` - Generate invite links that admins can share
 
 **Edge Case Handling:**
 
@@ -253,7 +253,7 @@ async function setMemberRole(groupId: string, targetUserId: string, newRole: str
 
 #### Managed Group:
 1. User clicks share link
-2. Check invite link validity (expiry, usage limits)
+2. Validate invite link is active and has not been revoked
 3. User added with `status: 'pending'` if `memberApproval: 'admin-required'`
 4. UI shows "Awaiting admin approval"
 5. Admins see notification/pending list
@@ -399,14 +399,12 @@ class PermissionSync {
     - Verify optimistic locking prevents conflicting changes
 2. **Permission Cache Tests**:
     - Verify cache invalidation on permission changes
-    - Verify TTL expiry works correctly
 3. **Real-time Sync Tests**:
     - Verify permission changes propagate to all active sessions
     - Verify UI updates when permissions change
 4. **Edge Case Tests**:
     - Verify last admin cannot demote themselves
     - Verify pending members are auto-removed after 7 days
-    - Verify invite links expire correctly
 5. **Performance Tests**:
     - Verify permission checks don't impact API response times
     - Test with groups having 100+ members
@@ -511,19 +509,15 @@ class PermissionSync {
 - ✅ `approveMember(groupId, userId)` and `rejectMember(groupId, userId)`
 - ✅ `getPendingMembers(groupId)` endpoint
 
-9. **Invite System** (`firebase/functions/src/invites/`) ❌ NOT STARTED
-    - `createInviteLink(groupId, options)` with expiry/usage limits
-    - Update join flow to handle pending status
-    - Auto-cleanup of expired pending members (7-day job)
+**Frontend Tasks**: 10. **Security Settings UI** (`webapp-v2/src/components/group/SecuritySettingsModal.tsx`) ✅ COMPLETED - Added presets, custom toggles, role management, and pending approvals in dedicated modal
 
-**Frontend Tasks**: 10. **Security Settings UI** (`webapp-v2/src/components/group/SecuritySettings.tsx`) ❌ NOT STARTED - Preset selection buttons with descriptions - Custom permission toggles - Member role management interface - Pending members approval interface
-
-11. **Permission-Aware Components** ❌ NOT STARTED
+11. **Permission-Aware Components** ⚠️ PARTIALLY COMPLETE
+    - ✅ Primary actions and headers respect computed permissions
     - Update expense list/forms to show/hide edit/delete based on permissions
     - Add permission tooltips explaining restrictions
     - Update member invitation flow for managed groups
 
-**Testing**: 12. **Role-based Permission Tests** ✅ PARTIALLY IMPLEMENTED - ✅ Admin vs member permission boundaries - **4 tests passing for preset application (permissions updated correctly) and role changes** - ✅ Last admin protection scenarios - **Unit tests now cover last-admin protection** - ✅ Pending member approval workflow - **Unit tests cover join pending flow; integration test exercises approval/rejection APIs** - ❌ Invite link expiry and usage limits - **Not tested**
+**Testing**: 12. **Role-based Permission Tests** ✅ PARTIALLY IMPLEMENTED - ✅ Admin vs member permission boundaries - **4 tests passing for preset application (permissions updated correctly) and role changes** - ✅ Last admin protection scenarios - **Unit tests now cover last-admin protection** - ✅ Pending member approval workflow - **Unit tests cover join pending flow; integration test exercises approval/rejection APIs** - ✅ Frontend security modal behaviours covered by Playwright
 
 **Current Changeset Analysis (2025-08-27):**
 
@@ -551,7 +545,6 @@ class PermissionSync {
 1. Verify backend handler implementations for preset application and role management
 2. Implement pending member approval endpoints (currently missing)
 3. Build frontend UI components for security management
-4. Implement invite system with expiry/usage limits
 
 ### Phase 3: Advanced Features (Week 5-6)
 

@@ -1,6 +1,6 @@
-import { CommentBuilder, ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import { CommentBuilder, ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder, SecuritySettingsModalPage } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { mockApiFailure, mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
+import { mockApiFailure, mockApplySecurityPresetApi, mockGroupCommentsApi, mockGroupDetailApi, mockPendingMembersApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 import { createJsonHandler } from '@/test/msw/handlers.ts';
 
 test.describe('Group Detail - Authentication and Navigation', () => {
@@ -177,6 +177,67 @@ test.describe('Group Detail - Members Display', () => {
 
         // Verify member count is displayed
         await expect(groupDetailPage.getMemberCount()).toContainText('2');
+    });
+});
+
+test.describe('Group Detail - Security Settings', () => {
+    test('should allow admins to open security modal and apply presets', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
+        const groupDetailPage = new GroupDetailPage(page);
+        const securityModal = new SecuritySettingsModalPage(page);
+        const groupId = 'group-security-test';
+
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withId(groupId)
+            .withName('Security Group')
+            .build();
+
+        const members = [
+            new GroupMemberBuilder()
+                .withUid(testUser.uid)
+                .withDisplayName(testUser.displayName)
+                .withGroupDisplayName(testUser.displayName)
+                .withMemberRole('admin')
+                .withMemberStatus('active')
+                .withTheme(ThemeBuilder.blue().build())
+                .build(),
+            new GroupMemberBuilder()
+                .withUid('member-1')
+                .withDisplayName('Alex Rivera')
+                .withGroupDisplayName('Alex Rivera')
+                .withMemberRole('member')
+                .withMemberStatus('active')
+                .withTheme(ThemeBuilder.red().build())
+                .build(),
+        ];
+
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members)
+            .build();
+
+        await setupSuccessfulApiMocks(page);
+        await mockGroupDetailApi(page, groupId, fullDetails);
+        await mockGroupCommentsApi(page, groupId);
+        await mockPendingMembersApi(page, groupId, []);
+        await mockApplySecurityPresetApi(page, groupId, { message: 'Preset applied' });
+
+        await groupDetailPage.navigateToGroup(groupId);
+        await groupDetailPage.waitForGroupToLoad();
+
+        await expect(groupDetailPage.getSecuritySettingsButton()).toBeVisible();
+
+        await groupDetailPage.openSecuritySettings();
+        await securityModal.waitForOpen();
+
+        await Promise.all([
+            page.waitForRequest((request) => request.url().includes(`/api/groups/${groupId}/security/apply-preset`) && request.method() === 'POST'),
+            securityModal.selectPreset('managed'),
+        ]);
+
+        await securityModal.close();
+        await expect(page.getByTestId('close-security-modal-button')).toBeHidden();
     });
 });
 

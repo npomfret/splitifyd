@@ -19,15 +19,19 @@ import type {
     ExpenseFullDetailsDTO,
     GroupDTO,
     GroupFullDetailsDTO,
+    GroupMembershipDTO,
     JoinGroupResponse,
     ListCommentsResponse,
     ListGroupsResponse,
+    MemberRole,
     MessageResponse,
     PolicyAcceptanceStatusDTO,
     PreviewGroupResponse,
     RegisterResponse,
     SettlementDTO,
     ShareLinkResponse,
+    GroupPermissions,
+    SecurityPreset,
     UpdateGroupRequest,
     UpdateDisplayNameRequest,
     UserPolicyStatusResponse,
@@ -115,7 +119,7 @@ function buildUrl(endpoint: string, params?: Record<string, string>, query?: Rec
 // Enhanced request configuration interface
 interface RequestConfig<T = any> {
     endpoint: string;
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
     params?: Record<string, string>;
     query?: Record<string, string>;
     body?: any;
@@ -129,7 +133,7 @@ interface RequestConfig<T = any> {
 
 // Legacy interface for backward compatibility
 interface RequestOptions {
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
     params?: Record<string, string>;
     query?: Record<string, string>;
     body?: any;
@@ -732,6 +736,52 @@ class ApiClient {
             method: 'POST',
             body: { groupId },
         });
+    }
+
+    async applySecurityPreset(groupId: GroupId, preset: SecurityPreset): Promise<MessageResponse> {
+        return this.request({
+            endpoint: `/groups/${groupId}/security/apply-preset`,
+            method: 'POST',
+            body: { preset },
+        });
+    }
+
+    async updateGroupPermissions(groupId: GroupId, permissions: Partial<GroupPermissions>): Promise<MessageResponse> {
+        return this.request({
+            endpoint: `/groups/${groupId}/security/permissions`,
+            method: 'PATCH',
+            body: permissions,
+        });
+    }
+
+    async updateMemberRole(groupId: GroupId, memberId: string, role: MemberRole): Promise<MessageResponse> {
+        return this.request({
+            endpoint: `/groups/${groupId}/members/${memberId}/role`,
+            method: 'PATCH',
+            body: { role },
+        });
+    }
+
+    async approvePendingMember(groupId: GroupId, memberId: string): Promise<MessageResponse> {
+        return this.request({
+            endpoint: `/groups/${groupId}/members/${memberId}/approve`,
+            method: 'POST',
+        });
+    }
+
+    async rejectPendingMember(groupId: GroupId, memberId: string): Promise<MessageResponse> {
+        return this.request({
+            endpoint: `/groups/${groupId}/members/${memberId}/reject`,
+            method: 'POST',
+        });
+    }
+
+    async getPendingMembers(groupId: GroupId): Promise<GroupMembershipDTO[]> {
+        const response = await this.request<{ members: GroupMembershipDTO[] }>({
+            endpoint: `/groups/${groupId}/members/pending`,
+            method: 'GET',
+        });
+        return Array.isArray(response?.members) ? response.members : [];
     }
 
     async previewGroupByLink(linkId: string): Promise<PreviewGroupResponse> {

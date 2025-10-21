@@ -10,10 +10,12 @@ interface GroupHeaderProps {
     members: GroupMember[];
     expenseCount?: number;
     onSettings?: () => void;
-    isGroupOwner?: boolean;
+    onSecurity?: () => void;
+    showSettingsButton?: boolean;
+    showSecurityButton?: boolean;
 }
 
-export function GroupHeader({ group, members, expenseCount = 0, onSettings, isGroupOwner }: GroupHeaderProps) {
+export function GroupHeader({ group, members, expenseCount = 0, onSettings, onSecurity, showSettingsButton, showSecurityButton }: GroupHeaderProps) {
     const { t } = useTranslation();
     return (
         <Card className='p-6'>
@@ -22,11 +24,32 @@ export function GroupHeader({ group, members, expenseCount = 0, onSettings, isGr
                     <h1 className='text-2xl font-bold mb-2'>{group.name}</h1>
                     {group.description && <p className='text-gray-600'>{group.description}</p>}
                 </div>
-                {isGroupOwner && onSettings && (
-                    <Button variant='ghost' size='sm' onClick={onSettings} className='p-2' ariaLabel={t('groupHeader.groupSettingsAriaLabel')} data-testid='group-settings-button'>
-                        <CogIcon className='h-5 w-5' />
-                    </Button>
-                )}
+                <div className='flex gap-2'>
+                    {showSecurityButton && onSecurity && (
+                        <Button
+                            variant='ghost'
+                            size='sm'
+                            onClick={onSecurity}
+                            className='p-2'
+                            ariaLabel={t('groupHeader.groupSecurityAriaLabel')}
+                            data-testid='group-security-button'
+                        >
+                            <CogIcon className='h-5 w-5' />
+                        </Button>
+                    )}
+                    {showSettingsButton && onSettings && (
+                        <Button
+                            variant='ghost'
+                            size='sm'
+                            onClick={onSettings}
+                            className='p-2'
+                            ariaLabel={t('groupHeader.groupSettingsAriaLabel')}
+                            data-testid='group-settings-button'
+                        >
+                            <CogIcon className='h-5 w-5' />
+                        </Button>
+                    )}
+                </div>
             </div>
 
             <div className='flex gap-6 text-sm text-gray-600'>

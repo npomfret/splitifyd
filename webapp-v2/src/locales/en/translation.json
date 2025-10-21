@@ -809,7 +809,79 @@
     "recent": "Recent",
     "expenses": "expenses",
     "createdPrefix": "Created",
-    "groupSettingsAriaLabel": "Group Settings"
+    "groupSettingsAriaLabel": "Group settings",
+    "groupSecurityAriaLabel": "Security and permissions"
+  },
+  "securitySettingsModal": {
+    "title": "Security & Permissions",
+    "description": "Configure presets, manage permissions, and control member access for this group.",
+    "presets": {
+      "heading": "Presets",
+      "description": "Apply a recommended permission set with a single click.",
+      "activeBadge": "Active",
+      "open": {
+        "label": "Open collaboration",
+        "description": "Everyone can invite members and manage expenses without restrictions."
+      },
+      "managed": {
+        "label": "Managed group",
+        "description": "Admins approve invites and control who can edit or delete expenses."
+      }
+    },
+    "custom": {
+      "heading": "Custom permissions",
+      "unsaved": "You have unsaved permission changes.",
+      "save": "Save permissions",
+      "saving": "Saving permissions..."
+    },
+    "permissions": {
+      "expenseEditing": {
+        "label": "Who can edit expenses",
+        "description": "Choose who can update any expense in the group."
+      },
+      "expenseDeletion": {
+        "label": "Who can delete expenses",
+        "description": "Restrict the ability to remove expenses."
+      },
+      "memberInvitation": {
+        "label": "Who can invite members",
+        "description": "Determine who can generate invite links."
+      },
+      "memberApproval": {
+        "label": "New member approval",
+        "description": "Require an admin review before someone joins via an invite."
+      },
+      "settingsManagement": {
+        "label": "Who can change settings",
+        "description": "Control access to administrative settings."
+      },
+      "options": {
+        "anyone": "Any member",
+        "owner-and-admin": "Creators & admins",
+        "admin-only": "Admins only",
+        "automatic": "Automatic",
+        "admin-required": "Admin approval required"
+      }
+    },
+    "memberRoles": {
+      "heading": "Member roles",
+      "admin": "Admin",
+      "member": "Member",
+      "viewer": "Viewer"
+    },
+    "pendingMembers": {
+      "heading": "Pending members",
+      "requested": "Awaiting approval",
+      "empty": "No pending requests right now.",
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "errors": {
+      "loadPending": "Unable to load pending members. Please try again.",
+      "updatePermissions": "We couldn't update the permissions. Please try again.",
+      "updateRole": "Updating the member's role failed.",
+      "pendingAction": "We couldn't process that request. Please try again."
+    }
   },
   "settingsPage": {
     "title": "Settings - Splitifyd",
@@ -885,6 +957,7 @@
     "settleUp": "Settle Up",
     "inviteOthers": "Invite Others",
     "groupSettings": "Group Settings",
+    "groupSecurity": "Security & Permissions",
     "leaveGroup": "Leave Group"
   },
   "groupDisplayNameSettings": {

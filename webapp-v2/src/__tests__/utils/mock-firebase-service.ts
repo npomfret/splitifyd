@@ -625,6 +625,34 @@ export async function mockJoinGroupApi(
     );
 }
 
+export async function mockPendingMembersApi(
+    page: Page,
+    groupId: GroupId,
+    members: any[] = [],
+    options: { delayMs?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler('GET', `/api/groups/${groupId}/members/pending`, { members }, { delayMs: delay }),
+    );
+}
+
+export async function mockApplySecurityPresetApi(
+    page: Page,
+    groupId: GroupId,
+    response: any = { message: 'Preset applied' },
+    options: { delayMs?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler('POST', `/api/groups/${groupId}/security/apply-preset`, response, { delayMs: delay }),
+    );
+}
+
 /**
  * Mock group preview API failure
  * @param status - HTTP status code for the failure

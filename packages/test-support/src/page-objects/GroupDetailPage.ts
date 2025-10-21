@@ -198,6 +198,14 @@ export class GroupDetailPage extends BasePage {
         return this.page.getByRole('button', { name: translation.groupActions.groupSettings }).first();
     }
 
+    async openSecuritySettings(): Promise<void> {
+        await this.getSecuritySettingsButton().click();
+    }
+
+    getSecuritySettingsButton(): Locator {
+        return this.page.getByRole('button', { name: translation.groupActions.groupSecurity }).first();
+    }
+
     /**
      * Share Group button (labeled as "Invite Others")
      * Uses .first() to handle duplicate buttons in sidebar and elsewhere
