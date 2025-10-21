@@ -43,6 +43,7 @@ if (typeof window !== 'undefined') {
 import type { CommentDTO, ListCommentsResponse } from '@splitifyd/shared';
 import { apiClient } from '@/app/apiClient';
 import { CommentsStoreImpl } from '@/stores/comments-store';
+import type { UserNotificationDetector } from '@/utils/user-notification-detector';
 
 const mockedApiClient = apiClient as unknown as {
     getGroupComments: Mock;
@@ -50,14 +51,14 @@ const mockedApiClient = apiClient as unknown as {
 };
 
 function createComment(id: string, message: string): CommentDTO {
+    const now = new Date().toISOString();
     return {
         id,
         text: message,
-        createdAt: new Date().toISOString(),
+        createdAt: now,
+        updatedAt: now,
         authorId: `user-${id}`,
-        authorDisplayName: `User ${id}`,
-        targetId: 'target',
-        targetType: 'group',
+        authorName: `User ${id}`,
     };
 }
 
@@ -65,7 +66,7 @@ function responseFor(comments: CommentDTO[]): ListCommentsResponse {
     return {
         comments,
         hasMore: false,
-        nextCursor: null,
+        nextCursor: undefined,
     };
 }
 
@@ -80,7 +81,7 @@ describe('CommentsStoreImpl', () => {
 
         const notificationDetector = {
             subscribe: subscribeMock,
-        } as unknown as { subscribe: Mock };
+        } as unknown as UserNotificationDetector;
 
         store = new CommentsStoreImpl(notificationDetector);
         mockedApiClient.getGroupComments.mockReset();
