@@ -49,6 +49,20 @@
 - **Status:** ✅ Resolved — `getUserPolicyStatus` now accepts an optional abort signal and the hook forwards `controller.signal`, preventing redundant emulator/production traffic (`apiClient.ts`, `usePolicyAcceptance.ts`).
 - **Recommendation:** Extend `getUserPolicyStatus` to accept a signal and pass `controller.signal`, mirroring the pattern already used by `getCurrentPolicy`.
 
+### 7. Query Parsing Uses `window` at Module Scope (P1)
+- **Location:** `webapp-v2/src/pages/JoinGroupPage.tsx:39-45`, `webapp-v2/src/pages/AddExpensePage.tsx:16-22`
+- **Issue:** Both pages instantiated `new URLSearchParams(window.location.search)` during module evaluation. In any environment without `window` (SSR, Node-based tests, static analysis) the import throws, preventing the page from rendering and cascading into router failures.
+- **Impact:** Hard crash during server-side rendering attempts and brittle unit tests; also complicates storybook/static rendering pipelines.
+- **Status:** ✅ Resolved — query parsing now happens lazily inside the component with a `typeof window !== 'undefined'` guard, falling back to `null` when the DOM is unavailable. This keeps browser behaviour unchanged while making SSR/test environments safe.
+- **Recommendation:** Keep all direct `window` access inside guarded branches or effects; prefer central helpers for cross-cutting needs (e.g., extend `navigationService` for future query helpers).
+
+### 8. Login Email Persistence Breaks Without `sessionStorage` (P1)
+- **Location:** `webapp-v2/src/pages/LoginPage.tsx:21-28`
+- **Issue:** The email field initialiser called `sessionStorage.getItem` unguarded. When rendered in a non-browser context (SSR/unit tests without JSDOM) the ReferenceError crashes the entire auth page before it can render.
+- **Impact:** Prevents login form rendering in shared test environments and blocks future SSR adoption.
+- **Status:** ✅ Resolved — initial read and write operations now wrap access in `typeof window !== 'undefined'` plus try/catch guards. The form still persists email between reloads but degrades gracefully when storage is unavailable.
+- **Recommendation:** Follow the register page pattern by isolating storage access in guarded helpers so the component remains portable.
+
 ## Additional Observations (Nice-to-Have)
 - `webapp-v2/src/pages/RegisterPage.tsx:70-85` contains verbose flame-emoji `console.log` debugging that will leak return URLs and timestamps. **Status:** ✅ Resolved — logs removed; redirection now runs silently via navigation service.
 - `webapp-v2/src/components/group/ShareGroupModal.tsx` accepts a `groupName` prop but never renders it; include it in the UI or drop the prop for clarity. **Status:** ✅ Resolved — modal now surfaces the active group name beneath the title while preserving trimmed formatting.

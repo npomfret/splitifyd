@@ -15,11 +15,11 @@ interface AddExpensePageProps {
 export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     const { t } = useTranslation();
     // Parse URL parameters for edit mode and copy mode
-    const urlParams = new URLSearchParams(window.location.search);
-    const expenseId = urlParams.get('id');
-    const isEditMode = urlParams.get('edit') === 'true' && !!expenseId;
-    const isCopyMode = urlParams.get('copy') === 'true';
-    const sourceExpenseId = urlParams.get('sourceId');
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const expenseId = searchParams?.get('id');
+    const isEditMode = searchParams?.get('edit') === 'true' && !!expenseId;
+    const isCopyMode = searchParams?.get('copy') === 'true';
+    const sourceExpenseId = searchParams?.get('sourceId') || undefined;
 
     // Authentication check
     useAuthRequired();

@@ -39,8 +39,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     const pendingApproval = memberStatus === 'pending';
 
     // Get linkId from URL query parameters if not provided as prop
-    const urlParams = new URLSearchParams(window.location.search);
-    const actualLinkId = linkId || urlParams.get('linkId');
+    const actualLinkId = linkId ?? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('linkId') : null);
 
     useEffect(() => {
         // Reset store on component mount

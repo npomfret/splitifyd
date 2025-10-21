@@ -18,12 +18,28 @@ export function LoginPage() {
     // Note: Do NOT use useComputed here - it breaks reactivity when passed to child components
 
     // Component state with sessionStorage persistence
-    const [email, setEmail] = useState(() => sessionStorage.getItem('login-email') || '');
+    const [email, setEmail] = useState(() => {
+        if (typeof window === 'undefined') {
+            return '';
+        }
+        try {
+            return sessionStorage.getItem('login-email') || '';
+        } catch {
+            return '';
+        }
+    });
     const [password, setPassword] = useState('');
 
     // Persist to sessionStorage on changes
     useEffect(() => {
-        sessionStorage.setItem('login-email', email);
+        if (typeof window === 'undefined') {
+            return;
+        }
+        try {
+            sessionStorage.setItem('login-email', email);
+        } catch {
+            // Ignore storage failures (private browsing, disabled storage, etc.)
+        }
     }, [email]);
 
     useEffect(() => {
