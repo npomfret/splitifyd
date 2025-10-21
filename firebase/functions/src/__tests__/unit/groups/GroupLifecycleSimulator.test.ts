@@ -202,6 +202,9 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const group = await createGroupWithMembers(owner.id, [member.id], 'Timestamp Group');
 
         const before = await groupService.getGroupFullDetails(group.id, owner.id);
+
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
         await appDriver.leaveGroup(member.id, group.id);
         const after = await groupService.getGroupFullDetails(group.id, owner.id);
 

@@ -48,10 +48,9 @@ describe('Expense Locking Debug Test', () => {
 
         // Created expense
 
-        // Try to update the expense twice simultaneously
         const lockingTestParticipants = [user1.uid];
         const updatePromises = [
-            await apiDriver.updateExpense(
+            apiDriver.updateExpense(
                 expense.id,
                 new ExpenseUpdateBuilder()
                     .withAmount(200, 'EUR')
@@ -60,7 +59,7 @@ describe('Expense Locking Debug Test', () => {
                     .build(),
                 user1.token,
             ),
-            await apiDriver.updateExpense(
+            apiDriver.updateExpense(
                 expense.id,
                 new ExpenseUpdateBuilder()
                     .withAmount(300, 'EUR')
@@ -71,7 +70,6 @@ describe('Expense Locking Debug Test', () => {
             ),
         ];
 
-        // Starting concurrent updates
         const results = await Promise.allSettled(updatePromises);
 
         // Check the actual results
