@@ -1,3 +1,14 @@
+/**
+ * Expense Locking Integration Tests
+ *
+ * IMPORTANT: Most concurrent update tests have been moved to unit tests:
+ * - firebase/functions/src/__tests__/unit/expenses/ExpenseConcurrentUpdates.test.ts
+ *
+ * This file now only contains integration tests that verify actual Firebase optimistic
+ * locking behavior with real Firestore transactions that cannot be replicated with
+ * StubFirestoreDatabase.
+ */
+
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { calculateEqualSplits, UserToken } from '@splitifyd/shared';
@@ -5,7 +16,7 @@ import { borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder
 import { ApiDriver } from '@splitifyd/test-support';
 import { getFirestore } from '../../firebase';
 
-describe('Expense Locking Debug Test', () => {
+describe('Expense Locking - Firebase Transaction Behavior', () => {
     const apiDriver = new ApiDriver();
     const notificationDriver = new NotificationDriver(getFirestore());
 
@@ -21,7 +32,7 @@ describe('Expense Locking Debug Test', () => {
         await notificationDriver.stopAllListeners();
     });
 
-    test('should handle concurrent expense updates', async () => {
+    test('should verify Firebase optimistic locking prevents data loss in concurrent updates', async () => {
         // Create group
         const group = await apiDriver.createGroup(
             new CreateGroupRequestBuilder()
@@ -46,8 +57,13 @@ describe('Expense Locking Debug Test', () => {
             user1.token,
         );
 
-        // Created expense
+        // Verify expense was created
+        expect(expense.id).toBeDefined();
+        expect(expense.amount).toBe('100');
 
+        // Test Firebase's optimistic locking with truly concurrent updates
+        // This tests actual Firestore transaction behavior that cannot be replicated
+        // with StubFirestoreDatabase
         const lockingTestParticipants = [user1.uid];
         const updatePromises = [
             apiDriver.updateExpense(
@@ -72,9 +88,7 @@ describe('Expense Locking Debug Test', () => {
 
         const results = await Promise.allSettled(updatePromises);
 
-        // Check the actual results
-
-        // Check results
+        // Verify Firebase transaction behavior - at least one update succeeds
         const successes = results.filter((r) => r.status === 'fulfilled');
         const failures = results.filter((r) => r.status === 'rejected');
 
@@ -82,9 +96,11 @@ describe('Expense Locking Debug Test', () => {
         expect(successes.length).toBeGreaterThan(0);
         expect(successes.length + failures.length).toBe(2);
 
-        // Verify final state
+        // Verify final state - Firebase should have persisted one of the updates
+        // This confirms optimistic locking worked correctly
         const expenses = await apiDriver.getGroupExpenses(group.id, user1.token);
         const updatedExpense = expenses.expenses.find((e: any) => e.id === expense.id);
+        expect(updatedExpense).toBeDefined();
         expect(['200', '300']).toContain(updatedExpense?.amount);
     });
 });

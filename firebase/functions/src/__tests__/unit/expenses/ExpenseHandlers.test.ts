@@ -549,6 +549,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
                 ],
             };
 
+            // Add small delay to ensure updatedAt > createdAt (prevent identical timestamps)
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
             await appDriver.updateExpense(user1, created.id, updateData);
 
             const updated = await appDriver.getExpense(user1, created.id);
